@@ -1,7 +1,7 @@
 package com.discounttracker.data;
 
 import com.discounttracker.model.OfferRecord;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
