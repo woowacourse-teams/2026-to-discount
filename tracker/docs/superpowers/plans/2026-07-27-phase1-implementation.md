@@ -1,5 +1,32 @@
 # Phase 1 구현 계획 — 배달앱 브랜드할인 추적기
 
+> ## 실행 기록 (2026-07-27)
+>
+> | Task | 상태 | 비고 |
+> |---|---|---|
+> | 1 환경 | 완료 | 에뮬레이터가 아니라 **실기**로 확정 ([ADR-009](../../decisions/ADR-009-real-device-over-emulator.md)). 문서는 [device-setup.md](../../setup/device-setup.md) |
+> | 2 config | 완료 | 계획대로 |
+> | 3 schema | 완료 | 계획대로 |
+> | 4 store | 완료 | 계획대로 |
+> | 5 dashboard | 완료 | `html.escape` 추가 |
+> | 6 tracker | 완료 | 계획의 스모크 테스트가 항상 실패해 둘로 분리 |
+> | 7 capture/common | 완료 | `wait_for_activity` 추가, 스티칭에 콘텐츠 영역 크롭 추가 |
+> | 8 배민 | 완료 | 탭 경로가 아니라 **딥링크**. 배짱할인은 수동으로 내림 |
+> | 9 쿠팡이츠 | **미착수** | |
+> | 10 땡겨요 | **미착수** | |
+> | 11 판독 계약 | **미착수** | 배짱할인에서 브랜드/매장 카드가 섞여 나오는 구분 규칙이 추가로 필요 |
+> | 12 통합 | 부분 | `.gitignore`만 선반영 |
+>
+> ### 계획과 달라진 것
+>
+> 1. **실행 환경** — 에뮬레이터 → 실기(1220x2712). 좌표 상수 전부 이 해상도 기준.
+> 2. **배민 패키지** — 계획의 `com.baemin.presentation`은 틀렸다. 실제는 `com.sampleapp`.
+> 3. **화면 진입** — Task 8~10이 전제한 "고정 탭 경로"는 그날 뜨는 프로모션 모달에 깨진다. 딥링크 우선으로 바꿨다 ([ADR-011](../../decisions/ADR-011-deeplink-entry-over-tap-path.md)).
+> 4. **배민 대상 화면이 2개** — 계획은 브랜드관 하나만 가정했다. 배짱할인은 고정 URL이 없어 수동 캡처로 내렸다.
+> 5. **`stitch_frames`** — 계획의 구현과 테스트가 겹침 절단 방향을 서로 반대로 가정했다(크기가 같아 크기 단언으로는 안 걸린다). 구현 쪽(뒤 프레임 위쪽 절단)으로 통일했다.
+> 6. **`scroll_capture`** — 계획에 없던 `content_bottom_px`(내비 바 제거)와 `status_bar_px`(바닥 감지에서 시계 제외)가 실기에서 필요했다.
+> 7. **내부 API** — 발견했으나 인증 벽으로 기각 ([ADR-010](../../decisions/ADR-010-reject-internal-api.md)).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 배민·쿠팡이츠·땡겨요 3개 앱의 브랜드할인 페이지를 캡처→판독→저장→대시보드까지 잇는 1차 파이프라인을 완성한다.

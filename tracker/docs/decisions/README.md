@@ -6,10 +6,13 @@
 | ID | 제목 | 상태 |
 |---|---|---|
 | [ADR-001](ADR-001-python-adb-cli.md) | 구현 언어는 Python, ADB는 CLI 호출 | 확정 |
-| [ADR-002](ADR-002-android-sdk-emulator.md) | 에뮬레이터는 Android SDK, BlueStacks 아님 | 확정 |
+| [ADR-002](ADR-002-android-sdk-emulator.md) | 에뮬레이터는 Android SDK, BlueStacks 아님 | [ADR-009](ADR-009-real-device-over-emulator.md)로 대체 |
 | [ADR-003](ADR-003-vision-over-selectors.md) | 판독은 비전, 선택자 기반 레시피 폐기 | 확정 |
 | [ADR-004](ADR-004-preserve-qualifier.md) | 금액 수식어를 분리 보존, 단일 숫자 정규화 금지 | 확정 |
 | [ADR-005](ADR-005-main-page-only.md) | 1차 범위는 메인 할인 페이지까지 | 확정 |
 | [ADR-006](ADR-006-section-as-data.md) | 섹션명은 설정이 아니라 캡처 데이터 | 확정 |
 | [ADR-007](ADR-007-unified-app-pipeline.md) | 요기요도 웹 분리 없이 앱 파이프라인으로 통합 | 확정 |
 | [ADR-008](ADR-008-manual-fallback-parity.md) | 수동 캡처를 자동과 동일 산출물로 정의 | 확정 |
+| [ADR-009](ADR-009-real-device-over-emulator.md) | 캡처 대상 기기는 에뮬레이터가 아니라 실기 | 확정 |
+| [ADR-010](ADR-010-reject-internal-api.md) | 앱 내부 API를 쓰지 않고 화면 캡처를 유지 | 확정 |
+| [ADR-011](ADR-011-deeplink-entry-over-tap-path.md) | 화면 진입은 딥링크로, 없으면 수동 캡처 | 확정 |
