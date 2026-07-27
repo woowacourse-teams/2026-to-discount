@@ -29,16 +29,17 @@ public class BrandComparisonService {
     }
 
     public List<BrandComparison> compare() {
-        // 대표명별로 offer 모으기
-        Map<String, List<Offer>> byBrand = new LinkedHashMap<>();
+        // 대표명별로 offer 모으기 (같은 (대표명, platform)이 여럿이면 confirmed 우선, 그 다음 amount 큰 것만 남김)
+        Map<String, Map<String, Offer>> byBrand = new LinkedHashMap<>();
         Map<String, Integer> maxConfirmed = new LinkedHashMap<>();
         Map<String, Integer> maxHeld = new LinkedHashMap<>();  // 확정 없는 브랜드끼리의 정렬용
 
         for (OfferRecord r : loader.records()) {
             String name = aliases.canonical(r.brand());
             String status = isConfirmed(r) ? "confirmed" : "held";
-            byBrand.computeIfAbsent(name, k -> new ArrayList<>())
-                    .add(new Offer(r.platform(), r.amount(), r.qualifier(), status, r.rawText()));
+            Offer candidate = new Offer(r.platform(), r.amount(), r.qualifier(), status, r.rawText());
+            byBrand.computeIfAbsent(name, k -> new LinkedHashMap<>())
+                    .merge(r.platform(), candidate, BrandComparisonService::betterOffer);
             if (isConfirmed(r)) {
                 maxConfirmed.merge(name, r.amount(), Math::max);
             } else if (r.amount() != null) {
@@ -49,7 +50,8 @@ public class BrandComparisonService {
         List<BrandComparison> result = new ArrayList<>();
         for (var entry : byBrand.entrySet()) {
             result.add(new BrandComparison(
-                    entry.getKey(), maxConfirmed.get(entry.getKey()), entry.getValue()));
+                    entry.getKey(), maxConfirmed.get(entry.getKey()),
+                    new ArrayList<>(entry.getValue().values())));
         }
 
         // 정렬: 확정값 있는 것 먼저(확정 큰 순), 확정 없는 것은 그 아래에서 held 큰 순.
@@ -63,5 +65,15 @@ public class BrandComparisonService {
 
     private static int nullToZero(Integer v) {
         return v == null ? 0 : v;
+    }
+
+    // 같은 (대표명, platform)에 offer가 여럿이면: confirmed 우선, 그 안에서 amount 큰 것.
+    private static Offer betterOffer(Offer existing, Offer candidate) {
+        boolean existingConfirmed = "confirmed".equals(existing.status());
+        boolean candidateConfirmed = "confirmed".equals(candidate.status());
+        if (candidateConfirmed != existingConfirmed) {
+            return candidateConfirmed ? candidate : existing;
+        }
+        return nullToZero(candidate.amount()) > nullToZero(existing.amount()) ? candidate : existing;
     }
 }

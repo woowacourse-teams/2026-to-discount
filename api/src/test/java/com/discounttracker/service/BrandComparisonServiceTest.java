@@ -99,4 +99,19 @@ class BrandComparisonServiceTest {
         assertEquals("held8000", result.get(1).name());  // held 큰 순 → 삽입순 아님
         assertEquals("held3000", result.get(2).name());
     }
+
+    @Test
+    void dedupesSamePlatformOffersKeepingConfirmedThenLargerAmount() {
+        var svc = new BrandComparisonService(
+                loaderWith(List.of(
+                        rec("baemin", "빽보이피자", 6000, null, false),
+                        rec("baemin", "빽보이피자", 4000, null, false))),
+                aliasWith(""));
+        List<BrandComparison> result = svc.compare();
+        assertEquals(1, result.size());
+        List<Offer> baeminOffers = result.get(0).offers().stream()
+                .filter(o -> o.platform().equals("baemin")).toList();
+        assertEquals(1, baeminOffers.size());
+        assertEquals(6000, baeminOffers.get(0).amount());
+    }
 }
