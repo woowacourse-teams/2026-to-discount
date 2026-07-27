@@ -85,4 +85,18 @@ class BrandComparisonServiceTest {
         assertEquals("C브랜드", result.get(2).name());   // 확정 없음 → 맨 아래
         assertNull(result.get(2).maxConfirmedAmount());
     }
+
+    @Test
+    void confirmedlessBrandsSortByHeldAmountDescending() {
+        var svc = new BrandComparisonService(
+                loaderWith(List.of(
+                        rec("baemin", "확정브랜드", 5000, null, false),        // 확정
+                        rec("yogiyo", "held3000", 3000, "최대", true),        // 확정 없음, held 3000 (먼저 삽입)
+                        rec("yogiyo", "held8000", 8000, "최대", true))),      // 확정 없음, held 8000
+                aliasWith(""));
+        List<BrandComparison> result = svc.compare();
+        assertEquals("확정브랜드", result.get(0).name());
+        assertEquals("held8000", result.get(1).name());  // held 큰 순 → 삽입순 아님
+        assertEquals("held3000", result.get(2).name());
+    }
 }

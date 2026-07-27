@@ -32,6 +32,7 @@ public class BrandComparisonService {
         // 대표명별로 offer 모으기
         Map<String, List<Offer>> byBrand = new LinkedHashMap<>();
         Map<String, Integer> maxConfirmed = new LinkedHashMap<>();
+        Map<String, Integer> maxHeld = new LinkedHashMap<>();  // 확정 없는 브랜드끼리의 정렬용
 
         for (OfferRecord r : loader.records()) {
             String name = aliases.canonical(r.brand());
@@ -40,6 +41,8 @@ public class BrandComparisonService {
                     .add(new Offer(r.platform(), r.amount(), r.qualifier(), status, r.rawText()));
             if (isConfirmed(r)) {
                 maxConfirmed.merge(name, r.amount(), Math::max);
+            } else if (r.amount() != null) {
+                maxHeld.merge(name, r.amount(), Math::max);
             }
         }
 
@@ -49,10 +52,12 @@ public class BrandComparisonService {
                     entry.getKey(), maxConfirmed.get(entry.getKey()), entry.getValue()));
         }
 
-        // 정렬: 확정값 있는 것 먼저(할인 큰 순), 확정 없는 것은 뒤로.
+        // 정렬: 확정값 있는 것 먼저(확정 큰 순), 확정 없는 것은 그 아래에서 held 큰 순.
         result.sort(Comparator
                 .comparing((BrandComparison b) -> b.maxConfirmedAmount() == null)  // false(확정) 먼저
-                .thenComparing(b -> -nullToZero(b.maxConfirmedAmount())));
+                .thenComparing(b -> b.maxConfirmedAmount() != null
+                        ? -nullToZero(b.maxConfirmedAmount())
+                        : -nullToZero(maxHeld.get(b.name()))));
         return result;
     }
 
