@@ -1,0 +1,19 @@
+:root { color-scheme: light dark; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.5 system-ui, sans-serif; }
+main { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem; }
+h1 { font-size: 1.25rem; margin: 0 0 .2rem; }
+.sub { color: #888; font-size: .85rem; margin: 0 0 1.2rem; }
+.msg { padding: 2rem 1rem; text-align: center; color: #888; }
+table { border-collapse: collapse; width: 100%; }
+th, td { padding: .4rem .5rem; border-bottom: 1px solid #8883; text-align: right; white-space: nowrap; }
+th:first-child, td.brand { text-align: left; }
+th { font-size: .75rem; color: #888; font-weight: 600; }
+td.brand { font-weight: 600; }
+td.confirmed { font-variant-numeric: tabular-nums; }
+td.held { color: #999; font-variant-numeric: tabular-nums; }
+td.empty { color: #ccc; }
+.badge { font-size: .7em; color: #c2410c; margin-right: .2em; }
+@media (max-width: 520px) {
+  th, td { padding: .35rem .3rem; font-size: .9em; }
+}
