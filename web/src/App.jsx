@@ -14,7 +14,7 @@ function Cell({ offer }) {
   const amount = offer.amount != null ? `${offer.amount.toLocaleString()}원` : offer.rawText
   return (
     <td className={held ? 'held' : 'confirmed'}>
-      {offer.qualifier === '최대' && <span className="badge">최대</span>}
+      {held && offer.qualifier === '최대' && <span className="badge">최대</span>}
       {amount}
     </td>
   )
@@ -35,25 +35,27 @@ export default function App() {
     <main>
       <h1>배달앱 브랜드 할인 비교</h1>
       <p className="sub">같은 브랜드를 어느 앱에서 시키는 게 이득인지 한눈에</p>
-      <table>
-        <thead>
-          <tr>
-            <th>브랜드</th>
-            {PLATFORMS.map((p) => <th key={p.key}>{p.label}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {brands.map((b) => {
-            const byPlatform = Object.fromEntries(b.offers.map((o) => [o.platform, o]))
-            return (
-              <tr key={b.name}>
-                <td className="brand">{b.name}</td>
-                {PLATFORMS.map((p) => <Cell key={p.key} offer={byPlatform[p.key]} />)}
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>브랜드</th>
+              {PLATFORMS.map((p) => <th key={p.key}>{p.label}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {brands.map((b) => {
+              const byPlatform = Object.fromEntries(b.offers.map((o) => [o.platform, o]))
+              return (
+                <tr key={b.name}>
+                  <td className="brand">{b.name}</td>
+                  {PLATFORMS.map((p) => <Cell key={p.key} offer={byPlatform[p.key]} />)}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
     </main>
   )
 }
