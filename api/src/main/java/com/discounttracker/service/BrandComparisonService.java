@@ -37,7 +37,8 @@ public class BrandComparisonService {
         for (OfferRecord r : loader.records()) {
             String name = aliases.canonical(r.brand());
             String status = isConfirmed(r) ? "confirmed" : "held";
-            Offer candidate = new Offer(r.platform(), r.amount(), r.qualifier(), status, r.rawText());
+            Offer candidate = new Offer(r.platform(), r.amount(), r.qualifier(), status,
+                    r.rawText(), r.screenshotPath());
             byBrand.computeIfAbsent(name, k -> new LinkedHashMap<>())
                     .merge(r.platform(), candidate, BrandComparisonService::betterOffer);
             if (isConfirmed(r)) {
