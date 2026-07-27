@@ -1,0 +1,4 @@
+discount:
+  export-path: classpath:data/export.json
+server:
+  port: 8080
