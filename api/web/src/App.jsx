@@ -22,6 +22,16 @@ function assetSrc(base, name) {
   return `${base}/${encodeURIComponent(name)}.png`
 }
 
+// 폴백 글자(span)는 position:absolute라 static인 img보다 항상 위에 그려진다
+// (DOM 순서와 무관하게 positioned 요소가 위로 쌓임). onError로 깨진 이미지만
+// 숨기던 이전 방식은 "로드는 됐지만 저해상도라 흐릿한" 로고 위에 글자가 겹쳐
+// 보이는 문제가 있었다(예: 또래오래, 파파존스). 로드 성공 시 폴백을 직접
+// 숨겨서 이미지·글자 중 하나만 보이게 한다.
+function hideSiblingFallback(e) {
+  const fallback = e.currentTarget.nextElementSibling
+  if (fallback) fallback.style.display = 'none'
+}
+
 function PlatformBadge({ platformKey }) {
   const p = PLATFORM_BY_KEY[platformKey]
   return (
@@ -29,6 +39,7 @@ function PlatformBadge({ platformKey }) {
       <img
         src={assetSrc('/platform-icons', p.key)}
         alt=""
+        onLoad={hideSiblingFallback}
         onError={(e) => { e.currentTarget.style.display = 'none' }}
       />
       <span className="platform-badge__fallback" aria-hidden="true">{p.initial}</span>
@@ -43,6 +54,7 @@ function BrandLogo({ name }) {
       <img
         src={assetSrc('/logos', name)}
         alt={name}
+        onLoad={hideSiblingFallback}
         onError={(e) => { e.currentTarget.style.display = 'none' }}
       />
       <span className="brand-logo__fallback" aria-hidden="true">{name.trim().charAt(0)}</span>
@@ -87,9 +99,9 @@ function OfferChip({ offer, expanded, onToggle }) {
   )
 }
 
-// 브랜드 하나 = 한 줄(행). 로고+이름은 왼쪽에 고정, 오퍼는 금액 큰 순으로
-// 오른쪽에 수평 나열(넘치면 다음 줄로 감쌈).
-function BrandRow({ brand }) {
+// 브랜드 하나 = 카드 하나. 1행 = 로고+이름, 2행 = 앱별 금액(수평 나열).
+// 카드 여러 개가 한 줄에 2~3개씩 반응형으로 놓인다(.brand-grid).
+function BrandCard({ brand }) {
   const [openPlatform, setOpenPlatform] = useState(null)
 
   const sortedOffers = useMemo(
@@ -98,10 +110,10 @@ function BrandRow({ brand }) {
   )
 
   return (
-    <article className="brand-row">
-      <header className="brand-row__head">
+    <article className="brand-card">
+      <header className="brand-card__head">
         <BrandLogo name={brand.name} />
-        <h2 className="brand-row__name">{brand.name}</h2>
+        <h2 className="brand-card__name">{brand.name}</h2>
       </header>
       <ul className="offer-list">
         {sortedOffers.map((o) => (
@@ -191,8 +203,8 @@ export default function App() {
       {!error && !brands && <p className="msg">불러오는 중…</p>}
 
       {brands && (
-        <div className="brand-list">
-          {brands.map((b) => <BrandRow key={b.name} brand={b} />)}
+        <div className="brand-grid">
+          {brands.map((b) => <BrandCard key={b.name} brand={b} />)}
         </div>
       )}
 

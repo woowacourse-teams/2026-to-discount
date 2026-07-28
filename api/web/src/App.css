@@ -127,36 +127,34 @@ h1 {
 }
 .drawer__option input { accent-color: var(--accent); width: 16px; height: 16px; }
 
-/* 브랜드 목록 — 브랜드 하나 = 한 줄(행) */
-.brand-list {
+/* 브랜드 카드 그리드 — 한 줄에 2~3개, 반응형 */
+.brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: .85rem;
+  align-items: start;
+}
+
+.brand-card {
   display: flex;
   flex-direction: column;
-  gap: .5rem;
-}
-
-.brand-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: .6rem 1rem;
+  gap: .65rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: .7rem .9rem;
+  border-radius: 14px;
+  padding: 1rem;
   transition: box-shadow 200ms ease;
 }
-.brand-row:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .04); }
+.brand-card:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .04); }
 
-.brand-row__head {
+/* 1행: 로고 + 이름 */
+.brand-card__head {
   display: flex;
   align-items: center;
-  gap: .55rem;
-  flex: none;
-  width: 168px;
-  min-width: 0;
+  gap: .7rem;
 }
-.brand-row__name {
-  font-size: .9rem;
+.brand-card__name {
+  font-size: .98rem;
   font-weight: 600;
   margin: 0;
   letter-spacing: -0.01em;
@@ -167,8 +165,8 @@ h1 {
 
 .brand-logo {
   position: relative;
-  width: 30px; height: 30px;
-  border-radius: 8px;
+  width: 48px; height: 48px;
+  border-radius: 11px;
   overflow: hidden;
   flex: none;
   background: var(--bg);
@@ -178,10 +176,10 @@ h1 {
 .brand-logo__fallback {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: .75rem; font-weight: 600; color: var(--text-muted);
+  font-size: 1.15rem; font-weight: 600; color: var(--text-muted);
 }
 
-/* 오퍼(앱별 금액) 수평 나열, 넘치면 다음 줄로 감쌈 */
+/* 2행: 앱별 금액 수평 나열, 넘치면 다음 줄로 감쌈 */
 .offer-list {
   list-style: none;
   margin: 0;
@@ -267,6 +265,5 @@ h1 {
 
 @media (max-width: 560px) {
   main { padding: 1.5rem 1rem 3rem; }
-  .brand-row { flex-direction: column; align-items: flex-start; }
-  .brand-row__head { width: 100%; }
+  .brand-grid { grid-template-columns: 1fr; }
 }
