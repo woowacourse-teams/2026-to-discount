@@ -137,7 +137,7 @@ function OfferChip({ offer, brandName }) {
         <div className="offer__chip">{content}</div>
       )}
       {offer.platform === 'ddangyo' && (
-        <span className="offer__extra">지역화폐 +2,000원</span>
+        <span className="offer__extra" title="지역화폐 결제 시 +2,000원 추가 할인">지역</span>
       )}
     </li>
   )

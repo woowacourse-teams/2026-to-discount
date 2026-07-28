@@ -216,15 +216,17 @@ h1 {
    이라 존재감은 있되 클릭 피드백은 안 준다. */
 .offer__extra {
   position: absolute;
-  bottom: -8px;
-  right: -8px;
-  display: inline-block;
-  padding: .15rem .5rem;
+  bottom: -6px;
+  right: -6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .1rem .32rem;
   border-radius: 9999px;
   border: 1.5px solid var(--surface);
   background: linear-gradient(135deg, #ff9d4d, #f2751a);
   color: #fff;
-  font-size: .62rem;
+  font-size: .52rem;
   font-weight: 700;
   white-space: nowrap;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .18);
