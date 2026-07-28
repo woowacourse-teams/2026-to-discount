@@ -9,6 +9,48 @@ const PLATFORMS = [
 ]
 const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 
+// 땡겨요는 브랜드별 상세 쿠폰 페이지가 앱 전용 공유링크로만 존재한다(딥링크,
+// 웹으로는 빈 WebSquare 셸만 응답함 — 확인됨). 링크를 못 열어도 앱이 깔려
+// 있으면 폰에서 딥링크로 그대로 넘어간다.
+const DDANGYO_LINKS = {
+  '설빙': 'https://fdofd.ddangyo.com/gateway4.html?EE7GifX',
+  '푸라닭': 'https://fdofd.ddangyo.com/gateway4.html?c2ytzEn',
+  '버거킹': 'https://fdofd.ddangyo.com/gateway4.html?vanBB85',
+  '뚜레쥬르': 'https://fdofd.ddangyo.com/gateway4.html?Su5rYT4',
+  '두찜': 'https://fdofd.ddangyo.com/gateway4.html?nbYJqDX',
+  '네네치킨': 'https://fdofd.ddangyo.com/gateway4.html?aTPhxVy',
+  '프레드피자': 'https://fdofd.ddangyo.com/gateway4.html?2EQN6qm',
+  '자담치킨': 'https://fdofd.ddangyo.com/gateway4.html?vo1gL4b',
+  '청년피자': 'https://fdofd.ddangyo.com/gateway4.html?1gWfr6i',
+  '호식이두마리치킨': 'https://fdofd.ddangyo.com/gateway4.html?BxZMpFY',
+  '멕시카나': 'https://fdofd.ddangyo.com/gateway4.html?wXJeQzu',
+  'bhc': 'https://fdofd.ddangyo.com/gateway4.html?hi55GGt',
+  '후라이드참잘하는집': 'https://fdofd.ddangyo.com/gateway4.html?igsyudD',
+  '왓더버거': 'https://fdofd.ddangyo.com/gateway4.html?G9Z4NxO',
+  '기영이숯불두마리치킨': 'https://fdofd.ddangyo.com/gateway4.html?G9QrY5J',
+  '부어치킨': 'https://fdofd.ddangyo.com/gateway4.html?u5yUGTs',
+  '바른치킨': 'https://fdofd.ddangyo.com/gateway4.html?1rBQNCa',
+  '7번가피자': 'https://fdofd.ddangyo.com/gateway4.html?p7kqsN0',
+  '훌랄라참숯바베큐치킨': 'https://fdofd.ddangyo.com/gateway4.html?hk6PXvd',
+  '또봉이통닭': 'https://fdofd.ddangyo.com/gateway4.html?kdXwMdq',
+  '보끔당': 'https://fdofd.ddangyo.com/gateway4.html?ZRdUPwD',
+  '오븐에빠진닭': 'https://fdofd.ddangyo.com/gateway4.html?h2O9t9f',
+  '꾸브라꼬숯불치킨': 'https://fdofd.ddangyo.com/gateway4.html?kTxcrof',
+  '땅땅치킨': 'https://fdofd.ddangyo.com/gateway4.html?cztTiaf',
+  '오븐마루치킨': 'https://fdofd.ddangyo.com/gateway4.html?EjgK6V8',
+  '치킨플러스': 'https://fdofd.ddangyo.com/gateway4.html?66iY9Bs',
+  '또래오래': 'https://fdofd.ddangyo.com/gateway4.html?529nm7L',
+  '일미리금계찜닭': 'https://fdofd.ddangyo.com/gateway4.html?tx8BsDy',
+  '해두리치킨': 'https://fdofd.ddangyo.com/gateway4.html?CwOVSYe',
+  '피자헛': 'https://fdofd.ddangyo.com/gateway4.html?1qdBNdu',
+  '도미노피자': 'https://fdofd.ddangyo.com/gateway4.html?LgTHHGE',
+  '파파존스': 'https://fdofd.ddangyo.com/gateway4.html?MaOqpJR',
+  '떡참': 'https://fdofd.ddangyo.com/gateway4.html?gXQDKHQ',
+  '맘스피자': 'https://fdofd.ddangyo.com/gateway4.html?kEVWf2s',
+  '아메리칸피자': 'https://fdofd.ddangyo.com/gateway4.html?L3OTWfS',
+  'BBQ': 'https://fdofd.ddangyo.com/gateway4.html?Ej2faGu',
+}
+
 // 멤버십/지역화폐 반영 로직은 아직 없다. 화면만 미리 놓아두고 실제 계산은
 // docs/plans/2026-07-28-membership-pricing.md 계획대로 나중에 붙인다.
 const MEMBERSHIP_OPTIONS = [
@@ -67,33 +109,32 @@ function sourceFileName(screenshotPath) {
   return screenshotPath.split('/').pop()
 }
 
-function OfferChip({ offer, expanded, onToggle }) {
+function OfferChip({ offer, brandName }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier === '최대'
   const amountText = offer.amount != null ? `${offer.amount.toLocaleString()}원` : offer.rawText
-  const source = sourceFileName(offer.screenshotPath)
+  const link = offer.platform === 'ddangyo' ? DDANGYO_LINKS[brandName] : undefined
+
+  const content = (
+    <>
+      <span className="offer__amount">
+        {held && showRangeBadge && <span className="offer__range-badge">최대</span>}
+        {amountText}
+      </span>
+      <span className="offer__icon-badge">
+        <PlatformBadge platformKey={offer.platform} />
+      </span>
+    </>
+  )
 
   return (
     <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}`}>
-      <button
-        type="button"
-        className="offer__chip"
-        onClick={onToggle}
-        aria-expanded={expanded}
-      >
-        <span className="offer__amount">
-          {held && showRangeBadge && <span className="offer__range-badge">최대</span>}
-          {amountText}
-        </span>
-        <span className="offer__icon-badge">
-          <PlatformBadge platformKey={offer.platform} />
-        </span>
-      </button>
-      {expanded && (
-        <p className="offer__raw">
-          원문 “{offer.rawText}”
-          {source && <span className="offer__source"> · 캡처 {source}</span>}
-        </p>
+      {link ? (
+        <a className="offer__chip offer__chip--link" href={link} target="_blank" rel="noreferrer">
+          {content}
+        </a>
+      ) : (
+        <div className="offer__chip">{content}</div>
       )}
     </li>
   )
@@ -102,8 +143,6 @@ function OfferChip({ offer, expanded, onToggle }) {
 // 브랜드 하나 = 카드 하나. 1행 = 로고+이름, 2행 = 앱별 금액(수평 나열).
 // 카드 여러 개가 한 줄에 2~3개씩 반응형으로 놓인다(.brand-grid).
 function BrandCard({ brand }) {
-  const [openPlatform, setOpenPlatform] = useState(null)
-
   // 화면에 "최대" 배지가 실제로 뜨는 오퍼(held + qualifier="최대")는 금액과
   // 무관하게 항상 뒤로 민다. qualifier만으로 묶으면 confirmed인데 qualifier가
   // "최대"로 남은 항목(예: 땡겨요 — 배지는 안 뜨지만 값은 최대군에 끼어
@@ -126,12 +165,7 @@ function BrandCard({ brand }) {
       </header>
       <ul className="offer-list">
         {sortedOffers.map((o) => (
-          <OfferChip
-            key={o.platform}
-            offer={o}
-            expanded={openPlatform === o.platform}
-            onToggle={() => setOpenPlatform(openPlatform === o.platform ? null : o.platform)}
-          />
+          <OfferChip key={o.platform} offer={o} brandName={brand.name} />
         ))}
       </ul>
     </article>
