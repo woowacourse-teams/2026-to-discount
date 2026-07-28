@@ -11,6 +11,11 @@
 `src/api.js`에 `https://bebeggars.duckdns.org`로 고정되어 있어 로컬이든
 배포든 항상 그 주소로 API를 호출한다 — 별도 환경변수·프록시 설정이 필요
 없다. 백엔드를 바꾸려면 `src/api.js`의 `API_BASE`를 직접 수정한다.
+왜 env var/프록시 대신 고정값인지는
+[docs/decisions/ADR-001-fixed-backend-origin.md](docs/decisions/ADR-001-fixed-backend-origin.md).
+
+배포는 Vercel(`beggars-five.vercel.app`) — 백엔드 CORS 허용 목록에
+이미 등록돼 있다.
 
 ## 구조
 
