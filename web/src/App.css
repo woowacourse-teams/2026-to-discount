@@ -192,7 +192,6 @@ h1 {
   gap: .45rem;
   flex: 1 1 auto;
   min-width: 0;
-  overflow-x: auto;
   scrollbar-width: none;
 }
 .offer-list::-webkit-scrollbar { display: none; }

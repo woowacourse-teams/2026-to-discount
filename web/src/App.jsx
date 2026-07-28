@@ -244,8 +244,8 @@ export default function App() {
       <header className="page-head">
         <div className="page-head__row">
           <div>
-            <h1>배달앱 브랜드 할인 비교</h1>
-            <p className="sub">같은 브랜드를 어느 앱에서 시키는 게 이득인지 한눈에</p>
+            <h1>배달앱 할인 모음</h1>
+            <p className="sub"></p>
           </div>
           <button
             type="button"
