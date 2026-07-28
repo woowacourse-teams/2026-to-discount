@@ -136,6 +136,9 @@ function OfferChip({ offer, brandName }) {
       ) : (
         <div className="offer__chip">{content}</div>
       )}
+      {offer.platform === 'ddangyo' && (
+        <span className="offer__extra">지역화폐 +2,000원</span>
+      )}
     </li>
   )
 }
@@ -278,15 +281,15 @@ export default function App() {
       <header className="page-head">
         <div className="page-head__row">
           <div>
-            <h1>배달앱 할인 모음</h1>
-            <p className="sub"></p>
+            <h1>이번주 할인 </h1>
+            <p className="sub">땡겨요는 온누리/지역화폐 2,000원 할인중</p>
           </div>
           <button
             type="button"
             className="membership-trigger"
             onClick={() => setDrawerOpen(true)}
           >
-            멤버십·지역화폐 <span className="pill pill--pending">준비 중</span>
+            멤버십(배클/와우/패스) <span className="pill pill--pending">적용</span>
           </button>
         </div>
       </header>
