@@ -16,6 +16,19 @@
 3. 프론트 기동 (delivery-discount-web 레포에서): `npm install && npm run dev` (http://localhost:5173)
 4. 데이터만 갱신했다면 재기동 대신: `curl -X POST http://localhost:8080/api/reload`
 
+## 배포 (bebeggars.duckdns.org)
+
+OCI 인스턴스, systemd(`delivery-discount-api.service`) + nginx(TLS
+종료, `/`를 8088로 프록시). 데이터는 jar에 안 박고 외부 파일로 읽는다
+— 이유와 구조는 [docs/decisions/ADR-001-external-export-path.md](docs/decisions/ADR-001-external-export-path.md).
+
+데이터 갱신(재배포 불필요):
+
+```bash
+scp data/export.json ubuntu@bebeggars.duckdns.org:/home/ubuntu/delivery-discount-api/data/export.json
+curl -X POST https://bebeggars.duckdns.org/api/reload
+```
+
 ## 구조
 
 - `data/ExportDataLoader` — export.json 읽기(리로드 가능)
