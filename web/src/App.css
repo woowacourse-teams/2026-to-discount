@@ -127,6 +127,36 @@ h1 {
 }
 .drawer__option input { accent-color: var(--accent); width: 16px; height: 16px; }
 
+/* 카테고리 필터 — 가로로 죽 늘어놓고, 좁은 화면에선 가로 스크롤로 흡수 */
+.category-bar {
+  display: flex;
+  gap: .5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 1.25rem;
+}
+.category-bar::-webkit-scrollbar { display: none; }
+.category-btn {
+  flex: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .45rem .9rem;
+  font: inherit;
+  font-size: .85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+.category-btn:hover { color: var(--text); }
+.category-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.category-btn--active {
+  background: var(--text);
+  border-color: var(--text);
+  color: #fff;
+  font-weight: 600;
+}
+
 /* 브랜드 카드 그리드 — 한 줄에 2개 고정. 카드를 넓게 잡아야 앱별
    금액이 다음 줄로 안 밀리고 한 줄에 다 들어간다. */
 .brand-grid {
