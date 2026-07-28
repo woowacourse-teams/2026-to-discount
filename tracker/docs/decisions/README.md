@@ -16,3 +16,5 @@
 | [ADR-009](ADR-009-real-device-over-emulator.md) | 캡처 대상 기기는 에뮬레이터가 아니라 실기 | 확정 |
 | [ADR-010](ADR-010-reject-internal-api.md) | 앱 내부 API를 쓰지 않고 화면 캡처를 유지 | 확정 |
 | [ADR-011](ADR-011-deeplink-entry-over-tap-path.md) | 화면 진입은 딥링크로, 없으면 수동 캡처 | 확정 |
+| [ADR-012](ADR-012-three-repo-split-and-deployment.md) | tracker/api/web 3레포 분리, 배포 토폴로지 | 확정 |
+| [ADR-013](ADR-013-manual-capture-scope-freeze.md) | 자동 스크롤 캡처는 배민에서 멈추고 나머지는 수동+비전 | 확정 |
