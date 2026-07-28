@@ -127,10 +127,11 @@ h1 {
 }
 .drawer__option input { accent-color: var(--accent); width: 16px; height: 16px; }
 
-/* 브랜드 카드 그리드 — 한 줄에 2~3개, 반응형 */
+/* 브랜드 카드 그리드 — 한 줄에 2개 고정. 카드를 넓게 잡아야 앱별
+   금액이 다음 줄로 안 밀리고 한 줄에 다 들어간다. */
 .brand-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: .85rem;
   align-items: start;
 }
@@ -179,19 +180,23 @@ h1 {
   font-size: 1.15rem; font-weight: 600; color: var(--text-muted);
 }
 
-/* 2행: 앱별 금액 수평 나열, 넘치면 다음 줄로 감쌈 */
+/* 2행: 앱별 금액 한 줄 고정(줄바꿈 없음). 카드 폭보다 넘치는 드문 경우만
+   가로 스크롤로 흡수한다 — 다음 줄로 밀려 카드 높이가 들쭉날쭉해지는 것보다 낫다. */
 .offer-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: .45rem;
   flex: 1 1 auto;
   min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
-.offer { display: flex; flex-direction: column; }
+.offer-list::-webkit-scrollbar { display: none; }
+.offer { display: flex; flex-direction: column; flex: none; }
 
 .offer__chip {
   position: relative;
