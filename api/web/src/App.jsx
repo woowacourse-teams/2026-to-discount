@@ -10,7 +10,7 @@ const PLATFORMS = [
 const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 
 // 멤버십/지역화폐 반영 로직은 아직 없다. 화면만 미리 놓아두고 실제 계산은
-// docs/superpowers/plans/2026-07-28-membership-pricing.md 계획대로 나중에 붙인다.
+// docs/plans/2026-07-28-membership-pricing.md 계획대로 나중에 붙인다.
 const MEMBERSHIP_OPTIONS = [
   { key: 'baemin', label: '배민클럽' },
   { key: 'coupangeats', label: '쿠팡 와우' },
@@ -55,7 +55,7 @@ function sourceFileName(screenshotPath) {
   return screenshotPath.split('/').pop()
 }
 
-function OfferRow({ offer, expanded, onToggle }) {
+function OfferChip({ offer, expanded, onToggle }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier === '최대'
   const amountText = offer.amount != null ? `${offer.amount.toLocaleString()}원` : offer.rawText
@@ -87,7 +87,9 @@ function OfferRow({ offer, expanded, onToggle }) {
   )
 }
 
-function BrandCard({ brand }) {
+// 브랜드 하나 = 한 줄(행). 로고+이름은 왼쪽에 고정, 오퍼는 금액 큰 순으로
+// 오른쪽에 수평 나열(넘치면 다음 줄로 감쌈).
+function BrandRow({ brand }) {
   const [openPlatform, setOpenPlatform] = useState(null)
 
   const sortedOffers = useMemo(
@@ -96,14 +98,14 @@ function BrandCard({ brand }) {
   )
 
   return (
-    <article className="brand-card">
-      <header className="brand-card__head">
+    <article className="brand-row">
+      <header className="brand-row__head">
         <BrandLogo name={brand.name} />
-        <h2 className="brand-card__name">{brand.name}</h2>
+        <h2 className="brand-row__name">{brand.name}</h2>
       </header>
       <ul className="offer-list">
         {sortedOffers.map((o) => (
-          <OfferRow
+          <OfferChip
             key={o.platform}
             offer={o}
             expanded={openPlatform === o.platform}
@@ -115,30 +117,42 @@ function BrandCard({ brand }) {
   )
 }
 
-function MembershipPanel({ selected, onToggle }) {
+function MembershipDrawer({ open, onClose, selected, onToggle }) {
   return (
-    <section className="membership" aria-labelledby="membership-heading">
-      <div className="membership__title-row">
-        <h2 id="membership-heading" className="membership__title">멤버십·지역화폐 반영</h2>
+    <>
+      <div
+        className={`drawer-backdrop ${open ? 'drawer-backdrop--open' : ''}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <aside
+        className={`drawer ${open ? 'drawer--open' : ''}`}
+        aria-labelledby="membership-heading"
+        aria-hidden={!open}
+      >
+        <div className="drawer__head">
+          <h2 id="membership-heading" className="drawer__title">멤버십·지역화폐 반영</h2>
+          <button type="button" className="drawer__close" onClick={onClose} aria-label="닫기">×</button>
+        </div>
         <span className="pill pill--pending">준비 중</span>
-      </div>
-      <p className="membership__note">
-        체크해두면 이후 각 앱의 멤버십·지역화폐 혜택까지 반영한 실질 금액을 보여줄 예정입니다.
-        지금은 화면만 먼저 놓아둔 상태라 선택해도 금액은 바뀌지 않습니다.
-      </p>
-      <div className="membership__options">
-        {MEMBERSHIP_OPTIONS.map((m) => (
-          <label key={m.key} className="membership__option">
-            <input
-              type="checkbox"
-              checked={!!selected[m.key]}
-              onChange={() => onToggle(m.key)}
-            />
-            {m.label}
-          </label>
-        ))}
-      </div>
-    </section>
+        <p className="drawer__note">
+          체크해두면 이후 각 앱의 멤버십·지역화폐 혜택까지 반영한 실질 금액을 보여줄 예정입니다.
+          지금은 화면만 먼저 놓아둔 상태라 선택해도 금액은 바뀌지 않습니다.
+        </p>
+        <div className="drawer__options">
+          {MEMBERSHIP_OPTIONS.map((m) => (
+            <label key={m.key} className="drawer__option">
+              <input
+                type="checkbox"
+                checked={!!selected[m.key]}
+                onChange={() => onToggle(m.key)}
+              />
+              {m.label}
+            </label>
+          ))}
+        </div>
+      </aside>
+    </>
   )
 }
 
@@ -146,6 +160,7 @@ export default function App() {
   const [brands, setBrands] = useState(null)
   const [error, setError] = useState(null)
   const [membership, setMembership] = useState({})
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   useEffect(() => {
     fetchBrands().then(setBrands).catch((e) => setError(e.message))
@@ -157,20 +172,36 @@ export default function App() {
   return (
     <main>
       <header className="page-head">
-        <h1>배달앱 브랜드 할인 비교</h1>
-        <p className="sub">같은 브랜드를 어느 앱에서 시키는 게 이득인지 한눈에</p>
+        <div className="page-head__row">
+          <div>
+            <h1>배달앱 브랜드 할인 비교</h1>
+            <p className="sub">같은 브랜드를 어느 앱에서 시키는 게 이득인지 한눈에</p>
+          </div>
+          <button
+            type="button"
+            className="membership-trigger"
+            onClick={() => setDrawerOpen(true)}
+          >
+            멤버십·지역화폐 <span className="pill pill--pending">준비 중</span>
+          </button>
+        </div>
       </header>
-
-      <MembershipPanel selected={membership} onToggle={toggleMembership} />
 
       {error && <p className="msg msg--error">불러오기 실패: {error}</p>}
       {!error && !brands && <p className="msg">불러오는 중…</p>}
 
       {brands && (
-        <div className="brand-grid">
-          {brands.map((b) => <BrandCard key={b.name} brand={b} />)}
+        <div className="brand-list">
+          {brands.map((b) => <BrandRow key={b.name} brand={b} />)}
         </div>
       )}
+
+      <MembershipDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        selected={membership}
+        onToggle={toggleMembership}
+      />
     </main>
   )
 }

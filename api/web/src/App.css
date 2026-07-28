@@ -20,7 +20,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-main { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -28,6 +28,13 @@ main { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
 }
 
 .page-head { margin-bottom: 1.75rem; }
+.page-head__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
 h1 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -39,16 +46,6 @@ h1 {
 .msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
 .msg--error { color: #9f2f2d; }
 
-/* 멤버십·지역화폐 패널 (UI만, 로직 대기) */
-.membership {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.1rem 1.25rem;
-  margin-bottom: 1.75rem;
-}
-.membership__title-row { display: flex; align-items: center; gap: .5rem; }
-.membership__title { font-size: .95rem; font-weight: 600; margin: 0; }
 .pill {
   font-size: .65rem;
   font-weight: 600;
@@ -56,59 +53,122 @@ h1 {
   letter-spacing: .05em;
   padding: .15rem .55rem;
   border-radius: 9999px;
+  white-space: nowrap;
 }
 .pill--pending { background: var(--pending-bg); color: var(--pending-text); }
-.membership__note {
+
+/* 멤버십 트리거 버튼 (본문에는 이 버튼만 보인다) */
+.membership-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .5rem .8rem;
+  font: inherit;
+  font-size: .8rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: box-shadow 150ms ease;
+  flex: none;
+}
+.membership-trigger:hover { box-shadow: 0 1px 6px rgba(0, 0, 0, .05); }
+.membership-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 멤버십·지역화폐 사이드 드로어 (기본 숨김) */
+.drawer-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(23, 23, 23, .28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+  z-index: 20;
+}
+.drawer-backdrop--open { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(320px, 88vw);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  padding: 1.5rem;
+  transform: translateX(100%);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 21;
+  overflow-y: auto;
+}
+.drawer--open { transform: translateX(0); }
+
+.drawer__head { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; margin-bottom: .6rem; }
+.drawer__title { font-size: 1rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.drawer__close {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.3rem; line-height: 1; color: var(--text-muted);
+  padding: .1rem .4rem;
+}
+.drawer__close:hover { color: var(--text); }
+
+.drawer__note {
   color: var(--text-muted);
   font-size: .8rem;
   line-height: 1.6;
-  margin: .5rem 0 .85rem;
-  max-width: 60ch;
+  margin: .85rem 0 1.1rem;
 }
-.membership__options { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
-.membership__option {
+.drawer__options { display: flex; flex-direction: column; gap: .7rem; }
+.drawer__option {
   display: inline-flex;
   align-items: center;
-  gap: .4rem;
-  font-size: .85rem;
+  gap: .5rem;
+  font-size: .9rem;
   color: var(--text);
   cursor: pointer;
 }
-.membership__option input { accent-color: var(--accent); width: 16px; height: 16px; }
+.drawer__option input { accent-color: var(--accent); width: 16px; height: 16px; }
 
-/* 브랜드 카드 그리드 */
-.brand-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: .85rem;
+/* 브랜드 목록 — 브랜드 하나 = 한 줄(행) */
+.brand-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
 }
 
-.brand-card {
+.brand-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .6rem 1rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 1rem;
+  padding: .7rem .9rem;
   transition: box-shadow 200ms ease;
 }
-.brand-card:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .04); }
+.brand-row:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .04); }
 
-.brand-card__head {
+.brand-row__head {
   display: flex;
   align-items: center;
-  gap: .6rem;
-  margin-bottom: .7rem;
+  gap: .55rem;
+  flex: none;
+  width: 168px;
+  min-width: 0;
 }
-.brand-card__name {
-  font-size: .95rem;
+.brand-row__name {
+  font-size: .9rem;
   font-weight: 600;
   margin: 0;
   letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .brand-logo {
   position: relative;
-  width: 32px; height: 32px;
-  border-radius: 9px;
+  width: 30px; height: 30px;
+  border-radius: 8px;
   overflow: hidden;
   flex: none;
   background: var(--bg);
@@ -118,22 +178,33 @@ h1 {
 .brand-logo__fallback {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: .8rem; font-weight: 600; color: var(--text-muted);
+  font-size: .75rem; font-weight: 600; color: var(--text-muted);
 }
 
-.offer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+/* 오퍼(앱별 금액) 수평 나열, 넘치면 다음 줄로 감쌈 */
+.offer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: .45rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.offer { display: flex; flex-direction: column; }
 
 .offer__chip {
   position: relative;
-  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: .5rem .7rem;
+  padding: .4rem .65rem;
   font: inherit;
+  white-space: nowrap;
   cursor: pointer;
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
@@ -186,14 +257,16 @@ h1 {
 .platform-badge--yogiyo { background: #edf3ec; }
 
 .offer__raw {
-  margin: .35rem .1rem 0;
+  margin: .3rem .1rem 0;
   font-size: .75rem;
   color: var(--text-muted);
   line-height: 1.5;
+  width: 100%;
 }
 .offer__source { color: #a8a29e; }
 
-@media (max-width: 480px) {
+@media (max-width: 560px) {
   main { padding: 1.5rem 1rem 3rem; }
-  .brand-grid { grid-template-columns: 1fr; }
+  .brand-row { flex-direction: column; align-items: flex-start; }
+  .brand-row__head { width: 100%; }
 }
