@@ -3,3 +3,5 @@ build/
 src/main/resources/data/export.json
 web/node_modules/
 web/dist/
+.idea/
+*.log
