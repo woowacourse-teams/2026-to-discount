@@ -166,8 +166,8 @@ h1 {
 
 .brand-logo {
   position: relative;
-  width: 48px; height: 48px;
-  border-radius: 11px;
+  width: 38px; height: 38px;
+  border-radius: 10px;
   overflow: hidden;
   flex: none;
   background: var(--bg);
@@ -177,7 +177,7 @@ h1 {
 .brand-logo__fallback {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.15rem; font-weight: 600; color: var(--text-muted);
+  font-size: .95rem; font-weight: 600; color: var(--text-muted);
 }
 
 /* 2행: 앱별 금액 한 줄 고정(줄바꿈 없음). 카드 폭보다 넘치는 드문 경우만
@@ -246,14 +246,20 @@ h1 {
   align-items: center;
   justify-content: center;
   width: 20px; height: 20px;
-  border-radius: 999px;
+  border-radius: 7px;
   border: 1px solid var(--surface);
   overflow: hidden;
   font-size: .6rem;
   font-weight: 700;
   color: var(--text);
 }
-.platform-badge img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; }
+/* object-fit:cover + 원형 마스크였을 때 사각형 아이콘의 모서리가 잘렸다.
+   contain으로 전체를 보여주고, 배지 모양도 원이 아니라 둥근 사각형으로
+   바꿔 사각 아이콘과 형태를 맞췄다. */
+.platform-badge img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  position: absolute; inset: 0; padding: 2px;
+}
 .platform-badge--baemin { background: #e1f3fe; }
 .platform-badge--coupangeats { background: #fdebec; }
 .platform-badge--ddangyo { background: #fbf3db; }
@@ -267,6 +273,49 @@ h1 {
   width: 100%;
 }
 .offer__source { color: #a8a29e; }
+
+/* 맨 아래: 판독에 쓴 원본 캡처 전부 */
+.captures {
+  margin-top: 2.5rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border);
+}
+.captures__title { font-size: 1.05rem; font-weight: 700; margin: 0 0 .3rem; letter-spacing: -0.01em; }
+.captures__note { color: var(--text-muted); font-size: .82rem; margin: 0 0 1rem; }
+.captures__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: .7rem;
+}
+.captures__item {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+  transition: box-shadow 150ms ease;
+}
+.captures__item:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .06); }
+.captures__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.captures__item img {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  object-position: top;
+  background: var(--bg);
+}
+.captures__caption {
+  display: block;
+  padding: .4rem .55rem;
+  font-size: .7rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 @media (max-width: 560px) {
   main { padding: 1.5rem 1rem 3rem; }

@@ -104,8 +104,17 @@ function OfferChip({ offer, expanded, onToggle }) {
 function BrandCard({ brand }) {
   const [openPlatform, setOpenPlatform] = useState(null)
 
+  // 화면에 "최대" 배지가 실제로 뜨는 오퍼(held + qualifier="최대")는 금액과
+  // 무관하게 항상 뒤로 민다. qualifier만으로 묶으면 confirmed인데 qualifier가
+  // "최대"로 남은 항목(예: 땡겨요 — 배지는 안 뜨지만 값은 최대군에 끼어
+  // 순서가 뒤죽박죽으로 보임)이 생기므로, 실제 배지 노출 여부를 기준으로 한다.
   const sortedOffers = useMemo(
-    () => [...brand.offers].sort((a, b) => (b.amount ?? -1) - (a.amount ?? -1)),
+    () => [...brand.offers].sort((a, b) => {
+      const aMax = a.status === 'held' && a.qualifier === '최대' ? 1 : 0
+      const bMax = b.status === 'held' && b.qualifier === '최대' ? 1 : 0
+      if (aMax !== bMax) return aMax - bMax
+      return (b.amount ?? -1) - (a.amount ?? -1)
+    }),
     [brand.offers],
   )
 
@@ -126,6 +135,55 @@ function BrandCard({ brand }) {
         ))}
       </ul>
     </article>
+  )
+}
+
+// 판독에 실제로 쓰인 원본 캡처 전부. brands 응답의 각 offer가 이미
+// screenshotPath를 들고 있어(Offer.screenshotPath) 별도 API 없이
+// 여기서 중복만 제거해 모은다. 실제 파일은 web/public/captures/에
+// 파일명만 그대로 복사해둔 것(export_data.py가 아는 경로는 tracker
+// 레포 기준이라 API 레포에선 그대로 못 씀).
+function collectCaptures(brands) {
+  const seen = new Map()
+  for (const brand of brands) {
+    for (const offer of brand.offers) {
+      const file = sourceFileName(offer.screenshotPath)
+      if (file && !seen.has(file)) seen.set(file, offer.platform)
+    }
+  }
+  return [...seen.entries()].map(([file, platform]) => ({ file, platform }))
+    .sort((a, b) => a.file.localeCompare(b.file))
+}
+
+function CaptureGallery({ brands }) {
+  const captures = useMemo(() => collectCaptures(brands), [brands])
+  if (captures.length === 0) return null
+
+  return (
+    <section className="captures" aria-labelledby="captures-heading">
+      <h2 id="captures-heading" className="captures__title">원본 캡처</h2>
+      <p className="captures__note">
+        위 금액을 읽은 실제 화면입니다. 판독이 의심스러우면 여기서 원본을 직접 확인하세요.
+      </p>
+      <div className="captures__grid">
+        {captures.map(({ file, platform }) => (
+          <a
+            key={file}
+            className="captures__item"
+            href={`/captures/${encodeURIComponent(file)}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <img
+              src={`/captures/${encodeURIComponent(file)}`}
+              alt={`${PLATFORM_BY_KEY[platform]?.label ?? platform} 캡처: ${file}`}
+              loading="lazy"
+            />
+            <span className="captures__caption">{file}</span>
+          </a>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -207,6 +265,8 @@ export default function App() {
           {brands.map((b) => <BrandCard key={b.name} brand={b} />)}
         </div>
       )}
+
+      {brands && <CaptureGallery brands={brands} />}
 
       <MembershipDrawer
         open={drawerOpen}
