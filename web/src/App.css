@@ -35,13 +35,34 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
   gap: 1rem;
   flex-wrap: wrap;
 }
+.page-head__title-row {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: .3rem;
+}
 h1 {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  margin: 0 0 .3rem;
+  margin: 0;
 }
+/* 어떤 배달앱들을 비교하는지 제목 옆에 바로 보여준다 */
+.page-head__apps { display: flex; gap: .3rem; }
+
 .sub { color: var(--text-muted); font-size: .9rem; margin: 0; }
+/* 지역화폐 혜택은 그냥 지나치는 정보가 아니라 실제로 챙길 수 있는
+   혜택이라 강조한다 — 밑줄 대신 배지로 시선을 붙잡는다. */
+.sub__highlight {
+  display: inline-block;
+  background: var(--pending-bg);
+  color: var(--pending-text);
+  font-weight: 700;
+  font-size: .78rem;
+  padding: .1rem .4rem;
+  border-radius: 5px;
+  margin-right: .3rem;
+}
 
 .msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
 .msg--error { color: #9f2f2d; }
@@ -127,13 +148,20 @@ h1 {
 }
 .drawer__option input { accent-color: var(--accent); width: 16px; height: 16px; }
 
-/* 카테고리 필터 — 가로로 죽 늘어놓고, 좁은 화면에선 가로 스크롤로 흡수 */
+/* 카테고리 필터 — 가로로 죽 늘어놓고, 좁은 화면에선 가로 스크롤로 흡수.
+   sticky로 상단에 고정해야 카테고리 바꿀 때마다 맨 위로 스크롤해 올라갔다
+   내려갔다 하지 않는다 — 스크롤 중에도 항상 손 닿는 위치에 있어야 한다. */
 .category-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   gap: .5rem;
   overflow-x: auto;
   scrollbar-width: none;
   margin-bottom: 1.25rem;
+  padding: .75rem 0;
+  background: var(--bg);
 }
 .category-bar::-webkit-scrollbar { display: none; }
 .category-btn {

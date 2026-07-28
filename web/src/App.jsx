@@ -328,8 +328,15 @@ export default function App() {
       <header className="page-head">
         <div className="page-head__row">
           <div>
-            <h1>이번주 할인 </h1>
-            <p className="sub">땡겨요는 온누리/지역화폐 2,000원 할인중</p>
+            <div className="page-head__title-row">
+              <h1>이번주 할인</h1>
+              <div className="page-head__apps" aria-label="비교 대상 배달앱">
+                {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
+              </div>
+            </div>
+            <p className="sub">
+              <span className="sub__highlight">지역화폐</span> 땡겨요 결제 시 +2,000원 추가 할인
+            </p>
           </div>
           <button
             type="button"
