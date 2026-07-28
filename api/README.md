@@ -35,6 +35,11 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 - `alias/AliasResolver` — brand-aliases.yml로 같은 브랜드의 다른 표기를 묶음
 - `service/BrandComparisonService` — 묶기 + 확정/미확정 판정 + 최고 확정 할인 큰 순 정렬
 - `web/BrandController` — GET /api/brands, POST /api/reload
+- `web/WebConfig` — CORS 허용 오리진. 현재
+  `http://localhost:5173`(로컬 프론트) +
+  `https://beggars-five.vercel.app`(delivery-discount-web 배포).
+  프론트를 다른 곳에 새로 배포하면 여기에 오리진을 추가해야 API
+  호출이 CORS로 막히지 않는다.
 
 ## 별칭 추가
 
