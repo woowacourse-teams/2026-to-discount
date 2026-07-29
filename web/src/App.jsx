@@ -105,14 +105,14 @@ function detailRows(offer) {
   return [{ minOrder: offer.minOrderAmount, amount: offer.amount }]
 }
 
-// brandLink는 API가 내려주는 땡겨요 브랜드 쿠폰 바로가기(brands.yml 출처).
-// 링크가 있어도 땡겨요 오퍼에만 건다 — 다른 앱 칩까지 땡겨요로 보내면 안 된다.
-// 링크가 없는 칩은 상세를 여는 버튼이 된다(땡겨요 칩은 링크가 우선이라
-// 카드 헤더로 펼친다).
-function OfferChip({ offer, brandLink, detailId, open, onToggle }) {
+// brandLinks는 API가 내려주는 앱별 브랜드 쿠폰 바로가기(brands.yml 출처,
+// 플랫폼 키 -> 링크). 그 앱 오퍼에만 건다 — 예를 들어 땡겨요 링크를
+// 배민 칩에 걸면 안 된다. 링크가 없는 칩은 상세를 여는 버튼이 된다
+// (링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
+function OfferChip({ offer, brandLinks, detailId, open, onToggle }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier === '최대'
-  const link = offer.platform === 'ddangyo' ? brandLink : undefined
+  const link = brandLinks?.[offer.platform]
 
   const content = (
     <>
@@ -266,7 +266,7 @@ function BrandCard({ brand }) {
           <OfferChip
             key={o.platform}
             offer={o}
-            brandLink={brand.link}
+            brandLinks={brand.links}
             detailId={detailId}
             open={open}
             onToggle={() => setPinned((v) => !v)}
