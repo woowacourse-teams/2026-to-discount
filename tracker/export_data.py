@@ -15,6 +15,11 @@ FIELDS = [
     ("raw_text", "rawText"),
     ("captured_at", "capturedAt"),
     ("screenshot_path", "screenshotPath"),
+    # 상세 조건. 아직 대부분 None이지만, 채워지는 대로 프론트 상세 패널에
+    # 그대로 뜬다 — 스키마를 먼저 뚫어놔야 수집이 반영될 데가 생긴다.
+    ("min_order_amount", "minOrderAmount"),
+    ("tiers", "tiers"),
+    ("conditions", "conditions"),
 ]
 
 LOG_PATH = Path(__file__).parent / "data" / "log.jsonl"
@@ -22,11 +27,20 @@ EXPORT_PATH = Path(__file__).parent / "data" / "export.json"
 BRANDS_PATH = Path(__file__).parent / "data" / "brands-sorted.txt"
 
 
+def camel_tiers(tiers):
+    """구간 할인도 export에선 camelCase — 원장은 snake_case를 유지한다."""
+    if not tiers:
+        return None
+    return [{"minOrder": t["min_order"], "amount": t["amount"]} for t in tiers]
+
+
 def build_export(records: list[dict]) -> list[dict]:
     latest = latest_per_brand(records)
     out = []
     for record in latest.values():
-        out.append({camel: record.get(snake) for snake, camel in FIELDS})
+        item = {camel: record.get(snake) for snake, camel in FIELDS}
+        item["tiers"] = camel_tiers(record.get("tiers"))
+        out.append(item)
     return out
 
 

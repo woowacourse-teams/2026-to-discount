@@ -51,3 +51,28 @@ def test_validate_record_preserves_qualifier_distinction():
     assert min_record["qualifier"] == "최소"
     assert max_record["qualifier"] == "최대"
     assert min_record["amount"] != max_record["amount"]
+
+
+def test_validate_record_detail_fields_default_to_none():
+    record = validate_record(dict(BASE))
+    assert record["min_order_amount"] is None
+    assert record["tiers"] is None
+    assert record["conditions"] is None
+
+
+def test_validate_record_keeps_tiers():
+    record = validate_record(dict(BASE, tiers=[
+        {"min_order": 15000, "amount": 3000},
+        {"min_order": 25000, "amount": 6000},
+    ]))
+    assert record["tiers"][1]["amount"] == 6000
+
+
+def test_validate_record_rejects_malformed_tier():
+    with pytest.raises(ValueError):
+        validate_record(dict(BASE, tiers=[{"min_order": 15000}]))
+
+
+def test_validate_record_rejects_non_list_tiers():
+    with pytest.raises(ValueError):
+        validate_record(dict(BASE, tiers={"min_order": 15000, "amount": 3000}))

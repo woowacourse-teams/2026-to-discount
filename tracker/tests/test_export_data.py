@@ -44,3 +44,22 @@ def test_sorted_brand_names_unique_and_ascending():
     dup = RECORDS + [dict(RECORDS[0])]   # 도미노피자 중복
     names = sorted_brand_names(dup)
     assert names == ["굽네치킨", "도미노피자"]   # 중복 제거 + 오름차순
+
+
+def test_build_export_carries_detail_fields_as_camel_case():
+    records = [dict(RECORDS[1], min_order_amount=15000, conditions="1일 1회",
+                    tiers=[{"min_order": 15000, "amount": 3000},
+                           {"min_order": 25000, "amount": 7000}])]
+    item = build_export(records)[0]
+    assert item["minOrderAmount"] == 15000
+    assert item["conditions"] == "1일 1회"
+    assert item["tiers"] == [{"minOrder": 15000, "amount": 3000},
+                             {"minOrder": 25000, "amount": 7000}]
+
+
+def test_build_export_detail_fields_are_null_when_unknown():
+    # 지금 원장은 거의 전부 이 상태 — 키는 있고 값만 비어 있어야 한다.
+    item = build_export(RECORDS)[0]
+    assert item["minOrderAmount"] is None
+    assert item["tiers"] is None
+    assert item["conditions"] is None
