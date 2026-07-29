@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import { fetchBrands } from './api.js'
+import { track } from './analytics.js'
 
 const PLATFORMS = [
   { key: 'baemin', label: '배민', initial: '배' },
@@ -99,7 +100,7 @@ function detailRows(offer) {
 // 플랫폼 키 -> 링크). 그 앱 오퍼에만 건다 — 예를 들어 땡겨요 링크를
 // 배민 칩에 걸면 안 된다. 링크가 없는 칩은 상세를 여는 버튼이 된다
 // (링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
-function OfferChip({ offer, brandLinks, detailId, open, onToggle }) {
+function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier === '최대'
   const link = brandLinks?.[offer.platform]
@@ -119,7 +120,13 @@ function OfferChip({ offer, brandLinks, detailId, open, onToggle }) {
   return (
     <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}`}>
       {link ? (
-        <a className="offer__chip offer__chip--link" href={link} target="_blank" rel="noreferrer">
+        <a
+          className="offer__chip offer__chip--link"
+          href={link}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => track('offer_link_click', { brand: brandName, platform: offer.platform })}
+        >
           {content}
         </a>
       ) : (
@@ -233,6 +240,15 @@ function BrandCard({ brand }) {
   const open = pinned
   const detailId = `${useId()}-detail`
 
+  // 어떤 브랜드를 실제로 열어보는지가 "무엇을 궁금해하는가"의 지표다.
+  // 접는 동작은 안 남긴다 — 관심 신호가 아니다.
+  const toggle = () => {
+    setPinned((v) => {
+      if (!v) track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
+      return !v
+    })
+  }
+
   // 최소주문금액은 앱 목록 화면에 안 뜨고 쿠폰 상세를 열어야 보이는 값이라
   // 아직 대부분 비어 있다. 카드마다 반복하지 않고 안내는 한 번만 붙인다.
   const anyUnknown = brand.offers.some((o) => !(o.tiers?.length) && o.minOrderAmount == null)
@@ -244,7 +260,7 @@ function BrandCard({ brand }) {
         className="brand-card__head"
         aria-expanded={open}
         aria-controls={detailId}
-        onClick={() => setPinned((v) => !v)}
+        onClick={toggle}
       >
         <BrandLogo name={brand.name} />
         <h2 className="brand-card__name">{brand.name}</h2>
@@ -266,9 +282,10 @@ function BrandCard({ brand }) {
             key={o.platform}
             offer={o}
             brandLinks={brand.links}
+            brandName={brand.name}
             detailId={detailId}
             open={open}
-            onToggle={() => setPinned((v) => !v)}
+            onToggle={toggle}
           />
         ))}
       </ul>
@@ -310,6 +327,12 @@ function SiteFooter() {
       <p>
         금액은 <strong>확인일 기준</strong>이며 지역·매장·회원 등급·시간대에 따라 다를 수 있습니다.
         브랜드를 눌러 조건을 확인하고, <strong>주문 전에 각 앱에서 실제 금액을 다시 확인하세요.</strong>
+      </p>
+      <p>
+        어떤 화면이 실제로 쓰이는지 보려고 <strong>익명 방문 통계</strong>를 자체 서버에만 기록합니다.
+        페이지 조회·머문 시간·어떤 브랜드를 펼쳤는지 정도이며, <strong>이름·연락처 같은 개인정보와
+        IP 원본은 저장하지 않고</strong> 외부 분석 도구에도 넘기지 않습니다. 광고 목적으로 쓰지 않습니다.
+        브라우저에 <strong>추적 안 함(DNT/GPC)</strong> 설정이 켜져 있으면 아무것도 수집하지 않습니다.
       </p>
       <p className="site-footer__fine">
         브랜드명과 로고는 해당 브랜드를 가리키기 위해서만 사용했으며, 모든 상표는 각 권리자에게 있습니다.
@@ -397,7 +420,7 @@ export default function App() {
           <button
             type="button"
             className="membership-trigger"
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => { setDrawerOpen(true); track('membership_open') }}
           >
             멤버십(배클/와우/패스) <span className="pill pill--pending">적용</span>
           </button>
@@ -412,7 +435,10 @@ export default function App() {
             role="tab"
             aria-selected={category === c.key}
             className={`category-btn ${category === c.key ? 'category-btn--active' : ''}`}
-            onClick={() => setCategory(c.key)}
+            onClick={() => {
+              setCategory(c.key)
+              if (c.key !== category) track('category_change', { category: c.key })
+            }}
           >
             {c.label}
           </button>
