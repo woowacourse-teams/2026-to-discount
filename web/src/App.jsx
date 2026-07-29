@@ -29,11 +29,6 @@ const MEMBERSHIP_OPTIONS = [
   { key: 'ddangyo', label: '지역화폐' },
 ]
 
-// 모바일이 주 사용 환경이라 상세는 "탭해서 펼치기"가 기본이고, 마우스가
-// 있는 환경에서만 hover를 덤으로 얹는다. 터치에서도 mouseenter가 흉내로
-// 발생하는 브라우저가 있어 hover 지원 여부를 직접 확인해 갈라낸다.
-const CAN_HOVER = window.matchMedia('(hover: hover)').matches
-
 function assetSrc(base, name) {
   return `${base}/${encodeURIComponent(name)}.png`
 }
@@ -104,6 +99,16 @@ function offerAmountText(offer) {
   return offer.amount != null ? won(offer.amount) : offer.rawText
 }
 
+// 같은 앱이라도 쿠폰이 주문금액 구간별로 차등일 수 있어, 항상 "할인금액 -
+// 최소주문금액" 쌍의 리스트로 본다. 구간이 있으면 그 목록 그대로, 없으면
+// 지금 아는 값(최상단 금액 + 최소주문금액) 한 줄짜리 목록으로 취급한다 —
+// 렌더링 쪽에서 "구간이 있을 때만 리스트"와 "없을 때 단일 값" 두 갈래로
+// 안 갈라져도 된다.
+function detailRows(offer) {
+  if (offer.tiers?.length > 0) return offer.tiers
+  return [{ minOrder: offer.minOrderAmount, amount: offer.amount }]
+}
+
 // brandLink는 API가 내려주는 땡겨요 브랜드 쿠폰 바로가기(brands.yml 출처).
 // 링크가 있어도 땡겨요 오퍼에만 건다 — 다른 앱 칩까지 땡겨요로 보내면 안 된다.
 // 링크가 없는 칩은 상세를 여는 버튼이 된다(땡겨요 칩은 링크가 우선이라
@@ -137,6 +142,7 @@ function OfferChip({ offer, brandLink, detailId, open, onToggle }) {
           className="offer__chip offer__chip--toggle"
           aria-expanded={open}
           aria-controls={detailId}
+          title={open ? '눌러서 접기' : '눌러서 자세히 보기'}
           onClick={onToggle}
         >
           {content}
@@ -157,6 +163,7 @@ function OfferDetail({ offer }) {
   const platform = PLATFORM_BY_KEY[offer.platform]
   const file = sourceFileName(offer.screenshotPath)
   const date = capturedDate(offer.capturedAt)
+  const rows = detailRows(offer)
 
   return (
     <div className="detail">
@@ -168,28 +175,25 @@ function OfferDetail({ offer }) {
       </div>
 
       <dl className="detail__rows">
-        <dt>최소주문</dt>
+        <dt>할인</dt>
         <dd>
-          {offer.minOrderAmount != null
-            ? `${won(offer.minOrderAmount)} 이상`
-            : <span className="detail__unknown">미확인</span>}
+          <ul className="detail__tiers">
+            {rows.map((t, i) => (
+              <li key={t.minOrder ?? i}>
+                <span className="detail__tier-min">
+                  {t.minOrder != null
+                    ? `${won(t.minOrder)} 이상`
+                    : <span className="detail__unknown">최소주문 미확인</span>}
+                </span>
+                <span className="detail__tier-amount">
+                  {t.amount != null
+                    ? won(t.amount)
+                    : <span className="detail__unknown">금액 미확인</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
         </dd>
-
-        {offer.tiers?.length > 0 && (
-          <>
-            <dt>구간</dt>
-            <dd>
-              <ul className="detail__tiers">
-                {offer.tiers.map((t) => (
-                  <li key={t.minOrder}>
-                    <span className="detail__tier-min">{won(t.minOrder)} 이상</span>
-                    <span className="detail__tier-amount">{won(t.amount)}</span>
-                  </li>
-                ))}
-              </ul>
-            </dd>
-          </>
-        )}
 
         {offer.conditions && (
           <>
@@ -236,29 +240,25 @@ function BrandCard({ brand }) {
     [brand.offers],
   )
 
-  // 펼침 상태 = 눌러서 고정했거나(pinned) 마우스를 올렸거나(hovered).
-  // 모바일엔 hover가 없으니 탭이 유일한 수단이고, 마우스 환경에선 굳이
-  // 누르지 않아도 훑어볼 수 있다.
+  // 펼침은 클릭으로만 한다. 마우스가 있는 환경에서 hover로 바로 펼치면
+  // 지나가기만 해도 카드마다 내용이 들쭉날쭉 늘어나 산만했다 — 지금은
+  // hover가 "눌러서 자세히 보기" 안내만 띄운다(CSS ::after, App.css).
   const [pinned, setPinned] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  const open = pinned || hovered
+  const open = pinned
   const detailId = `${useId()}-detail`
 
   // 최소주문금액은 앱 목록 화면에 안 뜨고 쿠폰 상세를 열어야 보이는 값이라
   // 아직 대부분 비어 있다. 카드마다 반복하지 않고 안내는 한 번만 붙인다.
-  const anyUnknown = brand.offers.some((o) => o.minOrderAmount == null)
+  const anyUnknown = brand.offers.some((o) => !(o.tiers?.length) && o.minOrderAmount == null)
 
   return (
-    <article
-      className={`brand-card ${open ? 'brand-card--open' : ''}`}
-      onMouseEnter={CAN_HOVER ? () => setHovered(true) : undefined}
-      onMouseLeave={CAN_HOVER ? () => setHovered(false) : undefined}
-    >
+    <article className={`brand-card ${open ? 'brand-card--open' : ''}`}>
       <button
         type="button"
         className="brand-card__head"
         aria-expanded={open}
         aria-controls={detailId}
+        title={open ? '눌러서 접기' : '눌러서 자세히 보기'}
         onClick={() => setPinned((v) => !v)}
       >
         <BrandLogo name={brand.name} />
