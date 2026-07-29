@@ -37,10 +37,6 @@ function won(value) {
   return `${value.toLocaleString()}원`
 }
 
-function capturedDate(capturedAt) {
-  return capturedAt ? capturedAt.slice(0, 10) : null
-}
-
 // 폴백 글자(span)는 position:absolute라 static인 img보다 항상 위에 그려진다
 // (DOM 순서와 무관하게 positioned 요소가 위로 쌓임). onError로 깨진 이미지만
 // 숨기던 이전 방식은 "로드는 됐지만 저해상도라 흐릿한" 로고 위에 글자가 겹쳐
@@ -161,8 +157,6 @@ function OfferChip({ offer, brandLink, detailId, open, onToggle }) {
 // 사용자에게 필요한 정보이고, 채워지면 이 자리에 그대로 들어온다.
 function OfferDetail({ offer }) {
   const platform = PLATFORM_BY_KEY[offer.platform]
-  const file = sourceFileName(offer.screenshotPath)
-  const date = capturedDate(offer.capturedAt)
   const rows = detailRows(offer)
 
   return (
@@ -212,13 +206,6 @@ function OfferDetail({ offer }) {
         <dt>원문</dt>
         <dd className="detail__raw">“{offer.rawText}”</dd>
       </dl>
-
-      {file && (
-        <a className="detail__source" href={captureUrl(file)} target="_blank" rel="noreferrer">
-          <img src={captureThumbUrl(file)} alt="" loading="lazy" />
-          <span>{date ? `${date} 캡처 원본 보기` : '캡처 원본 보기'}</span>
-        </a>
-      )}
     </div>
   )
 }

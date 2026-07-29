@@ -480,28 +480,6 @@ h1 {
 .detail__tier-min { color: var(--text-muted); }
 .detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
 
-/* 판독 근거. 이 금액을 어디서 읽었는지 카드 안에서 바로 확인시킨다. */
-.detail__source {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  margin-top: .55rem;
-  font-size: .72rem;
-  color: var(--text-muted);
-  text-decoration: none;
-}
-.detail__source img {
-  width: 28px;
-  height: 28px;
-  object-fit: cover;
-  object-position: top;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-}
-.detail__source:hover { color: var(--text); }
-.detail__source:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
 .brand-detail__note {
   margin: 0;
   font-size: .7rem;
