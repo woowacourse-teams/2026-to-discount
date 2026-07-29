@@ -170,12 +170,7 @@ function OfferDetail({ offer }) {
         <dd>
           <ul className="detail__tiers">
             {rows.map((t, i) => (
-              <li key={t.minOrder ?? i}>
-                <span className="detail__tier-min">
-                  {t.minOrder != null
-                    ? `${won(t.minOrder)} 이상`
-                    : <span className="detail__unknown">최소주문 미확인</span>}
-                </span>
+              <li key={i}>
                 <span className="detail__tier-amount">
                   {t.amount != null
                     ? won(t.amount)
@@ -186,12 +181,21 @@ function OfferDetail({ offer }) {
           </ul>
         </dd>
 
-        {offer.conditions && (
-          <>
-            <dt>조건</dt>
-            <dd>{offer.conditions}</dd>
-          </>
-        )}
+        <dt>조건</dt>
+        <dd>
+          <ul className="detail__tiers">
+            {rows.map((t, i) => (
+              <li key={i}>
+                <span className="detail__tier-min">
+                  {t.minOrder != null
+                    ? `${won(t.minOrder)} 이상 주문 시`
+                    : <span className="detail__unknown">최소주문 미확인</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {offer.conditions && <p className="detail__condition-note">{offer.conditions}</p>}
+        </dd>
 
         {offer.platform === 'ddangyo' && (
           <>
@@ -399,6 +403,30 @@ function CategoryBar({ categories, active, onSelect }) {
   )
 }
 
+// 화면 왼쪽 위에 항상 떠 있는 안내 버튼. hover(마우스)와 클릭(터치) 둘 다
+// 툴팁을 띄운다 — CSS :hover가 데스크톱을 담당하고, open 상태가 터치를
+// 담당한다. 클릭으로 열렸을 때는 바깥을 눌러야 닫힌다.
+function InfoTip() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="info-fab">
+      {open && <div className="dropdown-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />}
+      <button
+        type="button"
+        className="info-fab__btn"
+        aria-expanded={open}
+        aria-label="위치 안내"
+        onClick={() => setOpen((v) => !v)}
+      >
+        ?
+      </button>
+      <div className={`info-fab__tip ${open ? 'info-fab__tip--open' : ''}`} role="tooltip">
+        주변 가게만 보이진 않습니다.
+      </div>
+    </div>
+  )
+}
+
 // 화면 오른쪽에서 밀려나오는 드로어 대신, 버튼 바로 아래 뜨는 드롭다운.
 // 버튼(.membership-trigger)과 이 메뉴는 부모 .membership(position:relative)
 // 하나를 공유해야 top:100%가 버튼 기준으로 맞는다.
@@ -462,6 +490,7 @@ export default function App() {
 
   return (
     <main>
+      <InfoTip />
       <header className="page-head">
         <div className="page-head__row">
           <div>

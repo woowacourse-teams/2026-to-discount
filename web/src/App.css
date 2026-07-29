@@ -120,6 +120,47 @@ h1 {
   .dropdown { transition: opacity 160ms ease; }
 }
 
+/* 화면 왼쪽 위에 항상 떠 있는 안내 버튼. */
+.info-fab { position: fixed; top: .9rem; left: .9rem; z-index: 22; }
+.info-fab__btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.info-fab__btn:hover { color: var(--text); border-color: var(--text-muted); }
+.info-fab__tip {
+  position: absolute;
+  top: calc(100% + .45rem);
+  left: 0;
+  width: max-content;
+  max-width: 220px;
+  background: var(--text);
+  color: #fff;
+  font-size: .78rem;
+  line-height: 1.4;
+  padding: .5rem .7rem;
+  border-radius: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+.info-fab:hover .info-fab__tip,
+.info-fab__tip--open {
+  opacity: 1;
+  visibility: visible;
+}
+
 .dropdown__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
 .dropdown__title { font-size: .95rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
 
@@ -158,8 +199,9 @@ h1 {
   scrollbar-width: none;
   padding: .75rem 0 1.35rem;
   /* 스크롤로 올라오는 카드가 탭 아래에서 뚝 끊기지 않도록, 탭이 있는
-     영역(0~70%)은 배경을 채워 가리고 그 아래로는 투명하게 풀어준다. */
-  background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 70%, transparent 100%);
+     영역은 배경을 채워 가리고 그 아래로는 투명하게 풀어준다. 좌하단으로
+     빠지는 사선 컷이라 오른쪽이 왼쪽보다 더 오래 덮인다. */
+  background: linear-gradient(to bottom left, var(--bg) 0%, var(--bg) 55%, transparent 85%);
 }
 .category-bar::-webkit-scrollbar { display: none; }
 
@@ -200,6 +242,13 @@ h1 {
 .category-btn:hover { color: var(--text); }
 .category-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .category-btn--active {
+  /* 글씨색 전환을 하이라이트 이동(.category-bar__highlight, transform
+     260ms 같은 곡선)과 정확히 같은 시간·곡선으로 맞춘다. 하나만 지연시키면
+     "덜 어두워진 하이라이트 위에 아직 안 하얘진 글씨"나 "하이라이트가
+     도착하기 전에 이미 하얘진 글씨" 둘 중 하나의 구간에서 항상 대비가
+     깨진다 — 같은 곡선으로 나란히 움직여야 중간 지점에서도 옅은
+     배경 위엔 중간 회색, 진해진 하이라이트 위엔 중간 흰색으로 맞아떨어진다. */
+  transition: color 260ms cubic-bezier(0.16, 1, 0.3, 1);
   color: #fff;
   font-weight: 600;
 }
@@ -507,6 +556,7 @@ h1 {
 }
 .detail__tier-min { color: var(--text-muted); }
 .detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+.detail__condition-note { margin: .3rem 0 0; color: var(--text-muted); }
 
 .brand-detail__note {
   margin: 0;
