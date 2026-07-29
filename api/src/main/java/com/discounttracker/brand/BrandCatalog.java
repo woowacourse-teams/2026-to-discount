@@ -9,6 +9,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +54,7 @@ public class BrandCatalog {
                 byName.put(name, new Brand(
                         name,
                         Category.from((String) attrs.get("category")),
-                        (String) attrs.get("link")));
+                        readLinks(attrs)));
 
                 // 대표명 자신도 별칭으로 넣어야 원장에 대표명 그대로 찍힌 경우도 걸린다.
                 aliasToCanonical.put(name, name);
@@ -67,6 +68,18 @@ public class BrandCatalog {
         } catch (IOException e) {
             throw new IllegalStateException("brands.yml 읽기 실패", e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, String> readLinks(Map<String, Object> attrs) {
+        Object raw = attrs.get("links");
+        Map<String, String> links = new LinkedHashMap<>();
+        if (raw instanceof Map<?, ?> map) {
+            for (var e : map.entrySet()) {
+                links.put(String.valueOf(e.getKey()), String.valueOf(e.getValue()));
+            }
+        }
+        return links;
     }
 
     /** 원장에 찍힌 이름 -> 대표명. 모르는 이름은 그대로 돌려준다. */

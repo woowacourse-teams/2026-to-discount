@@ -57,7 +57,8 @@ class BrandControllerTest {
     void brandResponseCarriesCatalogFields() throws Exception {
         mvc.perform(get("/api/brands"))
            .andExpect(jsonPath("$[?(@.category == 'chicken')]").isNotEmpty())
-           .andExpect(jsonPath("$[?(@.link =~ /.*ddangyo.*/)]").isNotEmpty());
+           .andExpect(jsonPath("$[?(@.links.ddangyo =~ /.*ddangyo.*/)]").isNotEmpty())
+           .andExpect(jsonPath("$[?(@.links.baemin =~ /.*baemin.*/)]").isNotEmpty());
     }
 
     @Test

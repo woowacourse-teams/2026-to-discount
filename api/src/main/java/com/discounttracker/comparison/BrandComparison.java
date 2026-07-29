@@ -7,12 +7,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 브랜드 하나를 앱별로 비교한 결과. 화면의 카드 하나에 대응한다.
  *
  * <p>JSON으로 나가는 모양은 평평하다 — {@code name}, {@code category},
- * {@code link}, {@code maxConfirmedAmount}, {@code offers}. 내부에서
+ * {@code links}, {@code maxConfirmedAmount}, {@code offers}. 내부에서
  * {@link Brand}를 들고 있다고 해서 응답까지 중첩되면 프론트가 도메인
  * 구조 변경에 끌려다니게 되므로, 내보낼 것만 골라 노출한다.
  *
@@ -37,10 +38,10 @@ public record BrandComparison(
         return brand.category() == null ? null : brand.category().key();
     }
 
-    /** 땡겨요 브랜드 쿠폰 바로가기. 없으면 null. */
-    @JsonProperty("link")
-    public String link() {
-        return brand.link();
+    /** 앱별 브랜드 쿠폰 바로가기. 플랫폼 키(ddangyo, baemin, ...) -> 링크. */
+    @JsonProperty("links")
+    public Map<String, String> links() {
+        return brand.links();
     }
 
     private boolean hasConfirmed() {

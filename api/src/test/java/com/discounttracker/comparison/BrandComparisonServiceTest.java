@@ -148,27 +148,30 @@ class BrandComparisonServiceTest {
     }
 
     @Test
-    void exposesCategoryAndLinkFromCatalog() {
+    void exposesCategoryAndLinksFromCatalog() {
         var result = serviceWith(
                 List.of(rec("ddangyo", "BBQ", 4000, "최대", false)),
                 """
                 brands:
                   BBQ:
                     category: chicken
-                    link: https://example.test/bbq
+                    links:
+                      ddangyo: https://example.test/bbq
+                      baemin: https://s.baemin.com/bbq
                 """).compare();
         assertEquals(Category.CHICKEN, result.get(0).brand().category());
         assertEquals("chicken", result.get(0).categoryKey());
-        assertEquals("https://example.test/bbq", result.get(0).link());
+        assertEquals("https://example.test/bbq", result.get(0).links().get("ddangyo"));
+        assertEquals("https://s.baemin.com/bbq", result.get(0).links().get("baemin"));
     }
 
     @Test
-    void brandMissingFromCatalogHasNullCategoryAndLink() {
+    void brandMissingFromCatalogHasNullCategoryAndNoLinks() {
         // brands.yml에 아직 안 넣은 브랜드도 화면에는 떠야 한다(카테고리만 비어 있음).
         var result = serviceWith(
                 List.of(rec("baemin", "신규브랜드", 5000, null, false)), "brands: {}").compare();
         assertEquals("신규브랜드", result.get(0).name());
         assertNull(result.get(0).categoryKey());
-        assertNull(result.get(0).link());
+        assertTrue(result.get(0).links().isEmpty());
     }
 }

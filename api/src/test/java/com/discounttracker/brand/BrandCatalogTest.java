@@ -14,7 +14,9 @@ class BrandCatalogTest {
           멕시카나:
             category: chicken
             aliases: [멕시카나치킨]
-            link: https://example.test/mexicana
+            links:
+              ddangyo: https://example.test/mexicana
+              baemin: https://s.baemin.com/mexicana
           BBQ:
             category: chicken
             aliases: [BBQ치킨]
@@ -44,17 +46,18 @@ class BrandCatalogTest {
     }
 
     @Test
-    void exposesCategoryAndLink() {
+    void exposesCategoryAndLinksByPlatform() {
         Brand mexicana = catalogFor(YAML).find("멕시카나");
         assertEquals(Category.CHICKEN, mexicana.category());
-        assertEquals("https://example.test/mexicana", mexicana.link());
+        assertEquals("https://example.test/mexicana", mexicana.links().get("ddangyo"));
+        assertEquals("https://s.baemin.com/mexicana", mexicana.links().get("baemin"));
     }
 
     @Test
-    void brandWithoutAttributesHasNoCategoryOrLink() {
+    void brandWithoutAttributesHasNoCategoryOrLinks() {
         Brand hanam = catalogFor(YAML).find("하남돼지집");
         assertNull(hanam.category());
-        assertNull(hanam.link());
+        assertTrue(hanam.links().isEmpty());
     }
 
     @Test
