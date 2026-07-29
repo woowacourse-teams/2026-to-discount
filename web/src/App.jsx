@@ -355,7 +355,14 @@ function CategoryBar({ categories, active, onSelect }) {
 
   const measure = () => {
     const btn = btnRefs.current[active]
-    if (btn) setRect({ left: btn.offsetLeft, width: btn.offsetWidth })
+    // top/height도 재서 넣는다 — CSS로 고정값을 박으면 컨테이너 패딩이
+    // 바뀔 때마다(예: 그라데이션 꼬리 공간) 하이라이트가 버튼과 어긋난다.
+    if (btn) {
+      setRect({
+        left: btn.offsetLeft, width: btn.offsetWidth,
+        top: btn.offsetTop, height: btn.offsetHeight,
+      })
+    }
   }
 
   useLayoutEffect(measure, [active])
@@ -371,7 +378,11 @@ function CategoryBar({ categories, active, onSelect }) {
         <span
           className="category-bar__highlight"
           aria-hidden="true"
-          style={{ transform: `translateX(${rect.left}px)`, width: `${rect.width}px` }}
+          style={{
+            transform: `translate(${rect.left}px, ${rect.top}px)`,
+            width: `${rect.width}px`,
+            height: `${rect.height}px`,
+          }}
         />
       )}
       {categories.map((c) => (
@@ -391,31 +402,32 @@ function CategoryBar({ categories, active, onSelect }) {
   )
 }
 
-function MembershipDrawer({ open, onClose, selected, onToggle }) {
+// 화면 오른쪽에서 밀려나오는 드로어 대신, 버튼 바로 아래 뜨는 드롭다운.
+// 버튼(.membership-trigger)과 이 메뉴는 부모 .membership(position:relative)
+// 하나를 공유해야 top:100%가 버튼 기준으로 맞는다.
+function MembershipMenu({ open, onClose, selected, onToggle }) {
   return (
     <>
+      {/* 눈에 안 보이는 전체 화면 클릭 캐처 — 메뉴 밖을 누르면 닫힌다.
+          열렸을 때만 렌더해서 평소엔 이 레이어가 아예 없다. */}
+      {open && <div className="dropdown-backdrop" onClick={onClose} aria-hidden="true" />}
       <div
-        className={`drawer-backdrop ${open ? 'drawer-backdrop--open' : ''}`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <aside
-        className={`drawer ${open ? 'drawer--open' : ''}`}
-        aria-labelledby="membership-heading"
+        className={`dropdown ${open ? 'dropdown--open' : ''}`}
+        role="menu"
+        aria-label="멤버십·지역화폐 반영"
         aria-hidden={!open}
       >
-        <div className="drawer__head">
-          <h2 id="membership-heading" className="drawer__title">멤버십·지역화폐 반영</h2>
-          <button type="button" className="drawer__close" onClick={onClose} aria-label="닫기">×</button>
+        <div className="dropdown__head">
+          <span className="dropdown__title">멤버십·지역화폐 반영</span>
+          <span className="pill pill--pending">준비 중</span>
         </div>
-        <span className="pill pill--pending">준비 중</span>
-        <p className="drawer__note">
+        <p className="dropdown__note">
           체크해두면 이후 각 앱의 멤버십·지역화폐 혜택까지 반영한 실질 금액을 보여줄 예정입니다.
           지금은 화면만 먼저 놓아둔 상태라 선택해도 금액은 바뀌지 않습니다.
         </p>
-        <div className="drawer__options">
+        <div className="dropdown__options">
           {MEMBERSHIP_OPTIONS.map((m) => (
-            <label key={m.key} className="drawer__option">
+            <label key={m.key} className="dropdown__option">
               <input
                 type="checkbox"
                 checked={!!selected[m.key]}
@@ -425,7 +437,7 @@ function MembershipDrawer({ open, onClose, selected, onToggle }) {
             </label>
           ))}
         </div>
-      </aside>
+      </div>
     </>
   )
 }
@@ -434,7 +446,7 @@ export default function App() {
   const [brands, setBrands] = useState(null)
   const [error, setError] = useState(null)
   const [membership, setMembership] = useState({})
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [category, setCategory] = useState('all')
 
   useEffect(() => {
@@ -456,25 +468,33 @@ export default function App() {
       <header className="page-head">
         <div className="page-head__row">
           <div>
-            <div className="page-head__title-row">
-              <h1 className="page-head__logo">
-                <img src="/main_logo.png" alt="딸깍" />
-              </h1>
-              <div className="page-head__apps" aria-label="비교 대상 배달앱">
-                {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
-              </div>
+            <h1 className="page-head__logo">
+              <img src="/main_logo.png" alt="딸깍" />
+            </h1>
+            <div className="page-head__apps" aria-label="비교 대상 배달앱">
+              {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
             </div>
-            <p className="sub">
-              <span className="sub__highlight">지역화폐</span> 땡겨요 결제 시 +2,000원 추가 할인
-            </p>
+            <p className="sub">배달 플랫폼 할인 비교</p>
           </div>
-          <button
-            type="button"
-            className="membership-trigger"
-            onClick={() => { setDrawerOpen(true); track('membership_open') }}
-          >
-            멤버십(배클/와우/패스) <span className="pill pill--pending">적용</span>
-          </button>
+          <div className="membership">
+            <button
+              type="button"
+              className="membership-trigger"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => {
+                if (!v) track('membership_open')
+                return !v
+              })}
+            >
+              멤버십(배클/와우/패스) <span className="pill pill--pending">적용</span>
+            </button>
+            <MembershipMenu
+              open={menuOpen}
+              onClose={() => setMenuOpen(false)}
+              selected={membership}
+              onToggle={toggleMembership}
+            />
+          </div>
         </div>
       </header>
 
@@ -501,13 +521,6 @@ export default function App() {
       )}
 
       <SiteFooter />
-
-      <MembershipDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        selected={membership}
-        onToggle={toggleMembership}
-      />
     </main>
   )
 }

@@ -35,39 +35,29 @@ main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
   gap: 1rem;
   flex-wrap: wrap;
 }
-.page-head__title-row {
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-  margin-bottom: .3rem;
-}
 h1 {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0;
 }
-/* 텍스트 대신 로고 이미지. 플랫폼 배지(20px)와 나란히 놓이므로 그보다
-   살짝 큰 높이로 맞춘다 — 원본은 흰 배경을 투명 처리해 잘라 둔 것
-   (public/main_logo.png). */
-.page-head__logo { display: flex; align-items: center; }
-.page-head__logo img { height: 26px; width: auto; display: block; }
-/* 어떤 배달앱들을 비교하는지 제목 옆에 바로 보여준다 */
-.page-head__apps { display: flex; gap: .3rem; }
+/* 텍스트 대신 로고 이미지. 브랜드 마크가 헤더의 중심이 되도록 크게
+   쓴다 — 원본은 흰 배경을 투명 처리해 잘라 둔 것(public/main_logo.png). */
+.page-head__logo { display: block; margin: 0 0 .6rem; }
+.page-head__logo img { height: 91px; width: auto; display: block; }
+
+/* 어떤 배달앱들을 비교하는지 로고 아래 그리드로 보여준다. 4칸 모두
+   같은 크기라 높이가 어긋나지 않는다(폭 대신 자기 자신을 정사각형으로
+   고정) — 아이콘마다 원본 여백이 달라도 배지 크기 자체는 항상 같다. */
+.page-head__apps {
+  display: grid;
+  grid-template-columns: repeat(4, 36px);
+  gap: .4rem;
+  margin: 0 0 .5rem;
+}
+.page-head__apps .platform-badge { width: 36px; height: 36px; border-radius: 10px; }
 
 .sub { color: var(--text-muted); font-size: .9rem; margin: 0; }
-/* 지역화폐 혜택은 그냥 지나치는 정보가 아니라 실제로 챙길 수 있는
-   혜택이라 강조한다 — 밑줄 대신 배지로 시선을 붙잡는다. */
-.sub__highlight {
-  display: inline-block;
-  background: var(--pending-bg);
-  color: var(--pending-text);
-  font-weight: 700;
-  font-size: .78rem;
-  padding: .1rem .4rem;
-  border-radius: 5px;
-  margin-right: .3rem;
-}
 
 .msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
 .msg--error { color: #9f2f2d; }
@@ -83,7 +73,9 @@ h1 {
 }
 .pill--pending { background: var(--pending-bg); color: var(--pending-text); }
 
-/* 멤버십 트리거 버튼 (본문에는 이 버튼만 보인다) */
+/* 멤버십 트리거 버튼 + 드롭다운의 위치 기준. */
+.membership { position: relative; flex: none; }
+
 .membership-trigger {
   display: inline-flex;
   align-items: center;
@@ -97,76 +89,77 @@ h1 {
   color: var(--text);
   cursor: pointer;
   transition: box-shadow 150ms ease;
-  flex: none;
 }
 .membership-trigger:hover { box-shadow: 0 1px 6px rgba(0, 0, 0, .05); }
 .membership-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* 멤버십·지역화폐 사이드 드로어 (기본 숨김) */
-.drawer-backdrop {
-  position: fixed; inset: 0;
-  background: rgba(23, 23, 23, .28);
+/* 화면 오른쪽에서 밀려나오던 드로어 대신, 버튼 바로 아래 뜨는 드롭다운.
+   열렸을 때만 DOM에 존재하므로(App.jsx `{open && ...}`) 닫힘 상태를 위한
+   별도 opacity 규칙이 필요 없다. */
+.dropdown-backdrop { position: fixed; inset: 0; z-index: 20; }
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + .5rem);
+  right: 0;
+  width: min(300px, 88vw);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  transform-origin: top right;
+  transform: scale(.96);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 200ms ease;
-  z-index: 20;
-}
-.drawer-backdrop--open { opacity: 1; pointer-events: auto; }
-
-.drawer {
-  position: fixed;
-  top: 0; right: 0; bottom: 0;
-  width: min(320px, 88vw);
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  padding: 1.5rem;
-  transform: translateX(100%);
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms ease;
   z-index: 21;
-  overflow-y: auto;
 }
-.drawer--open { transform: translateX(0); }
-
-.drawer__head { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; margin-bottom: .6rem; }
-.drawer__title { font-size: 1rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
-.drawer__close {
-  background: none; border: none; cursor: pointer;
-  font-size: 1.3rem; line-height: 1; color: var(--text-muted);
-  padding: .1rem .4rem;
+.dropdown--open { transform: scale(1); opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .dropdown { transition: opacity 160ms ease; }
 }
-.drawer__close:hover { color: var(--text); }
 
-.drawer__note {
+.dropdown__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
+.dropdown__title { font-size: .95rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+
+.dropdown__note {
   color: var(--text-muted);
-  font-size: .8rem;
+  font-size: .78rem;
   line-height: 1.6;
-  margin: .85rem 0 1.1rem;
+  margin: .6rem 0 .9rem;
 }
-.drawer__options { display: flex; flex-direction: column; gap: .7rem; }
-.drawer__option {
+.dropdown__options { display: flex; flex-direction: column; gap: .6rem; }
+.dropdown__option {
   display: inline-flex;
   align-items: center;
   gap: .5rem;
-  font-size: .9rem;
+  font-size: .88rem;
   color: var(--text);
   cursor: pointer;
 }
-.drawer__option input { accent-color: var(--accent); width: 16px; height: 16px; }
+.dropdown__option input { accent-color: var(--accent); width: 16px; height: 16px; }
 
 /* 카테고리 필터 — 가로로 죽 늘어놓고, 좁은 화면에선 가로 스크롤로 흡수.
    sticky로 상단에 고정해야 카테고리 바꿀 때마다 맨 위로 스크롤해 올라갔다
-   내려갔다 하지 않는다 — 스크롤 중에도 항상 손 닿는 위치에 있어야 한다. */
+   내려갔다 하지 않는다 — 스크롤 중에도 항상 손 닿는 위치에 있어야 한다.
+   너비는 내용만큼만 차지하고 오른쪽으로 붙인다 — 좁은 화면에선 max-width가
+   뷰포트 폭을 넘지 않게 막아주고, 그 안에서 넘치는 만큼만 스크롤한다. */
 .category-bar {
   position: sticky;
   top: 0;
   z-index: 10;
   display: flex;
-  gap: .35rem;
+  gap: 2px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 1.25rem auto;
   overflow-x: auto;
   scrollbar-width: none;
-  margin-bottom: 1.25rem;
-  padding: .75rem 0;
-  background: var(--bg);
+  padding: .75rem 0 1.35rem;
+  /* 스크롤로 올라오는 카드가 탭 아래에서 뚝 끊기지 않도록, 탭이 있는
+     영역(0~70%)은 배경을 채워 가리고 그 아래로는 투명하게 풀어준다. */
+  background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 70%, transparent 100%);
 }
 .category-bar::-webkit-scrollbar { display: none; }
 
@@ -176,8 +169,7 @@ h1 {
    position:sticky라 별도 relative 없이도 이 절대배치의 기준이 된다. */
 .category-bar__highlight {
   position: absolute;
-  top: .75rem;
-  bottom: .75rem;
+  top: 0;
   left: 0;
   border-radius: 999px;
   background: var(--text);
@@ -188,33 +180,38 @@ h1 {
   .category-bar__highlight { transition: none; }
 }
 
+/* 테두리를 없애 탭 자체는 존재감을 지운다 — 어느 값이 선택됐는지는
+   슬라이딩 하이라이트 하나만 가리키면 된다. 탭끼리도 서로 붙여서
+   낱개 버튼이 아니라 하나의 트랙처럼 읽히게 한다. */
 .category-btn {
   position: relative;
   z-index: 1;
   flex: none;
   background: none;
-  border: 1px solid var(--border);
+  border: none;
   border-radius: 999px;
   padding: .45rem .9rem;
   font: inherit;
   font-size: .85rem;
   color: var(--text-muted);
   cursor: pointer;
-  transition: color 150ms ease, border-color 150ms ease;
+  transition: color 150ms ease;
 }
 .category-btn:hover { color: var(--text); }
 .category-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .category-btn--active {
-  border-color: transparent;
   color: #fff;
   font-weight: 600;
 }
 
-/* 브랜드 카드 그리드 — 한 줄에 2개 고정. 카드를 넓게 잡아야 앱별
-   금액이 다음 줄로 안 밀리고 한 줄에 다 들어간다. */
+/* 브랜드 카드 그리드 — 고정 컬럼 수 대신 minmax로 반응형이다.
+   300px보다 좁아지면(=모바일) min(100%, 300px)이 100%가 되어 카드 하나가
+   컨테이너 폭에 정확히 맞고, 넓어지면 300px 이상인 컬럼을 들어가는 만큼
+   채운다(지금 폭에선 2열). 하드코딩된 breakpoint가 없어 태블릿 폭에서도
+   자연스럽게 열 수가 바뀐다. */
 .brand-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: .85rem;
   align-items: start;
 }
@@ -317,8 +314,12 @@ h1 {
   font-size: .95rem; font-weight: 600; color: var(--text-muted);
 }
 
-/* 2행: 앱별 금액 한 줄 고정(줄바꿈 없음). 카드 폭보다 넘치는 드문 경우만
-   가로 스크롤로 흡수한다 — 다음 줄로 밀려 카드 높이가 들쭉날쭉해지는 것보다 낫다. */
+/* 2행: 앱별 금액 한 줄 고정(줄바꿈 없음). 칩은 내용 크기가 아니라
+   카드 폭을 균등하게 나눠 갖는다(flex: 1 1 0) — 브랜드 카드 자체가
+   반응형(auto-fit/minmax)이라 카드 폭이 화면마다 달라지는데, 칩이
+   고정 크기면 넓은 카드에선 왼쪽으로 쏠려 보이고 좁은 카드에선 스크롤이
+   필요해진다. min-width만 최소 보장하고, 그마저 부족한 극단적인 경우에만
+   가로 스크롤로 흡수한다. */
 .offer-list {
   list-style: none;
   margin: 0;
@@ -332,16 +333,18 @@ h1 {
   scrollbar-width: none;
 }
 .offer-list::-webkit-scrollbar { display: none; }
-.offer { position: relative; display: flex; flex-direction: column; flex: none; }
+.offer { position: relative; display: flex; flex-direction: column; flex: 1 1 0; min-width: 68px; }
 
 .offer__chip {
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: .55rem .75rem;
+  padding: .55rem .6rem;
   font: inherit;
   color: inherit;
   text-decoration: none;
@@ -529,5 +532,5 @@ h1 {
 
 @media (max-width: 560px) {
   main { padding: 1.5rem 1rem 3rem; }
-  .brand-grid { grid-template-columns: 1fr; }
+  /* .brand-grid는 이제 auto-fit/minmax라 이 폭에서 이미 1열이 된다. */
 }
