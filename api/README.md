@@ -48,14 +48,22 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
   - `WebConfig` — CORS 허용 오리진. 현재 `http://localhost:5173`(로컬 프론트)
     + `https://beggars-five.vercel.app`(delivery-discount-web 배포).
     프론트를 다른 곳에 새로 배포하면 여기에 오리진을 추가해야 한다.
+- `analytics/` — 방문 이벤트 수집(아래 "방문 측정 (analytics)" 절 참고)
+  - `EventController` — POST /api/events
+  - `EventLog` — `data/events.jsonl`에 append
+  - `ClientFingerprint` — IP를 날짜별 솔트로 해시(원본 미저장)
+  - `EventRateLimiter` — IP 해시별 분당 상한
 
 ### 응답 스키마는 계약이다
 
-`/api/brands`는 평평한 모양(`name`, `category`, `link`,
+`/api/brands`는 평평한 모양(`name`, `category`, `links`,
 `maxConfirmedAmount`, `offers[]`)으로 나간다. 내부에서 `Brand`를 중첩해
 들고 있어도 응답까지 중첩되면 프론트가 도메인 구조 변경에 끌려다니므로,
 `BrandComparison`이 내보낼 것만 골라 노출한다. 이 모양은
 `BrandControllerTest.brandResponseKeepsFlatContract`가 지킨다.
+`links`는 플랫폼 키(`ddangyo`, `baemin`, ...) -> 링크 맵이다 — 앱이
+하나뿐이라고 가정한 문자열 하나였다가 배민 링크가 추가되며 맵으로
+바뀌었다([ADR-004](docs/decisions/ADR-004-per-platform-brand-links.md)).
 
 ## 방문 측정 (analytics)
 
@@ -158,9 +166,11 @@ jq -r 'select(.event=="category_change") | .props.category' events.jsonl \
 ```yaml
 brands:
   BBQ:
-    category: chicken                  # 생략하면 "전체" 탭에서만 보인다
-    aliases: [BBQ치킨]                  # 원장에 다른 이름으로 찍힐 때만
-    link: https://fdofd.ddangyo.com/…  # 땡겨요 쿠폰 바로가기, 있을 때만
+    category: chicken              # 생략하면 "전체" 탭에서만 보인다
+    aliases: [BBQ치킨]              # 원장에 다른 이름으로 찍힐 때만
+    links:                         # 앱별 브랜드 쿠폰 바로가기, 있는 것만
+      ddangyo: https://fdofd.ddangyo.com/…
+      baemin: https://s.baemin.com/…
 ```
 
 로고 이미지만 `delivery-discount-web/public/logos/<대표명>.png`로 따로
