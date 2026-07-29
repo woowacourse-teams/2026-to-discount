@@ -9,48 +9,8 @@ const PLATFORMS = [
 ]
 const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 
-// 땡겨요는 브랜드별 상세 쿠폰 페이지가 앱 전용 공유링크로만 존재한다(딥링크,
-// 웹으로는 빈 WebSquare 셸만 응답함 — 확인됨). 링크를 못 열어도 앱이 깔려
-// 있으면 폰에서 딥링크로 그대로 넘어간다.
-const DDANGYO_LINKS = {
-  '설빙': 'https://fdofd.ddangyo.com/gateway4.html?EE7GifX',
-  '푸라닭': 'https://fdofd.ddangyo.com/gateway4.html?c2ytzEn',
-  '버거킹': 'https://fdofd.ddangyo.com/gateway4.html?vanBB85',
-  '뚜레쥬르': 'https://fdofd.ddangyo.com/gateway4.html?Su5rYT4',
-  '두찜': 'https://fdofd.ddangyo.com/gateway4.html?nbYJqDX',
-  '네네치킨': 'https://fdofd.ddangyo.com/gateway4.html?aTPhxVy',
-  '프레드피자': 'https://fdofd.ddangyo.com/gateway4.html?2EQN6qm',
-  '자담치킨': 'https://fdofd.ddangyo.com/gateway4.html?vo1gL4b',
-  '청년피자': 'https://fdofd.ddangyo.com/gateway4.html?1gWfr6i',
-  '호식이두마리치킨': 'https://fdofd.ddangyo.com/gateway4.html?BxZMpFY',
-  '멕시카나': 'https://fdofd.ddangyo.com/gateway4.html?wXJeQzu',
-  'bhc': 'https://fdofd.ddangyo.com/gateway4.html?hi55GGt',
-  '후라이드참잘하는집': 'https://fdofd.ddangyo.com/gateway4.html?igsyudD',
-  '왓더버거': 'https://fdofd.ddangyo.com/gateway4.html?G9Z4NxO',
-  '기영이숯불두마리치킨': 'https://fdofd.ddangyo.com/gateway4.html?G9QrY5J',
-  '부어치킨': 'https://fdofd.ddangyo.com/gateway4.html?u5yUGTs',
-  '바른치킨': 'https://fdofd.ddangyo.com/gateway4.html?1rBQNCa',
-  '7번가피자': 'https://fdofd.ddangyo.com/gateway4.html?p7kqsN0',
-  '훌랄라참숯바베큐치킨': 'https://fdofd.ddangyo.com/gateway4.html?hk6PXvd',
-  '또봉이통닭': 'https://fdofd.ddangyo.com/gateway4.html?kdXwMdq',
-  '보끔당': 'https://fdofd.ddangyo.com/gateway4.html?ZRdUPwD',
-  '오븐에빠진닭': 'https://fdofd.ddangyo.com/gateway4.html?h2O9t9f',
-  '꾸브라꼬숯불치킨': 'https://fdofd.ddangyo.com/gateway4.html?kTxcrof',
-  '땅땅치킨': 'https://fdofd.ddangyo.com/gateway4.html?cztTiaf',
-  '오븐마루치킨': 'https://fdofd.ddangyo.com/gateway4.html?EjgK6V8',
-  '치킨플러스': 'https://fdofd.ddangyo.com/gateway4.html?66iY9Bs',
-  '또래오래': 'https://fdofd.ddangyo.com/gateway4.html?529nm7L',
-  '일미리금계찜닭': 'https://fdofd.ddangyo.com/gateway4.html?tx8BsDy',
-  '해두리치킨': 'https://fdofd.ddangyo.com/gateway4.html?CwOVSYe',
-  '피자헛': 'https://fdofd.ddangyo.com/gateway4.html?1qdBNdu',
-  '도미노피자': 'https://fdofd.ddangyo.com/gateway4.html?LgTHHGE',
-  '파파존스': 'https://fdofd.ddangyo.com/gateway4.html?MaOqpJR',
-  '떡참': 'https://fdofd.ddangyo.com/gateway4.html?gXQDKHQ',
-  '맘스피자': 'https://fdofd.ddangyo.com/gateway4.html?kEVWf2s',
-  '아메리칸피자': 'https://fdofd.ddangyo.com/gateway4.html?L3OTWfS',
-  'BBQ': 'https://fdofd.ddangyo.com/gateway4.html?Ej2faGu',
-}
-
+// 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
+// (실제 브랜드별 분류는 API 쪽 brands.yml이 단일 출처다).
 const CATEGORIES = [
   { key: 'all', label: '전체' },
   { key: 'chicken', label: '치킨' },
@@ -59,38 +19,6 @@ const CATEGORIES = [
   { key: 'cafe', label: '카페' },
   { key: 'convenience', label: '편의점' },
 ]
-
-// 브랜드별 카테고리. 여기 없는 브랜드(찜/탕, 한식 등 5개 카테고리 밖)는
-// "전체"에서만 보이고 나머지 필터에는 안 걸린다 — API가 카테고리를 안
-// 내려주므로 프론트에서만 아는 값이다.
-const BRAND_CATEGORY = {
-  '7번가피자': 'pizza', '도미노피자': 'pizza', '맘스피자': 'pizza',
-  '빽보이피자': 'pizza', '빽보이피자 오구샌': 'pizza', '수피자': 'pizza',
-  '아메리칸피자': 'pizza', '오구쌀피자': 'pizza', '청년피자': 'pizza',
-  '파파존스': 'pizza', '프레드피자': 'pizza', '피자헛': 'pizza',
-
-  'BBQ': 'chicken', 'bhc': 'chicken', '감탄계숯불치킨': 'chicken',
-  '계근상': 'chicken', '굽네치킨': 'chicken', '기영이숯불두마리치킨': 'chicken',
-  '꾸브라꼬숯불치킨': 'chicken', '냠냠숯불두마리치킨': 'chicken', '네네치킨': 'chicken',
-  '노랑통닭': 'chicken', '두찜': 'chicken', '디디치킨': 'chicken',
-  '땅땅치킨': 'chicken', '또래오래': 'chicken', '또봉이통닭': 'chicken',
-  '멕시카나': 'chicken', '바른치킨': 'chicken', '보끔당': 'chicken',
-  '부어치킨': 'chicken', '아라치치킨': 'chicken', '오븐마루치킨': 'chicken',
-  '오븐에빠진닭': 'chicken', '일미리금계찜닭': 'chicken', '자담치킨': 'chicken',
-  '처갓집양념치킨': 'chicken', '치킨매니아': 'chicken', '치킨인류': 'chicken',
-  '치킨플러스': 'chicken', '페리카나': 'chicken', '푸라닭': 'chicken',
-  '해두리치킨': 'chicken', '호식이두마리치킨': 'chicken', '후라이드참잘하는집': 'chicken',
-  '훌랄라참숯바베큐치킨': 'chicken',
-
-  '맘스터치앤피자': 'fastfood', '맘스터치피자앤치킨': 'fastfood', '맥도날드': 'fastfood',
-  '버거킹': 'fastfood', '써브웨이': 'fastfood', '왓더버거': 'fastfood',
-
-  '공차': 'cafe', '던킨': 'cafe', '뚜레쥬르': 'cafe', '배스킨라빈스': 'cafe',
-  '설빙': 'cafe', '스타벅스': 'cafe', '잠바주스': 'cafe', '파스쿠찌': 'cafe',
-  '팀홀튼': 'cafe',
-
-  'CU': 'convenience', '세븐일레븐': 'convenience', '세븐픽업': 'convenience',
-}
 
 // 멤버십/지역화폐 반영 로직은 아직 없다. 화면만 미리 놓아두고 실제 계산은
 // docs/plans/2026-07-28-membership-pricing.md 계획대로 나중에 붙인다.
@@ -150,11 +78,13 @@ function sourceFileName(screenshotPath) {
   return screenshotPath.split('/').pop()
 }
 
-function OfferChip({ offer, brandName }) {
+// brandLink는 API가 내려주는 땡겨요 브랜드 쿠폰 바로가기(brands.yml 출처).
+// 링크가 있어도 땡겨요 오퍼에만 건다 — 다른 앱 칩까지 땡겨요로 보내면 안 된다.
+function OfferChip({ offer, brandLink }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier === '최대'
   const amountText = offer.amount != null ? `${offer.amount.toLocaleString()}원` : offer.rawText
-  const link = offer.platform === 'ddangyo' ? DDANGYO_LINKS[brandName] : undefined
+  const link = offer.platform === 'ddangyo' ? brandLink : undefined
 
   const content = (
     <>
@@ -209,7 +139,7 @@ function BrandCard({ brand }) {
       </header>
       <ul className="offer-list">
         {sortedOffers.map((o) => (
-          <OfferChip key={o.platform} offer={o} brandName={brand.name} />
+          <OfferChip key={o.platform} offer={o} brandLink={brand.link} />
         ))}
       </ul>
     </article>
@@ -318,9 +248,11 @@ export default function App() {
   const toggleMembership = (key) =>
     setMembership((prev) => ({ ...prev, [key]: !prev[key] }))
 
+  // category는 API가 brands.yml에서 읽어 내려준다. 분류가 없는 브랜드는
+  // null이라 "전체"에서만 보인다.
   const visibleBrands = useMemo(() => {
     if (!brands || category === 'all') return brands
-    return brands.filter((b) => BRAND_CATEGORY[b.name] === category)
+    return brands.filter((b) => b.category === category)
   }, [brands, category])
 
   return (
