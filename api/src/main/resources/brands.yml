@@ -1,0 +1,199 @@
+# 브랜드 지식의 단일 출처.
+#
+# 브랜드를 추가하려면 여기에만 넣으면 된다 — 별칭·카테고리·땡겨요 링크가
+# 전부 여기 모여 있고, API가 그대로 프론트에 내려준다(프론트 재배포 불필요).
+# 로고 이미지만 delivery-discount-web/public/logos/<대표명>.png 로 따로 넣는다.
+#
+# category: chicken | pizza | fastfood | cafe | convenience | (생략 = 미분류)
+# aliases:  원장에 다른 이름으로 찍히는 경우만 (생략 가능)
+# link:     땡겨요 브랜드 쿠폰 공유링크 (앱 전용 딥링크, 생략 가능)
+
+brands:
+  # --- 치킨 ---
+  BBQ:
+    category: chicken
+    aliases: [BBQ, BBQ치킨]
+    link: https://fdofd.ddangyo.com/gateway4.html?Ej2faGu
+  bhc:
+    category: chicken
+    aliases: [bhc, bhc치킨, BHC, BHC치킨]
+    link: https://fdofd.ddangyo.com/gateway4.html?hi55GGt
+  감탄계숯불치킨:
+    category: chicken
+  계근상:
+    category: chicken
+  굽네치킨:
+    category: chicken
+  기영이숯불두마리치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?G9QrY5J
+  꾸브라꼬숯불치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?kTxcrof
+  냠냠숯불두마리치킨:
+    category: chicken
+  네네치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?aTPhxVy
+  노랑통닭:
+    category: chicken
+  두찜:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?nbYJqDX
+  디디치킨:
+    category: chicken
+  땅땅치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?cztTiaf
+  또래오래:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?529nm7L
+  또봉이통닭:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?kdXwMdq
+  멕시카나:
+    category: chicken
+    aliases: [멕시카나, 멕시카나치킨]
+    link: https://fdofd.ddangyo.com/gateway4.html?wXJeQzu
+  바른치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?1rBQNCa
+  보끔당:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?ZRdUPwD
+  부어치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?u5yUGTs
+  아라치치킨:
+    category: chicken
+  오븐마루치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?EjgK6V8
+  오븐에빠진닭:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?h2O9t9f
+  일미리금계찜닭:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?tx8BsDy
+  자담치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?vo1gL4b
+  처갓집양념치킨:
+    category: chicken
+  치킨매니아:
+    category: chicken
+  치킨인류:
+    category: chicken
+  치킨플러스:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?66iY9Bs
+  페리카나:
+    category: chicken
+  푸라닭:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?c2ytzEn
+  해두리치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?CwOVSYe
+  호식이두마리치킨:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?BxZMpFY
+  후라이드참잘하는집:
+    category: chicken
+    link: https://fdofd.ddangyo.com/gateway4.html?igsyudD
+  훌랄라참숯바베큐치킨:
+    category: chicken
+    aliases: [훌랄라참숯바베큐치킨, 훌랄라참숯치킨]
+    link: https://fdofd.ddangyo.com/gateway4.html?hk6PXvd
+
+  # --- 피자 ---
+  7번가피자:
+    category: pizza
+    link: https://fdofd.ddangyo.com/gateway4.html?p7kqsN0
+  도미노피자:
+    category: pizza
+    link: https://fdofd.ddangyo.com/gateway4.html?LgTHHGE
+  맘스피자:
+    category: pizza
+    link: https://fdofd.ddangyo.com/gateway4.html?kEVWf2s
+  빽보이피자:
+    category: pizza
+  빽보이피자 오구샌:
+    category: pizza
+  수피자:
+    category: pizza
+  아메리칸피자:
+    category: pizza
+    link: https://fdofd.ddangyo.com/gateway4.html?L3OTWfS
+  오구쌀피자:
+    category: pizza
+  청년피자:
+    category: pizza
+    link: https://fdofd.ddangyo.com/gateway4.html?1gWfr6i
+  파파존스:
+    category: pizza
+    link: https://fdofd.ddangyo.com/gateway4.html?MaOqpJR
+  프레드피자:
+    category: pizza
+    link: https://fdofd.ddangyo.com/gateway4.html?2EQN6qm
+  피자헛:
+    category: pizza
+    link: https://fdofd.ddangyo.com/gateway4.html?1qdBNdu
+
+  # --- 패스트푸드 ---
+  맘스터치앤피자:
+    category: fastfood
+  맘스터치피자앤치킨:
+    category: fastfood
+  맥도날드:
+    category: fastfood
+  버거킹:
+    category: fastfood
+    link: https://fdofd.ddangyo.com/gateway4.html?vanBB85
+  써브웨이:
+    category: fastfood
+  왓더버거:
+    category: fastfood
+    link: https://fdofd.ddangyo.com/gateway4.html?G9Z4NxO
+
+  # --- 카페 ---
+  공차:
+    category: cafe
+  던킨:
+    category: cafe
+  뚜레쥬르:
+    category: cafe
+    link: https://fdofd.ddangyo.com/gateway4.html?Su5rYT4
+  배스킨라빈스:
+    category: cafe
+  설빙:
+    category: cafe
+    link: https://fdofd.ddangyo.com/gateway4.html?EE7GifX
+  스타벅스:
+    category: cafe
+  잠바주스:
+    category: cafe
+  팀홀튼:
+    category: cafe
+  파스쿠찌:
+    category: cafe
+
+  # --- 편의점 ---
+  CU:
+    category: convenience
+  세븐일레븐:
+    category: convenience
+  세븐픽업:
+    category: convenience
+
+  # --- 미분류 (전체에서만 노출) ---
+  떡참:
+    link: https://fdofd.ddangyo.com/gateway4.html?gXQDKHQ
+  매드포갈릭:
+  본도시락:
+  아웃백스테이크하우스:
+  원할머니보쌈족발:
+  육회야문연어:
+  전통숙성황실김치찜&찌개:
+  큰맘할매순대국:
+  하남돼지집:

@@ -31,17 +31,46 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 
 ## 구조
 
-- `data/ExportDataLoader` — export.json 읽기(리로드 가능)
-- `alias/AliasResolver` — brand-aliases.yml로 같은 브랜드의 다른 표기를 묶음
-- `service/BrandComparisonService` — 묶기 + 확정/미확정 판정 + 최고 확정 할인 큰 순 정렬
-- `web/BrandController` — GET /api/brands, POST /api/reload
-- `web/WebConfig` — CORS 허용 오리진. 현재
-  `http://localhost:5173`(로컬 프론트) +
-  `https://beggars-five.vercel.app`(delivery-discount-web 배포).
-  프론트를 다른 곳에 새로 배포하면 여기에 오리진을 추가해야 API
-  호출이 CORS로 막히지 않는다.
+패키지는 계층(model/service/dao)이 아니라 **도메인**으로 나눈다. 한 가지를
+고치려고 여러 패키지를 헤집지 않아도 되게 하는 게 목적이다.
 
-## 별칭 추가
+- `brand/` — 브랜드에 대해 우리가 아는 것
+  - `BrandCatalog` — `brands.yml`을 읽어 별칭·카테고리·바로가기를 제공
+  - `Brand`, `Category` — 브랜드 정보와 분류
+- `offer/` — 원장에서 온 할인 데이터
+  - `OfferRepository` — export.json 읽기(리로드 가능)
+  - `OfferRecord`(원장 한 줄), `Offer`(화면의 칩 하나), `OfferStatus`(확정/보류)
+- `comparison/` — 브랜드 단위로 묶어 비교
+  - `BrandComparisonService` — 별칭 묶기, 앱별 중복 정리, 정렬
+  - `BrandComparison` — 카드 하나. 정렬 규칙(`byBestDiscount`)도 여기 있다
+- `web/` — 바깥과 닿는 부분
+  - `BrandController` — GET /api/brands, POST /api/reload
+  - `WebConfig` — CORS 허용 오리진. 현재 `http://localhost:5173`(로컬 프론트)
+    + `https://beggars-five.vercel.app`(delivery-discount-web 배포).
+    프론트를 다른 곳에 새로 배포하면 여기에 오리진을 추가해야 한다.
 
-같은 브랜드가 다른 이름으로 안 묶이면 `src/main/resources/brand-aliases.yml`에 추가한다.
-전체 브랜드명은 delivery-discount-tracker의 `data/brands-sorted.txt`(이름 오름차순)에서 확인한다.
+### 응답 스키마는 계약이다
+
+`/api/brands`는 평평한 모양(`name`, `category`, `link`,
+`maxConfirmedAmount`, `offers[]`)으로 나간다. 내부에서 `Brand`를 중첩해
+들고 있어도 응답까지 중첩되면 프론트가 도메인 구조 변경에 끌려다니므로,
+`BrandComparison`이 내보낼 것만 골라 노출한다. 이 모양은
+`BrandControllerTest.brandResponseKeepsFlatContract`가 지킨다.
+
+## 브랜드 추가·수정
+
+`src/main/resources/brands.yml` **한 곳만** 고치면 된다 — 별칭, 카테고리,
+땡겨요 바로가기가 모두 여기 있고 API가 그대로 프론트에 내려주므로 프론트
+재배포가 필요 없다.
+
+```yaml
+brands:
+  BBQ:
+    category: chicken                  # 생략하면 "전체" 탭에서만 보인다
+    aliases: [BBQ치킨]                  # 원장에 다른 이름으로 찍힐 때만
+    link: https://fdofd.ddangyo.com/…  # 땡겨요 쿠폰 바로가기, 있을 때만
+```
+
+로고 이미지만 `delivery-discount-web/public/logos/<대표명>.png`로 따로
+넣는다. 전체 브랜드명은 delivery-discount-tracker의
+`data/brands-sorted.txt`(이름 오름차순)에서 확인한다.
