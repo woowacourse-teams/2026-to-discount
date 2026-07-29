@@ -40,6 +40,13 @@ class BrandComparisonServiceTest {
                 "2026-07-27T14:20:00+09:00", "path.jpg", null, null, null);
     }
 
+    private OfferRecord recWithConditions(String platform, String brand, Integer amount,
+                                          boolean needsReview, Integer minOrder, String conditions) {
+        return new OfferRecord(platform, brand, amount, null, needsReview,
+                "discount", null, amount == null ? "" : amount + "원",
+                "2026-07-29T18:00:00+09:00", "path2.jpg", minOrder, null, conditions);
+    }
+
     @Test
     void groupsAliasesUnderCanonicalName() {
         var svc = serviceWith(
@@ -131,6 +138,34 @@ class BrandComparisonServiceTest {
         assertEquals(1, offers.size());
         assertEquals(3000, offers.get(0).amount());
         assertEquals(OfferStatus.CONFIRMED, offers.get(0).status());
+    }
+
+    @Test
+    void dedupeMergesLoserDetailFieldsOntoWinner() {
+        // 확정으로 이긴 오퍼 자체엔 상세가 없고, 나중에 재확인하며 조건만
+        // 캡처한(needs_review) 오퍼가 진 경우 — 그 조건을 버리면 안 된다.
+        var result = serviceWith(
+                List.of(
+                        rec("ddangyo", "브랜드", 5000, "최대", false),
+                        recWithConditions("ddangyo", "브랜드", 12100, true, null, "메뉴 한정 쿠폰")),
+                "brands: {}").compare();
+        Offer offer = result.get(0).offers().get(0);
+        assertEquals(5000, offer.amount());
+        assertEquals(OfferStatus.CONFIRMED, offer.status());
+        assertEquals("메뉴 한정 쿠폰", offer.conditions());
+    }
+
+    @Test
+    void dedupeKeepsWinnerDetailWhenWinnerAlreadyHasIt() {
+        var result = serviceWith(
+                List.of(
+                        recWithConditions("ddangyo", "브랜드", 7000, false, 22000, "1일 1회"),
+                        recWithConditions("ddangyo", "브랜드", 3000, true, 10000, "다른 조건")),
+                "brands: {}").compare();
+        Offer offer = result.get(0).offers().get(0);
+        assertEquals(7000, offer.amount());
+        assertEquals(22000, offer.minOrderAmount());
+        assertEquals("1일 1회", offer.conditions());
     }
 
     @Test

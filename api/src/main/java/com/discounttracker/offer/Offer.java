@@ -41,11 +41,31 @@ public record Offer(String platform, Integer amount, String qualifier,
      * <p>확정을 우선하고, 같은 등급이면 금액이 큰 쪽. 별칭을 잘못 묶어
      * 서로 다른 가게가 한 브랜드로 합쳐지면 이런 충돌이 생기는데,
      * 조용히 아무거나 버리는 것보다 규칙을 정해두는 편이 낫다.
+     *
+     * <p>다만 진 쪽의 상세(최소주문금액·구간·조건)까지 통째로 버리지는
+     * 않는다 — 예를 들어 예전에 확정으로 잡힌 "5,000원"에 최소주문금액이
+     * 없고, 나중에 재확인하며 조건만 캡처한 needs_review 레코드가 있다면
+     * 그 조건은 살려서 확정값에 붙인다. 이 병합이 없으면 검수용으로 남겨둔
+     * 기록이 API 응답에서 통째로 사라져, 그 정보를 모은 수고가 없던 일이
+     * 된다.
      */
     public Offer preferredOver(Offer other) {
-        if (status.isConfirmed() != other.status.isConfirmed()) {
-            return status.isConfirmed() ? this : other;
+        boolean thisWins = status.isConfirmed() == other.status.isConfirmed()
+                ? amountOrZero() >= other.amountOrZero()
+                : status.isConfirmed();
+        Offer winner = thisWins ? this : other;
+        Offer loser = thisWins ? other : this;
+        return winner.withDetailFrom(loser);
+    }
+
+    private Offer withDetailFrom(Offer other) {
+        Integer mergedMinOrder = minOrderAmount != null ? minOrderAmount : other.minOrderAmount;
+        List<DiscountTier> mergedTiers = tiers != null ? tiers : other.tiers;
+        String mergedConditions = conditions != null ? conditions : other.conditions;
+        if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions) {
+            return this;
         }
-        return amountOrZero() >= other.amountOrZero() ? this : other;
+        return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
+                mergedMinOrder, mergedTiers, mergedConditions);
     }
 }
