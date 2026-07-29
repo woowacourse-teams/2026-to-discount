@@ -20,3 +20,4 @@
 | [ADR-013](ADR-013-manual-capture-scope-freeze.md) | 자동 스크롤 캡처는 배민에서 멈추고 나머지는 수동+비전 | 확정 |
 | [ADR-014](ADR-014-coupangeats-record-guaranteed-floor.md) | 쿠팡이츠는 헤드라인이 아니라 보장 바닥값을 기록 | 확정 |
 | [ADR-015](ADR-015-open-access-only-and-disclosure.md) | 공개·정당한 경로로만 수집, 서비스 성격을 화면에 고지 | 확정 |
+| [ADR-016](ADR-016-confirmed-beats-recency-on-dedup.md) | 중복 정리는 확정을 최신보다 우선, 상세는 병합 | 확정 |
