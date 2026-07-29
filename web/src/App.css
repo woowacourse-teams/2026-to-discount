@@ -206,21 +206,45 @@ h1 {
 }
 .brand-card:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .04); }
 
-/* 1행: 로고 + 이름 */
+/* 1행: 로고 + 이름. 상세를 펼치는 버튼이기도 하다 — 카드에서 가장 큰
+   과녁이라 모바일에서 엄지로 누르기 가장 쉽다. */
 .brand-card__head {
   display: flex;
   align-items: center;
   gap: .7rem;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
+.brand-card__head:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .brand-card__name {
   font-size: .98rem;
   font-weight: 600;
   margin: 0;
+  min-width: 0;
   letter-spacing: -0.01em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* 펼침 표시. 아이콘 라이브러리 없이 테두리 두 변만 남긴 사각형을 돌린다. */
+.brand-card__chevron {
+  flex: none;
+  margin-left: auto;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.brand-card--open .brand-card__chevron { transform: translateY(1px) rotate(-135deg); }
 
 .brand-logo {
   position: relative;
@@ -289,12 +313,20 @@ h1 {
   white-space: nowrap;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .18);
 }
-/* 링크로 뜨는 칩(현재는 땡겨요 브랜드 페이지)만 눌러볼 수 있다는 걸
-   보여준다 — 나머지는 그냥 정보 표시라 클릭 피드백을 주지 않는다. */
-.offer__chip--link { cursor: pointer; transition: transform 150ms ease, box-shadow 150ms ease; }
-.offer__chip--link:hover { box-shadow: 0 1px 6px rgba(0, 0, 0, .05); }
-.offer__chip--link:active { transform: scale(.98); }
-.offer__chip--link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 칩은 둘 중 하나다: 땡겨요 브랜드 페이지로 나가는 링크, 또는 상세를
+   펼치는 버튼. 둘 다 눌리는 것이므로 같은 피드백을 준다. */
+.offer__chip--link,
+.offer__chip--toggle {
+  cursor: pointer;
+  text-align: left;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.offer__chip--link:hover,
+.offer__chip--toggle:hover { box-shadow: 0 1px 6px rgba(0, 0, 0, .05); }
+.offer__chip--link:active,
+.offer__chip--toggle:active { transform: scale(.98); }
+.offer__chip--link:focus-visible,
+.offer__chip--toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .offer--confirmed .offer__amount {
   font-weight: 600;
@@ -345,6 +377,107 @@ h1 {
 .platform-badge--coupangeats { background: #fdebec; }
 .platform-badge--ddangyo { background: #fbf3db; }
 .platform-badge--yogiyo { background: #edf3ec; }
+
+/* 펼친 상세. 카드 안에 상자를 또 그리지 않고 실선 하나로만 나눈다. */
+.brand-detail {
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  margin-top: .35rem;
+  padding-top: .85rem;
+  border-top: 1px solid var(--border);
+  animation: detail-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* [hidden]과 위 display:flex는 명시도가 같아서 순서로 갈린다 — 접힘이
+   이기도록 여기서 못박는다. */
+.brand-detail[hidden] { display: none; }
+
+@keyframes detail-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-detail { animation: none; }
+}
+
+.detail + .detail {
+  padding-top: .8rem;
+  border-top: 1px dashed var(--border);
+}
+.detail__head {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: .45rem;
+}
+.detail__platform { font-size: .78rem; color: var(--text-muted); }
+.detail__amount {
+  margin-left: auto;
+  font-size: .82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail__rows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .28rem .7rem;
+  margin: 0;
+}
+.detail__rows dt {
+  font-size: .72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.detail__rows dd { margin: 0; font-size: .78rem; }
+.detail__unknown { color: var(--text-muted); }
+.detail__raw { color: var(--text-muted); }
+
+.detail__tiers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .18rem;
+}
+.detail__tiers li {
+  display: flex;
+  justify-content: space-between;
+  gap: .6rem;
+  max-width: 200px;
+}
+.detail__tier-min { color: var(--text-muted); }
+.detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* 판독 근거. 이 금액을 어디서 읽었는지 카드 안에서 바로 확인시킨다. */
+.detail__source {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: .55rem;
+  font-size: .72rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.detail__source img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+.detail__source:hover { color: var(--text); }
+.detail__source:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.brand-detail__note {
+  margin: 0;
+  font-size: .7rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
 
 /* 맨 아래: 판독에 쓴 원본 캡처 전부 */
 .captures {

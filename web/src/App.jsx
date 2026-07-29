@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { fetchBrands } from './api.js'
 
 const PLATFORMS = [
@@ -29,8 +29,21 @@ const MEMBERSHIP_OPTIONS = [
   { key: 'ddangyo', label: '지역화폐' },
 ]
 
+// 모바일이 주 사용 환경이라 상세는 "탭해서 펼치기"가 기본이고, 마우스가
+// 있는 환경에서만 hover를 덤으로 얹는다. 터치에서도 mouseenter가 흉내로
+// 발생하는 브라우저가 있어 hover 지원 여부를 직접 확인해 갈라낸다.
+const CAN_HOVER = window.matchMedia('(hover: hover)').matches
+
 function assetSrc(base, name) {
   return `${base}/${encodeURIComponent(name)}.png`
+}
+
+function won(value) {
+  return `${value.toLocaleString()}원`
+}
+
+function capturedDate(capturedAt) {
+  return capturedAt ? capturedAt.slice(0, 10) : null
 }
 
 // 폴백 글자(span)는 position:absolute라 static인 img보다 항상 위에 그려진다
@@ -78,19 +91,33 @@ function sourceFileName(screenshotPath) {
   return screenshotPath.split('/').pop()
 }
 
+// 원본은 한 장에 8MB까지 가는 스크롤 캡처라 화면에는 항상 썸네일을 쓰고,
+// 눌렀을 때만 원본을 연다(scripts/make_capture_thumbs.py가 만든다).
+function captureUrl(file) {
+  return `/captures/${encodeURIComponent(file)}`
+}
+function captureThumbUrl(file) {
+  return `/captures/thumbs/${encodeURIComponent(file)}`
+}
+
+function offerAmountText(offer) {
+  return offer.amount != null ? won(offer.amount) : offer.rawText
+}
+
 // brandLink는 API가 내려주는 땡겨요 브랜드 쿠폰 바로가기(brands.yml 출처).
 // 링크가 있어도 땡겨요 오퍼에만 건다 — 다른 앱 칩까지 땡겨요로 보내면 안 된다.
-function OfferChip({ offer, brandLink }) {
+// 링크가 없는 칩은 상세를 여는 버튼이 된다(땡겨요 칩은 링크가 우선이라
+// 카드 헤더로 펼친다).
+function OfferChip({ offer, brandLink, detailId, open, onToggle }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier === '최대'
-  const amountText = offer.amount != null ? `${offer.amount.toLocaleString()}원` : offer.rawText
   const link = offer.platform === 'ddangyo' ? brandLink : undefined
 
   const content = (
     <>
       <span className="offer__amount">
         {held && showRangeBadge && <span className="offer__range-badge">최대</span>}
-        {amountText}
+        {offerAmountText(offer)}
       </span>
       <span className="offer__icon-badge">
         <PlatformBadge platformKey={offer.platform} />
@@ -105,12 +132,90 @@ function OfferChip({ offer, brandLink }) {
           {content}
         </a>
       ) : (
-        <div className="offer__chip">{content}</div>
+        <button
+          type="button"
+          className="offer__chip offer__chip--toggle"
+          aria-expanded={open}
+          aria-controls={detailId}
+          onClick={onToggle}
+        >
+          {content}
+          <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
+        </button>
       )}
       {offer.platform === 'ddangyo' && (
         <span className="offer__extra" title="지역화폐 결제 시 +2,000원 추가 할인">지역</span>
       )}
     </li>
+  )
+}
+
+// 칩 하나를 펼쳤을 때 나오는 상세 한 칸. 아직 안 채워진 값(최소주문금액,
+// 구간 할인)은 감추지 않고 "미확인"으로 드러낸다 — 없다는 사실 자체가
+// 사용자에게 필요한 정보이고, 채워지면 이 자리에 그대로 들어온다.
+function OfferDetail({ offer }) {
+  const platform = PLATFORM_BY_KEY[offer.platform]
+  const file = sourceFileName(offer.screenshotPath)
+  const date = capturedDate(offer.capturedAt)
+
+  return (
+    <div className="detail">
+      <div className="detail__head">
+        <PlatformBadge platformKey={offer.platform} />
+        <span className="detail__platform">{platform?.label ?? offer.platform}</span>
+        <span className="detail__amount">{offerAmountText(offer)}</span>
+        {offer.status === 'held' && <span className="pill pill--pending">재확인</span>}
+      </div>
+
+      <dl className="detail__rows">
+        <dt>최소주문</dt>
+        <dd>
+          {offer.minOrderAmount != null
+            ? `${won(offer.minOrderAmount)} 이상`
+            : <span className="detail__unknown">미확인</span>}
+        </dd>
+
+        {offer.tiers?.length > 0 && (
+          <>
+            <dt>구간</dt>
+            <dd>
+              <ul className="detail__tiers">
+                {offer.tiers.map((t) => (
+                  <li key={t.minOrder}>
+                    <span className="detail__tier-min">{won(t.minOrder)} 이상</span>
+                    <span className="detail__tier-amount">{won(t.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </>
+        )}
+
+        {offer.conditions && (
+          <>
+            <dt>조건</dt>
+            <dd>{offer.conditions}</dd>
+          </>
+        )}
+
+        {offer.platform === 'ddangyo' && (
+          <>
+            <dt>지역화폐</dt>
+            <dd>결제 시 +2,000원 추가 할인</dd>
+          </>
+        )}
+
+        <dt>원문</dt>
+        <dd className="detail__raw">“{offer.rawText}”</dd>
+      </dl>
+
+      {file && (
+        <a className="detail__source" href={captureUrl(file)} target="_blank" rel="noreferrer">
+          <img src={captureThumbUrl(file)} alt="" loading="lazy" />
+          <span>{date ? `${date} 캡처 원본 보기` : '캡처 원본 보기'}</span>
+        </a>
+      )}
+    </div>
   )
 }
 
@@ -131,17 +236,66 @@ function BrandCard({ brand }) {
     [brand.offers],
   )
 
+  // 펼침 상태 = 눌러서 고정했거나(pinned) 마우스를 올렸거나(hovered).
+  // 모바일엔 hover가 없으니 탭이 유일한 수단이고, 마우스 환경에선 굳이
+  // 누르지 않아도 훑어볼 수 있다.
+  const [pinned, setPinned] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const open = pinned || hovered
+  const detailId = `${useId()}-detail`
+
+  // 최소주문금액은 앱 목록 화면에 안 뜨고 쿠폰 상세를 열어야 보이는 값이라
+  // 아직 대부분 비어 있다. 카드마다 반복하지 않고 안내는 한 번만 붙인다.
+  const anyUnknown = brand.offers.some((o) => o.minOrderAmount == null)
+
   return (
-    <article className="brand-card">
-      <header className="brand-card__head">
+    <article
+      className={`brand-card ${open ? 'brand-card--open' : ''}`}
+      onMouseEnter={CAN_HOVER ? () => setHovered(true) : undefined}
+      onMouseLeave={CAN_HOVER ? () => setHovered(false) : undefined}
+    >
+      <button
+        type="button"
+        className="brand-card__head"
+        aria-expanded={open}
+        aria-controls={detailId}
+        onClick={() => setPinned((v) => !v)}
+      >
         <BrandLogo name={brand.name} />
         <h2 className="brand-card__name">{brand.name}</h2>
-      </header>
+        <span className="brand-card__chevron" aria-hidden="true" />
+        <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
+      </button>
+
       <ul className="offer-list">
         {sortedOffers.map((o) => (
-          <OfferChip key={o.platform} offer={o} brandLink={brand.link} />
+          <OfferChip
+            key={o.platform}
+            offer={o}
+            brandLink={brand.link}
+            detailId={detailId}
+            open={open}
+            onToggle={() => setPinned((v) => !v)}
+          />
         ))}
       </ul>
+
+      {/* 상세는 펼쳤을 때만 그린다. 캡처 원본이 스크린샷 한 장에 1MB가 넘어,
+          브랜드 73개 × 앱 4개어치를 미리 심어두면 첫 화면이 통째로 멎는다.
+          컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
+      <div id={detailId} className="brand-detail" hidden={!open}>
+        {open && (
+          <>
+            {sortedOffers.map((o) => <OfferDetail key={o.platform} offer={o} />)}
+            {anyUnknown && (
+              <p className="brand-detail__note">
+                최소주문금액·구간 할인은 앱에서 쿠폰 상세를 열어야 보이는 값이라 아직 수집 전입니다.
+                채워지는 대로 여기에 그대로 표시됩니다.
+              </p>
+            )}
+          </>
+        )}
+      </div>
     </article>
   )
 }
@@ -178,12 +332,12 @@ function CaptureGallery({ brands }) {
           <a
             key={file}
             className="captures__item"
-            href={`/captures/${encodeURIComponent(file)}`}
+            href={captureUrl(file)}
             target="_blank"
             rel="noreferrer"
           >
             <img
-              src={`/captures/${encodeURIComponent(file)}`}
+              src={captureThumbUrl(file)}
               alt={`${PLATFORM_BY_KEY[platform]?.label ?? platform} 캡처: ${file}`}
               loading="lazy"
             />
