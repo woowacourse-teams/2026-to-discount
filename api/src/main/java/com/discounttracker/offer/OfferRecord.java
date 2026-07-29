@@ -1,8 +1,14 @@
 package com.discounttracker.offer;
 
+import java.util.List;
+
 /**
  * 원장(export.json) 한 줄 그대로. 판독 파이프라인이 만든 값이라 여기서는
  * 해석하지 않고 받기만 한다.
+ *
+ * <p>{@code minOrderAmount}·{@code tiers}·{@code conditions}는 쿠폰 상세를
+ * 열어야 보이는 값이라 지금 원장에선 대부분 비어 있다. 비어 있다는 사실도
+ * 데이터다 — 화면에 "미확인"으로 그대로 드러낸다.
  */
 public record OfferRecord(
         String platform,
@@ -14,7 +20,10 @@ public record OfferRecord(
         String section,
         String rawText,
         String capturedAt,
-        String screenshotPath
+        String screenshotPath,
+        Integer minOrderAmount,
+        List<DiscountTier> tiers,
+        String conditions
 ) {
 
     /**

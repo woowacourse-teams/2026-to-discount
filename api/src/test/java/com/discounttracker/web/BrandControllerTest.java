@@ -42,6 +42,11 @@ class BrandControllerTest {
            .andExpect(jsonPath("$[0].maxConfirmedAmount").exists())
            .andExpect(jsonPath("$[0].offers[0].platform").isString())
            .andExpect(jsonPath("$[0].offers[0].status").isString())
+           // 상세 패널이 읽는 키는 값이 비어 있어도 자리는 있어야 한다
+           .andExpect(jsonPath("$[0].offers[0].capturedAt").exists())
+           .andExpect(jsonPath("$[0].offers[0]", org.hamcrest.Matchers.hasKey("minOrderAmount")))
+           .andExpect(jsonPath("$[0].offers[0]", org.hamcrest.Matchers.hasKey("tiers")))
+           .andExpect(jsonPath("$[0].offers[0]", org.hamcrest.Matchers.hasKey("conditions")))
            // 내부 표현이 응답에 새면 안 된다
            .andExpect(jsonPath("$[0].brand").doesNotExist())
            .andExpect(jsonPath("$[0].maxHeldAmount").doesNotExist());
