@@ -158,10 +158,10 @@ function OfferDetail({ offer }) {
 
   return (
     <div className="detail">
+      {/* 금액은 칩 버튼과 아래 쿠폰 목록에 이미 있다 — 헤더에 또 찍지 않는다. */}
       <div className="detail__head">
         <PlatformBadge platformKey={offer.platform} />
         <span className="detail__platform">{platform?.label ?? offer.platform}</span>
-        <span className="detail__amount">{offerAmountText(offer)}</span>
         {offer.status === 'held' && <span className="pill pill--pending">재확인</span>}
       </div>
 
@@ -199,9 +199,6 @@ function OfferDetail({ offer }) {
             <dd>결제 시 +2,000원 추가 할인</dd>
           </>
         )}
-
-        <dt>원문</dt>
-        <dd className="detail__raw">“{offer.rawText}”</dd>
 
         {/* 판독 근거는 날짜만 남긴다. 앱 화면 캡처 자체는 각 플랫폼의
             저작물이라 공개 재배포하지 않는다(원본은 tracker 레포에만 둔다). */}
