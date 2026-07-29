@@ -258,12 +258,19 @@ function BrandCard({ brand }) {
         className="brand-card__head"
         aria-expanded={open}
         aria-controls={detailId}
-        title={open ? '눌러서 접기' : '눌러서 자세히 보기'}
         onClick={() => setPinned((v) => !v)}
       >
         <BrandLogo name={brand.name} />
         <h2 className="brand-card__name">{brand.name}</h2>
-        <span className="brand-card__chevron" aria-hidden="true" />
+        {/* 화살표 왼쪽 안내 문구. 마우스가 있는 환경에서 hover할 때만
+            드러난다(App.css @media (hover: hover)) — 펼치지는 않는다,
+            펼침은 클릭 전용. 여기에 원본 캡처 미리보기를 넣지 않는다:
+            판독 근거는 상세를 펼쳐야 보는 정보지 스치며 보는 정보가
+            아니고, 브랜드 수만큼 이미지를 hover마다 물면 무겁다. */}
+        <span className="brand-card__hover-affordance">
+          <span className="brand-card__hover-hint" aria-hidden="true">눌러서 펼치기</span>
+          <span className="brand-card__chevron" aria-hidden="true" />
+        </span>
         <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
       </button>
 

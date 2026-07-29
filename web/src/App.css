@@ -233,18 +233,48 @@ h1 {
   white-space: nowrap;
 }
 
+/* 화살표 + 호버 안내를 한 덩어리로 오른쪽에 붙인다. */
+.brand-card__hover-affordance {
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* 호버 안내 문구. 레이아웃 자리는 항상 차지하고(opacity만 바꿔 chevron이
+   안 밀리게) 마우스가 있는 환경에서만 드러난다 — 터치는 hover가 없어
+   아예 안 뜬다. */
+.brand-card__hover-hint {
+  font-size: .7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
 /* 펼침 표시. 아이콘 라이브러리 없이 테두리 두 변만 남긴 사각형을 돌린다. */
 .brand-card__chevron {
   flex: none;
-  margin-left: auto;
   width: 7px;
   height: 7px;
   border-right: 1.5px solid var(--text-muted);
   border-bottom: 1.5px solid var(--text-muted);
   transform: translateY(-2px) rotate(45deg);
-  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 150ms ease;
 }
 .brand-card--open .brand-card__chevron { transform: translateY(1px) rotate(-135deg); }
+
+@media (hover: hover) {
+  .brand-card__head:hover .brand-card__hover-hint {
+    opacity: 1;
+    transform: none;
+  }
+  .brand-card__head:hover .brand-card__chevron {
+    border-color: var(--text);
+  }
+}
 
 .brand-logo {
   position: relative;
