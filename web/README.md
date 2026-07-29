@@ -42,6 +42,7 @@
   - `SiteFooter` — 비영리·비제휴, 수집 방법, 면책, 상표 고지. 법적 성격을
     밝히는 자리라 임의로 축약하지 않는다.
 - `src/api.js` — `API_BASE`(고정 백엔드 주소) + `/api/brands` 호출
+- `src/analytics.js` — 방문 측정. `track(event, props)` + `startAnalytics()`
 - `public/logos/` — 브랜드 로고 (파일명 = API가 내려주는 대표명, 규칙은 `public/logos/README.md` 참고)
 - `public/platform-icons/` — 배민/쿠팡이츠/땡겨요/요기요 아이콘
 - `public/links/` — 각 앱에서 공유 기능으로 받은 브랜드 바로가기 원본 메모
@@ -57,3 +58,55 @@
 "미확인"으로 표시한다 — 조건이 없는 것과 모르는 것은 다르기 때문이다.
 채우는 계획은 tracker 레포의
 `docs/plans/2026-07-29-offer-detail-collection.md`.
+
+## 방문 측정 (analytics)
+
+`src/analytics.js`가 경로·재방문·체류·행동을 API(`/api/events`)로만
+보낸다. 외부 분석 도구는 안 쓴다 — 왜 자체 구현인지, 무엇을 수집하고
+무엇을 안 하는지는 delivery-discount-api의
+[ADR-005](../delivery-discount-api/docs/decisions/ADR-005-first-party-analytics.md).
+수집 사실 자체는 `SiteFooter`에 고지돼 있다.
+
+### 사용법
+
+앱 시작 시 한 번만 `startAnalytics()`를 부른다(`src/main.jsx`) — 이게
+`page_view`를 찍고, 탭 가시성 변화·`pagehide`에 체류 시간 전송을 건다.
+이 외의 행동 이벤트는 발생 지점에서 `track(event, props?)`를 직접
+부른다.
+
+```js
+import { track } from './analytics.js'
+
+// 지금 붙어 있는 지점들 (App.jsx)
+track('category_change', { category: c.key })
+track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
+track('offer_link_click', { brand: brandName, platform: offer.platform })
+track('membership_open')
+```
+
+새 이벤트를 추가하려면:
+
+1. API 쪽 화이트리스트에 이름을 추가한다
+   (`EventController.ALLOWED_EVENTS`, delivery-discount-api) — 안 하면
+   서버가 조용히 버려서 프론트만 고쳐서는 로그에 안 쌓인다.
+2. 발생 지점에서 `track('새이벤트', { ...props })`를 호출한다. `props`는
+   문자열 값의 얕은 객체만 — 서버가 문자열 120자·6개 초과분은 잘라낸다.
+3. 접는 동작처럼 "관심 신호가 아닌" 액션은 굳이 안 남긴다 — 이벤트 수가
+   신호 대 잡음비를 해친다.
+
+### 개인정보 관련 동작
+
+- **DNT/GPC를 존중한다.** `navigator.doNotTrack === '1'` 이거나
+  `navigator.globalPrivacyControl === true`이면 `track()`도
+  `startAnalytics()`도 아무것도 보내지 않는다. 브라우저 설정에서
+  "추적 안 함(Do Not Track)"을 켜고 새로고침하면 확인할 수 있다
+  (개발자 도구 콘솔에서 `navigator.doNotTrack`로도 값 확인 가능).
+- **쿠키를 안 쓴다.** `visitorId`/`visitCount`는 `localStorage`,
+  `sessionId`는 `sessionStorage` — 사용자가 사이트 데이터를 지우면
+  전부 끊긴다.
+- **체류 시간은 sendBeacon으로 나간다.** `application/json`으로 보내면
+  CORS 프리플라이트에 걸려 조용히 유실되므로 `text/plain`으로 보낸다
+  (API README·ADR-005 참고). 이 부분을 건드릴 때는 반드시 실제 페이지
+  이탈(새 탭으로 이동, 탭 닫기)로 서버 로그에 `page_exit`가 찍히는지
+  확인할 것 — devtools의 인위적인 이벤트 디스패치로는 재현되지 않을 수
+  있다.
