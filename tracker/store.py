@@ -24,11 +24,40 @@ def read_records(log_path: Path) -> list[dict]:
     return records
 
 
+def _is_confirmed(record: dict) -> bool:
+    return record.get("amount") is not None and not record.get("needs_review", False)
+
+
+def _prefer(current: dict, incoming: dict) -> dict:
+    """같은 (앱, 브랜드)에 레코드가 둘 이상이면 남길 쪽을 고른다.
+
+    확정(금액 있고 needs_review 아님)이 보류를 이기고, 같은 등급이면 더
+    최근에 캡처한 쪽이 남는다. 진 쪽의 상세(min_order_amount, tiers,
+    conditions)는 이긴 쪽에 그 값이 비어 있을 때만 옮겨 붙인다 — 예를 들어
+    이미 확정된 금액을 재확인하며 조건만 새로 캡처한(needs_review) 기록을
+    통째로 버리면, 그 조건을 모은 수고가 사라진다. API 쪽
+    Offer.preferredOver와 같은 규칙이다.
+    """
+    current_confirmed = _is_confirmed(current)
+    incoming_confirmed = _is_confirmed(incoming)
+    if current_confirmed != incoming_confirmed:
+        winner, loser = (current, incoming) if current_confirmed else (incoming, current)
+    elif current["captured_at"] >= incoming["captured_at"]:
+        winner, loser = current, incoming
+    else:
+        winner, loser = incoming, current
+
+    merged = dict(winner)
+    for field in ("min_order_amount", "tiers", "conditions"):
+        if merged.get(field) is None and loser.get(field) is not None:
+            merged[field] = loser[field]
+    return merged
+
+
 def latest_per_brand(records: list[dict]) -> dict:
     latest: dict = {}
     for record in records:
         key = (record["platform"], record["brand"])
         current = latest.get(key)
-        if current is None or record["captured_at"] > current["captured_at"]:
-            latest[key] = record
+        latest[key] = record if current is None else _prefer(current, record)
     return latest

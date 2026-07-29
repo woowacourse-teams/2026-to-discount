@@ -41,3 +41,27 @@ def test_latest_per_brand_picks_most_recent():
                  raw_text="10,000원 브랜드 할인")
     latest = latest_per_brand([older, newer])
     assert latest[("baemin", "피자헛")]["amount"] == 10000
+
+
+def test_latest_per_brand_prefers_confirmed_over_newer_held():
+    # 예전에 확정(needs_review 없음)으로 잡힌 큰 금액을, 나중에 재확인하며
+    # needs_review로 캡처한 작은 금액이 최신이라는 이유로 밀어내면 안 된다.
+    confirmed_old = dict(BASE, captured_at="2026-07-27T14:26:00+09:00", amount=11000)
+    held_new = dict(BASE, captured_at="2026-07-29T18:53:00+09:00", amount=7000,
+                     needs_review=True, conditions="메뉴 한정 쿠폰")
+    latest = latest_per_brand([confirmed_old, held_new])
+    result = latest[("baemin", "피자헛")]
+    assert result["amount"] == 11000
+    assert result["conditions"] == "메뉴 한정 쿠폰"  # 진 쪽의 조건은 살아남는다
+
+
+def test_latest_per_brand_keeps_winner_detail_when_winner_already_has_it():
+    a = dict(BASE, captured_at="2026-07-27T00:00:00+09:00", amount=7000,
+             min_order_amount=22000, conditions="1일 1회")
+    b = dict(BASE, captured_at="2026-07-29T00:00:00+09:00", amount=3000,
+             needs_review=True, min_order_amount=10000, conditions="다른 조건")
+    latest = latest_per_brand([a, b])
+    result = latest[("baemin", "피자헛")]
+    assert result["amount"] == 7000
+    assert result["min_order_amount"] == 22000
+    assert result["conditions"] == "1일 1회"
