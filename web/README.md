@@ -33,39 +33,64 @@
 
 ## 구조
 
-- `src/App.jsx` — 브랜드 카드 그리드, 브랜드별 상세 패널, 카테고리 필터, 멤버십 드로어, 고지 푸터
+- `src/App.jsx` — 브랜드 카드 그리드, 브랜드별 상세 패널, 카테고리
+  세그먼트 컨트롤, 멤버십 드롭다운, 고지 푸터
   - `CATEGORIES` — 필터 탭 목록(라벨). 브랜드별 분류·앱별 바로가기는
     여기 없다 — API가 `brand.category`/`brand.links`로 내려준다.
     **브랜드를 추가·수정하려면 delivery-discount-api의
     `src/main/resources/brands.yml`을 고친다**(프론트 재배포 불필요).
     새 카테고리를 만들 때만 이 배열에 탭을 추가하면 된다.
+  - `CategoryBar` — 탭마다 배경을 켜고 끄는 대신, 활성 탭의 실측
+    위치·너비(`offsetLeft`/`offsetWidth`)로 하이라이트 하나가
+    슬라이드되는 세그먼트 컨트롤. 라벨 길이가 제각각이라 CSS만으론
+    폭을 못 구해 JS로 잰다.
+  - `MembershipMenu` — 버튼 바로 아래 뜨는 드롭다운(화면 오른쪽에서
+    밀려나오던 드로어에서 교체됨). 바깥을 누르면 닫힌다.
   - `SiteFooter` — 비영리·비제휴, 수집 방법, 면책, 상표 고지. 법적 성격을
     밝히는 자리라 임의로 축약하지 않는다.
 - `src/api.js` — `API_BASE`(고정 백엔드 주소) + `/api/brands` 호출
 - `src/analytics.js` — 방문 측정. `track(event, props)` + `startAnalytics()`
+- `src/main.jsx` — `@vercel/analytics/react`의 `<Analytics />`도 여기서
+  마운트(Vercel 대시보드용, 자체 `analytics.js`와는 별개)
+- `public/main_logo.png` — 헤더 로고. "이번주 할인" 텍스트를 대체함
 - `public/logos/` — 브랜드 로고 (파일명 = API가 내려주는 대표명, 규칙은 `public/logos/README.md` 참고)
 - `public/platform-icons/` — 배민/쿠팡이츠/땡겨요/요기요 아이콘
 - `public/links/` — 각 앱에서 공유 기능으로 받은 브랜드 바로가기 원본 메모
 
 ## 상세 패널
 
-브랜드 카드를 펼치면 앱별 상세(할인금액/최소주문금액 목록, 조건, 판독 원문,
-확인일)가 나온다. 펼치는 방법은 둘 — 카드 헤더 클릭, 금액 칩 클릭(바로가기
-링크가 있는 칩은 링크가 우선이라 제외). 마우스가 있는 환경에서는 hover 시
-"눌러서 펼치기" 안내만 뜨고 펼쳐지지는 않는다.
+브랜드 카드를 펼치면 앱별 상세(할인금액/최소주문금액 목록, 조건, 확인일)가
+나온다. 헤드라인 금액은 칩 버튼에만 있고 상세에서 또 찍지 않는다 — 예전엔
+상세 헤더에도 중복 표시했었다. 판독 원문(raw_text)도 사용자에게 보여줄
+정보가 아니라서 상세에는 안 보이고, 금액이 아예 미상일 때의 표시 폴백으로만
+쓰인다.
+
+펼치는 방법은 둘 — 카드 헤더 클릭, 금액 칩 클릭(바로가기 링크가 있는 칩은
+링크가 우선이라 제외). 마우스가 있는 환경에서는 hover 시 "눌러서 펼치기"
+안내만 뜨고 펼쳐지지는 않는다.
 
 상세 값은 API가 내려주며 지금은 대부분 비어 있다. 비어 있으면 감추지 않고
 "미확인"으로 표시한다 — 조건이 없는 것과 모르는 것은 다르기 때문이다.
-채우는 계획은 tracker 레포의
+지금 스키마(`min_order_amount`/`tiers`)는 "최소주문금액 누진 할인" 한
+유형만 전제해서 정률·적립·현물·메뉴한정 같은 실제 사례를 못 담는다 —
+재설계 방향과 진행 상태는 tracker 레포의
 `docs/plans/2026-07-29-offer-detail-collection.md`.
 
 ## 방문 측정 (analytics)
 
-`src/analytics.js`가 경로·재방문·체류·행동을 API(`/api/events`)로만
-보낸다. 외부 분석 도구는 안 쓴다 — 왜 자체 구현인지, 무엇을 수집하고
-무엇을 안 하는지는 delivery-discount-api의
-[ADR-005](../delivery-discount-api/docs/decisions/ADR-005-first-party-analytics.md).
-수집 사실 자체는 `SiteFooter`에 고지돼 있다.
+방문 측정은 두 가지다.
+
+1. **`src/analytics.js`(자체)** — 경로·재방문·체류·행동을 API
+   (`/api/events`)로만 보낸다. 자체 서버에만 기록하고 제3자에게
+   안 넘긴다 — 왜 자체 구현인지, 무엇을 수집하고 무엇을 안 하는지는
+   delivery-discount-api의
+   [ADR-005](../delivery-discount-api/docs/decisions/ADR-005-first-party-analytics.md).
+2. **`@vercel/analytics/react`(Vercel)** — `src/main.jsx`에서 `<Analytics />`
+   마운트. 쿠키 없는 집계형 페이지뷰만 Vercel 대시보드로 간다. Next.js용
+   `/next` 엔트리가 아니라 Vite에 맞는 `/react` 엔트리를 쓴다.
+
+둘 다 쓴다는 사실은 `SiteFooter`에 고지돼 있다 — "외부 도구를 안 쓴다"는
+더는 정확하지 않으니 이 문구를 다시 단순화하지 말 것.
 
 ### 사용법
 
