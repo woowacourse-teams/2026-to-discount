@@ -77,18 +77,8 @@ function BrandLogo({ name }) {
   )
 }
 
-function sourceFileName(screenshotPath) {
-  if (!screenshotPath) return null
-  return screenshotPath.split('/').pop()
-}
-
-// 원본은 한 장에 8MB까지 가는 스크롤 캡처라 화면에는 항상 썸네일을 쓰고,
-// 눌렀을 때만 원본을 연다(scripts/make_capture_thumbs.py가 만든다).
-function captureUrl(file) {
-  return `/captures/${encodeURIComponent(file)}`
-}
-function captureThumbUrl(file) {
-  return `/captures/thumbs/${encodeURIComponent(file)}`
+function capturedDate(capturedAt) {
+  return capturedAt ? capturedAt.slice(0, 10) : null
 }
 
 function offerAmountText(offer) {
@@ -205,6 +195,15 @@ function OfferDetail({ offer }) {
 
         <dt>원문</dt>
         <dd className="detail__raw">“{offer.rawText}”</dd>
+
+        {/* 판독 근거는 날짜만 남긴다. 앱 화면 캡처 자체는 각 플랫폼의
+            저작물이라 공개 재배포하지 않는다(원본은 tracker 레포에만 둔다). */}
+        {capturedDate(offer.capturedAt) && (
+          <>
+            <dt>확인일</dt>
+            <dd className="detail__raw">{capturedDate(offer.capturedAt)}</dd>
+          </>
+        )}
       </dl>
     </div>
   )
@@ -294,52 +293,29 @@ function BrandCard({ brand }) {
   )
 }
 
-// 판독에 실제로 쓰인 원본 캡처 전부. brands 응답의 각 offer가 이미
-// screenshotPath를 들고 있어(Offer.screenshotPath) 별도 API 없이
-// 여기서 중복만 제거해 모은다. 실제 파일은 web/public/captures/에
-// 파일명만 그대로 복사해둔 것(export_data.py가 아는 경로는 tracker
-// 레포 기준이라 API 레포에선 그대로 못 씀).
-function collectCaptures(brands) {
-  const seen = new Map()
-  for (const brand of brands) {
-    for (const offer of brand.offers) {
-      const file = sourceFileName(offer.screenshotPath)
-      if (file && !seen.has(file)) seen.set(file, offer.platform)
-    }
-  }
-  return [...seen.entries()].map(([file, platform]) => ({ file, platform }))
-    .sort((a, b) => a.file.localeCompare(b.file))
-}
-
-function CaptureGallery({ brands }) {
-  const captures = useMemo(() => collectCaptures(brands), [brands])
-  if (captures.length === 0) return null
-
+// 이 서비스가 무엇이고 무엇이 아닌지, 정보를 어떻게 모았는지 밝힌다.
+// 앱 화면 캡처를 그대로 올리던 갤러리는 뺐다 — 금액은 사실이라 옮겨
+// 적을 수 있지만 캡처 이미지 자체는 각 플랫폼의 저작물이다.
+function SiteFooter() {
   return (
-    <section className="captures" aria-labelledby="captures-heading">
-      <h2 id="captures-heading" className="captures__title">원본 캡처</h2>
-      <p className="captures__note">
-        위 금액을 읽은 실제 화면입니다. 판독이 의심스러우면 여기서 원본을 직접 확인하세요.
+    <footer className="site-footer">
+      <p>
+        개인이 만든 <strong>비영리 정보 제공</strong> 페이지입니다. 광고나 제휴 수수료를 받지 않습니다.
+        배달의민족·쿠팡이츠·요기요·땡겨요와 <strong>제휴 관계가 없으며</strong> 각 사의 공식 서비스가 아닙니다.
       </p>
-      <div className="captures__grid">
-        {captures.map(({ file, platform }) => (
-          <a
-            key={file}
-            className="captures__item"
-            href={captureUrl(file)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <img
-              src={captureThumbUrl(file)}
-              alt={`${PLATFORM_BY_KEY[platform]?.label ?? platform} 캡처: ${file}`}
-              loading="lazy"
-            />
-            <span className="captures__caption">{file}</span>
-          </a>
-        ))}
-      </div>
-    </section>
+      <p>
+        할인 정보는 각 앱에서 <strong>누구나 볼 수 있는 화면</strong>을 사람이 직접 보고 옮겨 적은 것입니다.
+        자동 수집(크롤링)이나 기술적 접근 제한 우회는 하지 않습니다.
+      </p>
+      <p>
+        금액은 <strong>확인일 기준</strong>이며 지역·매장·회원 등급·시간대에 따라 다를 수 있습니다.
+        브랜드를 눌러 조건을 확인하고, <strong>주문 전에 각 앱에서 실제 금액을 다시 확인하세요.</strong>
+      </p>
+      <p className="site-footer__fine">
+        브랜드명과 로고는 해당 브랜드를 가리키기 위해서만 사용했으며, 모든 상표는 각 권리자에게 있습니다.
+        수정 요청이나 삭제 요청은 저장소 이슈로 알려주세요.
+      </p>
+    </footer>
   )
 }
 
@@ -456,7 +432,7 @@ export default function App() {
         </div>
       )}
 
-      {brands && <CaptureGallery brands={brands} />}
+      <SiteFooter />
 
       <MembershipDrawer
         open={drawerOpen}
