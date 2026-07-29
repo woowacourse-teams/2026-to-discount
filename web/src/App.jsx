@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { fetchBrands } from './api.js'
 import { track } from './analytics.js'
 
@@ -329,16 +329,65 @@ function SiteFooter() {
         브랜드를 눌러 조건을 확인하고, <strong>주문 전에 각 앱에서 실제 금액을 다시 확인하세요.</strong>
       </p>
       <p>
-        어떤 화면이 실제로 쓰이는지 보려고 <strong>익명 방문 통계</strong>를 자체 서버에만 기록합니다.
-        페이지 조회·머문 시간·어떤 브랜드를 펼쳤는지 정도이며, <strong>이름·연락처 같은 개인정보와
-        IP 원본은 저장하지 않고</strong> 외부 분석 도구에도 넘기지 않습니다. 광고 목적으로 쓰지 않습니다.
-        브라우저에 <strong>추적 안 함(DNT/GPC)</strong> 설정이 켜져 있으면 아무것도 수집하지 않습니다.
+        어떤 화면이 실제로 쓰이는지 보려고 두 가지 방문 통계를 씁니다. 하나는 직접 만든
+        <strong> 익명 통계</strong>로, 자체 서버에만 기록하고 페이지 조회·머문 시간·어떤 브랜드를
+        펼쳤는지 정도만 봅니다. <strong>이름·연락처 같은 개인정보와 IP 원본은 저장하지 않으며</strong>,
+        브라우저의 <strong>추적 안 함(DNT/GPC)</strong> 설정이 켜져 있으면 아무것도 보내지 않습니다.
+        다른 하나는 배포 플랫폼(Vercel)이 제공하는 <strong>쿠키 없는 집계형 통계</strong>(Vercel Analytics)로,
+        방문자 개인을 특정하지 않는 페이지뷰 수준의 정보만 봅니다. 둘 다 광고 목적으로 쓰지 않습니다.
       </p>
       <p className="site-footer__fine">
         브랜드명과 로고는 해당 브랜드를 가리키기 위해서만 사용했으며, 모든 상표는 각 권리자에게 있습니다.
         수정 요청이나 삭제 요청은 저장소 이슈로 알려주세요.
       </p>
     </footer>
+  )
+}
+
+// 세그먼트 컨트롤(segmented control) — 탭이 각자 배경을 켜고 끄는 대신,
+// 하나의 하이라이트가 활성 탭의 실측 위치·너비로 슬라이드된다. 라벨
+// 길이가 제각각이라(전체/치킨/패스트푸드) 폭을 CSS만으로는 못 구하고
+// 버튼의 offsetLeft/offsetWidth를 재서 옮긴다. 폰트가 늦게 로드되면
+// 폭이 바뀔 수 있어 document.fonts.ready에서도 한 번 더 잰다.
+function CategoryBar({ categories, active, onSelect }) {
+  const btnRefs = useRef({})
+  const [rect, setRect] = useState(null)
+
+  const measure = () => {
+    const btn = btnRefs.current[active]
+    if (btn) setRect({ left: btn.offsetLeft, width: btn.offsetWidth })
+  }
+
+  useLayoutEffect(measure, [active])
+  useEffect(() => {
+    window.addEventListener('resize', measure)
+    document.fonts?.ready?.then(measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [active])
+
+  return (
+    <div className="category-bar" role="tablist" aria-label="카테고리">
+      {rect && (
+        <span
+          className="category-bar__highlight"
+          aria-hidden="true"
+          style={{ transform: `translateX(${rect.left}px)`, width: `${rect.width}px` }}
+        />
+      )}
+      {categories.map((c) => (
+        <button
+          key={c.key}
+          ref={(el) => { btnRefs.current[c.key] = el }}
+          type="button"
+          role="tab"
+          aria-selected={active === c.key}
+          className={`category-btn ${active === c.key ? 'category-btn--active' : ''}`}
+          onClick={() => onSelect(c.key)}
+        >
+          {c.label}
+        </button>
+      ))}
+    </div>
   )
 }
 
@@ -408,7 +457,9 @@ export default function App() {
         <div className="page-head__row">
           <div>
             <div className="page-head__title-row">
-              <h1>이번주 할인</h1>
+              <h1 className="page-head__logo">
+                <img src="/main_logo.png" alt="딸깍" />
+              </h1>
               <div className="page-head__apps" aria-label="비교 대상 배달앱">
                 {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
               </div>
@@ -427,23 +478,14 @@ export default function App() {
         </div>
       </header>
 
-      <div className="category-bar" role="tablist" aria-label="카테고리">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.key}
-            type="button"
-            role="tab"
-            aria-selected={category === c.key}
-            className={`category-btn ${category === c.key ? 'category-btn--active' : ''}`}
-            onClick={() => {
-              setCategory(c.key)
-              if (c.key !== category) track('category_change', { category: c.key })
-            }}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+      <CategoryBar
+        categories={CATEGORIES}
+        active={category}
+        onSelect={(key) => {
+          setCategory(key)
+          if (key !== category) track('category_change', { category: key })
+        }}
+      />
 
       {error && <p className="msg msg--error">불러오기 실패: {error}</p>}
       {!error && !brands && <p className="msg">불러오는 중…</p>}
