@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>트래픽 통계</title>
+<style>
+  :root {
+    --bg: #f7f7f8; --card: #ffffff; --text: #1a1a1a; --muted: #6b6b6b;
+    --border: #e3e3e6; --accent: #2f6feb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #16161a; --card: #1f1f24; --text: #ececec; --muted: #9a9aa2; --border: #2c2c33; --accent: #6ea2ff; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Pretendard, sans-serif;
+  }
+  h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+  .controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .controls button {
+    border: 1px solid var(--border); background: var(--card); color: var(--text);
+    padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+  }
+  .controls button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .tile {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .tile .value { font-size: 1.5rem; font-weight: 600; }
+  .tile .label { color: var(--muted); font-size: 0.78rem; margin-top: 2px; }
+  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+  .panel {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; overflow-x: auto;
+  }
+  .panel h2 { font-size: 0.9rem; margin: 0 0 12px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.78rem; }
+  .bar-label { width: 90px; flex-shrink: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; background: var(--border); border-radius: 4px; height: 14px; overflow: hidden; }
+  .bar-fill { background: var(--accent); height: 100%; border-radius: 4px; }
+  .bar-count { width: 42px; text-align: right; flex-shrink: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  td, th { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+  .empty { color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+  <h1>트래픽 통계</h1>
+  <div class="sub" id="range-label">불러오는 중…</div>
+  <div class="controls" id="controls"></div>
+  <div class="grid" id="tiles"></div>
+  <div class="panels" id="panels"></div>
+
+<script>
+const DAY_OPTIONS = [7, 14, 30, 90];
+let currentDays = 7;
+
+function el(tag, attrs, children) {
+  const e = document.createElement(tag);
+  if (attrs) for (const k in attrs) {
+    if (k === 'text') e.textContent = attrs[k];
+    else e.setAttribute(k, attrs[k]);
+  }
+  (children || []).forEach(c => e.appendChild(c));
+  return e;
+}
+
+function barPanel(title, rows, total) {
+  const panel = el('div', { class: 'panel' });
+  panel.appendChild(el('h2', { text: title }));
+  if (!rows || rows.length === 0) {
+    panel.appendChild(el('div', { class: 'empty', text: '데이터 없음' }));
+    return panel;
+  }
+  const max = Math.max(...rows.map(r => r.count), 1);
+  rows.forEach(r => {
+    const row = el('div', { class: 'bar-row' });
+    row.appendChild(el('div', { class: 'bar-label', title: r.name, text: r.name || '(없음)' }));
+    const track = el('div', { class: 'bar-track' });
+    track.appendChild(el('div', { class: 'bar-fill', style: `width:${(r.count / max * 100).toFixed(1)}%` }));
+    row.appendChild(track);
+    row.appendChild(el('div', { class: 'bar-count', text: r.count }));
+    panel.appendChild(row);
+  });
+  return panel;
+}
+
+function dailyPanel(daily) {
+  const panel = el('div', { class: 'panel' });
+  panel.appendChild(el('h2', { text: '일별 방문 (page_view)' }));
+  if (!daily || daily.length === 0) {
+    panel.appendChild(el('div', { class: 'empty', text: '데이터 없음' }));
+    return panel;
+  }
+  const max = Math.max(...daily.map(d => d.count), 1);
+  const chart = el('div', { style: 'display:flex; align-items:flex-end; gap:4px; height:120px;' });
+  daily.forEach(d => {
+    const barWrap = el('div', { style: 'flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end;' });
+    barWrap.appendChild(el('div', {
+      style: `width:100%; background:var(--accent); border-radius:3px 3px 0 0; height:${(d.count / max * 100).toFixed(1)}%; min-height:2px;`,
+      title: `${d.date}: ${d.count}`
+    }));
+    barWrap.appendChild(el('div', { style: 'font-size:0.65rem; color:var(--muted); writing-mode:vertical-rl; white-space:nowrap;', text: d.date.slice(5) }));
+    chart.appendChild(barWrap);
+  });
+  panel.appendChild(chart);
+  return panel;
+}
+
+function tablePanel(title, obj) {
+  const panel = el('div', { class: 'panel' });
+  panel.appendChild(el('h2', { text: title }));
+  const entries = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]);
+  if (entries.length === 0) {
+    panel.appendChild(el('div', { class: 'empty', text: '데이터 없음' }));
+    return panel;
+  }
+  const table = el('table');
+  entries.forEach(([k, v]) => {
+    const tr = el('tr');
+    tr.appendChild(el('td', { text: k }));
+    tr.appendChild(el('td', { text: v }));
+    table.appendChild(tr);
+  });
+  panel.appendChild(table);
+  return panel;
+}
+
+function renderControls() {
+  const controls = document.getElementById('controls');
+  controls.innerHTML = '';
+  DAY_OPTIONS.forEach(days => {
+    const btn = el('button', { text: `최근 ${days}일` });
+    if (days === currentDays) btn.classList.add('active');
+    btn.addEventListener('click', () => { currentDays = days; load(); });
+    controls.appendChild(btn);
+  });
+}
+
+async function load() {
+  renderControls();
+  document.getElementById('range-label').textContent = '불러오는 중…';
+  const res = await fetch(`/api/stats/traffic?days=${currentDays}`);
+  const stats = await res.json();
+
+  document.getElementById('range-label').textContent =
+    `${stats.from.slice(0, 10)} ~ ${stats.to.slice(0, 10)} (최근 ${stats.rangeDays}일)`;
+
+  const tiles = document.getElementById('tiles');
+  tiles.innerHTML = '';
+  const tileData = [
+    ['총 이벤트', stats.totalEvents],
+    ['방문자(고유)', stats.uniqueVisitors],
+    ['세션(고유)', stats.uniqueSessions],
+    ['평균 체류시간', stats.avgDwellMs != null ? `${Math.round(stats.avgDwellMs / 1000)}초` : '—'],
+  ];
+  tileData.forEach(([label, value]) => {
+    tiles.appendChild(el('div', { class: 'tile' }, [
+      el('div', { class: 'value', text: value }),
+      el('div', { class: 'label', text: label }),
+    ]));
+  });
+
+  const panels = document.getElementById('panels');
+  panels.innerHTML = '';
+  panels.appendChild(dailyPanel(stats.dailyPageViews));
+  panels.appendChild(barPanel('경로별 조회수', stats.topPaths));
+  panels.appendChild(barPanel('유입 경로', stats.topReferrers));
+  panels.appendChild(tablePanel('디바이스', stats.deviceBreakdown));
+  panels.appendChild(tablePanel('이벤트 종류', stats.eventCounts));
+  panels.appendChild(tablePanel('카테고리 전환', stats.categoryChanges));
+}
+
+load();
+</script>
+</body>
+</html>
