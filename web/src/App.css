@@ -20,17 +20,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
 
-.page-head { margin-bottom: 1.75rem; }
+.page-head { margin-bottom: -1.0rem; }
 .page-head__row {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
@@ -43,21 +42,30 @@ h1 {
 }
 /* 텍스트 대신 로고 이미지. 브랜드 마크가 헤더의 중심이 되도록 크게
    쓴다 — 원본은 흰 배경을 투명 처리해 잘라 둔 것(public/main_logo.png). */
-.page-head__logo { display: block; margin: 0 0 .6rem; }
-.page-head__logo img { height: 91px; width: auto; display: block; }
+.page-head__banner { display: flex; align-items: center; gap: .9rem; margin: 0 0 .5rem; }
+.page-head__logo { display: block; margin: 0; }
+.page-head__logo img { height: 120px; width: auto; display: block; }
 
-/* 어떤 배달앱들을 비교하는지 로고 아래 그리드로 보여준다. 4칸 모두
-   같은 크기라 높이가 어긋나지 않는다(폭 대신 자기 자신을 정사각형으로
-   고정) — 아이콘마다 원본 여백이 달라도 배지 크기 자체는 항상 같다. */
+/* 어떤 배달앱들을 비교하는지 배너 오른쪽에 2x2 정사각형 그리드로 보여준다.
+   4칸 모두 같은 크기라 높이가 어긋나지 않는다(폭 대신 자기 자신을
+   정사각형으로 고정) — 아이콘마다 원본 여백이 달라도 배지 크기 자체는
+   항상 같다. */
 .page-head__apps {
   display: grid;
-  grid-template-columns: repeat(4, 36px);
+  grid-template-columns: repeat(2, 36px);
   gap: .4rem;
-  margin: 0 0 .5rem;
+  margin: 0;
 }
 .page-head__apps .platform-badge { width: 36px; height: 36px; border-radius: 10px; }
 
-.sub { color: var(--text-muted); font-size: .9rem; margin: 0; }
+/* 320px처럼 아주 좁은 화면에선 로고 높이 그대로 두면 배너(로고+2x2
+   아이콘)가 옆으로 넘친다 — 로고만 줄여서 옆에 나란히 붙는 구조를
+   유지한다(줄바꿈 대신 축소를 택함, 나란히 두라는 요구가 있었으므로). */
+@media (max-width: 380px) {
+  .page-head__logo img { height: 80px; }
+}
+
+.sub { color: var(--text-muted); font-size: .9rem; margin: 0; text-align: center; }
 
 .msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
 .msg--error { color: #9f2f2d; }
@@ -155,7 +163,6 @@ h1 {
   transition: opacity 120ms ease;
   pointer-events: none;
 }
-.info-fab:hover .info-fab__tip,
 .info-fab__tip--open {
   opacity: 1;
   visibility: visible;
@@ -195,6 +202,12 @@ h1 {
 }
 .classify-picker__option:hover { background: var(--bg); }
 .classify-picker__option--active { font-weight: 700; }
+.classify-picker__option:disabled {
+  color: var(--text-muted);
+  opacity: .5;
+  cursor: not-allowed;
+}
+.classify-picker__option:disabled:hover { background: none; }
 
 .dropdown__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
 .dropdown__title { font-size: .95rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
@@ -215,15 +228,49 @@ h1 {
   cursor: pointer;
 }
 .dropdown__option input { accent-color: var(--accent); width: 16px; height: 16px; }
+.dropdown__option--disabled { cursor: not-allowed; opacity: .5; }
+.dropdown__option--disabled input { cursor: not-allowed; }
+
+/* 미확인/미확정/비활성화 기능 위에 hover하면 뜨는 "작업중입니다!" 말풍선.
+   disabled 처리된 버튼·체크박스를 이 클래스로 감싼다 — disabled 요소
+   자체는 pointer-events가 막혀도 hover는 감싼 wrapper 기준으로 잡힌다. */
+.wip { position: relative; }
+.wip::after {
+  content: attr(data-wip-tip);
+  position: absolute;
+  bottom: calc(100% + .35rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #8a8a8a, #3a3a3a);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: .35rem .6rem;
+  border-radius: 6px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+  z-index: 30;
+}
+.wip:hover::after { opacity: 1; visibility: visible; }
 
 /* 검색창 + 카테고리 바를 한 줄에 — 검색은 왼쪽, 카테고리 바는 자기
-   margin-left:auto로 오른쪽에 붙는다(.category-bar 그대로 유지). */
+   margin-left:auto로 오른쪽에 붙는다. 줄 전체를 sticky로 고정해서
+   검색창도 카테고리 탭과 함께 스크롤을 따라온다 — 스크롤로 올라오는
+   카드가 이 줄 아래에서 뚝 끊기지 않도록, 좌하단 사선으로 빠지는
+   그라데이션을 줄 전체 배경에 건다(오른쪽이 왼쪽보다 더 오래 덮인다). */
 .filter-row {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: .75rem;
-  margin-bottom: 1.25rem;
+  padding: .75rem 0 1.35rem;
+  background: linear-gradient(to bottom left, var(--bg) 0%, var(--bg) 55%, transparent 85%);
 }
 /* 회색 화살표(분류 기준 선택) + 카테고리 탭 묶음. 이 묶음 전체가
    margin-left:auto로 오른쪽에 붙는다 — .category-bar 자체엔 더 이상
@@ -235,34 +282,49 @@ h1 {
   margin-left: auto;
   min-width: 0;
 }
+.brand-search-wrap { position: relative; display: flex; align-items: center; min-width: 0; }
+.brand-search__icon {
+  position: absolute;
+  left: .75rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
 .brand-search {
   font: inherit;
   font-size: .85rem;
-  padding: .5rem .9rem;
+  padding: .5rem .9rem .5rem 1.9rem;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
   color: var(--text);
   width: 160px;
   max-width: 45vw;
+  transition: width 200ms ease, max-width 200ms ease;
 }
 .brand-search::placeholder { color: var(--text-muted); }
 .brand-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 누르면(포커스) 두 배로 넓어진다 — 좁은 화면에서도 넘치지 않게
+   max-width도 같이 풀어준다. */
+.brand-search:focus { width: 320px; max-width: 80vw; }
 
 /* 금액대 분류일 때 탭 대신 쓰는 스텝 슬라이더. 이퀄라이저처럼 정해진
    값에서만 멈춘다 — <input type="range" step="1">이 브랜드마다 하나씩
    있는 금액대 개수만큼의 정수 인덱스만 오간다. 현재 값은 썸 위치 위에
    캡션으로 항상 뜬다(퍼센트로 계산해 left에 꽂는다). */
 .amount-slider {
-  position: sticky;
-  top: 0;
-  z-index: 10;
   width: min(240px, 55vw);
-  padding: 1.6rem 0 .75rem;
+  padding: .3rem 0 0;
 }
+.amount-slider__mode {
+  text-align: right;
+  font-size: .72rem;
+  color: var(--text-muted);
+  margin-bottom: 1.4rem;
+}
+.amount-slider__track-wrap { position: relative; }
 .amount-slider__caption {
   position: absolute;
-  top: 0;
+  top: -1.3rem;
   transform: translateX(-50%);
   font-size: .78rem;
   font-weight: 700;
@@ -317,16 +379,20 @@ h1 {
   border-radius: 1px;
   background: var(--border);
 }
+.amount-slider__range {
+  display: flex;
+  justify-content: space-between;
+  margin-top: .3rem;
+  font-size: .68rem;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
 
 /* 카테고리 필터 — 가로로 죽 늘어놓고, 좁은 화면에선 가로 스크롤로 흡수.
-   sticky로 상단에 고정해야 카테고리 바꿀 때마다 맨 위로 스크롤해 올라갔다
-   내려갔다 하지 않는다 — 스크롤 중에도 항상 손 닿는 위치에 있어야 한다.
-   너비는 내용만큼만 차지하고 오른쪽으로 붙인다 — 좁은 화면에선 max-width가
+   sticky·그라데이션은 부모 .filter-row가 통째로 맡는다(검색창과 같이
+   고정돼야 하므로). 너비는 내용만큼만 차지한다 — 좁은 화면에선 max-width가
    뷰포트 폭을 넘지 않게 막아주고, 그 안에서 넘치는 만큼만 스크롤한다. */
 .category-bar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
   display: flex;
   gap: 2px;
   width: fit-content;
@@ -334,11 +400,6 @@ h1 {
   margin: 0;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: .75rem 0 1.35rem;
-  /* 스크롤로 올라오는 카드가 탭 아래에서 뚝 끊기지 않도록, 탭이 있는
-     영역은 배경을 채워 가리고 그 아래로는 투명하게 풀어준다. 좌하단으로
-     빠지는 사선 컷이라 오른쪽이 왼쪽보다 더 오래 덮인다. */
-  background: linear-gradient(to bottom left, var(--bg) 0%, var(--bg) 55%, transparent 85%);
 }
 .category-bar::-webkit-scrollbar { display: none; }
 

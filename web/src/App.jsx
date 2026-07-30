@@ -10,6 +10,15 @@ const PLATFORMS = [
 ]
 const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 
+// 쿠팡이츠·요기요는 brands.yml에 브랜드별 딥링크가 없다(공유 기능 자체가
+// 없어서 못 만듦). 우선 플레이스토어로 보낸다 — ADB로 실제 기기에 설치된
+// 패키지명을 확인해 만든 링크(com.coupang.mobile.eats,
+// com.fineapp.yogiyo). 브랜드별 진짜 딥링크는 나중에 별도로 찾는다.
+const PLATFORM_APP_LINKS = {
+  coupangeats: 'https://play.google.com/store/apps/details?id=com.coupang.mobile.eats',
+  yogiyo: 'https://play.google.com/store/apps/details?id=com.fineapp.yogiyo',
+}
+
 // 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
 // (실제 브랜드별 분류는 API 쪽 brands.yml이 단일 출처다).
 const CATEGORIES = [
@@ -128,12 +137,13 @@ function detailRows(offer) {
 
 // brandLinks는 API가 내려주는 앱별 브랜드 쿠폰 바로가기(brands.yml 출처,
 // 플랫폼 키 -> 링크). 그 앱 오퍼에만 건다 — 예를 들어 땡겨요 링크를
-// 배민 칩에 걸면 안 된다. 링크가 없는 칩은 상세를 여는 버튼이 된다
-// (링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
+// 배민 칩에 걸면 안 된다. 브랜드별 링크가 없으면 PLATFORM_APP_LINKS(쿠팡
+// 이츠·요기요만 해당)로 대신 앱을 연다. 그마저 없는 칩은 상세를 여는
+// 버튼이 된다(링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
 function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier === '최대'
-  const link = brandLinks?.[offer.platform]
+  const link = brandLinks?.[offer.platform] ?? PLATFORM_APP_LINKS[offer.platform]
 
   const content = (
     <>
@@ -439,28 +449,42 @@ function CategoryBar({ categories, active, onSelect }) {
 // 금액대 분류일 때 탭 대신 쓰는 스텝 슬라이더 — 이퀄라이저처럼 정해진
 // 값에서만 멈춘다(연속값 아님). 현재 값은 캡션으로 항상 슬라이더 위에
 // 띄운다. bands[0]은 항상 "전체".
-function AmountBandSlider({ bands, active, onSelect }) {
+function AmountBandSlider({ mode, bands, active, onSelect }) {
   const index = Math.max(0, bands.findIndex((b) => b.key === active))
   const percent = bands.length > 1 ? (index / (bands.length - 1)) * 100 : 0
+  const modeLabel = CLASSIFY_MODES.find((m) => m.key === mode)?.label
 
   return (
     <div className="amount-slider">
-      <span className="amount-slider__caption" style={{ left: `${percent}%` }}>
-        {bands[index]?.label}
-      </span>
-      <input
-        type="range"
-        className="amount-slider__input"
-        min={0}
-        max={Math.max(0, bands.length - 1)}
-        step={1}
-        value={index}
-        onChange={(e) => onSelect(bands[Number(e.target.value)].key)}
-        aria-label="금액대 선택"
-      />
-      <div className="amount-slider__ticks" aria-hidden="true">
-        {bands.map((b) => <span key={b.key} className="amount-slider__tick" />)}
+      {/* 슬라이더만 보면 지금 금액이 "할인금액"인지 "최소주문금액"인지
+          안 보인다 — 위에 기준 이름을 고정으로 띄운다. */}
+      <div className="amount-slider__mode">{modeLabel}</div>
+      <div className="amount-slider__track-wrap">
+        <span className="amount-slider__caption" style={{ left: `${percent}%` }}>
+          {bands[index]?.label}
+        </span>
+        <input
+          type="range"
+          className="amount-slider__input"
+          min={0}
+          max={Math.max(0, bands.length - 1)}
+          step={1}
+          value={index}
+          onChange={(e) => onSelect(bands[Number(e.target.value)].key)}
+          aria-label={`${modeLabel} 선택`}
+        />
+        <div className="amount-slider__ticks" aria-hidden="true">
+          {bands.map((b) => <span key={b.key} className="amount-slider__tick" />)}
+        </div>
       </div>
+      {/* 전체 구간이 어디서 어디까지인지 양 끝 값만 보여준다 — 눈금마다
+          다 적으면 좁은 화면에서 겹친다. */}
+      {bands.length > 1 && (
+        <div className="amount-slider__range" aria-hidden="true">
+          <span>{bands[1]?.label}</span>
+          <span>{bands[bands.length - 1]?.label}</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -487,42 +511,67 @@ function ClassifyPicker({ mode, onSelect }) {
         aria-label="분류 기준"
         aria-hidden={!open}
       >
-        {CLASSIFY_MODES.map((m) => (
-          <button
-            key={m.key}
-            type="button"
-            role="menuitemradio"
-            aria-checked={mode === m.key}
-            className={`classify-picker__option ${mode === m.key ? 'classify-picker__option--active' : ''}`}
-            onClick={() => { onSelect(m.key); setOpen(false) }}
-          >
-            {m.label}
-          </button>
-        ))}
+        {CLASSIFY_MODES.map((m) => {
+          // 할인금액대/최소주문금액대는 당장 비활성화 — 카테고리만 고를 수 있다.
+          const disabled = m.key !== 'category'
+          const btn = (
+            <button
+              type="button"
+              role="menuitemradio"
+              aria-checked={mode === m.key}
+              disabled={disabled}
+              className={`classify-picker__option ${mode === m.key ? 'classify-picker__option--active' : ''}`}
+              onClick={() => { onSelect(m.key); setOpen(false) }}
+            >
+              {m.label}
+            </button>
+          )
+          return disabled
+            ? <div key={m.key} className="wip" data-wip-tip="작업중입니다!">{btn}</div>
+            : <div key={m.key}>{btn}</div>
+        })}
       </div>
     </div>
   )
 }
 
 // 화면 왼쪽 위에 항상 떠 있는 안내 버튼. hover(마우스)와 클릭(터치) 둘 다
-// 툴팁을 띄운다 — CSS :hover가 데스크톱을 담당하고, open 상태가 터치를
-// 담당한다. 클릭으로 열렸을 때는 바깥을 눌러야 닫힌다.
+// 툴팁을 띄운다. 둘 다 open 하나로 제어한다(CSS :hover를 따로 쓰면, 클릭으로
+// 닫아도 마우스가 버튼 위에 그대로 있는 한 :hover가 다시 띄워서 "눌러도
+// 안 닫히는" 것처럼 보였다). suppressHover는 "닫으려고 누른 클릭"인 동안
+// hover가 다시 열지 못하게 막고, 마우스가 벗어나면 풀린다.
 function InfoTip() {
   const [open, setOpen] = useState(false)
+  const [suppressHover, setSuppressHover] = useState(false)
+
   return (
-    <div className="info-fab">
+    <div
+      className="info-fab"
+      onMouseEnter={() => { if (!suppressHover) setOpen(true) }}
+      onMouseLeave={() => { setOpen(false); setSuppressHover(false) }}
+    >
       {open && <div className="dropdown-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />}
       <button
         type="button"
         className="info-fab__btn"
         aria-expanded={open}
         aria-label="위치 안내"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen((v) => {
+          const next = !v
+          setSuppressHover(!next)
+          return next
+        })}
       >
         ?
       </button>
       <div className={`info-fab__tip ${open ? 'info-fab__tip--open' : ''}`} role="tooltip">
-        주변 가게만 보이진 않습니다.
+        ! 주변 가게만 보이진 않습니다.
+        <br />
+        ! 미확인 정보들은 지속 업데이트됩니다.
+          <br />
+          쿠팡/요기요는 앱이 열리고
+          <br />
+          배민/땡겨요는 해당 브랜드로 연결됩니다.
       </div>
     </div>
   )
@@ -553,14 +602,17 @@ function MembershipMenu({ open, onClose, selected, onToggle }) {
         </p>
         <div className="dropdown__options">
           {MEMBERSHIP_OPTIONS.map((m) => (
-            <label key={m.key} className="dropdown__option">
-              <input
-                type="checkbox"
-                checked={!!selected[m.key]}
-                onChange={() => onToggle(m.key)}
-              />
-              {m.label}
-            </label>
+            <div key={m.key} className="wip" data-wip-tip="작업중입니다!">
+              <label className="dropdown__option dropdown__option--disabled">
+                <input
+                  type="checkbox"
+                  checked={!!selected[m.key]}
+                  onChange={() => onToggle(m.key)}
+                  disabled
+                />
+                {m.label}
+              </label>
+            </div>
           ))}
         </div>
       </div>
@@ -628,13 +680,14 @@ export default function App() {
       <header className="page-head">
         <div className="page-head__row">
           <div>
-            <h1 className="page-head__logo">
-              <img src="/main_logo.png" alt="딸깍" />
-            </h1>
-            <div className="page-head__apps" aria-label="비교 대상 배달앱">
-              {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
+            <div className="page-head__banner">
+              <h1 className="page-head__logo">
+                <img src="/main_logo.png" alt="오늘의할인" />
+              </h1>
+              <div className="page-head__apps" aria-label="비교 대상 배달앱">
+                {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
+              </div>
             </div>
-            <p className="sub">배달 플랫폼 할인 비교</p>
           </div>
           <div className="membership">
             <button
@@ -659,14 +712,20 @@ export default function App() {
       </header>
 
       <div className="filter-row">
-        <input
-          type="search"
-          className="brand-search"
-          placeholder="브랜드 검색"
-          aria-label="브랜드 검색"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="brand-search-wrap">
+          <svg className="brand-search__icon" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="search"
+            className="brand-search"
+            placeholder="브랜드 검색"
+            aria-label="브랜드 검색"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
         <div className="category-group">
           <ClassifyPicker
             mode={classifyBy}
@@ -680,7 +739,7 @@ export default function App() {
           {classifyBy === 'category' ? (
             <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} />
           ) : (
-            <AmountBandSlider bands={tabs} active={filterKey} onSelect={handleFilterSelect} />
+            <AmountBandSlider mode={classifyBy} bands={tabs} active={filterKey} onSelect={handleFilterSelect} />
           )}
         </div>
       </div>
