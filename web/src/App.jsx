@@ -473,6 +473,7 @@ export default function App() {
   const [membership, setMembership] = useState({})
   const [menuOpen, setMenuOpen] = useState(false)
   const [category, setCategory] = useState('all')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     fetchBrands().then(setBrands).catch((e) => setError(e.message))
@@ -482,11 +483,17 @@ export default function App() {
     setMembership((prev) => ({ ...prev, [key]: !prev[key] }))
 
   // category는 API가 brands.yml에서 읽어 내려준다. 분류가 없는 브랜드는
-  // null이라 "전체"에서만 보인다.
+  // null이라 "전체"에서만 보인다. 검색은 브랜드명 부분일치, 카테고리와
+  // 동시에 적용된다.
   const visibleBrands = useMemo(() => {
-    if (!brands || category === 'all') return brands
-    return brands.filter((b) => b.category === category)
-  }, [brands, category])
+    if (!brands) return brands
+    const q = search.trim()
+    return brands.filter((b) => {
+      const inCategory = category === 'all' || b.category === category
+      const inSearch = q === '' || b.name.includes(q)
+      return inCategory && inSearch
+    })
+  }, [brands, category, search])
 
   return (
     <main>
@@ -524,20 +531,32 @@ export default function App() {
         </div>
       </header>
 
-      <CategoryBar
-        categories={CATEGORIES}
-        active={category}
-        onSelect={(key) => {
-          setCategory(key)
-          if (key !== category) track('category_change', { category: key })
-        }}
-      />
+      <div className="filter-row">
+        <input
+          type="search"
+          className="brand-search"
+          placeholder="브랜드 검색"
+          aria-label="브랜드 검색"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <CategoryBar
+          categories={CATEGORIES}
+          active={category}
+          onSelect={(key) => {
+            setCategory(key)
+            if (key !== category) track('category_change', { category: key })
+          }}
+        />
+      </div>
 
       {error && <p className="msg msg--error">불러오기 실패: {error}</p>}
       {!error && !brands && <p className="msg">불러오는 중…</p>}
 
       {visibleBrands && visibleBrands.length === 0 && (
-        <p className="msg">이 카테고리엔 브랜드가 없습니다.</p>
+        <p className="msg">
+          {search.trim() ? `"${search}" 검색 결과가 없습니다.` : '이 카테고리엔 브랜드가 없습니다.'}
+        </p>
       )}
 
       {visibleBrands && visibleBrands.length > 0 && (

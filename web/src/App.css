@@ -181,6 +181,28 @@ h1 {
 }
 .dropdown__option input { accent-color: var(--accent); width: 16px; height: 16px; }
 
+/* 검색창 + 카테고리 바를 한 줄에 — 검색은 왼쪽, 카테고리 바는 자기
+   margin-left:auto로 오른쪽에 붙는다(.category-bar 그대로 유지). */
+.filter-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+.brand-search {
+  font: inherit;
+  font-size: .85rem;
+  padding: .5rem .9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  width: 160px;
+  max-width: 45vw;
+}
+.brand-search::placeholder { color: var(--text-muted); }
+.brand-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 /* 카테고리 필터 — 가로로 죽 늘어놓고, 좁은 화면에선 가로 스크롤로 흡수.
    sticky로 상단에 고정해야 카테고리 바꿀 때마다 맨 위로 스크롤해 올라갔다
    내려갔다 하지 않는다 — 스크롤 중에도 항상 손 닿는 위치에 있어야 한다.
