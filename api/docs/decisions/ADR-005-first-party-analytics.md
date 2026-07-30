@@ -98,6 +98,15 @@ jq -r 'select(.event=="offer_link_click") | "\(.props.platform)\t\(.props.brand)
 - **수익화하면** 광고 목적 이용이 아니라는 고지가 거짓이 되므로 ADR-015와
   함께 다시 본다.
 
+**(2026-07-30 갱신)** 위 "재방문 비율" 집계는 `visitCount`가
+`localStorage` 기반이라 삭제·기기 변경에 취약하다는 한계가 실제로
+드러났다. 프론트(delivery-discount-web)에서 재방문 측정 정확도만을
+목적으로 GA4를 임시로 병행 도입했다 — 이 ADR의 "외부 도구 없이" 원칙에
+대한 한정적 예외이며, 배경·범위·제거 조건은
+[delivery-discount-web ADR-002](../../../delivery-discount-web/docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md)
+참고. 여기 문서화된 자체 수집 파이프라인(`/api/events`)은 그대로 유지되고
+바뀐 것이 없다.
+
 ## 검증 한계
 
 배포된 엔드포인트는 `application/json`과 `text/plain` 양쪽으로 확인했고
