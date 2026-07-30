@@ -129,6 +129,21 @@ track('membership_open')
 3. 접는 동작처럼 "관심 신호가 아닌" 액션은 굳이 안 남긴다 — 이벤트 수가
    신호 대 잡음비를 해친다.
 
+### 본인 테스트 트래픽 표시 (dev 플래그)
+
+배포된 사이트를 직접 열어 테스트하면 그 클릭도 실 트래픽처럼 로그에
+쌓인다. 테스트 중인 브라우저에서 `https://beggars-five.vercel.app/?dev=1`을
+한 번 열면 `localStorage`에 남아 이후 모든 이벤트에 `dev: true`가 붙는다
+(`?dev=0`으로 다시 끔). 집계할 때는 이 값을 제외한다:
+
+```bash
+jq -r 'select(.event=="offer_link_click" and .dev!=true) | ...' events.jsonl
+```
+
+기기·브라우저별로 따로 켜야 하고(localStorage 기반), API 화이트리스트
+변경 없이 `VisitEvent`/`IncomingEvent`에 필드만 추가해 받는다
+(delivery-discount-api).
+
 ### 개인정보 관련 동작
 
 - **DNT/GPC를 존중한다.** `navigator.doNotTrack === '1'` 이거나
