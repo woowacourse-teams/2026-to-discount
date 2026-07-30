@@ -424,12 +424,18 @@ Task 1-4의 헬퍼로 배민 브랜드관에서 지정한 브랜드들의 상세
 캡처한다. 못 찾으면 스크롤하며 재시도하고, 그래도 없으면 스킵(전체를
 막지 않는다).
 
+**"가까운 가게만 보기" 체크 해제부터 한다.** 이 체크박스가 켜져 있으면
+근처 가게가 있는 브랜드만 걸러져 목록에 뜬다 — 타겟 브랜드가 화면에
+아예 안 나타나 "못 찾음"으로 잘못 스킵될 수 있다. 기존
+`_uncheck_nearby_only(serial)`(같은 파일, `open_brand_lounge` 옆에 이미
+있음)를 그대로 재사용한다 — 새로 만들 필요 없음.
+
 **Files:**
 - Modify: `capture/baemin.py`
 - Test: `tests/capture/test_baemin.py` (신규 파일)
 
 **Interfaces:**
-- Consumes: `dump_ui`, `find_node_bounds_by_text_prefix`, `tap_center`, `go_back_and_verify`, `swipe_up`, `screenshot`(모두 `capture.common`)
+- Consumes: `dump_ui`, `find_node_bounds_by_text_prefix`, `tap_center`, `go_back_and_verify`, `swipe_up`, `screenshot`(모두 `capture.common`), 같은 파일의 기존 `_uncheck_nearby_only`
 - Produces: `collect_brand_details(serial: str, out_dir: Path, brands: list[str], date_str: str) -> dict[str, Path | None]` — 브랜드명 -> 저장 경로(못 찾았으면 `None`)
 
 - [ ] **Step 1: 실패하는 테스트 작성**
@@ -457,6 +463,7 @@ def test_collect_brand_details_finds_and_captures_visible_brand(monkeypatch, tmp
     monkeypatch.setattr(baemin_mod, "tap_center", MagicMock())
     monkeypatch.setattr(baemin_mod, "go_back_and_verify", MagicMock())
     monkeypatch.setattr(baemin_mod, "swipe_up", MagicMock())
+    monkeypatch.setattr(baemin_mod, "_uncheck_nearby_only", MagicMock())
     monkeypatch.setattr(baemin_mod.time, "sleep", lambda s: None)
 
     result = baemin_mod.collect_brand_details(
@@ -467,6 +474,7 @@ def test_collect_brand_details_finds_and_captures_visible_brand(monkeypatch, tmp
     assert result == {"훌랄라참숯바베큐치킨": expected_path}
     assert expected_path.exists()
     baemin_mod.go_back_and_verify.assert_called_once_with("e7f06aaf", baemin_mod.DETAIL_LIST_MARKER)
+    baemin_mod._uncheck_nearby_only.assert_called_once_with("e7f06aaf")
 
 
 def test_collect_brand_details_scrolls_when_not_immediately_visible(monkeypatch, tmp_path):
@@ -486,6 +494,7 @@ def test_collect_brand_details_scrolls_when_not_immediately_visible(monkeypatch,
     monkeypatch.setattr(baemin_mod, "go_back_and_verify", MagicMock())
     swipe_mock = MagicMock()
     monkeypatch.setattr(baemin_mod, "swipe_up", swipe_mock)
+    monkeypatch.setattr(baemin_mod, "_uncheck_nearby_only", MagicMock())
     monkeypatch.setattr(baemin_mod.time, "sleep", lambda s: None)
 
     result = baemin_mod.collect_brand_details("e7f06aaf", tmp_path, ["피자헛"], "2026-07-30")
@@ -503,6 +512,7 @@ def test_collect_brand_details_skips_brand_not_found_after_max_scrolls(monkeypat
     monkeypatch.setattr(baemin_mod, "tap_center", MagicMock())
     monkeypatch.setattr(baemin_mod, "go_back_and_verify", MagicMock())
     monkeypatch.setattr(baemin_mod, "swipe_up", MagicMock())
+    monkeypatch.setattr(baemin_mod, "_uncheck_nearby_only", MagicMock())
     monkeypatch.setattr(baemin_mod.time, "sleep", lambda s: None)
 
     result = baemin_mod.collect_brand_details("e7f06aaf", tmp_path, ["없는브랜드"], "2026-07-30")
@@ -561,7 +571,12 @@ def collect_brand_details(
     브랜드관이 이미 열려 있다고 가정한다(진입은 open_brand_lounge()로
     별도 호출). 못 찾은 브랜드는 건너뛰고 결과에 None으로 남긴다 — 하나
     못 찾았다고 나머지까지 멈추지 않는다.
+
+    "가까운 가게만 보기"부터 끈다 — 켜진 채로 두면 근처 가게 있는
+    브랜드만 걸러져 타겟 브랜드가 화면에 아예 안 뜰 수 있다.
     """
+    _uncheck_nearby_only(serial)
+
     out_dir.mkdir(parents=True, exist_ok=True)
     results: dict[str, Path | None] = {}
 
