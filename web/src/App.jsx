@@ -21,6 +21,36 @@ const CATEGORIES = [
   { key: 'convenience', label: '편의점' },
 ]
 
+// 카테고리 탭을 무엇 기준으로 나눌지. 'discount'/'minOrder'는 브랜드
+// 대표 금액을 천원 단위로 묶어 탭을 그때그때 만든다(아래 amountBand*).
+const CLASSIFY_MODES = [
+  { key: 'category', label: '카테고리' },
+  { key: 'discount', label: '할인금액대' },
+  { key: 'minOrder', label: '최소주문금액대' },
+]
+
+// 금액을 천원 단위로 묶는다(500원 단위 값도 내림해서 같은 구간에 넣는다).
+// 1만원 이상은 "n만m천원대"로 표기.
+function amountBandKey(amount) {
+  return Math.floor(amount / 1000)
+}
+function amountBandLabel(bandKey) {
+  const man = Math.floor(bandKey / 10)
+  const cheon = bandKey % 10
+  if (man > 0) return `${man}만${cheon > 0 ? `${cheon}천` : ''}원대`
+  return `${bandKey}천원대`
+}
+
+// 브랜드의 대표 금액. discount는 API가 이미 계산해 내려주는
+// maxConfirmedAmount, minOrder는 오퍼들 중 알려진 값의 최솟값(가장 싸게
+// 들어가는 조건) — 하나도 모르면 null(미확인은 모든 금액대 탭에 걸치게
+// 아래 필터에서 처리).
+function brandAmountFor(mode, brand) {
+  if (mode === 'discount') return brand.maxConfirmedAmount ?? null
+  const known = brand.offers.map((o) => o.minOrderAmount).filter((v) => v != null)
+  return known.length ? Math.min(...known) : null
+}
+
 // 멤버십/지역화폐 반영 로직은 아직 없다. 화면만 미리 놓아두고 실제 계산은
 // docs/plans/2026-07-28-membership-pricing.md 계획대로 나중에 붙인다.
 const MEMBERSHIP_OPTIONS = [
@@ -366,12 +396,15 @@ function CategoryBar({ categories, active, onSelect }) {
     }
   }
 
-  useLayoutEffect(measure, [active])
+  // categories도 의존성에 넣는다 — 분류 기준이 바뀌면(카테고리 ↔
+  // 금액대) active 값은 그대로 'all'이어도 탭 구성 자체가 바뀌므로
+  // 하이라이트를 다시 재야 한다.
+  useLayoutEffect(measure, [active, categories])
   useEffect(() => {
     window.addEventListener('resize', measure)
     document.fonts?.ready?.then(measure)
     return () => window.removeEventListener('resize', measure)
-  }, [active])
+  }, [active, categories])
 
   return (
     <div className="category-bar" role="tablist" aria-label="카테고리">
@@ -399,6 +432,45 @@ function CategoryBar({ categories, active, onSelect }) {
           {c.label}
         </button>
       ))}
+    </div>
+  )
+}
+
+// 카테고리 탭 왼쪽의 회색 화살표. 눌러서 분류 기준(카테고리/할인금액대/
+// 최소주문금액대)을 고르는 작은 드롭다운.
+function ClassifyPicker({ mode, onSelect }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="classify-picker">
+      {open && <div className="dropdown-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />}
+      <button
+        type="button"
+        className="classify-picker__btn"
+        aria-expanded={open}
+        aria-label="분류 기준 선택"
+        onClick={() => setOpen((v) => !v)}
+      >
+        ▾
+      </button>
+      <div
+        className={`dropdown classify-picker__menu ${open ? 'dropdown--open' : ''}`}
+        role="menu"
+        aria-label="분류 기준"
+        aria-hidden={!open}
+      >
+        {CLASSIFY_MODES.map((m) => (
+          <button
+            key={m.key}
+            type="button"
+            role="menuitemradio"
+            aria-checked={mode === m.key}
+            className={`classify-picker__option ${mode === m.key ? 'classify-picker__option--active' : ''}`}
+            onClick={() => { onSelect(m.key); setOpen(false) }}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -472,7 +544,8 @@ export default function App() {
   const [error, setError] = useState(null)
   const [membership, setMembership] = useState({})
   const [menuOpen, setMenuOpen] = useState(false)
-  const [category, setCategory] = useState('all')
+  const [classifyBy, setClassifyBy] = useState('category')
+  const [filterKey, setFilterKey] = useState('all')
   const [search, setSearch] = useState('')
 
   useEffect(() => {
@@ -482,18 +555,38 @@ export default function App() {
   const toggleMembership = (key) =>
     setMembership((prev) => ({ ...prev, [key]: !prev[key] }))
 
+  // 분류 기준이 바뀔 때마다(예: 카테고리 → 할인금액대) 탭을 새로 만든다.
+  // 금액대 탭은 실제 데이터에 나오는 금액만큼만 생긴다.
+  const tabs = useMemo(() => {
+    if (!brands || classifyBy === 'category') return CATEGORIES
+    const keys = new Set()
+    brands.forEach((b) => {
+      const amount = brandAmountFor(classifyBy, b)
+      if (amount != null) keys.add(amountBandKey(amount))
+    })
+    return [
+      { key: 'all', label: '전체' },
+      ...[...keys].sort((a, b) => a - b).map((k) => ({ key: String(k), label: amountBandLabel(k) })),
+    ]
+  }, [brands, classifyBy])
+
   // category는 API가 brands.yml에서 읽어 내려준다. 분류가 없는 브랜드는
-  // null이라 "전체"에서만 보인다. 검색은 브랜드명 부분일치, 카테고리와
-  // 동시에 적용된다.
+  // null이라 "전체"에서만 보인다. 금액대 분류에서 값을 모르는 브랜드는
+  // 어느 탭에서도 안 숨긴다 — 최소주문금액이 대부분 미수집이라 "미확인"
+  // 탭 하나로 몰면 사실상 안 보이는 것과 같기 때문. 검색은 항상 같이
+  // 적용된다.
   const visibleBrands = useMemo(() => {
     if (!brands) return brands
     const q = search.trim()
     return brands.filter((b) => {
-      const inCategory = category === 'all' || b.category === category
       const inSearch = q === '' || b.name.includes(q)
-      return inCategory && inSearch
+      if (!inSearch) return false
+      if (filterKey === 'all') return true
+      if (classifyBy === 'category') return b.category === filterKey
+      const amount = brandAmountFor(classifyBy, b)
+      return amount == null || String(amountBandKey(amount)) === filterKey
     })
-  }, [brands, category, search])
+  }, [brands, classifyBy, filterKey, search])
 
   return (
     <main>
@@ -540,14 +633,25 @@ export default function App() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <CategoryBar
-          categories={CATEGORIES}
-          active={category}
-          onSelect={(key) => {
-            setCategory(key)
-            if (key !== category) track('category_change', { category: key })
-          }}
-        />
+        <div className="category-group">
+          <ClassifyPicker
+            mode={classifyBy}
+            onSelect={(mode) => {
+              if (mode === classifyBy) return
+              setClassifyBy(mode)
+              setFilterKey('all')
+              track('classify_change', { mode })
+            }}
+          />
+          <CategoryBar
+            categories={tabs}
+            active={filterKey}
+            onSelect={(key) => {
+              setFilterKey(key)
+              if (key !== filterKey) track('category_change', { category: key, mode: classifyBy })
+            }}
+          />
+        </div>
       </div>
 
       {error && <p className="msg msg--error">불러오기 실패: {error}</p>}
@@ -555,7 +659,7 @@ export default function App() {
 
       {visibleBrands && visibleBrands.length === 0 && (
         <p className="msg">
-          {search.trim() ? `"${search}" 검색 결과가 없습니다.` : '이 카테고리엔 브랜드가 없습니다.'}
+          {search.trim() ? `"${search}" 검색 결과가 없습니다.` : '이 분류엔 브랜드가 없습니다.'}
         </p>
       )}
 

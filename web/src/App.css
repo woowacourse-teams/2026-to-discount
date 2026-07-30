@@ -161,6 +161,41 @@ h1 {
   visibility: visible;
 }
 
+/* 카테고리 탭 왼쪽의 회색 화살표 — 분류 기준(카테고리/할인금액대/
+   최소주문금액대) 선택 드롭다운. */
+.classify-picker { position: relative; flex: none; }
+.classify-picker__btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--border);
+  color: var(--text-muted);
+  font-size: .7rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.classify-picker__btn:hover { color: var(--text); }
+.classify-picker__menu { width: min(200px, 70vw); padding: .5rem; }
+.classify-picker__option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: .85rem;
+  padding: .5rem .6rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.classify-picker__option:hover { background: var(--bg); }
+.classify-picker__option--active { font-weight: 700; }
+
 .dropdown__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
 .dropdown__title { font-size: .95rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
 
@@ -188,6 +223,17 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
   gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+/* 회색 화살표(분류 기준 선택) + 카테고리 탭 묶음. 이 묶음 전체가
+   margin-left:auto로 오른쪽에 붙는다 — .category-bar 자체엔 더 이상
+   정렬용 margin을 두지 않는다(안 그러면 두 마진이 겹쳐 정렬이 어긋난다). */
+.category-group {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-left: auto;
+  min-width: 0;
 }
 .brand-search {
   font: inherit;
@@ -216,7 +262,7 @@ h1 {
   gap: 2px;
   width: fit-content;
   max-width: 100%;
-  margin: 0 0 1.25rem auto;
+  margin: 0;
   overflow-x: auto;
   scrollbar-width: none;
   padding: .75rem 0 1.35rem;
