@@ -507,34 +507,33 @@ function SearchControl({ value, onChange }) {
     if (open) inputRef.current?.focus()
   }, [open])
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        className="search-control__btn"
-        aria-label="브랜드 검색 열기"
-        onClick={() => setOpen(true)}
-      >
-        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <circle cx="11" cy="11" r="7" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        검색
-      </button>
-    )
-  }
-
   return (
-    <input
-      ref={inputRef}
-      type="search"
-      className="search-control__input"
-      placeholder="브랜드 검색"
-      aria-label="브랜드 검색"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      onBlur={() => setOpen(false)}
-    />
+    <div className={`search-control ${open ? 'search-control--open' : ''}`}>
+      {open ? (
+        <input
+          ref={inputRef}
+          type="search"
+          className="search-control__input"
+          placeholder="브랜드 검색"
+          aria-label="브랜드 검색"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={() => setOpen(false)}
+        />
+      ) : (
+        <button
+          type="button"
+          className="search-control__btn"
+          aria-label="브랜드 검색 열기"
+          onClick={() => setOpen(true)}
+        >
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -752,10 +751,6 @@ export default function App() {
       </header>
 
       <div className="toolbar">
-        <div className="toolbar__left-stack">
-          <SearchControl value={search} onChange={setSearch} />
-          <InfoTip />
-        </div>
         <div className="toolbar__labels">
           <ClassifyPicker
             mode={classifyBy}
@@ -766,11 +761,13 @@ export default function App() {
               track('classify_change', { mode })
             }}
           />
+          <InfoTip />
           {classifyBy === 'category' ? (
             <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} onWheel={handleLabelsWheel} />
           ) : (
             <AmountBandSlider mode={classifyBy} bands={tabs} active={filterKey} onSelect={handleFilterSelect} />
           )}
+          <SearchControl value={search} onChange={setSearch} />
         </div>
       </div>
 
