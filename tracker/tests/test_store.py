@@ -65,3 +65,26 @@ def test_latest_per_brand_keeps_winner_detail_when_winner_already_has_it():
     assert result["amount"] == 7000
     assert result["min_order_amount"] == 22000
     assert result["conditions"] == "1일 1회"
+
+
+def test_multi_platform_brands_filters_by_count():
+    from store import multi_platform_brands
+    records = [
+        {"platform": "baemin", "brand": "피자헛"},
+        {"platform": "ddangyo", "brand": "피자헛"},
+        {"platform": "coupangeats", "brand": "피자헛"},
+        {"platform": "baemin", "brand": "단독브랜드"},
+    ]
+    result = multi_platform_brands(records)
+    assert result == {"피자헛": {"baemin", "ddangyo", "coupangeats"}}
+
+
+def test_multi_platform_brands_respects_min_platforms():
+    from store import multi_platform_brands
+    records = [
+        {"platform": "baemin", "brand": "A"},
+        {"platform": "ddangyo", "brand": "A"},
+        {"platform": "yogiyo", "brand": "A"},
+    ]
+    assert multi_platform_brands(records, min_platforms=3) == {"A": {"baemin", "ddangyo", "yogiyo"}}
+    assert multi_platform_brands(records, min_platforms=4) == {}

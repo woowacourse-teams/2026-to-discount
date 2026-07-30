@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from pathlib import Path
 
 from schema import validate_record
@@ -61,3 +62,16 @@ def latest_per_brand(records: list[dict]) -> dict:
         current = latest.get(key)
         latest[key] = record if current is None else _prefer(current, record)
     return latest
+
+
+def multi_platform_brands(records: list[dict], min_platforms: int = 2) -> dict[str, set[str]]:
+    """브랜드별로 걸친 플랫폼 집합. min_platforms개 이상만 돌려준다.
+
+    상세 수집 우선순위 산출용 — "앱 여러 개에 걸린 브랜드"가 비교가
+    실제로 일어나는 지점이라 여기부터 채운다
+    (docs/superpowers/specs/2026-07-30-brand-detail-collection-design.md).
+    """
+    by_brand: dict[str, set[str]] = defaultdict(set)
+    for record in records:
+        by_brand[record["brand"]].add(record["platform"])
+    return {brand: platforms for brand, platforms in by_brand.items() if len(platforms) >= min_platforms}
