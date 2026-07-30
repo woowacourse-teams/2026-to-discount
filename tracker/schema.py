@@ -24,6 +24,7 @@ DEFAULTS = {
     "min_order_amount": None,   # 최소주문금액(단일 조건)
     "tiers": None,              # [{"min_order": 15000, "amount": 3000}, ...]
     "conditions": None,         # 그 외 문구 그대로 (예: "1일 1회, 배달만")
+    "expires_at": None,         # 행사(쿠폰) 종료 예정일, ISO date (예: "2026-07-31")
 }
 
 
