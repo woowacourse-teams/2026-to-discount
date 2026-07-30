@@ -15,11 +15,17 @@ class TrafficStatsServiceTest {
 
     private VisitEvent event(String tsOffsetFromNow, String event, String visitorId, String sessionId,
                               String path, String device, String referrer, Long dwellMs, Map<String, String> props) {
+        return event(tsOffsetFromNow, event, visitorId, sessionId, path, device, referrer, dwellMs, props, null);
+    }
+
+    private VisitEvent event(String tsOffsetFromNow, String event, String visitorId, String sessionId,
+                              String path, String device, String referrer, Long dwellMs, Map<String, String> props,
+                              Boolean dev) {
         String ts = OffsetDateTime.now().plusHours(0).toString();
         if (tsOffsetFromNow != null) {
             ts = OffsetDateTime.parse(tsOffsetFromNow).toString();
         }
-        return new VisitEvent(ts, event, visitorId, sessionId, 1, path, referrer, device, null, dwellMs, props, null, "hash");
+        return new VisitEvent(ts, event, visitorId, sessionId, 1, path, referrer, device, null, dwellMs, props, null, "hash", dev);
     }
 
     private EventLog logWith(Path dir, List<VisitEvent> events) {
@@ -83,6 +89,24 @@ class TrafficStatsServiceTest {
         TrafficStats stats = new TrafficStatsService(log).compute(7);
         assertEquals(2L, stats.categoryChanges().get("chicken"));
         assertEquals(1L, stats.categoryChanges().get("pizza"));
+    }
+
+    @Test
+    void excludesDevTrafficFromStats(@TempDir Path dir) {
+        // dev:true는 본인 테스트 클릭이라 실 트래픽 집계에서 빠져야 한다.
+        String now = OffsetDateTime.now().toString();
+        EventLog log = logWith(dir, List.of(
+                event(now, "page_view", "v1", "s1", "/", "mobile", "direct", null, null),
+                event(now, "page_view", "v_dev", "s_dev", "/", "mobile", "direct", null, null, true),
+                event(now, "offer_link_click", "v_dev", "s_dev", "/", "mobile", "direct", null,
+                        Map.of("brand", "test"), true)
+        ));
+        TrafficStats stats = new TrafficStatsService(log).compute(7);
+
+        assertEquals(1, stats.totalEvents());
+        assertEquals(1, stats.uniqueVisitors());
+        assertEquals(1L, stats.eventCounts().get("page_view"));
+        assertNull(stats.eventCounts().get("offer_link_click"));
     }
 
     @Test

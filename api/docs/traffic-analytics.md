@@ -63,6 +63,22 @@ IP)`를 16진수 8바이트로 잘라 `ipHash`로 남긴다.
 | `props` | 이벤트별 부가 정보(예: `category_change`의 `{"category":"chicken"}`) |
 | `clientTs` | 클라이언트 측 타임스탬프(있으면) |
 | `ipHash` | 위 프라이버시 절 참고 |
+| `dev` | 본인 테스트 트래픽 표시(2026-07-31 추가). 아래 참고 |
+
+### 본인 테스트 트래픽 (`dev` 플래그)
+
+배포된 사이트를 개발자가 직접 열어 확인하다 보면 그 클릭도 실 트래픽처럼
+`events.jsonl`에 섞인다. 프론트(`delivery-discount-web/src/analytics.js`)에서
+`?dev=1`을 한 번 열면 `localStorage`에 남아 이후 모든 이벤트에 `dev: true`가
+붙는다(`?dev=0`으로 다시 끔). 기기·브라우저별로 따로 켜야 한다.
+
+`TrafficStatsService.compute()`가 `dev: true`인 이벤트를 자동으로 제외하므로
+`/api/stats/traffic`·`/stats.html` 수치는 이미 걸러진 값이다. 원본
+`events.jsonl`을 직접 `jq`로 볼 때는 수동으로 걸러야 한다:
+
+```bash
+jq -c 'select(.dev != true)' events.jsonl
+```
 
 ## 통계 조회 (신규)
 
