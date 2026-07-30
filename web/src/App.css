@@ -249,6 +249,75 @@ h1 {
 .brand-search::placeholder { color: var(--text-muted); }
 .brand-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* 금액대 분류일 때 탭 대신 쓰는 스텝 슬라이더. 이퀄라이저처럼 정해진
+   값에서만 멈춘다 — <input type="range" step="1">이 브랜드마다 하나씩
+   있는 금액대 개수만큼의 정수 인덱스만 오간다. 현재 값은 썸 위치 위에
+   캡션으로 항상 뜬다(퍼센트로 계산해 left에 꽂는다). */
+.amount-slider {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  width: min(240px, 55vw);
+  padding: 1.6rem 0 .75rem;
+}
+.amount-slider__caption {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.amount-slider__input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  outline: none;
+  margin: 0;
+  display: block;
+}
+.amount-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  cursor: pointer;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.amount-slider__input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  cursor: pointer;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.amount-slider__input::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.amount-slider__ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px; /* 썸 반지름만큼 안쪽으로 — 양 끝 눈금이 썸 중심과 맞도록 */
+  margin-top: .35rem;
+}
+.amount-slider__tick {
+  width: 2px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--border);
+}
+
 /* 카테고리 필터 — 가로로 죽 늘어놓고, 좁은 화면에선 가로 스크롤로 흡수.
    sticky로 상단에 고정해야 카테고리 바꿀 때마다 맨 위로 스크롤해 올라갔다
    내려갔다 하지 않는다 — 스크롤 중에도 항상 손 닿는 위치에 있어야 한다.

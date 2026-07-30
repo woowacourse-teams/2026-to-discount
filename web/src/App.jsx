@@ -436,6 +436,35 @@ function CategoryBar({ categories, active, onSelect }) {
   )
 }
 
+// 금액대 분류일 때 탭 대신 쓰는 스텝 슬라이더 — 이퀄라이저처럼 정해진
+// 값에서만 멈춘다(연속값 아님). 현재 값은 캡션으로 항상 슬라이더 위에
+// 띄운다. bands[0]은 항상 "전체".
+function AmountBandSlider({ bands, active, onSelect }) {
+  const index = Math.max(0, bands.findIndex((b) => b.key === active))
+  const percent = bands.length > 1 ? (index / (bands.length - 1)) * 100 : 0
+
+  return (
+    <div className="amount-slider">
+      <span className="amount-slider__caption" style={{ left: `${percent}%` }}>
+        {bands[index]?.label}
+      </span>
+      <input
+        type="range"
+        className="amount-slider__input"
+        min={0}
+        max={Math.max(0, bands.length - 1)}
+        step={1}
+        value={index}
+        onChange={(e) => onSelect(bands[Number(e.target.value)].key)}
+        aria-label="금액대 선택"
+      />
+      <div className="amount-slider__ticks" aria-hidden="true">
+        {bands.map((b) => <span key={b.key} className="amount-slider__tick" />)}
+      </div>
+    </div>
+  )
+}
+
 // 카테고리 탭 왼쪽의 회색 화살표. 눌러서 분류 기준(카테고리/할인금액대/
 // 최소주문금액대)을 고르는 작은 드롭다운.
 function ClassifyPicker({ mode, onSelect }) {
@@ -588,6 +617,11 @@ export default function App() {
     })
   }, [brands, classifyBy, filterKey, search])
 
+  const handleFilterSelect = (key) => {
+    setFilterKey(key)
+    if (key !== filterKey) track('category_change', { category: key, mode: classifyBy })
+  }
+
   return (
     <main>
       <InfoTip />
@@ -643,14 +677,11 @@ export default function App() {
               track('classify_change', { mode })
             }}
           />
-          <CategoryBar
-            categories={tabs}
-            active={filterKey}
-            onSelect={(key) => {
-              setFilterKey(key)
-              if (key !== filterKey) track('category_change', { category: key, mode: classifyBy })
-            }}
-          />
+          {classifyBy === 'category' ? (
+            <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} />
+          ) : (
+            <AmountBandSlider bands={tabs} active={filterKey} onSelect={handleFilterSelect} />
+          )}
         </div>
       </div>
 
