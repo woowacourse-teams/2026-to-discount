@@ -28,12 +28,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
 }
 
 .page-head { margin-bottom: -1.0rem; }
-.page-head__row {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
+.page-head__row { display: flex; }
 h1 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -81,6 +76,13 @@ h1 {
 }
 .pill--pending { background: var(--pending-bg); color: var(--pending-text); }
 
+/* 멤버십 버튼은 이제 헤더가 아니라 카테고리 레이블 줄 아래, 오른쪽에
+   붙는다("레이블 우측 아래"로 재배치 요청). */
+.membership-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: .3rem 0 1.1rem;
+}
 /* 멤버십 트리거 버튼 + 드롭다운의 위치 기준. */
 .membership { position: relative; flex: none; }
 
@@ -128,8 +130,9 @@ h1 {
   .dropdown { transition: opacity 160ms ease; }
 }
 
-/* 화면 왼쪽 위에 항상 떠 있는 안내 버튼. */
-.info-fab { position: fixed; top: .9rem; left: .9rem; z-index: 22; }
+/* 안내 버튼 — 이제 화면에 고정된 게 아니라 검색 버튼 바로 아래,
+   toolbar__left-stack 안에 얌전히 들어간다("? 버튼은 그 아래로"). */
+.info-fab { position: relative; z-index: 12; }
 .info-fab__btn {
   width: 26px;
   height: 26px;
@@ -256,56 +259,72 @@ h1 {
 }
 .wip:hover::after { opacity: 1; visibility: visible; }
 
-/* 검색창 + 카테고리 바를 한 줄에 — 검색은 왼쪽, 카테고리 바는 자기
-   margin-left:auto로 오른쪽에 붙는다. 줄 전체를 sticky로 고정해서
-   검색창도 카테고리 탭과 함께 스크롤을 따라온다 — 스크롤로 올라오는
-   카드가 이 줄 아래에서 뚝 끊기지 않도록, 좌하단 사선으로 빠지는
-   그라데이션을 줄 전체 배경에 건다(오른쪽이 왼쪽보다 더 오래 덮인다). */
-.filter-row {
+/* 검색+안내 버튼(왼쪽 세로 스택) + 카테고리 레이블(오른쪽, 좁게 줄이고
+   가로 스크롤). 줄 전체를 sticky로 고정해서 스크롤해도 계속 손 닿는
+   자리에 있는다 — 스크롤로 올라오는 카드가 이 줄 아래에서 뚝 끊기지
+   않도록, 좌하단 사선으로 빠지는 그라데이션을 줄 전체 배경에 건다. */
+.toolbar {
   position: sticky;
   top: 0;
   z-index: 10;
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: .75rem;
+  align-items: flex-start;
+  gap: .6rem;
   padding: .75rem 0 1.35rem;
   background: linear-gradient(to bottom left, var(--bg) 0%, var(--bg) 55%, transparent 85%);
 }
-/* 회색 화살표(분류 기준 선택) + 카테고리 탭 묶음. 이 묶음 전체가
-   margin-left:auto로 오른쪽에 붙는다 — .category-bar 자체엔 더 이상
-   정렬용 margin을 두지 않는다(안 그러면 두 마진이 겹쳐 정렬이 어긋난다). */
-.category-group {
+/* 검색 버튼 + 안내(?) 버튼을 세로로 쌓는다 — "? 버튼은 그 아래로". 폭을
+   고정해야 오른쪽 레이블 영역이 나머지를 정확히 가져간다(flex:1). */
+.toolbar__left-stack {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .4rem;
+  padding-top: .1rem;
+}
+/* 화살표(분류 기준) + 카테고리 탭. flex:1 min-width:0으로 남는 폭만
+   가져가고, 넘치는 만큼은 안쪽 .category-bar가 스스로 가로 스크롤한다
+   (여기 자체는 스크롤 컨테이너가 아니다 — 화살표까지 같이 밀리면 안
+   되므로). */
+.toolbar__labels {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: .35rem;
-  margin-left: auto;
-  min-width: 0;
 }
-.brand-search-wrap { position: relative; display: flex; align-items: center; min-width: 0; }
-.brand-search__icon {
-  position: absolute;
-  left: .75rem;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-.brand-search {
+
+/* 검색 — 기본은 작은 버튼("검색을 처음부터 입력으로 두지 말고 버튼만
+   조금 더 크게"). 누르면 입력창으로 바뀐다(App.jsx SearchControl) —
+   포커스를 잃으면 다시 버튼으로 접힌다. */
+.search-control__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
   font: inherit;
   font-size: .85rem;
-  padding: .5rem .9rem .5rem 1.9rem;
+  padding: .55rem 1rem;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
   color: var(--text);
-  width: 160px;
-  max-width: 45vw;
-  transition: width 200ms ease, max-width 200ms ease;
+  cursor: pointer;
 }
-.brand-search::placeholder { color: var(--text-muted); }
-.brand-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* 누르면(포커스) 두 배로 넓어진다 — 좁은 화면에서도 넘치지 않게
-   max-width도 같이 풀어준다. */
-.brand-search:focus { width: 320px; max-width: 80vw; }
+.search-control__btn:hover { border-color: var(--text-muted); }
+.search-control__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.search-control__input {
+  font: inherit;
+  font-size: .85rem;
+  padding: .55rem .9rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  width: min(220px, 62vw);
+}
+.search-control__input::placeholder { color: var(--text-muted); }
+.search-control__input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* 금액대 분류일 때 탭 대신 쓰는 스텝 슬라이더. 이퀄라이저처럼 정해진
    값에서만 멈춘다 — <input type="range" step="1">이 브랜드마다 하나씩
@@ -388,15 +407,16 @@ h1 {
   padding: 0 4px;
 }
 
-/* 카테고리 필터 — 가로로 죽 늘어놓고, 좁은 화면에선 가로 스크롤로 흡수.
-   sticky·그라데이션은 부모 .filter-row가 통째로 맡는다(검색창과 같이
-   고정돼야 하므로). 너비는 내용만큼만 차지한다 — 좁은 화면에선 max-width가
-   뷰포트 폭을 넘지 않게 막아주고, 그 안에서 넘치는 만큼만 스크롤한다. */
+/* 카테고리 필터 — 가로로 죽 늘어놓고, 넘치는 만큼 가로 스크롤로 흡수.
+   sticky·그라데이션은 부모 .toolbar가 통째로 맡는다(검색·안내 버튼과
+   같이 고정돼야 하므로). flex:1 min-width:0으로 .toolbar__labels 안에서
+   화살표 버튼을 뺀 나머지 폭만 갖고, 그 안에서 스스로 스크롤한다(휠
+   가로 스크롤도 여기 붙는다 — App.jsx의 onWheel). */
 .category-bar {
   display: flex;
   gap: 2px;
-  width: fit-content;
-  max-width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -430,7 +450,7 @@ h1 {
   background: none;
   border: none;
   border-radius: 999px;
-  padding: .45rem .9rem;
+  padding: .45rem .65rem;
   font: inherit;
   font-size: .85rem;
   color: var(--text-muted);

@@ -11,12 +11,11 @@ const PLATFORMS = [
 const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 
 // 쿠팡이츠·요기요는 brands.yml에 브랜드별 딥링크가 없다(공유 기능 자체가
-// 없어서 못 만듦). 우선 플레이스토어로 보낸다 — ADB로 실제 기기에 설치된
-// 패키지명을 확인해 만든 링크(com.coupang.mobile.eats,
-// com.fineapp.yogiyo). 브랜드별 진짜 딥링크는 나중에 별도로 찾는다.
+// 없어서 못 만듦). 앱 공유 기능으로 받은 링크로 앱을 연다. 브랜드별 진짜
+// 딥링크는 나중에 별도로 찾는다.
 const PLATFORM_APP_LINKS = {
-  coupangeats: 'https://play.google.com/store/apps/details?id=com.coupang.mobile.eats',
-  yogiyo: 'https://play.google.com/store/apps/details?id=com.fineapp.yogiyo',
+  coupangeats: 'https://share.coupangeats.com/RM8HgQyr64b',
+  yogiyo: 'https://url.customer.yogiyo.co.kr/MUVJRHpYU2',
 }
 
 // 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
@@ -390,7 +389,7 @@ function SiteFooter() {
 // 길이가 제각각이라(전체/치킨/패스트푸드) 폭을 CSS만으로는 못 구하고
 // 버튼의 offsetLeft/offsetWidth를 재서 옮긴다. 폰트가 늦게 로드되면
 // 폭이 바뀔 수 있어 document.fonts.ready에서도 한 번 더 잰다.
-function CategoryBar({ categories, active, onSelect }) {
+function CategoryBar({ categories, active, onSelect, onWheel }) {
   const btnRefs = useRef({})
   const [rect, setRect] = useState(null)
 
@@ -417,7 +416,7 @@ function CategoryBar({ categories, active, onSelect }) {
   }, [active, categories])
 
   return (
-    <div className="category-bar" role="tablist" aria-label="카테고리">
+    <div className="category-bar" role="tablist" aria-label="카테고리" onWheel={onWheel}>
       {rect && (
         <span
           className="category-bar__highlight"
@@ -486,6 +485,49 @@ function AmountBandSlider({ mode, bands, active, onSelect }) {
         </div>
       )}
     </div>
+  )
+}
+
+// 브랜드 검색 — 기본은 작은 버튼. 누르면 입력창으로 바뀌어 레이블 자리를
+// 덮고, 포커스를 잃으면(바깥을 누르거나 다른 곳으로 이동) 다시 버튼으로
+// 돌아간다. 검색어 자체는 버튼 상태에서도 App의 search 상태에 남아
+// 필터링은 계속 적용된다 — UI만 접힌다.
+function SearchControl({ value, onChange }) {
+  const [open, setOpen] = useState(false)
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus()
+  }, [open])
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        className="search-control__btn"
+        aria-label="브랜드 검색 열기"
+        onClick={() => setOpen(true)}
+      >
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        검색
+      </button>
+    )
+  }
+
+  return (
+    <input
+      ref={inputRef}
+      type="search"
+      className="search-control__input"
+      placeholder="브랜드 검색"
+      aria-label="브랜드 검색"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={() => setOpen(false)}
+    />
   )
 }
 
@@ -674,59 +716,40 @@ export default function App() {
     if (key !== filterKey) track('category_change', { category: key, mode: classifyBy })
   }
 
+  // 레이블(카테고리 탭) 영역은 좁게 줄이고 가로 스크롤로 흡수한다.
+  // 마우스는 기본적으로 세로 휠만 보낸다 — PC에서 shift 없이도 휠로
+  // 옆으로 넘어가게, deltaY를 scrollLeft로 돌려준다. 이미 다 보여서
+  // 스크롤할 게 없으면 페이지 스크롤 그대로 두게 preventDefault 안 함.
+  // CategoryBar 자체(스크롤 컨테이너)에 붙는다 — 감싸는 바깥 div에
+  // 붙이면 화살표 버튼까지 같이 밀려나 버린다.
+  const handleLabelsWheel = (e) => {
+    const el = e.currentTarget
+    if (el.scrollWidth <= el.clientWidth) return
+    e.preventDefault()
+    el.scrollLeft += e.deltaY
+  }
+
   return (
     <main>
-      <InfoTip />
       <header className="page-head">
         <div className="page-head__row">
-          <div>
-            <div className="page-head__banner">
-              <h1 className="page-head__logo">
-                <img src="/main_logo.png" alt="오늘의할인" />
-              </h1>
-              <div className="page-head__apps" aria-label="비교 대상 배달앱">
-                {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
-              </div>
+          <div className="page-head__banner">
+            <h1 className="page-head__logo">
+              <img src="/main_logo.png" alt="오늘의할인" />
+            </h1>
+            <div className="page-head__apps" aria-label="비교 대상 배달앱">
+              {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
             </div>
-          </div>
-          <div className="membership">
-            <button
-              type="button"
-              className="membership-trigger"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((v) => {
-                if (!v) track('membership_open')
-                return !v
-              })}
-            >
-              멤버십(배클/와우/패스) <span className="pill pill--pending">적용</span>
-            </button>
-            <MembershipMenu
-              open={menuOpen}
-              onClose={() => setMenuOpen(false)}
-              selected={membership}
-              onToggle={toggleMembership}
-            />
           </div>
         </div>
       </header>
 
-      <div className="filter-row">
-        <div className="brand-search-wrap">
-          <svg className="brand-search__icon" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <circle cx="11" cy="11" r="7" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="search"
-            className="brand-search"
-            placeholder="브랜드 검색"
-            aria-label="브랜드 검색"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="toolbar">
+        <div className="toolbar__left-stack">
+          <SearchControl value={search} onChange={setSearch} />
+          <InfoTip />
         </div>
-        <div className="category-group">
+        <div className="toolbar__labels">
           <ClassifyPicker
             mode={classifyBy}
             onSelect={(mode) => {
@@ -737,10 +760,32 @@ export default function App() {
             }}
           />
           {classifyBy === 'category' ? (
-            <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} />
+            <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} onWheel={handleLabelsWheel} />
           ) : (
             <AmountBandSlider mode={classifyBy} bands={tabs} active={filterKey} onSelect={handleFilterSelect} />
           )}
+        </div>
+      </div>
+
+      <div className="membership-row">
+        <div className="membership">
+          <button
+            type="button"
+            className="membership-trigger"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => {
+              if (!v) track('membership_open')
+              return !v
+            })}
+          >
+            멤버십(배클/와우/패스) <span className="pill pill--pending">적용</span>
+          </button>
+          <MembershipMenu
+            open={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            selected={membership}
+            onToggle={toggleMembership}
+          />
         </div>
       </div>
 
