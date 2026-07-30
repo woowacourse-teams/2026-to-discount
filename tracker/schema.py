@@ -22,7 +22,13 @@ DEFAULTS = {
     # 아직 대부분 비어 있다. "최대 n원"의 정체가 여기 있다 — tiers가 채워지면
     # 그 최대치가 곧 목록에 뜨는 "최대 n원"이다.
     "min_order_amount": None,   # 최소주문금액(단일 조건)
-    "tiers": None,              # [{"min_order": 15000, "amount": 3000}, ...]
+    # [{"min_order": 15000, "amount": 3000}, ...] — amount는 항상 원(KRW).
+    # 정률(%) 할인이면(요기요 실측, 2026-07-31: "25,000원 이상 주문 시
+    # 5%, 최대 3,000원 할인") "percent"를 추가하고 amount는 그 상한액
+    # (cap)을 그대로 쓴다 — 정액이든 정률+상한이든 "이 구간에서 실제로
+    # 최대 얼마 깎이는가"는 amount 하나로 항상 비교·정렬 가능하다.
+    # percent 없는 항목은 기존과 같은 순수 정액.
+    "tiers": None,
     "conditions": None,         # 그 외 문구 그대로 (예: "1일 1회, 배달만")
     "expires_at": None,         # 행사(쿠폰) 종료 예정일, ISO date (예: "2026-07-31")
 }
@@ -37,6 +43,8 @@ def validate_tiers(tiers) -> None:
     for tier in tiers:
         if not isinstance(tier, dict) or "min_order" not in tier or "amount" not in tier:
             raise ValueError(f"tier needs min_order and amount: {tier!r}")
+        if "percent" in tier and not (isinstance(tier["percent"], (int, float)) and 0 < tier["percent"] <= 100):
+            raise ValueError(f"tier percent must be in (0, 100]: {tier!r}")
 
 
 def validate_record(record: dict) -> dict:

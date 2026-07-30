@@ -28,10 +28,20 @@ BRANDS_PATH = Path(__file__).parent / "data" / "brands-sorted.txt"
 
 
 def camel_tiers(tiers):
-    """구간 할인도 export에선 camelCase — 원장은 snake_case를 유지한다."""
+    """구간 할인도 export에선 camelCase — 원장은 snake_case를 유지한다.
+
+    percent(정률+상한 할인, 예: 요기요 "25,000원 이상 5%, 최대 3,000원")
+    가 있는 항목만 그 필드를 옮긴다 — 정액 tier는 그대로 amount만.
+    """
     if not tiers:
         return None
-    return [{"minOrder": t["min_order"], "amount": t["amount"]} for t in tiers]
+    out = []
+    for t in tiers:
+        item = {"minOrder": t["min_order"], "amount": t["amount"]}
+        if "percent" in t:
+            item["percent"] = t["percent"]
+        out.append(item)
+    return out
 
 
 def build_export(records: list[dict]) -> list[dict]:

@@ -57,6 +57,20 @@ def test_build_export_carries_detail_fields_as_camel_case():
                              {"minOrder": 25000, "amount": 7000}]
 
 
+def test_build_export_carries_percent_tier():
+    # 요기요 실측(굽네치킨, 2026-07-31): 정률+상한 tier도 percent가
+    # export.json까지 살아남아야 한다 — 정액 tier는 그대로 없어야 한다.
+    records = [dict(RECORDS[1], tiers=[
+        {"min_order": 25000, "amount": 3000, "percent": 5},
+        {"min_order": 17000, "amount": 4000},
+    ])]
+    item = build_export(records)[0]
+    assert item["tiers"] == [
+        {"minOrder": 25000, "amount": 3000, "percent": 5},
+        {"minOrder": 17000, "amount": 4000},
+    ]
+
+
 def test_build_export_detail_fields_are_null_when_unknown():
     # 지금 원장은 거의 전부 이 상태 — 키는 있고 값만 비어 있어야 한다.
     item = build_export(RECORDS)[0]

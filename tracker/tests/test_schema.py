@@ -76,3 +76,19 @@ def test_validate_record_rejects_malformed_tier():
 def test_validate_record_rejects_non_list_tiers():
     with pytest.raises(ValueError):
         validate_record(dict(BASE, tiers={"min_order": 15000, "amount": 3000}))
+
+
+def test_validate_record_keeps_percent_tier():
+    # 요기요 실측(굽네치킨, 2026-07-31): 25,000원 이상 주문 시 5%,
+    # 최대 3,000원 할인 — 정률+상한. amount는 상한액, percent는 별도.
+    record = validate_record(dict(BASE, tiers=[
+        {"min_order": 25000, "amount": 3000, "percent": 5},
+    ]))
+    assert record["tiers"][0] == {"min_order": 25000, "amount": 3000, "percent": 5}
+
+
+def test_validate_record_rejects_percent_out_of_range():
+    with pytest.raises(ValueError):
+        validate_record(dict(BASE, tiers=[{"min_order": 25000, "amount": 3000, "percent": 0}]))
+    with pytest.raises(ValueError):
+        validate_record(dict(BASE, tiers=[{"min_order": 25000, "amount": 3000, "percent": 101}]))
