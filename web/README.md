@@ -50,6 +50,8 @@
     밝히는 자리라 임의로 축약하지 않는다.
 - `src/api.js` — `API_BASE`(고정 백엔드 주소) + `/api/brands` 호출
 - `src/analytics.js` — 방문 측정. `track(event, props)` + `startAnalytics()`
+- `src/ga4.js` — GA4 임시 도입(`startGa4()`). 이유·제거 조건은
+  [ADR-002](docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md)
 - `src/main.jsx` — `@vercel/analytics/react`의 `<Analytics />`도 여기서
   마운트(Vercel 대시보드용, 자체 `analytics.js`와는 별개)
 - `public/main_logo.png` — 헤더 로고. "이번주 할인" 텍스트를 대체함
@@ -78,19 +80,27 @@
 
 ## 방문 측정 (analytics)
 
-방문 측정은 두 가지다.
+방문 측정은 세 가지다.
 
 1. **`src/analytics.js`(자체)** — 경로·재방문·체류·행동을 API
    (`/api/events`)로만 보낸다. 자체 서버에만 기록하고 제3자에게
    안 넘긴다 — 왜 자체 구현인지, 무엇을 수집하고 무엇을 안 하는지는
    delivery-discount-api의
    [ADR-005](../delivery-discount-api/docs/decisions/ADR-005-first-party-analytics.md).
+   재방문(`visitCount`)은 `localStorage` 기반이라 삭제·기기 변경에
+   취약하다.
 2. **`@vercel/analytics/react`(Vercel)** — `src/main.jsx`에서 `<Analytics />`
    마운트. 쿠키 없는 집계형 페이지뷰만 Vercel 대시보드로 간다. Next.js용
-   `/next` 엔트리가 아니라 Vite에 맞는 `/react` 엔트리를 쓴다.
+   `/next` 엔트리가 아니라 Vite에 맞는 `/react` 엔트리를 쓴다. 쿠키를
+   안 쓰는 구조라 신규/재방문 구분 자체가 없다.
+3. **`src/ga4.js`(GA4, 임시)** — 위 두 방식으로는 재방문을 정확히 못 재서
+   임시로 병행 도입. 유일하게 쿠키(`_ga`)를 쓰고 데이터가 Google로
+   전달된다. 광고 개인화·Google Signals는 꺼서 붙였다. 도입 배경·제거
+   조건은 [ADR-002](docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md).
 
-둘 다 쓴다는 사실은 `SiteFooter`에 고지돼 있다 — "외부 도구를 안 쓴다"는
-더는 정확하지 않으니 이 문구를 다시 단순화하지 말 것.
+셋 다 쓴다는 사실은 `SiteFooter`에 고지돼 있다 — "외부 도구를 안 쓴다"는
+더는 정확하지 않으니 이 문구를 다시 단순화하지 말 것. GA4는 쿠키를 쓰는
+유일한 도구라 그 사실도 고지문에 그대로 남겨둔다.
 
 ### 사용법
 
