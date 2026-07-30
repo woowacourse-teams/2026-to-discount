@@ -1,7 +1,12 @@
 package com.discounttracker.analytics;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -16,6 +21,7 @@ public class TrafficStatsService {
     private static final int TOP_N = 10;
 
     private final EventLog log;
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public TrafficStatsService(EventLog log) {
         this.log = log;
@@ -25,7 +31,7 @@ public class TrafficStatsService {
         OffsetDateTime to = OffsetDateTime.now();
         OffsetDateTime from = to.minusDays(days);
 
-        List<VisitEvent> events = log.readAll().stream()
+        List<VisitEvent> events = readEvents().stream()
                 .filter(e -> withinRange(e, from))
                 .toList();
 
@@ -73,6 +79,21 @@ public class TrafficStatsService {
                 dwellCount == 0 ? null : (double) dwellSum / dwellCount,
                 categoryChanges
         );
+    }
+
+    private List<VisitEvent> readEvents() {
+        Path path = log.path();
+        if (!Files.exists(path)) return List.of();
+        try {
+            List<VisitEvent> events = new ArrayList<>();
+            for (String line : Files.readAllLines(path)) {
+                if (line.isBlank()) continue;
+                events.add(mapper.readValue(line, VisitEvent.class));
+            }
+            return events;
+        } catch (IOException ex) {
+            throw new UncheckedIOException("이벤트 로그 읽기 실패: " + path, ex);
+        }
     }
 
     private static boolean withinRange(VisitEvent e, OffsetDateTime from) {
