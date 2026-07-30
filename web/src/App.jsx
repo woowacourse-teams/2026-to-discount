@@ -116,10 +116,6 @@ function BrandLogo({ name }) {
   )
 }
 
-function capturedDate(capturedAt) {
-  return capturedAt ? capturedAt.slice(0, 10) : null
-}
-
 function offerAmountText(offer) {
   return offer.amount != null ? won(offer.amount) : offer.rawText
 }
@@ -205,26 +201,16 @@ function OfferDetail({ offer }) {
       </div>
 
       <dl className="detail__rows">
-        <dt>할인</dt>
+        <dt>할인/조건</dt>
         <dd>
           <ul className="detail__tiers">
             {rows.map((t, i) => (
-              <li key={i}>
+              <li key={i} className="detail__tier">
                 <span className="detail__tier-amount">
                   {t.amount != null
                     ? won(t.amount)
                     : <span className="detail__unknown">금액 미확인</span>}
                 </span>
-              </li>
-            ))}
-          </ul>
-        </dd>
-
-        <dt>조건</dt>
-        <dd>
-          <ul className="detail__tiers">
-            {rows.map((t, i) => (
-              <li key={i}>
                 <span className="detail__tier-min">
                   {t.minOrder != null
                     ? `${won(t.minOrder)} 이상 주문 시`
@@ -240,15 +226,6 @@ function OfferDetail({ offer }) {
           <>
             <dt>지역화폐</dt>
             <dd>결제 시 +2,000원 추가 할인</dd>
-          </>
-        )}
-
-        {/* 판독 근거는 날짜만 남긴다. 앱 화면 캡처 자체는 각 플랫폼의
-            저작물이라 공개 재배포하지 않는다(원본은 tracker 레포에만 둔다). */}
-        {capturedDate(offer.capturedAt) && (
-          <>
-            <dt>확인일</dt>
-            <dd className="detail__raw">{capturedDate(offer.capturedAt)}</dd>
           </>
         )}
       </dl>
@@ -288,10 +265,6 @@ function BrandCard({ brand }) {
       return !v
     })
   }
-
-  // 최소주문금액은 앱 목록 화면에 안 뜨고 쿠폰 상세를 열어야 보이는 값이라
-  // 아직 대부분 비어 있다. 카드마다 반복하지 않고 안내는 한 번만 붙인다.
-  const anyUnknown = brand.offers.some((o) => !(o.tiers?.length) && o.minOrderAmount == null)
 
   return (
     <article className={`brand-card ${open ? 'brand-card--open' : ''}`}>
@@ -334,17 +307,7 @@ function BrandCard({ brand }) {
           브랜드 73개 × 앱 4개어치를 미리 심어두면 첫 화면이 통째로 멎는다.
           컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
       <div id={detailId} className="brand-detail" hidden={!open}>
-        {open && (
-          <>
-            {sortedOffers.map((o) => <OfferDetail key={o.platform} offer={o} />)}
-            {anyUnknown && (
-              <p className="brand-detail__note">
-                최소주문금액·구간 할인은 앱에서 쿠폰 상세를 열어야 보이는 값이라 아직 수집 전입니다.
-                채워지는 대로 여기에 그대로 표시됩니다.
-              </p>
-            )}
-          </>
-        )}
+        {open && sortedOffers.map((o) => <OfferDetail key={o.platform} offer={o} />)}
       </div>
     </article>
   )

@@ -775,7 +775,6 @@ h1 {
 }
 .detail__rows dd { margin: 0; font-size: .78rem; }
 .detail__unknown { color: var(--text-muted); }
-.detail__raw { color: var(--text-muted); }
 
 .detail__tiers {
   list-style: none;
@@ -789,18 +788,11 @@ h1 {
   display: flex;
   justify-content: space-between;
   gap: .6rem;
-  max-width: 200px;
+  max-width: 280px;
 }
 .detail__tier-min { color: var(--text-muted); }
 .detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
 .detail__condition-note { margin: .3rem 0 0; color: var(--text-muted); }
-
-.brand-detail__note {
-  margin: 0;
-  font-size: .7rem;
-  line-height: 1.55;
-  color: var(--text-muted);
-}
 
 /* 맨 아래: 이 서비스가 무엇이고 정보를 어떻게 모았는지 밝히는 자리.
    읽히긴 해야 하므로 회색으로 죽이되 본문 너비 안에 그대로 둔다. */
