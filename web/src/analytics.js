@@ -1,5 +1,6 @@
-// 방문 측정. 자체 API로만 보낸다 — 외부 분석 도구를 안 쓰므로 제3자에게
-// 넘어가는 데이터가 없다.
+// 방문 측정. 자체 서버로 보낸다 — 개인 식별로 이어질 값은 원래 안 받는다.
+// Vercel Analytics(main.jsx)와 GA4(ga4.js, 임시)도 별도로 붙어 있다 —
+// 셋의 관계는 SiteFooter 고지 문구와 docs/decisions/ADR-002 참고.
 //
 // 수집하지 않는 것: 원본 IP(서버가 날짜별 솔트로 해시), UA 문자열,
 // 유입 URL 원본(direct/internal/external 구분만), 쿠키(localStorage만 씀).
@@ -11,7 +12,8 @@ const VISITS_KEY = 'dk_visits'
 const SESSION_KEY = 'dk_session'
 
 // 추적 거부 신호를 존중한다. 켜져 있으면 아무것도 보내지 않는다.
-function optedOut() {
+// ga4.js도 이 판단을 그대로 재사용한다(export).
+export function optedOut() {
   return (
     navigator.globalPrivacyControl === true ||
     navigator.doNotTrack === '1' ||
