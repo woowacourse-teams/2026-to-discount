@@ -44,15 +44,49 @@ def test_latest_per_brand_picks_most_recent():
 
 
 def test_latest_per_brand_prefers_confirmed_over_newer_held():
-    # 예전에 확정(needs_review 없음)으로 잡힌 큰 금액을, 나중에 재확인하며
-    # needs_review로 캡처한 작은 금액이 최신이라는 이유로 밀어내면 안 된다.
+    # 예전에 확정(needs_review 없음)으로 잡힌 금액을, 나중에 재확인하며
+    # needs_review로 캡처한 게 최신이라는 이유로 밀어내면 안 된다. 금액이
+    # 같으면(같은 쿠폰의 재확인) 그 조건은 살려서 확정값에 붙인다.
     confirmed_old = dict(BASE, captured_at="2026-07-27T14:26:00+09:00", amount=11000)
-    held_new = dict(BASE, captured_at="2026-07-29T18:53:00+09:00", amount=7000,
+    held_new = dict(BASE, captured_at="2026-07-29T18:53:00+09:00", amount=11000,
                      needs_review=True, conditions="메뉴 한정 쿠폰")
     latest = latest_per_brand([confirmed_old, held_new])
     result = latest[("baemin", "피자헛")]
     assert result["amount"] == 11000
     assert result["conditions"] == "메뉴 한정 쿠폰"  # 진 쪽의 조건은 살아남는다
+
+
+def test_latest_per_brand_does_not_merge_detail_when_amounts_differ():
+    # 훌랄라참숯바베큐치킨 실측(2026-07-31): 확정 5,000원 오퍼(전체 메뉴)와
+    # 다른 needs_review 12,100원 오퍼(순살 참숯구이 한정 쿠폰)는 금액이
+    # 달라 서로 다른 쿠폰이다. 조건을 섞어 붙이면 5,000원 오퍼가 그
+    # 메뉴로 한정된 것처럼 잘못 보인다.
+    confirmed = dict(BASE, captured_at="2026-07-27T14:26:00+09:00", amount=5000)
+    held_other_coupon = dict(BASE, captured_at="2026-07-29T18:53:00+09:00", amount=12100,
+                              needs_review=True, conditions="메뉴 한정 쿠폰")
+    latest = latest_per_brand([confirmed, held_other_coupon])
+    result = latest[("baemin", "피자헛")]
+    assert result["amount"] == 5000
+    assert result.get("conditions") is None
+
+
+def test_latest_per_brand_does_not_leak_stale_detail_through_a_third_record():
+    # 실제로 터진 순서 그대로: (1) 확정 5,000원(상세 없음) (2) needs_review
+    # 12,100원(다른 쿠폰, 조건 있음) (3) 나중에 실측한 확정 5,000원(진짜
+    # 최소주문금액 있음, 조건 없음). (1)과 (2)가 먼저 합쳐질 때 amount가
+    # 달라 조건이 안 옮겨붙어야 하고, 그 결과에 (3)이 합쳐질 때도 (2)의
+    # 조건이 뒤늦게 새어 들어오면 안 된다 — 셋을 한 번에 넣어도, 순서를
+    # 바꿔 하나씩 넣어도 마찬가지다.
+    old_confirmed = dict(BASE, captured_at="2026-07-27T14:26:00+09:00", amount=5000)
+    other_coupon_review = dict(BASE, captured_at="2026-07-29T18:53:00+09:00", amount=12100,
+                                needs_review=True, conditions="메뉴 한정 쿠폰")
+    new_confirmed_with_detail = dict(BASE, captured_at="2026-07-31T16:00:00+09:00", amount=5000,
+                                      min_order_amount=21900)
+    latest = latest_per_brand([old_confirmed, other_coupon_review, new_confirmed_with_detail])
+    result = latest[("baemin", "피자헛")]
+    assert result["amount"] == 5000
+    assert result["min_order_amount"] == 21900
+    assert result.get("conditions") is None
 
 
 def test_latest_per_brand_keeps_winner_detail_when_winner_already_has_it():

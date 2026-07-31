@@ -34,10 +34,15 @@ def _prefer(current: dict, incoming: dict) -> dict:
 
     확정(금액 있고 needs_review 아님)이 보류를 이기고, 같은 등급이면 더
     최근에 캡처한 쪽이 남는다. 진 쪽의 상세(min_order_amount, tiers,
-    conditions)는 이긴 쪽에 그 값이 비어 있을 때만 옮겨 붙인다 — 예를 들어
-    이미 확정된 금액을 재확인하며 조건만 새로 캡처한(needs_review) 기록을
-    통째로 버리면, 그 조건을 모은 수고가 사라진다. API 쪽
-    Offer.preferredOver와 같은 규칙이다.
+    conditions)는 이긴 쪽에 그 값이 비어 있을 때만, 그리고 amount가
+    같을 때만(= 같은 쿠폰의 재확인일 가능성이 클 때만) 옮겨 붙인다 —
+    API 쪽 Offer.preferredOver와 같은 규칙이다.
+
+    amount 비교 없이 무조건 옮겨 붙이면 서로 다른 쿠폰의 상세가
+    섞인다: 훌랄라참숯바베큐치킨 실측(2026-07-31)에서 땡겨요의 확정
+    5,000원 오퍼(전체 메뉴)에 다른 needs_review 12,100원 오퍼(순살
+    참숯구이 한정 쿠폰)의 조건 문구가 붙어, 5,000원 오퍼가 그 메뉴로
+    한정된 것처럼 잘못 보였다.
     """
     current_confirmed = _is_confirmed(current)
     incoming_confirmed = _is_confirmed(incoming)
@@ -49,9 +54,11 @@ def _prefer(current: dict, incoming: dict) -> dict:
         winner, loser = incoming, current
 
     merged = dict(winner)
-    for field in ("min_order_amount", "tiers", "conditions"):
-        if merged.get(field) is None and loser.get(field) is not None:
-            merged[field] = loser[field]
+    same_coupon = winner.get("amount") is None or winner.get("amount") == loser.get("amount")
+    if same_coupon:
+        for field in ("min_order_amount", "tiers", "conditions"):
+            if merged.get(field) is None and loser.get(field) is not None:
+                merged[field] = loser[field]
     return merged
 
 
