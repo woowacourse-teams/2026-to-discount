@@ -678,17 +678,20 @@ h1 {
   color: var(--text);
 }
 .offer--held .offer__amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .1rem;
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
 .offer__range-badge {
-  font-size: .65rem;
+  font-size: .6rem;
   font-weight: 600;
   color: #9f2f2d;
   background: #fdebec;
   border-radius: 4px;
-  padding: .05rem .35rem;
-  margin-right: .4rem;
+  padding: .05rem .3rem;
 }
 
 .offer__icon-badge {
