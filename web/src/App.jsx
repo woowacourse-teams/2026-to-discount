@@ -68,18 +68,35 @@ const MEMBERSHIP_OPTIONS = [
   { key: 'ddangyo', label: '지역화폐' },
 ]
 
+function assetSrc(base, name) {
+  return `${base}/${encodeURIComponent(name)}.png`
+}
+
 function won(value) {
   return `${value.toLocaleString()}원`
 }
 
-// 배달앱/브랜드 로고 이미지는 안 쓴다 — 각 사가 상표권을 쥔 로고를 무단
-// 배포하는 셈이라(배민 브랜드관 법적고지사항 참고), 이니셜 글자 + 배지
-// 색상만으로 구분한다.
+// 폴백 글자(span)는 position:absolute라 static인 img보다 항상 위에 그려진다
+// (DOM 순서와 무관하게 positioned 요소가 위로 쌓임). onError로 깨진 이미지만
+// 숨기던 이전 방식은 "로드는 됐지만 저해상도라 흐릿한" 로고 위에 글자가 겹쳐
+// 보이는 문제가 있었다(예: 또래오래, 파파존스). 로드 성공 시 폴백을 직접
+// 숨겨서 이미지·글자 중 하나만 보이게 한다.
+function hideSiblingFallback(e) {
+  const fallback = e.currentTarget.nextElementSibling
+  if (fallback) fallback.style.display = 'none'
+}
+
 function PlatformBadge({ platformKey }) {
   const p = PLATFORM_BY_KEY[platformKey]
   return (
     <span className={`platform-badge platform-badge--${p.key}`} title={p.label}>
-      <span aria-hidden="true">{p.initial}</span>
+      <img
+        src={assetSrc('/platform-icons', p.key)}
+        alt=""
+        onLoad={hideSiblingFallback}
+        onError={(e) => { e.currentTarget.style.display = 'none' }}
+      />
+      <span className="platform-badge__fallback" aria-hidden="true">{p.initial}</span>
       <span className="sr-only">{p.label}</span>
     </span>
   )
@@ -88,7 +105,13 @@ function PlatformBadge({ platformKey }) {
 function BrandLogo({ name }) {
   return (
     <span className="brand-logo">
-      {name.trim().charAt(0)}
+      <img
+        src={assetSrc('/logos', name)}
+        alt={name}
+        onLoad={hideSiblingFallback}
+        onError={(e) => { e.currentTarget.style.display = 'none' }}
+      />
+      <span className="brand-logo__fallback" aria-hidden="true">{name.trim().charAt(0)}</span>
     </span>
   )
 }

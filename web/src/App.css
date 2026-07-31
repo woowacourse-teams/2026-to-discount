@@ -585,12 +585,18 @@ h1 {
 }
 
 .brand-logo {
-  display: flex; align-items: center; justify-content: center;
+  position: relative;
   width: 38px; height: 38px;
   border-radius: 10px;
+  overflow: hidden;
   flex: none;
   background: var(--bg);
   border: 1px solid var(--border);
+}
+.brand-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.brand-logo__fallback {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
   font-size: .95rem; font-weight: 600; color: var(--text-muted);
 }
 
@@ -706,6 +712,13 @@ h1 {
   font-size: .6rem;
   font-weight: 700;
   color: var(--text);
+}
+/* object-fit:cover + 원형 마스크였을 때 사각형 아이콘의 모서리가 잘렸다.
+   contain으로 전체를 보여주고, 배지 모양도 원이 아니라 둥근 사각형으로
+   바꿔 사각 아이콘과 형태를 맞췄다. */
+.platform-badge img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  position: absolute; inset: 0; padding: 2px;
 }
 .platform-badge--baemin { background: #e1f3fe; }
 .platform-badge--coupangeats { background: #fdebec; }
