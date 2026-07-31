@@ -129,6 +129,22 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void dedupePrefersMoreRecentConfirmedOverOlderLargerAmount() {
+        // bhc 실측(2026-07-31): alias(대소문자 "bhc"/"BHC")로 묶인 두
+        // 레코드 중 옛날 리스트 캡처(3,500원, 2026-07-27)가 방금 상세를
+        // 확인한 새 레코드(3,000원, 2026-07-31)보다 금액이 커서, 예전
+        // "금액 큰 쪽" 규칙이면 새로 확인한 최소주문금액이 통째로 묻혔다.
+        var result = serviceWith(
+                List.of(
+                        rec("baemin", "브랜드", 3500, null, false),
+                        recWithConditions("baemin", "브랜드", 3000, false, 18000, null)),
+                "brands: {}").compare();
+        Offer offer = result.get(0).offers().get(0);
+        assertEquals(3000, offer.amount());
+        assertEquals(18000, offer.minOrderAmount());
+    }
+
+    @Test
     void dedupePrefersConfirmedOverLargerHeld() {
         var result = serviceWith(
                 List.of(rec("baemin", "브랜드", 99000, "최대", true),

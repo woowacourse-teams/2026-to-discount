@@ -38,8 +38,17 @@ public record Offer(String platform, Integer amount, String qualifier,
     /**
      * 같은 (브랜드, 앱)에 오퍼가 둘 이상 잡혔을 때 남길 쪽.
      *
-     * <p>확정을 우선하고, 같은 등급이면 금액이 큰 쪽. 별칭을 잘못 묶어
-     * 서로 다른 가게가 한 브랜드로 합쳐지면 이런 충돌이 생기는데,
+     * <p>확정을 우선하고, 같은 등급이면 더 최근에 캡처한 쪽 — 재확인해서
+     * 다시 잡은 값이 더 정확하다고 본다(원장 쪽 store.py._prefer와 같은
+     * 규칙). 캡처 시각까지 같으면(주로 테스트처럼 인위적으로 같은 값을
+     * 넣은 경우) 그제서야 금액이 큰 쪽으로 가른다.
+     *
+     * <p>bhc 실측(2026-07-31)에서 확인된 문제: alias(대소문자 "bhc"/
+     * "BHC")로 묶인 두 레코드 중 옛날 리스트 캡처("BHC", 3,500원,
+     * 2026-07-27)가 방금 상세를 확인한 새 레코드("bhc", 3,000원,
+     * 2026-07-31)보다 금액이 커서, 금액 기준으로는 옛날 값이 이겨
+     * 새로 확인한 최소주문금액이 통째로 묻혔다. 별칭을 잘못 묶어 서로
+     * 다른 가게가 한 브랜드로 합쳐지는 사고도 여전히 있을 수 있지만,
      * 조용히 아무거나 버리는 것보다 규칙을 정해두는 편이 낫다.
      *
      * <p>다만 진 쪽의 상세(최소주문금액·구간·조건)까지 통째로 버리지는
@@ -65,7 +74,9 @@ public record Offer(String platform, Integer amount, String qualifier,
      */
     public Offer preferredOver(Offer other) {
         boolean thisWins = status.isConfirmed() == other.status.isConfirmed()
-                ? amountOrZero() >= other.amountOrZero()
+                ? (capturedAt.equals(other.capturedAt)
+                        ? amountOrZero() >= other.amountOrZero()
+                        : capturedAt.compareTo(other.capturedAt) >= 0)
                 : status.isConfirmed();
         Offer winner = thisWins ? this : other;
         Offer loser = thisWins ? other : this;
