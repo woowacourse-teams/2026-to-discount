@@ -10,6 +10,7 @@ const API_BASE = 'https://bebeggars.duckdns.org'
 const VISITOR_KEY = 'dk_visitor'
 const VISITS_KEY = 'dk_visits'
 const SESSION_KEY = 'dk_session'
+const DEV_KEY = 'dk_dev'
 
 // 추적 거부 신호를 존중한다. 켜져 있으면 아무것도 보내지 않는다.
 // ga4.js도 이 판단을 그대로 재사용한다(export).
@@ -65,11 +66,26 @@ function referrerKind() {
   }
 }
 
+// 본인 테스트 트래픽 표시. `?dev=1`을 한 번 열면 이 브라우저에 계속 남고
+// (`?dev=0`으로 끔), 이후 모든 이벤트에 dev:true가 붙는다. 집계에서는
+// jq 'select(.dev != true)'로 걸러낸다 — 실 트래픽 수치가 테스트 클릭으로
+// 부풀려지는 걸 막기 위함(2026-07-31).
+function isDevSession() {
+  const params = new URLSearchParams(location.search)
+  if (params.has('dev')) {
+    const on = params.get('dev') === '1'
+    safeStore(localStorage, DEV_KEY, on ? '1' : '0')
+    return on
+  }
+  return safeStore(localStorage, DEV_KEY) === '1'
+}
+
 const context = {
   ...identity(),
   device: window.matchMedia('(hover: hover)').matches ? 'desktop' : 'mobile',
   viewport: `${window.innerWidth}x${window.innerHeight}`,
   referrer: referrerKind(),
+  dev: isDevSession() || undefined,
 }
 
 let queue = []
