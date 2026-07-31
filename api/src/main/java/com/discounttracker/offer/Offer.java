@@ -48,6 +48,14 @@ public record Offer(String platform, Integer amount, String qualifier,
      * 그 조건은 살려서 확정값에 붙인다. 이 병합이 없으면 검수용으로 남겨둔
      * 기록이 API 응답에서 통째로 사라져, 그 정보를 모은 수고가 없던 일이
      * 된다.
+     *
+     * <p>단, 이긴 쪽에 금액이 이미 있고 진 쪽 금액과 다르면 병합하지
+     * 않는다 — 훌랄라참숯바베큐치킨 실측(2026-07-31)에서 확인된 문제:
+     * 땡겨요의 확정 5,000원 오퍼(전체 메뉴)에 다른 needs_review
+     * 12,100원 오퍼(순살 참숯구이 한정 쿠폰)의 조건 문구가 그대로
+     * 붙어, 5,000원 오퍼가 마치 그 메뉴로 한정된 것처럼 보였다. 금액이
+     * 다르면 같은 쿠폰의 재확인이 아니라 서로 다른 쿠폰일 가능성이 커서,
+     * 상세를 섞어 붙이는 것보다 비워두는 편이 정직하다.
      */
     public Offer preferredOver(Offer other) {
         boolean thisWins = status.isConfirmed() == other.status.isConfirmed()
@@ -59,9 +67,13 @@ public record Offer(String platform, Integer amount, String qualifier,
     }
 
     private Offer withDetailFrom(Offer other) {
-        Integer mergedMinOrder = minOrderAmount != null ? minOrderAmount : other.minOrderAmount;
-        List<DiscountTier> mergedTiers = tiers != null ? tiers : other.tiers;
-        String mergedConditions = conditions != null ? conditions : other.conditions;
+        boolean sameCoupon = amount == null || amount.equals(other.amount);
+        Integer mergedMinOrder = minOrderAmount != null ? minOrderAmount
+                : sameCoupon ? other.minOrderAmount : null;
+        List<DiscountTier> mergedTiers = tiers != null ? tiers
+                : sameCoupon ? other.tiers : null;
+        String mergedConditions = conditions != null ? conditions
+                : sameCoupon ? other.conditions : null;
         if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions) {
             return this;
         }
