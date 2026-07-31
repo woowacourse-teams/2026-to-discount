@@ -174,6 +174,23 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void dedupeMergesLoserDetailWhenLoserAmountIsUnknown() {
+        // 꾸브라꼬숯불치킨 실측(2026-07-31): 자동 매칭에 실패해 amount를
+        // 비워 두고 conditions에 원문만 남긴 기록은 "다른 쿠폰"이라고
+        // 단정할 근거가 없다 — 병합을 막으면 상세를 확인하려 시도했다는
+        // 사실 자체가 사라진다.
+        var result = serviceWith(
+                List.of(
+                        rec("ddangyo", "브랜드", 6000, "최대", false),
+                        recWithConditions("ddangyo", "브랜드", null, true, null, "쿠폰 2종 - 자동 매칭 안 됨")),
+                "brands: {}").compare();
+        Offer offer = result.get(0).offers().get(0);
+        assertEquals(6000, offer.amount());
+        assertEquals(OfferStatus.CONFIRMED, offer.status());
+        assertEquals("쿠폰 2종 - 자동 매칭 안 됨", offer.conditions());
+    }
+
+    @Test
     void dedupeKeepsWinnerDetailWhenWinnerAlreadyHasIt() {
         var result = serviceWith(
                 List.of(

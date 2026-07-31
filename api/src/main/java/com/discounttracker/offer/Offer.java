@@ -49,13 +49,19 @@ public record Offer(String platform, Integer amount, String qualifier,
      * 기록이 API 응답에서 통째로 사라져, 그 정보를 모은 수고가 없던 일이
      * 된다.
      *
-     * <p>단, 이긴 쪽에 금액이 이미 있고 진 쪽 금액과 다르면 병합하지
+     * <p>단, 이긴 쪽과 진 쪽 둘 다 금액을 알고 그 값이 다르면 병합하지
      * 않는다 — 훌랄라참숯바베큐치킨 실측(2026-07-31)에서 확인된 문제:
      * 땡겨요의 확정 5,000원 오퍼(전체 메뉴)에 다른 needs_review
      * 12,100원 오퍼(순살 참숯구이 한정 쿠폰)의 조건 문구가 그대로
      * 붙어, 5,000원 오퍼가 마치 그 메뉴로 한정된 것처럼 보였다. 금액이
      * 다르면 같은 쿠폰의 재확인이 아니라 서로 다른 쿠폰일 가능성이 커서,
      * 상세를 섞어 붙이는 것보다 비워두는 편이 정직하다.
+     *
+     * <p>반대로 진 쪽 금액을 아예 모르면(예: 쿠폰 조건 문장이 복잡해
+     * 자동 매칭에 실패해 금액을 비워 두고 조건만 원문으로 남긴 기록)
+     * "금액이 다르다"고 단정할 근거가 없으므로 병합을 막지 않는다 —
+     * 꾸브라꼬숯불치킨 실측(2026-07-31)에서 이 경우까지 막았더니 상세를
+     * 확인하려 시도했다는 사실 자체가 사라졌다.
      */
     public Offer preferredOver(Offer other) {
         boolean thisWins = status.isConfirmed() == other.status.isConfirmed()
@@ -67,7 +73,7 @@ public record Offer(String platform, Integer amount, String qualifier,
     }
 
     private Offer withDetailFrom(Offer other) {
-        boolean sameCoupon = amount == null || amount.equals(other.amount);
+        boolean sameCoupon = amount == null || other.amount == null || amount.equals(other.amount);
         Integer mergedMinOrder = minOrderAmount != null ? minOrderAmount
                 : sameCoupon ? other.minOrderAmount : null;
         List<DiscountTier> mergedTiers = tiers != null ? tiers
