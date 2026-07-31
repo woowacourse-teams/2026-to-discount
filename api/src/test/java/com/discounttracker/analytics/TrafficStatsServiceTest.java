@@ -1,0 +1,96 @@
+package com.discounttracker.analytics;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Path;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class TrafficStatsServiceTest {
+
+    private VisitEvent event(String tsOffsetFromNow, String event, String visitorId, String sessionId,
+                              String path, String device, String referrer, Long dwellMs, Map<String, String> props) {
+        String ts = OffsetDateTime.now().plusHours(0).toString();
+        if (tsOffsetFromNow != null) {
+            ts = OffsetDateTime.parse(tsOffsetFromNow).toString();
+        }
+        return new VisitEvent(ts, event, visitorId, sessionId, 1, path, referrer, device, null, dwellMs, props, null, "hash");
+    }
+
+    private EventLog logWith(Path dir, List<VisitEvent> events) {
+        ObjectMapper mapper = new ObjectMapper();
+        EventLog log = new EventLog(dir.resolve("events.jsonl").toString(), mapper);
+        log.append(events);
+        return log;
+    }
+
+    @Test
+    void countsEventsAndUniqueVisitorsWithinRange(@TempDir Path dir) {
+        String now = OffsetDateTime.now().toString();
+        EventLog log = logWith(dir, List.of(
+                event(now, "page_view", "v1", "s1", "/", "mobile", "direct", null, null),
+                event(now, "page_view", "v2", "s2", "/brands", "desktop", "direct", null, null),
+                event(now, "page_exit", "v1", "s1", "/", "mobile", "direct", 5000L, null)
+        ));
+        TrafficStats stats = new TrafficStatsService(log).compute(7);
+
+        assertEquals(3, stats.totalEvents());
+        assertEquals(2, stats.uniqueVisitors());
+        assertEquals(2, stats.uniqueSessions());
+        assertEquals(2L, stats.eventCounts().get("page_view"));
+        assertEquals(1L, stats.eventCounts().get("page_exit"));
+        assertEquals(5000.0, stats.avgDwellMs());
+    }
+
+    @Test
+    void excludesEventsOutsideRange(@TempDir Path dir) {
+        String withinRange = OffsetDateTime.now().minusDays(1).toString();
+        String outsideRange = OffsetDateTime.now().minusDays(30).toString();
+        EventLog log = logWith(dir, List.of(
+                event(withinRange, "page_view", "v1", "s1", "/", "mobile", "direct", null, null),
+                event(outsideRange, "page_view", "v2", "s2", "/", "mobile", "direct", null, null)
+        ));
+        TrafficStats stats = new TrafficStatsService(log).compute(7);
+        assertEquals(1, stats.totalEvents());
+    }
+
+    @Test
+    void topPathsSortedByCountDescending(@TempDir Path dir) {
+        String now = OffsetDateTime.now().toString();
+        EventLog log = logWith(dir, List.of(
+                event(now, "page_view", "v1", "s1", "/", "mobile", "direct", null, null),
+                event(now, "page_view", "v2", "s2", "/", "mobile", "direct", null, null),
+                event(now, "page_view", "v3", "s3", "/brands", "mobile", "direct", null, null)
+        ));
+        TrafficStats stats = new TrafficStatsService(log).compute(7);
+        assertEquals("/", stats.topPaths().get(0).name());
+        assertEquals(2L, stats.topPaths().get(0).count());
+    }
+
+    @Test
+    void categoryChangesCountedFromProps(@TempDir Path dir) {
+        String now = OffsetDateTime.now().toString();
+        EventLog log = logWith(dir, List.of(
+                event(now, "category_change", "v1", "s1", "/", null, null, null, Map.of("category", "chicken")),
+                event(now, "category_change", "v1", "s1", "/", null, null, null, Map.of("category", "chicken")),
+                event(now, "category_change", "v2", "s2", "/", null, null, null, Map.of("category", "pizza"))
+        ));
+        TrafficStats stats = new TrafficStatsService(log).compute(7);
+        assertEquals(2L, stats.categoryChanges().get("chicken"));
+        assertEquals(1L, stats.categoryChanges().get("pizza"));
+    }
+
+    @Test
+    void noEventsGivesZeroedStats(@TempDir Path dir) {
+        EventLog log = new EventLog(dir.resolve("events.jsonl").toString(), new ObjectMapper());
+        TrafficStats stats = new TrafficStatsService(log).compute(7);
+        assertEquals(0, stats.totalEvents());
+        assertNull(stats.avgDwellMs());
+        assertTrue(stats.topPaths().isEmpty());
+    }
+}

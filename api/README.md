@@ -12,6 +12,10 @@
    python export_data.py
    cp data/export.json ../delivery-discount-api/src/main/resources/data/export.json
    ```
+   `src/main/resources/data/export.json`은 테스트 픽스처 겸 기본값으로
+   운영 데이터 스냅샷이 커밋돼 있다([ADR-007](docs/decisions/ADR-007-commit-export-snapshot-for-tests.md)) —
+   이 단계를 생략해도 동작하지만, 최신 데이터로 보려면 여전히 갱신해야
+   한다.
 2. API 기동: `./gradlew bootRun` (http://localhost:8080)
 3. 프론트 기동 (delivery-discount-web 레포에서): `npm install && npm run dev` (http://localhost:5173)
 4. 데이터만 갱신했다면 재기동 대신: `curl -X POST http://localhost:8080/api/reload`
@@ -53,6 +57,9 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
   - `EventLog` — `data/events.jsonl`에 append
   - `ClientFingerprint` — IP를 날짜별 솔트로 해시(원본 미저장)
   - `EventRateLimiter` — IP 해시별 분당 상한
+  - `StatsController`, `TrafficStatsService` — GET /api/stats/traffic 집계 조회,
+    `/stats.html` 대시보드. 자세한 내용은
+    [docs/traffic-analytics.md](docs/traffic-analytics.md) 참고
 
 ### 응답 스키마는 계약이다
 
