@@ -141,9 +141,27 @@ class BrandComparisonServiceTest {
     }
 
     @Test
-    void dedupeMergesLoserDetailFieldsOntoWinner() {
+    void dedupeMergesLoserDetailFieldsOntoWinnerWhenAmountMatches() {
         // 확정으로 이긴 오퍼 자체엔 상세가 없고, 나중에 재확인하며 조건만
-        // 캡처한(needs_review) 오퍼가 진 경우 — 그 조건을 버리면 안 된다.
+        // 캡처한(needs_review) 오퍼가 진 경우 — 같은 금액이면 같은 쿠폰의
+        // 재확인일 가능성이 크므로 그 조건을 버리면 안 된다.
+        var result = serviceWith(
+                List.of(
+                        rec("ddangyo", "브랜드", 5000, "최대", false),
+                        recWithConditions("ddangyo", "브랜드", 5000, true, null, "메뉴 한정 쿠폰")),
+                "brands: {}").compare();
+        Offer offer = result.get(0).offers().get(0);
+        assertEquals(5000, offer.amount());
+        assertEquals(OfferStatus.CONFIRMED, offer.status());
+        assertEquals("메뉴 한정 쿠폰", offer.conditions());
+    }
+
+    @Test
+    void dedupeDoesNotMergeLoserDetailWhenAmountsDiffer() {
+        // 훌랄라참숯바베큐치킨 실측(2026-07-31): 땡겨요의 확정 5,000원
+        // 오퍼(전체 메뉴)와 다른 needs_review 12,100원 오퍼(순살 참숯구이
+        // 한정 쿠폰)는 금액이 달라 서로 다른 쿠폰이다. 조건을 섞어 붙이면
+        // 5,000원 오퍼가 그 메뉴로 한정된 것처럼 잘못 보인다.
         var result = serviceWith(
                 List.of(
                         rec("ddangyo", "브랜드", 5000, "최대", false),
@@ -152,7 +170,7 @@ class BrandComparisonServiceTest {
         Offer offer = result.get(0).offers().get(0);
         assertEquals(5000, offer.amount());
         assertEquals(OfferStatus.CONFIRMED, offer.status());
-        assertEquals("메뉴 한정 쿠폰", offer.conditions());
+        assertNull(offer.conditions());
     }
 
     @Test
@@ -173,7 +191,7 @@ class BrandComparisonServiceTest {
         // 상세 패널이 읽는 값 — 서비스는 해석하지 않고 그대로 흘려보낸다.
         OfferRecord detailed = new OfferRecord("yogiyo", "굽네치킨", 7000, "최대", true,
                 "discount", null, "최대 7,000원 할인", "2026-07-27T14:25:00+09:00",
-                "x.jpg", 15000, List.of(new DiscountTier(15000, 3000)), "1일 1회");
+                "x.jpg", 15000, List.of(new DiscountTier(15000, 3000, null)), "1일 1회");
         Offer offer = serviceWith(List.of(detailed), "brands: {}")
                 .compare().get(0).offers().get(0);
         assertEquals(15000, offer.minOrderAmount());
