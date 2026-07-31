@@ -313,25 +313,32 @@ h1 {
   position: absolute;
   top: 50%;
   right: 0;
+  width: 26px;
+  height: 26px;
   transform: translateY(-50%);
   z-index: 6;
   /* 양 끝을 천천히(느리게 시작, 느리게 끝) 움직이는 ease-in-out 커브 —
-     펼쳐지고 줄어드는 동작이 뚝뚝 끊기지 않고 인터랙티브하게 보인다. */
+     펼쳐지고 줄어드는 동작이 뚝뚝 끊기지 않고 인터랙티브하게 보인다.
+     top/width/height/transform 넷 다 닫힌 쪽에도 반드시 구체적인 값을
+     줘야 한다 — `auto`나 `none`에서/으로는 브라우저가 보간을 못 해
+     transition을 걸어도 그 속성만 즉시 점프해 버린다(실기 확인).
+     그래서 열렸을 때도 `left` 대신 `right:0`을 유지한 채 `width`를
+     늘리는 쪽으로 통일했다. */
   transition: top 220ms cubic-bezier(.65, 0, .35, 1),
-              left 220ms cubic-bezier(.65, 0, .35, 1),
+              width 220ms cubic-bezier(.65, 0, .35, 1),
               height 220ms cubic-bezier(.65, 0, .35, 1),
               transform 220ms cubic-bezier(.65, 0, .35, 1);
 }
 /* 열렸을 때는 폭을 고정값(px/vw)으로 재지 않는다 — 화면이 좁아 활성 탭이
    ▾/? 바로 옆(왼쪽 끝 가까이)에 있으면 고정폭 입력창이 거기까지 못 닿아
-   탭 배경이 밑에서 삐져나와 보였다. left를 ▾+?(각 26px 원형 버튼) 뒤로
-   고정해 폭을 자동으로 늘려서, 남은 레이블 영역을 항상 끝까지 덮는다. */
+   탭 배경이 밑에서 삐져나와 보였다. width를 "전체 - ▾/?(각 26px 원형
+   버튼) 자리"로 계산해서 남은 레이블 영역을 항상 끝까지 덮는다. */
 .search-control--open {
   top: 0;
-  left: 64px;
   right: 0;
-  transform: none;
+  width: calc(100% - 64px);
   height: 100%;
+  transform: translateY(0);
   display: flex;
   align-items: center;
 }
