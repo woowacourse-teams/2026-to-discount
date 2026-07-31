@@ -277,8 +277,13 @@ function BrandCard({ brand, highlighted, onInteract }) {
     })
   }
 
+  // 딥링크로 콕 집어 왔다는 건 이미 그 브랜드가 궁금해서 온 것 —
+  // 펼쳐서 바로 보여준다. 관심 신호(track)는 실제 클릭에만 남긴다.
   useEffect(() => {
-    if (highlighted) cardRef.current?.scrollIntoView({ block: 'center' })
+    if (highlighted) {
+      setPinned(true)
+      cardRef.current?.scrollIntoView({ block: 'center' })
+    }
   }, [highlighted])
 
   return (
