@@ -2,12 +2,17 @@ package com.discounttracker.analytics;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -18,6 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class EventControllerTest {
 
     @Autowired MockMvc mvc;
+
+    @Value("${discount.event-log-path}")
+    String logPath;
 
     private String batch(String body) {
         return "[" + body + "]";
@@ -64,6 +72,22 @@ class EventControllerTest {
                             """)))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.accepted").value(1));
+    }
+
+    @Test
+    void devFlagPassesThroughToLog() throws Exception {
+        // ?dev=1로 켠 테스트 트래픽은 dev:true로 남아야 집계에서 걸러낼 수 있다.
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content(batch("""
+                            {"event":"page_view","visitorId":"v_dev","sessionId":"s_dev",
+                             "visitCount":1,"path":"/","device":"mobile","dev":true}
+                            """)))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.accepted").value(1));
+
+        String logged = Files.readString(Path.of(logPath));
+        assertTrue(logged.contains("\"visitorId\":\"v_dev\""));
+        assertTrue(logged.contains("\"dev\":true"));
     }
 
     @Test

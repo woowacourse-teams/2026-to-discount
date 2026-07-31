@@ -101,7 +101,8 @@ public class EventController {
                     in.dwellMs(),
                     trimProps(in.props()),
                     trim(in.clientTs()),
-                    ipHash));
+                    ipHash,
+                    in.dev()));
         }
         log.append(accepted);
         return ResponseEntity.ok(Map.of("accepted", accepted.size()));
@@ -134,7 +135,8 @@ public class EventController {
             String viewport,
             Long dwellMs,
             Map<String, String> props,
-            String clientTs
+            String clientTs,
+            Boolean dev
     ) {
     }
 }

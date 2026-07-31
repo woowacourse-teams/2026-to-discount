@@ -15,6 +15,8 @@ import java.util.Map;
  * @param device     {@code mobile|desktop}. UA 문자열 대신 이것만 받는다.
  * @param dwellMs    체류 시간(ms). page_exit 계열에만 들어온다.
  * @param ipHash     원본 IP가 아니라 날짜별 솔트로 해시한 값(하루 지나면 연결 불가).
+ * @param dev        개발자 본인의 테스트 트래픽 표시({@code ?dev=1}로 켬). 집계 시
+ *                   {@code jq 'select(.dev != true)'}로 제외한다.
  */
 public record VisitEvent(
         String ts,
@@ -29,6 +31,7 @@ public record VisitEvent(
         Long dwellMs,
         Map<String, String> props,
         String clientTs,
-        String ipHash
+        String ipHash,
+        Boolean dev
 ) {
 }

@@ -33,6 +33,7 @@ public class TrafficStatsService {
 
         List<VisitEvent> events = readEvents().stream()
                 .filter(e -> withinRange(e, from))
+                .filter(e -> !Boolean.TRUE.equals(e.dev()))
                 .toList();
 
         Map<String, Long> eventCounts = new LinkedHashMap<>();
