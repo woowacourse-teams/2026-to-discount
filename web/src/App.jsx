@@ -76,6 +76,12 @@ function won(value) {
   return `${value.toLocaleString()}원`
 }
 
+// 브랜드 카드 딥링크용 id. 브랜드명 자체가 이미 유니크한 키라 그대로
+// 쓰되, 공백만 앵커에서 다루기 까다로우니 치환한다.
+function brandCardId(name) {
+  return `brand-${name.trim().replace(/\s+/g, '_')}`
+}
+
 // 폴백 글자(span)는 position:absolute라 static인 img보다 항상 위에 그려진다
 // (DOM 순서와 무관하게 positioned 요소가 위로 쌓임). onError로 깨진 이미지만
 // 숨기던 이전 방식은 "로드는 됐지만 저해상도라 흐릿한" 로고 위에 글자가 겹쳐
@@ -235,7 +241,10 @@ function OfferDetail({ offer }) {
 
 // 브랜드 하나 = 카드 하나. 1행 = 로고+이름, 2행 = 앱별 금액(수평 나열).
 // 카드 여러 개가 한 줄에 2~3개씩 반응형으로 놓인다(.brand-grid).
-function BrandCard({ brand }) {
+// highlighted는 URL 해시(#brand-이름)로 이 카드를 콕 집어 공유했을 때만
+// true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
+// onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
+function BrandCard({ brand, highlighted, onInteract }) {
   // 화면에 "최대" 배지가 실제로 뜨는 오퍼(held + qualifier="최대")는 금액과
   // 무관하게 항상 뒤로 민다. qualifier만으로 묶으면 confirmed인데 qualifier가
   // "최대"로 남은 항목(예: 땡겨요 — 배지는 안 뜨지만 값은 최대군에 끼어
@@ -256,18 +265,28 @@ function BrandCard({ brand }) {
   const [pinned, setPinned] = useState(false)
   const open = pinned
   const detailId = `${useId()}-detail`
+  const cardRef = useRef(null)
 
   // 어떤 브랜드를 실제로 열어보는지가 "무엇을 궁금해하는가"의 지표다.
   // 접는 동작은 안 남긴다 — 관심 신호가 아니다.
   const toggle = () => {
+    onInteract?.()
     setPinned((v) => {
       if (!v) track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
       return !v
     })
   }
 
+  useEffect(() => {
+    if (highlighted) cardRef.current?.scrollIntoView({ block: 'center' })
+  }, [highlighted])
+
   return (
-    <article className={`brand-card ${open ? 'brand-card--open' : ''}`}>
+    <article
+      id={brandCardId(brand.name)}
+      ref={cardRef}
+      className={`brand-card ${open ? 'brand-card--open' : ''} ${highlighted ? 'brand-card--highlighted' : ''}`}
+    >
       <button
         type="button"
         className="brand-card__head"
@@ -644,6 +663,20 @@ export default function App() {
   const [filterKey, setFilterKey] = useState('all')
   const [search, setSearch] = useState('')
 
+  // URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유할 수 있게 한다.
+  // 해시가 바뀌면(같은 페이지 안에서 다른 링크로 다시 들어와도) 다시
+  // 반영한다 — 새로고침 없이 링크만 바꿔도 그 카드로 스크롤돼야 한다.
+  const [linkedBrand, setLinkedBrand] = useState(null)
+  useEffect(() => {
+    const applyHash = () => {
+      const raw = window.location.hash.slice(1)
+      setLinkedBrand(raw ? decodeURIComponent(raw) : null)
+    }
+    applyHash()
+    window.addEventListener('hashchange', applyHash)
+    return () => window.removeEventListener('hashchange', applyHash)
+  }, [])
+
   useEffect(() => {
     fetchBrands().then(setBrands).catch((e) => setError(e.message))
   }, [])
@@ -771,7 +804,14 @@ export default function App() {
 
       {visibleBrands && visibleBrands.length > 0 && (
         <div className="brand-grid">
-          {visibleBrands.map((b) => <BrandCard key={b.name} brand={b} />)}
+          {visibleBrands.map((b) => (
+            <BrandCard
+              key={b.name}
+              brand={b}
+              highlighted={linkedBrand === brandCardId(b.name)}
+              onInteract={() => setLinkedBrand(null)}
+            />
+          ))}
         </div>
       )}
 

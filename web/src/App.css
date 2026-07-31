@@ -540,9 +540,15 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1rem;
-  transition: box-shadow 200ms ease;
+  transition: box-shadow 200ms ease, border-color 200ms ease;
 }
 .brand-card:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .04); }
+/* URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유했을 때만 붙는다 —
+   카드를 만지면(App.jsx onInteract) 곧바로 떨어진다. */
+.brand-card--highlighted {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
 
 /* 1행: 로고 + 이름. 상세를 펼치는 버튼이기도 하다 — 카드에서 가장 큰
    과녁이라 모바일에서 엄지로 누르기 가장 쉽다. */
