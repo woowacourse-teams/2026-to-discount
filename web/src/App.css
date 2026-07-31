@@ -678,20 +678,23 @@ h1 {
   color: var(--text);
 }
 .offer--held .offer__amount {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: .1rem;
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
+/* 칩 여백(padding) 안쪽 흐름에 끼워 넣으면 칩이 좁을 때 금액을 옆으로
+   밀어냈다 — icon-badge(플랫폼 아이콘)처럼 칩 모서리에 겹쳐 뜨는
+   리본으로 빼서 칩 안쪽 레이아웃과 완전히 분리한다. */
 .offer__range-badge {
-  font-size: .6rem;
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  font-size: .55rem;
   font-weight: 600;
   color: #9f2f2d;
   background: #fdebec;
   border-radius: 4px;
   padding: .05rem .3rem;
+  z-index: 1;
 }
 
 .offer__icon-badge {
