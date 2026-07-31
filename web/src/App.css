@@ -133,7 +133,14 @@ h1 {
 /* 안내 버튼 — 이제 화면에 고정된 게 아니라 검색 버튼 바로 아래,
    toolbar__left-stack 안에 얌전히 들어간다("? 버튼은 그 아래로"). */
 .info-fab { position: relative; z-index: 12; }
+/* backdrop(z-index:20)이 전체 화면을 덮어 hover-out 감지에 쓰이는데,
+   버튼·툴팁이 z-index:auto면 그 밑에 깔려 버튼 위에서도 backdrop이
+   마우스 이벤트를 가로챈다 — 열자마자 backdrop의 mouseenter가 걸려
+   바로 닫혀 버렸다. backdrop보다 위로 올려 실제 버튼·툴팁 영역에서는
+   backdrop이 이벤트를 못 받게 한다. */
 .info-fab__btn {
+  position: relative;
+  z-index: 21;
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -151,6 +158,7 @@ h1 {
 .info-fab__btn:hover { color: var(--text); border-color: var(--text-muted); }
 .info-fab__tip {
   position: absolute;
+  z-index: 21;
   top: calc(100% + .45rem);
   left: 0;
   width: max-content;
@@ -164,7 +172,6 @@ h1 {
   opacity: 0;
   visibility: hidden;
   transition: opacity 120ms ease;
-  pointer-events: none;
 }
 .info-fab__tip--open {
   opacity: 1;
@@ -687,7 +694,8 @@ h1 {
 .offer__range-badge {
   position: absolute;
   top: -8px;
-  left: -8px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: .55rem;
   font-weight: 600;
   color: #9f2f2d;

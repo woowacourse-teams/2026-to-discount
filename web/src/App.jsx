@@ -546,32 +546,36 @@ function ClassifyPicker({ mode, onSelect }) {
   )
 }
 
-// 화면 왼쪽 위에 항상 떠 있는 안내 버튼. hover(마우스)와 클릭(터치) 둘 다
-// 툴팁을 띄운다. 둘 다 open 하나로 제어한다(CSS :hover를 따로 쓰면, 클릭으로
-// 닫아도 마우스가 버튼 위에 그대로 있는 한 :hover가 다시 띄워서 "눌러도
-// 안 닫히는" 것처럼 보였다). suppressHover는 "닫으려고 누른 클릭"인 동안
-// hover가 다시 열지 못하게 막고, 마우스가 벗어나면 풀린다.
+// 화면 왼쪽 위에 항상 떠 있는 안내 버튼. hover(마우스)로 열고 벗어나면
+// 닫힌다. 클릭(터치, hover가 없는 환경)은 열기 전용 — 클릭을 열림/닫힘
+// 토글로 두면, 실제 마우스 클릭은 버튼에 커서가 "닿는" mouseenter가
+// click보다 먼저 발생해 이미 open=true인 상태에서 click이 도착한다.
+// 토글이면 그 click이 방금 hover가 연 것을 즉시 다시 닫아 버려, 클릭해도
+// 안 열리는 것처럼 보였다(실기 확인). 닫기는 backdrop(바깥) 클릭·hover만
+// 담당한다.
 function InfoTip() {
   const [open, setOpen] = useState(false)
-  const [suppressHover, setSuppressHover] = useState(false)
 
   return (
     <div
       className="info-fab"
-      onMouseEnter={() => { if (!suppressHover) setOpen(true) }}
-      onMouseLeave={() => { setOpen(false); setSuppressHover(false) }}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
     >
-      {open && <div className="dropdown-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />}
+      {open && (
+        <div
+          className="dropdown-backdrop"
+          onClick={() => setOpen(false)}
+          onMouseEnter={() => setOpen(false)}
+          aria-hidden="true"
+        />
+      )}
       <button
         type="button"
         className="info-fab__btn"
         aria-expanded={open}
         aria-label="위치 안내"
-        onClick={() => setOpen((v) => {
-          const next = !v
-          setSuppressHover(!next)
-          return next
-        })}
+        onClick={() => setOpen(true)}
       >
         ?
       </button>
