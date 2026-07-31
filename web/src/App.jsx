@@ -126,7 +126,7 @@ function offerAmountText(offer) {
 // 렌더링 쪽에서 "구간이 있을 때만 리스트"와 "없을 때 단일 값" 두 갈래로
 // 안 갈라져도 된다.
 function detailRows(offer) {
-  if (offer.tiers?.length > 0) return offer.tiers
+  if (offer.tiers?.length > 0) return [...offer.tiers].sort((a, b) => b.amount - a.amount)
   return [{ minOrder: offer.minOrderAmount, amount: offer.amount }]
 }
 
