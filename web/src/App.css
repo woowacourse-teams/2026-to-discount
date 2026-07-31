@@ -133,7 +133,14 @@ h1 {
 /* 안내 버튼 — 이제 화면에 고정된 게 아니라 검색 버튼 바로 아래,
    toolbar__left-stack 안에 얌전히 들어간다("? 버튼은 그 아래로"). */
 .info-fab { position: relative; z-index: 12; }
+/* backdrop(z-index:20)이 전체 화면을 덮어 hover-out 감지에 쓰이는데,
+   버튼·툴팁이 z-index:auto면 그 밑에 깔려 버튼 위에서도 backdrop이
+   마우스 이벤트를 가로챈다 — 열자마자 backdrop의 mouseenter가 걸려
+   바로 닫혀 버렸다. backdrop보다 위로 올려 실제 버튼·툴팁 영역에서는
+   backdrop이 이벤트를 못 받게 한다. */
 .info-fab__btn {
+  position: relative;
+  z-index: 21;
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -151,6 +158,7 @@ h1 {
 .info-fab__btn:hover { color: var(--text); border-color: var(--text-muted); }
 .info-fab__tip {
   position: absolute;
+  z-index: 21;
   top: calc(100% + .45rem);
   left: 0;
   width: max-content;
@@ -164,7 +172,6 @@ h1 {
   opacity: 0;
   visibility: hidden;
   transition: opacity 120ms ease;
-  pointer-events: none;
 }
 .info-fab__tip--open {
   opacity: 1;
@@ -189,7 +196,17 @@ h1 {
   justify-content: center;
 }
 .classify-picker__btn:hover { color: var(--text); }
-.classify-picker__menu { width: min(200px, 70vw); padding: .5rem; }
+/* 공용 .dropdown은 오른쪽 정렬(right:0, 버튼 오른쪽 끝에 메뉴를 맞추고
+   왼쪽으로 펼침) — 화면 오른쪽의 멤버십 버튼엔 맞지만, 이 버튼은 화면
+   맨 왼쪽(레이블 줄 맨 앞)에 있어 왼쪽으로 펼치면 화면 밖으로 밀렸다.
+   왼쪽 정렬로 뒤집어 오른쪽으로 펼친다. */
+.classify-picker__menu {
+  left: 0;
+  right: auto;
+  transform-origin: top left;
+  width: min(200px, 70vw);
+  padding: .5rem;
+}
 .classify-picker__option {
   display: block;
   width: 100%;
@@ -298,6 +315,12 @@ h1 {
   right: 0;
   transform: translateY(-50%);
   z-index: 6;
+  /* 양 끝을 천천히(느리게 시작, 느리게 끝) 움직이는 ease-in-out 커브 —
+     펼쳐지고 줄어드는 동작이 뚝뚝 끊기지 않고 인터랙티브하게 보인다. */
+  transition: top 220ms cubic-bezier(.65, 0, .35, 1),
+              left 220ms cubic-bezier(.65, 0, .35, 1),
+              height 220ms cubic-bezier(.65, 0, .35, 1),
+              transform 220ms cubic-bezier(.65, 0, .35, 1);
 }
 /* 열렸을 때는 폭을 고정값(px/vw)으로 재지 않는다 — 화면이 좁아 활성 탭이
    ▾/? 바로 옆(왼쪽 끝 가까이)에 있으면 고정폭 입력창이 거기까지 못 닿아
@@ -681,14 +704,21 @@ h1 {
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
+/* 칩 여백(padding) 안쪽 흐름에 끼워 넣으면 칩이 좁을 때 금액을 옆으로
+   밀어냈다 — icon-badge(플랫폼 아이콘)처럼 칩 모서리에 겹쳐 뜨는
+   리본으로 빼서 칩 안쪽 레이아웃과 완전히 분리한다. */
 .offer__range-badge {
-  font-size: .65rem;
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: .55rem;
   font-weight: 600;
   color: #9f2f2d;
   background: #fdebec;
   border-radius: 4px;
-  padding: .05rem .35rem;
-  margin-right: .4rem;
+  padding: .05rem .3rem;
+  z-index: 1;
 }
 
 .offer__icon-badge {
@@ -775,7 +805,6 @@ h1 {
 }
 .detail__rows dd { margin: 0; font-size: .78rem; }
 .detail__unknown { color: var(--text-muted); }
-.detail__raw { color: var(--text-muted); }
 
 .detail__tiers {
   list-style: none;
@@ -789,18 +818,11 @@ h1 {
   display: flex;
   justify-content: space-between;
   gap: .6rem;
-  max-width: 200px;
+  max-width: 280px;
 }
 .detail__tier-min { color: var(--text-muted); }
 .detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
 .detail__condition-note { margin: .3rem 0 0; color: var(--text-muted); }
-
-.brand-detail__note {
-  margin: 0;
-  font-size: .7rem;
-  line-height: 1.55;
-  color: var(--text-muted);
-}
 
 /* 맨 아래: 이 서비스가 무엇이고 정보를 어떻게 모았는지 밝히는 자리.
    읽히긴 해야 하므로 회색으로 죽이되 본문 너비 안에 그대로 둔다. */
