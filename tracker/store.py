@@ -34,15 +34,22 @@ def _prefer(current: dict, incoming: dict) -> dict:
 
     확정(금액 있고 needs_review 아님)이 보류를 이기고, 같은 등급이면 더
     최근에 캡처한 쪽이 남는다. 진 쪽의 상세(min_order_amount, tiers,
-    conditions)는 이긴 쪽에 그 값이 비어 있을 때만, 그리고 amount가
-    같을 때만(= 같은 쿠폰의 재확인일 가능성이 클 때만) 옮겨 붙인다 —
-    API 쪽 Offer.preferredOver와 같은 규칙이다.
+    conditions)는 이긴 쪽에 그 값이 비어 있을 때만, 그리고 둘 중 하나라도
+    amount를 모르거나 서로 같을 때만(= 서로 다른 금액이 확실히 부딪히는
+    게 아닐 때만) 옮겨 붙인다 — API 쪽 Offer.preferredOver와 같은 규칙이다.
 
     amount 비교 없이 무조건 옮겨 붙이면 서로 다른 쿠폰의 상세가
     섞인다: 훌랄라참숯바베큐치킨 실측(2026-07-31)에서 땡겨요의 확정
     5,000원 오퍼(전체 메뉴)에 다른 needs_review 12,100원 오퍼(순살
     참숯구이 한정 쿠폰)의 조건 문구가 붙어, 5,000원 오퍼가 그 메뉴로
     한정된 것처럼 잘못 보였다.
+
+    반대로 진 쪽 amount를 아예 모르는 경우(예: 쿠폰 조건 문장이 복잡해
+    자동 매칭에 실패해 amount를 비워 두고 conditions에 원문만 남긴
+    기록)까지 "금액이 다르다"고 막으면, 상세를 확인하려 시도했다는
+    사실 자체가 사라진다 — 꾸브라꼬숯불치킨 실측(2026-07-31)에서 실제로
+    이렇게 막혀 원문이 사라졌었다. amount가 없는 쪽은 "다른 쿠폰"이라고
+    확정할 근거가 없으므로 병합을 막지 않는다.
     """
     current_confirmed = _is_confirmed(current)
     incoming_confirmed = _is_confirmed(incoming)
@@ -54,7 +61,11 @@ def _prefer(current: dict, incoming: dict) -> dict:
         winner, loser = incoming, current
 
     merged = dict(winner)
-    same_coupon = winner.get("amount") is None or winner.get("amount") == loser.get("amount")
+    same_coupon = (
+        winner.get("amount") is None
+        or loser.get("amount") is None
+        or winner.get("amount") == loser.get("amount")
+    )
     if same_coupon:
         for field in ("min_order_amount", "tiers", "conditions"):
             if merged.get(field) is None and loser.get(field) is not None:

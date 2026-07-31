@@ -70,6 +70,20 @@ def test_latest_per_brand_does_not_merge_detail_when_amounts_differ():
     assert result.get("conditions") is None
 
 
+def test_latest_per_brand_merges_detail_when_loser_amount_is_unknown():
+    # 꾸브라꼬숯불치킨 실측(2026-07-31): 자동 매칭에 실패해 amount를
+    # 비워 두고 conditions에 원문만 남긴 기록은 "다른 쿠폰"이라고 단정할
+    # 근거가 없다 — 병합을 막으면 상세를 확인하려 시도했다는 사실 자체가
+    # 사라진다.
+    confirmed = dict(BASE, captured_at="2026-07-27T14:26:00+09:00", amount=6000)
+    review_amount_unknown = dict(BASE, captured_at="2026-07-31T16:00:00+09:00", amount=None,
+                                  needs_review=True, conditions="쿠폰 2종 - 자동 매칭 안 됨")
+    latest = latest_per_brand([confirmed, review_amount_unknown])
+    result = latest[("baemin", "피자헛")]
+    assert result["amount"] == 6000
+    assert result["conditions"] == "쿠폰 2종 - 자동 매칭 안 됨"
+
+
 def test_latest_per_brand_does_not_leak_stale_detail_through_a_third_record():
     # 실제로 터진 순서 그대로: (1) 확정 5,000원(상세 없음) (2) needs_review
     # 12,100원(다른 쿠폰, 조건 있음) (3) 나중에 실측한 확정 5,000원(진짜
