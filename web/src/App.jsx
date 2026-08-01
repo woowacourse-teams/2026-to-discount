@@ -59,8 +59,9 @@ function brandAmountFor(mode, brand) {
   return known.length ? Math.min(...known) : null
 }
 
-// 멤버십/지역화폐 반영 로직은 아직 없다. 화면만 미리 놓아두고 실제 계산은
-// docs/plans/2026-07-28-membership-pricing.md 계획대로 나중에 붙인다.
+// 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
+// docs/specs/2026-07-28-product-brief.md에 "UI만 배치, 로직 보류"로 명시된
+// 의도적 보류 상태 — 계산 모델이 나오면 그 레포 docs/plans에 계획이 생긴다.
 const MEMBERSHIP_OPTIONS = [
   { key: 'baemin', label: '배민클럽' },
   { key: 'coupangeats', label: '쿠팡 와우' },

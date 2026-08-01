@@ -53,3 +53,8 @@ const API_BASE = 'https://bebeggars.duckdns.org'
 `src/App.jsx`). 링크 없는 오퍼(다른 플랫폼, 매핑 안 된 땡겨요 브랜드)는
 그냥 정적 표시로 남는다. 별도 ADR 없이 여기 기록만 남긴다 — 백엔드
 주소 결정만큼 되돌릴 여지가 있는 결정이 아니라서.
+
+**(2026-08-01 갱신)** `DDANGYO_LINKS` 상수는 이후 제거됐다. 땡겨요
+브랜드별 링크는 지금 delivery-discount-api의 `brands.yml`에
+`links.ddangyo`로 이관돼 `brand.links`로 내려온다 —
+프론트는 `OfferChip`에서 `brandLinks?.[offer.platform]`으로 그대로 읽는다.
