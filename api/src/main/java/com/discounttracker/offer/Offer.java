@@ -17,7 +17,7 @@ import java.util.List;
  */
 public record Offer(String platform, Integer amount, String qualifier,
                     @JsonIgnore OfferStatus status,
-                    String rawText, String screenshotPath, String capturedAt,
+                    String rawText, @JsonIgnore String screenshotPath, String capturedAt,
                     Integer minOrderAmount, List<DiscountTier> tiers, String conditions) {
 
     public static Offer from(OfferRecord r) {
