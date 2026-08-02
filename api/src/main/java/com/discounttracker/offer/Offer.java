@@ -18,12 +18,13 @@ import java.util.List;
 public record Offer(String platform, Integer amount, String qualifier,
                     @JsonIgnore OfferStatus status,
                     String rawText, @JsonIgnore String screenshotPath, String capturedAt,
-                    Integer minOrderAmount, List<DiscountTier> tiers, String conditions) {
+                    Integer minOrderAmount, List<DiscountTier> tiers, String conditions,
+                    String expiresAt) {
 
     public static Offer from(OfferRecord r) {
         return new Offer(r.platform(), r.amount(), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
-                r.minOrderAmount(), r.tiers(), r.conditions());
+                r.minOrderAmount(), r.tiers(), r.conditions(), r.expiresAt());
     }
 
     @JsonProperty("status")
@@ -91,10 +92,13 @@ public record Offer(String platform, Integer amount, String qualifier,
                 : sameCoupon ? other.tiers : null;
         String mergedConditions = conditions != null ? conditions
                 : sameCoupon ? other.conditions : null;
-        if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions) {
+        String mergedExpiresAt = expiresAt != null ? expiresAt
+                : sameCoupon ? other.expiresAt : null;
+        if (mergedMinOrder == minOrderAmount && mergedTiers == tiers
+                && mergedConditions == conditions && mergedExpiresAt == expiresAt) {
             return this;
         }
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                mergedMinOrder, mergedTiers, mergedConditions);
+                mergedMinOrder, mergedTiers, mergedConditions, mergedExpiresAt);
     }
 }

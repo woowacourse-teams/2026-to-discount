@@ -23,7 +23,8 @@ public record OfferRecord(
         String screenshotPath,
         Integer minOrderAmount,
         List<DiscountTier> tiers,
-        String conditions
+        String conditions,
+        String expiresAt
 ) {
 
     /**
