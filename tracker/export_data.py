@@ -20,6 +20,7 @@ FIELDS = [
     ("min_order_amount", "minOrderAmount"),
     ("tiers", "tiers"),
     ("conditions", "conditions"),
+    ("expires_at", "expiresAt"),
 ]
 
 LOG_PATH = Path(__file__).parent / "data" / "log.jsonl"

@@ -63,3 +63,10 @@ def test_build_export_detail_fields_are_null_when_unknown():
     assert item["minOrderAmount"] is None
     assert item["tiers"] is None
     assert item["conditions"] is None
+    assert item["expiresAt"] is None
+
+
+def test_build_export_carries_expires_at():
+    records = [dict(RECORDS[1], expires_at="2026-08-31")]
+    item = build_export(records)[0]
+    assert item["expiresAt"] == "2026-08-31"
