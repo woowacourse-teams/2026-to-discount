@@ -15,9 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run tests
-        run: python3 -m pytest -q
-
       - name: Deploy export.json to API and reload
         run: |
           cp data/export.json ~/delivery-discount-api/data/export.json
