@@ -52,6 +52,7 @@ brands:
     category: chicken
   두찜:
     category: chicken
+    aliases: [두찜, 두찜찜닭]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?nbYJqDX
   디디치킨:
@@ -212,6 +213,7 @@ brands:
     category: fastfood
   맘스터치피자앤치킨:
     category: fastfood
+    aliases: [맘스터치피자앤치킨, 맘스터치 피자앤치킨]
     links:
       baemin: https://s.baemin.com/7o3.fsacj
   맥도날드:
@@ -266,6 +268,7 @@ brands:
 
   # --- 미분류 (전체에서만 노출) ---
   떡참:
+    aliases: [떡참, 떡볶이참잘하는집 떡참&치킨]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?gXQDKHQ
   매드포갈릭:
@@ -273,7 +276,9 @@ brands:
       baemin: https://s.baemin.com/7o3.fomtb
   본도시락:
   아웃백스테이크하우스:
+    aliases: [아웃백스테이크하우스, 아웃백]
   원할머니보쌈족발:
+  계양산 전통시장:
   육회야문연어:
     links:
       baemin: https://s.baemin.com/5K000ycTVzrba
