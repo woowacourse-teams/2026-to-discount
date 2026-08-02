@@ -673,26 +673,6 @@ h1 {
   white-space: nowrap;
 }
 
-/* 땡겨요 칩 우측 하단에 붙는 지역화폐 뱃지 — 위쪽 platform-badge(로고)와
-   대칭으로 아래쪽 모서리에 걸쳐 얹는다. 눌러볼 수 있는 게 아니라 안내용
-   이라 존재감은 있되 클릭 피드백은 안 준다. */
-.offer__extra {
-  position: absolute;
-  bottom: -6px;
-  right: -6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: .1rem .32rem;
-  border-radius: 9999px;
-  border: 1.5px solid var(--surface);
-  background: linear-gradient(135deg, #ff9d4d, #f2751a);
-  color: #fff;
-  font-size: .52rem;
-  font-weight: 700;
-  white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .18);
-}
 /* 칩은 둘 중 하나다: 땡겨요 브랜드 페이지로 나가는 링크, 또는 상세를
    펼치는 버튼. 둘 다 눌리는 것이므로 같은 피드백을 준다. */
 .offer__chip--link,

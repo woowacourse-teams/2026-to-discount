@@ -184,9 +184,6 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
           <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
         </button>
       )}
-      {offer.platform === 'ddangyo' && (
-        <span className="offer__extra" title="지역화폐 결제 시 +2,000원 추가 할인">지역</span>
-      )}
     </li>
   )
 }
@@ -228,13 +225,6 @@ function OfferDetail({ offer }) {
           </ul>
           {offer.conditions && <p className="detail__condition-note">{offer.conditions}</p>}
         </dd>
-
-        {offer.platform === 'ddangyo' && (
-          <>
-            <dt>지역화폐</dt>
-            <dd>결제 시 +2,000원 추가 할인</dd>
-          </>
-        )}
       </dl>
     </div>
   )
