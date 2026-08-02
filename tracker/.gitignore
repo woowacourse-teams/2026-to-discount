@@ -1,6 +1,5 @@
 data/*.jsonl
 !data/.gitkeep
-data/export.json
 data/brands-sorted.txt
 captures/*
 !captures/.gitkeep
