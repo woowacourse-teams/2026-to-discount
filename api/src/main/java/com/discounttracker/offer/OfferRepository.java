@@ -1,5 +1,6 @@
 package com.discounttracker.offer;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -21,7 +22,15 @@ import java.util.List;
 public class OfferRepository {
 
     private final Resource source;
-    private final ObjectMapper mapper = new ObjectMapper();
+    // 트래커(별도 레포, 별도 self-hosted 배포)가 export.json에 새 필드를
+    // 얹어 먼저 push되면, 이 API가 그 필드를 아직 모르는 채로 reload가
+    // 불려도 되게 unknown property를 무시한다 — 기본값(엄격 모드)이면
+    // UnrecognizedPropertyException으로 reload 전체가 500 나서 트래커
+    // 배포 워크플로가 실패했다(channel/badge/soldOut 필드 추가 때 세 번
+    // 재현, 2026-08-01~08-03). 새 필드값은 API가 따라잡을 때까지 그냥
+    // 비어 보이는 정도의 대가라 감수할 만하다.
+    private final ObjectMapper mapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private volatile List<OfferRecord> cache = List.of();
 
     public OfferRepository(@Value("${discount.export-path}") Resource source) {

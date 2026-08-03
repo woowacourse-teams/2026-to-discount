@@ -102,6 +102,23 @@ class OfferRepositoryTest {
     }
 
     @Test
+    void ignoresUnknownFieldsInsteadOfThrowing() {
+        // 트래커가 API보다 먼저 export.json에 새 필드를 얹어 배포하는
+        // 순서 문제(channel/badge/soldOut 필드 추가 때 세 번 재현,
+        // 2026-08-01~08-03)로 reload가 500 나던 걸 막는다 — API가 아직
+        // 모르는 필드는 무시하고 나머지는 정상 로드돼야 한다.
+        OfferRepository repo = repositoryFor("""
+            [{"platform":"baemin","brand":"도미노피자","amount":5000,"qualifier":null,
+              "needsReview":false,"offerType":"discount","section":"오늘의 할인",
+              "rawText":"5,000원 브랜드 할인","capturedAt":"2026-07-27T14:20:00+09:00",
+              "screenshotPath":"ref/delivery/baemin_2026-07-27.jpg",
+              "aFieldThisApiDoesNotKnowYet":"whatever"}]
+            """);
+        assertEquals(1, repo.findAll().size());
+        assertEquals("도미노피자", repo.findAll().get(0).brand());
+    }
+
+    @Test
     void missingAmountIsHeld() {
         OfferRepository repo = repositoryFor("""
             [{"platform":"yogiyo","brand":"맥도날드","amount":null,"qualifier":"최대",
