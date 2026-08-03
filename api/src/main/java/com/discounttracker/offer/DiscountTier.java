@@ -13,6 +13,11 @@ package com.discounttracker.offer;
  * <p>{@code channel}은 같은 {@code minOrder}에 {@code amount}만 다른 두 구간이
  * 실은 구간 할인이 아니라 배달/포장/매장식사별로 금액이 다른 별개 쿠폰일 때만
  * 채워진다(땡겨요 바른치킨·도미노피자 실측, 2026-08-01).
+ *
+ * <p>{@code soldOut}은 이 구간이 지금 재고 소진으로 못 받는 상태일 때만
+ * {@code true}. 카드 대표값({@link Offer#amount()})은 절대 품절 구간에서
+ * 뽑지 않는다 — 원장 쪽에서 이미 살아있는 구간을 대표로 골라 넣는다
+ * (쿠팡이츠 메가MGC커피 실측, 2026-08-03).
  */
-public record DiscountTier(Integer minOrder, Integer amount, Integer percent, String channel) {
+public record DiscountTier(Integer minOrder, Integer amount, Integer percent, String channel, Boolean soldOut) {
 }
