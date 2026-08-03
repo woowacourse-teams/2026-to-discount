@@ -19,12 +19,12 @@ public record Offer(String platform, Integer amount, String qualifier,
                     @JsonIgnore OfferStatus status,
                     String rawText, @JsonIgnore String screenshotPath, String capturedAt,
                     Integer minOrderAmount, List<DiscountTier> tiers, String conditions,
-                    String expiresAt) {
+                    String expiresAt, String badge) {
 
     public static Offer from(OfferRecord r) {
         return new Offer(r.platform(), r.amount(), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
-                r.minOrderAmount(), r.tiers(), r.conditions(), r.expiresAt());
+                r.minOrderAmount(), r.tiers(), r.conditions(), r.expiresAt(), r.badge());
     }
 
     @JsonProperty("status")
@@ -94,11 +94,13 @@ public record Offer(String platform, Integer amount, String qualifier,
                 : sameCoupon ? other.conditions : null;
         String mergedExpiresAt = expiresAt != null ? expiresAt
                 : sameCoupon ? other.expiresAt : null;
-        if (mergedMinOrder == minOrderAmount && mergedTiers == tiers
-                && mergedConditions == conditions && mergedExpiresAt == expiresAt) {
+        String mergedBadge = badge != null ? badge
+                : sameCoupon ? other.badge : null;
+        if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions
+                && mergedExpiresAt == expiresAt && mergedBadge == badge) {
             return this;
         }
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                mergedMinOrder, mergedTiers, mergedConditions, mergedExpiresAt);
+                mergedMinOrder, mergedTiers, mergedConditions, mergedExpiresAt, mergedBadge);
     }
 }

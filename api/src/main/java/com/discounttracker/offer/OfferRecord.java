@@ -24,7 +24,8 @@ public record OfferRecord(
         Integer minOrderAmount,
         List<DiscountTier> tiers,
         String conditions,
-        String expiresAt
+        String expiresAt,
+        String badge
 ) {
 
     /**
