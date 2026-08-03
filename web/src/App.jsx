@@ -159,6 +159,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
     <>
       <span className="offer__amount">
         {showRangeBadge && <span className="offer__range-badge">최대</span>}
+        {offer.badge && <span className="offer__status-badge">{offer.badge}</span>}
         {offerAmountText(offer)}
       </span>
       <span className="offer__icon-badge">

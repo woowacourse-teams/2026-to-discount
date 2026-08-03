@@ -736,6 +736,25 @@ h1 {
   right: -8px;
 }
 
+/* 목록 액면 금액이 실제론 못 받는 상태(재고 소진)거나 매일 바뀌는
+   상태(랜덤박스)일 때 붙는 상태 라벨(schema `badge`). offer__range-badge
+   (최대, 칩 위쪽 가운데)와 동시에 뜰 수 있어 자리를 겹치지 않게
+   칩 아래쪽에 둔다. */
+.offer__status-badge {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: .55rem;
+  font-weight: 600;
+  color: #9a5b00;
+  background: #fff3da;
+  border-radius: 4px;
+  padding: .05rem .3rem;
+  white-space: nowrap;
+  z-index: 1;
+}
+
 .platform-badge {
   position: relative;
   display: inline-flex;
