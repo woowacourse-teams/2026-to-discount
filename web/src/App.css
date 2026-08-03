@@ -740,6 +740,18 @@ h1 {
    상태(랜덤박스)일 때 붙는 상태 라벨(schema `badge`). offer__range-badge
    (최대, 칩 위쪽 가운데)와 동시에 뜰 수 있어 자리를 겹치지 않게
    칩 아래쪽에 둔다. */
+.offer__amount--soldout {
+  opacity: .5;
+  text-decoration-color: currentColor;
+}
+
+.offer__soldout-label {
+  margin-left: .3em;
+  font-size: .65rem;
+  font-weight: 700;
+  color: #b3261e;
+}
+
 .offer__status-badge {
   position: absolute;
   bottom: -8px;

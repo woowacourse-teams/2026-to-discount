@@ -160,7 +160,12 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
       <span className="offer__amount">
         {showRangeBadge && <span className="offer__range-badge">최대</span>}
         {offer.badge && <span className="offer__status-badge">{offer.badge}</span>}
-        {offerAmountText(offer)}
+        {offer.soldOut ? (
+          <>
+            <s className="offer__amount--soldout">{offerAmountText(offer)}</s>
+            <span className="offer__soldout-label">품절</span>
+          </>
+        ) : offerAmountText(offer)}
       </span>
       <span className="offer__icon-badge">
         <PlatformBadge platformKey={offer.platform} />
