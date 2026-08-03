@@ -446,7 +446,7 @@
   "screenshotPath": "ref/delivery/2026-08-03/coupangeats.jpg",
   "minOrderAmount": null,
   "tiers": null,
-  "conditions": null,
+  "conditions": "와우회원 전용 랜덤박스 쿠폰 — 매일 무작위 금액 지급, \"최대 2만원\"은 상한 표기일 뿐. 2026-08-03 확인 시 4,000원 당첨(18,000원 이상 주문 시, 당일 08-03까지만 사용 가능)",
   "expiresAt": null
  },
  {
@@ -1916,7 +1916,7 @@
   "screenshotPath": "ref/delivery/2026-08-03/coupangeats.jpg",
   "minOrderAmount": null,
   "tiers": null,
-  "conditions": null,
+  "conditions": "선착순 재고 쿠폰함 — 20,000원 티어는 수량없음(품절, 내일 다시 참여 안내), 실제 받을 수 있는 건 6,000원/3,000원(16,000원 이상 주문 시, 둘 다 이미 받기완료 상태였음)",
   "expiresAt": null
  },
  {
@@ -1980,7 +1980,7 @@
   "screenshotPath": "ref/delivery/2026-08-03/coupangeats.jpg",
   "minOrderAmount": null,
   "tiers": null,
-  "conditions": null,
+  "conditions": "와우회원 전용 랜덤박스 쿠폰 — 매일 무작위 금액 지급, \"최대 2만원\"은 상한 표기일 뿐. 2026-08-03 확인 시 3,000원 당첨(18,000원 이상 주문 시, 당일 08-03까지만 사용 가능)",
   "expiresAt": null
  },
  {
