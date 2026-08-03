@@ -738,7 +738,9 @@ export default function App() {
 
   return (
     <main>
+      {/* 2026-08-03 데이터 정비 안내 — 정비 끝나서 비활성화. 다시 필요하면 주석만 풀면 됨.
       <div className="update-notice" role="status">주간 데이터 업데이트 중입니다. 잠시만 기다려주세요.</div>
+      */}
       <header className="page-head">
         <div className="page-head__row">
           <div className="page-head__banner">
