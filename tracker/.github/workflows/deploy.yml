@@ -16,6 +16,21 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Deploy export.json to API and reload
+        # export.json이 새 필드를 실어 나르면(예: badge, channel), 그 필드를
+        # 읽을 API 쪽 코드가 별도 레포·별도 self-hosted 워크플로로 독립
+        # 배포되다 보니 이 워크플로가 먼저 끝나 아직 구버전 API가 떠 있는
+        # 채로 reload를 부르는 경우가 생긴다 — Jackson이 모르는 필드를
+        # 만나 500을 내고(2026-08-03 실측, badge 필드 추가 때 재현) 이
+        # 스텝이 exit 22로 실패한다. 데이터 자체는 문제없고 API 쪽 배포가
+        # 따라잡을 때까지의 타이밍 문제라 몇 번 재시도로 흡수한다.
         run: |
           cp data/export.json ~/delivery-discount-api/data/export.json
-          curl -sf -X POST http://localhost:8088/api/reload
+          for i in 1 2 3 4 5; do
+            if curl -sf -X POST http://localhost:8088/api/reload; then
+              exit 0
+            fi
+            echo "reload 실패, ${i}번째 재시도 대기..."
+            sleep 15
+          done
+          echo "reload 5회 재시도 후에도 실패"
+          exit 1
