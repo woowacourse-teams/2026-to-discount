@@ -242,16 +242,13 @@ function OfferDetail({ offer }) {
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
 function BrandCard({ brand, highlighted, onInteract }) {
-  // 화면에 "최대" 배지가 뜨는 오퍼(qualifier="최대")는 금액과 무관하게
-  // 항상 뒤로 민다 — confirmed든 held든, "최대"는 실제 최소주문금액을
-  // 채워야 진짜 값이 나오는 상한액이라 액면 그대로 비교하면 왜곡된다.
+  // 금액 큰 순. qualifier로 먼저 갈라 뒤로 밀던 예전 규칙은 카드 안
+  // 오퍼 순서가 사실상 플랫폼 고정 순서로 보이는 부작용이 있었다 —
+  // 쿠팡이츠 목록캡처 다수가 confirmed+qualifier="최대"라 매번 뒤로
+  // 밀려, 금액과 무관하게 항상 같은 자리에 고정된 것처럼 보였다.
+  // "최대"는 배지로 이미 구분해서 보여주니 정렬까지 따로 안 깎아도 된다.
   const sortedOffers = useMemo(
-    () => [...brand.offers].sort((a, b) => {
-      const aMax = a.qualifier === '최대' ? 1 : 0
-      const bMax = b.qualifier === '최대' ? 1 : 0
-      if (aMax !== bMax) return aMax - bMax
-      return (b.amount ?? -1) - (a.amount ?? -1)
-    }),
+    () => [...brand.offers].sort((a, b) => (b.amount ?? -1) - (a.amount ?? -1)),
     [brand.offers],
   )
 
