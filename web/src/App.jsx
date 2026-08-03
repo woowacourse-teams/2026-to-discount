@@ -738,6 +738,7 @@ export default function App() {
 
   return (
     <main>
+      <div className="update-notice" role="status">주간 데이터 업데이트 중입니다. 잠시만 기다려주세요.</div>
       <header className="page-head">
         <div className="page-head__row">
           <div className="page-head__banner">
