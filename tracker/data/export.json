@@ -55,13 +55,13 @@
   "platform": "yogiyo",
   "brand": "BHC치킨",
   "amount": 3000,
-  "qualifier": "최대",
+  "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": null,
-  "rawText": "3,000원 메뉴할인, 18,000원 이상 구매 시 / 5%, 20,000원 이상 주문 시 최대 3,000원 할인",
-  "capturedAt": "2026-07-31T14:30:00+09:00",
-  "screenshotPath": "ref/delivery/detail/yogiyo_2026-07-31_BHC치킨.png",
+  "rawText": "3,000원 추가할인 / 최대 3,000원 쿠폰(5%)",
+  "capturedAt": "2026-08-03T16:34:00+09:00",
+  "screenshotPath": "ref/delivery/detail/yogiyo_2026-08-03_BHC치킨.png",
   "minOrderAmount": null,
   "tiers": [
    {
@@ -69,13 +69,13 @@
     "amount": 3000
    },
    {
-    "minOrder": 20000,
+    "minOrder": 23000,
     "amount": 3000,
     "percent": 5
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-07-31"
+  "expiresAt": "2026-08-09"
  },
  {
   "platform": "yogiyo",
@@ -378,18 +378,28 @@
  {
   "platform": "yogiyo",
   "brand": "뚜레쥬르",
-  "amount": 7000,
-  "qualifier": "최대",
+  "amount": 4000,
+  "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": null,
-  "rawText": "최대 7,000원 할인",
-  "capturedAt": "2026-08-03T13:12:00+09:00",
-  "screenshotPath": "ref/delivery/2026-08-03/yogiyo (2).jpg",
+  "rawText": "4,000원 추가할인 / 최대 3,000원 쿠폰(5%)",
+  "capturedAt": "2026-08-03T16:34:00+09:00",
+  "screenshotPath": "ref/delivery/detail/yogiyo_2026-08-03_뚜레쥬르.png",
   "minOrderAmount": null,
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 18000,
+    "amount": 4000
+   },
+   {
+    "minOrder": 20000,
+    "amount": 3000,
+    "percent": 5
+   }
+  ],
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": "2026-08-09"
  },
  {
   "platform": "coupangeats",
@@ -2168,18 +2178,28 @@
  {
   "platform": "yogiyo",
   "brand": "인생아구찜",
-  "amount": 6000,
-  "qualifier": "최대",
+  "amount": 3000,
+  "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": null,
-  "rawText": "최대 6,000원 할인",
-  "capturedAt": "2026-08-03T13:12:00+09:00",
-  "screenshotPath": "ref/delivery/2026-08-03/yogiyo (3).jpg",
+  "rawText": "3,000원 추가할인 / 최대 3,000원 쿠폰(5%)",
+  "capturedAt": "2026-08-03T16:34:00+09:00",
+  "screenshotPath": "ref/delivery/detail/yogiyo_2026-08-03_인생아구찜.png",
   "minOrderAmount": null,
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 20000,
+    "amount": 3000
+   },
+   {
+    "minOrder": 25000,
+    "amount": 3000,
+    "percent": 5
+   }
+  ],
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": "2026-08-09"
  },
  {
   "platform": "ddangyo",
