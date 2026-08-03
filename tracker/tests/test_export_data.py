@@ -77,3 +77,24 @@ def test_build_export_detail_fields_are_null_when_unknown():
     assert item["minOrderAmount"] is None
     assert item["tiers"] is None
     assert item["conditions"] is None
+    assert item["expiresAt"] is None
+
+
+def test_build_export_carries_expires_at():
+    records = [dict(RECORDS[1], expires_at="2026-08-31")]
+    item = build_export(records)[0]
+    assert item["expiresAt"] == "2026-08-31"
+
+
+def test_build_export_carries_channel_tier():
+    # 땡겨요 실측(바른치킨, 2026-08-01): 배달/포장별 별개 쿠폰도
+    # channel이 export.json까지 살아남아야 한다.
+    records = [dict(RECORDS[1], tiers=[
+        {"min_order": 19900, "amount": 4000, "channel": "배달"},
+        {"min_order": 19900, "amount": 5000, "channel": "포장"},
+    ])]
+    item = build_export(records)[0]
+    assert item["tiers"] == [
+        {"minOrder": 19900, "amount": 4000, "channel": "배달"},
+        {"minOrder": 19900, "amount": 5000, "channel": "포장"},
+    ]

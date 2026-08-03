@@ -58,6 +58,12 @@ def test_validate_record_detail_fields_default_to_none():
     assert record["min_order_amount"] is None
     assert record["tiers"] is None
     assert record["conditions"] is None
+    assert record["expires_at"] is None
+
+
+def test_validate_record_keeps_expires_at():
+    record = validate_record(dict(BASE, expires_at="2026-08-31"))
+    assert record["expires_at"] == "2026-08-31"
 
 
 def test_validate_record_keeps_tiers():

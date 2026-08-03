@@ -20,6 +20,7 @@ FIELDS = [
     ("min_order_amount", "minOrderAmount"),
     ("tiers", "tiers"),
     ("conditions", "conditions"),
+    ("expires_at", "expiresAt"),
 ]
 
 LOG_PATH = Path(__file__).parent / "data" / "log.jsonl"
@@ -31,7 +32,8 @@ def camel_tiers(tiers):
     """구간 할인도 export에선 camelCase — 원장은 snake_case를 유지한다.
 
     percent(정률+상한 할인, 예: 요기요 "25,000원 이상 5%, 최대 3,000원")
-    가 있는 항목만 그 필드를 옮긴다 — 정액 tier는 그대로 amount만.
+    가 있는 항목만 그 필드를 옮긴다 — 정액 tier는 그대로 amount만. channel
+    (배달/포장/매장식사별 별개 쿠폰, 예: 땡겨요 바른치킨)도 있으면 옮긴다.
     """
     if not tiers:
         return None
@@ -40,6 +42,8 @@ def camel_tiers(tiers):
         item = {"minOrder": t["min_order"], "amount": t["amount"]}
         if "percent" in t:
             item["percent"] = t["percent"]
+        if "channel" in t:
+            item["channel"] = t["channel"]
         out.append(item)
     return out
 

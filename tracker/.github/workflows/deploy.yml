@@ -1,0 +1,21 @@
+name: Deploy Data
+
+# export.json은 캡처 원장(data/*.jsonl, 서버엔 없음 — 캡처는 로컬에서만)의
+# 파생 결과라 로컬에서 export_data.py로 만들어 커밋해야 한다. 여기선 그
+# 커밋된 파일을 서버 API가 읽는 경로로 옮기고 reload만 호출한다.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy export.json to API and reload
+        run: |
+          cp data/export.json ~/delivery-discount-api/data/export.json
+          curl -sf -X POST http://localhost:8088/api/reload

@@ -34,7 +34,7 @@ DEFAULTS = {
     # 바른치킨·도미노피자 실측, 2026-08-01) — 이 경우 "channel"을 채운다.
     "tiers": None,
     "conditions": None,         # 그 외 문구 그대로 (예: "1일 1회, 배달만")
-    "expires_at": None,         # 행사(쿠폰) 종료 예정일, ISO date (예: "2026-07-31")
+    "expires_at": None,         # 쿠폰 종료일(YYYY-MM-DD). 앱에 "~2026.08.31 사용가능"처럼 날짜만 나온다.
 }
 
 

@@ -44,16 +44,39 @@ def test_latest_per_brand_picks_most_recent():
 
 
 def test_latest_per_brand_prefers_confirmed_over_newer_held():
-    # 예전에 확정(needs_review 없음)으로 잡힌 금액을, 나중에 재확인하며
-    # needs_review로 캡처한 게 최신이라는 이유로 밀어내면 안 된다. 금액이
-    # 같으면(같은 쿠폰의 재확인) 그 조건은 살려서 확정값에 붙인다.
+    # 예전에 확정(needs_review 없음)으로 잡힌 큰 금액을, 나중에 재확인하며
+    # needs_review로 캡처한 작은 금액이 최신이라는 이유로 밀어내면 안 된다.
     confirmed_old = dict(BASE, captured_at="2026-07-27T14:26:00+09:00", amount=11000)
-    held_new = dict(BASE, captured_at="2026-07-29T18:53:00+09:00", amount=11000,
+    held_new = dict(BASE, captured_at="2026-07-29T18:53:00+09:00", amount=7000,
                      needs_review=True, conditions="메뉴 한정 쿠폰")
     latest = latest_per_brand([confirmed_old, held_new])
     result = latest[("baemin", "피자헛")]
     assert result["amount"] == 11000
-    assert result["conditions"] == "메뉴 한정 쿠폰"  # 진 쪽의 조건은 살아남는다
+    # 금액이 다르면(11000 vs 7000) 서로 다른 쿠폰일 수 있어 조건을 옮겨
+    # 붙이지 않는다 — API 훌랄라참숯바베큐치킨 사고(2026-07-31)와 같은 클래스.
+    assert result.get("conditions") is None
+
+
+def test_latest_per_brand_merges_detail_when_amount_matches():
+    confirmed = dict(BASE, captured_at="2026-07-27T14:26:00+09:00", amount=5000)
+    held_same_amount = dict(BASE, captured_at="2026-07-29T18:53:00+09:00", amount=5000,
+                             needs_review=True, conditions="메뉴 한정 쿠폰")
+    latest = latest_per_brand([confirmed, held_same_amount])
+    result = latest[("baemin", "피자헛")]
+    assert result["amount"] == 5000
+    assert result["conditions"] == "메뉴 한정 쿠폰"  # 같은 금액이면 같은 쿠폰의 재확인으로 본다
+
+
+def test_latest_per_brand_merges_detail_when_loser_amount_unknown():
+    # 자동 매칭 실패로 amount를 비우고 conditions만 원문으로 남긴 기록은
+    # "다른 쿠폰"이라 단정할 근거가 없다 — 병합을 막지 않는다.
+    confirmed = dict(BASE, captured_at="2026-07-27T14:26:00+09:00", amount=6000)
+    held_unknown_amount = dict(BASE, captured_at="2026-07-29T18:53:00+09:00", amount=None,
+                                needs_review=True, conditions="쿠폰 2종 - 자동 매칭 안 됨")
+    latest = latest_per_brand([confirmed, held_unknown_amount])
+    result = latest[("baemin", "피자헛")]
+    assert result["amount"] == 6000
+    assert result["conditions"] == "쿠폰 2종 - 자동 매칭 안 됨"
 
 
 def test_latest_per_brand_does_not_merge_detail_when_amounts_differ():
@@ -113,6 +136,14 @@ def test_latest_per_brand_keeps_winner_detail_when_winner_already_has_it():
     assert result["amount"] == 7000
     assert result["min_order_amount"] == 22000
     assert result["conditions"] == "1일 1회"
+
+
+def test_latest_per_brand_breaks_captured_at_tie_on_amount():
+    # 같은 시각에 캡처된 두 확정 레코드(주로 인위적인 경우) — 금액 큰 쪽이 남는다.
+    a = dict(BASE, captured_at="2026-07-27T00:00:00+09:00", amount=3000)
+    b = dict(BASE, captured_at="2026-07-27T00:00:00+09:00", amount=5000)
+    latest = latest_per_brand([a, b])
+    assert latest[("baemin", "피자헛")]["amount"] == 5000
 
 
 def test_multi_platform_brands_filters_by_count():
