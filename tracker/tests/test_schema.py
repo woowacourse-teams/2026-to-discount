@@ -74,6 +74,16 @@ def test_validate_record_keeps_badge():
     assert record["badge"] == "선착순 품절"
 
 
+def test_validate_record_sold_out_defaults_false():
+    record = validate_record(dict(BASE))
+    assert record["sold_out"] is False
+
+
+def test_validate_record_keeps_sold_out():
+    record = validate_record(dict(BASE, sold_out=True))
+    assert record["sold_out"] is True
+
+
 def test_validate_record_keeps_tiers():
     record = validate_record(dict(BASE, tiers=[
         {"min_order": 15000, "amount": 3000},

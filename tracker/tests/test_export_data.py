@@ -104,3 +104,9 @@ def test_build_export_carries_badge():
     records = [dict(RECORDS[1], badge="선착순 품절")]
     item = build_export(records)[0]
     assert item["badge"] == "선착순 품절"
+
+
+def test_build_export_carries_sold_out():
+    records = [dict(RECORDS[1], sold_out=True)]
+    item = build_export(records)[0]
+    assert item["soldOut"] is True

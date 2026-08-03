@@ -24,7 +24,8 @@
   ],
   "conditions": null,
   "expiresAt": "2026-07-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -51,7 +52,8 @@
   ],
   "conditions": null,
   "expiresAt": "2026-07-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -78,7 +80,8 @@
   ],
   "conditions": null,
   "expiresAt": "2026-08-09",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -95,7 +98,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -112,7 +116,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -129,7 +134,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -146,7 +152,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -163,7 +170,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -180,7 +188,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -197,7 +206,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -214,7 +224,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -231,7 +242,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -248,7 +260,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -265,7 +278,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -282,7 +296,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -299,7 +314,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -316,7 +332,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -333,7 +350,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -360,7 +378,8 @@
   ],
   "conditions": null,
   "expiresAt": "2026-07-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -377,7 +396,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -394,7 +414,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -421,7 +442,8 @@
   ],
   "conditions": null,
   "expiresAt": "2026-08-09",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -438,7 +460,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -455,7 +478,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -472,7 +496,8 @@
   "tiers": null,
   "conditions": "쿠팡와우 대상, 최대 20,000원 랜덤박스",
   "expiresAt": null,
-  "badge": "선착순"
+  "badge": "선착순",
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -489,7 +514,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -506,7 +532,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -523,7 +550,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -540,7 +568,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -557,7 +586,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -574,7 +604,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -591,7 +622,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -608,7 +640,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -625,7 +658,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -642,7 +676,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -659,7 +694,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -676,7 +712,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -693,7 +730,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -710,7 +748,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -727,7 +766,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -744,7 +784,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -761,7 +802,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -778,7 +820,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -795,7 +838,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -812,7 +856,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": "2026-07-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -829,7 +874,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -846,7 +892,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -863,7 +910,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -880,7 +928,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -897,7 +946,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -914,7 +964,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -942,7 +993,8 @@
   ],
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -959,7 +1011,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -976,7 +1029,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": "2026-07-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -993,7 +1047,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1010,7 +1065,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1027,7 +1083,8 @@
   "tiers": null,
   "conditions": "쿠폰 2종(4,000원, 6,000원) - 해당 쿠폰의 최소주문금액은 21,000원과 30,000원입니다. 단, 가맹점에서 설정한 최소주문금액이 있을 시 이를 우선합니다.",
   "expiresAt": "2026-08-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1044,7 +1101,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1061,7 +1119,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1078,7 +1137,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1095,7 +1155,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1112,7 +1173,8 @@
   "tiers": null,
   "conditions": "쿠폰 0종(미확인) - 최소주문금액은 가맹점에서 설정한 최소주문금액을 기준으로 설정됩니다.",
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1129,7 +1191,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1146,7 +1209,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1163,7 +1227,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1191,7 +1256,8 @@
   ],
   "conditions": null,
   "expiresAt": "2026-08-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1219,7 +1285,8 @@
   ],
   "conditions": null,
   "expiresAt": "2026-07-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1236,7 +1303,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1253,7 +1321,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": "2026-08-02",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1270,7 +1339,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1287,7 +1357,8 @@
   "tiers": null,
   "conditions": "쿠폰 2종(3,000원, 5,000원) - 해당 쿠폰의 최소주문금액은 18,900원과 29,900원입니다. 단, 가맹점에서 설정한 최소주문금액이 있을 시 이를 우선합니다.",
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1304,7 +1375,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1321,7 +1393,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": "2026-08-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1338,7 +1411,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1355,7 +1429,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1372,7 +1447,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1389,7 +1465,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1419,7 +1496,8 @@
   ],
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1436,7 +1514,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1453,7 +1532,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1470,7 +1550,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1487,7 +1568,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1504,7 +1586,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1521,7 +1604,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1538,7 +1622,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1555,7 +1640,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1572,7 +1658,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1589,7 +1676,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1606,7 +1694,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": "2026-08-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -1623,7 +1712,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1640,7 +1730,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1657,7 +1748,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1674,7 +1766,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1691,7 +1784,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1708,7 +1802,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1725,7 +1820,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1742,7 +1838,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1759,7 +1856,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1776,7 +1874,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1793,7 +1892,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1810,7 +1910,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1827,7 +1928,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1844,7 +1946,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1861,7 +1964,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1878,7 +1982,8 @@
   "tiers": null,
   "conditions": "퍼센트 할인, 상한액 미표시",
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1895,7 +2000,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1912,7 +2018,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1929,7 +2036,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1946,7 +2054,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1963,7 +2072,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1980,7 +2090,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "baemin",
@@ -1997,7 +2108,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2014,7 +2126,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2042,9 +2155,10 @@
     "amount": 3000
    }
   ],
-  "conditions": "선착순 재고 소진(20,000원 품절)",
+  "conditions": null,
   "expiresAt": null,
-  "badge": "선착순 품절"
+  "badge": "선착순",
+  "soldOut": true
  },
  {
   "platform": "coupangeats",
@@ -2061,7 +2175,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2078,7 +2193,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2095,7 +2211,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2112,7 +2229,8 @@
   "tiers": null,
   "conditions": "쿠팡와우 대상, 최대 20,000원 랜덤박스",
   "expiresAt": null,
-  "badge": "선착순"
+  "badge": "선착순",
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2129,7 +2247,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2146,7 +2265,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2163,7 +2283,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2180,7 +2301,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2197,7 +2319,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2214,7 +2337,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2231,7 +2355,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "coupangeats",
@@ -2248,7 +2373,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -2265,7 +2391,8 @@
   "tiers": null,
   "conditions": "퍼센트 할인, 상한액 미표시",
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -2282,7 +2409,8 @@
   "tiers": null,
   "conditions": "퍼센트 할인, 상한액 미표시",
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -2299,7 +2427,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -2316,7 +2445,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "yogiyo",
@@ -2343,7 +2473,8 @@
   ],
   "conditions": null,
   "expiresAt": "2026-08-09",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -2373,7 +2504,8 @@
   ],
   "conditions": null,
   "expiresAt": "2026-08-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -2390,7 +2522,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": "2026-08-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -2407,7 +2540,8 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": "2026-08-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  },
  {
   "platform": "ddangyo",
@@ -2433,6 +2567,7 @@
   ],
   "conditions": null,
   "expiresAt": "2026-08-31",
-  "badge": null
+  "badge": null,
+  "soldOut": null
  }
 ]

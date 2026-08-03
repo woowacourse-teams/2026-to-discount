@@ -22,6 +22,7 @@ FIELDS = [
     ("conditions", "conditions"),
     ("expires_at", "expiresAt"),
     ("badge", "badge"),
+    ("sold_out", "soldOut"),
 ]
 
 LOG_PATH = Path(__file__).parent / "data" / "log.jsonl"
