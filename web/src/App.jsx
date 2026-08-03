@@ -13,8 +13,14 @@ const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 // 쿠팡이츠·요기요는 brands.yml에 브랜드별 딥링크가 없다(공유 기능 자체가
 // 없어서 못 만듦). 앱 공유 기능으로 받은 링크로 앱을 연다. 브랜드별 진짜
 // 딥링크는 나중에 별도로 찾는다.
+//
+// coupangeats 링크는 ADB(dumpsys activity top)로 실기 WebView의
+// webview.encodeurl을 그대로 뽑은 와우컬렉션(와우 라운지) 진입 URL이다
+// (2026-08-03). key에 날짜(0803)가 박혀 있어 로테이트되는 프로모션
+// 링크로 보인다 — 날짜 지나면 깨질 수 있으니 주기적으로 같은 방법으로
+// 재확인·교체해야 한다. 날짜 없는 고정 진입점은 아직 못 찾음.
 const PLATFORM_APP_LINKS = {
-  coupangeats: 'https://share.coupangeats.com/RM8HgQyr64b',
+  coupangeats: 'https://eats-mobile-web.coupang.com/promotion/landing-page-v5?key=V5_WOW_LOUNGE_0803_AC',
   yogiyo: 'https://url.customer.yogiyo.co.kr/MUVJRHpYU2',
 }
 
