@@ -150,7 +150,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
   const content = (
     <>
       <span className="offer__amount">
-        {held && showRangeBadge && <span className="offer__range-badge">최대</span>}
+        {showRangeBadge && <span className="offer__range-badge">최대</span>}
         {offerAmountText(offer)}
       </span>
       <span className="offer__icon-badge">
@@ -236,14 +236,13 @@ function OfferDetail({ offer }) {
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
 function BrandCard({ brand, highlighted, onInteract }) {
-  // 화면에 "최대" 배지가 실제로 뜨는 오퍼(held + qualifier="최대")는 금액과
-  // 무관하게 항상 뒤로 민다. qualifier만으로 묶으면 confirmed인데 qualifier가
-  // "최대"로 남은 항목(예: 땡겨요 — 배지는 안 뜨지만 값은 최대군에 끼어
-  // 순서가 뒤죽박죽으로 보임)이 생기므로, 실제 배지 노출 여부를 기준으로 한다.
+  // 화면에 "최대" 배지가 뜨는 오퍼(qualifier="최대")는 금액과 무관하게
+  // 항상 뒤로 민다 — confirmed든 held든, "최대"는 실제 최소주문금액을
+  // 채워야 진짜 값이 나오는 상한액이라 액면 그대로 비교하면 왜곡된다.
   const sortedOffers = useMemo(
     () => [...brand.offers].sort((a, b) => {
-      const aMax = a.status === 'held' && a.qualifier === '최대' ? 1 : 0
-      const bMax = b.status === 'held' && b.qualifier === '최대' ? 1 : 0
+      const aMax = a.qualifier === '최대' ? 1 : 0
+      const bMax = b.qualifier === '최대' ? 1 : 0
       if (aMax !== bMax) return aMax - bMax
       return (b.amount ?? -1) - (a.amount ?? -1)
     }),
