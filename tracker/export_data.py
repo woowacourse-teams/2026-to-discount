@@ -35,7 +35,8 @@ def camel_tiers(tiers):
 
     percent(정률+상한 할인, 예: 요기요 "25,000원 이상 5%, 최대 3,000원")
     가 있는 항목만 그 필드를 옮긴다 — 정액 tier는 그대로 amount만. channel
-    (배달/포장/매장식사별 별개 쿠폰, 예: 땡겨요 바른치킨)도 있으면 옮긴다.
+    (배달/포장/매장식사별 별개 쿠폰, 예: 땡겨요 바른치킨)·sold_out(품절
+    티어, 예: 쿠팡이츠 메가MGC커피)도 있으면 옮긴다.
     """
     if not tiers:
         return None
@@ -46,6 +47,8 @@ def camel_tiers(tiers):
             item["percent"] = t["percent"]
         if "channel" in t:
             item["channel"] = t["channel"]
+        if "sold_out" in t:
+            item["soldOut"] = t["sold_out"]
         out.append(item)
     return out
 

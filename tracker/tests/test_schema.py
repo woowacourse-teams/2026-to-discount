@@ -84,6 +84,23 @@ def test_validate_record_keeps_sold_out():
     assert record["sold_out"] is True
 
 
+def test_validate_record_keeps_tier_sold_out():
+    # 쿠팡이츠 메가MGC커피 실측(2026-08-03): 20,000원 티어만 품절, 나머지
+    # 6,000원/3,000원 티어는 살아있었다 — 브랜드 카드는 살아있는 값을
+    # 대표로 보여줘야 하니 최상위 amount는 6,000원, 품절은 tier 안에.
+    record = validate_record(dict(BASE, amount=6000, tiers=[
+        {"min_order": 16000, "amount": 20000, "sold_out": True},
+        {"min_order": 16000, "amount": 6000},
+    ]))
+    assert record["tiers"][0]["sold_out"] is True
+    assert "sold_out" not in record["tiers"][1]
+
+
+def test_validate_record_rejects_non_bool_tier_sold_out():
+    with pytest.raises(ValueError):
+        validate_record(dict(BASE, tiers=[{"min_order": 16000, "amount": 20000, "sold_out": "yes"}]))
+
+
 def test_validate_record_keeps_tiers():
     record = validate_record(dict(BASE, tiers=[
         {"min_order": 15000, "amount": 3000},

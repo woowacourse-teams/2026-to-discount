@@ -41,11 +41,12 @@ DEFAULTS = {
     # (쿠팡이츠 메가MGC커피·왓더버거·던킨 실측, 2026-08-03). conditions처럼
     # 긴 설명은 아니고 칩에 얹을 한두 단어짜리 라벨만.
     "badge": None,
-    # 목록 액면 금액(amount) 자체가 재고 소진으로 지금 못 받는 상태면
-    # True. badge 문구에 "품절"을 박아 넣는 대신 여기 불리언으로 명확히
-    # 표시한다 — 프론트가 문자열 매칭 없이 바로 취소선을 그릴 수 있게
-    # (쿠팡이츠 메가MGC커피 실측, 2026-08-03: "최대 20,000원" 티어가
-    # 품절이고 6,000원/3,000원 티어는 살아있었다).
+    # 목록 액면 금액(amount)이 통째로(구간 없이) 재고 소진이면 True.
+    # tiers가 있는 경우엔 이 최상위 필드 대신 각 tier의 "sold_out"을
+    # 쓴다 — amount/min_order_amount는 항상 지금 실제로 받을 수 있는
+    # 값이어야 한다(브랜드 카드엔 품절된 액면가를 대표값으로 보여주지
+    # 않는다). badge 문구에 "품절"을 박아 넣는 대신 불리언으로 명확히
+    # 표시해 프론트가 문자열 매칭 없이 바로 취소선을 그릴 수 있게 한다.
     "sold_out": False,
 }
 
@@ -63,6 +64,8 @@ def validate_tiers(tiers) -> None:
             raise ValueError(f"tier percent must be in (0, 100]: {tier!r}")
         if "channel" in tier and tier["channel"] not in ALLOWED_CHANNELS:
             raise ValueError(f"invalid tier channel: {tier!r}")
+        if "sold_out" in tier and not isinstance(tier["sold_out"], bool):
+            raise ValueError(f"tier sold_out must be bool: {tier!r}")
 
 
 def validate_record(record: dict) -> dict:

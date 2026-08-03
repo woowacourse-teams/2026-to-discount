@@ -110,3 +110,15 @@ def test_build_export_carries_sold_out():
     records = [dict(RECORDS[1], sold_out=True)]
     item = build_export(records)[0]
     assert item["soldOut"] is True
+
+
+def test_build_export_carries_tier_sold_out():
+    records = [dict(RECORDS[1], amount=6000, tiers=[
+        {"min_order": 16000, "amount": 20000, "sold_out": True},
+        {"min_order": 16000, "amount": 6000},
+    ])]
+    item = build_export(records)[0]
+    assert item["tiers"] == [
+        {"minOrder": 16000, "amount": 20000, "soldOut": True},
+        {"minOrder": 16000, "amount": 6000},
+    ]

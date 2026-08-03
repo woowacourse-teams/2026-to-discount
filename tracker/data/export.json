@@ -2132,7 +2132,7 @@
  {
   "platform": "coupangeats",
   "brand": "메가MGC커피",
-  "amount": 20000,
+  "amount": 6000,
   "qualifier": "최대",
   "needsReview": false,
   "offerType": "discount",
@@ -2144,7 +2144,8 @@
   "tiers": [
    {
     "minOrder": 16000,
-    "amount": 20000
+    "amount": 20000,
+    "soldOut": true
    },
    {
     "minOrder": 16000,
@@ -2158,7 +2159,7 @@
   "conditions": null,
   "expiresAt": null,
   "badge": "선착순",
-  "soldOut": true
+  "soldOut": false
  },
  {
   "platform": "coupangeats",
