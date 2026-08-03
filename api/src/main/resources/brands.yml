@@ -92,6 +92,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?u5yUGTs
   아라치치킨:
     category: chicken
+    aliases: [아라치치킨, 아라치]
     links:
       baemin: https://s.baemin.com/7o3.j7lu0
   오븐마루치킨:
@@ -261,6 +262,7 @@ brands:
   # --- 편의점 ---
   CU:
     category: convenience
+    aliases: [CU, CU픽업]
   세븐일레븐:
     category: convenience
   세븐픽업:
@@ -289,6 +291,8 @@ brands:
   하남돼지집:
     links:
       baemin: https://s.baemin.com/7o8.5zae7
+  포케올데이:
+    aliases: [포케올데이, poke all day]
 
   # --- 미분류: 배민에서만 확인, 아직 캡처 데이터 없음 ---
   강다짐 삼각김밥:
