@@ -3,6 +3,7 @@ ALLOWED_QUALIFIERS = {None, "최대", "최소"}
 ALLOWED_SCOPES = {"brand", "store"}
 ALLOWED_OFFER_TYPES = {"discount", "gift", "coupon", "unknown"}
 ALLOWED_CAPTURE_MODES = {"auto", "manual"}
+ALLOWED_CHANNELS = {"배달", "포장", "매장식사"}
 
 REQUIRED_FIELDS = (
     "platform", "brand", "raw_text", "captured_at",
@@ -28,6 +29,9 @@ DEFAULTS = {
     # (cap)을 그대로 쓴다 — 정액이든 정률+상한이든 "이 구간에서 실제로
     # 최대 얼마 깎이는가"는 amount 하나로 항상 비교·정렬 가능하다.
     # percent 없는 항목은 기존과 같은 순수 정액.
+    # 같은 min_order에 amount만 다른 두 항목이 있으면 구간 할인이 아니라
+    # 배달/포장/매장식사별로 금액이 다른 채널별 별개 쿠폰이다(땡겨요
+    # 바른치킨·도미노피자 실측, 2026-08-01) — 이 경우 "channel"을 채운다.
     "tiers": None,
     "conditions": None,         # 그 외 문구 그대로 (예: "1일 1회, 배달만")
     "expires_at": None,         # 행사(쿠폰) 종료 예정일, ISO date (예: "2026-07-31")
@@ -45,6 +49,8 @@ def validate_tiers(tiers) -> None:
             raise ValueError(f"tier needs min_order and amount: {tier!r}")
         if "percent" in tier and not (isinstance(tier["percent"], (int, float)) and 0 < tier["percent"] <= 100):
             raise ValueError(f"tier percent must be in (0, 100]: {tier!r}")
+        if "channel" in tier and tier["channel"] not in ALLOWED_CHANNELS:
+            raise ValueError(f"invalid tier channel: {tier!r}")
 
 
 def validate_record(record: dict) -> dict:

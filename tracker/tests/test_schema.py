@@ -92,3 +92,19 @@ def test_validate_record_rejects_percent_out_of_range():
         validate_record(dict(BASE, tiers=[{"min_order": 25000, "amount": 3000, "percent": 0}]))
     with pytest.raises(ValueError):
         validate_record(dict(BASE, tiers=[{"min_order": 25000, "amount": 3000, "percent": 101}]))
+
+
+def test_validate_record_keeps_channel_tier():
+    # 땡겨요 바른치킨 실측(2026-08-01): 같은 min_order 19900에 배달
+    # 4,000원/포장 5,000원으로 채널마다 금액이 다른 별개 쿠폰.
+    record = validate_record(dict(BASE, tiers=[
+        {"min_order": 19900, "amount": 4000, "channel": "배달"},
+        {"min_order": 19900, "amount": 5000, "channel": "포장"},
+    ]))
+    assert record["tiers"][0]["channel"] == "배달"
+    assert record["tiers"][1]["channel"] == "포장"
+
+
+def test_validate_record_rejects_invalid_tier_channel():
+    with pytest.raises(ValueError):
+        validate_record(dict(BASE, tiers=[{"min_order": 19900, "amount": 4000, "channel": "드라이브스루"}]))
