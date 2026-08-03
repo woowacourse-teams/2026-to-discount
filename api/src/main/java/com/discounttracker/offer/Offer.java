@@ -19,12 +19,12 @@ public record Offer(String platform, Integer amount, String qualifier,
                     @JsonIgnore OfferStatus status,
                     String rawText, @JsonIgnore String screenshotPath, String capturedAt,
                     Integer minOrderAmount, List<DiscountTier> tiers, String conditions,
-                    String expiresAt, String badge) {
+                    String expiresAt, String badge, boolean soldOut) {
 
     public static Offer from(OfferRecord r) {
         return new Offer(r.platform(), r.amount(), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
-                r.minOrderAmount(), r.tiers(), r.conditions(), r.expiresAt(), r.badge());
+                r.minOrderAmount(), r.tiers(), r.conditions(), r.expiresAt(), r.badge(), r.soldOut());
     }
 
     @JsonProperty("status")
@@ -100,7 +100,9 @@ public record Offer(String platform, Integer amount, String qualifier,
                 && mergedExpiresAt == expiresAt && mergedBadge == badge) {
             return this;
         }
+        // soldOut은 병합하지 않는다 — 이긴 쪽 자신의 amount에 매인 상태라
+        // 진 쪽에서 옮겨 붙이면 관계없는 확정 레코드가 잘못 품절로 보인다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                mergedMinOrder, mergedTiers, mergedConditions, mergedExpiresAt, mergedBadge);
+                mergedMinOrder, mergedTiers, mergedConditions, mergedExpiresAt, mergedBadge, soldOut);
     }
 }

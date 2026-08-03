@@ -25,7 +25,8 @@ public record OfferRecord(
         List<DiscountTier> tiers,
         String conditions,
         String expiresAt,
-        String badge
+        String badge,
+        boolean soldOut
 ) {
 
     /**
