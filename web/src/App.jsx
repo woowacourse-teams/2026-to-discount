@@ -14,13 +14,15 @@ const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 // 없어서 못 만듦). 앱 공유 기능으로 받은 링크로 앱을 연다. 브랜드별 진짜
 // 딥링크는 나중에 별도로 찾는다.
 //
-// coupangeats 링크는 ADB(dumpsys activity top)로 실기 WebView의
-// webview.encodeurl을 그대로 뽑은 와우컬렉션(와우 라운지) 진입 URL이다
-// (2026-08-03). key에 날짜(0803)가 박혀 있어 로테이트되는 프로모션
-// 링크로 보인다 — 날짜 지나면 깨질 수 있으니 주기적으로 같은 방법으로
-// 재확인·교체해야 한다. 날짜 없는 고정 진입점은 아직 못 찾음.
+// coupangeats: 와우컬렉션 WebView URL(webview.encodeurl, ADB로 확인)을
+// 넣어봤는데 앱 밖에서 열면 "쿠팡이츠는 앱에서만 볼 수 있습니다" 차단
+// 페이지로 감(2026-08-03, ADB로 직접 그 URL을 VIEW 인텐트로 열어
+// 재현·확인). 이 URL은 앱이 홈 아이콘 탭으로 자기 WebView에 로드할 때만
+// 통하는 내부 전용 경로라 외부 딥링크로는 원천적으로 안 된다 — 공유
+// 기능도 이 화면엔 없다(버튼 자체가 없음). 그냥 앱 여는 범용 링크로
+// 되돌린다.
 const PLATFORM_APP_LINKS = {
-  coupangeats: 'https://eats-mobile-web.coupang.com/promotion/landing-page-v5?key=V5_WOW_LOUNGE_0803_AC',
+  coupangeats: 'https://share.coupangeats.com/RM8HgQyr64b',
   yogiyo: 'https://url.customer.yogiyo.co.kr/MUVJRHpYU2',
 }
 
