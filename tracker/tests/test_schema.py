@@ -59,11 +59,19 @@ def test_validate_record_detail_fields_default_to_none():
     assert record["tiers"] is None
     assert record["conditions"] is None
     assert record["expires_at"] is None
+    assert record["badge"] is None
 
 
 def test_validate_record_keeps_expires_at():
     record = validate_record(dict(BASE, expires_at="2026-08-31"))
     assert record["expires_at"] == "2026-08-31"
+
+
+def test_validate_record_keeps_badge():
+    # 쿠팡이츠 메가MGC커피 실측(2026-08-03): 목록 액면 금액이 실제로는
+    # 재고 소진 상태라 상세를 안 열어도 바로 보이게 짧은 라벨을 붙인다.
+    record = validate_record(dict(BASE, badge="선착순 품절"))
+    assert record["badge"] == "선착순 품절"
 
 
 def test_validate_record_keeps_tiers():

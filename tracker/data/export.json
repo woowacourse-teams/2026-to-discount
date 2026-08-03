@@ -23,7 +23,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-07-31"
+  "expiresAt": "2026-07-31",
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -49,7 +50,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-07-31"
+  "expiresAt": "2026-07-31",
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -75,7 +77,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-08-09"
+  "expiresAt": "2026-08-09",
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -91,7 +94,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -107,7 +111,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -123,7 +128,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -139,7 +145,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -155,7 +162,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -171,7 +179,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -187,7 +196,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -203,7 +213,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -219,7 +230,8 @@
   "minOrderAmount": 20000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -235,7 +247,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -251,7 +264,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -267,7 +281,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -283,7 +298,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -299,7 +315,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -315,7 +332,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -341,7 +359,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-07-31"
+  "expiresAt": "2026-07-31",
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -357,7 +376,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -373,7 +393,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -399,7 +420,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-08-09"
+  "expiresAt": "2026-08-09",
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -415,7 +437,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -431,7 +454,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -447,7 +471,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": "와우회원 랜덤박스(매일 무작위 지급, 표기 최대 2만원), 확인 시점 당첨가 4,000원·당일 08-03 한정",
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": "선착순"
  },
  {
   "platform": "coupangeats",
@@ -463,7 +488,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -479,7 +505,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -495,7 +522,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -511,7 +539,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -527,7 +556,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -543,7 +573,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -559,7 +590,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -575,7 +607,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -591,7 +624,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -607,7 +641,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -623,7 +658,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -639,7 +675,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -655,7 +692,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -671,7 +709,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -687,7 +726,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -703,7 +743,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -719,7 +760,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -735,7 +777,8 @@
   "minOrderAmount": 22000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -751,7 +794,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -767,7 +811,8 @@
   "minOrderAmount": 20000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-07-31"
+  "expiresAt": "2026-07-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -783,7 +828,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -799,7 +845,8 @@
   "minOrderAmount": 20000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -815,7 +862,8 @@
   "minOrderAmount": 17000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -831,7 +879,8 @@
   "minOrderAmount": 25000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -847,7 +896,8 @@
   "minOrderAmount": 22000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -863,7 +913,8 @@
   "minOrderAmount": 20000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -890,7 +941,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -906,7 +958,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -922,7 +975,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-07-31"
+  "expiresAt": "2026-07-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -938,7 +992,8 @@
   "minOrderAmount": 20000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -954,7 +1009,8 @@
   "minOrderAmount": 20000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -970,7 +1026,8 @@
   "minOrderAmount": 30000,
   "tiers": null,
   "conditions": "쿠폰 2종(4,000원, 6,000원) - 해당 쿠폰의 최소주문금액은 21,000원과 30,000원입니다. 단, 가맹점에서 설정한 최소주문금액이 있을 시 이를 우선합니다.",
-  "expiresAt": "2026-08-31"
+  "expiresAt": "2026-08-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -986,7 +1043,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1002,7 +1060,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1018,7 +1077,8 @@
   "minOrderAmount": 18900,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1034,7 +1094,8 @@
   "minOrderAmount": 19000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1050,7 +1111,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": "쿠폰 0종(미확인) - 최소주문금액은 가맹점에서 설정한 최소주문금액을 기준으로 설정됩니다.",
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1066,7 +1128,8 @@
   "minOrderAmount": 25000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1082,7 +1145,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1098,7 +1162,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1125,7 +1190,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-08-31"
+  "expiresAt": "2026-08-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1152,7 +1218,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-07-31"
+  "expiresAt": "2026-07-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1168,7 +1235,8 @@
   "minOrderAmount": 19900,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1184,7 +1252,8 @@
   "minOrderAmount": 15000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-08-02"
+  "expiresAt": "2026-08-02",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1200,7 +1269,8 @@
   "minOrderAmount": 17000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1216,7 +1286,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": "쿠폰 2종(3,000원, 5,000원) - 해당 쿠폰의 최소주문금액은 18,900원과 29,900원입니다. 단, 가맹점에서 설정한 최소주문금액이 있을 시 이를 우선합니다.",
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1232,7 +1303,8 @@
   "minOrderAmount": 18900,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1248,7 +1320,8 @@
   "minOrderAmount": 17900,
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-08-31"
+  "expiresAt": "2026-08-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1264,7 +1337,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1280,7 +1354,8 @@
   "minOrderAmount": 20000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1296,7 +1371,8 @@
   "minOrderAmount": 19900,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1312,7 +1388,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1341,7 +1418,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1357,7 +1435,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1373,7 +1452,8 @@
   "minOrderAmount": 25000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1389,7 +1469,8 @@
   "minOrderAmount": 25900,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1405,7 +1486,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1421,7 +1503,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1437,7 +1520,8 @@
   "minOrderAmount": 15000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1453,7 +1537,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1469,7 +1554,8 @@
   "minOrderAmount": 20000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1485,7 +1571,8 @@
   "minOrderAmount": 21900,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1501,7 +1588,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1517,7 +1605,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-08-31"
+  "expiresAt": "2026-08-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -1533,7 +1622,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1549,7 +1639,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1565,7 +1656,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1581,7 +1673,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1597,7 +1690,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1613,7 +1707,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1629,7 +1724,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1645,7 +1741,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1661,7 +1758,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1677,7 +1775,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1693,7 +1792,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1709,7 +1809,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1725,7 +1826,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1741,7 +1843,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1757,7 +1860,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1773,7 +1877,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": "퍼센트 할인, 상한액 미표시",
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1789,7 +1894,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1805,7 +1911,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1821,7 +1928,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1837,7 +1945,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1853,7 +1962,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1869,7 +1979,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "baemin",
@@ -1885,7 +1996,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -1901,7 +2013,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -1930,7 +2043,8 @@
    }
   ],
   "conditions": "20,000원 티어 품절(수량없음), 확인 시점 기준",
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": "선착순 품절"
  },
  {
   "platform": "coupangeats",
@@ -1946,7 +2060,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -1962,7 +2077,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -1978,7 +2094,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -1994,7 +2111,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": "와우회원 랜덤박스(매일 무작위 지급, 표기 최대 2만원), 확인 시점 당첨가 3,000원·당일 08-03 한정",
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": "선착순"
  },
  {
   "platform": "coupangeats",
@@ -2010,7 +2128,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -2026,7 +2145,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -2042,7 +2162,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -2058,7 +2179,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -2074,7 +2196,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -2090,7 +2213,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -2106,7 +2230,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "coupangeats",
@@ -2122,7 +2247,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -2138,7 +2264,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": "퍼센트 할인, 상한액 미표시",
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -2154,7 +2281,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": "퍼센트 할인, 상한액 미표시",
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -2170,7 +2298,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -2186,7 +2315,8 @@
   "minOrderAmount": null,
   "tiers": null,
   "conditions": null,
-  "expiresAt": null
+  "expiresAt": null,
+  "badge": null
  },
  {
   "platform": "yogiyo",
@@ -2212,7 +2342,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-08-09"
+  "expiresAt": "2026-08-09",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -2241,7 +2372,8 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-08-31"
+  "expiresAt": "2026-08-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -2257,7 +2389,8 @@
   "minOrderAmount": 18000,
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-08-31"
+  "expiresAt": "2026-08-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -2273,7 +2406,8 @@
   "minOrderAmount": 19900,
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-08-31"
+  "expiresAt": "2026-08-31",
+  "badge": null
  },
  {
   "platform": "ddangyo",
@@ -2298,6 +2432,7 @@
    }
   ],
   "conditions": null,
-  "expiresAt": "2026-08-31"
+  "expiresAt": "2026-08-31",
+  "badge": null
  }
 ]

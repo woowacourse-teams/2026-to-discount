@@ -98,3 +98,9 @@ def test_build_export_carries_channel_tier():
         {"minOrder": 19900, "amount": 4000, "channel": "배달"},
         {"minOrder": 19900, "amount": 5000, "channel": "포장"},
     ]
+
+
+def test_build_export_carries_badge():
+    records = [dict(RECORDS[1], badge="선착순 품절")]
+    item = build_export(records)[0]
+    assert item["badge"] == "선착순 품절"
