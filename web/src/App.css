@@ -29,15 +29,15 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
 
 .update-notice {
   position: fixed;
-  top: .75rem;
-  right: .75rem;
+  top: 1.5rem;
+  right: 1.5rem;
   z-index: 50;
-  max-width: min(70vw, 18rem);
-  padding: .4rem .7rem;
-  border-radius: .5rem;
+  max-width: min(70vw, 36rem);
+  padding: .8rem 1.4rem;
+  border-radius: 1rem;
   background: rgba(149, 100, 0, 0.4);
   color: #fff;
-  font-size: .75rem;
+  font-size: 1.5rem;
   line-height: 1.4;
   text-align: right;
   pointer-events: none;
