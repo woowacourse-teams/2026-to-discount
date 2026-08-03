@@ -862,6 +862,7 @@ h1 {
 }
 .detail__tier-min { color: var(--text-muted); }
 .detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+.detail__tier-amount--soldout { opacity: .5; }
 .detail__condition-note { margin: .3rem 0 0; color: var(--text-muted); }
 
 /* 맨 아래: 이 서비스가 무엇이고 정보를 어떻게 모았는지 밝히는 자리.

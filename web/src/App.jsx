@@ -225,9 +225,14 @@ function OfferDetail({ offer }) {
             {rows.map((t, i) => (
               <li key={i} className="detail__tier">
                 <span className="detail__tier-amount">
-                  {t.amount != null
-                    ? won(t.amount)
-                    : <span className="detail__unknown">금액 미확인</span>}
+                  {t.amount == null ? (
+                    <span className="detail__unknown">금액 미확인</span>
+                  ) : t.soldOut ? (
+                    <>
+                      <s className="detail__tier-amount--soldout">{won(t.amount)}</s>
+                      <span className="offer__soldout-label">품절</span>
+                    </>
+                  ) : won(t.amount)}
                 </span>
                 <span className="detail__tier-min">
                   {t.minOrder != null
