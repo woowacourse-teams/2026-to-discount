@@ -1477,22 +1477,6 @@
  },
  {
   "platform": "ddangyo",
-  "brand": "던킨",
-  "amount": null,
-  "qualifier": "최대",
-  "needsReview": true,
-  "offerType": "discount",
-  "section": "선착순 할인쿠폰",
-  "rawText": "최대 12,000원 할인",
-  "capturedAt": "2026-07-30T17:33:00+09:00",
-  "screenshotPath": "ref/delivery/detail/ddangyo_2026-07-30_00.png",
-  "minOrderAmount": null,
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-07-30"
- },
- {
-  "platform": "ddangyo",
   "brand": "bhc",
   "amount": 4000,
   "qualifier": null,
