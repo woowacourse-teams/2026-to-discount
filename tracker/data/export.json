@@ -470,7 +470,7 @@
   "screenshotPath": "ref/delivery/2026-08-03/coupangeats.jpg",
   "minOrderAmount": 18000,
   "tiers": null,
-  "conditions": "와우회원 랜덤박스(매일 무작위 지급, 표기 최대 2만원), 확인 시점 당첨가 4,000원·당일 08-03 한정",
+  "conditions": "쿠팡와우 대상, 최대 20,000원 랜덤박스",
   "expiresAt": null,
   "badge": "선착순"
  },
@@ -2042,7 +2042,7 @@
     "amount": 3000
    }
   ],
-  "conditions": "20,000원 티어 품절(수량없음), 확인 시점 기준",
+  "conditions": "선착순 재고 소진(20,000원 품절)",
   "expiresAt": null,
   "badge": "선착순 품절"
  },
@@ -2110,7 +2110,7 @@
   "screenshotPath": "ref/delivery/2026-08-03/coupangeats.jpg",
   "minOrderAmount": 18000,
   "tiers": null,
-  "conditions": "와우회원 랜덤박스(매일 무작위 지급, 표기 최대 2만원), 확인 시점 당첨가 3,000원·당일 08-03 한정",
+  "conditions": "쿠팡와우 대상, 최대 20,000원 랜덤박스",
   "expiresAt": null,
   "badge": "선착순"
  },
