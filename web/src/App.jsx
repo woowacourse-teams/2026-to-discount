@@ -155,13 +155,13 @@ function detailRows(offer) {
 // 버튼이 된다(링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
 function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
   const held = offer.status === 'held'
-  const showRangeBadge = offer.qualifier === '최대'
+  const showRangeBadge = offer.qualifier !== null
   const link = brandLinks?.[offer.platform] ?? PLATFORM_APP_LINKS[offer.platform]
 
   const content = (
     <>
       <span className="offer__amount">
-        {showRangeBadge && <span className="offer__range-badge">최대</span>}
+        {showRangeBadge && <span className="offer__range-badge">{offer.qualifier}</span>}
         {offer.badge && <span className="offer__status-badge">{offer.badge}</span>}
         {offer.soldOut ? (
           <>
