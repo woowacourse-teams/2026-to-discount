@@ -118,10 +118,13 @@ function PlatformBadge({ platformKey }) {
 }
 
 function BrandLogo({ name }) {
+  const fileName = name
+      .replace(/[^a-zA-Z0-9가-힣]+/g, '_')
+      .replace(/^_|_$/g, '');
   return (
     <span className="brand-logo">
       <img
-        src={assetSrc('/logos', name)}
+        src={assetSrc('/logos', fileName)}
         alt={name}
         onLoad={hideSiblingFallback}
         onError={(e) => { e.currentTarget.style.display = 'none' }}
