@@ -119,6 +119,25 @@ class OfferRepositoryTest {
     }
 
     @Test
+    void nullSoldOutDoesNotBreakReload() {
+        // 실측(2026-08-04, 사용자가 export.json에 브랜드를 수동으로 추가):
+        // "soldOut": null을 넣었더니 reload가 통째로 실패해 그 브랜드는커녕
+        // 원장 전체가 안 떴다. soldOut이 primitive boolean이라 JSON null을
+        // 못 받아 MismatchedInputException이 났다 — 사람이 손으로 채우는
+        // 값이니 null도 받아야 한다.
+        OfferRepository repo = repositoryFor("""
+            [{"platform":"baemin","brand":"호식이두마리치킨","amount":4000,"qualifier":"최대",
+              "needsReview":false,"offerType":"discount","section":null,
+              "rawText":"알뜰배달 4,000원 할인","capturedAt":"2026-08-04T13:25:00+09:00",
+              "screenshotPath":"x.jpg","minOrderAmount":21000,"tiers":null,"conditions":null,
+              "expiresAt":null,"badge":"배민클럽 전용쿠폰","soldOut":null}]
+            """);
+        assertEquals(1, repo.findAll().size());
+        assertEquals("호식이두마리치킨", repo.findAll().get(0).brand());
+        assertNull(repo.findAll().get(0).soldOut());
+    }
+
+    @Test
     void missingAmountIsHeld() {
         OfferRepository repo = repositoryFor("""
             [{"platform":"yogiyo","brand":"맥도날드","amount":null,"qualifier":"최대",

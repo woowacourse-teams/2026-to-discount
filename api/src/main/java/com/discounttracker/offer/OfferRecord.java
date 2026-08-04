@@ -26,7 +26,11 @@ public record OfferRecord(
         String conditions,
         String expiresAt,
         String badge,
-        boolean soldOut
+        // Boolean(nullable)이다 — primitive boolean이면 JSON에 "soldOut":null이
+        // 들어올 때 MismatchedInputException으로 reload 전체가 깨진다(사람이
+        // 직접 export.json을 편집하다 실측, 2026-08-04). null은 false로
+        // 본다(Offer.from에서 정규화).
+        Boolean soldOut
 ) {
 
     /**

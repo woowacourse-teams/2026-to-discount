@@ -24,7 +24,8 @@ public record Offer(String platform, Integer amount, String qualifier,
     public static Offer from(OfferRecord r) {
         return new Offer(r.platform(), r.amount(), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
-                r.minOrderAmount(), r.tiers(), r.conditions(), r.expiresAt(), r.badge(), r.soldOut());
+                r.minOrderAmount(), r.tiers(), r.conditions(), r.expiresAt(), r.badge(),
+                Boolean.TRUE.equals(r.soldOut()));
     }
 
     @JsonProperty("status")
