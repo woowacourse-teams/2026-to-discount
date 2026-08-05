@@ -19,7 +19,32 @@ jobs:
         # cp는 서버 파일을 통째로 갈아치운다 — 커밋이 서버 실물보다 뒤처져
         # 있으면 푸시 한 번에 서버 쪽 데이터가 사라진다(2026-08-05 실측:
         # 서버 138건 vs 커밋 135건). 낡은 파일이면 여기서 멈춘다.
-        run: python check_deploy.py data/export.json ~/delivery-discount-api/data/export.json
+        #
+        # 같은 판정을 하는 check_deploy.py가 있지만(테스트도 거기 붙어 있다)
+        # 여기서는 부르지 않는다 — 이 워크플로는 원래 bash와 curl만 쓰고
+        # 있었고, 러너에 python이 PATH에 있는지 검증된 적이 없다. 실제로
+        # `python check_deploy.py`로 넣었다가 이 스텝에서 배포가 끊겼다
+        # (2026-08-05). 판정은 ISO8601 문자열 최대값 비교라 coreutils로
+        # 충분하니, 가드가 자기 의존성 때문에 배포를 막는 일이 없게 한다.
+        run: |
+          SERVER=~/delivery-discount-api/data/export.json
+          if [ ! -f "$SERVER" ]; then
+            echo "서버에 export.json이 없다 — 첫 배포로 보고 통과"
+            exit 0
+          fi
+          newest() {
+            grep -o '"capturedAt"[[:space:]]*:[[:space:]]*"[^"]*"' "$1" \
+              | sed 's/.*"\([^"]*\)"$/\1/' | sort | tail -1
+          }
+          INCOMING=$(newest data/export.json)
+          CURRENT=$(newest "$SERVER")
+          echo "들어오는 최신 캡처: ${INCOMING:-없음} / 서버: ${CURRENT:-없음}"
+          if [ "$INCOMING" \< "$CURRENT" ]; then
+            echo "배포 중단: 커밋된 export.json이 서버보다 낡았다."
+            echo "서버 쪽 갱신을 원장에 먼저 흡수할 것."
+            exit 1
+          fi
+          echo "배포 안전"
 
       - name: Deploy export.json to API and reload
         # export.json이 새 필드를 실어 나르면(예: badge, channel), 그 필드를
