@@ -90,8 +90,13 @@ def main(argv: list[str]) -> int:
         winners = wins_after_ingest(fresh, existing)
         for record in fresh:
             key = (record["platform"], record["brand"])
-            mark = "반영됨" if winners[key] is record else "기존 레코드에 짐"
-            print(f"  {record['brand']} / {record['platform']} -> {mark}")
+            # 객체 동일성(`is`)으로 비교하면 안 된다 — _prefer는 이긴 쪽을
+            # 그대로 돌려주지 않고 진 쪽의 상세를 병합한 새 dict를 만든다.
+            # 그래서 이겼는데도 늘 "졌다"고 나온다(2026-08-05에 실제로
+            # 108건 중 60건을 틀리게 보고했다).
+            won = _identity(winners[key]) == _identity(record)
+            print(f"  {record['brand']} / {record['platform']} -> "
+                  f"{'반영됨' if won else '기존 레코드에 짐'}")
         return 0
 
     for record in fresh:

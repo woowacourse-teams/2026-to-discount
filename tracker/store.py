@@ -81,7 +81,12 @@ def _prefer(current: dict, incoming: dict) -> dict:
 
     merged = dict(winner)
     if _same_coupon(winner, loser):
-        for field in ("min_order_amount", "tiers", "conditions"):
+        # API Offer.withDetailFrom과 같은 목록이어야 한다(ADR-016). 여기가
+        # 3개(min_order_amount/tiers/conditions)뿐이라 expires_at·badge가
+        # 병합되지 않아, 같은 원장을 tracker로 내보낼 때와 API가 읽을 때
+        # 결과가 달랐다 — 2026-08-05 백필 검증에서 땡겨요 bhc치킨·멕시카나
+        # 등의 만료일이 export 재생성에서 사라지며 드러났다.
+        for field in ("min_order_amount", "tiers", "conditions", "expires_at", "badge"):
             if merged.get(field) is None and loser.get(field) is not None:
                 merged[field] = loser[field]
     return merged

@@ -75,6 +75,22 @@ def test_main_refuses_the_whole_batch_when_any_record_is_invalid(tmp_path, monke
     assert not log.exists()
 
 
+def test_dry_run_reports_a_winning_record_as_reflected(tmp_path, monkeypatch, capsys):
+    """_prefer는 이긴 쪽을 그대로 돌려주지 않고 병합한 새 dict를 만든다 —
+    객체 동일성으로 비교하면 이겨도 '졌다'고 나온다."""
+    log = tmp_path / "log.jsonl"
+    monkeypatch.setattr(ingest, "LOG_PATH", log)
+    log.write_text(json.dumps(
+        rec(amount=7000, captured="2026-07-27T14:25:00+09:00", needs_review=True)) + "\n",
+        encoding="utf-8")
+    src = tmp_path / "in.json"
+    src.write_text(json.dumps([rec(amount=4000, captured="2026-07-31T14:30:00+09:00")]),
+                   encoding="utf-8")
+
+    ingest.main(["ingest.py", str(src), "--dry-run"])
+    assert "반영됨" in capsys.readouterr().out
+
+
 def test_dry_run_writes_nothing(tmp_path, monkeypatch):
     log = tmp_path / "log.jsonl"
     monkeypatch.setattr(ingest, "LOG_PATH", log)

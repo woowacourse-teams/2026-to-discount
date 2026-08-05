@@ -2,7 +2,11 @@ ALLOWED_PLATFORMS = {"baemin", "coupangeats", "yogiyo", "ddangyo", "specialdeliv
 ALLOWED_QUALIFIERS = {None, "최대", "최소"}
 ALLOWED_SCOPES = {"brand", "store"}
 ALLOWED_OFFER_TYPES = {"discount", "gift", "coupon", "unknown"}
-ALLOWED_CAPTURE_MODES = {"auto", "manual"}
+# backfill: 원장이 아니라 export.json에 먼저 들어갔던 관측을 뒤늦게 원장으로
+# 옮긴 것(2026-08-05). 화면을 다시 본 게 아니라 파생 결과에서 되돌린 값이라
+# target_address 같은 캡처 맥락 일부를 추정으로 채웠다 — auto/manual과 같은
+# 신뢰도로 취급하면 안 되므로 출처를 구분해서 남긴다.
+ALLOWED_CAPTURE_MODES = {"auto", "manual", "backfill"}
 ALLOWED_CHANNELS = {"배달", "포장", "매장식사"}
 
 REQUIRED_FIELDS = (
