@@ -788,29 +788,34 @@ export default function App() {
           ) : (
             <AmountBandSlider mode={classifyBy} bands={tabs} active={filterKey} onSelect={handleFilterSelect} />
           )}
-          <SearchControl value={search} onChange={setSearch} />
-        </div>
-      </div>
-
-      <div className="membership-row">
-        <div className="membership">
-          <button
-            type="button"
-            className="membership-trigger"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((v) => {
-              if (!v) track('membership_open')
-              return !v
-            })}
-          >
-            멤버십(배클/와우/패스) <span className="pill pill--pending">적용</span>
-          </button>
-          <MembershipMenu
-            open={menuOpen}
-            onClose={() => setMenuOpen(false)}
-            selected={membership}
-            onToggle={toggleMembership}
-          />
+          {/* 멤버십 버튼 + 검색을 한 그룹으로 묶어 레이블 줄 오른쪽 끝에
+              띄운다(position:absolute, .toolbar__actions) — 같은 flex
+              행 안에 있어서 검색이 펼쳐져 폭이 늘어나면 그 왼쪽에 있는
+              멤버십 버튼도 자연히 같이 밀려난다("검색버튼이랑 같이 이동"),
+              별도 좌표 계산이 필요 없다. */}
+          <div className="toolbar__actions">
+            <div className="membership">
+              <button
+                type="button"
+                className="membership-trigger"
+                aria-expanded={menuOpen}
+                aria-label="멤버십(배민클럽/와우/패스) 적용"
+                onClick={() => setMenuOpen((v) => {
+                  if (!v) track('membership_open')
+                  return !v
+                })}
+              >
+                멤버십 <span className="pill pill--pending">구현예정</span>
+              </button>
+              <MembershipMenu
+                open={menuOpen}
+                onClose={() => setMenuOpen(false)}
+                selected={membership}
+                onToggle={toggleMembership}
+              />
+            </div>
+            <SearchControl value={search} onChange={setSearch} />
+          </div>
         </div>
       </div>
 

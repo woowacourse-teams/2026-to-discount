@@ -92,14 +92,8 @@ h1 {
 }
 .pill--pending { background: var(--pending-bg); color: var(--pending-text); }
 
-/* 멤버십 버튼은 이제 헤더가 아니라 카테고리 레이블 줄 아래, 오른쪽에
-   붙는다("레이블 우측 아래"로 재배치 요청). */
-.membership-row {
-  display: flex;
-  justify-content: flex-end;
-  margin: .3rem 0 1.1rem;
-}
-/* 멤버십 트리거 버튼 + 드롭다운의 위치 기준. */
+/* 멤버십 트리거 버튼 + 드롭다운의 위치 기준. .toolbar__actions 안,
+   레이블 줄 오른쪽에 검색 아이콘과 한 그룹으로 플로팅한다. */
 .membership { position: relative; flex: none; }
 
 .membership-trigger {
@@ -319,42 +313,35 @@ h1 {
   gap: .35rem;
 }
 
-/* 검색 — 레이블 행 오른쪽 끝에 떠 있는 아이콘 버튼(position:absolute,
-   .toolbar__labels 기준). 닫힌 상태는 다른 원형 아이콘 버튼(▾, ?)과
-   높이를 맞춘 26px 원. 열리면 입력창으로 바뀌어 같은 자리에서 왼쪽으로
-   자라며 카테고리 탭 위를 덮는다 — 불투명 배경 + 탭보다 높은 z-index라
-   덮인 부분의 활성 탭 하이라이트도 함께 가려진다. 포커스를 잃으면 다시
-   아이콘 버튼으로 접힌다(App.jsx SearchControl). */
-.search-control {
+/* 멤버십 버튼 + 검색, 레이블 행 오른쪽 끝에 한 그룹으로 떠 있는다
+   (position:absolute, .toolbar__labels 기준) — 자기 폭만큼 자리를
+   차지하지 않는다. 같은 flex 행이라 검색이 펼쳐져 폭이 늘어나면 그
+   왼쪽의 멤버십 버튼도 같이 밀려난다(별도 좌표 계산 없이 flex만으로). */
+.toolbar__actions {
   position: absolute;
   top: 50%;
   right: 0;
-  width: 26px;
-  height: 26px;
   transform: translateY(-50%);
   z-index: 6;
-  /* 양 끝을 천천히(느리게 시작, 느리게 끝) 움직이는 ease-in-out 커브 —
-     펼쳐지고 줄어드는 동작이 뚝뚝 끊기지 않고 인터랙티브하게 보인다.
-     top/width/height/transform 넷 다 닫힌 쪽에도 반드시 구체적인 값을
-     줘야 한다 — `auto`나 `none`에서/으로는 브라우저가 보간을 못 해
-     transition을 걸어도 그 속성만 즉시 점프해 버린다(실기 확인).
-     그래서 열렸을 때도 `left` 대신 `right:0`을 유지한 채 `width`를
-     늘리는 쪽으로 통일했다. */
-  transition: top 220ms cubic-bezier(.65, 0, .35, 1),
-              width 220ms cubic-bezier(.65, 0, .35, 1),
-              height 220ms cubic-bezier(.65, 0, .35, 1),
-              transform 220ms cubic-bezier(.65, 0, .35, 1);
+  display: flex;
+  align-items: center;
+  gap: .35rem;
 }
-/* 열렸을 때는 폭을 고정값(px/vw)으로 재지 않는다 — 화면이 좁아 활성 탭이
-   ▾/? 바로 옆(왼쪽 끝 가까이)에 있으면 고정폭 입력창이 거기까지 못 닿아
-   탭 배경이 밑에서 삐져나와 보였다. width를 "전체 - ▾/?(각 26px 원형
-   버튼) 자리"로 계산해서 남은 레이블 영역을 항상 끝까지 덮는다. */
+
+/* 검색 — 닫힌 상태는 다른 원형 아이콘 버튼(▾, ?, 멤버십)과 높이를 맞춘
+   26px 원. 열리면 입력창으로 바뀌며 폭만 늘어난다(화면 절반 정도까지 —
+   레이블 행 전체를 덮진 않는다) — 나머지(top/height/위치)는 그대로라
+   같은 flex 행 안에서 자기 자리만 넓히고, 늘어난 만큼 왼쪽 형제(멤버십
+   버튼)가 밀려난다. 포커스를 잃으면 다시 아이콘 버튼으로 접힌다
+   (App.jsx SearchControl). */
+.search-control {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  transition: width 220ms cubic-bezier(.65, 0, .35, 1);
+}
 .search-control--open {
-  top: 0;
-  right: 0;
-  width: calc(100% - 64px);
-  height: 100%;
-  transform: translateY(0);
+  width: min(50vw, 320px);
   display: flex;
   align-items: center;
 }
