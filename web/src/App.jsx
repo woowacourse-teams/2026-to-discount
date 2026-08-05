@@ -21,9 +21,14 @@ const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 // 통하는 내부 전용 경로라 외부 딥링크로는 원천적으로 안 된다 — 공유
 // 기능도 이 화면엔 없다(버튼 자체가 없음). 그냥 앱 여는 범용 링크로
 // 되돌린다.
+// ddangyo: 브랜드별 gateway4.html 코드 대부분이 만료돼 "이벤트 준비중"
+// 화면으로 떨어졌다(실기 ADB 확인, 2026-08-05) — 아직 살아있는
+// gateway.html 코드(청년피자·피자알볼로)만 brands.yml에 남기고 나머지는
+// 이 범용 링크(Play 스토어)로 돌린다.
 const PLATFORM_APP_LINKS = {
   coupangeats: 'https://share.coupangeats.com/RM8HgQyr64b',
   yogiyo: 'https://url.customer.yogiyo.co.kr/MUVJRHpYU2',
+  ddangyo: 'https://play.google.com/store/apps/details?id=com.shinhan.o2o',
 }
 
 // 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
