@@ -33,6 +33,22 @@ def test_expired_promotion_removal_is_not_blocked():
     assert vanishing(incoming, server) == [("bhc", "ddangyo")]
 
 
+def test_detail_loss_is_blocked_even_when_capture_times_match():
+    """2026-08-05 실측 재현: 캡처 시각이 같아 통과했는데 상세만 사라졌다."""
+    server = [dict(rec("청년피자", "ddangyo", "2026-07-31T16:00:00+09:00"),
+                   tiers=[{"minOrder": 18900, "amount": 9000}], badge="포장 +1,000")]
+    incoming = [dict(rec("청년피자", "ddangyo", "2026-07-31T16:00:00+09:00"),
+                     tiers=None, badge=None)]
+    assert staleness(incoming, server) is not None
+
+
+def test_filling_in_a_previously_empty_detail_is_fine():
+    server = [rec("청년피자", "ddangyo", "2026-07-31T16:00:00+09:00")]
+    incoming = [dict(rec("청년피자", "ddangyo", "2026-07-31T16:00:00+09:00"),
+                     badge="포장 +1,000")]
+    assert staleness(incoming, server) is None
+
+
 def test_main_blocks_stale_and_reports_vanishing(tmp_path, capsys):
     server = tmp_path / "server.json"
     incoming = tmp_path / "incoming.json"

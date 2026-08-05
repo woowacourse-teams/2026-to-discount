@@ -1363,7 +1363,7 @@
   {
     "platform": "ddangyo",
     "brand": "청년피자",
-    "amount": 5000,
+    "amount": 9000,
     "qualifier": null,
     "needsReview": false,
     "offerType": "discount",
@@ -1372,10 +1372,19 @@
     "capturedAt": "2026-07-31T16:00:00+09:00",
     "screenshotPath": "ref/delivery/detail/ddangyo_2026-07-31_청년피자.png",
     "minOrderAmount": 18900,
-    "tiers": null,
+    "tiers": [
+      {
+        "minOrder": 18900,
+        "amount": 9000
+      },
+      {
+        "minOrder": 18900,
+        "amount": 5000
+      }
+    ],
     "conditions": null,
     "expiresAt": "2026-08-05",
-    "badge": null,
+    "badge": "포장 +1,000",
     "soldOut": null
   },
   {

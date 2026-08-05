@@ -39,6 +39,42 @@ def vanishing(incoming: list[dict], server: list[dict]) -> list[tuple[str, str]]
     return sorted({key(r) for r in server} - have)
 
 
+# 채워져 있던 값이 비면 정보가 사라진 것이다. amount는 값이 바뀌는 게
+# 정상이라 뺀다 — 여기 있는 건 "있다가 없어지면 되돌릴 수 없는" 상세뿐이다.
+DETAIL_FIELDS = ("tiers", "badge", "minOrderAmount", "conditions", "expiresAt")
+
+
+def losing_detail(incoming: list[dict], server: list[dict]) -> list[str]:
+    """서버엔 채워져 있는데 들어오는 쪽에선 비는 상세 필드.
+
+    캡처 시각 비교만으로는 이 경우를 못 잡는다 — 시각이 같은데 내용만
+    다르면 통과한다. 2026-08-05에 실제로 그렇게 뚫렸다: 서버의 청년피자
+    땡겨요 레코드가 tiers 2건과 badge("포장 +1,000")를 들고 있었는데,
+    같은 캡처 시각(07-31)의 로컬 사본은 그 값이 없었고 그대로 덮여
+    사라졌다. 로컬 사본이 서버와 같다고 가정하고 표본만 대조한 탓이다.
+    """
+    key = lambda r: (r.get("brand"), r.get("platform"))
+    # 한 (브랜드, 앱)에 레코드가 둘일 수 있다 — 배민 청년피자는 일반
+    # 4,000원과 배민클럽 7,500원이 따로 들어 있다. 키로 하나만 집으면
+    # 다른 쪽 레코드의 값과 비교해 엉뚱하게 "사라졌다"고 한다.
+    have: dict = {}
+    for record in incoming:
+        have.setdefault(key(record), []).append(record)
+
+    out = []
+    for record in server:
+        candidates = have.get(key(record))
+        if not candidates:
+            continue
+        for field in DETAIL_FIELDS:
+            if record.get(field) is None:
+                continue
+            if all(c.get(field) is None for c in candidates):
+                out.append(f"{record.get('brand')} / {record.get('platform')}: "
+                           f"{field} {record.get(field)!r} -> 없음")
+    return out
+
+
 def staleness(incoming: list[dict], server: list[dict]) -> str | None:
     """배포를 막아야 할 사유. 안전하면 None."""
     new, old = latest_capture(incoming), latest_capture(server)
@@ -46,6 +82,9 @@ def staleness(incoming: list[dict], server: list[dict]) -> str | None:
         return (f"배포하려는 export.json이 서버보다 낡았다 — "
                 f"최신 캡처 {new or '없음'} < 서버 {old}. "
                 f"서버 쪽 갱신을 원장에 먼저 흡수할 것.")
+    lost = losing_detail(incoming, server)
+    if lost:
+        return ("서버에 있는 상세가 사라진다:\n    " + "\n    ".join(lost))
     return None
 
 
