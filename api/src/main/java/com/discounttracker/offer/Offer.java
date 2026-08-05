@@ -3,6 +3,7 @@ package com.discounttracker.offer;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -21,10 +22,17 @@ public record Offer(String platform, Integer amount, String qualifier,
                     Integer minOrderAmount, List<DiscountTier> tiers, String conditions,
                     String expiresAt, String badge, boolean soldOut) {
 
-    public static Offer from(OfferRecord r) {
-        return new Offer(r.platform(), r.amount(), r.qualifier(),
+    /**
+     * 원장 한 줄을 오늘 기준으로 화면에 내보낼 모습으로 바꾼다.
+     *
+     * <p>종료일이 지난 구간은 빼고, 대표 금액도 남은 구간에 맞춰 내린다
+     * ({@link OfferRecord#liveTiers}·{@link OfferRecord#amountAsOf}). 나머지
+     * 값은 원장 그대로다.
+     */
+    public static Offer from(OfferRecord r, LocalDate today) {
+        return new Offer(r.platform(), r.amountAsOf(today), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
-                r.minOrderAmount(), r.tiers(), r.conditions(), r.expiresAt(), r.badge(),
+                r.minOrderAmount(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
                 Boolean.TRUE.equals(r.soldOut()));
     }
 

@@ -11,11 +11,23 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ByteArrayResource;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BrandComparisonServiceTest {
+
+    private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
+
+    /**
+     * 만료 판정 기준 시각을 못박는다. 실제 시계를 쓰면 종료일이 든 레코드가
+     * 어느 날부터 조용히 걸러져서, 어제까지 통과하던 테스트가 오늘 깨진다.
+     */
+    private static final Clock FIXED_TODAY =
+            Clock.fixed(Instant.parse("2026-08-05T03:00:00Z"), SEOUL); // KST 2026-08-05 12:00
 
     /** 파일을 거치지 않고 레코드를 바로 넘기는 테스트용 저장소. */
     private OfferRepository repositoryWith(List<OfferRecord> records) {
@@ -30,7 +42,16 @@ class BrandComparisonServiceTest {
     }
 
     private BrandComparisonService serviceWith(List<OfferRecord> records, String yaml) {
-        return new BrandComparisonService(repositoryWith(records), catalogWith(yaml));
+        return serviceWith(records, yaml, FIXED_TODAY);
+    }
+
+    private BrandComparisonService serviceWith(List<OfferRecord> records, String yaml, Clock clock) {
+        return new BrandComparisonService(repositoryWith(records), catalogWith(yaml), clock);
+    }
+
+    /** KST 기준 그 날짜 정오를 가리키는 시계. */
+    private Clock on(String date) {
+        return Clock.fixed(Instant.parse(date + "T03:00:00Z"), SEOUL);
     }
 
     private OfferRecord rec(String platform, String brand, Integer amount,
@@ -263,5 +284,200 @@ class BrandComparisonServiceTest {
         assertEquals("신규브랜드", result.get(0).name());
         assertNull(result.get(0).categoryKey());
         assertTrue(result.get(0).links().isEmpty());
+    }
+
+    // --- 종료일 만료 (ADR-008) ---
+
+    /** 종료일·캡처시각을 지정하는 레코드. */
+    private OfferRecord recExpiring(String platform, String brand, Integer amount,
+                                    String expiresAt, String capturedAt) {
+        return new OfferRecord(platform, brand, amount, null, false,
+                "discount", null, amount + "원", capturedAt, "path.jpg",
+                null, null, null, expiresAt, null, false);
+    }
+
+    @Test
+    void keepsOfferOnDayBeforeExpiry() {
+        var result = serviceWith(
+                List.of(recExpiring("baemin", "브랜드", 5000, "2026-08-31", "2026-08-01T10:00:00+09:00")),
+                "brands: {}", on("2026-08-30")).compare();
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void keepsOfferOnItsExpiryDate() {
+        // "~2026.08.31 사용가능"은 그 날 자정까지 쓸 수 있다는 뜻이다.
+        var result = serviceWith(
+                List.of(recExpiring("baemin", "브랜드", 5000, "2026-08-31", "2026-08-01T10:00:00+09:00")),
+                "brands: {}", on("2026-08-31")).compare();
+        assertEquals(1, result.size());
+        assertEquals(5000, result.get(0).offers().get(0).amount());
+    }
+
+    @Test
+    void dropsOfferAfterExpiryDate() {
+        var result = serviceWith(
+                List.of(recExpiring("baemin", "브랜드", 5000, "2026-08-31", "2026-08-01T10:00:00+09:00")),
+                "brands: {}", on("2026-09-01")).compare();
+        assertTrue(result.isEmpty(), "종료일 다음 날이면 오퍼가 남지 않는다");
+    }
+
+    @Test
+    void keepsOfferWithoutExpiryDate() {
+        // 원장 대부분이 종료일 미확인이다. 모른다는 것과 끝났다는 것은 다르다.
+        var result = serviceWith(
+                List.of(recExpiring("baemin", "브랜드", 5000, null, "2026-08-01T10:00:00+09:00")),
+                "brands: {}", on("2027-01-01")).compare();
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void keepsOfferWithMalformedExpiryDate() {
+        // 판독이 잘못됐다고 살아 있을지 모르는 할인을 조용히 감추지 않는다.
+        var result = serviceWith(
+                List.of(recExpiring("baemin", "브랜드", 5000, "8월 말까지", "2026-08-01T10:00:00+09:00")),
+                "brands: {}", on("2027-01-01")).compare();
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void expiredOfferIsExcludedFromBrandMaxAmount() {
+        // 사라진 오퍼의 금액이 카드 대표값에 남으면 정렬이 거짓말을 한다.
+        var result = serviceWith(
+                List.of(recExpiring("baemin", "브랜드", 7000, "2026-08-31", "2026-08-01T10:00:00+09:00"),
+                        recExpiring("yogiyo", "브랜드", 3000, null, "2026-08-01T10:00:00+09:00")),
+                "brands: {}", on("2026-09-01")).compare();
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).offers().size());
+        assertEquals(3000, result.get(0).maxConfirmedAmount());
+    }
+
+    @Test
+    void expiredWinnerDoesNotTakeLiveOfferWithIt() {
+        // 중복 정리를 먼저 하면 만료된 5,000원이 최신이라 승자가 되고, 그 뒤
+        // 제외되면서 아직 살아 있는 3,000원까지 사라진다. 그래서 조립 전에
+        // 걸러낸다.
+        var result = serviceWith(
+                List.of(recExpiring("baemin", "브랜드", 5000, "2026-08-31", "2026-08-04T10:00:00+09:00"),
+                        recExpiring("baemin", "브랜드", 3000, null, "2026-07-20T10:00:00+09:00")),
+                "brands: {}", on("2026-09-01")).compare();
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).offers().size());
+        assertEquals(3000, result.get(0).offers().get(0).amount());
+    }
+
+    @Test
+    void brandDisappearsWhenAllItsOffersExpired() {
+        // 살아 있는 오퍼가 하나도 없으면 카드 자체가 응답에서 빠진다.
+        // 원장에 없는 브랜드가 안 보이는 것과 같은 동작이다.
+        var result = serviceWith(
+                List.of(recExpiring("baemin", "브랜드", 5000, "2026-08-31", "2026-08-01T10:00:00+09:00"),
+                        recExpiring("yogiyo", "브랜드", 3000, "2026-08-02", "2026-08-01T10:00:00+09:00")),
+                "brands: {}", on("2026-09-01")).compare();
+        assertTrue(result.isEmpty());
+    }
+
+    // --- 구간별 만료 (ADR-008) ---
+
+    private DiscountTier tier(Integer minOrder, Integer amount, String expiresAt) {
+        return new DiscountTier(minOrder, amount, null, null, null, expiresAt);
+    }
+
+    private DiscountTier soldOutTier(Integer minOrder, Integer amount) {
+        return new DiscountTier(minOrder, amount, null, null, true, null);
+    }
+
+    private OfferRecord recWithTiers(String platform, String brand, Integer amount,
+                                     String expiresAt, List<DiscountTier> tiers) {
+        return new OfferRecord(platform, brand, amount, null, false,
+                "discount", null, amount + "원", "2026-08-01T10:00:00+09:00", "path.jpg",
+                null, tiers, null, expiresAt, null, false);
+    }
+
+    @Test
+    void keepsOfferWhenOnlySomeTiersExpired() {
+        // 청년피자 땡겨요: 상시 5,000원과 하루짜리 청피데이 9,000원이 한
+        // 레코드에 같이 있다. 청피데이가 끝나도 상시는 살아 있어야 한다.
+        var result = serviceWith(
+                List.of(recWithTiers("ddangyo", "청년피자", 9000, null,
+                        List.of(tier(15000, 5000, null), tier(15000, 9000, "2026-08-05")))),
+                "brands: {}", on("2026-08-06")).compare();
+        assertEquals(1, result.size());
+        Offer offer = result.get(0).offers().get(0);
+        assertEquals(1, offer.tiers().size(), "만료된 구간은 상세에서 빠진다");
+        assertEquals(5000, offer.tiers().get(0).amount());
+        assertEquals(5000, offer.amount(), "대표 금액도 남은 구간에 맞춰 내려간다");
+    }
+
+    @Test
+    void dropsOfferWhenEveryTierExpired() {
+        var result = serviceWith(
+                List.of(recWithTiers("ddangyo", "청년피자", 9000, null,
+                        List.of(tier(15000, 5000, "2026-08-04"), tier(15000, 9000, "2026-08-05")))),
+                "brands: {}", on("2026-08-06")).compare();
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void tierWithoutOwnExpiryFollowsRecordExpiry() {
+        // 구간별 종료일은 "이 구간만 따로 끝날 때" 채운다. 비어 있으면
+        // 쿠폰 전체와 같은 날 끝난다는 뜻이다.
+        var result = serviceWith(
+                List.of(recWithTiers("ddangyo", "브랜드", 9000, "2026-08-05",
+                        List.of(tier(15000, 5000, null), tier(15000, 9000, null)))),
+                "brands: {}", on("2026-08-06")).compare();
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void tierOutlivingRecordKeepsOfferAlive() {
+        // 레코드 종료일이 지나도 그보다 늦게 끝나는 구간이 있으면 오퍼는 산다.
+        var result = serviceWith(
+                List.of(recWithTiers("ddangyo", "브랜드", 9000, "2026-08-05",
+                        List.of(tier(15000, 5000, "2026-09-30"), tier(15000, 9000, null)))),
+                "brands: {}", on("2026-08-06")).compare();
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).offers().get(0).tiers().size());
+        assertEquals(5000, result.get(0).offers().get(0).amount());
+    }
+
+    @Test
+    void expiredTierLowersBrandMaxAmountAndSortOrder() {
+        var result = serviceWith(
+                List.of(recWithTiers("ddangyo", "구간만료", 9000, null,
+                                List.of(tier(15000, 5000, null), tier(15000, 9000, "2026-08-05"))),
+                        rec("baemin", "그냥7000", 7000, null, false)),
+                "brands: {}", on("2026-08-06")).compare();
+        assertEquals("그냥7000", result.get(0).name(), "9,000이 5,000으로 내려가 순서가 바뀐다");
+        assertEquals(5000, result.get(1).maxConfirmedAmount());
+    }
+
+    @Test
+    void keepsRepresentativeAmountWhenSurvivingTierIsLarger() {
+        // 배민 도미노피자 픽스처: 일반 4,000원(12-30)과 멤버십 7,500원(12-31)이
+        // 구간으로 함께 있고 대표값은 일반가 4,000원이다. 일반 구간이 끝나 남은
+        // 게 멤버십 7,500원뿐이어도 대표값을 그리로 올리면 안 된다 — 멤버십
+        // 조건은 구간에 실려 있지 않아 API가 판단할 수 없다.
+        var result = serviceWith(
+                List.of(recWithTiers("baemin", "도미노피자", 4000, "2026-12-31",
+                        List.of(tier(18900, 4000, "2026-12-30"), tier(null, 7500, "2026-12-31")))),
+                "brands: {}", on("2026-12-31")).compare();
+        Offer offer = result.get(0).offers().get(0);
+        assertEquals(1, offer.tiers().size());
+        assertEquals(7500, offer.tiers().get(0).amount());
+        assertEquals(4000, offer.amount(), "남은 구간이 더 커도 대표값은 올리지 않는다");
+    }
+
+    @Test
+    void soldOutTierNeverBecomesRepresentativeAmount() {
+        // 쿠팡이츠 메가MGC커피 실측(2026-08-03): 20,000원 구간이 품절이라
+        // 원장이 대표값을 6,000원으로 넣었다. 만료 계산이 이걸 되돌리면 안 된다.
+        var result = serviceWith(
+                List.of(recWithTiers("coupangeats", "메가MGC커피", 6000, null,
+                        List.of(soldOutTier(16000, 20000), tier(16000, 6000, null),
+                                tier(16000, 3000, null)))),
+                "brands: {}", on("2026-08-06")).compare();
+        assertEquals(6000, result.get(0).offers().get(0).amount());
+        assertEquals(3, result.get(0).offers().get(0).tiers().size(), "품절 구간은 만료가 아니라 그대로 있다");
     }
 }

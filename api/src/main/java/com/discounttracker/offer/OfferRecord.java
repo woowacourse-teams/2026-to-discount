@@ -1,5 +1,7 @@
 package com.discounttracker.offer;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 /**
@@ -41,5 +43,90 @@ public record OfferRecord(
      */
     public OfferStatus status() {
         return amount != null && !needsReview ? OfferStatus.CONFIRMED : OfferStatus.HELD;
+    }
+
+    /**
+     * 오늘 이 오퍼에 남은 게 하나도 없는지. 그렇다면 화면에 내보내지 않는다.
+     *
+     * <p>구간이 있으면 구간이 판정 단위다 — 하나라도 살아 있으면 오퍼는
+     * 살아 있다. 한 레코드에 걸린 쿠폰들이 같은 날 끝난다는 보장이 없어서다
+     * ({@link DiscountTier#expiresAt()} 참고).
+     *
+     * <p>구간을 모르는 레코드(원장 138건 중 125건)는 레코드의 종료일로
+     * 판정한다.
+     *
+     * @param today 판정 기준 날짜. 요청을 처리하는 시점의 한국 날짜다 —
+     *              원장을 적재할 때 계산해 캐시에 굳히면 자정이 지나도
+     *              만료가 반영되지 않는다.
+     */
+    public boolean isExpired(LocalDate today) {
+        if (tiers == null || tiers.isEmpty()) {
+            return isPast(expiresAt, today);
+        }
+        return liveTiers(today).isEmpty();
+    }
+
+    /**
+     * 오늘 아직 받을 수 있는 구간만. 구간을 모르면 {@code null} 그대로 둔다 —
+     * 비어 있다는 사실도 데이터다(ADR-003).
+     *
+     * <p>구간에 종료일이 없으면 레코드의 종료일을 따른다. 구간별 종료일은
+     * "이 구간만 따로 끝날 때" 채우는 값이라, 비어 있다는 건 이 구간이
+     * 쿠폰 전체와 같은 날 끝난다는 뜻이다.
+     */
+    public List<DiscountTier> liveTiers(LocalDate today) {
+        if (tiers == null) {
+            return null;
+        }
+        return tiers.stream()
+                .filter(t -> !isPast(t.expiresAt() != null ? t.expiresAt() : expiresAt, today))
+                .toList();
+    }
+
+    /**
+     * 살아 있는 구간을 다 봐도 대표값에 못 미치면 그만큼 내린 금액.
+     *
+     * <p>남은 구간이 전부 대표값보다 작으면 그 대표값은 이제 아무도 받을 수
+     * 없는 금액이다. 청년피자 땡겨요가 그렇다 — 청피데이 9,000원이 대표값인데
+     * 그게 끝나면 남는 건 상시 5,000원뿐이다. 이때는 5,000원으로 내린다.
+     *
+     * <p><b>올리지는 않는다.</b> 원장의 대표값은 단순한 "가장 큰 구간"이 아니라
+     * "일반 사용자가 실제로 받을 수 있는 최대"라서다. 품절 구간에서 안 뽑고
+     * (쿠팡이츠 메가MGC커피: 20,000원 구간이 품절이라 대표값 6,000원),
+     * 멤버십 전용 구간에서도 안 뽑는다(배민 도미노피자: 일반 4,000원 /
+     * 멤버십 7,500원인데 대표값은 4,000원). 그 조건들은 구간에 실려 있지 않아
+     * 여기서 다시 만들 수 없다 — 남은 구간 중 최대가 대표값보다 크더라도
+     * 그건 일반 사용자가 못 받는 금액일 수 있으므로 손대지 않는다.
+     */
+    public Integer amountAsOf(LocalDate today) {
+        if (tiers == null || tiers.isEmpty() || amount == null) {
+            return amount;
+        }
+        Integer live = liveTiers(today).stream()
+                .filter(t -> !Boolean.TRUE.equals(t.soldOut()) && t.amount() != null)
+                .map(DiscountTier::amount)
+                .max(Integer::compareTo)
+                .orElse(null);
+        return live != null && live < amount ? live : amount;
+    }
+
+    /**
+     * 종료일 당일까지는 유효하다 — 앱에 "~2026.08.31 사용가능"으로 뜨는
+     * 값이고, 그 날 자정까지 쓸 수 있다는 뜻이다. 다음 날부터 만료다.
+     *
+     * <p>종료일을 모르거나 날짜 형식이 깨졌으면 만료로 보지 않는다. 모른다는
+     * 것과 끝났다는 것은 다르고, 판독이 잘못됐다고 해서 살아 있을지 모르는
+     * 할인을 조용히 감추면 사용자는 그 브랜드에 할인이 없는 줄 안다
+     * (ADR-003과 같은 이유).
+     */
+    private static boolean isPast(String date, LocalDate today) {
+        if (date == null) {
+            return false;
+        }
+        try {
+            return LocalDate.parse(date).isBefore(today);
+        } catch (DateTimeParseException e) {
+            return false;
+        }
     }
 }
