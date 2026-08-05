@@ -10,25 +10,29 @@ const PLATFORMS = [
 ]
 const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 
-// 쿠팡이츠·요기요는 brands.yml에 브랜드별 딥링크가 없다(공유 기능 자체가
-// 없어서 못 만듦). 앱 공유 기능으로 받은 링크로 앱을 연다. 브랜드별 진짜
-// 딥링크는 나중에 별도로 찾는다.
+// brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
+// 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
 //
-// coupangeats: 와우컬렉션 WebView URL(webview.encodeurl, ADB로 확인)을
-// 넣어봤는데 앱 밖에서 열면 "쿠팡이츠는 앱에서만 볼 수 있습니다" 차단
-// 페이지로 감(2026-08-03, ADB로 직접 그 URL을 VIEW 인텐트로 열어
-// 재현·확인). 이 URL은 앱이 홈 아이콘 탭으로 자기 WebView에 로드할 때만
-// 통하는 내부 전용 경로라 외부 딥링크로는 원천적으로 안 된다 — 공유
-// 기능도 이 화면엔 없다(버튼 자체가 없음). 그냥 앱 여는 범용 링크로
-// 되돌린다.
-// ddangyo: 브랜드별 gateway4.html 코드 대부분이 만료돼 "이벤트 준비중"
-// 화면으로 떨어졌다(실기 ADB 확인, 2026-08-05) — 아직 살아있는
-// gateway.html 코드(청년피자·피자알볼로)만 brands.yml에 남기고 나머지는
-// 이 범용 링크(Play 스토어)로 돌린다.
+// yogiyo: 공유 링크가 살아 있고 "할인/혜택" 탭으로 정확히 떨어진다 —
+// 셋 중 유일하게 목적지가 할인 화면이라 그대로 쓴다.
+//
+// coupangeats: 예전 공유 링크(share.coupangeats.com/RM8HgQyr64b)는
+// 프로모션 딥링크였고 이제 "종료된 프로모션 입니다" 화면으로 떨어진다.
+// 앱이 선언한 경로 중 할인 화면으로 가는 외부 딥링크는 없어서(와우컬렉션
+// WebView URL은 앱 내부 전용, 2026-08-03 확인) 앱 홈만 연다.
+//
+// ddangyo: 브랜드별 gateway4.html 코드가 대부분 만료됐다("이벤트 준비중").
+// 아직 살아있는 gateway.html 코드만 brands.yml에 남기고 나머지는 여기로
+// 온다. 앱이 선언한 https 호스트(tblodr.ddangyo.com)는 App Links 검증이
+// 안 돼 브라우저로 새니까 커스텀 스킴을 쓴다.
+//
+// ponytail: 커스텀 스킴이라 앱 미설치면 아무 일도 안 일어난다. 스토어로
+// 흘리려면 intent:// + S.browser_fallback_url로 바꿔야 하는데, 그건
+// 안드로이드 전용이라 iOS가 깨진다.
 const PLATFORM_APP_LINKS = {
-  coupangeats: 'https://share.coupangeats.com/RM8HgQyr64b',
+  coupangeats: 'coupangeats://',
   yogiyo: 'https://url.customer.yogiyo.co.kr/MUVJRHpYU2',
-  ddangyo: 'https://play.google.com/store/apps/details?id=com.shinhan.o2o',
+  ddangyo: 'ddangyo://',
 }
 
 // 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
