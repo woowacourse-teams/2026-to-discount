@@ -60,6 +60,8 @@ brands:
       baemin: https://s.baemin.com/7o3.kx2oa
   땅땅치킨:
     category: chicken
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?juiQSKD
   또래오래:
     category: chicken
     links:
@@ -67,6 +69,8 @@ brands:
       baemin: https://s.baemin.com/7o3.i75r7
   또봉이통닭:
     category: chicken
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?dbCB26Y
   멕시카나:
     category: chicken
     aliases: [멕시카나, 멕시카나치킨]
@@ -88,6 +92,7 @@ brands:
     category: chicken
     aliases: [아라치치킨, 아라치]
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?uBeL2Zk
       baemin: https://s.baemin.com/7o3.j7lu0
   오븐마루치킨:
     category: chicken
@@ -100,6 +105,8 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?YKzbJcQ
   일미리금계찜닭:
     category: chicken
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?ZW2Umtf
   자담치킨:
     category: chicken
     links:
@@ -119,6 +126,7 @@ brands:
   치킨플러스:
     category: chicken
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?8N7oc8r
       baemin: https://s.baemin.com/7o3.gybb1
   페리카나:
     category: chicken
@@ -152,6 +160,7 @@ brands:
   도미노피자:
     category: pizza
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?ouXevZg
       baemin: https://s.baemin.com/f3e.6uol0
   맘스피자:
     category: pizza
@@ -169,6 +178,8 @@ brands:
     category: pizza
   아메리칸피자:
     category: pizza
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?JfnT2XT
   오구쌀피자:
     category: pizza
   청년피자:
@@ -192,6 +203,7 @@ brands:
   피자헛:
     category: pizza
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?RdBazxp
       baemin: https://s.baemin.com/7o3.f2e5b
 
   # --- 패스트푸드 ---
@@ -252,6 +264,8 @@ brands:
   # --- 미분류 (전체에서만 노출) ---
   떡참:
     aliases: [떡참, 떡볶이참잘하는집 떡참&치킨]
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?73eF7NP
   매드포갈릭:
     links:
       baemin: https://s.baemin.com/7o3.fomtb
