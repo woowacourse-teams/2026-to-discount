@@ -1362,33 +1362,6 @@
   },
   {
     "platform": "ddangyo",
-    "brand": "청년피자",
-    "amount": 9000,
-    "qualifier": null,
-    "needsReview": false,
-    "offerType": "discount",
-    "section": null,
-    "rawText": "청년피자 5,000원 할인 / 해당 쿠폰의 최소주문금액은 18,900원 입니다.",
-    "capturedAt": "2026-07-31T16:00:00+09:00",
-    "screenshotPath": "ref/delivery/detail/ddangyo_2026-07-31_청년피자.png",
-    "minOrderAmount": 18900,
-    "tiers": [
-      {
-        "minOrder": 18900,
-        "amount": 9000
-      },
-      {
-        "minOrder": 18900,
-        "amount": 5000
-      }
-    ],
-    "conditions": null,
-    "expiresAt": "2026-08-05",
-    "badge": "포장 +1,000",
-    "soldOut": null
-  },
-  {
-    "platform": "ddangyo",
     "brand": "프레드피자",
     "amount": 5000,
     "qualifier": null,
