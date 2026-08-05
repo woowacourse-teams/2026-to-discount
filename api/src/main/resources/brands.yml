@@ -155,6 +155,8 @@ brands:
       baemin: https://s.baemin.com/f3e.6uol0
   맘스피자:
     category: pizza
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?OnCjvrU
   빽보이피자:
     category: pizza
     links:
@@ -173,7 +175,6 @@ brands:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?LMtwcnr
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?LMtwcnr
       baemin: https://s.baemin.com/7o3.f3g7j
   파파존스:
     category: pizza
@@ -182,7 +183,6 @@ brands:
   피자알볼로:
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?f4ZP3mn
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?f4ZP3mn
   프레드피자:
     category: pizza
