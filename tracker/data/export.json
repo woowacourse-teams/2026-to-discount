@@ -2059,24 +2059,6 @@
   },
   {
     "platform": "baemin",
-    "brand": "청년피자",
-    "amount": 4000,
-    "qualifier": null,
-    "needsReview": false,
-    "offerType": "discount",
-    "section": "오늘의 할인",
-    "rawText": "4,000원 브랜드 할인",
-    "capturedAt": "2026-08-03T13:05:00+09:00",
-    "screenshotPath": "ref/delivery/2026-08-03/baemin.jpg",
-    "minOrderAmount": 18900,
-    "tiers": null,
-    "conditions": null,
-    "expiresAt": "2026-08-30",
-    "badge": null,
-    "soldOut": null
-  },
-  {
-    "platform": "baemin",
     "brand": "잠바주스",
     "amount": 3500,
     "qualifier": null,
@@ -2573,27 +2555,9 @@
   },
   {
     "platform": "baemin",
-    "brand": "청년피자",
-    "amount": 7500,
-    "qualifier": null,
-    "needsReview": false,
-    "offerType": "discount",
-    "section": "오늘의 할인",
-    "rawText": "7,500원 배민클럽 할인",
-    "capturedAt": "2026-08-03T13:05:00+09:00",
-    "screenshotPath": "ref/delivery/2026-08-03/baemin.jpg",
-    "minOrderAmount": null,
-    "tiers": null,
-    "conditions": null,
-    "expiresAt": "2026-08-31",
-    "badge": "배민클럽 전용쿠폰",
-    "soldOut": null
-  },
-  {
-    "platform": "baemin",
     "brand": "열정국밥",
     "amount": 14000,
-    "qualifier": "특정 메뉴 할인",
+    "qualifier": null,
     "needsReview": false,
     "offerType": "discount",
     "section": "전체",
@@ -2604,7 +2568,34 @@
     "tiers": null,
     "conditions": "배민클럽 한정, 열정충전해장국 메뉴할인",
     "expiresAt": "2026-08-31",
-    "badge": "배민클럽 전용쿠폰",
+    "badge": "배민클럽 전용, 특정 메뉴",
+    "soldOut": null
+  },
+  {
+    "platform": "baemin",
+    "brand": "청년피자",
+    "amount": 4000,
+    "qualifier": null,
+    "needsReview": false,
+    "offerType": "discount",
+    "section": "오늘의 할인",
+    "rawText": "4,000원 브랜드 할인 / 7,500원 배민클럽 할인",
+    "capturedAt": "2026-08-03T13:05:00+09:00",
+    "screenshotPath": "ref/delivery/2026-08-03/baemin.jpg",
+    "minOrderAmount": 18900,
+    "tiers": [
+      {
+        "minOrder": 18900,
+        "amount": 4000
+      },
+      {
+        "minOrder": null,
+        "amount": 7500
+      }
+    ],
+    "conditions": null,
+    "expiresAt": "2026-08-30",
+    "badge": "배민클럽 7,500원",
     "soldOut": null
   }
 ]
