@@ -15,13 +15,11 @@ brands:
     category: chicken
     aliases: [BBQ, BBQ치킨]
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?Ej2faGu
       baemin: https://s.baemin.com/f3e.6ibml
   bhc:
     category: chicken
     aliases: [bhc, bhc치킨, BHC, BHC치킨]
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?hi55GGt
       baemin: https://s.baemin.com/7o3.f7e8q
   감탄계숯불치킨:
     category: chicken
@@ -32,12 +30,10 @@ brands:
   기영이숯불두마리치킨:
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?G9QrY5J
       baemin: https://s.baemin.com/7o3.fea3y
   꾸브라꼬숯불치킨:
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?kTxcrof
       baemin: https://s.baemin.com/arr.e9j1z
   냠냠숯불두마리치킨:
     category: chicken
@@ -46,50 +42,35 @@ brands:
   네네치킨:
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?aTPhxVy
       baemin: https://s.baemin.com/7o3.izwes
   노랑통닭:
     category: chicken
   두찜:
     category: chicken
     aliases: [두찜, 두찜찜닭]
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?nbYJqDX
   디디치킨:
     category: chicken
     links:
       baemin: https://s.baemin.com/7o3.kx2oa
   땅땅치킨:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?cztTiaf
   또래오래:
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?529nm7L
       baemin: https://s.baemin.com/7o3.i75r7
   또봉이통닭:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?kdXwMdq
   멕시카나:
     category: chicken
     aliases: [멕시카나, 멕시카나치킨]
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?wXJeQzu
   바른치킨:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?1rBQNCa
   보끔당:
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?ZRdUPwD
       baemin: https://s.baemin.com/vi000uzBO5p4o
   부어치킨:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?u5yUGTs
   아라치치킨:
     category: chicken
     aliases: [아라치치킨, 아라치]
@@ -98,20 +79,13 @@ brands:
   오븐마루치킨:
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?EjgK6V8
       baemin: https://s.baemin.com/f3e.7acck
   오븐에빠진닭:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?h2O9t9f
   일미리금계찜닭:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?tx8BsDy
   자담치킨:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?vo1gL4b
   처갓집양념치킨:
     category: chicken
     links:
@@ -127,48 +101,34 @@ brands:
   치킨플러스:
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?66iY9Bs
       baemin: https://s.baemin.com/7o3.gybb1
   페리카나:
     category: chicken
   푸라닭:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?c2ytzEn
   해두리치킨:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?CwOVSYe
   호식이두마리치킨:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?BxZMpFY
   후라이드참잘하는집:
     category: chicken
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?igsyudD
   훌랄라참숯바베큐치킨:
     category: chicken
     aliases: [훌랄라참숯바베큐치킨, 훌랄라참숯치킨]
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?hk6PXvd
       baemin: https://s.baemin.com/7o3.h24j5
 
   # --- 피자 ---
   7번가피자:
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?p7kqsN0
       baemin: https://s.baemin.com/7o3.frwoi
   도미노피자:
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?LgTHHGE
       baemin: https://s.baemin.com/f3e.6uol0
   맘스피자:
     category: pizza
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?kEVWf2s
   빽보이피자:
     category: pizza
     links:
@@ -181,19 +141,15 @@ brands:
     category: pizza
   아메리칸피자:
     category: pizza
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?L3OTWfS
   오구쌀피자:
     category: pizza
   청년피자:
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?1gWfr6i
+      ddangyo: https://fdofd.ddangyo.com/gateway.html?Lfv8qLA
       baemin: https://s.baemin.com/7o3.f3g7j
   파파존스:
     category: pizza
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?MaOqpJR
   피자알볼로:
     category: pizza
     links:
@@ -201,12 +157,10 @@ brands:
   프레드피자:
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?2EQN6qm
       baemin: https://s.baemin.com/7o3.g9xra
   피자헛:
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?1qdBNdu
       baemin: https://s.baemin.com/7o3.f2e5b
 
   # --- 패스트푸드 ---
@@ -221,14 +175,10 @@ brands:
     category: fastfood
   버거킹:
     category: fastfood
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?vanBB85
   써브웨이:
     category: fastfood
   왓더버거:
     category: fastfood
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?G9Z4NxO
 
   # --- 카페 ---
   공차:
@@ -238,14 +188,11 @@ brands:
   뚜레쥬르:
     category: cafe
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?Su5rYT4
       baemin: https://s.baemin.com/Vz000vNQLilUR
   배스킨라빈스:
     category: cafe
   설빙:
     category: cafe
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?EE7GifX
   스타벅스:
     category: cafe
   잠바주스:
@@ -271,8 +218,6 @@ brands:
   # --- 미분류 (전체에서만 노출) ---
   떡참:
     aliases: [떡참, 떡볶이참잘하는집 떡참&치킨]
-    links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?gXQDKHQ
   매드포갈릭:
     links:
       baemin: https://s.baemin.com/7o3.fomtb
