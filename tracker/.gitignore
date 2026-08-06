@@ -1,0 +1,18 @@
+# 원장(log.jsonl)은 커밋한다. 파생물인 export.json만 커밋되고 원장은 빠져
+# 있으니, 공유·배포되는 쪽이 export.json뿐이라 진실의 원천이 그쪽으로
+# 옮겨갔다 — 2026-08-05에 원장이 07-29에서 멈춘 채 수집분 110건이
+# export.json 직접 편집으로만 들어와 있던 게 그 결과다. 원장이 커밋되지
+# 않으면 "원장은 log.jsonl"이라고 문서에 적어도 같은 일이 반복된다.
+#
+# events.jsonl은 계속 무시한다 — 방문자 분석 로그(visitorId·ipHash)라
+# 공개 저장소에 올릴 데이터가 아니고, 3MB에 매일 커진다.
+data/*.jsonl
+!data/.gitkeep
+!data/log.jsonl
+data/brands-sorted.txt
+captures/*
+!captures/.gitkeep
+dashboard.html
+__pycache__/
+*.pyc
+.pytest_cache/
