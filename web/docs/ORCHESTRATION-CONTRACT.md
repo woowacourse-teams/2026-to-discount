@@ -27,28 +27,35 @@ env var나 프록시가 아니라 **하드코딩**돼 있다: `src/api.js:3`과
 
 ## 3. `/api/brands` 응답에서 읽는 필드
 
+> 줄 번호는 적지 않는다 — 예전엔 `src/App.jsx:276, 292, ...`까지 적어뒀는데
+> 화면을 한 번 고칠 때마다 전부 어긋나서, 문서가 맞는지 확인하는 비용이
+> 문서를 읽는 이득보다 커졌다. 필드 목록과 의미만 남긴다(전부 `src/App.jsx`).
+
 ### brand 객체
 
-| 필드 | 읽는 위치 (file:line) |
-|---|---|
-| `brand.name` | `src/App.jsx:276, 292, 303, 304, 323, 717, 815, 817` |
-| `brand.category` | `src/App.jsx:276, 720` |
-| `brand.offers` | `src/App.jsx:58, 254, 260` |
-| `brand.links` | `src/App.jsx:322` |
-| `brand.maxConfirmedAmount` | `src/App.jsx:57` |
+`name`, `category`, `offers`, `links`, `maxConfirmedAmount`
 
 ### offer 객체 (brand.offers 배열 원소)
 
-| 필드 | 읽는 위치 (file:line) |
+| 필드 | 쓰임 |
 |---|---|
-| `offer.amount` | `src/App.jsx:127, 137, 258` (정렬), tiers 안 항목의 `amount`는 `src/App.jsx:136, 217, 218` |
-| `offer.rawText` | `src/App.jsx:127` (amount가 null일 때 폴백 표시) |
-| `offer.minOrderAmount` | `src/App.jsx:58, 137` |
-| `offer.tiers` | `src/App.jsx:136` — 배열 원소는 `{ amount, minOrder }` 형태로 직접 읽음 (`src/App.jsx:217-223`, 필드명이 `minOrderAmount`가 아니라 `minOrder`인 점 주의) |
-| `offer.status` | `src/App.jsx:146, 207, 255` (값 `'held'`로 분기) |
-| `offer.qualifier` | `src/App.jsx:147, 256` (값 `'최대'`로 분기) |
-| `offer.platform` | `src/App.jsx:148, 157, 170, 187, 198, 205, 206, 232, 320, 335` |
-| `offer.conditions` | `src/App.jsx:229` |
+| `amount` | 칩 대표 금액. `null`이면 `rawText`로 폴백 |
+| `rawText` | 금액을 못 읽었을 때 화면에 그대로 |
+| `minOrderAmount` | 최소주문금액. 브랜드 카드 정렬(최소주문금액대)에도 씀 |
+| `tiers` | 구간/별개 쿠폰 목록. 원소는 `{minOrder, amount, soldOut, expiresAt}` — **`minOrderAmount`가 아니라 `minOrder`** |
+| `conditions` | 상세 패널 하단 안내 문구 |
+| `expiresAt` | 오퍼 만료일. tier의 `expiresAt`이 이 값과 다를 때만 그 tier에 따로 표시 |
+| `badge` | 금액 옆 짧은 상태 라벨 (`선착순`, `배민클럽 7,500원` 등) |
+| `soldOut` | 대표 금액이 품절이면 취소선 + "품절" |
+| `status` | `'held'`면 재확인 표시 |
+| `qualifier` | 금액 앞 수식어(`최대`/`최소`). 값이 있으면 그대로 렌더 |
+| `platform` | 앱 배지·딥링크 선택 |
+
+**`tiers`는 "구간 누진"만 뜻하지 않는다.** 같은 `minOrder`에 `amount`만
+다른 항목들은 채널·멤버십별 별개 쿠폰이다 — 대표 금액(`amount`)은 조건 없이
+받을 수 있는 쪽이고, 조건부 금액은 tier로 내려온다(청년피자 배민: 대표
+4,000원, 배민클럽 7,500원은 tier). 그래서 tier를 "더 싼 구간"으로 읽으면 안
+된다.
 
 ## 4. 전송하는 analytics 이벤트
 
@@ -58,15 +65,20 @@ env var나 프록시가 아니라 **하드코딩**돼 있다: `src/api.js:3`과
 그 세트가 실제로 뭘 허용하는지 알 수 없으니, **점검할 때마다 반드시
 delivery-discount-api 쪽 `EventController.ALLOWED_EVENTS`와 diff할 것.**
 
-| 이벤트명 | 발생 위치 (file:line) | props |
+| 이벤트명 | 발생 위치 | props |
 |---|---|---|
-| `page_view` | `src/analytics.js:171` (`startAnalytics()`, 앱 시작 시 1회 — 호출부: `src/main.jsx:11`) | 없음 |
-| `page_exit` | `src/analytics.js:159-165` (`sendExit()`) | `track()`을 거치지 않고 큐에 직접 push — `props` 필드 없이 최상위에 `dwellMs`(보이던 시간, ms)를 실어 보낸다 |
-| `offer_link_click` | `src/App.jsx:170` | `{ brand, platform }` |
-| `brand_expand` | `src/App.jsx:276` | `{ brand, category }` |
-| `category_change` | `src/App.jsx:728` | `{ category, mode }` |
-| `classify_change` | `src/App.jsx:767` | `{ mode }` |
-| `membership_open` | `src/App.jsx:787` | 없음 |
+| `page_view` | `analytics.js` `startAnalytics()` — 앱 시작 시 1회 | 없음 |
+| `page_exit` | `analytics.js` `sendExit()` | `track()`을 거치지 않고 큐에 직접 push — `props` 없이 최상위에 `dwellMs`(보이던 시간, ms) |
+| `offer_link_click` | `App.jsx` `OfferChip` | `{ brand, platform }` |
+| `brand_expand` | `App.jsx` `BrandCard` | `{ brand, category }` |
+| `category_change` | `App.jsx` 필터 선택 | `{ category, mode }` |
+| `classify_change` | `App.jsx` 분류 기준 변경 | `{ mode }` |
+| `membership_open` | `App.jsx` 멤버십 버튼 | 없음 |
+
+API 화이트리스트(`analytics/EventController.ALLOWED_EVENTS`)에는 위 7개
+외에 **`capture_note_seen`**이 더 있다 — 프론트가 보내지 않는 유령 항목이다.
+서버가 모르는 이벤트를 조용히 버리는 방향이라 해는 없지만, 화이트리스트를
+diff할 때 "프론트가 빠뜨린 것"으로 오해하지 말 것(2026-08-06 확인).
 
 모든 이벤트에는 `track()`이 공통으로 붙이는 컨텍스트(`visitorId`,
 `sessionId`, `visitCount`, `device`, `viewport`, `referrer`, `dev`, `path`,
@@ -89,20 +101,24 @@ GA4(`src/ga4.js`)는 별도 도구로 `/api/events`를 타지 않으므로 이 �
   방향과 진행 상태는 tracker 레포의
   `docs/plans/2026-07-29-offer-detail-collection.md`." → `offer.minOrderAmount`/
   `offer.tiers`가 비어 있는 건 미수집이지 버그가 아니다.
-- **멤버십/지역화폐 반영은 UI만, 로직 없음**: `src/App.jsx:62-64` 주석 —
+- **멤버십/지역화폐 반영은 UI만, 로직 없음**: `src/App.jsx` 주석 —
   "멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
   `docs/specs/2026-07-28-product-brief.md`에 'UI만 배치, 로직 보류'로 명시된
   의도적 보류 상태 — 계산 모델이 나오면 그 레포 `docs/plans`에 계획이
   생긴다." → `MembershipMenu`의 체크박스는 전부 `disabled`, 눌러도 금액
-  안 바뀜(`src/App.jsx:643-657`).
-- **분류 기준 중 카테고리만 활성화**: `src/App.jsx:551-552` 주석 —
-  "할인금액대/최소주문금액대는 당장 비활성화 — 카테고리만 고를 수 있다."
-  → `brand.maxConfirmedAmount` 기반 분류(`discount`/`minOrder` 모드)는
-  코드상 존재하지만 UI에서 비활성 처리(`disabled`), WIP.
+  안 바뀜(`MembershipMenu`). 다만 배민클럽 전용가 자체는 이미 데이터로
+  들어오고 있다 — `badge`("배민클럽 7,500원")와 tier로 표시되며, 대표
+  금액은 비가입자가 받는 값이다. 계산 모델이 붙기 전에도 두 값이 화면에
+  다 있다는 뜻이라, 멤버십 기능의 선행조건은 부분적으로 해소된 상태다.
+- **분류 기준 중 카테고리만 활성화**: `ClassifyPicker`에서
+  `disabled = m.key !== 'category'` — 할인금액대/최소주문금액대는 지금도
+  비활성이다(2026-08-06 확인). `AmountBandSlider`·`brand.maxConfirmedAmount`
+  기반 분류 코드는 존재하지만 UI에서 고를 수 없다, WIP.
 - **GA4는 임시 도구**: README "방문 측정" 절 — 재방문 정확도 확보를 위한
   임시 병행 도입, 제거 조건은 `docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md`.
   쿠키(`_ga`)를 쓰는 유일한 도구라는 점은 갭이 아니라 의도된 예외.
 
 ## 6. 최종 검증
 
-`git rev-parse HEAD` (short): `8458720` — 2026-08-01 기준.
+필드 목록은 `src/App.jsx`에서 실제 참조를 뽑아 확인했고, `/api/brands`
+라이브 응답과도 대조했다 — 2026-08-06 확인.
