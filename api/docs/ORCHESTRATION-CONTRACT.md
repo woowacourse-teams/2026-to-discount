@@ -37,8 +37,18 @@ delivery-discount-web)가 이 레포와 맞물리는 지점만 다룬다. 소스
         "rawText": "string | null",
         "capturedAt": "string | null (ISO-8601)",
         "minOrderAmount": "number | null",
-        "tiers": [{ "minOrder": "number", "amount": "number", "percent": "number | null" }, "null"],
-        "conditions": "string | null"
+        "tiers": [{
+          "minOrder": "number | null",
+          "amount": "number | null",
+          "percent": "number | null",
+          "channel": "배달 | 포장 | 매장식사 | null",
+          "soldOut": "boolean | null",
+          "expiresAt": "string | null (YYYY-MM-DD)"
+        }, "null"],
+        "conditions": "string | null",
+        "expiresAt": "string | null (YYYY-MM-DD)",
+        "badge": "string | null",
+        "soldOut": "boolean"
       }
     ]
   }
@@ -52,8 +62,15 @@ delivery-discount-web)가 이 레포와 맞물리는 지점만 다룬다. 소스
   `Offer.java:29-32`).
 - `links`의 키는 플랫폼 키(`ddangyo`, `baemin` 등, `brands.yml` 정의) → URL.
   모르는 앱은 키 자체가 없음(빈 맵이지 null 아님).
-- `tiers`/`minOrderAmount`/`conditions`는 원장에 없으면 `null` (ADR-003) —
-  키는 항상 존재.
+- `tiers`/`minOrderAmount`/`conditions`/`expiresAt`/`badge`는 원장에 없으면
+  `null` (ADR-003) — 키는 항상 존재.
+- `soldOut`은 오퍼 레벨에선 `boolean`(null을 `false`로 정규화), tier
+  안에선 `Boolean`(null 그대로)이다.
+- **`tiers`는 "구간 누진"만 뜻하지 않는다.** 같은 `minOrder`에 `amount`만
+  다른 항목들은 구간이 아니라 채널·멤버십별 **별개 쿠폰**이다. 대표값
+  (`amount`)은 조건 없이 받을 수 있는 쪽으로 골라 내려간다 — 품절 구간이나
+  멤버십 전용가를 대표로 쓰지 않는다(청년피자 배민: 대표 4,000원,
+  배민클럽 7,500원은 tier로).
 
 ### POST /api/reload
 
@@ -159,40 +176,63 @@ rawText:          String
 capturedAt:       String
 screenshotPath:   String
 minOrderAmount:   Integer (nullable)
-tiers:            List<DiscountTier> (nullable) — {minOrder, amount, percent}
+tiers:            List<DiscountTier> (nullable)
+                  — {minOrder, amount, percent, channel, soldOut, expiresAt}
 conditions:       String (nullable)
+expiresAt:        String (nullable)   — 쿠폰 종료일 YYYY-MM-DD
+badge:            String (nullable)   — 금액 옆 짧은 상태 라벨
+soldOut:          Boolean (nullable)  — primitive 아님, 아래 참고
 ```
 
-- **ObjectMapper: raw `new ObjectMapper()`, 엄격 모드** —
-  `OfferRepository.java:24`가 Spring이 자동구성한 빈을 안 쓰고 직접
-  `new ObjectMapper()`를 만든다. 이 프로젝트엔 Jackson 관련 커스텀 설정이
-  없으므로(`application.yml`에 `spring.jackson.*` 없음) 기본값이 그대로
-  적용된다 — **`FAIL_ON_UNKNOWN_PROPERTIES=true`(기본값)라 export.json
-  원소에 `OfferRecord`에 없는 필드가 하나라도 있으면 역직렬화가
-  `UnrecognizedPropertyException`으로 실패한다.** 이건 `reload()`에서
-  `IOException`으로 잡혀 `IllegalStateException`으로 다시 던져지므로,
-  시작 시(`OfferStartupLoader`)에는 앱이 뜨다가 죽고, `/api/reload`
-  호출 시에는 해당 요청이 500으로 실패한다 — 캐시는 이전 값 유지
-  (교체 실패, catch 이전에 `cache =` 대입이 없음).
-  **tracker가 export.json에 새 필드를 추가하려면 이 레포의
-  `OfferRecord`도 같이 업데이트해야 함 — 관대하게 무시되지 않음.**
-  참고로 `EventController`의 `ObjectMapper mapper`(생성자 주입, Spring
-  자동구성 빈)도 같은 이유로 기본값상 엄격하지만, 그쪽은 파싱 실패를
-  `try/catch(IOException)`로 감싸 빈 리스트로 흡수하므로(§2 POST
-  /api/events) 실패가 앱을 죽이지 않고 조용히 이벤트를 버리는 차이가 있다.
+`soldOut`이 `Boolean`인 건 JSON에 `"soldOut": null`이 들어올 수 있어서다.
+primitive `boolean`이면 `MismatchedInputException`으로 reload 전체가 깨진다
+(사람이 export.json을 직접 편집하다 실측, 2026-08-04). `Offer.from`에서
+`null`을 `false`로 정규화한다.
+
+`DiscountTier.expiresAt`은 그 구간만 따로 끝날 때 채운다 — 비어 있으면
+레코드의 `expiresAt`을 따른다. 한 브랜드의 쿠폰들이 같은 날 끝난다는 보장이
+없어서 필요했다(청년피자 배민: 일반 08-30 / 배민클럽 08-31).
+
+- **ObjectMapper: 미지 필드를 무시한다** —
+  `OfferRepository`가 Spring 자동구성 빈 대신 직접 만든 ObjectMapper에
+  `FAIL_ON_UNKNOWN_PROPERTIES=false`를 건다(`88250ad`). 기본값(엄격)이던
+  시절엔 tracker가 새 필드를 실은 export.json을 먼저 배포하면 구버전 API가
+  `UnrecognizedPropertyException`을 내고 `/api/reload`가 500으로 죽었다 —
+  두 레포가 별도 워크플로로 독립 배포돼 순서를 보장할 수 없어서 같은 사고가
+  세 번 반복됐다(badge 추가 때 실측, 2026-08-03).
+
+  **그래도 필드를 추가할 때는 API를 먼저 배포한다.** 무시된다는 건 깨지지
+  않는다는 뜻이지 값이 전달된다는 뜻이 아니다 — 그 사이엔 새 필드가 비어
+  보인다.
+
+  참고로 `EventController`의 ObjectMapper(생성자 주입, Spring 자동구성 빈)는
+  여전히 기본값상 엄격하지만, 파싱 실패를 `try/catch(IOException)`로 감싸
+  빈 리스트로 흡수한다(§2 POST /api/events) — 앱을 죽이지 않고 조용히
+  이벤트를 버리는 차이가 있다.
 
 ## 4. 다른 레포가 의존하는 설정값
 
-- **CORS 허용 origin** (`src/main/java/com/discounttracker/web/WebConfig.java:13-15`,
-  `/api/**`에 적용):
+- **CORS 허용 origin** (`WebConfig.java`, `/api/**`에 적용). 정확한 origin이
+  아니라 `allowedOriginPatterns`라 와일드카드가 들어간다(Vercel 프리뷰
+  배포마다 서브도메인이 바뀐다):
   - `http://localhost:5173`
   - `https://beggars-five.vercel.app`
+  - `https://beggars-five-*.vercel.app`
+  - `https://delivery-discount-web-*.vercel.app`
   - 허용 메서드: `GET`, `POST`만 명시(정적으로 적어뒀지만 Spring
     기본값도 어차피 GET/HEAD/POST).
-- **서버 포트**: `8080` (`application.yml:3-4`, `server.port`).
-- **export.json 배포 경로(고정)**: 서버(systemd)에서는
-  `/home/ubuntu/delivery-discount-api/data/export.json` (ADR-001) — tracker
-  쪽에서 이 경로로 `scp` 후 `POST /api/reload` 호출하는 게 갱신 절차.
+  - 코드에 `TODO`가 남아 있다 — 실제 Vercel project slug를 확인해 안 맞는
+    패턴을 지워야 한다. 지금은 넉넉하게 열려 있는 상태다.
+- **서버 포트**: `8080` (`application.yml`, `server.port`).
+- **export.json 경로**: 기본값은 `classpath:data/export.json` — 레포에
+  커밋된 픽스처다. 서버(systemd)는 `DISCOUNT_EXPORT_PATH`로
+  `file:/home/ubuntu/delivery-discount-api/data/export.json`을 가리킨다
+  (ADR-001). **로컬에서 export.json을 고쳐도 안 보이는 건 이 기본값 때문**
+  이다 — 환경변수를 걸어야 한다.
+- **갱신 절차는 `scp`가 아니다.** tracker 레포의
+  `.github/workflows/deploy.yml`이 main 푸시마다 서버로 `cp`하고
+  `POST /api/reload`를 부른다(사람 개입 없음). 복사 전에 낡은 파일이
+  서버를 덮지 않는지 검사하는 가드가 있다 — tracker `check_deploy.py`.
 
 ## 5. 알려진 갭/WIP
 
