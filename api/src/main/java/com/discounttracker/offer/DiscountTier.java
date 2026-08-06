@@ -18,6 +18,13 @@ package com.discounttracker.offer;
  * {@code true}. 카드 대표값({@link Offer#amount()})은 절대 품절 구간에서
  * 뽑지 않는다 — 원장 쪽에서 이미 살아있는 구간을 대표로 골라 넣는다
  * (쿠팡이츠 메가MGC커피 실측, 2026-08-03).
+ *
+ * <p>{@code expiresAt}(YYYY-MM-DD)은 이 구간만 따로 끝날 때 채운다. 한 브랜드에
+ * 걸린 쿠폰들이 같은 날 끝난다는 보장이 없다 — 청년피자 땡겨요는 상시 5,000원과
+ * 하루짜리 청피데이 9,000원이 한 레코드에 같이 있었고, 청피데이가 끝난
+ * 2026-08-06에 레코드 단위 만료일만 보고 살아있는 5,000원까지 통째로 내려버렸다.
+ * 비어 있으면 레코드의 {@link Offer#expiresAt()}를 따른다.
  */
-public record DiscountTier(Integer minOrder, Integer amount, Integer percent, String channel, Boolean soldOut) {
+public record DiscountTier(Integer minOrder, Integer amount, Integer percent, String channel,
+                           Boolean soldOut, String expiresAt) {
 }
