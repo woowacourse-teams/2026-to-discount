@@ -1,4 +1,13 @@
+# classpath 쪽 export.json은 실데이터가 아니라 **스키마 샘플 픽스처**다.
+# rawText가 전부 "[샘플]"로 시작하고 브랜드도 몇 개뿐이라, 화면에 그게
+# 보이면 실데이터를 안 읽고 있다는 신호다.
+#
+# 실제 데이터를 보려면 DISCOUNT_EXPORT_PATH로 실파일을 가리켜야 한다.
+# 서버(systemd)가 그렇게 띄운다:
+#   DISCOUNT_EXPORT_PATH=file:/home/ubuntu/delivery-discount-api/data/export.json
+# 로컬에서 export.json을 고쳐도 안 보이던 건 이 기본값 때문이었다
+# (2026-08-03 실측). ADR-001 참고.
 discount:
-  export-path: classpath:data/export.json
+  export-path: ${DISCOUNT_EXPORT_PATH:classpath:data/export.json}
 server:
   port: 8080

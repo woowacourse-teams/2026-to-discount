@@ -2,4 +2,7 @@ build/
 .gradle/
 .idea/
 *.log
-data/
+# 런타임 데이터 디렉터리(서버가 export.json을 받는 곳)만 무시한다.
+# 슬래시 없이 `data/`로 두면 src/main/resources/data/(스키마 픽스처)까지
+# 잡아서, 이미 추적 중이라 조용히 유지되지만 git add가 거부된다.
+/data/
