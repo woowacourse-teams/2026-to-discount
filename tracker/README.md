@@ -22,9 +22,20 @@
 ## 데이터 내보내기
 
 `python export_data.py`가 `data/log.jsonl` 원장을 읽어 `data/export.json`·
-`data/brands-sorted.txt`를 만든다. 이 두 산출물을
-[delivery-discount-api](../delivery-discount-api)로 복사하면 API가
-읽는다 — 절차는 그 레포의 README 참고.
+`data/brands-sorted.txt`를 만든다. `data/export.json`을 커밋해 main에
+푸시하면 `.github/workflows/deploy.yml`이 서버로 옮기고 `POST /api/reload`
+까지 부른다 — 사람이 복사하지 않는다.
+
+> **지금 `export_data.py`를 그대로 돌리면 안 된다.** 원장에 "이 프로모션은
+> 끝났다"를 적을 자리가 없어 종료 프로모션 제거가 `export.json`에서만
+> 일어났고, 재생성하면 그것들이 되살아난다. 무력화 설계가 정해질 때까지의
+> 한계다 — [오케스트레이션 계약](docs/ORCHESTRATION-CONTRACT.md) §1·§5.
+
+원장에 새 관측을 넣을 때는 `export.json`을 직접 고치지 말고
+`python ingest.py <records.json>`을 쓴다(`--dry-run`으로 판정을 먼저 볼 수
+있다). 원장은 append-only라 **정정은 삭제가 아니라 덮어쓰기**다 — 더 최신
+시각의 새 관측을 넣어야 하고, 승자는 `store._prefer`가 정한다(확정 > 최신
+> 금액).
 
 ## 핵심 구조
 

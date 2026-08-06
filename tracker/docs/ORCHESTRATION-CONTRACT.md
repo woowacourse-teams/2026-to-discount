@@ -9,10 +9,28 @@
 
 ## 1. 역할
 
-이 레포는 파이프라인의 첫 단계다 — 입력은 배달앱 스크린샷(롱스크롤
-캡처), 출력은 `data/export.json`(+ `data/brands-sorted.txt`)이며,
+이 레포는 파이프라인의 첫 단계다 — 입력은 배달앱 화면(스크린샷 + 접근성
+트리 덤프), 출력은 `data/export.json`(+ `data/brands-sorted.txt`)이며,
 이를 읽는 곳은 `delivery-discount-api`(Spring Boot, 별칭 정규화·확정/보류
 판정) 하나뿐이다.
+
+### 원장은 `data/log.jsonl`이다 — 그런데 한동안 아니었다
+
+설계상 흐름은 `log.jsonl` → `export_data.py` → `export.json`이다. 실제로는
+2026-07-29부터 원장이 멈춘 채 수집분이 `export.json` 직접 편집으로만
+들어왔고, 08-05에 확인했을 때 export 138건 중 **110건을 원장이 한 번도 본
+적이 없었다**. `export_data.py`를 그대로 돌리면 그 110건이 사라지는
+상태였다.
+
+원인은 게으름이 아니라 구조였다 — 원장을 넣을 진입점이 없었고(`ingest.py`
+신설로 해소), 원장이 `.gitignore`에 있어 공유·배포되는 건 `export.json`
+뿐이었다(`!data/log.jsonl` 예외 추가로 해소). 되돌리는 방법과 그때 드러난
+문제는 `backfill_export.py` 독스트링에 적어뒀다.
+
+**아직 재현되지 않는다.** 원장에서 export를 다시 만들면 종료된 프로모션이
+되살아난다 — 원장에 "이 프로모션은 끝났다"를 적을 자리가 없어 제거가
+`export.json`에서만 일어났기 때문이다. 무력화 설계가 정해지기 전에는
+`export_data.py`를 그대로 돌리면 안 된다.
 
 ## 2. `schema.validate_record()` 계약
 
@@ -20,130 +38,138 @@
 
 ### 필수 필드 (없으면 `ValueError`)
 
-`schema.py:7-10`:
-
 ```
 platform, brand, raw_text, captured_at, target_address, capture_mode, screenshot_path
 ```
 
-### 선택 필드와 기본값
+### 선택 필드와 기본값 (`DEFAULTS`)
 
-`schema.py:12-27` (`DEFAULTS`):
+| 필드 | 기본값 | 비고 |
+|---|---|---|
+| `page` | `None` | export 안 됨 |
+| `section` | `None` | |
+| `qualifier` | `None` | |
+| `amount` | `None` | |
+| `unit` | `"KRW"` | export 안 됨 |
+| `scope` | `"brand"` | export 안 됨 |
+| `offer_type` | `"discount"` | |
+| `needs_review` | `False` | |
+| `min_order_amount` | `None` | |
+| `tiers` | `None` | |
+| `conditions` | `None` | |
+| `expires_at` | `None` | 쿠폰 종료일 `YYYY-MM-DD` |
+| `badge` | `None` | 금액 옆 짧은 상태 라벨 |
+| `sold_out` | `False` | |
 
-| 필드 | 기본값 |
-|---|---|
-| `page` | `None` |
-| `section` | `None` |
-| `qualifier` | `None` |
-| `amount` | `None` |
-| `unit` | `"KRW"` |
-| `scope` | `"brand"` |
-| `offer_type` | `"discount"` |
-| `needs_review` | `False` |
-| `min_order_amount` | `None` |
-| `tiers` | `None` |
-| `conditions` | `None` |
+### 허용값
 
-### 허용값 (enum/모양)
+- `platform` — `{"baemin", "coupangeats", "yogiyo", "ddangyo", "specialdelivery"}`
+- `capture_mode` — `{"auto", "manual", "backfill"}`
+  - `backfill`: 화면을 다시 본 게 아니라 `export.json`에서 되돌린 값.
+    `config.py`에는 `{"auto", "manual"}`만 있다(캡처 설정용이라 backfill이
+    올 일이 없다) — 두 집합이 일부러 다르다.
+- `qualifier` — `{None, "최대", "최소"}`. **금액 수식어 전용이다**
+  (ADR-004). 상한이냐 하한이냐가 `amount` 해석을 바꾸므로 자유 문자열로
+  쓰면 안 된다 — 조건 라벨은 `badge`에 넣는다.
+- `scope` — `{"brand", "store"}` (`store`는 현재 미사용)
+- `offer_type` — `{"discount", "gift", "coupon", "unknown"}`
+- `tiers` — `None` 또는 비어있지 않은 list. 각 원소는 `min_order`·`amount`
+  필수, 아래가 선택:
 
-- `platform` — `{"baemin", "coupangeats", "yogiyo", "ddangyo", "specialdelivery"}` (`schema.py:1`)
-- `capture_mode` — `{"auto", "manual"}` (`schema.py:5`; `config.py:5`에도 같은 집합이 별도 정의돼 있다)
-- `qualifier` — `{None, "최대", "최소"}` (`schema.py:2`)
-- `scope` — `{"brand", "store"}` (`schema.py:3`)
-- `offer_type` — `{"discount", "gift", "coupon", "unknown"}` (`schema.py:4`)
-- `tiers` — `None` 또는 비어있지 않은 list; 각 원소는 `min_order`·`amount` 키를 가진 dict (`schema.py:30-38`, `validate_tiers`). 예: `[{"min_order": 15000, "amount": 3000}, ...]`
+| tier 선택 키 | 값 | 뜻 |
+|---|---|---|
+| `percent` | `(0, 100]` | 정률+상한 할인. `amount`는 그 상한액 |
+| `channel` | `{"배달", "포장", "매장식사"}` | 구간이 아니라 채널별 별개 쿠폰 |
+| `sold_out` | bool | 이 구간만 재고 소진 |
+| `expires_at` | `YYYY-MM-DD` | 이 구간만 따로 끝남. 비면 레코드 값을 따름 |
 
-검증 순서는 `validate_record()` (`schema.py:41-63`): 필수 필드 존재 →
-`platform`/`capture_mode` 확인 → `DEFAULTS`로 정규화 → `qualifier`/`scope`/
-`offer_type`/`tiers` 확인. 반환값은 기본값이 채워진 정규화된 dict.
+  `tiers`는 "구간 누진"만 뜻하지 않는다 — 한 (앱, 브랜드)에 걸린 **여러
+  쿠폰**을 담는 자리이기도 하다. `latest_per_brand`가 (앱, 브랜드)당
+  레코드를 하나만 남기므로, 쿠폰이 여럿이면 레코드를 늘리지 말고 tiers를
+  늘려야 한다(레코드를 늘리면 한쪽이 조용히 사라진다).
+
+검증 순서(`validate_record`): 필수 필드 존재 → `platform`/`capture_mode`
+확인 → `DEFAULTS`로 정규화 → `qualifier`/`scope`/`offer_type`/`tiers` 확인.
+반환값은 기본값이 채워진 정규화된 dict.
 
 ## 3. 내보내는 산출물 (다른 레포가 읽음)
 
 정의: `export_data.py`.
 
-- **파일**: `data/export.json` — JSON 배열, 브랜드당(=`(platform, brand)`
-  키당) 레코드 1건. `store.latest_per_brand()`로 중복 제거된
-  최신/확정 레코드만 담긴다. `json.dumps(..., ensure_ascii=False, indent=1)`.
-- **부산물**: `data/brands-sorted.txt` — 정렬된 브랜드명 목록, 한 줄에
-  하나 (`export_data.py:47-48, 57-58`).
+- **파일**: `data/export.json` — JSON 배열, (`platform`, `brand`) 키당
+  레코드 1건. `store.latest_per_brand()`로 중복 제거된 최신/확정 레코드만
+  담긴다.
+- **부산물**: `data/brands-sorted.txt` — 정렬된 브랜드명 목록.
 
-### snake_case → camelCase 리네임 표 (`export_data.py:7-23`)
-
-| 원장 필드 (snake_case) | export 필드 (camelCase) |
-|---|---|
-| `platform` | `platform` |
-| `brand` | `brand` |
-| `amount` | `amount` |
-| `qualifier` | `qualifier` |
-| `needs_review` | `needsReview` |
-| `offer_type` | `offerType` |
-| `section` | `section` |
-| `raw_text` | `rawText` |
-| `captured_at` | `capturedAt` |
-| `screenshot_path` | `screenshotPath` |
-| `min_order_amount` | `minOrderAmount` |
-| `tiers` | `tiers` (원소 내부도 리네임 — 아래) |
-| `conditions` | `conditions` |
-
-`tiers` 배열 원소도 별도로 camelCase 처리된다 (`camel_tiers`,
-`export_data.py:30-34`): `min_order` → `minOrder`, `amount` → `amount`.
-
-### export.json 항목의 전체 필드 목록 (post-rename, 13개)
+### export.json 항목의 전체 필드 (post-rename, **16개**)
 
 ```
 platform, brand, amount, qualifier, needsReview, offerType, section,
-rawText, capturedAt, screenshotPath, minOrderAmount, tiers, conditions
+rawText, capturedAt, screenshotPath, minOrderAmount, tiers, conditions,
+expiresAt, badge, soldOut
 ```
 
-**API 쪽 대조**: `delivery-discount-api`의
-`src/main/java/com/discounttracker/offer/OfferRecord.java`가 이
-13개 필드를 정확히 같은 이름·같은 순서로 선언한 Java record다
-(`OfferRecord.java:13-27`). 이 문서 작성 시점(§6 커밋 기준)에는
-두 레포가 정확히 일치 — 어느 한쪽에서 필드를 추가/삭제하면 반드시
-반대쪽도 같이 바꿔야 한다.
+리네임은 snake_case → camelCase 뿐이다(`needs_review` → `needsReview` 식).
+`tiers` 원소 내부도 같은 규칙으로 바뀐다: `min_order` → `minOrder`,
+`sold_out` → `soldOut`, `expires_at` → `expiresAt`.
 
-**export되지 않는 schema 필드** (원장에는 있지만 export.json에는 없음):
-`page`, `unit`, `scope`, `target_address`, `capture_mode`. API는 이
-필드들을 모르고 알 필요도 없다 — 새로 export하려면 양쪽 다 고쳐야 한다.
+**export되지 않는 원장 필드**: `page`, `unit`, `scope`, `target_address`,
+`capture_mode`. API는 이 필드들을 모르고 알 필요도 없다.
+
+**API 쪽 대조**: `delivery-discount-api`의 `OfferRecord.java`가 같은 16개
+필드를 선언한다. `DiscountTier.java`는 tier의 선택 키까지 포함해
+`(minOrder, amount, percent, channel, soldOut, expiresAt)`이다.
+
+### 필드를 추가할 때의 배포 순서
+
+**API 먼저, 트래커 나중.** 두 레포가 별도 self-hosted 워크플로로 독립
+배포돼서, 트래커가 먼저 끝나면 구버전 API가 모르는 필드를 받는다. 지금은
+`OfferRepository`의 ObjectMapper가 `FAIL_ON_UNKNOWN_PROPERTIES=false`라
+무시하고 넘어가지만(예전엔 500이 나서 reload가 깨졌다), 그래도 그 사이엔
+값이 유실된 채로 보인다.
 
 ## 4. 전달 방식
 
-HTTP push 없음 — **파일 드롭**이다.
+HTTP push 없음 — **파일 드롭**이다. 사람이 복사하지 않는다.
 
-- 로컬 개발: `python export_data.py`가 `data/export.json`을 갱신하면,
-  이 레포 README(`README.md:24-27`) 기준 사람이 직접
-  `delivery-discount-api`로 복사한다. API 로컬 기본 설정은
-  `classpath:data/export.json` (API 레포 `ADR-001-external-export-path.md`).
-- 서버 배포: API 레포 `docs/decisions/ADR-001-external-export-path.md`에
-  따르면 서버는 `DISCOUNT_EXPORT_PATH` 환경변수로 `file:` 절대경로를
-  가리키도록 오버라이드돼 있고(`/home/ubuntu/delivery-discount-api/data/export.json`),
-  `scp`로 파일을 올린 뒤 `POST /api/reload`로 재배포 없이 캐시만
-  갱신한다. (이 부분은 API 레포 소관이라 읽기만 하고 이 레포에서는
-  건드리지 않는다 — 참고용 인용.)
+`.github/workflows/deploy.yml`이 main 푸시마다 self-hosted 러너에서:
+
+1. **가드** — 커밋된 `data/export.json`이 서버 파일보다 낡았으면 중단.
+   판정은 (a) 최신 `capturedAt` 비교, (b) 서버에 채워져 있던 상세
+   (`tiers`/`badge`/`minOrderAmount`/`conditions`/`expiresAt`)가 비는지.
+   건수로는 재지 않는다 — 프로모션이 끝나면 정당하게 줄고, 정상 만료마다
+   오탐을 뱉는 가드는 결국 꺼진다.
+2. `cp data/export.json ~/delivery-discount-api/data/export.json`
+3. `POST /api/reload` (5회 재시도 — API 배포가 따라잡을 시간)
+
+가드를 넣은 이유: `cp`는 서버 파일을 통째로 갈아치운다. 2026-08-05에
+서버 138건 대 커밋 135건이었고, 그대로 밀어 실제로 데이터를 날렸다
+(청년피자 땡겨요의 tiers 2건과 badge — 라이브 스냅샷으로 복구). 같은
+판정을 하는 `check_deploy.py`에 테스트가 붙어 있다(로컬 사전 확인용).
+
+**로컬 개발**: API 기본값은 `classpath:data/export.json`(레포에 커밋된
+낡은 픽스처)이라, 로컬에서 `data/export.json`을 고쳐도 안 보인다.
+`DISCOUNT_EXPORT_PATH`로 실제 파일을 가리켜야 한다(서버 systemd가 그렇게
+띄운다).
 
 ## 5. 알려진 갭/WIP
 
-소스에 `TODO`/`FIXME` 마커는 없다 (세션 로그 1건 제외, 실코드 아님).
-대신 스키마·export 코드의 주석이 실질적인 갭을 명시하고 있다:
-
-- **`min_order_amount` / `tiers` / `conditions`** — 쿠폰 상세를 열어야
-  보이는 값이라 "아직 대부분 비어 있다" (`schema.py:21-23`,
-  `export_data.py:18-19` 주석 원문). 스키마·export 양쪽에 필드는
-  뚫려 있지만 실제 캡처 파이프라인이 채우는 경우는 드물다 —
-  자동 판독 흐름이 아니라 손으로 채우는 값(`validate_tiers` 독스트링,
-  `schema.py:31`).
-- **`unit`** (기본값 `"KRW"`) — 스키마엔 정의돼 있지만 export 필드
-  목록(`FIELDS`, `export_data.py:7-23`)엔 없다. 현재 전량 KRW라
-  영향은 없지만, 통화가 늘어나면 export에도 추가해야 한다.
-- **`scope`** — `"brand"`/`"store"` 두 값이 정의돼 있지만 `store`는
-  현재 파이프라인에서 실사용 안 됨 (`parse/CONTRACT.md` §1: 매장 카드는
-  1차 범위에서 제외, 스킵). export에도 안 나간다.
-- **`page`** — 스키마엔 있지만 export에는 안 나간다 (캡처 메타데이터로만
-  남고 API로는 안 넘어감).
-- **요기요** — README(`README.md:64`) 기준 전량 `needs_review: true`
-  (쿠폰 실적용가 재확인 전) — 스키마 위반은 아니지만 데이터 신뢰도
-  갭으로 알아둘 것.
+- **종료된 프로모션을 원장에 적을 자리가 없다.** 제거가 `export.json`
+  에서만 일어나 원장에서 export를 재현할 수 없다(§1). 백엔드에서
+  "만료일이 지나면 무력화" 작업이 예정돼 있고, 그 방식에 따라 이쪽
+  설계도 정해진다.
+- **만료일 보유율이 앱마다 다르다** — ddangyo 86%, yogiyo 22%, baemin 9%,
+  coupangeats 0%. 쿠팡이츠 0%는 정보가 없어서가 아니라 하단 유의사항
+  문구를 판독 대상으로 삼은 적이 없어서다
+  (`docs/research/2026-07-29-coupangeats-discount-anatomy.md`).
+- **`unit`** (기본값 `"KRW"`) — 스키마엔 있지만 export엔 없다. 전량
+  KRW라 영향은 없다.
+- **`scope`의 `"store"`** — 정의만 있고 미사용(`parse/CONTRACT.md` §1:
+  매장 카드는 1차 범위 제외).
+- **`needs_review`** — 137건 중 15건(yogiyo 10, coupangeats 4, baemin 1).
+  "요기요 전량 보류"는 옛 상태이고 지금은 27건 중 10건이다.
 
 ## 6. 최종 검증
 
-`git rev-parse HEAD` (short): `de4b456` — 2026-08-01 확인.
+이 문서의 수치는 코드에서 직접 뽑았다(`schema.py`, `export_data.py`,
+`data/export.json` 137건 기준) — 2026-08-06 확인.
