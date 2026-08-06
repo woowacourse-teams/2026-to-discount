@@ -1,4 +1,4 @@
-from export_data import build_export, sorted_brand_names
+from export_data import build_export, camel_tiers, sorted_brand_names
 
 RECORDS = [
     {
@@ -122,3 +122,15 @@ def test_build_export_carries_tier_sold_out():
         {"minOrder": 16000, "amount": 20000, "soldOut": True},
         {"minOrder": 16000, "amount": 6000},
     ]
+
+
+def test_camel_tiers_carries_per_tier_expires_at():
+    tiers = camel_tiers([
+        {"min_order": 18900, "amount": 4000, "expires_at": "2026-08-30"},
+        {"min_order": None, "amount": 7500, "expires_at": "2026-08-31"},
+    ])
+    assert [t["expiresAt"] for t in tiers] == ["2026-08-30", "2026-08-31"]
+
+
+def test_camel_tiers_omits_expires_at_when_absent():
+    assert "expiresAt" not in camel_tiers([{"min_order": 15000, "amount": 3000}])[0]

@@ -2586,15 +2586,17 @@
     "tiers": [
       {
         "minOrder": 18900,
-        "amount": 4000
+        "amount": 4000,
+        "expiresAt": "2026-08-30"
       },
       {
         "minOrder": null,
-        "amount": 7500
+        "amount": 7500,
+        "expiresAt": "2026-08-31"
       }
     ],
     "conditions": null,
-    "expiresAt": "2026-08-30",
+    "expiresAt": "2026-08-31",
     "badge": "배민클럽 7,500원",
     "soldOut": null
   },

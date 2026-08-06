@@ -1,4 +1,7 @@
+import re
+
 ALLOWED_PLATFORMS = {"baemin", "coupangeats", "yogiyo", "ddangyo", "specialdelivery"}
+EXPIRES_AT_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 ALLOWED_QUALIFIERS = {None, "최대", "최소"}
 ALLOWED_SCOPES = {"brand", "store"}
 ALLOWED_OFFER_TYPES = {"discount", "gift", "coupon", "unknown"}
@@ -70,6 +73,12 @@ def validate_tiers(tiers) -> None:
             raise ValueError(f"invalid tier channel: {tier!r}")
         if "sold_out" in tier and not isinstance(tier["sold_out"], bool):
             raise ValueError(f"tier sold_out must be bool: {tier!r}")
+        # 구간별 만료일. 한 브랜드의 쿠폰들이 같은 날 끝난다는 보장이 없다 —
+        # 청년피자 땡겨요는 상시 5,000원과 하루짜리 청피데이 9,000원이 한
+        # 레코드에 같이 있었고, 레코드 만료일 하나만 보고 지웠다가 살아있는
+        # 5,000원까지 날렸다(2026-08-06). 비면 레코드의 expires_at을 따른다.
+        if "expires_at" in tier and not EXPIRES_AT_RE.fullmatch(str(tier["expires_at"])):
+            raise ValueError(f"tier expires_at must be YYYY-MM-DD: {tier!r}")
 
 
 def validate_record(record: dict) -> dict:

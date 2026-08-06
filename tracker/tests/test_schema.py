@@ -149,3 +149,18 @@ def test_validate_record_keeps_channel_tier():
 def test_validate_record_rejects_invalid_tier_channel():
     with pytest.raises(ValueError):
         validate_record(dict(BASE, tiers=[{"min_order": 19900, "amount": 4000, "channel": "드라이브스루"}]))
+
+
+def test_validate_tiers_accepts_per_tier_expires_at():
+    record = validate_record(dict(BASE, tiers=[
+        {"min_order": 18900, "amount": 4000, "expires_at": "2026-08-30"},
+        {"min_order": None, "amount": 7500, "expires_at": "2026-08-31"},
+    ]))
+    assert record["tiers"][0]["expires_at"] == "2026-08-30"
+
+
+def test_validate_tiers_rejects_malformed_tier_expires_at():
+    with pytest.raises(ValueError, match="expires_at"):
+        validate_record(dict(BASE, tiers=[
+            {"min_order": 18900, "amount": 4000, "expires_at": "2026.08.30"},
+        ]))
