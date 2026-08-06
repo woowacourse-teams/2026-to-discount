@@ -1,0 +1,880 @@
+:root {
+  color-scheme: light dark;
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --border: #eaeaea;
+  --text: #171717;
+  --text-muted: #787774;
+  --accent: #171717;
+  --pending-bg: #fbf3db;
+  --pending-text: #956400;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.update-notice {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 50;
+  max-width: min(70vw, 36rem);
+  padding: .8rem 1.4rem;
+  border-radius: 1rem;
+  background: rgba(149, 100, 0, 0.4);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1.4;
+  text-align: right;
+  pointer-events: none;
+}
+
+.page-head { margin-bottom: -1.0rem; }
+.page-head__row { display: flex; }
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+/* 텍스트 대신 로고 이미지. 브랜드 마크가 헤더의 중심이 되도록 크게
+   쓴다 — 원본은 흰 배경을 투명 처리해 잘라 둔 것(public/main_logo.png). */
+.page-head__banner { display: flex; align-items: center; gap: .9rem; margin: 0 0 .5rem; }
+.page-head__logo { display: block; margin: 0; }
+.page-head__logo img { height: 120px; width: auto; display: block; }
+
+/* 어떤 배달앱들을 비교하는지 배너 오른쪽에 2x2 정사각형 그리드로 보여준다.
+   4칸 모두 같은 크기라 높이가 어긋나지 않는다(폭 대신 자기 자신을
+   정사각형으로 고정) — 아이콘마다 원본 여백이 달라도 배지 크기 자체는
+   항상 같다. */
+.page-head__apps {
+  display: grid;
+  grid-template-columns: repeat(2, 36px);
+  gap: .4rem;
+  margin: 0;
+}
+.page-head__apps .platform-badge { width: 36px; height: 36px; border-radius: 10px; }
+
+/* 320px처럼 아주 좁은 화면에선 로고 높이 그대로 두면 배너(로고+2x2
+   아이콘)가 옆으로 넘친다 — 로고만 줄여서 옆에 나란히 붙는 구조를
+   유지한다(줄바꿈 대신 축소를 택함, 나란히 두라는 요구가 있었으므로). */
+@media (max-width: 380px) {
+  .page-head__logo img { height: 80px; }
+}
+
+.sub { color: var(--text-muted); font-size: .9rem; margin: 0; text-align: center; }
+
+.msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
+.msg--error { color: #9f2f2d; }
+
+.pill {
+  font-size: .65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: .15rem .55rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+.pill--pending { background: var(--pending-bg); color: var(--pending-text); }
+
+/* 멤버십 트리거 버튼 + 드롭다운의 위치 기준. .toolbar__actions 안,
+   레이블 줄 오른쪽에 검색 아이콘과 한 그룹으로 플로팅한다. */
+.membership { position: relative; flex: none; }
+
+.membership-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .5rem .8rem;
+  font: inherit;
+  font-size: .8rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: box-shadow 150ms ease;
+}
+.membership-trigger:hover { box-shadow: 0 1px 6px rgba(0, 0, 0, .05); }
+.membership-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 화면 오른쪽에서 밀려나오던 드로어 대신, 버튼 바로 아래 뜨는 드롭다운.
+   열렸을 때만 DOM에 존재하므로(App.jsx `{open && ...}`) 닫힘 상태를 위한
+   별도 opacity 규칙이 필요 없다. */
+.dropdown-backdrop { position: fixed; inset: 0; z-index: 20; }
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + .5rem);
+  right: 0;
+  width: min(300px, 88vw);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  transform-origin: top right;
+  transform: scale(.96);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms ease;
+  z-index: 21;
+}
+.dropdown--open { transform: scale(1); opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .dropdown { transition: opacity 160ms ease; }
+}
+
+/* 안내 버튼 — 이제 화면에 고정된 게 아니라 검색 버튼 바로 아래,
+   toolbar__left-stack 안에 얌전히 들어간다("? 버튼은 그 아래로"). */
+.info-fab { position: relative; z-index: 12; }
+/* backdrop(z-index:20)이 전체 화면을 덮어 hover-out 감지에 쓰이는데,
+   버튼·툴팁이 z-index:auto면 그 밑에 깔려 버튼 위에서도 backdrop이
+   마우스 이벤트를 가로챈다 — 열자마자 backdrop의 mouseenter가 걸려
+   바로 닫혀 버렸다. backdrop보다 위로 올려 실제 버튼·툴팁 영역에서는
+   backdrop이 이벤트를 못 받게 한다. */
+.info-fab__btn {
+  position: relative;
+  z-index: 21;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.info-fab__btn:hover { color: var(--text); border-color: var(--text-muted); }
+.info-fab__tip {
+  position: absolute;
+  z-index: 21;
+  top: calc(100% + .45rem);
+  left: 0;
+  width: max-content;
+  max-width: 220px;
+  background: var(--text);
+  color: #fff;
+  font-size: .78rem;
+  line-height: 1.4;
+  padding: .5rem .7rem;
+  border-radius: 8px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease;
+}
+.info-fab__tip--open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 카테고리 탭 왼쪽의 회색 화살표 — 분류 기준(카테고리/할인금액대/
+   최소주문금액대) 선택 드롭다운. */
+.classify-picker { position: relative; flex: none; }
+.classify-picker__btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--border);
+  color: var(--text-muted);
+  font-size: .7rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.classify-picker__btn:hover { color: var(--text); }
+/* 공용 .dropdown은 오른쪽 정렬(right:0, 버튼 오른쪽 끝에 메뉴를 맞추고
+   왼쪽으로 펼침) — 화면 오른쪽의 멤버십 버튼엔 맞지만, 이 버튼은 화면
+   맨 왼쪽(레이블 줄 맨 앞)에 있어 왼쪽으로 펼치면 화면 밖으로 밀렸다.
+   왼쪽 정렬로 뒤집어 오른쪽으로 펼친다. */
+.classify-picker__menu {
+  left: 0;
+  right: auto;
+  transform-origin: top left;
+  width: min(200px, 70vw);
+  padding: .5rem;
+}
+.classify-picker__option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: .85rem;
+  padding: .5rem .6rem;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.classify-picker__option:hover { background: var(--bg); }
+.classify-picker__option--active { font-weight: 700; }
+.classify-picker__option:disabled {
+  color: var(--text-muted);
+  opacity: .5;
+  cursor: not-allowed;
+}
+.classify-picker__option:disabled:hover { background: none; }
+
+.dropdown__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
+.dropdown__title { font-size: .95rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+
+.dropdown__note {
+  color: var(--text-muted);
+  font-size: .78rem;
+  line-height: 1.6;
+  margin: .6rem 0 .9rem;
+}
+.dropdown__options { display: flex; flex-direction: column; gap: .6rem; }
+.dropdown__option {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .88rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.dropdown__option input { accent-color: var(--accent); width: 16px; height: 16px; }
+.dropdown__option--disabled { cursor: not-allowed; opacity: .5; }
+.dropdown__option--disabled input { cursor: not-allowed; }
+
+/* 미확인/미확정/비활성화 기능 위에 hover하면 뜨는 "작업중입니다!" 말풍선.
+   disabled 처리된 버튼·체크박스를 이 클래스로 감싼다 — disabled 요소
+   자체는 pointer-events가 막혀도 hover는 감싼 wrapper 기준으로 잡힌다. */
+.wip { position: relative; }
+.wip::after {
+  content: attr(data-wip-tip);
+  position: absolute;
+  bottom: calc(100% + .35rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #8a8a8a, #3a3a3a);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: .35rem .6rem;
+  border-radius: 6px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+  z-index: 30;
+}
+.wip:hover::after { opacity: 1; visibility: visible; }
+
+/* 검색+안내 버튼(왼쪽 세로 스택) + 카테고리 레이블(오른쪽, 좁게 줄이고
+   가로 스크롤). 줄 전체를 sticky로 고정해서 스크롤해도 계속 손 닿는
+   자리에 있는다 — 스크롤로 올라오는 카드가 이 줄 아래에서 뚝 끊기지
+   않도록, 좌하단 사선으로 빠지는 그라데이션을 줄 전체 배경에 건다. */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  padding: .75rem 0 1.35rem;
+  background: linear-gradient(to bottom left, var(--bg) 0%, var(--bg) 55%, transparent 85%);
+}
+/* 화살표(분류 기준) + 안내(?) + 카테고리 탭, 전부 한 줄 — 높이를 맞추려면
+   따로 쌓지 않고 같은 행에 나란히 둬야 한다. 검색 토글은 이 행의 오른쪽에
+   position:absolute로 떠 있는다("레이블 위로 띄워") — 자기 폭만큼 자리를
+   차지하지 않으므로 기준이 되는 이 컨테이너는 position:relative가 필요하다. */
+.toolbar__labels {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* 멤버십 버튼 + 검색, 레이블 행 오른쪽 끝에 한 그룹으로 떠 있는다
+   (position:absolute, .toolbar__labels 기준) — 자기 폭만큼 자리를
+   차지하지 않는다. 같은 flex 행이라 검색이 펼쳐져 폭이 늘어나면 그
+   왼쪽의 멤버십 버튼도 같이 밀려난다(별도 좌표 계산 없이 flex만으로). */
+.toolbar__actions {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* 검색 — 닫힌 상태는 다른 원형 아이콘 버튼(▾, ?, 멤버십)과 높이를 맞춘
+   26px 원. 열리면 입력창으로 바뀌며 폭만 늘어난다(화면 절반 정도까지 —
+   레이블 행 전체를 덮진 않는다) — 나머지(top/height/위치)는 그대로라
+   같은 flex 행 안에서 자기 자리만 넓히고, 늘어난 만큼 왼쪽 형제(멤버십
+   버튼)가 밀려난다. 포커스를 잃으면 다시 아이콘 버튼으로 접힌다
+   (App.jsx SearchControl). */
+.search-control {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  transition: width 220ms cubic-bezier(.65, 0, .35, 1);
+}
+.search-control--open {
+  width: min(50vw, 320px);
+  display: flex;
+  align-items: center;
+}
+.search-control__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.search-control__btn:hover { border-color: var(--text-muted); }
+.search-control__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.search-control__input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 26px;
+  font: inherit;
+  font-size: .85rem;
+  padding: 0 .9rem;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+}
+.search-control__input::placeholder { color: var(--text-muted); }
+.search-control__input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 금액대 분류일 때 탭 대신 쓰는 스텝 슬라이더. 이퀄라이저처럼 정해진
+   값에서만 멈춘다 — <input type="range" step="1">이 브랜드마다 하나씩
+   있는 금액대 개수만큼의 정수 인덱스만 오간다. 현재 값은 썸 위치 위에
+   캡션으로 항상 뜬다(퍼센트로 계산해 left에 꽂는다). */
+.amount-slider {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: min(240px, 66%);
+  padding: .3rem 0 0;
+}
+.amount-slider__mode {
+  text-align: right;
+  font-size: .72rem;
+  color: var(--text-muted);
+  margin-bottom: 1.4rem;
+}
+.amount-slider__track-wrap { position: relative; }
+.amount-slider__caption {
+  position: absolute;
+  top: -1.3rem;
+  transform: translateX(-50%);
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.amount-slider__input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  outline: none;
+  margin: 0;
+  display: block;
+}
+.amount-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  cursor: pointer;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.amount-slider__input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  cursor: pointer;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.amount-slider__input::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.amount-slider__ticks {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px; /* 썸 반지름만큼 안쪽으로 — 양 끝 눈금이 썸 중심과 맞도록 */
+  margin-top: .35rem;
+}
+.amount-slider__tick {
+  width: 2px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--border);
+}
+.amount-slider__range {
+  display: flex;
+  justify-content: space-between;
+  margin-top: .3rem;
+  font-size: .68rem;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+/* 카테고리 필터 — 가로로 죽 늘어놓고, 넘치는 만큼 가로 스크롤로 흡수.
+   sticky·그라데이션은 부모 .toolbar가 통째로 맡는다(검색·안내 버튼과
+   같이 고정돼야 하므로). flex:1 min-width:0으로 .toolbar__labels 안에서
+   화살표 버튼을 뺀 나머지 폭만 갖고, 그 안에서 스스로 스크롤한다(휠
+   가로 스크롤도 여기 붙는다 — App.jsx의 onWheel). */
+.category-bar {
+  display: flex;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 66%;
+  margin: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.category-bar::-webkit-scrollbar { display: none; }
+
+/* 세그먼트 컨트롤의 슬라이딩 하이라이트. 탭마다 배경을 따로 켜고 끄는
+   대신 배경 하나가 활성 탭 위치로 옮겨간다(위치·너비는 JS가 실측해서
+   인라인 스타일로 넣는다 — App.jsx CategoryBar). .category-bar가 이미
+   position:sticky라 별도 relative 없이도 이 절대배치의 기준이 된다. */
+.category-bar__highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 999px;
+  background: var(--text);
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .category-bar__highlight { transition: none; }
+}
+
+/* 테두리를 없애 탭 자체는 존재감을 지운다 — 어느 값이 선택됐는지는
+   슬라이딩 하이라이트 하나만 가리키면 된다. 탭끼리도 서로 붙여서
+   낱개 버튼이 아니라 하나의 트랙처럼 읽히게 한다. */
+.category-btn {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  padding: .45rem .65rem;
+  font: inherit;
+  font-size: .85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+.category-btn:hover { color: var(--text); }
+.category-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.category-btn--active {
+  /* 글씨색 전환을 하이라이트 이동(.category-bar__highlight, transform
+     260ms 같은 곡선)과 정확히 같은 시간·곡선으로 맞춘다. 하나만 지연시키면
+     "덜 어두워진 하이라이트 위에 아직 안 하얘진 글씨"나 "하이라이트가
+     도착하기 전에 이미 하얘진 글씨" 둘 중 하나의 구간에서 항상 대비가
+     깨진다 — 같은 곡선으로 나란히 움직여야 중간 지점에서도 옅은
+     배경 위엔 중간 회색, 진해진 하이라이트 위엔 중간 흰색으로 맞아떨어진다. */
+  transition: color 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* 브랜드 카드 그리드 — 고정 컬럼 수 대신 minmax로 반응형이다.
+   300px보다 좁아지면(=모바일) min(100%, 300px)이 100%가 되어 카드 하나가
+   컨테이너 폭에 정확히 맞고, 넓어지면 300px 이상인 컬럼을 들어가는 만큼
+   채운다(지금 폭에선 2열). 하드코딩된 breakpoint가 없어 태블릿 폭에서도
+   자연스럽게 열 수가 바뀐다. */
+.brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: .85rem;
+  align-items: start;
+}
+
+.brand-card {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem;
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+.brand-card:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .04); }
+/* URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유했을 때만 붙는다 —
+   카드를 만지면(App.jsx onInteract) 곧바로 떨어진다. */
+.brand-card--highlighted {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* 1행: 로고 + 이름. 상세를 펼치는 버튼이기도 하다 — 카드에서 가장 큰
+   과녁이라 모바일에서 엄지로 누르기 가장 쉽다. */
+.brand-card__head {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.brand-card__head:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.brand-card__name {
+  font-size: .98rem;
+  font-weight: 600;
+  margin: 0;
+  min-width: 0;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 화살표 + 호버 안내를 한 덩어리로 오른쪽에 붙인다. */
+.brand-card__hover-affordance {
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* 호버 안내 문구. 레이아웃 자리는 항상 차지하고(opacity만 바꿔 chevron이
+   안 밀리게) 마우스가 있는 환경에서만 드러난다 — 터치는 hover가 없어
+   아예 안 뜬다. */
+.brand-card__hover-hint {
+  font-size: .7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+/* 펼침 표시. 아이콘 라이브러리 없이 테두리 두 변만 남긴 사각형을 돌린다. */
+.brand-card__chevron {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 150ms ease;
+}
+.brand-card--open .brand-card__chevron { transform: translateY(1px) rotate(-135deg); }
+
+@media (hover: hover) {
+  .brand-card__head:hover .brand-card__hover-hint {
+    opacity: 1;
+    transform: none;
+  }
+  .brand-card__head:hover .brand-card__chevron {
+    border-color: var(--text);
+  }
+}
+
+.brand-logo {
+  position: relative;
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.brand-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.brand-logo__fallback {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; font-weight: 600; color: var(--text-muted);
+}
+
+/* 2행: 앱별 금액 한 줄 고정(줄바꿈 없음). 칩은 내용 크기가 아니라
+   카드 폭을 균등하게 나눠 갖는다(flex: 1 1 0) — 브랜드 카드 자체가
+   반응형(auto-fit/minmax)이라 카드 폭이 화면마다 달라지는데, 칩이
+   고정 크기면 넓은 카드에선 왼쪽으로 쏠려 보이고 좁은 카드에선 스크롤이
+   필요해진다. min-width만 최소 보장하고, 그마저 부족한 극단적인 경우에만
+   가로 스크롤로 흡수한다. */
+.offer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: .45rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  scrollbar-width: none;
+}
+.offer-list::-webkit-scrollbar { display: none; }
+.offer { position: relative; display: flex; flex-direction: column; flex: 1 1 0; min-width: 68px; }
+
+.offer__chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .55rem .6rem;
+  font: inherit;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* 칩은 둘 중 하나다: 땡겨요 브랜드 페이지로 나가는 링크, 또는 상세를
+   펼치는 버튼. 둘 다 눌리는 것이므로 같은 피드백을 준다. */
+.offer__chip--link,
+.offer__chip--toggle {
+  cursor: pointer;
+  text-align: left;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.offer__chip--link:hover,
+.offer__chip--toggle:hover { box-shadow: 0 1px 6px rgba(0, 0, 0, .05); }
+.offer__chip--link:active,
+.offer__chip--toggle:active { transform: scale(.98); }
+.offer__chip--link:focus-visible,
+.offer__chip--toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.offer--confirmed .offer__amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.offer--held .offer__amount {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+/* 칩 여백(padding) 안쪽 흐름에 끼워 넣으면 칩이 좁을 때 금액을 옆으로
+   밀어냈다 — icon-badge(플랫폼 아이콘)처럼 칩 모서리에 겹쳐 뜨는
+   리본으로 빼서 칩 안쪽 레이아웃과 완전히 분리한다. */
+.offer__range-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: .55rem;
+  font-weight: 600;
+  color: #9f2f2d;
+  background: #fdebec;
+  border-radius: 4px;
+  padding: .05rem .3rem;
+  z-index: 1;
+}
+
+.offer__icon-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+
+/* 목록 액면 금액이 실제론 못 받는 상태(재고 소진)거나 매일 바뀌는
+   상태(랜덤박스)일 때 붙는 상태 라벨(schema `badge`). offer__range-badge
+   (최대, 칩 위쪽 가운데)와 동시에 뜰 수 있어 자리를 겹치지 않게
+   칩 아래쪽에 둔다. */
+.offer__amount--soldout {
+  opacity: .5;
+  text-decoration-color: currentColor;
+}
+
+.offer__soldout-label {
+  margin-left: .3em;
+  font-size: .65rem;
+  font-weight: 700;
+  color: #b3261e;
+}
+
+.offer__status-badge {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: .55rem;
+  font-weight: 600;
+  color: #9a5b00;
+  background: #fff3da;
+  border-radius: 4px;
+  padding: .05rem .3rem;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.platform-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 7px;
+  border: 1px solid var(--surface);
+  overflow: hidden;
+  font-size: .6rem;
+  font-weight: 700;
+  color: var(--text);
+}
+/* object-fit:cover + 원형 마스크였을 때 사각형 아이콘의 모서리가 잘렸다.
+   contain으로 전체를 보여주고, 배지 모양도 원이 아니라 둥근 사각형으로
+   바꿔 사각 아이콘과 형태를 맞췄다. */
+.platform-badge img {
+  width: 100%; height: 100%; object-fit: contain; display: block;
+  position: absolute; inset: 0; padding: 2px;
+}
+.platform-badge--baemin { background: #e1f3fe; }
+.platform-badge--coupangeats { background: #fdebec; }
+.platform-badge--ddangyo { background: #fbf3db; }
+.platform-badge--yogiyo { background: #edf3ec; }
+
+/* 펼친 상세. 카드 안에 상자를 또 그리지 않고 실선 하나로만 나눈다. */
+.brand-detail {
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  margin-top: .35rem;
+  padding-top: .85rem;
+  border-top: 1px solid var(--border);
+  animation: detail-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* [hidden]과 위 display:flex는 명시도가 같아서 순서로 갈린다 — 접힘이
+   이기도록 여기서 못박는다. */
+.brand-detail[hidden] { display: none; }
+
+@keyframes detail-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-detail { animation: none; }
+}
+
+.detail + .detail {
+  padding-top: .8rem;
+  border-top: 1px dashed var(--border);
+}
+.detail__head {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: .45rem;
+}
+.detail__platform { font-size: .78rem; color: var(--text-muted); }
+.detail__amount {
+  margin-left: auto;
+  font-size: .82rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail__rows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .28rem .7rem;
+  margin: 0;
+}
+.detail__rows dt {
+  font-size: .72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.detail__rows dd { margin: 0; font-size: .78rem; }
+.detail__unknown { color: var(--text-muted); }
+
+.detail__tiers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .18rem;
+}
+.detail__tiers li {
+  display: flex;
+  justify-content: space-between;
+  gap: .6rem;
+  max-width: 280px;
+}
+.detail__tier-min { color: var(--text-muted); }
+/* 구간마다 끝나는 날이 다를 때만 붙는다(오퍼 만료일과 같으면 생략) —
+   조건 문구 옆에 작게 얹어 어느 쿠폰이 먼저 끝나는지 보이게 한다. */
+.detail__tier-expiry {
+  margin-left: .35rem;
+  font-size: .75em;
+  color: var(--pending-text);
+}
+.detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+.detail__tier-amount--soldout { opacity: .5; }
+.detail__condition-note { margin: .3rem 0 0; color: var(--text-muted); }
+
+/* 맨 아래: 이 서비스가 무엇이고 정보를 어떻게 모았는지 밝히는 자리.
+   읽히긴 해야 하므로 회색으로 죽이되 본문 너비 안에 그대로 둔다. */
+.site-footer {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: .76rem;
+  line-height: 1.7;
+}
+.site-footer p { margin: 0 0 .7rem; }
+.site-footer p:last-child { margin-bottom: 0; }
+.site-footer strong { color: var(--text); font-weight: 600; }
+.site-footer__fine { font-size: .7rem; opacity: .85; }
+
+@media (max-width: 560px) {
+  main { padding: 1.5rem 1rem 3rem; }
+  /* .brand-grid는 이제 auto-fit/minmax라 이 폭에서 이미 1열이 된다. */
+}
