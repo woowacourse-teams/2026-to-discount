@@ -1,0 +1,44 @@
+name: Build and Deploy API
+
+# 모노레포로 합치면서 api/.github/ 에 있던 것을 루트로 올렸다 — GitHub은
+# 루트 .github/workflows 만 읽는다. 코드가 api/ 아래로 내려간 만큼
+# working-directory 와 paths 필터를 붙였다.
+#
+# ⚠️ 지금은 수동 실행(workflow_dispatch)만 열어뒀다. 이 워크플로는
+# self-hosted 러너에서 도는데, 그 러너는 원래 저장소
+# (nn98/delivery-discount-api)에 등록돼 있고 이 저장소엔 없다. push
+# 트리거를 켜두면 실행할 러너가 없어 잡이 대기 상태로 쌓인다.
+#
+# 러너를 이 저장소에 등록하면 아래 push 블록의 주석만 풀면 된다. 그때까지
+# 운영 배포는 원래 저장소에서 돈다(루트 ADR-001 "대가 / 아직 안 한 것").
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'api/**'
+  #     - '.github/workflows/deploy-api.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (includes tests)
+        run: ./gradlew build
+
+      - name: Deploy jar and restart service
+        run: |
+          mkdir -p /home/ubuntu/delivery-discount-api/build/libs
+          cp build/libs/delivery-discount-api-0.0.1.jar /home/ubuntu/delivery-discount-api/build/libs/delivery-discount-api-0.0.1.jar
+          sudo systemctl restart delivery-discount-api.service
+
+      - name: Health check
+        run: |
+          sleep 5
+          curl -sf http://localhost:8088/api/brands -o /dev/null

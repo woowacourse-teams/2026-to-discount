@@ -1,13 +1,26 @@
 name: Deploy Data
 
-# export.json은 캡처 원장(data/*.jsonl, 서버엔 없음 — 캡처는 로컬에서만)의
-# 파생 결과라 로컬에서 export_data.py로 만들어 커밋해야 한다. 여기선 그
+# export.json은 캡처 원장(tracker/data/log.jsonl)의 파생 결과다. 여기선 그
 # 커밋된 파일을 서버 API가 읽는 경로로 옮기고 reload만 호출한다.
+#
+# 모노레포로 합치면서 tracker/.github/ 에 있던 것을 루트로 올렸다 — GitHub은
+# 루트 .github/workflows 만 읽는다. 파일 경로가 tracker/ 아래로 내려간 만큼
+# 아래 경로들도 같이 바꿨다.
+#
+# ⚠️ 지금은 수동 실행(workflow_dispatch)만 열어뒀다. self-hosted 러너가
+# 원래 저장소(nn98/delivery-discount-tracker)에 등록돼 있고 이 저장소엔
+# 없어서, push 트리거를 켜두면 실행할 러너가 없어 잡이 대기 상태로 쌓인다.
+# 러너를 등록하면 아래 push 블록의 주석만 풀면 된다
+# (루트 ADR-001 "대가 / 아직 안 한 것").
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'tracker/data/export.json'
+  #     - 'tracker/check_deploy.py'
+  #     - '.github/workflows/deploy-data.yml'
 
 jobs:
   deploy:
@@ -36,7 +49,7 @@ jobs:
             grep -o '"capturedAt"[[:space:]]*:[[:space:]]*"[^"]*"' "$1" \
               | sed 's/.*"\([^"]*\)"$/\1/' | sort | tail -1
           }
-          INCOMING=$(newest data/export.json)
+          INCOMING=$(newest tracker/data/export.json)
           CURRENT=$(newest "$SERVER")
           echo "들어오는 최신 캡처: ${INCOMING:-없음} / 서버: ${CURRENT:-없음}"
           if [ "$INCOMING" \< "$CURRENT" ]; then
@@ -49,7 +62,7 @@ jobs:
           # badge가 날아갔다. 서버에 채워져 있던 값이 비면 막는다.
           # (같은 판정을 하는 check_deploy.py에 테스트가 붙어 있다.)
           if command -v python3 >/dev/null 2>&1; then
-            python3 check_deploy.py data/export.json "$SERVER" || exit 1
+            python3 tracker/check_deploy.py tracker/data/export.json "$SERVER" || exit 1
           else
             echo "python3이 없어 상세 소실 검사를 건너뛴다 — 캡처 시각 검사만 적용됨"
           fi
@@ -64,7 +77,7 @@ jobs:
         # 스텝이 exit 22로 실패한다. 데이터 자체는 문제없고 API 쪽 배포가
         # 따라잡을 때까지의 타이밍 문제라 몇 번 재시도로 흡수한다.
         run: |
-          cp data/export.json ~/delivery-discount-api/data/export.json
+          cp tracker/data/export.json ~/delivery-discount-api/data/export.json
           for i in 1 2 3 4 5; do
             if curl -sf -X POST http://localhost:8088/api/reload; then
               exit 0
