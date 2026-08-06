@@ -1,0 +1,25 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (includes tests)
+        run: ./gradlew build
+
+      - name: Deploy jar and restart service
+        run: |
+          mkdir -p /home/ubuntu/delivery-discount-api/build/libs
+          cp build/libs/delivery-discount-api-0.0.1.jar /home/ubuntu/delivery-discount-api/build/libs/delivery-discount-api-0.0.1.jar
+          sudo systemctl restart delivery-discount-api.service
+
+      - name: Health check
+        run: |
+          sleep 5
+          curl -sf http://localhost:8088/api/brands -o /dev/null

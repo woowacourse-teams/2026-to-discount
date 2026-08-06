@@ -1,0 +1,122 @@
+[
+  {
+    "platform": "baemin",
+    "brand": "bhc",
+    "amount": 4000,
+    "qualifier": null,
+    "needsReview": false,
+    "offerType": "discount",
+    "section": "오늘의 할인",
+    "rawText": "[샘플] 4,000원 브랜드 할인",
+    "capturedAt": "2026-01-01T00:00:00+09:00",
+    "screenshotPath": "",
+    "minOrderAmount": 18000,
+    "tiers": null,
+    "conditions": null,
+    "expiresAt": null,
+    "badge": null,
+    "soldOut": null
+  },
+  {
+    "platform": "ddangyo",
+    "brand": "bhc",
+    "amount": 5000,
+    "qualifier": null,
+    "needsReview": false,
+    "offerType": "discount",
+    "section": null,
+    "rawText": "[샘플] 채널별 별개 쿠폰 — 배달 5,000원 / 포장 6,000원",
+    "capturedAt": "2026-01-01T00:00:00+09:00",
+    "screenshotPath": "",
+    "minOrderAmount": 19900,
+    "tiers": [
+      { "minOrder": 19900, "amount": 5000, "channel": "배달" },
+      { "minOrder": 19900, "amount": 6000, "channel": "포장" }
+    ],
+    "conditions": null,
+    "expiresAt": "2026-12-31",
+    "badge": null,
+    "soldOut": null
+  },
+  {
+    "platform": "coupangeats",
+    "brand": "도미노피자",
+    "amount": 6000,
+    "qualifier": "최대",
+    "needsReview": false,
+    "offerType": "discount",
+    "section": null,
+    "rawText": "[샘플] 품절 구간 — 액면 20,000원은 소진, 실제로 받는 값은 6,000원",
+    "capturedAt": "2026-01-01T00:00:00+09:00",
+    "screenshotPath": "",
+    "minOrderAmount": 16000,
+    "tiers": [
+      { "minOrder": 16000, "amount": 20000, "soldOut": true },
+      { "minOrder": 16000, "amount": 6000 }
+    ],
+    "conditions": null,
+    "expiresAt": null,
+    "badge": "선착순",
+    "soldOut": false
+  },
+  {
+    "platform": "baemin",
+    "brand": "도미노피자",
+    "amount": 4000,
+    "qualifier": null,
+    "needsReview": false,
+    "offerType": "discount",
+    "section": "오늘의 할인",
+    "rawText": "[샘플] 구간별 만료일 — 일반 4,000원(12-30) / 멤버십 7,500원(12-31)",
+    "capturedAt": "2026-01-01T00:00:00+09:00",
+    "screenshotPath": "",
+    "minOrderAmount": 18900,
+    "tiers": [
+      { "minOrder": 18900, "amount": 4000, "expiresAt": "2026-12-30" },
+      { "minOrder": null, "amount": 7500, "expiresAt": "2026-12-31" }
+    ],
+    "conditions": null,
+    "expiresAt": "2026-12-31",
+    "badge": "멤버십 7,500원",
+    "soldOut": null
+  },
+  {
+    "platform": "yogiyo",
+    "brand": "뚜레쥬르",
+    "amount": 3000,
+    "qualifier": null,
+    "needsReview": false,
+    "offerType": "discount",
+    "section": null,
+    "rawText": "[샘플] 정률+상한 구간 — 25,000원 이상 5%, 최대 3,000원",
+    "capturedAt": "2026-01-01T00:00:00+09:00",
+    "screenshotPath": "",
+    "minOrderAmount": 18000,
+    "tiers": [
+      { "minOrder": 18000, "amount": 3000 },
+      { "minOrder": 25000, "amount": 3000, "percent": 5 }
+    ],
+    "conditions": "1일 1회",
+    "expiresAt": null,
+    "badge": null,
+    "soldOut": null
+  },
+  {
+    "platform": "yogiyo",
+    "brand": "네네치킨",
+    "amount": null,
+    "qualifier": null,
+    "needsReview": true,
+    "offerType": "unknown",
+    "section": null,
+    "rawText": "[샘플] 금액을 못 읽은 오퍼 — status가 held로 내려간다",
+    "capturedAt": "2026-01-01T00:00:00+09:00",
+    "screenshotPath": "",
+    "minOrderAmount": null,
+    "tiers": null,
+    "conditions": null,
+    "expiresAt": null,
+    "badge": null,
+    "soldOut": null
+  }
+]

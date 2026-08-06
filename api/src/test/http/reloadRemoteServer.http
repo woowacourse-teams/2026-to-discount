@@ -1,0 +1,2 @@
+POST https://nonosoju.duckdns.org/api/reload HTTP/1.1
+Content-Type: application/json
