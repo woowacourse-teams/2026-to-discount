@@ -848,6 +848,13 @@ h1 {
   max-width: 280px;
 }
 .detail__tier-min { color: var(--text-muted); }
+/* 구간마다 끝나는 날이 다를 때만 붙는다(오퍼 만료일과 같으면 생략) —
+   조건 문구 옆에 작게 얹어 어느 쿠폰이 먼저 끝나는지 보이게 한다. */
+.detail__tier-expiry {
+  margin-left: .35rem;
+  font-size: .75em;
+  color: var(--pending-text);
+}
 .detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
 .detail__tier-amount--soldout { opacity: .5; }
 .detail__condition-note { margin: .3rem 0 0; color: var(--text-muted); }

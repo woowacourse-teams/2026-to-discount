@@ -250,6 +250,12 @@ function OfferDetail({ offer }) {
                   {t.minOrder != null
                     ? `${won(t.minOrder)} 이상 주문 시`
                     : <span className="detail__unknown">최소주문 미확인</span>}
+                  {/* 구간마다 끝나는 날이 다를 수 있다 — 배민 청년피자는
+                      일반 08-30, 배민클럽 08-31로 하루 차이다. 오퍼 전체의
+                      만료일과 같으면 굳이 줄마다 반복하지 않는다. */}
+                  {t.expiresAt && t.expiresAt !== offer.expiresAt && (
+                    <span className="detail__tier-expiry">~{t.expiresAt.slice(5).replace('-', '.')}</span>
+                  )}
                 </span>
               </li>
             ))}
