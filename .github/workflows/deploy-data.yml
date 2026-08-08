@@ -7,20 +7,18 @@ name: Deploy Data
 # 루트 .github/workflows 만 읽는다. 파일 경로가 tracker/ 아래로 내려간 만큼
 # 아래 경로들도 같이 바꿨다.
 #
-# ⚠️ 지금은 수동 실행(workflow_dispatch)만 열어뒀다. self-hosted 러너가
-# 원래 저장소(nn98/delivery-discount-tracker)에 등록돼 있고 이 저장소엔
-# 없어서, push 트리거를 켜두면 실행할 러너가 없어 잡이 대기 상태로 쌓인다.
-# 러너를 등록하면 아래 push 블록의 주석만 풀면 된다
-# (루트 ADR-001 "대가 / 아직 안 한 것").
+# 러너 turbom-v0-2026-to-discount를 이 저장소에 등록하고(2026-08-08)
+# 원본 저장소(nn98/delivery-discount-tracker)의 push 트리거는 껐다 — 운영
+# 배포는 이제 여기서만 돈다. workflow_dispatch는 수동 폴백으로 남긴다.
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'tracker/data/export.json'
+      - 'tracker/check_deploy.py'
+      - '.github/workflows/deploy-data.yml'
   workflow_dispatch:
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - 'tracker/data/export.json'
-  #     - 'tracker/check_deploy.py'
-  #     - '.github/workflows/deploy-data.yml'
 
 jobs:
   deploy:
