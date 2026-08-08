@@ -63,8 +63,9 @@ tracker  →  export.json  →  api  →  /api/brands  →  web
 자동화가 지켜야 할 계약과 결과물만 남겼다 —
 [ADR-001](docs/decisions/ADR-001-monorepo-consolidation.md).
 
-**운영 배포는 아직 원본 세 저장소에서 돈다.** 이 저장소의 워크플로는 수동
-트리거만 열려 있다 — 같은 ADR의 "대가" 참고.
+**운영 배포는 이 저장소에서 자동으로 돈다** (`api/**`,
+`tracker/data/export.json` 변경 시 push 트리거). 원본 세 저장소는 수동
+폴백만 남아 있다 — 같은 ADR의 "대가" 참고.
 
 ## 문서
 

@@ -84,21 +84,30 @@
 
 ## 대가 / 아직 안 한 것
 
-- **배포 워크플로는 옮겼지만 아직 안 돈다.** 하위 디렉터리에 있으면
-  GitHub이 읽지 않으므로(루트 `.github/`만 인식) 둘 다 루트로 올리고
-  경로를 모노레포 기준으로 고쳤다 — `deploy-api.yml`(working-directory:
-  `api`), `deploy-data.yml`(`tracker/data/export.json`).
+- **배포 워크플로는 옮겼고, 이제 여기서 자동으로 돈다(2026-08-08).**
+  하위 디렉터리에 있으면 GitHub이 읽지 않으므로(루트 `.github/`만 인식)
+  둘 다 루트로 올리고 경로를 모노레포 기준으로 고쳤다 —
+  `deploy-api.yml`(working-directory: `api`),
+  `deploy-data.yml`(`tracker/data/export.json`).
 
-  다만 **트리거는 `workflow_dispatch`(수동)만 열어뒀다.** 둘 다
-  `runs-on: self-hosted`인데 그 러너는 원래 저장소에 등록돼 있고 이
-  저장소엔 없다. push 트리거를 켜두면 실행할 러너가 없어 잡이 대기
-  상태로 쌓인다. 러너를 등록하면 각 파일의 `push:` 블록 주석만 풀면
-  된다 — `paths:` 필터까지 미리 적어뒀다.
+  self-hosted 러너 `turbom-v0-2026-to-discount`를 이 저장소에 등록하고,
+  `push: branches: [main] paths: [...]` 트리거를 켰다. 원본 두 저장소
+  (`nn98/delivery-discount-api`, `nn98/delivery-discount-tracker`)의
+  push 트리거는 껐다 — `workflow_dispatch` 수동 폴백만 남기고, 러너
+  서비스 자체는 그 폴백을 받을 수 있게 살려뒀다. 등록 직후 실 push로
+  data → api 두 워크플로가 순서대로 자동 실행돼 서비스 재시작·헬스체크
+  200까지 확인했다.
 
-  **그때까지 운영 배포는 원래 세 저장소에서 돈다.**
+  **운영 배포는 이제 이 저장소에서만 돈다.**
+
+  다만 이 저장소는 조직 소유 public 레포라, self-hosted 러너를 붙이면
+  GitHub이 "포크 PR이 러너에서 코드를 실행할 수 있다"고 경고한다. 지금
+  워크플로는 `pull_request` 트리거가 없어 포크 PR로는 실행되지 않는다 —
+  이 경로를 여는 트리거(`pull_request`, `pull_request_target` 등)는
+  추가하지 않는다.
 - **ADR 번호가 앱마다 1부터다.** 합치면서 통합 번호로 바꾸지 않았다. 앱
   단위 결정은 앱 디렉터리 안에서 완결되고, 상호 링크 27건을 전부 고치는
   비용이 이득보다 크다. 루트 `docs/decisions/`는 **오케스트레이션 층의
   결정만** 담는다 — 앱 하나로 끝나지 않는 것.
-- **원본 저장소를 아카이브하지 않았다.** 배포가 거기서 도는 동안은 살아
-  있어야 한다.
+- **원본 저장소를 아카이브하지 않았다.** push 트리거는 껐지만
+  `workflow_dispatch` 수동 폴백과 러너 서비스는 살려뒀다.
