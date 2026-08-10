@@ -135,21 +135,31 @@ def latest_sweep_dates(records: list[dict]) -> dict[str, str]:
     return latest
 
 
-def is_stale_sweep(record: dict, sweeps: dict[str, str]) -> bool:
-    """지난 수집 때만 보였던 오퍼인가.
+def has_expiry(record: dict) -> bool:
+    """이 오퍼가 스스로 종료일을 들고 있는가(구간별 종료일 포함)."""
+    if record.get("expires_at"):
+        return True
+    return any(t.get("expires_at") for t in record.get("tiers") or [])
 
-    배민 화면에는 종료일이 없다. 그래서 만료를 날짜로 판정할 수 없고,
-    **이번 수집에 안 보였다는 사실**이 곧 끝났다는 뜻이다 — 프로모션이
-    월요일 00시에 통째로 갈린다(2026-08-10 확인: 브랜드관·배짱할인 모두
-    브랜드가 거의 전부 교체됐다).
+
+def is_stale_sweep(record: dict, sweeps: dict[str, str]) -> bool:
+    """지난 수집 때만 보였고 종료일도 없는 오퍼인가.
+
+    종료일이 없으면 만료를 날짜로 판정할 수 없고, **이번 수집에 안 보였다는
+    사실**이 곧 끝났다는 뜻이다 — 프로모션이 월요일 00시에 통째로 갈린다
+    (2026-08-10 확인: 배민 브랜드관·배짱할인 모두 브랜드가 거의 전부
+    교체됐다).
+
+    **종료일이 있으면 그 날짜를 믿는다.** 앱이 직접 알려준 값이라 이쪽이
+    더 정확하다 — 이번 수집에 안 보였다는 이유로 내리면 아직 살아 있는
+    쿠폰이 사라진다(2026-08-10에 실제로 그렇게 70건을 날렸다). 만료
+    판정은 `is_live`가 종료일로 한다.
 
     지우지는 않는다. 그때 그랬다는 관측은 원장에 남고 여기서만 빠진다.
-
-    종료일이 오는 앱(땡겨요·요기요)에는 적용하지 않는다. 그쪽은 한 번
-    수집한 쿠폰이 몇 주씩 유효해서, 이번 수집에 안 보였다는 이유로
-    내리면 멀쩡한 오퍼가 사라진다.
     """
     if record["platform"] not in SWEEP_SCOPED_PLATFORMS:
+        return False
+    if has_expiry(record):
         return False
     return record["captured_at"][:10] < sweeps.get(record["platform"], "")
 

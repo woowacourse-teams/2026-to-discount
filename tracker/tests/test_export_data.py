@@ -240,12 +240,12 @@ def test_same_sweep_day_survives_even_at_different_times():
     assert brands == ["배짱할인", "브랜드관"]
 
 
-def test_older_sweeps_drop_even_when_expiry_is_still_future():
-    """지난 수집분은 종료일이 남아 있어도 내린다.
+def test_older_sweeps_survive_when_they_carry_an_expiry_date():
+    """지난 수집분이라도 종료일이 남아 있으면 유지한다.
 
-    원래는 종료일이 오는 앱(땡겨요·요기요)을 예외로 뒀는데 그게 문제였다
-    (2026-08-10) — 이미 끝난 지난주 프로모션이 종료일만 미래라는 이유로
-    계속 화면에 떴다. 프로모션은 4개 앱 모두 월요일 00시에 갈린다."""
+    앱이 직접 알려준 종료일이 "이번 수집에 안 보였다"보다 정확하다 —
+    한때 4개 앱 전부를 수집 시점만으로 잘랐다가 아직 살아 있는 쿠폰
+    70건을 날렸다(2026-08-10)."""
     old = dict(RECORDS[0], platform="ddangyo", brand="지난주",
                captured_at="2026-08-03T00:00:00+09:00", expires_at="2026-08-31")
     new = dict(RECORDS[0], platform="ddangyo", brand="이번주",
@@ -253,4 +253,32 @@ def test_older_sweeps_drop_even_when_expiry_is_still_future():
 
     brands = sorted(o["brand"] for o in build_export([old, new], today="2026-08-10"))
 
+    assert brands == ["이번주", "지난주"]
+
+
+def test_older_sweeps_without_expiry_drop_on_every_platform():
+    """종료일이 없으면 이번 수집에 안 보인 순간 끝난 것으로 본다.
+
+    배민만이 아니라 4개 앱 모두 그렇다 — 프로모션이 월요일 00시에
+    통째로 갈린다."""
+    old = dict(RECORDS[0], platform="ddangyo", brand="지난주",
+               captured_at="2026-08-03T00:00:00+09:00", expires_at=None)
+    new = dict(RECORDS[0], platform="ddangyo", brand="이번주",
+               captured_at="2026-08-10T00:00:00+09:00", expires_at=None)
+
+    brands = sorted(o["brand"] for o in build_export([old, new], today="2026-08-10"))
+
     assert brands == ["이번주"]
+
+
+def test_tier_level_expiry_also_keeps_an_older_sweep():
+    """구간에만 종료일이 달린 경우도 종료일이 있는 것으로 친다."""
+    old = dict(RECORDS[0], platform="ddangyo", brand="지난주",
+               captured_at="2026-08-03T00:00:00+09:00", expires_at=None,
+               tiers=[{"min_order": 15000, "amount": 3000, "expires_at": "2026-08-31"}])
+    new = dict(RECORDS[0], platform="ddangyo", brand="이번주",
+               captured_at="2026-08-10T00:00:00+09:00", expires_at=None)
+
+    brands = sorted(o["brand"] for o in build_export([old, new], today="2026-08-10"))
+
+    assert brands == ["이번주", "지난주"]
