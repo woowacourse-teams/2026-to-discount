@@ -212,3 +212,45 @@ def test_camel_tiers_carries_per_tier_expires_at():
 
 def test_camel_tiers_omits_expires_at_when_absent():
     assert "expiresAt" not in camel_tiers([{"min_order": 15000, "amount": 3000}])[0]
+
+
+# --- 배민은 종료일이 없어 "이번 수집에 안 보이면 끝" 규칙을 쓴다 ---
+
+BAEMIN_OLD = dict(RECORDS[0], platform="baemin", brand="지난주브랜드",
+                  captured_at="2026-08-03T02:00:00+09:00")
+BAEMIN_NEW = dict(RECORDS[0], platform="baemin", brand="이번주브랜드",
+                  captured_at="2026-08-10T02:00:00+09:00")
+
+
+def test_baemin_offer_missing_from_the_latest_sweep_is_not_exported():
+    """배민 화면에는 종료일이 없다. 프로모션이 월요일 00시에 통째로
+    갈리므로(2026-08-10 확인) 이번 수집에 안 보인 것은 끝난 것이다."""
+    brands = [o["brand"] for o in build_export([BAEMIN_OLD, BAEMIN_NEW], today="2026-08-10")]
+
+    assert brands == ["이번주브랜드"]
+
+
+def test_same_sweep_day_survives_even_at_different_times():
+    """같은 날 브랜드관과 배짱할인을 따로 훑어도 둘 다 살아야 한다."""
+    lounge = dict(BAEMIN_NEW, brand="브랜드관", captured_at="2026-08-10T02:00:00+09:00")
+    baejjang = dict(BAEMIN_NEW, brand="배짱할인", captured_at="2026-08-10T23:00:00+09:00")
+
+    brands = sorted(o["brand"] for o in build_export([lounge, baejjang], today="2026-08-10"))
+
+    assert brands == ["배짱할인", "브랜드관"]
+
+
+def test_older_sweeps_drop_even_when_expiry_is_still_future():
+    """지난 수집분은 종료일이 남아 있어도 내린다.
+
+    원래는 종료일이 오는 앱(땡겨요·요기요)을 예외로 뒀는데 그게 문제였다
+    (2026-08-10) — 이미 끝난 지난주 프로모션이 종료일만 미래라는 이유로
+    계속 화면에 떴다. 프로모션은 4개 앱 모두 월요일 00시에 갈린다."""
+    old = dict(RECORDS[0], platform="ddangyo", brand="지난주",
+               captured_at="2026-08-03T00:00:00+09:00", expires_at="2026-08-31")
+    new = dict(RECORDS[0], platform="ddangyo", brand="이번주",
+               captured_at="2026-08-10T00:00:00+09:00", expires_at="2026-08-31")
+
+    brands = sorted(o["brand"] for o in build_export([old, new], today="2026-08-10"))
+
+    assert brands == ["이번주"]

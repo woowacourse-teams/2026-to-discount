@@ -39,6 +39,20 @@ LOG_PATH = Path(__file__).parent / "data" / "log.jsonl"
 EXPORT_PATH = Path(__file__).parent / "data" / "export.json"
 BRANDS_PATH = Path(__file__).parent / "data" / "brands-sorted.txt"
 
+# 이번 수집에 안 보이면 끝난 것으로 보는 앱.
+#
+# 원래 배민만이었다 — 배민 화면엔 종료일이 없으니 "안 보이면 끝"이 유일한
+# 판정이고, 종료일이 오는 앱은 한 번 수집한 쿠폰이 몇 주씩 유효하니
+# 안 보였다는 이유로 내리면 멀쩡한 오퍼가 사라진다는 논리였다.
+#
+# 실제로는 그 반대가 문제였다(2026-08-10): 지난주 수집분이 계속 살아남아
+# 이미 끝난 프로모션이 화면에 떴고, 종료일 없는 옛 레코드가 특히 그랬다.
+# 프로모션은 4개 앱 모두 월요일 00시에 통째로 갈린다 — 이번 수집에
+# 없으면 끝난 것으로 본다.
+#
+# 지우지는 않는다. 그때 그랬다는 관측은 원장에 남고 export에서만 빠진다.
+SWEEP_SCOPED_PLATFORMS = {"baemin", "coupangeats", "yogiyo", "ddangyo"}
+
 
 def camel_tiers(tiers):
     """구간 할인도 export에선 camelCase — 원장은 snake_case를 유지한다.
@@ -110,12 +124,43 @@ def _is_past(expires_at: str | None, today: str) -> bool:
     return bool(expires_at) and expires_at < today
 
 
+def latest_sweep_dates(records: list[dict]) -> dict[str, str]:
+    """앱별 가장 최근 수집 날짜(YYYY-MM-DD)."""
+    latest: dict[str, str] = {}
+    for record in records:
+        day = record["captured_at"][:10]
+        platform = record["platform"]
+        if day > latest.get(platform, ""):
+            latest[platform] = day
+    return latest
+
+
+def is_stale_sweep(record: dict, sweeps: dict[str, str]) -> bool:
+    """지난 수집 때만 보였던 오퍼인가.
+
+    배민 화면에는 종료일이 없다. 그래서 만료를 날짜로 판정할 수 없고,
+    **이번 수집에 안 보였다는 사실**이 곧 끝났다는 뜻이다 — 프로모션이
+    월요일 00시에 통째로 갈린다(2026-08-10 확인: 브랜드관·배짱할인 모두
+    브랜드가 거의 전부 교체됐다).
+
+    지우지는 않는다. 그때 그랬다는 관측은 원장에 남고 여기서만 빠진다.
+
+    종료일이 오는 앱(땡겨요·요기요)에는 적용하지 않는다. 그쪽은 한 번
+    수집한 쿠폰이 몇 주씩 유효해서, 이번 수집에 안 보였다는 이유로
+    내리면 멀쩡한 오퍼가 사라진다.
+    """
+    if record["platform"] not in SWEEP_SCOPED_PLATFORMS:
+        return False
+    return record["captured_at"][:10] < sweeps.get(record["platform"], "")
+
+
 def build_export(records: list[dict], today: str | None = None) -> list[dict]:
     today = today or date.today().isoformat()
+    sweeps = latest_sweep_dates(records)
     latest = latest_per_brand(records)
     out = []
     for record in latest.values():
-        if not is_live(record, today):
+        if not is_live(record, today) or is_stale_sweep(record, sweeps):
             continue
         item = {camel: record.get(snake) for snake, camel in FIELDS}
         item["tiers"] = camel_tiers(record.get("tiers"))
@@ -139,7 +184,7 @@ def main() -> int:
 
     # 걸러낸 수를 같이 찍는다 — 조용히 줄어들면 사고인지 정상인지 모른다.
     held_back = len(latest_per_brand(records)) - len(exported)
-    print(f"export.json {len(exported)}건(제외 {held_back}건: 만료·미관측), "
+    print(f"export.json {len(exported)}건(제외 {held_back}건: 만료·미관측·지난수집), "
           f"brands-sorted.txt {len(names)}개")
     return 0
 
