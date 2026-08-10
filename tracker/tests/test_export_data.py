@@ -222,12 +222,40 @@ BAEMIN_NEW = dict(RECORDS[0], platform="baemin", brand="이번주브랜드",
                   captured_at="2026-08-10T02:00:00+09:00")
 
 
+def sweep(template, day, count, prefix):
+    """전수 수집 한 회분. 건수가 MIN_SWEEP_RECORDS를 넘어야 수집으로 친다."""
+    return [dict(template, brand=f"{prefix}{i}", captured_at=f"{day}T02:00:00+09:00")
+            for i in range(count)]
+
+
 def test_baemin_offer_missing_from_the_latest_sweep_is_not_exported():
     """배민 화면에는 종료일이 없다. 프로모션이 월요일 00시에 통째로
     갈리므로(2026-08-10 확인) 이번 수집에 안 보인 것은 끝난 것이다."""
-    brands = [o["brand"] for o in build_export([BAEMIN_OLD, BAEMIN_NEW], today="2026-08-10")]
+    records = ([BAEMIN_OLD, BAEMIN_NEW]
+               + sweep(BAEMIN_NEW, "2026-08-10", 10, "이번주채움"))
 
-    assert brands == ["이번주브랜드"]
+    brands = [o["brand"] for o in build_export(records, today="2026-08-10")]
+
+    assert "지난주브랜드" not in brands
+    assert "이번주브랜드" in brands
+
+
+def test_a_handful_of_hand_entered_records_is_not_a_sweep():
+    """손으로 몇 건 넣은 날은 수집일이 아니다.
+
+    2026-08-10에 땡겨요 5건을 손으로 넣었더니 그게 "오늘 수집함"으로
+    잡혔고, 그날 안 건드린 종료일 없는 브랜드 6개가 통째로 끝난 것으로
+    밀렸다 — 아직 하는 프로모션이었다."""
+    old_sweep = sweep(dict(RECORDS[0], platform="ddangyo", expires_at=None),
+                      "2026-08-03", 12, "지난주")
+    hand_entered = [dict(RECORDS[0], platform="ddangyo", brand="손입력",
+                         captured_at="2026-08-10T10:00:00+09:00", expires_at=None)]
+
+    brands = {o["brand"] for o in build_export(old_sweep + hand_entered,
+                                               today="2026-08-10")}
+
+    assert "손입력" in brands
+    assert "지난주0" in brands
 
 
 def test_same_sweep_day_survives_even_at_different_times():
@@ -263,12 +291,13 @@ def test_older_sweeps_without_expiry_drop_on_every_platform():
     통째로 갈린다."""
     old = dict(RECORDS[0], platform="ddangyo", brand="지난주",
                captured_at="2026-08-03T00:00:00+09:00", expires_at=None)
-    new = dict(RECORDS[0], platform="ddangyo", brand="이번주",
-               captured_at="2026-08-10T00:00:00+09:00", expires_at=None)
+    new_sweep = sweep(dict(RECORDS[0], platform="ddangyo", expires_at=None),
+                      "2026-08-10", 10, "이번주")
 
-    brands = sorted(o["brand"] for o in build_export([old, new], today="2026-08-10"))
+    brands = {o["brand"] for o in build_export([old] + new_sweep, today="2026-08-10")}
 
-    assert brands == ["이번주"]
+    assert "지난주" not in brands
+    assert "이번주0" in brands
 
 
 def test_tier_level_expiry_also_keeps_an_older_sweep():

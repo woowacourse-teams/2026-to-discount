@@ -124,12 +124,32 @@ def _is_past(expires_at: str | None, today: str) -> bool:
     return bool(expires_at) and expires_at < today
 
 
+# 목록을 처음부터 끝까지 훑었다고 볼 최소 건수. 이보다 적으면 한두 건
+# 손으로 넣은 것이지 전수 수집이 아니다.
+#
+# 2026-08-10에 손으로 넣은 땡겨요 5건이 "오늘 수집함"으로 잡혔고, 그
+# 바람에 오늘 다시 안 본 종료일 없는 브랜드 6개(파리바게뜨·굽네치킨·
+# 해두리치킨·머니머니·BBQ·훌랄라참숯바베큐치킨)가 끝난 것으로 밀렸다.
+# 아직 하는 프로모션인데 링크째 화면에서 사라졌다.
+MIN_SWEEP_RECORDS = 10
+
+
 def latest_sweep_dates(records: list[dict]) -> dict[str, str]:
-    """앱별 가장 최근 수집 날짜(YYYY-MM-DD)."""
-    latest: dict[str, str] = {}
+    """앱별 가장 최근 **전수 수집** 날짜(YYYY-MM-DD).
+
+    "이번 수집에 안 보였다"로 오퍼를 내리려면 그 수집이 실제로 목록을 다
+    훑은 것이어야 한다. 손으로 몇 건 넣은 날은 수집일로 치지 않는다 —
+    안 그러면 그날 안 건드린 브랜드가 통째로 끝난 것으로 밀린다.
+    """
+    per_day: dict[tuple[str, str], int] = {}
     for record in records:
-        day = record["captured_at"][:10]
-        platform = record["platform"]
+        key = (record["platform"], record["captured_at"][:10])
+        per_day[key] = per_day.get(key, 0) + 1
+
+    latest: dict[str, str] = {}
+    for (platform, day), count in per_day.items():
+        if count < MIN_SWEEP_RECORDS:
+            continue
         if day > latest.get(platform, ""):
             latest[platform] = day
     return latest
