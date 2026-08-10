@@ -1597,7 +1597,7 @@
   "tiers": null,
   "conditions": "브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
   "expiresAt": null,
-  "badge": null,
+  "badge": "배민클럽 전용쿠폰",
   "soldOut": false
  },
  {
@@ -1999,7 +1999,7 @@
   "tiers": null,
   "conditions": "브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
   "expiresAt": null,
-  "badge": null,
+  "badge": "배민클럽 전용쿠폰",
   "soldOut": false
  },
  {
@@ -2017,7 +2017,7 @@
   "tiers": null,
   "conditions": "메뉴 한정: 아이스 아메리카노 · 브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
   "expiresAt": null,
-  "badge": null,
+  "badge": "배민클럽 전용쿠폰",
   "soldOut": false
  },
  {
@@ -2581,7 +2581,7 @@
   "tiers": null,
   "conditions": "메뉴 한정: 열정충전해장국 · 브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
   "expiresAt": null,
-  "badge": "배민클럽",
+  "badge": "배민클럽 전용쿠폰",
   "soldOut": false
  },
  {
@@ -2599,7 +2599,7 @@
   "tiers": null,
   "conditions": "브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
   "expiresAt": null,
-  "badge": null,
+  "badge": "배민클럽 전용쿠폰",
   "soldOut": false
  },
  {
@@ -3564,7 +3564,7 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null,
+  "badge": "배민클럽 전용쿠폰",
   "soldOut": false
  },
  {
@@ -3582,7 +3582,7 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null,
+  "badge": "배민클럽 전용쿠폰",
   "soldOut": false
  },
  {
@@ -3600,7 +3600,7 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null,
+  "badge": "배민클럽 전용쿠폰",
   "soldOut": false
  },
  {
