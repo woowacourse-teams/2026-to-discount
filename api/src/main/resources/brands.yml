@@ -4,7 +4,7 @@
 # 전부 여기 모여 있고, API가 그대로 프론트에 내려준다(프론트 재배포 불필요).
 # 로고 이미지만 delivery-discount-web/public/logos/<대표명>.png 로 따로 넣는다.
 #
-# category: chicken | pizza | fastfood | cafe | convenience | (생략 = 미분류)
+# category: chicken | pizza | fastfood | snack | cafe | convenience | (생략 = 미분류)
 # aliases:  원장에 다른 이름으로 찍히는 경우만 (생략 가능)
 # links:    앱별 브랜드 쿠폰 공유링크(앱 전용 딥링크, 생략 가능).
 #           키는 원장 platform 값과 맞춘다 — ddangyo, baemin, ...
@@ -162,13 +162,11 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?p7kqsN0
       baemin: https://s.baemin.com/7o3.frwoi
-      coupangeats: https://www.google.com/search?q=%EC%BF%A0%ED%8C%A1%EC%9D%B4%EC%B8%A0%207%EB%B2%88%EA%B0%80%ED%94%BC%EC%9E%90
   도미노피자:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?LgTHHGE
       baemin: https://s.baemin.com/f3e.6uol0
-      coupangeats: https://www.google.com/search?q=%EC%BF%A0%ED%8C%A1%EC%9D%B4%EC%B8%A0%20%EB%8F%84%EB%AF%B8%EB%85%B8%ED%94%BC%EC%9E%90
   맘스피자:
     category: pizza
     links:
@@ -189,14 +187,11 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?L3OTWfS
   오구쌀피자:
     category: pizza
-    links:
-      coupangeats: https://www.google.com/search?q=%EC%BF%A0%ED%8C%A1%EC%9D%B4%EC%B8%A0%20%EC%98%A4%EA%B5%AC%EC%8C%80%ED%94%BC%EC%9E%90
   청년피자:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?Lfv8qLA
       baemin: https://s.baemin.com/7o3.f3g7j
-      coupangeats: https://www.google.com/search?q=%EC%BF%A0%ED%8C%A1%EC%9D%B4%EC%B8%A0%20%EC%B2%AD%EB%85%84%ED%94%BC%EC%9E%90
   파파존스:
     category: pizza
     links:
@@ -205,13 +200,11 @@ brands:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?1KcWnCU
-      coupangeats: https://www.google.com/search?q=%EC%BF%A0%ED%8C%A1%EC%9D%B4%EC%B8%A0%20%ED%94%BC%EC%9E%90%EC%95%8C%EB%B3%BC%EB%A1%9C
   프레드피자:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?2EQN6qm
       baemin: https://s.baemin.com/7o3.g9xra
-      coupangeats: https://www.google.com/search?q=%EC%BF%A0%ED%8C%A1%EC%9D%B4%EC%B8%A0%20%ED%94%84%EB%A0%88%EB%93%9C%ED%94%BC%EC%9E%90
   피자헛:
     category: pizza
     links:
@@ -405,3 +398,22 @@ brands:
   힙둥이 곱도리탕:
     links:
       baemin: https://s.baemin.com/0M000I2A5Q1i8
+
+  # --- 분식/기타 ---
+  본죽:
+    category: snack
+    aliases: [본죽, 본죽&비빔밥]
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?JqwvqFe
+  스텔라떡볶이:
+    category: snack
+    links:
+      baemin: https://s.baemin.com/f3e.7ujt7
+  프랭크버거:
+    category: fastfood
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?U2P1LxN
+  요거트월드:
+    category: cafe
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?ENWjEwq
