@@ -388,7 +388,7 @@ function SiteFooter() {
 // 길이가 제각각이라(전체/치킨/패스트푸드) 폭을 CSS만으로는 못 구하고
 // 버튼의 offsetLeft/offsetWidth를 재서 옮긴다. 폰트가 늦게 로드되면
 // 폭이 바뀔 수 있어 document.fonts.ready에서도 한 번 더 잰다.
-function CategoryBar({ categories, active, onSelect, onWheel }) {
+function CategoryBar({ categories, active, onSelect, onWheel, collapsed }) {
   const btnRefs = useRef({})
   const [rect, setRect] = useState(null)
 
@@ -413,6 +413,16 @@ function CategoryBar({ categories, active, onSelect, onWheel }) {
     document.fonts?.ready?.then(measure)
     return () => window.removeEventListener('resize', measure)
   }, [active, categories])
+
+  // 접혔다 펼쳐질 때 버튼 자체의 padding/font-size가 바뀌는데(CSS
+  // transition 200ms) 하이라이트는 그 순간의 좌표만 한 번 잰 값이라
+  // 그대로 두면 전환 중·후에 버튼과 어긋난다. 시작 시점과 전환이 끝날
+  // 즈음(220ms) 두 번 다시 잰다.
+  useEffect(() => {
+    measure()
+    const t = setTimeout(measure, 220)
+    return () => clearTimeout(t)
+  }, [collapsed])
 
   return (
     <div className="category-bar" role="tablist" aria-label="카테고리" onWheel={onWheel}>
@@ -677,6 +687,31 @@ export default function App() {
   const [filterKey, setFilterKey] = useState('all')
   const [search, setSearch] = useState('')
 
+  // 스크롤 56px 넘어가면 헤더(플랫폼 배지 줄)와 툴바(카테고리 등)를
+  // 함께 접는다(아이콘·패딩·글자 크기를 CSS 쪽에서 줄인다). 접힌
+  // 채로 아무 데나 클릭하면 한 틱만 펼쳐 보여주고, 그다음 스크롤에서
+  // 다시 접힌다(peekRef) — 계속 펼친 채로 두면 접는 의미가 없다.
+  const [headerCollapsed, setHeaderCollapsed] = useState(false)
+  const peekRef = useRef(false)
+  useEffect(() => {
+    const THRESHOLD = 56
+    const onScroll = () => {
+      if (peekRef.current) {
+        peekRef.current = false
+        setHeaderCollapsed(false)
+        return
+      }
+      setHeaderCollapsed(window.scrollY > THRESHOLD)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  const expandHeader = () => {
+    if (!headerCollapsed) return
+    peekRef.current = true
+    setHeaderCollapsed(false)
+  }
+
   // URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유할 수 있게 한다.
   // 해시가 바뀌면(같은 페이지 안에서 다른 링크로 다시 들어와도) 다시
   // 반영한다 — 새로고침 없이 링크만 바꿔도 그 카드로 스크롤돼야 한다.
@@ -744,13 +779,16 @@ export default function App() {
 
   // 레이블(카테고리 탭) 영역은 좁게 줄이고 가로 스크롤로 흡수한다.
   // 마우스는 기본적으로 세로 휠만 보낸다 — PC에서 shift 없이도 휠로
-  // 옆으로 넘어가게, deltaY를 scrollLeft로 돌려준다. 이미 다 보여서
-  // 스크롤할 게 없으면 페이지 스크롤 그대로 두게 preventDefault 안 함.
-  // CategoryBar 자체(스크롤 컨테이너)에 붙는다 — 감싸는 바깥 div에
-  // 붙이면 화살표 버튼까지 같이 밀려나 버린다.
+  // 옆으로 넘어가게, deltaY를 scrollLeft로 돌려준다. 스크롤할 여지가
+  // 없거나(다 보임) 휠 방향으로 이미 끝(처음/끝)까지 갔으면 페이지
+  // 스크롤이 이어받게 preventDefault 안 함 — 안 그러면 가로 스크롤이
+  // 소진된 뒤에도 배경 세로 스크롤이 안 먹는다.
   const handleLabelsWheel = (e) => {
     const el = e.currentTarget
     if (el.scrollWidth <= el.clientWidth) return
+    const atStart = el.scrollLeft <= 0
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1
+    if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return
     e.preventDefault()
     el.scrollLeft += e.deltaY
   }
@@ -760,28 +798,23 @@ export default function App() {
       {/* 2026-08-03 데이터 정비 안내 — 정비 끝나서 비활성화. 다시 필요하면 주석만 풀면 됨.
       <div className="update-notice" role="status">주간 데이터 업데이트 중입니다. 잠시만 기다려주세요.</div>
       */}
-      <header className="page-head">
-        <div className="page-head__row">
-          <div className="page-head__banner">
-            <h1 className="page-head__logo">오늘의할인</h1>
-            <div className="page-head__apps" aria-label="비교 대상 배달앱">
-              {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
-            </div>
-          </div>
-        </div>
-      </header>
 
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
       <EventBanner banners={banners} />
-
-      {/* 분류 화살표, 안내, 카테고리, 멤버십, 검색이 떠 있는 툴바 하나다.
-          첫 화면에서는 배너 아래 제자리에 있다가 스크롤하면 상단에 붙는다
-          (position:sticky). 멤버십 버튼이 카테고리 탭 위를 덮어 선택
-          하이라이트까지 가리던 문제가 같은 flex 행에 놓이면서 사라진다. */}
-      <div className="toolbar" aria-label="분류와 검색">
-        <div className="toolbar__inner">
+      {/* 로고 줄 + 분류/카테고리/멤버십/검색을 한 통짜리 sticky 바로 묶는다.
+          예전엔 이 둘이 각자 sticky였는데, 접혔을 때 높이가 바뀌는
+          쪽(로고 줄)에 맞춰 나머지 쪽 top 오프셋을 손으로 계산해 맞춰야
+          했다 — 하나로 묶으면 그 계산이 아예 필요 없다. */}
+      <div className={`title-bar${headerCollapsed ? ' title-bar--collapsed' : ''}`} onClick={expandHeader}>
+        <div className="title-bar__logos">
+          <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
+          <div className="page-head__apps" aria-label="비교 대상 배달앱">
+            {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
+          </div>
+        </div>
+        <div className="toolbar__inner" aria-label="분류와 검색">
           <ClassifyPicker
             mode={classifyBy}
             onSelect={(mode) => {
@@ -793,7 +826,7 @@ export default function App() {
           />
           <InfoTip />
           {classifyBy === 'category' ? (
-            <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} onWheel={handleLabelsWheel} />
+            <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} onWheel={handleLabelsWheel} collapsed={headerCollapsed} />
           ) : (
             <AmountBandSlider mode={classifyBy} bands={tabs} active={filterKey} onSelect={handleFilterSelect} />
           )}
@@ -804,10 +837,13 @@ export default function App() {
               className="membership-trigger"
               aria-expanded={menuOpen}
               aria-label="멤버십(배민클럽/와우/패스) 적용"
-              onClick={() => setMenuOpen((v) => {
-                if (!v) track('membership_open')
-                return !v
-              })}
+              onClick={(e) => {
+                e.stopPropagation()
+                setMenuOpen((v) => {
+                  if (!v) track('membership_open')
+                  return !v
+                })
+              }}
             >
               <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2.5" y="5" width="19" height="14" rx="3" />
