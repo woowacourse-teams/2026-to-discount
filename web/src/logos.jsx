@@ -39,10 +39,13 @@ function hideSiblingFallback(e) {
   if (fallback) fallback.style.display = 'none'
 }
 
-export function PlatformBadge({ platformKey }) {
+// onClick이 있으면 버튼(플랫폼 필터 토글 등)으로, 없으면 예전처럼 순수
+// 장식용 span으로 렌더한다 — 오퍼 칩·배너처럼 클릭 의미가 없는 자리에서는
+// 여전히 span이라 키보드 포커스를 쓸데없이 늘리지 않는다.
+export function PlatformBadge({ platformKey, onClick, active }) {
   const p = PLATFORM_BY_KEY[platformKey]
-  return (
-    <span className={`platform-badge platform-badge--${p.key}`} title={p.label}>
+  const content = (
+    <>
       <img
         src={platformIconSrc(p.key)}
         alt=""
@@ -51,6 +54,19 @@ export function PlatformBadge({ platformKey }) {
       />
       <span className="platform-badge__fallback" aria-hidden="true">{p.initial}</span>
       <span className="sr-only">{p.label}</span>
+    </>
+  )
+  const className = `platform-badge platform-badge--${p.key}${active === false ? ' platform-badge--dim' : ''}`
+  if (onClick) {
+    return (
+      <button type="button" className={className} title={p.label} aria-pressed={active === true} onClick={onClick}>
+        {content}
+      </button>
+    )
+  }
+  return (
+    <span className={className} title={p.label}>
+      {content}
     </span>
   )
 }

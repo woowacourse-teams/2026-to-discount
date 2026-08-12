@@ -43,33 +43,24 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
   pointer-events: none;
 }
 
-/* 로고 줄과 분류/카테고리/멤버십/검색 줄을 한 통짜리 sticky 바로 묶는다
-   (title-bar). 예전엔 두 층이 각자 sticky라 아래 층 top 오프셋을 위층
-   높이에 맞춰 손으로 계산해야 했다 — 하나로 묶으면 그 계산이 없어진다.
-   스크롤 56px 넘어가면 접힌다(옅은 blur 배경, 배지·패딩 축소 — App.jsx
-   스크롤 리스너가 title-bar--collapsed를 붙였다 뗐다 한다). 접힌 채로
-   아무 데나 누르면 한 틱만 펼쳐졌다가 다음 스크롤에 다시 접힌다
-   (App.jsx expandHeader). */
+/* 로고 줄과 분류/카테고리/검색을 한 통짜리 sticky 바로 묶는다(title-bar).
+   배지·카테고리 탭은 한 스크롤 영역(title-bar__scroll)을 같이 쓴다 —
+   둘 다 넘칠 수 있는 목록이라 따로 스크롤하면 한쪽만 밀리고 나머지는
+   안 따라와 어색했다. 분류 선택(▾)·안내(?)·초기화·검색은 스크롤
+   영역 밖에 고정한다. 콤팩트(스크롤 56px, App.jsx compact)는 짧고
+   즉각적으로(120ms) 줄어든다. */
 .title-bar {
   position: sticky;
   top: 0;
   z-index: 16;
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: .6rem;
-  /* 불투명한 판 대신 위는 짙고 아래로 갈수록 투명해지는 그라데이션 —
-     카드를 덮는 느낌 없이 로고·탭 글자 대비만 확보한다. blur는 뺐다
-     (그라데이션 페이드랑 같이 쓰면 경계가 이중으로 흐려져 지저분함). */
-  background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--bg) 94%, transparent) 0%,
-    color-mix(in srgb, var(--bg) 94%, transparent) 65%,
-    transparent 100%);
-  padding: .4rem 0 .6rem;
+  gap: .4rem;
+  padding: .35rem 0 .55rem;
   margin-bottom: -1.0rem;
-  transition: padding 200ms ease, gap 200ms ease;
+  transition: padding 120ms ease, gap 120ms ease;
 }
-.title-bar--collapsed { padding: .2rem 0 .3rem; gap: .15rem; cursor: pointer; }
+.title-bar--collapsed { padding: .15rem 0 .3rem; gap: .25rem; }
 
 h1 {
   font-size: 1.5rem;
@@ -77,18 +68,65 @@ h1 {
   letter-spacing: -0.02em;
   margin: 0;
 }
-.title-bar__logos { display: flex; align-items: center; flex: none; margin: 0; }
+
+/* 배지+카테고리 공용 가로 스크롤. 카테고리 하이라이트 좌표계(.category-bar,
+   position:relative)는 그대로 두고 이 바깥 래퍼가 스크롤만 맡는다 —
+   offsetLeft는 가장 가까운 positioned 조상(.category-bar 자신) 기준이라
+   바깥이 스크롤돼도 좌표 계산엔 영향이 없다. */
+.title-bar__scroll {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.title-bar__scroll::-webkit-scrollbar { display: none; }
 
 .page-head__apps {
   display: flex;
-  gap: .5rem;
+  gap: .35rem;
   margin: 0;
+  flex: none;
 }
 .page-head__apps .platform-badge {
-  width: 44px; height: 44px; border-radius: 12px;
-  transition: width 200ms ease, height 200ms ease;
+  width: 40px; height: 40px; border-radius: 11px;
+  transition: width 120ms ease, height 120ms ease;
 }
 .title-bar--collapsed .page-head__apps .platform-badge { width: 26px; height: 26px; border-radius: 8px; }
+
+/* 배지 바로 아래 뜨는 멤버십 안내 팝오버 — 순수 CSS hover/focus,
+   JS 상태 없이 :hover(마우스)와 :focus-within(키보드 탭)만으로 연다. */
+.platform-badge-wrap { position: relative; }
+.membership-popover {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(2px);
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .3rem;
+  padding: .4rem .6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
+  font-size: .78rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease, transform 150ms ease;
+  z-index: 20;
+}
+.platform-badge-wrap:hover .membership-popover,
+.platform-badge-wrap:focus-within .membership-popover {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
 
 /* ---------------------------------------------------------------------------
    당일 행사 배너 (EventBanner.jsx)
@@ -309,222 +347,33 @@ h1 {
 }
 .pill--pending { background: var(--pending-bg); color: var(--pending-text); }
 
-/* 멤버십 트리거 버튼 + 드롭다운의 위치 기준. 툴바 오른쪽 끝, 검색 아이콘
-   바로 왼쪽이다. */
-.membership { position: relative; flex: none; }
+.title-bar--collapsed .category-btn { padding: .3rem .5rem; font-size: .78rem; }
 
-/* 검색·안내·분류와 같은 26px 원. 이전의 "멤버십 구현예정" 라벨 버튼은
-   카테고리 탭 위를 덮어 선택 하이라이트까지 가렸다 — 같은 flex 행에서
-   자리를 차지하려면 다른 아이콘 버튼과 같은 크기여야 한다. 사라진
-   `구현예정` 배지는 드롭다운 머리로 옮겼다(App.jsx MembershipMenu). */
-.membership-trigger {
+.filter-reset-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: none;
   width: 26px;
   height: 26px;
   padding: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--text);
-  cursor: pointer;
-}
-.membership-trigger:hover { border-color: var(--text-muted); }
-.membership-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* 화면 오른쪽에서 밀려나오던 드로어 대신, 버튼 바로 아래 뜨는 드롭다운.
-   열렸을 때만 DOM에 존재하므로(App.jsx `{open && ...}`) 닫힘 상태를 위한
-   별도 opacity 규칙이 필요 없다. */
-.dropdown-backdrop { position: fixed; inset: 0; z-index: 20; }
-
-.dropdown {
-  position: absolute;
-  top: calc(100% + .5rem);
-  right: 0;
-  width: min(300px, 88vw);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
-  transform-origin: top right;
-  transform: scale(.96);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms ease;
-  z-index: 21;
-}
-.dropdown--open { transform: scale(1); opacity: 1; pointer-events: auto; }
-@media (prefers-reduced-motion: reduce) {
-  .dropdown { transition: opacity 160ms ease; }
-}
-
-/* 안내 버튼 — 이제 화면에 고정된 게 아니라 검색 버튼 바로 아래,
-   toolbar__left-stack 안에 얌전히 들어간다("? 버튼은 그 아래로"). */
-.info-fab { position: relative; z-index: 12; }
-/* backdrop(z-index:20)이 전체 화면을 덮어 hover-out 감지에 쓰이는데,
-   버튼·툴팁이 z-index:auto면 그 밑에 깔려 버튼 위에서도 backdrop이
-   마우스 이벤트를 가로챈다 — 열자마자 backdrop의 mouseenter가 걸려
-   바로 닫혀 버렸다. backdrop보다 위로 올려 실제 버튼·툴팁 영역에서는
-   backdrop이 이벤트를 못 받게 한다. */
-.info-fab__btn {
-  position: relative;
-  z-index: 21;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface);
   color: var(--text-muted);
-  font: inherit;
-  font-size: .78rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.info-fab__btn:hover { color: var(--text); border-color: var(--text-muted); }
-.info-fab__tip {
-  position: absolute;
-  z-index: 21;
-  top: calc(100% + .45rem);
-  left: 0;
-  width: max-content;
-  max-width: 220px;
-  background: var(--text);
-  color: #fff;
-  font-size: .78rem;
-  line-height: 1.4;
-  padding: .5rem .7rem;
-  border-radius: 8px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 120ms ease;
-}
-.info-fab__tip--open {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* 카테고리 탭 왼쪽의 회색 화살표 — 분류 기준(카테고리/할인금액대/
-   최소주문금액대) 선택 드롭다운. */
-.classify-picker { position: relative; flex: none; }
-.classify-picker__btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--border);
-  color: var(--text-muted);
-  font-size: .7rem;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.classify-picker__btn:hover { color: var(--text); }
-/* 공용 .dropdown은 오른쪽 정렬(right:0, 버튼 오른쪽 끝에 메뉴를 맞추고
-   왼쪽으로 펼침) — 화면 오른쪽의 멤버십 버튼엔 맞지만, 이 버튼은 화면
-   맨 왼쪽(레이블 줄 맨 앞)에 있어 왼쪽으로 펼치면 화면 밖으로 밀렸다.
-   왼쪽 정렬로 뒤집어 오른쪽으로 펼친다. */
-.classify-picker__menu {
-  left: 0;
-  right: auto;
-  transform-origin: top left;
-  width: min(200px, 70vw);
-  padding: .5rem;
-}
-.classify-picker__option {
-  display: block;
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  font-size: .85rem;
-  padding: .5rem .6rem;
-  border: none;
-  border-radius: 8px;
   background: none;
-  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 50%;
   cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
 }
-.classify-picker__option:hover { background: var(--bg); }
-.classify-picker__option--active { font-weight: 700; }
-.classify-picker__option:disabled {
-  color: var(--text-muted);
-  opacity: .5;
-  cursor: not-allowed;
-}
-.classify-picker__option:disabled:hover { background: none; }
-
-.dropdown__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .5rem; }
-.dropdown__title { font-size: .95rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
-
-.dropdown__note {
-  color: var(--text-muted);
-  font-size: .78rem;
-  line-height: 1.6;
-  margin: .6rem 0 .9rem;
-}
-.dropdown__options { display: flex; flex-direction: column; gap: .6rem; }
-.dropdown__option {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  font-size: .88rem;
-  color: var(--text);
-  cursor: pointer;
-}
-.dropdown__option input { accent-color: var(--accent); width: 16px; height: 16px; }
-.dropdown__option--disabled { cursor: not-allowed; opacity: .5; }
-.dropdown__option--disabled input { cursor: not-allowed; }
-
-/* 미확인/미확정/비활성화 기능 위에 hover하면 뜨는 "작업중입니다!" 말풍선.
-   disabled 처리된 버튼·체크박스를 이 클래스로 감싼다 — disabled 요소
-   자체는 pointer-events가 막혀도 hover는 감싼 wrapper 기준으로 잡힌다. */
-.wip { position: relative; }
-.wip::after {
-  content: attr(data-wip-tip);
-  position: absolute;
-  bottom: calc(100% + .35rem);
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #8a8a8a, #3a3a3a);
+.filter-reset-btn:hover { color: var(--text); border-color: var(--text-muted); }
+.filter-reset-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 필터가 하나라도 걸려 있으면 눈에 띄게 — 평소엔 존재감 없는 회색
+   아이콘이다가, 걸리는 순간 진해지고 옅은 배경이 붙는다. */
+.filter-reset-btn--active {
   color: #fff;
-  font-size: .68rem;
-  font-weight: 600;
-  white-space: nowrap;
-  padding: .35rem .6rem;
-  border-radius: 6px;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 120ms ease;
-  z-index: 30;
+  background: var(--accent);
+  border-color: var(--accent);
 }
-.wip:hover::after { opacity: 1; visibility: visible; }
-
-/* 분류 화살표, 안내(?), 카테고리, 멤버십, 검색 — 알약 하나로 감싼 줄.
-   바깥 sticky/collapse는 .title-bar가 통째로 맡는다(여기는 안쪽 배경
-   알약 모양만 담당). 테두리 없이 옅은 그림자 한 겹만으로 띄운다(전엔
-   테두리+그림자를 같이 써서 알약이 두꺼워 보였다). */
-.toolbar__inner {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex: 1 1 auto;
-  min-width: 0;
-  gap: .35rem;
-  padding: .3rem .4rem;
-  background: var(--surface);
-  border-radius: 999px;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, .05);
-  transition: padding 200ms ease;
-}
-.title-bar--collapsed .toolbar__inner { padding: .15rem .3rem; }
-.title-bar--collapsed .category-btn { padding: .3rem .5rem; font-size: .78rem; }
+.filter-reset-btn--active:hover { color: #fff; border-color: var(--accent); }
 
 /* 검색 — 닫힌 상태는 다른 원형 아이콘 버튼(▾, ?, 멤버십)과 높이를 맞춘
    26px 원. 열리면 입력창으로 바뀌며 폭만 늘어난다(화면 절반 정도까지 —
@@ -656,28 +505,18 @@ h1 {
   padding: 0 4px;
 }
 
-/* 카테고리 필터 — 가로로 죽 늘어놓고, 넘치는 만큼 가로 스크롤로 흡수.
-   sticky는 부모 .toolbar가 통째로 맡는다. flex:1 min-width:0으로 툴바에서
-   버튼들을 뺀 나머지 폭만 갖고, 그 안에서 스스로 스크롤한다(휠 가로
-   스크롤도 여기 붙는다 — App.jsx의 onWheel). 폭 상한을 따로 두지 않는 건
-   같은 행의 멤버십·검색 버튼이 이미 자리를 잡고 있기 때문이다. */
 .category-bar {
-  /* 하이라이트(.category-bar__highlight)의 배치 기준을 이 스크롤 컨테이너
-     자신으로 못 박는다. 기준이 바깥(.toolbar__labels)이면 탭을 가로로
-     스크롤해도 하이라이트만 제자리에 남아 엉뚱한 탭 위에 얹힌다 —
-     기준이 스크롤되는 상자 자신이면 하이라이트도 내용과 같이 밀린다.
-     버튼 좌표를 offsetLeft로 재는 쪽(App.jsx)도 이 상자를 offsetParent로
-     잡게 되어 스크롤과 무관한 같은 좌표계를 쓴다. */
+  /* 하이라이트(.category-bar__highlight)의 배치 기준을 이 상자 자신으로
+     못 박는다. 스크롤은 이제 바깥 래퍼(.title-bar__scroll)가 맡고, 이
+     상자는 자기 내용만큼만 폭을 차지한다(natural width) — offsetLeft가
+     이 상자(position:relative) 기준이라 바깥이 스크롤돼도 좌표는
+     안 어긋난다. */
   position: relative;
   display: flex;
   gap: 2px;
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: none;
   margin: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
-.category-bar::-webkit-scrollbar { display: none; }
 
 /* 세그먼트 컨트롤의 슬라이딩 하이라이트. 탭마다 배경을 따로 켜고 끄는
    대신 배경 하나가 활성 탭 위치로 옮겨간다(위치·너비는 JS가 실측해서
@@ -711,7 +550,7 @@ h1 {
   font-size: .85rem;
   color: var(--text-muted);
   cursor: pointer;
-  transition: color 150ms ease, padding 200ms ease, font-size 200ms ease;
+  transition: color 150ms ease, padding 120ms ease, font-size 120ms ease;
 }
 .category-btn:hover { color: var(--text); }
 .category-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -734,6 +573,7 @@ h1 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: .85rem;
+  padding-top: 2.4rem;
   align-items: start;
 }
 
@@ -980,6 +820,18 @@ h1 {
 .platform-badge--coupangeats { background: #fdebec; }
 .platform-badge--ddangyo { background: #fbf3db; }
 .platform-badge--yogiyo { background: #edf3ec; }
+
+/* button으로 렌더될 때(헤더 필터 토글)만 해당 — 기본 버튼 여백·테두리
+   리셋하고 눌림/비활성(dim) 상태를 더한다. 장식용 span 쪽엔 영향 없다. */
+button.platform-badge {
+  padding: 0;
+  cursor: pointer;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+button.platform-badge:hover { transform: translateY(-1px); }
+button.platform-badge:active { transform: translateY(0) scale(.96); }
+button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.platform-badge--dim { opacity: .35; }
 
 /* 펼친 상세. 카드 안에 상자를 또 그리지 않고 실선 하나로만 나눈다. */
 .brand-detail {

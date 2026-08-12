@@ -65,36 +65,6 @@ const CATEGORIES = [
   { key: 'chinese', label: '중식' },
 ]
 
-// 카테고리 탭을 무엇 기준으로 나눌지. 'discount'/'minOrder'는 브랜드
-// 대표 금액을 천원 단위로 묶어 탭을 그때그때 만든다(아래 amountBand*).
-const CLASSIFY_MODES = [
-  { key: 'category', label: '카테고리' },
-  { key: 'discount', label: '할인금액대' },
-  { key: 'minOrder', label: '최소주문금액대' },
-]
-
-// 금액을 천원 단위로 묶는다(500원 단위 값도 내림해서 같은 구간에 넣는다).
-// 1만원 이상은 "n만m천원대"로 표기.
-function amountBandKey(amount) {
-  return Math.floor(amount / 1000)
-}
-function amountBandLabel(bandKey) {
-  const man = Math.floor(bandKey / 10)
-  const cheon = bandKey % 10
-  if (man > 0) return `${man}만${cheon > 0 ? `${cheon}천` : ''}원대`
-  return `${bandKey}천원대`
-}
-
-// 브랜드의 대표 금액. discount는 API가 이미 계산해 내려주는
-// maxConfirmedAmount, minOrder는 오퍼들 중 알려진 값의 최솟값(가장 싸게
-// 들어가는 조건) — 하나도 모르면 null(미확인은 모든 금액대 탭에 걸치게
-// 아래 필터에서 처리).
-function brandAmountFor(mode, brand) {
-  if (mode === 'discount') return brand.maxConfirmedAmount ?? null
-  const known = brand.offers.map((o) => o.minOrderAmount).filter((v) => v != null)
-  return known.length ? Math.min(...known) : null
-}
-
 // 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
 // docs/specs/2026-07-28-product-brief.md에 "UI만 배치, 로직 보류"로 명시된
 // 의도적 보류 상태 — 계산 모델이 나오면 그 레포 docs/plans에 계획이 생긴다.
@@ -104,6 +74,7 @@ const MEMBERSHIP_OPTIONS = [
   { key: 'yogiyo', label: '요기패스' },
   { key: 'ddangyo', label: '지역화폐' },
 ]
+const MEMBERSHIP_LABEL = Object.fromEntries(MEMBERSHIP_OPTIONS.map((m) => [m.key, m.label]))
 
 function won(value) {
   return `${value.toLocaleString()}원`
@@ -388,7 +359,7 @@ function SiteFooter() {
 // 길이가 제각각이라(전체/치킨/패스트푸드) 폭을 CSS만으로는 못 구하고
 // 버튼의 offsetLeft/offsetWidth를 재서 옮긴다. 폰트가 늦게 로드되면
 // 폭이 바뀔 수 있어 document.fonts.ready에서도 한 번 더 잰다.
-function CategoryBar({ categories, active, onSelect, onWheel, collapsed }) {
+function CategoryBar({ categories, active, onSelect, collapsed }) {
   const btnRefs = useRef({})
   const [rect, setRect] = useState(null)
 
@@ -430,7 +401,7 @@ function CategoryBar({ categories, active, onSelect, onWheel, collapsed }) {
     return () => cancelAnimationFrame(raf)
   }, [collapsed])
   return (
-    <div className="category-bar" role="tablist" aria-label="카테고리" onWheel={onWheel}>
+    <div className="category-bar" role="tablist" aria-label="카테고리">
       {rect && (
         <span
           className="category-bar__highlight"
@@ -455,49 +426,6 @@ function CategoryBar({ categories, active, onSelect, onWheel, collapsed }) {
           {c.label}
         </button>
       ))}
-    </div>
-  )
-}
-
-// 금액대 분류일 때 탭 대신 쓰는 스텝 슬라이더 — 이퀄라이저처럼 정해진
-// 값에서만 멈춘다(연속값 아님). 현재 값은 캡션으로 항상 슬라이더 위에
-// 띄운다. bands[0]은 항상 "전체".
-function AmountBandSlider({ mode, bands, active, onSelect }) {
-  const index = Math.max(0, bands.findIndex((b) => b.key === active))
-  const percent = bands.length > 1 ? (index / (bands.length - 1)) * 100 : 0
-  const modeLabel = CLASSIFY_MODES.find((m) => m.key === mode)?.label
-
-  return (
-    <div className="amount-slider">
-      {/* 슬라이더만 보면 지금 금액이 "할인금액"인지 "최소주문금액"인지
-          안 보인다 — 위에 기준 이름을 고정으로 띄운다. */}
-      <div className="amount-slider__mode">{modeLabel}</div>
-      <div className="amount-slider__track-wrap">
-        <span className="amount-slider__caption" style={{ left: `${percent}%` }}>
-          {bands[index]?.label}
-        </span>
-        <input
-          type="range"
-          className="amount-slider__input"
-          min={0}
-          max={Math.max(0, bands.length - 1)}
-          step={1}
-          value={index}
-          onChange={(e) => onSelect(bands[Number(e.target.value)].key)}
-          aria-label={`${modeLabel} 선택`}
-        />
-        <div className="amount-slider__ticks" aria-hidden="true">
-          {bands.map((b) => <span key={b.key} className="amount-slider__tick" />)}
-        </div>
-      </div>
-      {/* 전체 구간이 어디서 어디까지인지 양 끝 값만 보여준다 — 눈금마다
-          다 적으면 좁은 화면에서 겹친다. */}
-      {bands.length > 1 && (
-        <div className="amount-slider__range" aria-hidden="true">
-          <span>{bands[1]?.label}</span>
-          <span>{bands[bands.length - 1]?.label}</span>
-        </div>
-      )}
     </div>
   )
 }
@@ -544,177 +472,58 @@ function SearchControl({ value, onChange }) {
   )
 }
 
-// 카테고리 탭 왼쪽의 회색 화살표. 눌러서 분류 기준(카테고리/할인금액대/
-// 최소주문금액대)을 고르는 작은 드롭다운.
-function ClassifyPicker({ mode, onSelect }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="classify-picker">
-      {open && <div className="dropdown-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />}
-      <button
-        type="button"
-        className="classify-picker__btn"
-        aria-expanded={open}
-        aria-label="분류 기준 선택"
-        onClick={() => setOpen((v) => !v)}
-      >
-        ▾
-      </button>
-      <div
-        className={`dropdown classify-picker__menu ${open ? 'dropdown--open' : ''}`}
-        role="menu"
-        aria-label="분류 기준"
-        aria-hidden={!open}
-      >
-        {CLASSIFY_MODES.map((m) => {
-          // 할인금액대/최소주문금액대는 당장 비활성화 — 카테고리만 고를 수 있다.
-          const disabled = m.key !== 'category'
-          const btn = (
-            <button
-              type="button"
-              role="menuitemradio"
-              aria-checked={mode === m.key}
-              disabled={disabled}
-              className={`classify-picker__option ${mode === m.key ? 'classify-picker__option--active' : ''}`}
-              onClick={() => { onSelect(m.key); setOpen(false) }}
-            >
-              {m.label}
-            </button>
-          )
-          return disabled
-            ? <div key={m.key} className="wip" data-wip-tip="작업중입니다!">{btn}</div>
-            : <div key={m.key}>{btn}</div>
-        })}
-      </div>
-    </div>
-  )
-}
-
-// 화면 왼쪽 위에 항상 떠 있는 안내 버튼. hover(마우스)로 열고 벗어나면
-// 닫힌다. 클릭(터치, hover가 없는 환경)은 열기 전용 — 클릭을 열림/닫힘
-// 토글로 두면, 실제 마우스 클릭은 버튼에 커서가 "닿는" mouseenter가
-// click보다 먼저 발생해 이미 open=true인 상태에서 click이 도착한다.
-// 토글이면 그 click이 방금 hover가 연 것을 즉시 다시 닫아 버려, 클릭해도
-// 안 열리는 것처럼 보였다(실기 확인). 닫기는 backdrop(바깥) 클릭·hover만
-// 담당한다.
-function InfoTip() {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div
-      className="info-fab"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      {open && (
-        <div
-          className="dropdown-backdrop"
-          onClick={() => setOpen(false)}
-          onMouseEnter={() => setOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-      <button
-        type="button"
-        className="info-fab__btn"
-        aria-expanded={open}
-        aria-label="위치 안내"
-        onClick={() => setOpen(true)}
-      >
-        ?
-      </button>
-      <div className={`info-fab__tip ${open ? 'info-fab__tip--open' : ''}`} role="tooltip">
-        ! 주변 가게만 보이진 않습니다.
-        <br />
-        ! 미확인 정보들은 지속 업데이트됩니다.
-          <br />
-          쿠팡/요기요는 앱이 열리고
-          <br />
-          배민/땡겨요는 해당 브랜드로 연결됩니다.
-      </div>
-    </div>
-  )
-}
-
-// 화면 오른쪽에서 밀려나오는 드로어 대신, 버튼 바로 아래 뜨는 드롭다운.
-// 버튼(.membership-trigger)과 이 메뉴는 부모 .membership(position:relative)
-// 하나를 공유해야 top:100%가 버튼 기준으로 맞는다.
-function MembershipMenu({ open, onClose, selected, onToggle }) {
-  return (
-    <>
-      {/* 눈에 안 보이는 전체 화면 클릭 캐처 — 메뉴 밖을 누르면 닫힌다.
-          열렸을 때만 렌더해서 평소엔 이 레이어가 아예 없다. */}
-      {open && <div className="dropdown-backdrop" onClick={onClose} aria-hidden="true" />}
-      <div
-        className={`dropdown ${open ? 'dropdown--open' : ''}`}
-        role="menu"
-        aria-label="멤버십·지역화폐 반영"
-        aria-hidden={!open}
-      >
-        {/* 트리거가 26px 원으로 줄면서 "멤버십 구현예정" 라벨이 원 안에 안
-            들어간다. 멤버십 로직이 아직 없다는 사실 자체는 계속 드러나야
-            하므로 배지를 없애지 않고 여기로 옮겼다. */}
-        <div className="dropdown__head">
-          <span className="dropdown__title">멤버십·지역화폐 반영</span>
-          <span className="pill pill--pending">구현예정</span>
-        </div>
-        <p className="dropdown__note">
-          체크해두면 이후 각 앱의 멤버십·지역화폐 혜택까지 반영한 실질 금액을 보여줄 예정입니다.
-          지금은 화면만 먼저 놓아둔 상태라 선택해도 금액은 바뀌지 않습니다.
-        </p>
-        <div className="dropdown__options">
-          {MEMBERSHIP_OPTIONS.map((m) => (
-            <div key={m.key} className="wip" data-wip-tip="작업중입니다!">
-              <label className="dropdown__option dropdown__option--disabled">
-                <input
-                  type="checkbox"
-                  checked={!!selected[m.key]}
-                  onChange={() => onToggle(m.key)}
-                  disabled
-                />
-                {m.label}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
-  )
-}
 
 export default function App() {
   const [brands, setBrands] = useState(null)
   const [banners, setBanners] = useState([])
   const [error, setError] = useState(null)
-  const [membership, setMembership] = useState({})
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [classifyBy, setClassifyBy] = useState('category')
   const [filterKey, setFilterKey] = useState('all')
   const [search, setSearch] = useState('')
 
-  // 스크롤 56px 넘어가면 헤더(플랫폼 배지 줄)와 툴바(카테고리 등)를
-  // 함께 접는다(아이콘·패딩·글자 크기를 CSS 쪽에서 줄인다). 접힌
-  // 채로 아무 데나 클릭하면 한 틱만 펼쳐 보여주고, 그다음 스크롤에서
-  // 다시 접힌다(peekRef) — 계속 펼친 채로 두면 접는 의미가 없다.
-  const [headerCollapsed, setHeaderCollapsed] = useState(false)
-  const peekRef = useRef(false)
+  // 헤더의 플랫폼 배지를 눌러 그 앱에 오퍼가 있는 브랜드만 본다.
+  // 여러 개 동시 선택 가능(Set), 전부 해제하면 원래대로 전체 표시.
+  const [platformFilter, setPlatformFilter] = useState(() => new Set())
+  const togglePlatform = (key) => {
+    setPlatformFilter((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key); else next.add(key)
+      return next
+    })
+    track('platform_filter_toggle', { platform: key })
+  }
+  const isFiltered = filterKey !== 'all' || platformFilter.size > 0 || search.trim() !== ''
+  const resetFilters = () => {
+    setFilterKey('all')
+    setPlatformFilter(new Set())
+    setSearch('')
+    track('filters_reset')
+  }
+
+  // 스크롤 56px 넘으면 콤팩트 모드로 접힌다(배지·패딩 축소, 빠르게
+  // — 120ms). 마우스를 올리면 다시 펼쳐 보여준다(hover, 살짝 들어오는
+  // 지연을 둬서 스치기만 해도 안 열리게, 나가는 지연을 둬서 버튼
+  // 사이 이동 중 깜빡이지 않게). compact는 스크롤 상태와 hover를
+  // AND/NOT으로만 합치므로, hover 중 스크롤 이벤트가 몇 번 더 와도
+  // (예전 겪은 "펼치자마자 도로 줄어듦" 버그, scrollTop 보정 때문에
+  // sticky 박스가 커질 때 발생) hover가 유지되는 한 절대 다시 안
+  // 접힌다 — 소비형 플래그가 아니라서 그 버그 자체가 성립하지 않는다.
+  const [scrolledPast, setScrolledPast] = useState(false)
+  const [hovered, setHovered] = useState(false)
   useEffect(() => {
     const THRESHOLD = 56
-    const onScroll = () => {
-      if (peekRef.current) {
-        peekRef.current = false
-        setHeaderCollapsed(false)
-        return
-      }
-      setHeaderCollapsed(window.scrollY > THRESHOLD)
-    }
+    const onScroll = () => setScrolledPast(window.scrollY > THRESHOLD)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
-  const expandHeader = () => {
-    if (!headerCollapsed) return
-    peekRef.current = true
-    setHeaderCollapsed(false)
+  const compact = scrolledPast && !hovered
+  const hoverTimerRef = useRef(null)
+  const handleTitleBarEnter = () => {
+    clearTimeout(hoverTimerRef.current)
+    hoverTimerRef.current = setTimeout(() => setHovered(true), 80)
+  }
+  const handleTitleBarLeave = () => {
+    clearTimeout(hoverTimerRef.current)
+    hoverTimerRef.current = setTimeout(() => setHovered(false), 150)
   }
 
   // URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유할 수 있게 한다.
@@ -741,45 +550,25 @@ export default function App() {
     fetchBanners().then(setBanners).catch(() => setBanners([]))
   }, [])
 
-  const toggleMembership = (key) =>
-    setMembership((prev) => ({ ...prev, [key]: !prev[key] }))
-
-  // 분류 기준이 바뀔 때마다(예: 카테고리 → 할인금액대) 탭을 새로 만든다.
-  // 금액대 탭은 실제 데이터에 나오는 금액만큼만 생긴다.
-  const tabs = useMemo(() => {
-    if (!brands || classifyBy === 'category') return CATEGORIES
-    const keys = new Set()
-    brands.forEach((b) => {
-      const amount = brandAmountFor(classifyBy, b)
-      if (amount != null) keys.add(amountBandKey(amount))
-    })
-    return [
-      { key: 'all', label: '전체' },
-      ...[...keys].sort((a, b) => a - b).map((k) => ({ key: String(k), label: amountBandLabel(k) })),
-    ]
-  }, [brands, classifyBy])
+  const tabs = CATEGORIES
 
   // category는 API가 brands.yml에서 읽어 내려준다. 분류가 없는 브랜드는
-  // null이라 "전체"에서만 보인다. 금액대 분류에서 값을 모르는 브랜드는
-  // 어느 탭에서도 안 숨긴다 — 최소주문금액이 대부분 미수집이라 "미확인"
-  // 탭 하나로 몰면 사실상 안 보이는 것과 같기 때문. 검색은 항상 같이
-  // 적용된다.
+  // null이라 "전체"에서만 보인다. 검색은 항상 같이 적용된다.
   const visibleBrands = useMemo(() => {
     if (!brands) return brands
     const q = search.trim()
     return brands.filter((b) => {
       const inSearch = q === '' || b.name.includes(q)
       if (!inSearch) return false
+      if (platformFilter.size > 0 && !b.offers.some((o) => platformFilter.has(o.platform))) return false
       if (filterKey === 'all') return true
-      if (classifyBy === 'category') return b.category === filterKey
-      const amount = brandAmountFor(classifyBy, b)
-      return amount == null || String(amountBandKey(amount)) === filterKey
+      return b.category === filterKey
     })
-  }, [brands, classifyBy, filterKey, search])
+  }, [brands, filterKey, search, platformFilter])
 
   const handleFilterSelect = (key) => {
     setFilterKey(key)
-    if (key !== filterKey) track('category_change', { category: key, mode: classifyBy })
+    if (key !== filterKey) track('category_change', { category: key })
   }
 
   // 레이블(카테고리 탭) 영역은 좁게 줄이고 가로 스크롤로 흡수한다.
@@ -808,62 +597,50 @@ export default function App() {
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
       <EventBanner banners={banners} />
-      {/* 로고 줄 + 분류/카테고리/멤버십/검색을 한 통짜리 sticky 바로 묶는다.
-          예전엔 이 둘이 각자 sticky였는데, 접혔을 때 높이가 바뀌는
-          쪽(로고 줄)에 맞춰 나머지 쪽 top 오프셋을 손으로 계산해 맞춰야
-          했다 — 하나로 묶으면 그 계산이 아예 필요 없다. */}
-      <div className={`title-bar${headerCollapsed ? ' title-bar--collapsed' : ''}`} onClick={expandHeader}>
-        <div className="title-bar__logos">
-          <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
+      {/* 플랫폼 배지와 카테고리 탭을 한 스크롤 영역(title-bar__scroll)에
+          같이 넣는다 — 둘 다 넘칠 수 있는 목록이라 따로 스크롤하면
+          한쪽만 밀리고 나머지는 안 따라와 어색했다. 분류 선택(▾)·안내(?)
+          ·초기화·검색은 항상 붙어 있어야 하는 조작이라 스크롤 영역
+          바깥에 고정한다. */}
+      <div
+        className={`title-bar${compact ? ' title-bar--collapsed' : ''}`}
+        onMouseEnter={handleTitleBarEnter}
+        onMouseLeave={handleTitleBarLeave}
+      >
+        <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
+        <div className="title-bar__scroll" onWheel={handleLabelsWheel}>
           <div className="page-head__apps" aria-label="비교 대상 배달앱">
-            {PLATFORMS.map((p) => <PlatformBadge key={p.key} platformKey={p.key} />)}
+            {PLATFORMS.map((p) => (
+              <span key={p.key} className="platform-badge-wrap">
+                <PlatformBadge
+                  platformKey={p.key}
+                  onClick={(e) => { e.stopPropagation(); togglePlatform(p.key) }}
+                  active={platformFilter.size === 0 ? undefined : platformFilter.has(p.key)}
+                />
+                {/* hover(또는 키보드 포커스)하면 그 앱의 멤버십 안내가
+                    배지 바로 아래 뜬다. 로직은 여전히 보류 상태(계산 안
+                    바뀜), 안내만 옮겼다. */}
+                <div className="membership-popover" role="note">
+                  <span className="membership-popover__title">{MEMBERSHIP_LABEL[p.key]}</span>
+                  <span className="pill pill--pending">구현예정</span>
+                </div>
+              </span>
+            ))}
           </div>
+          <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} collapsed={compact} />
         </div>
-        <div className="toolbar__inner" aria-label="분류와 검색">
-          <ClassifyPicker
-            mode={classifyBy}
-            onSelect={(mode) => {
-              if (mode === classifyBy) return
-              setClassifyBy(mode)
-              setFilterKey('all')
-              track('classify_change', { mode })
-            }}
-          />
-          <InfoTip />
-          {classifyBy === 'category' ? (
-            <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} onWheel={handleLabelsWheel} collapsed={headerCollapsed} />
-          ) : (
-            <AmountBandSlider mode={classifyBy} bands={tabs} active={filterKey} onSelect={handleFilterSelect} />
-          )}
-
-          <div className="membership">
-            <button
-              type="button"
-              className="membership-trigger"
-              aria-expanded={menuOpen}
-              aria-label="멤버십(배민클럽/와우/패스) 적용"
-              onClick={(e) => {
-                e.stopPropagation()
-                setMenuOpen((v) => {
-                  if (!v) track('membership_open')
-                  return !v
-                })
-              }}
-            >
-              <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2.5" y="5" width="19" height="14" rx="3" />
-                <line x1="2.5" y1="10" x2="21.5" y2="10" />
-              </svg>
-            </button>
-            <MembershipMenu
-              open={menuOpen}
-              onClose={() => setMenuOpen(false)}
-              selected={membership}
-              onToggle={toggleMembership}
-            />
-          </div>
-          <SearchControl value={search} onChange={setSearch} />
-        </div>
+        <button
+          type="button"
+          className={`filter-reset-btn${isFiltered ? ' filter-reset-btn--active' : ''}`}
+          onClick={resetFilters}
+          aria-label="필터 초기화"
+        >
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12a9 9 0 1 1-3-6.7" />
+            <polyline points="21 3 21 9 15 9" />
+          </svg>
+        </button>
+        <SearchControl value={search} onChange={setSearch} />
       </div>
 
       {error && <p className="msg msg--error">불러오기 실패: {error}</p>}
