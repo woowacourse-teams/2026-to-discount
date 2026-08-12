@@ -58,9 +58,13 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
   flex-direction: row;
   align-items: center;
   gap: .6rem;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* 불투명한 판 대신 위는 짙고 아래로 갈수록 투명해지는 그라데이션 —
+     카드를 덮는 느낌 없이 로고·탭 글자 대비만 확보한다. blur는 뺐다
+     (그라데이션 페이드랑 같이 쓰면 경계가 이중으로 흐려져 지저분함). */
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--bg) 94%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 94%, transparent) 65%,
+    transparent 100%);
   padding: .4rem 0 .6rem;
   margin-bottom: -1.0rem;
   transition: padding 200ms ease, gap 200ms ease;

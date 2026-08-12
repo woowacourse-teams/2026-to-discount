@@ -414,16 +414,21 @@ function CategoryBar({ categories, active, onSelect, onWheel, collapsed }) {
     return () => window.removeEventListener('resize', measure)
   }, [active, categories])
 
-  // 접혔다 펼쳐질 때 버튼 자체의 padding/font-size가 바뀌는데(CSS
-  // transition 200ms) 하이라이트는 그 순간의 좌표만 한 번 잰 값이라
-  // 그대로 두면 전환 중·후에 버튼과 어긋난다. 시작 시점과 전환이 끝날
-  // 즈음(220ms) 두 번 다시 잰다.
+  // 접혔다 펼쳐질 때 버튼 자체의 padding/font-size가 바뀐다(CSS transition
+  // 200ms). 하이라이트를 그 순간 좌표 한두 번만 재면 버튼은 부드럽게
+  // 줄어드는데 하이라이트만 툭툭 튀어 속도가 어긋나 보인다 — 전환이
+  // 끝날 때까지(~220ms) 매 프레임 재서 버튼과 같은 속도로 따라가게 한다.
   useEffect(() => {
-    measure()
-    const t = setTimeout(measure, 220)
-    return () => clearTimeout(t)
+    let raf, start
+    const DURATION = 220
+    const tick = (t) => {
+      if (start == null) start = t
+      measure()
+      if (t - start < DURATION) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
   }, [collapsed])
-
   return (
     <div className="category-bar" role="tablist" aria-label="카테고리" onWheel={onWheel}>
       {rect && (
