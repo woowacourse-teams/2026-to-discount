@@ -47,8 +47,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
    배지·카테고리 탭은 한 스크롤 영역(title-bar__scroll)을 같이 쓴다 —
    둘 다 넘칠 수 있는 목록이라 따로 스크롤하면 한쪽만 밀리고 나머지는
    안 따라와 어색했다. 분류 선택(▾)·안내(?)·초기화·검색은 스크롤
-   영역 밖에 고정한다. 콤팩트(스크롤 56px, App.jsx compact)는 짧고
-   즉각적으로(120ms) 줄어든다. */
+   영역 밖에 고정한다. */
 .title-bar {
   position: sticky;
   top: 0;
@@ -58,10 +57,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
   gap: .4rem;
   padding: .35rem 0 .55rem;
   margin-bottom: -1.0rem;
-  transition: padding 120ms ease, gap 120ms ease;
 }
-.title-bar--collapsed { padding: .15rem 0 .3rem; gap: .25rem; }
-
 h1 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -80,21 +76,26 @@ h1 {
   flex: 1 1 auto;
   min-width: 0;
   overflow-x: auto;
+  /* 스크롤 가능함을 암시하는 페이드 — 시작/끝 위치와 무관하게 항상
+     양쪽 다 건다(스크롤 위치별로 동적으로 빼는 건 JS가 필요해서
+     생략, 끝에서도 옅게 페이드되는 정도는 허용). */
+  mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
   scrollbar-width: none;
 }
 .title-bar__scroll::-webkit-scrollbar { display: none; }
 
+/* 그리드 취소, 한 줄 flex로 — 아이콘끼리 좀 더 붙인다. */
 .page-head__apps {
   display: flex;
-  gap: .35rem;
+  gap: .2rem;
   margin: 0;
   flex: none;
 }
 .page-head__apps .platform-badge {
-  width: 40px; height: 40px; border-radius: 11px;
+  width: 34px; height: 34px; border-radius: 10px;
   transition: width 120ms ease, height 120ms ease;
 }
-.title-bar--collapsed .page-head__apps .platform-badge { width: 26px; height: 26px; border-radius: 8px; }
 
 /* 배지 바로 아래 뜨는 멤버십 안내 팝오버 — 순수 CSS hover/focus,
    JS 상태 없이 :hover(마우스)와 :focus-within(키보드 탭)만으로 연다. */
@@ -346,8 +347,6 @@ h1 {
   white-space: nowrap;
 }
 .pill--pending { background: var(--pending-bg); color: var(--pending-text); }
-
-.title-bar--collapsed .category-btn { padding: .3rem .5rem; font-size: .78rem; }
 
 .filter-reset-btn {
   display: flex;

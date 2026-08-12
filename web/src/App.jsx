@@ -359,7 +359,7 @@ function SiteFooter() {
 // 길이가 제각각이라(전체/치킨/패스트푸드) 폭을 CSS만으로는 못 구하고
 // 버튼의 offsetLeft/offsetWidth를 재서 옮긴다. 폰트가 늦게 로드되면
 // 폭이 바뀔 수 있어 document.fonts.ready에서도 한 번 더 잰다.
-function CategoryBar({ categories, active, onSelect, collapsed }) {
+function CategoryBar({ categories, active, onSelect }) {
   const btnRefs = useRef({})
   const [rect, setRect] = useState(null)
 
@@ -385,21 +385,6 @@ function CategoryBar({ categories, active, onSelect, collapsed }) {
     return () => window.removeEventListener('resize', measure)
   }, [active, categories])
 
-  // 접혔다 펼쳐질 때 버튼 자체의 padding/font-size가 바뀐다(CSS transition
-  // 200ms). 하이라이트를 그 순간 좌표 한두 번만 재면 버튼은 부드럽게
-  // 줄어드는데 하이라이트만 툭툭 튀어 속도가 어긋나 보인다 — 전환이
-  // 끝날 때까지(~220ms) 매 프레임 재서 버튼과 같은 속도로 따라가게 한다.
-  useEffect(() => {
-    let raf, start
-    const DURATION = 220
-    const tick = (t) => {
-      if (start == null) start = t
-      measure()
-      if (t - start < DURATION) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [collapsed])
   return (
     <div className="category-bar" role="tablist" aria-label="카테고리">
       {rect && (
@@ -499,33 +484,6 @@ export default function App() {
     track('filters_reset')
   }
 
-  // 스크롤 56px 넘으면 콤팩트 모드로 접힌다(배지·패딩 축소, 빠르게
-  // — 120ms). 마우스를 올리면 다시 펼쳐 보여준다(hover, 살짝 들어오는
-  // 지연을 둬서 스치기만 해도 안 열리게, 나가는 지연을 둬서 버튼
-  // 사이 이동 중 깜빡이지 않게). compact는 스크롤 상태와 hover를
-  // AND/NOT으로만 합치므로, hover 중 스크롤 이벤트가 몇 번 더 와도
-  // (예전 겪은 "펼치자마자 도로 줄어듦" 버그, scrollTop 보정 때문에
-  // sticky 박스가 커질 때 발생) hover가 유지되는 한 절대 다시 안
-  // 접힌다 — 소비형 플래그가 아니라서 그 버그 자체가 성립하지 않는다.
-  const [scrolledPast, setScrolledPast] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  useEffect(() => {
-    const THRESHOLD = 56
-    const onScroll = () => setScrolledPast(window.scrollY > THRESHOLD)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-  const compact = scrolledPast && !hovered
-  const hoverTimerRef = useRef(null)
-  const handleTitleBarEnter = () => {
-    clearTimeout(hoverTimerRef.current)
-    hoverTimerRef.current = setTimeout(() => setHovered(true), 80)
-  }
-  const handleTitleBarLeave = () => {
-    clearTimeout(hoverTimerRef.current)
-    hoverTimerRef.current = setTimeout(() => setHovered(false), 150)
-  }
-
   // URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유할 수 있게 한다.
   // 해시가 바뀌면(같은 페이지 안에서 다른 링크로 다시 들어와도) 다시
   // 반영한다 — 새로고침 없이 링크만 바꿔도 그 카드로 스크롤돼야 한다.
@@ -602,11 +560,7 @@ export default function App() {
           한쪽만 밀리고 나머지는 안 따라와 어색했다. 분류 선택(▾)·안내(?)
           ·초기화·검색은 항상 붙어 있어야 하는 조작이라 스크롤 영역
           바깥에 고정한다. */}
-      <div
-        className={`title-bar${compact ? ' title-bar--collapsed' : ''}`}
-        onMouseEnter={handleTitleBarEnter}
-        onMouseLeave={handleTitleBarLeave}
-      >
+      <div className="title-bar">
         <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
         <div className="title-bar__scroll" onWheel={handleLabelsWheel}>
           <div className="page-head__apps" aria-label="비교 대상 배달앱">
@@ -627,7 +581,7 @@ export default function App() {
               </span>
             ))}
           </div>
-          <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} collapsed={compact} />
+          <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} />
         </div>
         <button
           type="button"
