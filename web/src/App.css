@@ -64,12 +64,16 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   margin-bottom: -1.0rem;
-  background: transparent;
-  transition: background 150ms ease;
-}
-/* 맨 위(scrollY 0)에선 없다가, 스크롤하면 위에서 아래로 검정 → 투명. */
-.title-bar--scrolled {
-  background: linear-gradient(-180deg, black, transparent);
+  /* 스크롤 상태로 배경을 껐다 켜면 "없던 판이 갑자기 생기는" 것처럼
+     보였다 — 대신 항상 같은 그라데이션을 깔되, 시작색을 페이지 배경색
+     자체(--bg)로 잡는다. 맨 위에선 배경과 완전히 같은 색이라 경계가
+     아예 안 보이고, 카드가 밑으로 지나갈 때만 그 카드가 위쪽에서
+     서서히 가려지면서 아래로 자연스럽게 투명해진다(하단 페이드). */
+  background: linear-gradient(to bottom,
+    var(--bg) 0%,
+    var(--bg) 55%,
+    color-mix(in srgb, var(--bg) 55%, transparent) 80%,
+    transparent 100%);
 }
 .title-bar__inner {
   display: flex;
@@ -105,20 +109,25 @@ h1 {
 }
 .title-bar__scroll::-webkit-scrollbar { display: none; }
 
-/* 그리드 취소, 한 줄 flex로 — 아이콘끼리 좀 더 붙인다. */
+/* 아이콘끼리 살짝 겹치게 — 음수 gap 대신 뒤 요소를 왼쪽으로 당긴다
+   (겹치는 순서는 왼쪽이 위로 오게 z-index 없이 자연 순서 뒤집기). */
 .page-head__apps {
   display: flex;
-  gap: .2rem;
   margin: 0;
   flex: none;
+  padding-left: 6px;
 }
-/* 타이틀바에서만 원형으로 — 검색·초기화 버튼도 같은 26px 원이라
-   셋이 한 세트로 읽히게 맞춘다(다른 자리의 .platform-badge는 사각
-   로고와 어울리는 둥근 사각형을 그대로 쓴다). 원 안에 꽉 채우면
-   사각 로고 네 귀퉁이가 원에 잘려서, 안쪽 padding을 base보다
-   더 준다(내접원 여유분 ~15%). */
+/* 타이틀바에서만 원형 — 검색·초기화 버튼과 한 세트로 읽히게.
+   플랫폼 로고가 흰색인 경우(쿠팡이츠 등) 흰 배경에 묻혀서, 배지
+   자체에 옅은 회색 그라데이션 + 링을 깔아 어떤 로고든 형태가
+   드러나게 한다. 로고별 파스텔 배경(.platform-badge--*)은 이 위에
+   덮이므로, 그라데이션은 background-image로 따로 얹는다. */
 .page-head__apps .platform-badge {
   width: 34px; height: 34px; border-radius: 50%;
+  margin-left: -6px;
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, .55), rgba(0, 0, 0, .16));
+  border: 1px solid rgba(0, 0, 0, .12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .18);
   transition: width 120ms ease, height 120ms ease;
 }
 .page-head__apps .platform-badge img { padding: 5px; }
@@ -1005,7 +1014,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .site-footer__fine { font-size: .7rem; opacity: .85; }
 
 @media (max-width: 560px) {
-  main { padding: 1.5rem 1rem 3rem; }
+  main { padding: 0 1rem 3rem; }
   /* .brand-grid는 이제 auto-fit/minmax라 이 폭에서 이미 1열이 된다. */
   .banner-dock__inner { padding-left: 1rem; padding-right: 1rem; }
 }
