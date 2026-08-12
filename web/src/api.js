@@ -7,3 +7,11 @@ export async function fetchBrands() {
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json()
 }
+
+// 오늘 띄울 배너만 내려온다 — 기간 판정은 서버(Asia/Seoul)가 하고 정렬도
+// 서버가 끝내 준다. 프론트는 받은 순서대로 돌리기만 한다.
+export async function fetchBanners() {
+  const res = await fetch(`${API_BASE}/api/banners`)
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}

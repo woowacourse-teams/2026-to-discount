@@ -32,7 +32,8 @@ public class EventController {
     /** 프론트가 실제로 보내는 것만 받는다. 모르는 이름은 조용히 버린다. */
     private static final Set<String> ALLOWED_EVENTS = Set.of(
             "page_view", "page_exit", "category_change", "classify_change",
-            "brand_expand", "offer_link_click", "membership_open", "capture_note_seen");
+            "brand_expand", "offer_link_click", "membership_open", "capture_note_seen",
+            "banner_click");
 
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;

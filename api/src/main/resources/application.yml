@@ -7,7 +7,13 @@
 #   DISCOUNT_EXPORT_PATH=file:/home/ubuntu/delivery-discount-api/data/export.json
 # 로컬에서 export.json을 고쳐도 안 보이던 건 이 기본값 때문이었다
 # (2026-08-03 실측). ADR-001 참고.
+#
+# banners.yml도 같은 이유로 경로를 열어둔다. 배너는 매일 바뀔 수 있는
+# 내용이라 classpath 안에만 두면 행사 하나 바꾸는 데 jar를 다시 빌드해야
+# 한다. jar 밖 파일을 물려두면 파일만 갈아끼우고 POST /api/reload로
+# 반영된다. 기본값(classpath)은 빈 목록이라 배너가 아예 안 뜬다.
 discount:
   export-path: ${DISCOUNT_EXPORT_PATH:classpath:data/export.json}
+  banners-path: ${DISCOUNT_BANNERS_PATH:classpath:banners.yml}
 server:
   port: 8080

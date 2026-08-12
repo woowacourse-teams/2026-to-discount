@@ -16,10 +16,15 @@ env var나 프록시가 아니라 **하드코딩**돼 있다: `src/api.js:3`과
 
 ## 2. 호출하는 API
 
-| Method | Path | 호출 위치 (file:line) |
+| Method | Path | 호출 위치 |
 |---|---|---|
-| GET | `/api/brands` | 정의: `src/api.js:6` (`fetchBrands`) — 호출: `src/App.jsx:687` |
+| GET | `/api/brands` | 정의: `src/api.js` (`fetchBrands`) — 호출: `src/App.jsx` |
+| GET | `/api/banners` | 정의: `src/api.js` (`fetchBanners`) — 호출: `src/App.jsx` |
 | POST | `/api/events` | 정의: `src/analytics.js:95` (`post`, url 조립) — 실제 전송: `src/analytics.js:109`(sendBeacon, `text/plain`), `src/analytics.js:111-116`(fetch fallback, `application/json`) |
+
+`/api/banners`는 **실패해도 화면에 아무것도 띄우지 않는다.** 카드 그리드의
+"불러오기 실패"와 다르게 다룬다 — 배너는 부가 정보라 실패가 화면을
+어지럽히면 안 된다(`src/App.jsx`에서 빈 배열로 삼킨다).
 
 `/api/events`는 배치로 전송된다 — `track()`이 큐에 쌓았다가 3초 타이머
 또는 큐 10건 도달 시 flush (`src/analytics.js:119-140`), 또는 페이지 이탈
@@ -57,6 +62,28 @@ env var나 프록시가 아니라 **하드코딩**돼 있다: `src/api.js:3`과
 4,000원, 배민클럽 7,500원은 tier). 그래서 tier를 "더 싼 구간"으로 읽으면 안
 된다.
 
+## 3-2. `/api/banners` 응답에서 읽는 필드
+
+당일 행사 배너(`src/EventBanner.jsx`). 응답은 **오늘 띄울 것만, 이미 정렬된
+순서로** 내려온다 — 기간 판정(`startsOn <= 오늘 <= endsOn`, Asia/Seoul)과
+정렬(priority 오름차순, 동률이면 endsOn 가까운 순)은 전부 서버가 한다.
+프론트는 받은 순서대로 5초마다 돌리기만 한다.
+
+| 필드 | 쓰임 |
+|---|---|
+| `id` | 캐러셀 `key`. 바뀌면 등장 애니메이션이 다시 걸린다 |
+| `brand` | 로고 슬롯과 색 추출의 기준. `null`이면 앱 전체 행사로 보고 플랫폼 아이콘, 플랫폼 색 |
+| `platform` | 배지, 색 폴백 |
+| `url` | 배너를 눌렀을 때 갈 곳. `http`로 시작할 때만 새 탭(커스텀 스킴은 같은 탭이라야 앱으로 간다) |
+| `amount` | 가장 큰 글씨. **정수가 아니라 문자열이다** — "최대 30%", "첫 주문 5,000원"이 그대로 온다 |
+| `period` | 금액 우측 상단 |
+| `extra` | 금액 우측 하단. `null`이면 그 줄이 없고 기간이 세로 가운데로 내려온다 |
+| `color` | 있으면 로고 추출을 건너뛰고 이 색을 시드로 쓴다 |
+
+`startsOn`, `endsOn`, `priority`도 응답에 실려 있지만 **프론트는 읽지
+않는다.** 날짜를 프론트에서 판정하면 사용자 기기 시계를 따라가 시차 문제가
+생긴다.
+
 ## 4. 전송하는 analytics 이벤트
 
 **중요**: 아래 이벤트명 목록은 delivery-discount-api의
@@ -74,8 +101,9 @@ delivery-discount-api 쪽 `EventController.ALLOWED_EVENTS`와 diff할 것.**
 | `category_change` | `App.jsx` 필터 선택 | `{ category, mode }` |
 | `classify_change` | `App.jsx` 분류 기준 변경 | `{ mode }` |
 | `membership_open` | `App.jsx` 멤버십 버튼 | 없음 |
+| `banner_click` | `EventBanner.jsx` 배너 링크 | `{ brand, platform, position }` — `position`은 `top`/`bottom`, 브랜드 없는 앱 전체 행사면 `brand: 'none'` |
 
-API 화이트리스트(`analytics/EventController.ALLOWED_EVENTS`)에는 위 7개
+API 화이트리스트(`analytics/EventController.ALLOWED_EVENTS`)에는 위 8개
 외에 **`capture_note_seen`**이 더 있다 — 프론트가 보내지 않는 유령 항목이다.
 서버가 모르는 이벤트를 조용히 버리는 방향이라 해는 없지만, 화이트리스트를
 diff할 때 "프론트가 빠뜨린 것"으로 오해하지 말 것(2026-08-06 확인).
@@ -122,3 +150,6 @@ GA4(`src/ga4.js`)는 별도 도구로 `/api/events`를 타지 않으므로 이 �
 
 필드 목록은 `src/App.jsx`에서 실제 참조를 뽑아 확인했고, `/api/brands`
 라이브 응답과도 대조했다 — 2026-08-06 확인.
+
+`/api/banners` 절과 `banner_click`은 2026-08-12에 추가했다. 로컬 API에
+실제 배너를 물려 화면까지 확인했다(3건, 1건, 0건).

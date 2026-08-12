@@ -2,6 +2,8 @@ package com.discounttracker.offer;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,8 @@ import java.util.List;
 @Component
 public class OfferRepository {
 
+    private static final Logger log = LoggerFactory.getLogger(OfferRepository.class);
+
     private final Resource source;
     // 트래커(별도 레포, 별도 self-hosted 배포)가 export.json에 새 필드를
     // 얹어 먼저 push되면, 이 API가 그 필드를 아직 모르는 채로 reload가
@@ -39,12 +43,20 @@ public class OfferRepository {
 
     public void reload() {
         if (!source.exists()) {
+            // 조용히 비우면 화면이 텅 빈 채로 아무 신호가 없다 — 경로를
+            // 잘못 잡았을 때 이걸 못 알아채고 데이터 문제로 오해한다.
+            log.warn("export.json이 없다 — 빈 목록으로 시작한다. source={}", source);
             cache = List.of();
             return;
         }
         try (InputStream in = source.getInputStream()) {
             cache = List.of(mapper.readValue(in, OfferRecord[].class));
+            log.info("export.json 로드 완료 — {}건, source={}", cache.size(), source);
         } catch (IOException e) {
+            // 여기서 로그를 남기지 않으면 무엇이 왜 깨졌는지가 사라진다.
+            // 실측: 사람이 편집한 export.json에 "soldOut": null이 들어와
+            // reload 전체가 깨졌는데(2026-08-04) 화면이 안 나와서야 알았다.
+            log.error("export.json 읽기 실패 — source={}", source, e);
             throw new IllegalStateException("export.json 읽기 실패", e);
         }
     }

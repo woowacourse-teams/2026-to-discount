@@ -33,8 +33,9 @@
 
 ## 구조
 
-- `src/App.jsx` — 브랜드 카드 그리드, 브랜드별 상세 패널, 카테고리
-  세그먼트 컨트롤, 멤버십 드롭다운, 고지 푸터
+- `src/App.jsx` — 브랜드 카드 그리드, 브랜드별 상세 패널, 떠 있는 툴바
+  (분류·안내·카테고리·멤버십·검색), 고지 푸터. 툴바는 첫 화면에서 배너
+  아래 제자리에 있다가 스크롤하면 상단에 붙는다(`position:sticky`)
   - `CATEGORIES` — 필터 탭 목록(라벨). 브랜드별 분류·앱별 바로가기는
     여기 없다 — API가 `brand.category`/`brand.links`로 내려준다.
     **브랜드를 추가·수정하려면 delivery-discount-api의
@@ -48,16 +49,44 @@
     밀려나오던 드로어에서 교체됨). 바깥을 누르면 닫힌다.
   - `SiteFooter` — 비영리·비제휴, 수집 방법, 면책, 상표 고지. 법적 성격을
     밝히는 자리라 임의로 축약하지 않는다.
-- `src/api.js` — `API_BASE`(고정 백엔드 주소) + `/api/brands` 호출
+- `src/EventBanner.jsx` — 당일 행사 배너(상단 + 스크롤 후 하단, 5초
+  캐러셀). 배너 내용은 프론트에 없다 — API의 `banners.yml`이 출처다
+  (아래 "당일 행사 배너")
+- `src/brandColor.js` — 배너 색. 로고 PNG에서 시드색을 뽑아 배경·테두리·
+  글자·강조를 파생한다. 못 뽑으면 플랫폼 색
+- `src/logos.jsx` — `BrandLogo`, `PlatformBadge`, 플랫폼 목록. App과
+  EventBanner가 같이 쓴다(App.jsx에 두면 순환 import가 된다)
+- `src/api.js` — `API_BASE`(고정 백엔드 주소) + `/api/brands`·`/api/banners` 호출
 - `src/analytics.js` — 방문 측정. `track(event, props)` + `startAnalytics()`
 - `src/ga4.js` — GA4 임시 도입(`startGa4()`). 이유·제거 조건은
   [ADR-002](docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md)
 - `src/main.jsx` — `@vercel/analytics/react`의 `<Analytics />`도 여기서
   마운트(Vercel 대시보드용, 자체 `analytics.js`와는 별개)
-- `public/main_logo.png` — 헤더 로고. "이번주 할인" 텍스트를 대체함
 - `public/logos/` — 브랜드 로고 (파일명 = API가 내려주는 대표명, 규칙은 `public/logos/README.md` 참고)
 - `public/platform-icons/` — 배민/쿠팡이츠/땡겨요/요기요 아이콘
 - `public/links/` — 각 앱에서 공유 기능으로 받은 브랜드 바로가기 원본 메모
+
+## 당일 행사 배너
+
+페이지 최상단에 배너가 뜨고, 스크롤해서 화면 밖으로 나가면 하단에 떠 있는
+배너로 넘어간다. 여러 건이면 5초마다 넘어간다(한 건이면 안 돌고 인디케이터도
+안 나온다). 하단 배너의 닫기 버튼은 **그날 하루** 다시 안 뜨게 한다.
+
+**배너를 추가하거나 수정하려면 delivery-discount-api의
+`src/main/resources/banners.yml`을 고친다** — 프론트 재배포는 필요 없다
+(브랜드를 고칠 때 `brands.yml`을 고치는 것과 같다). 배너 내용은 원장
+(`export.json`)에서 자동 추출되지 않고 사람이 직접 적는다. "당일 행사, 특별
+할인"은 정의상 상시 오퍼 목록에 없는 것을 알리는 자리라서다.
+
+배너는 이미지가 아니라 메타데이터(금액·기간·부가정보)로 그린다. 색은 브랜드
+로고 PNG에서 뽑고, 못 뽑으면 그 앱의 색을 쓴다 — 배너는 어차피 그 앱으로
+나가는 링크라 색이 거짓말을 하지 않는다.
+
+**배너는 광고 자리가 아니다.** 이 페이지가 비영리·비제휴라는 성격은 배너에도
+그대로 적용된다. 제휴 수수료를 받는 링크를 여기 넣지 않는다.
+
+배너가 0건이거나 API 호출이 실패하면 아무것도 그리지 않는다 — 에러도 안
+띄운다. 배너는 부가 정보라 실패가 화면을 어지럽히면 안 된다.
 
 ## 상세 패널
 
@@ -117,6 +146,7 @@ track('category_change', { category: c.key })
 track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
 track('offer_link_click', { brand: brandName, platform: offer.platform })
 track('membership_open')
+track('banner_click', { brand: banner.brand ?? 'none', platform: banner.platform, position: 'top' })
 ```
 
 새 이벤트를 추가하려면:

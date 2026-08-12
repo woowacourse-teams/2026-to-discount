@@ -72,13 +72,43 @@ delivery-discount-web)가 이 레포와 맞물리는 지점만 다룬다. 소스
   멤버십 전용가를 대표로 쓰지 않는다(청년피자 배민: 대표 4,000원,
   배민클럽 7,500원은 tier로).
 
+### GET /api/banners
+
+- 컨트롤러: `src/main/java/com/discounttracker/web/BannerController.java`
+- 응답: `List<Banner>` (`src/main/java/com/discounttracker/banner/Banner.java`)
+
+```
+id:        String            필수, 고유
+brand:     String (nullable) null이면 앱 전체 행사
+platform:  String            baemin | coupangeats | ddangyo | yogiyo
+url:       String            필수
+amount:    String            필수. **정수가 아니다** — "최대 30%"가 그대로 온다
+period:    String            필수
+extra:     String (nullable)
+color:     String (nullable) "#rrggbb"
+startsOn:  String            ISO 날짜. 프론트는 안 읽는다
+endsOn:    String            ISO 날짜. 프론트는 안 읽는다
+priority:  int               프론트는 안 읽는다(서버가 이미 정렬해 내려준다)
+```
+
+- **오늘 띄울 것만 내려간다.** `startsOn <= 오늘 <= endsOn` 판정을 서버가
+  `Asia/Seoul` 시계(`DiscountApiApplication.clock()`)로 한다. 기간 밖인
+  항목은 응답에 없다.
+- **정렬도 서버가 끝낸다.** `priority` 오름차순, 동률이면 `endsOn`이 가까운
+  순. 캐러셀 순서를 프론트가 정하지 않게 한다.
+- 배너가 없으면 빈 배열. 프론트는 이 경우 아무것도 그리지 않는다.
+- `/api/brands`에 얹지 않고 따로 뒀다 — 응답 타입을 객체로 감싸는 파괴적
+  변경을 피하고, 배너 없는 날에 빈 필드가 따라다니지 않게 한다.
+
 ### POST /api/reload
 
-- 컨트롤러: `BrandController.java:32-36`
+- 컨트롤러: `BrandController.java`
 - 요청 바디: 없음
-- 응답: `{"reloaded": <int>}` — 재로딩 후 캐시된 오퍼 레코드 수
-- 용도: 재배포 없이 `export.json`을 갈아끼운 뒤 캐시 갱신(ADR-001).
-  파일이 없으면 캐시를 빈 리스트로 비우고 에러 없이 200 반환
+- 응답: `{"reloaded": <int>, "banners": <int>}` — 재로딩 후 캐시된 오퍼
+  레코드 수와, **오늘 띄울** 배너 수(기간 밖인 것과 필수 값이 빠져 건너뛴
+  것은 안 센다)
+- 용도: 재배포 없이 `export.json`·`banners.yml`을 갈아끼운 뒤 캐시 갱신
+  (ADR-001). 파일이 없으면 캐시를 빈 리스트로 비우고 에러 없이 200 반환
   (`OfferRepository.java:31-35`).
 
 ### POST /api/events
@@ -111,7 +141,7 @@ delivery-discount-web)가 이 레포와 맞물리는 지점만 다룬다. 소스
 - 서버 측 정제: 배치 최대 20건, 문자열 필드 120자 컷, `props` 최대 6개
   키(`EventController.java:37-39`), `event`가 화이트리스트 밖이면 그 항목만
   조용히 버림(배치 전체는 실패 안 함).
-- **ALLOWED_EVENTS 전체 목록** (`EventController.java:33-35`, 현재):
+- **ALLOWED_EVENTS 전체 목록** (`EventController.java`, 현재):
   - `page_view`
   - `page_exit`
   - `category_change`
@@ -120,6 +150,7 @@ delivery-discount-web)가 이 레포와 맞물리는 지점만 다룬다. 소스
   - `offer_link_click`
   - `membership_open`
   - `capture_note_seen`
+  - `banner_click` (props `{brand, platform, position}` — `position`은 `top`/`bottom`)
 
 ### GET /api/stats/traffic?days={n}
 
@@ -148,7 +179,7 @@ delivery-discount-web)가 이 레포와 맞물리는 지점만 다룬다. 소스
 - 내부 대시보드용(`/stats.html`, `src/main/resources/static/stats.html`) —
   web 레포가 이걸 소비할 필요는 지금 없지만 계약 표면이라 기록.
 
-## 3. 소비하는 외부 입력 (tracker의 export.json)
+## 3. 소비하는 외부 입력 (tracker의 export.json, 사람이 적는 banners.yml)
 
 - 설정 프로퍼티: `discount.export-path` (`src/main/resources/application.yml:1-2`),
   로컬 기본값 `classpath:data/export.json`. 서버 배포 시
@@ -209,6 +240,23 @@ primitive `boolean`이면 `MismatchedInputException`으로 reload 전체가 깨�
   여전히 기본값상 엄격하지만, 파싱 실패를 `try/catch(IOException)`로 감싸
   빈 리스트로 흡수한다(§2 POST /api/events) — 앱을 죽이지 않고 조용히
   이벤트를 버리는 차이가 있다.
+
+### banners.yml (tracker가 아니라 사람이 적는다)
+
+- 설정 프로퍼티: `discount.banners-path` (`src/main/resources/application.yml`),
+  기본값 `classpath:banners.yml`(빈 목록). 서버 배포 시
+  `DISCOUNT_BANNERS_PATH`로 `file:` 절대경로 오버라이드 — `export-path`와
+  같은 방식이다.
+- 읽는 곳: `BannerCatalog`(생성자에서 1회, `POST /api/reload`로 재호출).
+  파일이 없으면 빈 목록, 에러 없음.
+- **원장에서 파생되지 않는다.** 당일 행사·특별 할인은 정의상 상시 오퍼
+  목록에 없는 것(앱 전체 이벤트, 첫 주문 쿠폰)이라 오퍼 데이터에 묶으면
+  정작 띄우고 싶은 것을 못 띄운다. 형식은 README "당일 행사 배너 추가·수정".
+- 필수 값(`id`, `platform`, `url`, `amount`, `period`, `startsOn`, `endsOn`)이
+  빠진 항목은 **그 항목만 건너뛴다.** 손으로 고치는 jar 밖 파일이라, 오타
+  하나가 기동이나 reload 전체를 죽이면 나머지 배너까지 같이 죽는다.
+- 배너에 `brand`와 `platform`이 있으므로 나중에 원장 값과 대조하는 로직을
+  붙일 수 있다. **지금은 대조하지 않는다.**
 
 ## 4. 다른 레포가 의존하는 설정값
 

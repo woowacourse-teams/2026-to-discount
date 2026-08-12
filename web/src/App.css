@@ -51,29 +51,223 @@ h1 {
   letter-spacing: -0.02em;
   margin: 0;
 }
-/* 텍스트 대신 로고 이미지. 브랜드 마크가 헤더의 중심이 되도록 크게
-   쓴다 — 원본은 흰 배경을 투명 처리해 잘라 둔 것(public/main_logo.png). */
-.page-head__banner { display: flex; align-items: center; gap: .9rem; margin: 0 0 .5rem; }
-.page-head__logo { display: block; margin: 0; }
-.page-head__logo img { height: 120px; width: auto; display: block; }
+/* 로고 이미지 대신 텍스트 제목. 이미지 h1은 세로 120px을 먹어 첫 화면의
+   3분의 1이 배너였고, 저해상도 원본이라 확대하면 흐렸다. 글자로 두면
+   어느 화면에서도 선명하고 높이도 한 줄로 끝난다. */
+.page-head__banner { display: flex; align-items: center; gap: .7rem; margin: 0 0 .5rem; }
+.page-head__logo { display: block; margin: 0; font-size: 1.55rem; line-height: 1.2; }
 
-/* 어떤 배달앱들을 비교하는지 배너 오른쪽에 2x2 정사각형 그리드로 보여준다.
-   4칸 모두 같은 크기라 높이가 어긋나지 않는다(폭 대신 자기 자신을
-   정사각형으로 고정) — 아이콘마다 원본 여백이 달라도 배지 크기 자체는
-   항상 같다. */
+/* 어떤 배달앱들을 비교하는지 제목 오른쪽에 한 줄로 보여준다. 제목이
+   한 줄 높이라 2x2 그리드로 쌓으면 배지 쪽이 제목보다 두 배 높아
+   배너가 배지 덩어리로 읽힌다 — 제목 높이에 맞춰 24px 한 줄로 눕힌다. */
 .page-head__apps {
-  display: grid;
-  grid-template-columns: repeat(2, 36px);
-  gap: .4rem;
+  display: flex;
+  gap: .3rem;
   margin: 0;
 }
-.page-head__apps .platform-badge { width: 36px; height: 36px; border-radius: 10px; }
+.page-head__apps .platform-badge { width: 24px; height: 24px; border-radius: 7px; }
 
-/* 320px처럼 아주 좁은 화면에선 로고 높이 그대로 두면 배너(로고+2x2
-   아이콘)가 옆으로 넘친다 — 로고만 줄여서 옆에 나란히 붙는 구조를
-   유지한다(줄바꿈 대신 축소를 택함, 나란히 두라는 요구가 있었으므로). */
-@media (max-width: 380px) {
-  .page-head__logo img { height: 80px; }
+/* ---------------------------------------------------------------------------
+   당일 행사 배너 (EventBanner.jsx)
+
+   상단(.banner--top)과 하단(.banner--bottom)은 밀도와 색만 다른 같은 상자다.
+   색은 JS가 시드색 하나에서 파생해 CSS 변수로 꽂아준다(brandColor.js) —
+   여기서는 어느 변수를 어디에 칠할지만 정한다.
+   --------------------------------------------------------------------------- */
+
+.banner-slot {
+  position: relative;
+  /* 플랫폼 배지가 배너 위쪽 밖으로 걸친다 — 위에 여유가 없으면 제목에
+     닿거나 잘린다. */
+  padding-top: 10px;
+  margin-bottom: .25rem;
+}
+
+.banner {
+  position: relative;
+  border-radius: 14px;
+  background: var(--banner-bg-c);
+  border: 1px solid var(--banner-line-c);
+  animation: banner-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* 상단은 밝은 틴트에 진한 글자, 하단은 진한 브랜드색에 흰 글자다. 하단은
+   카드 위에 겹쳐 뜨는 층이라 밝은 틴트로는 카드와 구분이 약하다. */
+.banner--top {
+  --banner-bg-c: var(--banner-tint);
+  --banner-line-c: var(--banner-line);
+  --banner-ink-c: var(--banner-ink);
+  --banner-accent-c: var(--banner-accent);
+}
+.banner--bottom {
+  --banner-bg-c: var(--banner-deep);
+  --banner-line-c: var(--banner-deep);
+  --banner-ink-c: #fff;
+  --banner-accent-c: var(--banner-deep-accent);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+}
+
+@keyframes banner-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.banner__link {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .75rem .95rem;
+  text-decoration: none;
+  color: inherit;
+}
+.banner__link:focus-visible { outline: 2px solid var(--banner-ink-c); outline-offset: 2px; border-radius: 14px; }
+/* 인디케이터가 있는 배너만 아래를 더 비운다 — 한 건짜리 배너에 빈 자리를
+   남기지 않는다. */
+.banner--dots .banner__link { padding-bottom: 1.35rem; }
+.banner--bottom .banner__link { padding: .6rem 2.3rem .6rem .8rem; }
+.banner--bottom.banner--dots .banner__link { padding-bottom: 1.2rem; }
+
+/* .brand-logo는 span이라 그 자체로는 inline이다 — 폭·높이가 먹으려면
+   감싼 쪽이 flex여야 한다(브랜드 카드에서는 .brand-card__head가 그 역할). */
+.banner__logo { display: flex; flex: none; line-height: 0; }
+.banner__logo .brand-logo { width: 44px; height: 44px; border-radius: 12px; }
+.banner--bottom .banner__logo .brand-logo { width: 36px; height: 36px; border-radius: 10px; }
+/* 브랜드가 없는 앱 전체 행사 — 로고 자리에 앱 아이콘이 들어간다. */
+.brand-logo--platform { background: var(--surface); }
+.brand-logo--platform img { object-fit: contain; padding: 4px; }
+
+/* 금액이 배너의 주인공이다. 좁은 화면에서도 이 글씨는 줄이지 않는다 —
+   밀리는 건 부가정보 쪽이다(아래 말줄임). */
+.banner__amount {
+  flex: none;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--banner-ink-c);
+}
+.banner--bottom .banner__amount { font-size: 1.15rem; }
+
+.banner__meta {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.banner__period {
+  font-size: .78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--banner-accent-c);
+}
+.banner__extra {
+  font-size: .7rem;
+  color: var(--banner-ink-c);
+  opacity: .72;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 오른쪽 위 모서리 밖으로 걸치되, 오른쪽 테두리에서는 유격을 둔다.
+   배경색 테두리로 한 겹 띄워 배너에서 떠 보이게 한다. */
+.banner__badge {
+  position: absolute;
+  top: -9px;
+  right: 12px;
+  line-height: 0;
+}
+.banner__badge .platform-badge {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--bg);
+  border-radius: 8px;
+}
+
+.banner__close {
+  position: absolute;
+  top: 50%;
+  right: .55rem;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+  cursor: pointer;
+}
+.banner__close:hover { background: rgba(255, 255, 255, .3); }
+.banner__close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* 하단 중앙 인디케이터. 점 자체는 6px이지만 버튼은 14px을 차지해
+   손가락으로 누를 자리를 남긴다. */
+.banner__dots {
+  position: absolute;
+  bottom: .25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: .15rem;
+}
+.banner__dot {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.banner__dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 50%;
+  background: var(--banner-ink-c);
+  opacity: .3;
+  transition: opacity 150ms ease;
+}
+.banner__dot--on::after { opacity: .85; }
+.banner__dot:focus-visible { outline: 2px solid var(--banner-ink-c); outline-offset: -2px; border-radius: 50%; }
+
+/* 상단 배너가 화면 밖으로 나가면 올라오는 층. 불투명하고, 떠 있는 층은
+   뷰포트가 아니라 본문 폭을 따라간다는 이 레포 규칙을 그대로 따른다 —
+   하단만 화면 끝까지 채우면 위는 880px, 아래는 화면 폭으로 어긋난다.
+   안 보일 때 visibility:hidden이라 탭 순서에서도 빠진다. */
+.banner-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 14;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 200ms ease,
+              transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 200ms;
+}
+.banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
+.banner-dock__inner {
+  max-width: 880px;
+  margin: 0 auto;
+  /* 위쪽 여유는 걸쳐 나온 배지 몫이다. */
+  padding: 12px 1.25rem .85rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner { animation: none; }
+  .banner-dock { transition: opacity 200ms ease, visibility 200ms; transform: none; }
 }
 
 .sub { color: var(--text-muted); font-size: .9rem; margin: 0; text-align: center; }
@@ -92,25 +286,28 @@ h1 {
 }
 .pill--pending { background: var(--pending-bg); color: var(--pending-text); }
 
-/* 멤버십 트리거 버튼 + 드롭다운의 위치 기준. .toolbar__actions 안,
-   레이블 줄 오른쪽에 검색 아이콘과 한 그룹으로 플로팅한다. */
+/* 멤버십 트리거 버튼 + 드롭다운의 위치 기준. 툴바 오른쪽 끝, 검색 아이콘
+   바로 왼쪽이다. */
 .membership { position: relative; flex: none; }
 
+/* 검색·안내·분류와 같은 26px 원. 이전의 "멤버십 구현예정" 라벨 버튼은
+   카테고리 탭 위를 덮어 선택 하이라이트까지 가렸다 — 같은 flex 행에서
+   자리를 차지하려면 다른 아이콘 버튼과 같은 크기여야 한다. 사라진
+   `구현예정` 배지는 드롭다운 머리로 옮겼다(App.jsx MembershipMenu). */
 .membership-trigger {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: .45rem;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: .5rem .8rem;
-  font: inherit;
-  font-size: .8rem;
+  border-radius: 50%;
   color: var(--text);
   cursor: pointer;
-  transition: box-shadow 150ms ease;
 }
-.membership-trigger:hover { box-shadow: 0 1px 6px rgba(0, 0, 0, .05); }
+.membership-trigger:hover { border-color: var(--text-muted); }
 .membership-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* 화면 오른쪽에서 밀려나오던 드로어 대신, 버튼 바로 아래 뜨는 드롭다운.
@@ -286,46 +483,33 @@ h1 {
 }
 .wip:hover::after { opacity: 1; visibility: visible; }
 
-/* 검색+안내 버튼(왼쪽 세로 스택) + 카테고리 레이블(오른쪽, 좁게 줄이고
-   가로 스크롤). 줄 전체를 sticky로 고정해서 스크롤해도 계속 손 닿는
-   자리에 있는다 — 스크롤로 올라오는 카드가 이 줄 아래에서 뚝 끊기지
-   않도록, 좌하단 사선으로 빠지는 그라데이션을 줄 전체 배경에 건다. */
+/* 떠 있는 툴바 하나 — 분류 화살표, 안내(?), 카테고리, 멤버십, 검색이
+   전부 여기 들어간다. 첫 화면에서는 배너 아래 제자리에 있다가 스크롤하면
+   상단에 붙는다(position:sticky). fixed로 띄우고 자리를 따로 비워두는 대신
+   sticky를 쓰는 이유는, 배너 높이가 내용에 따라 달라져 비워둘 자리를
+   고정값으로 못 잡기 때문이다.
+
+   폭은 본문(main)을 그대로 따라간다 — 이 레포에는 "떠 있는 층은 뷰포트가
+   아니라 본문 폭을 따라간다"는 규칙이 이미 있고, sticky는 부모 폭을
+   물려받으므로 따로 맞출 것이 없다. */
 .toolbar {
   position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  align-items: flex-start;
-  gap: .6rem;
-  padding: .75rem 0 1.35rem;
-  background: linear-gradient(to bottom left, var(--bg) 0%, var(--bg) 55%, transparent 85%);
+  top: .5rem;
+  z-index: 15;
+  padding: .4rem 0 1.15rem;
 }
-/* 화살표(분류 기준) + 안내(?) + 카테고리 탭, 전부 한 줄 — 높이를 맞추려면
-   따로 쌓지 않고 같은 행에 나란히 둬야 한다. 검색 토글은 이 행의 오른쪽에
-   position:absolute로 떠 있는다("레이블 위로 띄워") — 자기 폭만큼 자리를
-   차지하지 않으므로 기준이 되는 이 컨테이너는 position:relative가 필요하다. */
-.toolbar__labels {
+/* 카드 위에 떠 있는 동안 배경이 비치면 카테고리 탭이 카드 글씨와 겹쳐
+   읽힌다 — 불투명한 알약 하나로 감싸고 옅은 그림자로 한 겹 띄운다. */
+.toolbar__inner {
   position: relative;
-  flex: 1 1 auto;
-  min-width: 0;
   display: flex;
   align-items: center;
   gap: .35rem;
-}
-
-/* 멤버십 버튼 + 검색, 레이블 행 오른쪽 끝에 한 그룹으로 떠 있는다
-   (position:absolute, .toolbar__labels 기준) — 자기 폭만큼 자리를
-   차지하지 않는다. 같은 flex 행이라 검색이 펼쳐져 폭이 늘어나면 그
-   왼쪽의 멤버십 버튼도 같이 밀려난다(별도 좌표 계산 없이 flex만으로). */
-.toolbar__actions {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  gap: .35rem;
+  padding: .3rem .4rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
 }
 
 /* 검색 — 닫힌 상태는 다른 원형 아이콘 버튼(▾, ?, 멤버십)과 높이를 맞춘
@@ -459,16 +643,22 @@ h1 {
 }
 
 /* 카테고리 필터 — 가로로 죽 늘어놓고, 넘치는 만큼 가로 스크롤로 흡수.
-   sticky·그라데이션은 부모 .toolbar가 통째로 맡는다(검색·안내 버튼과
-   같이 고정돼야 하므로). flex:1 min-width:0으로 .toolbar__labels 안에서
-   화살표 버튼을 뺀 나머지 폭만 갖고, 그 안에서 스스로 스크롤한다(휠
-   가로 스크롤도 여기 붙는다 — App.jsx의 onWheel). */
+   sticky는 부모 .toolbar가 통째로 맡는다. flex:1 min-width:0으로 툴바에서
+   버튼들을 뺀 나머지 폭만 갖고, 그 안에서 스스로 스크롤한다(휠 가로
+   스크롤도 여기 붙는다 — App.jsx의 onWheel). 폭 상한을 따로 두지 않는 건
+   같은 행의 멤버십·검색 버튼이 이미 자리를 잡고 있기 때문이다. */
 .category-bar {
+  /* 하이라이트(.category-bar__highlight)의 배치 기준을 이 스크롤 컨테이너
+     자신으로 못 박는다. 기준이 바깥(.toolbar__labels)이면 탭을 가로로
+     스크롤해도 하이라이트만 제자리에 남아 엉뚱한 탭 위에 얹힌다 —
+     기준이 스크롤되는 상자 자신이면 하이라이트도 내용과 같이 밀린다.
+     버튼 좌표를 offsetLeft로 재는 쪽(App.jsx)도 이 상자를 offsetParent로
+     잡게 되어 스크롤과 무관한 같은 좌표계를 쓴다. */
+  position: relative;
   display: flex;
   gap: 2px;
   flex: 1 1 auto;
   min-width: 0;
-  max-width: 66%;
   margin: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -477,8 +667,8 @@ h1 {
 
 /* 세그먼트 컨트롤의 슬라이딩 하이라이트. 탭마다 배경을 따로 켜고 끄는
    대신 배경 하나가 활성 탭 위치로 옮겨간다(위치·너비는 JS가 실측해서
-   인라인 스타일로 넣는다 — App.jsx CategoryBar). .category-bar가 이미
-   position:sticky라 별도 relative 없이도 이 절대배치의 기준이 된다. */
+   인라인 스타일로 넣는다 — App.jsx CategoryBar). 기준은 위 .category-bar
+   (position:relative)다. */
 .category-bar__highlight {
   position: absolute;
   top: 0;
@@ -877,4 +1067,15 @@ h1 {
 @media (max-width: 560px) {
   main { padding: 1.5rem 1rem 3rem; }
   /* .brand-grid는 이제 auto-fit/minmax라 이 폭에서 이미 1열이 된다. */
+  .banner-dock__inner { padding-left: 1rem; padding-right: 1rem; }
+}
+
+/* 좁은 화면(360px)에서 줄이는 건 로고와 배지뿐이다. 금액은 배너의 주인공이라
+   글씨를 줄이지 않고, 자리가 모자라면 부가정보가 말줄임된다. */
+@media (max-width: 400px) {
+  .banner__link { gap: .6rem; padding-left: .75rem; padding-right: .75rem; }
+  .banner__logo .brand-logo { width: 36px; height: 36px; }
+  .banner--bottom .banner__logo .brand-logo { width: 32px; height: 32px; }
+  .banner__badge .platform-badge { width: 20px; height: 20px; border-radius: 7px; }
+  .banner__badge { top: -8px; right: 10px; }
 }

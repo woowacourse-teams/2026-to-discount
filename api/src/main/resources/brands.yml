@@ -4,13 +4,17 @@
 # 전부 여기 모여 있고, API가 그대로 프론트에 내려준다(프론트 재배포 불필요).
 # 로고 이미지만 delivery-discount-web/public/logos/<대표명>.png 로 따로 넣는다.
 #
-# category: chicken | pizza | fastfood | snack | cafe | convenience | (생략 = 미분류)
+# category: chicken | pizza | fastfood | snack | cafe | convenience | korean | chinese | (생략 = 미분류)
 # aliases:  원장에 다른 이름으로 찍히는 경우만 (생략 가능)
 # links:    앱별 브랜드 쿠폰 공유링크(앱 전용 딥링크, 생략 가능).
 #           키는 원장 platform 값과 맞춘다 — ddangyo, baemin, ...
 
 brands:
   # --- 치킨 ---
+  가마로강정:
+    category: chicken
+  치킨마루:
+    category: chicken
   BBQ:
     category: chicken
     aliases: [BBQ, BBQ치킨]
@@ -157,6 +161,10 @@ brands:
       baemin: https://s.baemin.com/7o3.h24j5
 
   # --- 피자 ---
+  반올림피자:
+    category: pizza
+  클랩피자:
+    category: pizza
   7번가피자:
     category: pizza
     links:
@@ -216,11 +224,13 @@ brands:
       baemin: https://s.baemin.com/7o3.f2e5b
 
   # --- 패스트푸드 ---
-  맘스터치앤피자:
+  맘스터치:
+    # 부모 브랜드. 맘스터치피자앤치킨(버거 제외 피자·치킨 파생)과는 행사가
+    # 별개라 alias로 합치지 않는다.
     category: fastfood
   맘스터치피자앤치킨:
     category: fastfood
-    aliases: [맘스터치피자앤치킨, 맘스터치 피자앤치킨]
+    aliases: [맘스터치피자앤치킨, 맘스터치 피자앤치킨, 맘스터치앤피자]
     links:
       baemin: https://s.baemin.com/7o3.fsacj
   맥도날드:
@@ -232,12 +242,26 @@ brands:
       baemin: https://s.baemin.com/7o3.f6syp
   써브웨이:
     category: fastfood
+  쉐이크쉑:
+    category: fastfood
+  움버거앤윙스:
+    category: fastfood
   왓더버거:
     category: fastfood
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?5bKLeLT
 
   # --- 카페 ---
+  샐러리아:
+    category: cafe
+  오베이글하우스:
+    category: cafe
+  토스트카페마리:
+    category: cafe
+  파리바게뜨:
+    category: cafe
+  폴바셋:
+    category: cafe
   공차:
     category: cafe
   던킨:
@@ -269,11 +293,44 @@ brands:
   # --- 편의점 ---
   CU:
     category: convenience
-    aliases: [CU, CU픽업]
+    aliases: [CU, CU픽업, CU주류픽업]
+  GS25:
+    category: convenience
   세븐일레븐:
     category: convenience
   세븐픽업:
     category: convenience
+  요편의점:
+    category: convenience
+
+  # --- 한식 ---
+  광안천지식당:
+    category: korean
+  국민낙곱새:
+    category: korean
+  동궁찜닭:
+    category: korean
+  마선생얼큰국밥:
+    category: korean
+  마왕족발:
+    category: korean
+  유가네닭갈비:
+    # 쿠폰이 앱마다 갈릴 때도 있는 같은 브랜드.
+    category: korean
+    aliases: [유가네닭갈비, 유가네찜닭]
+  지지고:
+    category: korean
+  천지두루치기:
+    category: korean
+  최강곱도리:
+    category: korean
+  호세야:
+    category: korean
+    aliases: [호세야, 호세야 오리바베큐]
+
+  # --- 중식 ---
+  홍콩반점0410:
+    category: chinese
 
   # --- 미분류 (전체에서만 노출) ---
   떡참:
@@ -365,6 +422,7 @@ brands:
     links:
       baemin: https://s.baemin.com/dji.i7f6o
   이경규의 돈치킨:
+    aliases: [이경규의 돈치킨, 돈치킨]
     links:
       baemin: https://s.baemin.com/7o3.g6b37
   장충동왕족발:
@@ -407,6 +465,8 @@ brands:
       baemin: https://s.baemin.com/0M000I2A5Q1i8
 
   # --- 분식/기타 ---
+  삼첩분식:
+    category: snack
   본죽:
     category: snack
     aliases: [본죽, 본죽&비빔밥]

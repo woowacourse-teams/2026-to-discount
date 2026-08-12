@@ -19,6 +19,7 @@
 2. API 기동: `./gradlew bootRun` (http://localhost:8080)
 3. 프론트 기동 (delivery-discount-web 레포에서): `npm install && npm run dev` (http://localhost:5173)
 4. 데이터만 갱신했다면 재기동 대신: `curl -X POST http://localhost:8080/api/reload`
+   (원장 `export.json`과 배너 `banners.yml`을 같이 다시 읽는다)
 
 ## 배포 (bebeggars.duckdns.org)
 
@@ -41,6 +42,9 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 - `brand/` — 브랜드에 대해 우리가 아는 것
   - `BrandCatalog` — `brands.yml`을 읽어 별칭·카테고리·바로가기를 제공
   - `Brand`, `Category` — 브랜드 정보와 분류
+- `banner/` — 당일 행사 배너(원장에서 파생되지 않고 사람이 적는 것)
+  - `BannerCatalog` — `banners.yml`을 읽고, 오늘 띄울 것만 정렬해 돌려준다
+  - `Banner` — 배너 한 건
 - `offer/` — 원장에서 온 할인 데이터
   - `OfferRepository` — export.json 읽기(리로드 가능)
   - `OfferRecord`(원장 한 줄), `Offer`(화면의 칩 하나), `OfferStatus`(확정/보류)
@@ -49,6 +53,7 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
   - `BrandComparison` — 카드 하나. 정렬 규칙(`byBestDiscount`)도 여기 있다
 - `web/` — 바깥과 닿는 부분
   - `BrandController` — GET /api/brands, POST /api/reload
+  - `BannerController` — GET /api/banners
   - `WebConfig` — CORS 허용 오리진. 현재 `http://localhost:5173`(로컬 프론트)
     + `https://beggars-five.vercel.app`(delivery-discount-web 배포).
     프론트를 다른 곳에 새로 배포하면 여기에 오리진을 추가해야 한다.
@@ -183,3 +188,41 @@ brands:
 로고 이미지만 `delivery-discount-web/public/logos/<대표명>.png`로 따로
 넣는다. 전체 브랜드명은 delivery-discount-tracker의
 `data/brands-sorted.txt`(이름 오름차순)에서 확인한다.
+
+## 당일 행사 배너 추가·수정
+
+`src/main/resources/banners.yml`을 고치고 `POST /api/reload`. 프론트 재배포는
+필요 없다.
+
+```yaml
+banners:
+  - id: kyochon-20260811          # 필수, 고유
+    brand: 교촌치킨                 # 생략하면 앱 전체 행사
+    platform: baemin              # 필수. 배지와 색 폴백
+    url: https://s.baemin.com/…   # 필수
+    amount: "12,000원"            # 필수, 문자열("최대 30%"도 가능)
+    period: 8/11 하루만            # 필수. 금액 우측 상단
+    extra: 최소주문 20,000원        # 생략 가능. 금액 우측 하단
+    startsOn: 2026-08-11          # 필수
+    endsOn: 2026-08-11            # 필수
+    priority: 1                   # 생략 시 999. 낮을수록 먼저
+```
+
+**`amount`가 정수가 아니라 문자열인 이유**: 원장의 `Offer.amount`는 정수지만
+배너는 "첫 주문 5,000원", "최대 30%" 같은 것을 담아야 한다. 정수로 두면 못
+담고, 그러면 배너를 원장에서 떼어낸 이유가 사라진다.
+
+**경로를 열어둔 이유**: 배너는 매일 바뀔 수 있다. classpath 안에만 두면 행사
+하나 바꾸는 데 jar를 다시 빌드해 배포해야 한다. `DISCOUNT_BANNERS_PATH`로 jar
+밖 파일을 물려두면 파일만 갈아끼우고 reload로 반영된다(`brands.yml`이 이미
+같은 방식이다). 리포지토리의 기본 `banners.yml`은 빈 목록이라, 환경변수를 안
+걸면 배너가 아예 안 뜬다.
+
+**날짜 판정은 서버가 한다.** `startsOn <= 오늘 <= endsOn`인 것만 내려간다
+(`Asia/Seoul`). 지난 행사는 지우지 않아도 안 뜬다. 프론트에서 판정하면
+사용자 기기 시계를 따라가 시차 문제가 생긴다.
+
+**필수 값이 빠진 항목은 건너뛴다.** 사람이 손으로 고치는 파일이라 오타 하나가
+기동이나 reload 전체를 죽이면 안 된다. 몇 건이 올라갔는지는 reload 응답의
+`banners` 값으로 확인한다.
+
