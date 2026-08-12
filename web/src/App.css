@@ -118,10 +118,16 @@ h1 {
   margin: 0;
   flex: none;
 }
+/* 타이틀바에서만 원형으로 — 검색·초기화 버튼도 같은 26px 원이라
+   셋이 한 세트로 읽히게 맞춘다(다른 자리의 .platform-badge는 사각
+   로고와 어울리는 둥근 사각형을 그대로 쓴다). 원 안에 꽉 채우면
+   사각 로고 네 귀퉁이가 원에 잘려서, 안쪽 padding을 base보다
+   더 준다(내접원 여유분 ~15%). */
 .page-head__apps .platform-badge {
-  width: 34px; height: 34px; border-radius: 10px;
+  width: 34px; height: 34px; border-radius: 50%;
   transition: width 120ms ease, height 120ms ease;
 }
+.page-head__apps .platform-badge img { padding: 5px; }
 
 /* 배지 바로 아래 뜨는 멤버십 안내 팝오버 — 순수 CSS hover/focus,
    JS 상태 없이 :hover(마우스)와 :focus-within(키보드 탭)만으로 연다. */
@@ -428,7 +434,7 @@ h1 {
   height: 26px;
   padding: 0;
   color: var(--text-muted);
-  background: none;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 50%;
   cursor: pointer;
