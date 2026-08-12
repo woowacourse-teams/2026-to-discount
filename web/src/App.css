@@ -65,7 +65,14 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
   margin-left: calc(-50vw + 50%);
   margin-top: -.5rem;
   margin-bottom: -1.0rem;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, .18), rgba(0, 0, 0, .08));
+  background: transparent;
+  transition: background 150ms ease;
+}
+/* 맨 위(scrollY 0)에서는 음영이 없다가, 스크롤해서 카드 위에 얹히는
+   순간부터(App.jsx scrolled) 나타난다 — 처음부터 깔면 배너 위까지
+   불필요하게 어두워졌다. */
+.title-bar--scrolled {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, .32), rgba(0, 0, 0, .14));
 }
 .title-bar__inner {
   display: flex;
@@ -73,7 +80,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
   gap: .4rem;
   max-width: 880px;
   margin: 0 auto;
-  padding: .85rem 1.25rem .55rem;
+  padding: .35rem 1.25rem .55rem;
 }
 h1 {
   font-size: 1.5rem;

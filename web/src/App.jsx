@@ -499,6 +499,15 @@ export default function App() {
     track('filters_reset')
   }
 
+  // 맨 위(scrollY 0)에선 음영 없이 카드와 자연스럽게 이어지다가,
+  // 스크롤해서 카드 위에 얹히는 순간부터 음영이 붙는다.
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   // URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유할 수 있게 한다.
   // 해시가 바뀌면(같은 페이지 안에서 다른 링크로 다시 들어와도) 다시
   // 반영한다 — 새로고침 없이 링크만 바꿔도 그 카드로 스크롤돼야 한다.
@@ -575,7 +584,7 @@ export default function App() {
           한쪽만 밀리고 나머지는 안 따라와 어색했다. 분류 선택(▾)·안내(?)
           ·초기화·검색은 항상 붙어 있어야 하는 조작이라 스크롤 영역
           바깥에 고정한다. */}
-      <div className="title-bar">
+      <div className={`title-bar${scrolled ? ' title-bar--scrolled' : ''}`}>
         <div className="title-bar__inner">
         <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
         <div className="title-bar__scroll" onWheel={handleLabelsWheel}>
