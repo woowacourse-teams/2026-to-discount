@@ -68,14 +68,15 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
   transition: background 150ms ease;
 }
 /* 맨 위(scrollY 0)에서는 음영이 없다가, 스크롤해서 카드 위에 얹히는
-   순간부터(App.jsx scrolled) 나타난다. 위/아래 끝은 옅게, 아이콘·글자가
-   지나가는 정중앙이 가장 진하게(불투명 100%) — 그 위에 얹히는 흰 글자
-   대비가 어디서나 확보되도록 가운데를 가장 어둡게 잡는다. */
+   순간부터(App.jsx scrolled) 나타난다. 위쪽 70%에서 시작해 정중앙에서
+   불투명 100%로 정점을 찍고, 그 아래는 바로 투명 — 배지·카테고리
+   글자가 지나가는 윗부분만 확실히 어둡게 잡고 나머지는 카드에 자연
+   스럽게 흘려보낸다. */
 .title-bar--scrolled {
   background: linear-gradient(to bottom,
     rgba(0, 0, 0, .7) 0%,
     rgba(0, 0, 0, 1) 50%,
-    rgba(0, 0, 0, .7) 100%);
+    transparent 51%);
 }
 .title-bar__inner {
   display: flex;
