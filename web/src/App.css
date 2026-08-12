@@ -48,6 +48,8 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
    둘 다 넘칠 수 있는 목록이라 따로 스크롤하면 한쪽만 밀리고 나머지는
    안 따라와 어색했다. 분류 선택(▾)·안내(?)·초기화·검색은 스크롤
    영역 밖에 고정한다. */
+/* 카드 위에 바로 얹혀서 구분이 잘 안 됐다 — 옅은 검정 그라데이션을
+   위에서 아래로 살짝 깔아 대비만 확보한다. */
 .title-bar {
   position: sticky;
   top: 0;
@@ -57,6 +59,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
   gap: .4rem;
   padding: .35rem 0 .55rem;
   margin-bottom: -1.0rem;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, .16), transparent);
 }
 h1 {
   font-size: 1.5rem;
@@ -126,6 +129,36 @@ h1 {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;
+}
+
+/* 플랫폼을 필터로 고르면 드러나는 멤버십 칩 줄(progressive disclosure).
+   여전히 "구현예정" 배지가 붙지만, 배지 hover 팝오버(정보만)와 달리
+   실제로 눌러서 켜고 끌 수 있는 진짜 버튼이다. */
+.membership-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: -.4rem 0 .8rem;
+}
+.membership-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .5rem .3rem .7rem;
+  font-size: .8rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+.membership-chip:hover { border-color: var(--text-muted); color: var(--text); }
+.membership-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.membership-chip--active {
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  border-color: var(--accent);
 }
 
 
@@ -347,6 +380,20 @@ h1 {
   white-space: nowrap;
 }
 .pill--pending { background: var(--pending-bg); color: var(--pending-text); }
+
+/* 옆으로 더 있다는 힌트 — 오른쪽으로 살짝 갔다가 돌아오길 반복한다. */
+.scroll-hint-arrow {
+  flex: none;
+  color: var(--text-muted);
+  animation: scroll-hint-nudge 1.4s ease-in-out infinite;
+}
+@keyframes scroll-hint-nudge {
+  0%, 100% { transform: translateX(0); opacity: .5; }
+  50% { transform: translateX(4px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint-arrow { animation: none; }
+}
 
 .filter-reset-btn {
   display: flex;

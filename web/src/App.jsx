@@ -476,11 +476,26 @@ export default function App() {
     })
     track('platform_filter_toggle', { platform: key })
   }
+
+  // 플랫폼을 필터로 고르면(progressive disclosure) 그 앱들의 멤버십
+  // 옵션이 선택 가능한 칩으로 드러난다 — 안 고른 앱까지 4개 다 늘어놓지
+  // 않는다. 계산 로직은 여전히 보류 상태(product-brief 참고)라 선택
+  // 자체는 화면에만 남고 금액은 안 바뀐다.
+  const [membership, setMembership] = useState(() => new Set())
+  const toggleMembership = (key) => {
+    setMembership((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key); else next.add(key)
+      return next
+    })
+    track('membership_open', { platform: key })
+  }
   const isFiltered = filterKey !== 'all' || platformFilter.size > 0 || search.trim() !== ''
   const resetFilters = () => {
     setFilterKey('all')
     setPlatformFilter(new Set())
     setSearch('')
+    setMembership(new Set())
     track('filters_reset')
   }
 
@@ -583,6 +598,21 @@ export default function App() {
           </div>
           <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} />
         </div>
+        {/* 옆으로 더 스크롤할 게 있다는 힌트 — 오른쪽으로 살짝 반복 이동. */}
+        <svg
+          className="scroll-hint-arrow"
+          aria-hidden="true"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="9 6 15 12 9 18" />
+        </svg>
         <button
           type="button"
           className={`filter-reset-btn${isFiltered ? ' filter-reset-btn--active' : ''}`}
@@ -596,6 +626,26 @@ export default function App() {
         </button>
         <SearchControl value={search} onChange={setSearch} />
       </div>
+
+      {/* progressive disclosure — 플랫폼을 필터로 고르면 그 앱들의
+          멤버십 선택 칩이 여기 드러난다. 고르지 않은 앱은 계속 배지
+          hover 팝오버로만 안내한다(4개를 한꺼번에 늘어놓지 않는다). */}
+      {platformFilter.size > 0 && (
+        <div className="membership-row" aria-label="멤버십 선택">
+          {PLATFORMS.filter((p) => platformFilter.has(p.key)).map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              className={`membership-chip${membership.has(p.key) ? ' membership-chip--active' : ''}`}
+              aria-pressed={membership.has(p.key)}
+              onClick={() => toggleMembership(p.key)}
+            >
+              {MEMBERSHIP_LABEL[p.key]}
+              <span className="pill pill--pending">구현예정</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {error && <p className="msg msg--error">불러오기 실패: {error}</p>}
       {!error && !brands && <p className="msg">불러오는 중…</p>}
