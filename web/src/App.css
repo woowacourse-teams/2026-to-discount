@@ -47,19 +47,33 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
    배지·카테고리 탭은 한 스크롤 영역(title-bar__scroll)을 같이 쓴다 —
    둘 다 넘칠 수 있는 목록이라 따로 스크롤하면 한쪽만 밀리고 나머지는
    안 따라와 어색했다. 분류 선택(▾)·안내(?)·초기화·검색은 스크롤
-   영역 밖에 고정한다. */
-/* 카드 위에 바로 얹혀서 구분이 잘 안 됐다 — 옅은 검정 그라데이션을
-   위에서 아래로 살짝 깔아 대비만 확보한다. */
+   영역 밖에 고정한다.
+
+   main이 max-width:880px에 좌우 padding까지 있어서, 그 안에 그냥
+   두면 타이틀바가 화면 위/좌/우 다 뜬 것처럼 보였다(sticky라도
+   부모 박스 안에서만 붙지 뷰포트 끝까지는 안 붙는다) — 표준
+   "full-bleed" 트릭으로 뷰포트 전체 폭까지 뺀다. 안쪽 내용(로고,
+   카테고리 등)은 title-bar__inner가 main과 같은 max-width·padding을
+   다시 잡아서 카드 그리드와 좌우가 맞는다. 위쪽 뜬 틈은 main의
+   padding-top(.5rem)을 상쇄하는 음수 margin-top으로 없앤다. */
 .title-bar {
   position: sticky;
   top: 0;
-  z-index: 16;
+  left: 0;
+  z-index: 60;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-top: -.5rem;
+  margin-bottom: -1.0rem;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, .18), rgba(0, 0, 0, .08));
+}
+.title-bar__inner {
   display: flex;
   align-items: center;
   gap: .4rem;
-  padding: .35rem 0 .55rem;
-  margin-bottom: -1.0rem;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, .16), transparent);
+  max-width: 880px;
+  margin: 0 auto;
+  padding: .85rem 1.25rem .55rem;
 }
 h1 {
   font-size: 1.5rem;
@@ -384,7 +398,8 @@ h1 {
 /* 옆으로 더 있다는 힌트 — 오른쪽으로 살짝 갔다가 돌아오길 반복한다. */
 .scroll-hint-arrow {
   flex: none;
-  color: var(--text-muted);
+  color: #fff;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .5));
   animation: scroll-hint-nudge 1.4s ease-in-out infinite;
 }
 @keyframes scroll-hint-nudge {

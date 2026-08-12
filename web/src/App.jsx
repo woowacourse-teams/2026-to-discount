@@ -576,6 +576,7 @@ export default function App() {
           ·초기화·검색은 항상 붙어 있어야 하는 조작이라 스크롤 영역
           바깥에 고정한다. */}
       <div className="title-bar">
+        <div className="title-bar__inner">
         <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
         <div className="title-bar__scroll" onWheel={handleLabelsWheel}>
           <div className="page-head__apps" aria-label="비교 대상 배달앱">
@@ -602,12 +603,12 @@ export default function App() {
         <svg
           className="scroll-hint-arrow"
           aria-hidden="true"
-          width="12"
-          height="12"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="2.5"
+          strokeWidth="3.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -625,6 +626,7 @@ export default function App() {
           </svg>
         </button>
         <SearchControl value={search} onChange={setSearch} />
+        </div>
       </div>
 
       {/* progressive disclosure — 플랫폼을 필터로 고르면 그 앱들의
