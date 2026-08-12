@@ -20,7 +20,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
+main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -53,9 +53,9 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
    두면 타이틀바가 화면 위/좌/우 다 뜬 것처럼 보였다(sticky라도
    부모 박스 안에서만 붙지 뷰포트 끝까지는 안 붙는다) — 표준
    "full-bleed" 트릭으로 뷰포트 전체 폭까지 뺀다. 안쪽 내용(로고,
-   카테고리 등)은 title-bar__inner가 main과 같은 max-width·padding을
-   다시 잡아서 카드 그리드와 좌우가 맞는다. 위쪽 뜬 틈은 main의
-   padding-top(.5rem)을 상쇄하는 음수 margin-top으로 없앤다. */
+   카테고리 등)은 title-bar__inner가 main과 같은 max-width로만 맞추고
+   좌우 패딩은 살짝 더 좁혀서 실사용 폭을 넓힌다. main도 이제 상단
+   패딩이 없어서(위쪽 여백 자체를 없앰) 따로 상쇄할 것도 없다. */
 .title-bar {
   position: sticky;
   top: 0;
@@ -63,16 +63,19 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
   z-index: 60;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
-  margin-top: -.5rem;
   margin-bottom: -1.0rem;
   background: transparent;
   transition: background 150ms ease;
 }
 /* 맨 위(scrollY 0)에서는 음영이 없다가, 스크롤해서 카드 위에 얹히는
-   순간부터(App.jsx scrolled) 나타난다 — 처음부터 깔면 배너 위까지
-   불필요하게 어두워졌다. */
+   순간부터(App.jsx scrolled) 나타난다. 위/아래 끝은 옅게, 아이콘·글자가
+   지나가는 정중앙이 가장 진하게(불투명 100%) — 그 위에 얹히는 흰 글자
+   대비가 어디서나 확보되도록 가운데를 가장 어둡게 잡는다. */
 .title-bar--scrolled {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, .32), rgba(0, 0, 0, .14));
+  background: linear-gradient(to bottom,
+    rgba(0, 0, 0, .7) 0%,
+    rgba(0, 0, 0, 1) 50%,
+    rgba(0, 0, 0, .7) 100%);
 }
 .title-bar__inner {
   display: flex;
@@ -80,7 +83,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0.5rem 1.25rem 4rem; }
   gap: .4rem;
   max-width: 880px;
   margin: 0 auto;
-  padding: .35rem 1.25rem .55rem;
+  padding: .35rem .75rem .55rem;
 }
 h1 {
   font-size: 1.5rem;
@@ -100,11 +103,10 @@ h1 {
   flex: 1 1 auto;
   min-width: 0;
   overflow-x: auto;
-  /* 스크롤 가능함을 암시하는 페이드 — 시작/끝 위치와 무관하게 항상
-     양쪽 다 건다(스크롤 위치별로 동적으로 빼는 건 JS가 필요해서
-     생략, 끝에서도 옅게 페이드되는 정도는 허용). */
-  mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, black 14px, black calc(100% - 14px), transparent);
+  /* 오른쪽으로 더 있다는 걸 암시하는 페이드만 건다 — 왼쪽엔 배지가
+     고정으로 걸려 있어 페이드가 필요 없다. */
+  mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
   scrollbar-width: none;
 }
 .title-bar__scroll::-webkit-scrollbar { display: none; }
@@ -581,6 +583,7 @@ h1 {
      안 어긋난다. */
   position: relative;
   display: flex;
+  align-items: center;
   gap: 2px;
   flex: none;
   margin: 0;
@@ -616,11 +619,16 @@ h1 {
   padding: .45rem .65rem;
   font: inherit;
   font-size: .85rem;
-  color: var(--text-muted);
+  color: #fff;
+  text-shadow:
+    -1px -1px 1px rgba(0, 0, 0, .6),
+    1px -1px 1px rgba(0, 0, 0, .6),
+    -1px 1px 1px rgba(0, 0, 0, .6),
+    1px 1px 1px rgba(0, 0, 0, .6);
   cursor: pointer;
   transition: color 150ms ease, padding 120ms ease, font-size 120ms ease;
 }
-.category-btn:hover { color: var(--text); }
+.category-btn:hover { opacity: .8; }
 .category-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .category-btn--active {
   /* 색은 즉시 바뀐다(no transition) — 하이라이트 이동(260ms)과 맞춰
