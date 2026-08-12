@@ -14,6 +14,9 @@ public class WebConfig implements WebMvcConfigurer {
         // 192.168.*, 10.* — `npm run dev -- --host`로 LAN에 연 dev 서버를
         // 휴대폰 등 다른 기기에서 열 때 필요(가정용 공유기 대역이 거의
         // 192.168.x.x, 사무실/큰 네트워크는 10.x.x.x인 경우가 많다).
+        // beggars-git-*-nn98s-projects — 실제 Vercel 프로젝트 슬러그는
+        // "beggars"(운영 별칭이 beggars-five)라, git 브랜치 프리뷰 주소는
+        // beggars-git-<브랜치>-nn98s-projects.vercel.app 형태로 나온다.
         registry.addMapping("/api/**")
                 .allowedOriginPatterns(
                         "http://localhost:5173",
@@ -21,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://10.*:5173",
                         "https://beggars-five.vercel.app",
                         "https://beggars-five-*.vercel.app",
+                        "https://beggars-git-*-nn98s-projects.vercel.app",
                         "https://delivery-discount-web-*.vercel.app")
                 .allowedMethods("GET", "POST");
     }
