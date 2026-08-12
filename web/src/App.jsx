@@ -627,8 +627,6 @@ export default function App() {
         </button>
         <SearchControl value={search} onChange={setSearch} />
         </div>
-      </div>
-
       {/* progressive disclosure — 플랫폼을 필터로 고르면 그 앱들의
           멤버십 선택 칩이 여기 드러난다. 고르지 않은 앱은 계속 배지
           hover 팝오버로만 안내한다(4개를 한꺼번에 늘어놓지 않는다). */}
@@ -648,6 +646,7 @@ export default function App() {
           ))}
         </div>
       )}
+      </div>
 
       {error && <p className="msg msg--error">불러오기 실패: {error}</p>}
       {!error && !brands && <p className="msg">불러오는 중…</p>}

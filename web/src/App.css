@@ -166,12 +166,23 @@ h1 {
 /* 플랫폼을 필터로 고르면 드러나는 멤버십 칩 줄(progressive disclosure).
    여전히 "구현예정" 배지가 붙지만, 배지 hover 팝오버(정보만)와 달리
    실제로 눌러서 켜고 끌 수 있는 진짜 버튼이다. */
+/* 타이틀바 아래에 떠 있는 줄 — 문서 흐름에서 빼서(absolute) 카드
+   그리드를 밀어내지 않는다. 타이틀바 자체가 sticky라 스크롤해도
+   같이 따라온다. 좌우는 title-bar__inner와 같은 기준선에 맞춘다. */
 .membership-row {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: .4rem;
-  margin: -.4rem 0 .8rem;
+  padding: 0 .75rem;
+  margin-top: -.35rem;
+  pointer-events: none;
 }
+.membership-row > * { pointer-events: auto; }
 .membership-chip {
   display: inline-flex;
   align-items: center;
