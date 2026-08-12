@@ -416,8 +416,8 @@ h1 {
 /* 옆으로 더 있다는 힌트 — 오른쪽으로 살짝 갔다가 돌아오길 반복한다. */
 .scroll-hint-arrow {
   flex: none;
-  color: #fff;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .5));
+  color: var(--text);
+  opacity: .55;
   animation: scroll-hint-nudge 1.4s ease-in-out infinite;
 }
 @keyframes scroll-hint-nudge {
@@ -628,12 +628,8 @@ h1 {
   padding: .45rem .65rem;
   font: inherit;
   font-size: .85rem;
-  color: #fff;
-  text-shadow:
-    -1px -1px 1px rgba(0, 0, 0, .6),
-    1px -1px 1px rgba(0, 0, 0, .6),
-    -1px 1px 1px rgba(0, 0, 0, .6),
-    1px 1px 1px rgba(0, 0, 0, .6);
+  font-weight: 600;
+  color: var(--text);
   cursor: pointer;
   transition: color 150ms ease, padding 120ms ease, font-size 120ms ease;
 }
