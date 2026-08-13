@@ -991,10 +991,38 @@ h1 {
    겹쳐 쓴다 — 원본 .offer__range-badge 규칙이 이 파일에서 더 아래에
    있어서, 같은 무게로는 그쪽이 이긴다. */
 .offer__range-badge.offer__range-badge--best {
+  position: relative;
   color: #0a72c4;
   background: #e3f2fd;
   max-width: 100%;
   white-space: nowrap;
+  /* 원래 테두리가 없던 배지라 border-color 애니메이션은 안 먹는다 —
+     대신 회전하는 conic-gradient를 얇은 링 모양으로 마스킹해 밑에
+     깐다. 배경(#e3f2fd)은 그대로 두고 가장자리에만 빛이 돈다. */
+  border: 1px solid transparent;
+}
+.offer__range-badge.offer__range-badge--best::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--best-angle, 0deg), #0a72c4, #7dd3fc, #a78bfa, #0a72c4);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: best-badge-spin 2.4s linear infinite;
+}
+@property --best-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes best-badge-spin {
+  to { --best-angle: 360deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .offer__range-badge.offer__range-badge--best::before { animation: none; }
 }
 
 /* "최대"가 붙은 값은 최소주문금액을 채워야 나오는 상한액이다 — 액면
