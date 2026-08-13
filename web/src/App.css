@@ -991,7 +991,6 @@ h1 {
    겹쳐 쓴다 — 원본 .offer__range-badge 규칙이 이 파일에서 더 아래에
    있어서, 같은 무게로는 그쪽이 이긴다. */
 .offer__range-badge.offer__range-badge--best {
-  position: relative;
   color: #0a72c4;
   background: #e3f2fd;
   max-width: 100%;
