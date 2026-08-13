@@ -105,7 +105,7 @@ function detailRows(offer) {
 // 배민 칩에 걸면 안 된다. 브랜드별 링크가 없으면 PLATFORM_APP_LINKS(쿠팡
 // 이츠·요기요만 해당)로 대신 앱을 연다. 그마저 없는 칩은 상세를 여는
 // 버튼이 된다(링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
-function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best }) {
+function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier !== null
   const link = brandLinks?.[offer.platform]
@@ -116,7 +116,6 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
     <>
       <span className="offer__amount">
         {showRangeBadge && <span className="offer__range-badge">{offer.qualifier}</span>}
-        {best && <span className="offer__best-badge">최고</span>}
         {offer.badge && <span className="offer__status-badge">{offer.badge}</span>}
         {offer.soldOut ? (
           <>
@@ -159,23 +158,6 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
           <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
         </button>
       )}
-    </li>
-  )
-}
-
-// 그 앱에 오퍼가 없을 때 자리를 지키는 빈 셀. "그 앱엔 할인이 없다"도
-// 사용자가 찾던 답이라 칸을 비우지 않고 -로 명시한다(비활성 표시).
-function EmptyOfferCell({ platformKey }) {
-  const p = PLATFORM_BY_KEY[platformKey]
-  return (
-    <li className="offer offer--empty">
-      <div className="offer__chip offer__chip--empty" aria-disabled="true">
-        <span className="offer__amount">—</span>
-        <span className="offer__icon-badge">
-          <PlatformBadge platformKey={platformKey} />
-        </span>
-        <span className="sr-only">{p?.label} 할인 없음</span>
-      </div>
     </li>
   )
 }
@@ -239,21 +221,10 @@ function OfferDetail({ offer }) {
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
 function BrandCard({ brand, highlighted, onInteract }) {
-  // 앱 순서를 PLATFORMS 고정으로 둔다 — 금액순으로 정렬하면 같은 앱이
-  // 카드마다 다른 자리에 와서 세로로 훑어 비교하는 게 불가능했다.
-  // 어느 카드에서든 n번째 칸은 항상 같은 앱이다.
-  const byPlatform = useMemo(
-    () => Object.fromEntries(brand.offers.map((o) => [o.platform, o])),
-    [brand.offers],
-  )
-
-  // 조건 없이(=qualifier 없음, 품절 아님) 가장 큰 금액에 최고 표식.
-  // 동점이면 동점인 것 전부에 붙인다.
-  const bestAmount = useMemo(() => {
-    const plain = brand.offers.filter((o) => !o.qualifier && o.amount != null && !o.soldOut)
-    if (plain.length < 2) return null
-    return Math.max(...plain.map((o) => o.amount))
-  }, [brand.offers])
+  // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
+  // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
+  // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
+  // 같은 최대군끼리·같은 비최대군끼리는 금액 큰 순.
   const sortedOffers = useMemo(
     () => [...brand.offers].sort((a, b) => {
       const aMax = a.qualifier === '최대' ? 1 : 0
@@ -318,24 +289,18 @@ function BrandCard({ brand, highlighted, onInteract }) {
         <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
       </button>
 
-      {/* 앱 4열 고정. 오퍼가 없는 앱은 빈 셀(—)로 자리를 지킨다. */}
       <ul className="offer-list">
-        {PLATFORMS.map((p) => {
-          const o = byPlatform[p.key]
-          if (!o) return <EmptyOfferCell key={p.key} platformKey={p.key} />
-          return (
-            <OfferChip
-              key={p.key}
-              offer={o}
-              brandLinks={brand.links}
-              brandName={brand.name}
-              detailId={detailId}
-              open={open}
-              onToggle={toggle}
-              best={bestAmount != null && !o.qualifier && !o.soldOut && o.amount === bestAmount}
-            />
-          )
-        })}
+        {sortedOffers.map((o) => (
+          <OfferChip
+            key={o.platform}
+            offer={o}
+            brandLinks={brand.links}
+            brandName={brand.name}
+            detailId={detailId}
+            open={open}
+            onToggle={toggle}
+          />
+        ))}
       </ul>
 
       {/* 상세는 펼쳤을 때만 그린다. 캡처 원본이 스크린샷 한 장에 1MB가 넘어,
@@ -597,17 +562,14 @@ export default function App() {
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
       <EventBanner banners={banners} />
       {/* 플랫폼 배지와 카테고리 탭을 한 스크롤 영역에 같이 넣는다. main 밖에 두어 full-bleed가 100vw 트릭 없이 자연히 성립하고, sticky도 안 깨진다. */}
-<<<<<<< HEAD
-=======
       {/* 두 줄로 나눈다 — 윗줄은 앱(필터)과 검색·초기화, 아랫줄은 카테고리.
           한 줄에 다 넣으면 좁은 화면에서 배지·탭이 서로 밀어내 둘 다 잘렸다.
           main 밖에 두어 full-bleed가 100vw 트릭 없이 성립하고 sticky도 안 깨진다. */}
->>>>>>> main
       <div className="title-bar">
         <div className="title-bar__inner">
           <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
 
-          {/* 1줄: 앱 배지(필터 토글) + 검색·초기화 */}
+          {/* 1줄: 앱 배지(필터 토글)만. 검색·초기화는 바 아래로 띄운다. */}
           <div className="title-bar__row title-bar__row--apps">
             <div className="page-head__apps" aria-label="비교 대상 배달앱">
               {PLATFORMS.map((p) => (
@@ -626,18 +588,6 @@ export default function App() {
                 </span>
               ))}
             </div>
-            <button
-              type="button"
-              className={`filter-reset-btn${isFiltered ? ' filter-reset-btn--active' : ''}`}
-              onClick={resetFilters}
-              aria-label="필터 초기화"
-            >
-              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12a9 9 0 1 1-3-6.7" />
-                <polyline points="21 3 21 9 15 9" />
-              </svg>
-            </button>
-            <SearchControl value={search} onChange={setSearch} />
           </div>
 
           {/* 2줄: 카테고리 탭 — 이 줄만 가로 스크롤한다. */}
@@ -661,6 +611,23 @@ export default function App() {
               <polyline points="9 6 15 12 9 18" />
             </svg>
           </div>
+        </div>
+        {/* 검색·초기화는 바 안에서 빼내 바로 아래 여백에 띄운다.
+            absolute라 카드 그리드를 밀어내지 않고, 윗줄 배지 공간을
+            통째로 비워준다. */}
+        <div className="title-bar__float">
+          <button
+            type="button"
+            className={`filter-reset-btn${isFiltered ? ' filter-reset-btn--active' : ''}`}
+            onClick={resetFilters}
+            aria-label="필터 초기화"
+          >
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12a9 9 0 1 1-3-6.7" />
+              <polyline points="21 3 21 9 15 9" />
+            </svg>
+          </button>
+          <SearchControl value={search} onChange={setSearch} />
         </div>
         {/* 선택한 앱의 멤버십 — 타이틀바 아래 여백에 얇게 붙는다.
             absolute라 카드 그리드를 밀어내지 않고, 아직 계산 로직이
