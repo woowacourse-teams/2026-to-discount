@@ -92,7 +92,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 
 .title-bar__inner {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   max-width: 880px;
   margin: 0 auto;
   padding: 0;
@@ -125,14 +125,16 @@ h1 {
   margin: 0;
 }
 
-/* 카테고리는 배지 줄과 별개 줄이다. 배지 줄 바로 밑에 밀착시키고
-   (margin-top 없음), 판이 컴팩트하게 탭 자기 높이만 차지하도록
-   배지 높이(40px)와 더는 엮이지 않는다. */
+/* 배지와 같은 한 줄, 오른쪽 남는 공간을 차지한다. 판(하이라이트)은
+   탭 자기 높이만큼만 컴팩트하게 차지한다 — 배지 높이(40px)에 맞춰
+   늘리거나 끌어올리지 않는다. */
 .title-bar__categories {
   display: flex;
   align-items: center;
   gap: .25rem;
+  flex: 1 1 auto;
   min-width: 0;
+  margin-left: .4rem;
 }
 /* 카테고리 줄만 가로 스크롤한다. 하이라이트 좌표계(.category-bar,
    position:relative)는 그대로 두고 이 래퍼가 스크롤만 맡는다 —
@@ -168,7 +170,7 @@ h1 {
 /* 밀착 — 서로 안 겹치되 최소 간격만 준다. */
 .page-head__apps {
   display: flex;
-  gap: 1px;
+  gap: 0;
   margin: 0;
   flex: none;
   background: transparent;
