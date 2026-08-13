@@ -994,6 +994,9 @@ h1 {
 .offer__range-badge--best {
   color: #fff;
   background: var(--platform-tint, var(--accent));
+  /* 글자가 길어 칩 폭을 넘어가면 배지가 옆 칩을 침범한다 — 안 넘게 묶는다. */
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 /* "최대"가 붙은 값은 최소주문금액을 채워야 나오는 상한액이다 — 액면
