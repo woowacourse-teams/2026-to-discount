@@ -990,16 +990,10 @@ h1 {
 .offer--best:has(.platform-badge--ddangyo) { --platform-tint: #f5a623; }
 .offer--best:has(.platform-badge--yogiyo) { --platform-tint: #f8362b; }
 
-.offer__best-badge {
-  flex: none;
-  padding: 0 .3rem;
-  border-radius: 5px;
-  background: var(--platform-tint, var(--accent));
+/* 최고 표식은 qualifier 배지를 그대로 쓰고 색만 그 앱 색으로 바꾼다. */
+.offer__range-badge--best {
   color: #fff;
-  font-size: .62rem;
-  font-weight: 700;
-  line-height: 1.5;
-  letter-spacing: -.01em;
+  background: var(--platform-tint, var(--accent));
 }
 
 /* "최대"가 붙은 값은 최소주문금액을 채워야 나오는 상한액이다 — 액면

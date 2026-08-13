@@ -118,8 +118,13 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   const content = (
     <>
       <span className="offer__amount">
-        {best && <span className="offer__best-badge">최고</span>}
-        {showRangeBadge && <span className="offer__range-badge">{offer.qualifier}</span>}
+        {/* 최고와 qualifier는 동시에 붙지 않는다(조건 붙은 값은 최고
+            후보에서 빠진다) — 같은 자리, 같은 배지를 색만 바꿔 쓴다. */}
+        {(best || showRangeBadge) && (
+          <span className={`offer__range-badge${best ? ' offer__range-badge--best' : ''}`}>
+            {best ? '최고' : offer.qualifier}
+          </span>
+        )}
         {offer.badge && <span className="offer__status-badge">{offer.badge}</span>}
         {offer.soldOut ? (
           <>
