@@ -985,19 +985,8 @@ h1 {
 .offer__chip--link:focus-visible,
 .offer__chip--toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* 그 브랜드에서 가장 큰 확정 할인. 표식(최고)만으로는 목록을 훑을 때
-   눈에 안 걸려서, 칩 자체에도 그 앱 색을 아주 옅게 깐다 — 어느 앱이
-   제일 센지가 색으로 먼저 읽힌다. 동점이면 동점인 만큼 다 칠한다. */
-.offer--best .offer__chip {
-  /* 테두리는 다른 칩과 같게 둔다 — 색까지 바꾸면 강조가 두 겹이 된다.
-     대신 한 점에서 번지는 빛 하나. 초점은 115도 방향으로 가장자리에서
-     30% 안쪽(≈82% 65%)이고, 번지는 범위는 칩을 넉넉히 덮는다.
-     바탕은 앱 색을 옅게 깔아 칩 전체가 은은히 물들고, 초점 강조색은
-     회색을 섞어 채도를 낮춘다 — 채도가 높으면 넓게 번질수록 탁해진다. */
-  background: radial-gradient(180% 180% at 82% 65%,
-    color-mix(in srgb, color-mix(in srgb, var(--platform-tint, var(--accent)) 55%, #9a9a9a) 20%, var(--bg)) 0%,
-    color-mix(in srgb, var(--platform-tint, var(--accent)) 9%, var(--bg)) 100%);
-}
+/* 그 브랜드에서 가장 큰 확정 할인. 칩 자체는 건드리지 않는다 — 표식
+   배지 하나로 충분하다. 배지 색만 그 앱 색으로 바뀐다. */
 .offer--best { --platform-tint: var(--accent); }
 .offer--best:has(.platform-badge--baemin) { --platform-tint: #2ac1bc; }
 /* 쿠팡이츠 아이콘은 흰 바탕이라 앱 색(빨강)을 쓰면 아이콘과 안 맞는다. */
@@ -1011,7 +1000,6 @@ h1 {
 .offer__range-badge.offer__range-badge--best {
   color: var(--text);
   background: var(--platform-tint, var(--accent));
-  border: 1px solid color-mix(in srgb, var(--text) 12%, var(--platform-tint, var(--accent)));
   /* 글자가 길어 칩 폭을 넘어가면 배지가 옆 칩을 침범한다 — 안 넘게 묶는다. */
   max-width: 100%;
   white-space: nowrap;
