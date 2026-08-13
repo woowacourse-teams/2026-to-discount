@@ -985,22 +985,14 @@ h1 {
 .offer__chip--link:focus-visible,
 .offer__chip--toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* 그 브랜드에서 가장 큰 확정 할인. 칩 자체는 건드리지 않는다 — 표식
-   배지 하나로 충분하다. 배지 색만 그 앱 색으로 바뀐다. */
-.offer--best { --platform-tint: var(--accent); }
-.offer--best:has(.platform-badge--baemin) { --platform-tint: #2ac1bc; }
-/* 쿠팡이츠 아이콘은 흰 바탕이라 앱 색(빨강)을 쓰면 아이콘과 안 맞는다. */
-.offer--best:has(.platform-badge--coupangeats) { --platform-tint: #ffffff; }
-.offer--best:has(.platform-badge--ddangyo) { --platform-tint: #f5a623; }
-.offer--best:has(.platform-badge--yogiyo) { --platform-tint: #f8362b; }
-
-/* 최고 표식은 qualifier 배지를 그대로 쓰고 색만 그 앱 색으로 바꾼다.
-   클래스를 두 번 겹쳐 쓴다 — 원본 .offer__range-badge 규칙이 이 파일에서
-   더 아래에 있어서, 같은 무게로는 그쪽이 이긴다. */
+/* 최고 표식은 qualifier 배지를 그대로 쓰고 색만 바꾼다. 앱마다 다른
+   색이었지만 "최고"는 앱이 아니라 값 자체의 성질이라 통일한다 — 어느
+   칩에서 봐도 같은 색이 같은 뜻(가장 셈)으로 읽힌다. 클래스를 두 번
+   겹쳐 쓴다 — 원본 .offer__range-badge 규칙이 이 파일에서 더 아래에
+   있어서, 같은 무게로는 그쪽이 이긴다. */
 .offer__range-badge.offer__range-badge--best {
-  color: var(--text);
-  background: var(--platform-tint, var(--accent));
-  /* 글자가 길어 칩 폭을 넘어가면 배지가 옆 칩을 침범한다 — 안 넘게 묶는다. */
+  color: #0a72c4;
+  background: #e3f2fd;
   max-width: 100%;
   white-space: nowrap;
 }
@@ -1032,8 +1024,10 @@ h1 {
   transform: translateX(-50%);
   font-size: .55rem;
   font-weight: 600;
-  color: #9f2f2d;
-  background: #fdebec;
+  /* "최대"는 확정값이 아니라 조건부 상한이다 — 다른 확정 배지들처럼
+     또렷한 색을 주면 확정처럼 읽힌다. 존재감을 낮춰 부가 정보로 둔다. */
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text) 8%, var(--bg));
   border-radius: 4px;
   padding: .05rem .3rem;
   z-index: 1;
@@ -1075,6 +1069,15 @@ h1 {
   white-space: nowrap;
   z-index: 1;
 }
+
+/* 멤버십 배지는 "멤버십 7,500원" 같은 원문 대신 그 앱의 멤버십 이름을
+   박고, 그 앱 고유색으로 고정한다 — 어느 멤버십인지 색으로도 즉시
+   갈린다. data-platform은 OfferChip이 넣는다(App.jsx). */
+.offer__status-badge--membership { color: #fff; }
+.offer__status-badge--membership[data-platform="baemin"] { background: #2ac1bc; }
+.offer__status-badge--membership[data-platform="coupangeats"] { background: #333; }
+.offer__status-badge--membership[data-platform="ddangyo"] { background: #f5a623; }
+.offer__status-badge--membership[data-platform="yogiyo"] { background: #fa0050; }
 
 .platform-badge {
   position: relative;

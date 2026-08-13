@@ -122,10 +122,21 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             후보에서 빠진다) — 같은 자리, 같은 배지를 색만 바꿔 쓴다. */}
         {(best || showRangeBadge) && (
           <span className={`offer__range-badge${best ? ' offer__range-badge--best' : ''}`}>
-            {best ? '최고 할인' : offer.qualifier}
+            {best ? '최고' : offer.qualifier}
           </span>
         )}
-        {offer.badge && <span className="offer__status-badge">{offer.badge}</span>}
+        {/* "배민클럽 전용쿠폰" 같은 원문 대신 이름만 남긴다 — 칩이 이미
+            그 앱 하나로 정해져 있으니 "전용쿠폰"은 군더더기다. 그 외
+            배지("선착순" 등)는 원문 그대로 둔다. */}
+        {offer.badge && (
+          offer.badge.includes('전용쿠폰') ? (
+            <span className="offer__status-badge offer__status-badge--membership" data-platform={offer.platform}>
+              {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
+            </span>
+          ) : (
+            <span className="offer__status-badge">{offer.badge}</span>
+          )
+        )}
         {offer.soldOut ? (
           <>
             <s className="offer__amount--soldout">{offerAmountText(offer)}</s>
