@@ -406,6 +406,9 @@ function CategoryBar({ categories, active, onSelect }) {
   const btnRefs = useRef({})
   const barRef = useRef(null)
   const [rect, setRect] = useState(null)
+  // 첫 배치까지는 애니메이션을 끈다 — 안 그러면 판이 초기 위치(왼쪽 위
+  // 0,0)에서 선택 탭까지 미끄러지는 게 로드할 때마다 보인다.
+  const [animated, setAnimated] = useState(false)
 
   const measure = () => {
     const btn = btnRefs.current[active]
@@ -439,6 +442,9 @@ function CategoryBar({ categories, active, onSelect }) {
   // 하이라이트를 다시 재야 한다.
   useLayoutEffect(measure, [active, categories])
   useEffect(() => {
+    if (rect && !animated) requestAnimationFrame(() => setAnimated(true))
+  }, [rect, animated])
+  useEffect(() => {
     window.addEventListener('resize', measure)
     document.fonts?.ready?.then(measure)
     return () => window.removeEventListener('resize', measure)
@@ -448,7 +454,7 @@ function CategoryBar({ categories, active, onSelect }) {
     <div className="category-bar" role="tablist" aria-label="카테고리" ref={barRef}>
       {rect && (
         <span
-          className="category-bar__highlight"
+          className={`category-bar__highlight${animated ? ' category-bar__highlight--animated' : ''}`}
           aria-hidden="true"
           style={{
             transform: `translate(${rect.left}px, ${rect.top - rect.overhang}px)`,

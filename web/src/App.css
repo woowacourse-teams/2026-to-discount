@@ -771,11 +771,17 @@ h1 {
      JS가 실측해서 넣는다(CategoryBar). */
   border-radius: 0 0 14px 14px;
   background: var(--text);
-  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* 첫 배치 전에는 안 미끄러진다 — 안 그러면 로드할 때마다 판이 0,0에서
+     선택 탭까지 날아오는 게 보인다. JS가 자리를 잡은 뒤 --animated를
+     붙인다(App.jsx CategoryBar). */
+  transition: none;
   z-index: 0;
 }
+.category-bar__highlight--animated {
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
 @media (prefers-reduced-motion: reduce) {
-  .category-bar__highlight { transition: none; }
+  .category-bar__highlight--animated { transition: none; }
 }
 
 /* 테두리를 없애 탭 자체는 존재감을 지운다 — 어느 값이 선택됐는지는
@@ -983,23 +989,29 @@ h1 {
    눈에 안 걸려서, 칩 자체에도 그 앱 색을 아주 옅게 깐다 — 어느 앱이
    제일 센지가 색으로 먼저 읽힌다. 동점이면 동점인 만큼 다 칠한다. */
 .offer--best .offer__chip {
-  border-color: color-mix(in srgb, var(--platform-tint, var(--accent)) 45%, var(--border));
-  /* 평평한 단색보다 위에서 아래로 옅어지는 쪽이 눈에 먼저 걸린다.
-     위 18% / 아래 4% — 배지(진한 앱 색)가 붙는 위쪽이 더 진하다. */
-  background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--platform-tint, var(--accent)) 18%, var(--bg)),
-    color-mix(in srgb, var(--platform-tint, var(--accent)) 4%, var(--bg)));
+  /* 테두리는 다른 칩과 같게 둔다 — 색까지 바꾸면 강조가 두 겹이 된다.
+     대신 한 점에서 번지는 빛 하나. 초점은 115도 방향으로 가장자리에서
+     30% 안쪽(≈82% 65%)이고, 번지는 범위는 칩을 넉넉히 덮는다.
+     바탕은 앱 색을 옅게 깔아 칩 전체가 은은히 물들고, 초점 강조색은
+     회색을 섞어 채도를 낮춘다 — 채도가 높으면 넓게 번질수록 탁해진다. */
+  background: radial-gradient(180% 180% at 82% 65%,
+    color-mix(in srgb, color-mix(in srgb, var(--platform-tint, var(--accent)) 55%, #9a9a9a) 20%, var(--bg)) 0%,
+    color-mix(in srgb, var(--platform-tint, var(--accent)) 9%, var(--bg)) 100%);
 }
 .offer--best { --platform-tint: var(--accent); }
 .offer--best:has(.platform-badge--baemin) { --platform-tint: #2ac1bc; }
-.offer--best:has(.platform-badge--coupangeats) { --platform-tint: #d62d34; }
+/* 쿠팡이츠 아이콘은 흰 바탕이라 앱 색(빨강)을 쓰면 아이콘과 안 맞는다. */
+.offer--best:has(.platform-badge--coupangeats) { --platform-tint: #ffffff; }
 .offer--best:has(.platform-badge--ddangyo) { --platform-tint: #f5a623; }
 .offer--best:has(.platform-badge--yogiyo) { --platform-tint: #f8362b; }
 
-/* 최고 표식은 qualifier 배지를 그대로 쓰고 색만 그 앱 색으로 바꾼다. */
-.offer__range-badge--best {
-  color: #fff;
+/* 최고 표식은 qualifier 배지를 그대로 쓰고 색만 그 앱 색으로 바꾼다.
+   클래스를 두 번 겹쳐 쓴다 — 원본 .offer__range-badge 규칙이 이 파일에서
+   더 아래에 있어서, 같은 무게로는 그쪽이 이긴다. */
+.offer__range-badge.offer__range-badge--best {
+  color: var(--text);
   background: var(--platform-tint, var(--accent));
+  border: 1px solid color-mix(in srgb, var(--text) 12%, var(--platform-tint, var(--accent)));
   /* 글자가 길어 칩 폭을 넘어가면 배지가 옆 칩을 침범한다 — 안 넘게 묶는다. */
   max-width: 100%;
   white-space: nowrap;
