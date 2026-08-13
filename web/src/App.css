@@ -66,12 +66,22 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 }
 .title-bar__inner {
   display: flex;
-  align-items: center;
-  gap: .4rem;
+  flex-direction: column;
+  gap: .3rem;
   max-width: 880px;
   margin: 0 auto;
-  padding: .35rem .75rem .55rem;
+  padding: .4rem .75rem .5rem;
 }
+/* 두 줄 공통 — 각 줄은 가로 한 행. */
+.title-bar__row {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  min-width: 0;
+}
+/* 앱 줄: 배지가 왼쪽에 몰리고 검색·초기화가 오른쪽 끝으로. */
+.title-bar__row--apps .page-head__apps { margin-right: auto; }
+
 h1 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -79,10 +89,10 @@ h1 {
   margin: 0;
 }
 
-/* 배지+카테고리 공용 가로 스크롤. 카테고리 하이라이트 좌표계(.category-bar,
-   position:relative)는 그대로 두고 이 바깥 래퍼가 스크롤만 맡는다 —
-   offsetLeft는 가장 가까운 positioned 조상(.category-bar 자신) 기준이라
-   바깥이 스크롤돼도 좌표 계산엔 영향이 없다. */
+/* 카테고리 줄만 가로 스크롤한다. 하이라이트 좌표계(.category-bar,
+   position:relative)는 그대로 두고 이 래퍼가 스크롤만 맡는다 —
+   offsetLeft는 .category-bar 자신 기준이라 바깥이 스크롤돼도
+   좌표 계산엔 영향이 없다. */
 .title-bar__scroll {
   display: flex;
   align-items: center;
@@ -90,36 +100,47 @@ h1 {
   flex: 1 1 auto;
   min-width: 0;
   overflow-x: auto;
+  /* 이 줄 위에서의 터치 제스처는 가로 스크롤 전용. 기본값(auto)이면
+     모바일에서 탭을 옆으로 넘기려고 스와이프해도 브라우저가 세로
+<<<<<<< HEAD
+     스크롤로 채가서 화면이 통째로 위로 날아가 버린다. 끝까지 밀었을
+     때 페이지로 스크롤이 이어지는 것도 막는다(overscroll-behavior). */
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
   /* 오른쪽으로 더 있다는 걸 암시하는 페이드만 건다 — 왼쪽엔 배지가
      고정으로 걸려 있어 페이드가 필요 없다. */
+=======
+     스크롤로 채가서 화면이 통째로 위로 날아가 버린다. */
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  /* 오른쪽으로 더 있다는 걸 암시하는 페이드. */
+>>>>>>> main
   mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
   -webkit-mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
   scrollbar-width: none;
 }
 .title-bar__scroll::-webkit-scrollbar { display: none; }
 
-/* 아이콘끼리 살짝 겹치게 — 음수 gap 대신 뒤 요소를 왼쪽으로 당긴다
-   (겹치는 순서는 왼쪽이 위로 오게 z-index 없이 자연 순서 뒤집기). */
+/* 아이콘끼리 살짝 겹치게 — 음수 margin으로 뒤 요소를 왼쪽으로 당긴다. */
 .page-head__apps {
   display: flex;
   margin: 0;
   flex: none;
-  padding-left: 6px;
+  padding-left: 8px;
 }
-/* 타이틀바에서만 원형 — 검색·초기화 버튼과 한 세트로 읽히게.
-   플랫폼 로고가 흰색인 경우(쿠팡이츠 등) 흰 배경에 묻혀서, 배지
-   자체에 옅은 회색 그라데이션 + 링을 깔아 어떤 로고든 형태가
-   드러나게 한다. 로고별 파스텔 배경(.platform-badge--*)은 이 위에
-   덮이므로, 그라데이션은 background-image로 따로 얹는다. */
+/* 줄을 나눠 자리가 생긴 만큼 배지를 키운다 — 앱 필터가 이 화면의
+   1차 조작이라 제일 크게 잡는다. 원형은 검색·초기화 버튼과 한 세트로
+   읽히게 유지하고, 흰 로고(쿠팡이츠 등)가 흰 배경에 묻히지 않도록
+   옅은 회색 그라데이션 + 링을 배지 자체에 깐다. */
 .page-head__apps .platform-badge {
-  width: 34px; height: 34px; border-radius: 50%;
-  margin-left: -6px;
+  width: 46px; height: 46px; border-radius: 50%;
+  margin-left: -8px;
   background-image: linear-gradient(160deg, rgba(255, 255, 255, .55), rgba(0, 0, 0, .16));
   border: 1px solid rgba(0, 0, 0, .12);
   box-shadow: 0 1px 3px rgba(0, 0, 0, .18);
   transition: width 120ms ease, height 120ms ease;
 }
-.page-head__apps .platform-badge img { padding: 5px; }
+.page-head__apps .platform-badge img { padding: 7px; }
 
 /* 배지 바로 아래 뜨는 멤버십 안내 팝오버 — 순수 CSS hover/focus,
    JS 상태 없이 :hover(마우스)와 :focus-within(키보드 탭)만으로 연다. */
@@ -864,6 +885,35 @@ h1 {
   white-space: nowrap;
   z-index: 1;
 }
+
+/* 조건 없이 가장 큰 금액에 붙는 표식. 동점이면 동점인 것 전부에 붙는다
+   — "여기가 유일하게 제일 세다"가 아니라 "이 값이 최고액"이라는 뜻. */
+.offer__best-badge {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: .55rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 4px;
+  padding: .05rem .3rem;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+/* 그 앱에 오퍼가 없는 칸 — 자리는 지키되 확실히 비활성으로 읽히게. */
+.offer--empty .offer__chip--empty {
+  cursor: default;
+  background: transparent;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  color: var(--text-muted);
+  opacity: .55;
+}
+.offer--empty .offer__amount { font-weight: 500; }
+.offer--empty .platform-badge { filter: grayscale(1); opacity: .6; }
 
 .platform-badge {
   position: relative;
