@@ -125,10 +125,10 @@ h1 {
 .title-bar__scroll::-webkit-scrollbar { display: none; }
 
 /* 아이콘끼리 살짝 겹치게 — 음수 margin으로 뒤 요소를 왼쪽으로 당긴다.
-   왼쪽 여백 없이 바 시작점에 붙인다. */
+   왼쪽 여백 없이 바 시작점에 붙이고, 카테고리 탭과는 한 칸 띄운다. */
 .page-head__apps {
   display: flex;
-  margin: 0;
+  margin: 0 .6rem 0 0;
   flex: none;
 }
 /* 아이콘 파일이 256×256 정사각·바깥 여백 0으로 규격화돼 있고 둥근 모서리는
@@ -150,7 +150,7 @@ h1 {
   transition: width 120ms ease, height 120ms ease;
 }
 .page-head__apps .platform-badge-wrap:first-child .platform-badge { margin-left: 0; }
-.page-head__apps .platform-badge img { padding: 0; transform: scale(1.14); }
+.page-head__apps .platform-badge img { padding: 0; transform: scale(1.1); }
 /* 왼쪽이 위로 덮는다 — 앞의 것이 뒤의 것 위에 오도록 역순 z-index. */
 .page-head__apps .platform-badge-wrap:nth-child(1) { z-index: 4; }
 .page-head__apps .platform-badge-wrap:nth-child(2) { z-index: 3; }
@@ -617,7 +617,7 @@ h1 {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 0;
   flex: none;
   margin: 0;
 }
@@ -649,7 +649,7 @@ h1 {
   background: none;
   border: none;
   border-radius: 999px;
-  padding: .45rem .65rem;
+  padding: .45rem .5rem;
   font: inherit;
   font-size: .85rem;
   font-weight: 600;
@@ -936,7 +936,10 @@ button.platform-badge {
 button.platform-badge:hover { transform: translateY(-1px); }
 button.platform-badge:active { transform: translateY(0) scale(.96); }
 button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.platform-badge--dim { opacity: .35; }
+/* 비선택 상태. opacity로 흐리게 하면 배지끼리 겹친 부분에서 밑에 깔린
+   로고가 비쳐 두 로고가 포개져 보였다 — 투명도 대신 filter로 색만
+   빼서 불투명한 채로 물러나게 한다. */
+.platform-badge--dim { filter: grayscale(1) brightness(1.25) contrast(.55); }
 
 /* 펼친 상세. 카드 안에 상자를 또 그리지 않고 실선 하나로만 나눈다. */
 .brand-detail {
