@@ -372,14 +372,17 @@ function CategoryBar({ categories, active, onSelect }) {
       // 하이라이트를 글자 주위 알약이 아니라 타이틀바 천장에서 내려온
       // 모양으로 그린다 — 위쪽 끝까지 얼마나 더 뻗어야 하는지(overhang)를
       // 타이틀바와의 실제 거리로 잰다. 바 높이가 바뀌어도 따라간다.
+      // 판은 타이틀바 높이를 통째로 쓴다 — 버튼 높이에 맞추면 위아래로
+      // 몇 px씩 바 배경이 남아 "천장에서 내려온" 느낌이 깨진다.
       const bar = barRef.current?.closest('.title-bar')
-      const overhang = bar
-        ? barRef.current.getBoundingClientRect().top - bar.getBoundingClientRect().top
-        : 0
+      const barRect = bar?.getBoundingClientRect()
+      const myTop = barRef.current.getBoundingClientRect().top
+      const overhang = barRect ? myTop - barRect.top : 0
       setRect({
         left: btn.offsetLeft, width: btn.offsetWidth,
         top: btn.offsetTop, height: btn.offsetHeight,
         overhang,
+        barHeight: barRect ? barRect.height : btn.offsetHeight,
       })
     }
   }
@@ -403,7 +406,7 @@ function CategoryBar({ categories, active, onSelect }) {
           style={{
             transform: `translate(${rect.left}px, ${rect.top - rect.overhang}px)`,
             width: `${rect.width}px`,
-            height: `${rect.height + rect.overhang}px`,
+            height: `${rect.barHeight}px`,
           }}
         />
       )}
