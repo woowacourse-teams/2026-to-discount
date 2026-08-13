@@ -105,9 +105,12 @@ function detailRows(offer) {
 // 배민 칩에 걸면 안 된다. 브랜드별 링크가 없으면 PLATFORM_APP_LINKS(쿠팡
 // 이츠·요기요만 해당)로 대신 앱을 연다. 그마저 없는 칩은 상세를 여는
 // 버튼이 된다(링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
-function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
+function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier !== null
+  // "최대"는 최소주문금액을 채워야 나오는 상한액이다 — 액면대로 읽히지
+  // 않도록 칩 전체를 흐리게 깔아 다른 확정값과 구분한다.
+  const capped = offer.qualifier === '최대'
   const link = brandLinks?.[offer.platform]
     ?? searchFallbackLink(offer.platform, brandName)
     ?? PLATFORM_APP_LINKS[offer.platform]
@@ -115,6 +118,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
   const content = (
     <>
       <span className="offer__amount">
+        {best && <span className="offer__best-badge">최고</span>}
         {showRangeBadge && <span className="offer__range-badge">{offer.qualifier}</span>}
         {offer.badge && <span className="offer__status-badge">{offer.badge}</span>}
         {offer.soldOut ? (
@@ -131,7 +135,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle }) {
   )
 
   return (
-    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}`}>
+    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}${best ? ' offer--best' : ''}${capped ? ' offer--capped' : ''}`}>
       {link ? (
         <a
           className="offer__chip offer__chip--link"
@@ -215,6 +219,29 @@ function OfferDetail({ offer }) {
   )
 }
 
+// 데이터가 오기 전 자리를 지키는 카드 모양. 실제 카드와 같은 그리드라
+// 도착 순간 레이아웃이 튀지 않는다.
+function BrandGridSkeleton() {
+  return (
+    <div className="brand-grid" aria-hidden="true">
+      {Array.from({ length: 6 }, (_, i) => (
+        <div key={i} className="brand-card brand-card--skeleton">
+          <div className="skeleton-head">
+            <span className="skeleton-box skeleton-box--logo" />
+            <span className="skeleton-box skeleton-box--name" />
+          </div>
+          <div className="skeleton-offers">
+            {Array.from({ length: 4 }, (_, j) => (
+              <span key={j} className="skeleton-box skeleton-box--offer" />
+            ))}
+          </div>
+        </div>
+      ))}
+      <span className="sr-only">할인 정보를 불러오는 중입니다.</span>
+    </div>
+  )
+}
+
 // 브랜드 하나 = 카드 하나. 1행 = 로고+이름, 2행 = 앱별 금액(수평 나열).
 // 카드 여러 개가 한 줄에 2~3개씩 반응형으로 놓인다(.brand-grid).
 // highlighted는 URL 해시(#brand-이름)로 이 카드를 콕 집어 공유했을 때만
@@ -225,6 +252,16 @@ function BrandCard({ brand, highlighted, onInteract }) {
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
   // 같은 최대군끼리·같은 비최대군끼리는 금액 큰 순.
+  // 그 브랜드에서 가장 큰 확정 할인액. 조건이 붙은 값(qualifier)과 품절은
+  // 비교에서 뺀다 — 같은 선에서 견줄 수 없는 값이다. 동점이면 동점인
+  // 만큼 전부 표시한다(하나만 고르면 거짓 우열이 생긴다). 비교 대상이
+  // 하나뿐이면 최고랄 것도 없어 표시하지 않는다.
+  const bestAmount = useMemo(() => {
+    const plain = brand.offers.filter((o) => !o.qualifier && o.amount != null && !o.soldOut)
+    if (plain.length < 2) return null
+    return Math.max(...plain.map((o) => o.amount))
+  }, [brand.offers])
+
   const sortedOffers = useMemo(
     () => [...brand.offers].sort((a, b) => {
       const aMax = a.qualifier === '최대' ? 1 : 0
@@ -299,6 +336,7 @@ function BrandCard({ brand, highlighted, onInteract }) {
             detailId={detailId}
             open={open}
             onToggle={toggle}
+            best={bestAmount != null && !o.qualifier && !o.soldOut && o.amount === bestAmount}
           />
         ))}
       </ul>
@@ -496,8 +534,13 @@ export default function App() {
   // 멤버십 라벨은 타이틀바 아래 여백에 떠 있어서, 스크롤해서 카드가
   // 올라오면 카드 위에 덩그러니 남는다 — 맨 위에서만 보이게 한다.
   const [atTop, setAtTop] = useState(true)
+  // "맨 위로" 버튼은 한참 내려갔을 때만 — 조금 내려간 상태에선 방해다.
+  const [scrolledFar, setScrolledFar] = useState(false)
   useEffect(() => {
-    const onScroll = () => setAtTop(window.scrollY < 8)
+    const onScroll = () => {
+      setAtTop(window.scrollY < 8)
+      setScrolledFar(window.scrollY > 400)
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -549,9 +592,17 @@ export default function App() {
     return () => window.removeEventListener('hashchange', applyHash)
   }, [])
 
+  // reloadKey를 올리면 다시 부른다 — 실패 화면의 "다시 시도" 버튼용.
+  const [reloadKey, setReloadKey] = useState(0)
   useEffect(() => {
-    fetchBrands().then(setBrands).catch((e) => setError(e.message))
-  }, [])
+    let alive = true
+    setError(null)
+    setBrands(null)
+    fetchBrands()
+      .then((v) => { if (alive) setBrands(v) })
+      .catch((e) => { if (alive) setError(e.message) })
+    return () => { alive = false }
+  }, [reloadKey])
 
   // 배너 실패는 삼킨다. 카드 그리드와 달리 배너는 부가 정보라, 못 불러왔다는
   // 사실을 화면에 띄울 이유가 없다 — 빈 목록과 같게 다룬다.
@@ -577,7 +628,13 @@ export default function App() {
 
   const handleFilterSelect = (key) => {
     setFilterKey(key)
-    if (key !== filterKey) track('category_change', { category: key })
+    if (key !== filterKey) {
+      track('category_change', { category: key })
+      // 분류를 바꾸면 목록 자체가 갈리므로 보던 위치는 의미가 없다.
+      // 순간이동이다(smooth 아님) — 새 목록을 훑는 게 목적이지
+      // 이동 과정을 보여주는 게 목적이 아니다.
+      window.scrollTo(0, 0)
+    }
   }
 
   // 레이블(카테고리 탭) 영역은 좁게 줄이고 가로 스크롤로 흡수한다.
@@ -680,8 +737,22 @@ export default function App() {
       </div>
     <main>
 
-      {error && <p className="msg msg--error">불러오기 실패: {error}</p>}
-      {!error && !brands && <p className="msg">불러오는 중…</p>}
+      {error && (
+        <div className="load-error" role="alert">
+          <p className="load-error__title">할인 정보를 불러오지 못했습니다.</p>
+          <p className="load-error__detail">{error}</p>
+          <button
+            type="button"
+            className="load-error__retry"
+            onClick={() => { setReloadKey((k) => k + 1); track('brands_retry') }}
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+      {/* 빈 화면에 글자 한 줄 대신 들어올 카드 모양을 미리 깔아둔다 —
+          도착했을 때 레이아웃이 튀지 않는다. */}
+      {!error && !brands && <BrandGridSkeleton />}
 
       {visibleBrands && visibleBrands.length === 0 && (
         <p className="msg">
@@ -703,6 +774,20 @@ export default function App() {
       )}
 
       <SiteFooter />
+
+      {/* 한참 내려간 뒤 맨 위로 돌아가는 길. */}
+      {scrolledFar && (
+        <button
+          type="button"
+          className="to-top-btn"
+          onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); track('scroll_to_top') }}
+          aria-label="맨 위로"
+        >
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="18 15 12 9 6 15" />
+          </svg>
+        </button>
+      )}
     </main>
     </>
   )

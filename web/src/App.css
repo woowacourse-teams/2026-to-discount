@@ -206,11 +206,35 @@ h1 {
   border-radius: 10px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, .08);
   font-size: .78rem;
-  white-space: nowrap;
+  /* 첫 배지 위에서 열면 왼쪽이, 마지막 배지에선 오른쪽이 화면 밖으로
+     나갔다. 폭을 화면 안으로 묶고 줄바꿈을 허용한다 — 잘려서 못 읽는
+     것보다 두 줄이 낫다. */
+  max-width: min(60vw, 220px);
+  white-space: normal;
+  word-break: keep-all;
   opacity: 0;
   pointer-events: none;
   transition: opacity 150ms ease, transform 150ms ease;
   z-index: 20;
+}
+/* 양 끝 배지에선 가운데 정렬이 화면 밖으로 나간다 — 첫 배지는 왼쪽,
+   마지막 배지는 오른쪽 모서리에 맞춘다. */
+.page-head__apps .platform-badge-wrap:first-child .membership-popover {
+  left: 0;
+  transform: translateX(0) translateY(2px);
+}
+.page-head__apps .platform-badge-wrap:first-child:hover .membership-popover,
+.page-head__apps .platform-badge-wrap:first-child:focus-within .membership-popover {
+  transform: translateX(0) translateY(0);
+}
+.page-head__apps .platform-badge-wrap:last-child .membership-popover {
+  left: auto;
+  right: 0;
+  transform: translateX(0) translateY(2px);
+}
+.page-head__apps .platform-badge-wrap:last-child:hover .membership-popover,
+.page-head__apps .platform-badge-wrap:last-child:focus-within .membership-popover {
+  transform: translateX(0) translateY(0);
 }
 .platform-badge-wrap:hover .membership-popover,
 .platform-badge-wrap:focus-within .membership-popover {
@@ -456,6 +480,87 @@ h1 {
 
 .msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
 .msg--error { color: #9f2f2d; }
+
+/* 실패는 문장 하나로 끝내지 않는다 — 사용자가 할 수 있는 행동(다시
+   시도)을 같은 자리에 둔다. 원문 오류는 아래 작게 남긴다. */
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .5rem;
+  margin: 1.5rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.load-error__title { margin: 0; font-weight: 600; }
+.load-error__detail { margin: 0; font-size: .8rem; color: var(--text-muted); }
+.load-error__retry {
+  padding: .45rem .9rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.load-error__retry:hover { opacity: .85; }
+.load-error__retry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 로딩 자리지킴. 실제 카드와 같은 그리드 안에 같은 크기 상자를 놓는다. */
+.brand-card--skeleton { pointer-events: none; }
+.skeleton-head { display: flex; align-items: center; gap: .6rem; padding: .9rem 1rem; }
+.skeleton-offers { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; padding: 0 1rem 1rem; }
+.skeleton-box {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--text) 6%, var(--bg)) 25%,
+    color-mix(in srgb, var(--text) 11%, var(--bg)) 37%,
+    color-mix(in srgb, var(--text) 6%, var(--bg)) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-sweep 1.4s ease infinite;
+}
+.skeleton-box--logo { width: 34px; height: 34px; border-radius: 10px; flex: none; }
+.skeleton-box--name { height: 15px; width: 45%; }
+.skeleton-box--offer { height: 38px; }
+@keyframes skeleton-sweep {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-box { animation: none; }
+}
+
+/* 맨 위로. 화면 오른쪽 아래에 떠 있고, 카드 위를 덮으므로 작게 둔다. */
+.to-top-btn {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .12);
+  cursor: pointer;
+  animation: to-top-in 160ms ease;
+}
+.to-top-btn:hover { border-color: var(--text-muted); }
+.to-top-btn:active { transform: scale(.94); }
+.to-top-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@keyframes to-top-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
 
 .pill {
   font-size: .65rem;
@@ -874,6 +979,37 @@ h1 {
 .offer__chip--link:focus-visible,
 .offer__chip--toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* 그 브랜드에서 가장 큰 확정 할인. 표식(최고)만으로는 목록을 훑을 때
+   눈에 안 걸려서, 칩 자체에도 그 앱 색을 아주 옅게 깐다 — 어느 앱이
+   제일 센지가 색으로 먼저 읽힌다. 동점이면 동점인 만큼 다 칠한다. */
+.offer--best .offer__chip { border-color: color-mix(in srgb, var(--platform-tint, var(--accent)) 45%, var(--border)); }
+.offer--best .offer__chip { background: color-mix(in srgb, var(--platform-tint, var(--accent)) 12%, var(--bg)); }
+.offer--best { --platform-tint: var(--accent); }
+.offer--best:has(.platform-badge--baemin) { --platform-tint: #2ac1bc; }
+.offer--best:has(.platform-badge--coupangeats) { --platform-tint: #d62d34; }
+.offer--best:has(.platform-badge--ddangyo) { --platform-tint: #f5a623; }
+.offer--best:has(.platform-badge--yogiyo) { --platform-tint: #f8362b; }
+
+.offer__best-badge {
+  flex: none;
+  padding: 0 .3rem;
+  border-radius: 5px;
+  background: var(--platform-tint, var(--accent));
+  color: #fff;
+  font-size: .62rem;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: -.01em;
+}
+
+/* "최대"가 붙은 값은 최소주문금액을 채워야 나오는 상한액이다 — 액면
+   그대로 다른 확정값과 견주면 안 되므로 칩을 통째로 회색으로 눌러
+   "여기까지 가능"이라는 성격을 먼저 읽히게 한다. */
+.offer--capped .offer__chip {
+  background: color-mix(in srgb, var(--text) 5%, var(--bg));
+  border-style: dashed;
+}
+.offer--capped .offer__amount { color: var(--text-muted); }
 .offer--confirmed .offer__amount {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
