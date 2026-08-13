@@ -12,8 +12,14 @@
 
 * { box-sizing: border-box; }
 
+/* 고무줄 스크롤(끝에서 잡아당길 때 화면이 통째로 밀리는 것)을 끈다.
+   sticky인 타이틀바도 그 문서 전체와 함께 밀려서 "붙잡고 흔들면 같이
+   움직인다"는 증상이 났다. 문서가 안 밀리면 바도 안 밀린다. */
+html { overscroll-behavior: none; }
+
 body {
   margin: 0;
+  overscroll-behavior: none;
   background: var(--bg);
   color: var(--text);
   font: 15px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif;
@@ -57,6 +63,10 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
      스레드에서 일어나면 스크롤이 먼저 가고 바가 뒤늦게 따라붙는다.
      자체 레이어로 승격시켜 스크롤과 같은 스레드에서 움직이게 한다. */
   will-change: transform;
+  transform: translateZ(0);
+  /* 바 안쪽 레이아웃 변화가 바깥으로 새어나가지 않게 잘라둔다 — 바가
+     다른 div의 리플로우에 딸려 다시 계산되지 않도록. */
+  contain: layout style;
   margin-bottom: -1.0rem;
   /* 스크롤 상태로 배경을 껐다 켜면 "없던 판이 갑자기 생기는" 것처럼
      보였다 — 대신 항상 같은 그라데이션을 깔되, 시작색을 페이지 배경색
@@ -129,8 +139,8 @@ h1 {
   /* 배지와 탭 사이엔 여백을 두지 않고 페이드로 나눈다 — 왼쪽 .2rem이
      투명해지면서 탭이 배지 밑으로 사라지는 것처럼 보인다. 오른쪽 끝
      페이드는 옆으로 더 있다는 힌트. */
-  mask-image: linear-gradient(to right, transparent 0, black .2rem, black calc(100% - 14px), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black .2rem, black calc(100% - 14px), transparent);
+  mask-image: linear-gradient(to right, transparent 0, black .5rem, black calc(100% - 14px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black .5rem, black calc(100% - 14px), transparent);
   scrollbar-width: none;
 }
 .title-bar__scroll::-webkit-scrollbar { display: none; }
@@ -141,6 +151,7 @@ h1 {
   display: flex;
   margin: 0;
   flex: none;
+  background: transparent;
 }
 /* 아이콘 파일이 256×256 정사각·바깥 여백 0으로 규격화돼 있고 둥근 모서리는
    파일의 투명 픽셀이 들고 있다. 그래서 배지는 판을 깔지 않고 그림만 꽉
