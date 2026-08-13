@@ -779,7 +779,12 @@ export default function App() {
       )}
 
       {visibleBrands && visibleBrands.length > 0 && (
-        <div className="brand-grid">
+        // key를 필터 키로 걸어 분류를 바꿀 때마다 이 상자를 새로 마운트한다
+        // — 안 그러면 카드들이 자리를 지킨 채 내용만 뚝 바뀌어(리스트
+        // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
+        // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
+        // 목록이 떠올랐다"로 읽힌다.
+        <div className="brand-grid" key={filterKey}>
           {visibleBrands.map((b) => (
             <BrandCard
               key={b.name}
