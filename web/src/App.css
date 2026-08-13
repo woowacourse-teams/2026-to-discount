@@ -982,8 +982,14 @@ h1 {
 /* 그 브랜드에서 가장 큰 확정 할인. 표식(최고)만으로는 목록을 훑을 때
    눈에 안 걸려서, 칩 자체에도 그 앱 색을 아주 옅게 깐다 — 어느 앱이
    제일 센지가 색으로 먼저 읽힌다. 동점이면 동점인 만큼 다 칠한다. */
-.offer--best .offer__chip { border-color: color-mix(in srgb, var(--platform-tint, var(--accent)) 45%, var(--border)); }
-.offer--best .offer__chip { background: color-mix(in srgb, var(--platform-tint, var(--accent)) 12%, var(--bg)); }
+.offer--best .offer__chip {
+  border-color: color-mix(in srgb, var(--platform-tint, var(--accent)) 45%, var(--border));
+  /* 평평한 단색보다 위에서 아래로 옅어지는 쪽이 눈에 먼저 걸린다.
+     위 18% / 아래 4% — 배지(진한 앱 색)가 붙는 위쪽이 더 진하다. */
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--platform-tint, var(--accent)) 18%, var(--bg)),
+    color-mix(in srgb, var(--platform-tint, var(--accent)) 4%, var(--bg)));
+}
 .offer--best { --platform-tint: var(--accent); }
 .offer--best:has(.platform-badge--baemin) { --platform-tint: #2ac1bc; }
 .offer--best:has(.platform-badge--coupangeats) { --platform-tint: #d62d34; }

@@ -122,7 +122,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             후보에서 빠진다) — 같은 자리, 같은 배지를 색만 바꿔 쓴다. */}
         {(best || showRangeBadge) && (
           <span className={`offer__range-badge${best ? ' offer__range-badge--best' : ''}`}>
-            {best ? '할인율 최고' : offer.qualifier}
+            {best ? '최고 할인' : offer.qualifier}
           </span>
         )}
         {offer.badge && <span className="offer__status-badge">{offer.badge}</span>}
