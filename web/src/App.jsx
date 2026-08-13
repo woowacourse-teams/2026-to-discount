@@ -477,6 +477,15 @@ export default function App() {
     track('platform_filter_toggle', { platform: key })
   }
 
+  // 멤버십 라벨은 타이틀바 아래 여백에 떠 있어서, 스크롤해서 카드가
+  // 올라오면 카드 위에 덩그러니 남는다 — 맨 위에서만 보이게 한다.
+  const [atTop, setAtTop] = useState(true)
+  useEffect(() => {
+    const onScroll = () => setAtTop(window.scrollY < 8)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const isFiltered = filterKey !== 'all' || platformFilter.size > 0 || search.trim() !== ''
   const resetFilters = () => {
     setFilterKey('all')
@@ -547,20 +556,12 @@ export default function App() {
   }
 
   return (
-    <main>
-      {/* 2026-08-03 데이터 정비 안내 — 정비 끝나서 비활성화. 다시 필요하면 주석만 풀면 됨.
-      <div className="update-notice" role="status">주간 데이터 업데이트 중입니다. 잠시만 기다려주세요.</div>
-      */}
-
+    <>
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
       <EventBanner banners={banners} />
-      {/* 플랫폼 배지와 카테고리 탭을 한 스크롤 영역(title-bar__scroll)에
-          같이 넣는다 — 둘 다 넘칠 수 있는 목록이라 따로 스크롤하면
-          한쪽만 밀리고 나머지는 안 따라와 어색했다. 분류 선택(▾)·안내(?)
-          ·초기화·검색은 항상 붙어 있어야 하는 조작이라 스크롤 영역
-          바깥에 고정한다. */}
+      {/* 플랫폼 배지와 카테고리 탭을 한 스크롤 영역에 같이 넣는다. main 밖에 두어 full-bleed가 100vw 트릭 없이 자연히 성립하고, sticky도 안 깨진다. */}
       <div className="title-bar">
         <div className="title-bar__inner">
         <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
@@ -580,14 +581,6 @@ export default function App() {
                   <span className="membership-popover__title">{MEMBERSHIP_LABEL[p.key]}</span>
                   <span className="pill pill--pending">구현예정</span>
                 </div>
-              </span>
-            ))}
-            {/* 선택한 앱의 멤버십은 배지 바로 옆에 얇은 라벨로만 붙는다 —
-                아직 계산 로직이 없어 누를 수 없고(disabled), 자리도 최소로
-                차지하면서 어떤 앱 걸 말하는지는 바로 읽힌다. */}
-            {PLATFORMS.filter((p) => platformFilter.has(p.key)).map((p) => (
-              <span key={`m-${p.key}`} className="membership-tag" title="구현예정">
-                {MEMBERSHIP_LABEL[p.key]}
               </span>
             ))}
           </div>
@@ -621,7 +614,20 @@ export default function App() {
         </button>
         <SearchControl value={search} onChange={setSearch} />
         </div>
+        {/* 선택한 앱의 멤버십 — 타이틀바 아래 여백에 얇게 붙는다.
+            absolute라 카드 그리드를 밀어내지 않고, 아직 계산 로직이
+            없어 누를 수 없는 표시용이다. */}
+        {platformFilter.size > 0 && atTop && (
+          <div className="membership-tags" aria-label="선택한 앱 멤버십">
+            {PLATFORMS.filter((p) => platformFilter.has(p.key)).map((p) => (
+              <span key={p.key} className="membership-tag" title="구현예정">
+                {MEMBERSHIP_LABEL[p.key]}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
+    <main>
 
       {error && <p className="msg msg--error">불러오기 실패: {error}</p>}
       {!error && !brands && <p className="msg">불러오는 중…</p>}
@@ -647,5 +653,6 @@ export default function App() {
 
       <SiteFooter />
     </main>
+    </>
   )
 }

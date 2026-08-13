@@ -44,31 +44,20 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 }
 
 /* 로고 줄과 분류/카테고리/검색을 한 통짜리 sticky 바로 묶는다(title-bar).
-   배지·카테고리 탭은 한 스크롤 영역(title-bar__scroll)을 같이 쓴다 —
-   둘 다 넘칠 수 있는 목록이라 따로 스크롤하면 한쪽만 밀리고 나머지는
-   안 따라와 어색했다. 분류 선택(▾)·안내(?)·초기화·검색은 스크롤
-   영역 밖에 고정한다.
-
-   main이 max-width:880px에 좌우 padding까지 있어서, 그 안에 그냥
-   두면 타이틀바가 화면 위/좌/우 다 뜬 것처럼 보였다(sticky라도
-   부모 박스 안에서만 붙지 뷰포트 끝까지는 안 붙는다) — 표준
-   "full-bleed" 트릭으로 뷰포트 전체 폭까지 뺀다. 안쪽 내용(로고,
-   카테고리 등)은 title-bar__inner가 main과 같은 max-width로만 맞추고
-   좌우 패딩은 살짝 더 좁혀서 실사용 폭을 넓힌다. main도 이제 상단
-   패딩이 없어서(위쪽 여백 자체를 없앰) 따로 상쇄할 것도 없다. */
+   main 바깥(문서 최상위)에 두므로 100vw·음수 margin 같은 full-bleed
+   트릭이 필요 없다 — 그 트릭은 모바일 브라우저에서 sticky를 깨뜨리는
+   원인이 되기도 한다. 안쪽 내용은 title-bar__inner가 main과 같은
+   max-width로 잡아 카드 그리드와 좌우가 맞는다. */
 .title-bar {
   position: sticky;
   top: 0;
-  left: 0;
   z-index: 60;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
   margin-bottom: -1.0rem;
   /* 스크롤 상태로 배경을 껐다 켜면 "없던 판이 갑자기 생기는" 것처럼
      보였다 — 대신 항상 같은 그라데이션을 깔되, 시작색을 페이지 배경색
      자체(--bg)로 잡는다. 맨 위에선 배경과 완전히 같은 색이라 경계가
-     아예 안 보이고, 카드가 밑으로 지나갈 때만 그 카드가 위쪽에서
-     서서히 가려지면서 아래로 자연스럽게 투명해진다(하단 페이드). */
+     아예 안 보이고, 카드가 밑으로 지나갈 때만 위쪽에서 서서히 가려지며
+     아래로 자연스럽게 투명해진다(하단 페이드). */
   background: linear-gradient(to bottom,
     var(--bg) 0%,
     var(--bg) 55%,
@@ -163,15 +152,26 @@ h1 {
   pointer-events: auto;
 }
 
-/* 선택한 앱의 멤버십 — 배지 옆에 얇게 붙는 라벨. 아직 계산 로직이
-   없어서 누를 수 없는 표시용이고, 자리는 최소로 차지한다(글씨뿐이라
-   테두리만 옅게, 높이는 배지보다 낮게). */
+/* 선택한 앱의 멤버십 — 타이틀바 바로 아래 여백에 얇게 붙는 줄.
+   absolute라 문서 흐름에서 빠져 카드 그리드를 안 밀어낸다. 아직
+   계산 로직이 없어 누를 수 없는 표시용이다. */
+.membership-tags {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem;
+  max-width: 880px;
+  margin: -.2rem auto 0;
+  padding: 0 .75rem;
+  pointer-events: none;
+}
 .membership-tag {
   flex: none;
-  align-self: center;
-  margin-left: .15rem;
-  padding: .1rem .4rem;
-  font-size: .68rem;
+  padding: .05rem .4rem;
+  font-size: .66rem;
   line-height: 1.5;
   white-space: nowrap;
   color: var(--pending-text);
