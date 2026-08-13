@@ -116,6 +116,11 @@ h1 {
   gap: .5rem;
   flex: 1 1 auto;
   min-width: 0;
+  /* 바 높이를 꽉 채우고 아래로 6px 흘러넘친다 — 선택 판(.category-bar__
+     highlight)이 이 안에서 그려지는데, overflow-x:auto는 세로도 같이
+     잘라내기 때문에 판을 늘리는 대신 이 상자를 늘려야 한다. */
+  align-self: stretch;
+  margin-bottom: -6px;
   overflow-x: auto;
   /* 이 줄 위에서의 터치 제스처는 가로 스크롤 전용. 기본값(auto)이면
      모바일에서 탭을 옆으로 넘기려고 스와이프해도 브라우저가 세로
