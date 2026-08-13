@@ -421,11 +421,11 @@ function CategoryBar({ categories, active, onSelect }) {
   // 0,0)에서 선택 탭까지 미끄러지는 게 로드할 때마다 보인다.
   const [animated, setAnimated] = useState(false)
 
-  // 판(하이라이트)은 알약이 아니라 위가 넓고 아래가 좁은 사다리꼴이다 —
-  // 카테고리 줄이 배지 줄과 같은 윗선에서 시작하므로(App.css
-  // .title-bar__inner, align-items:flex-start) 이 판의 top도 곧 바
-  // 천장이다. 버튼보다 위쪽만 좌우로 더 벌려서 "천장에서 흘러내려
-  // 버튼을 물고 있다"는 인상을 준다.
+  // 판(하이라이트)은 버튼과 같은 폭의 사각형이다 — 카테고리 줄이 배지
+  // 줄과 같은 윗선에서 시작하므로(App.css .title-bar__inner,
+  // align-items:flex-start) 이 판의 top도 곧 바 천장이다. 아래쪽
+  // 모서리만 둥글려 천장에서 내려온 판처럼 보이게 한다(App.css
+  // .category-bar__highlight, border-radius: 0 0 14px 14px).
   const measure = () => {
     const btn = btnRefs.current[active]
     if (btn) {
@@ -435,22 +435,6 @@ function CategoryBar({ categories, active, onSelect }) {
       })
     }
   }
-
-  // 위쪽으로 벌어지는 폭과 모서리를 둥글리는 정도. clip-path는
-  // border-radius를 못 받아서, 모서리마다 대각선으로 살짝 깎아
-  // 둥근 느낌을 흉내낸다.
-  const FLARE = 8
-  const CUT = 6
-  const trapezoid = rect && (() => {
-    const w = rect.width + FLARE * 2
-    const h = rect.height
-    const pts = [
-      [CUT, 0], [w - CUT, 0], [w, CUT],
-      [w - FLARE, h - CUT], [w - FLARE - CUT, h],
-      [FLARE + CUT, h], [FLARE, h - CUT], [0, CUT],
-    ]
-    return `polygon(${pts.map(([x, y]) => `${x}px ${y}px`).join(', ')})`
-  })()
 
   // categories도 의존성에 넣는다 — 분류 기준이 바뀌면(카테고리 ↔
   // 금액대) active 값은 그대로 'all'이어도 탭 구성 자체가 바뀌므로
@@ -472,10 +456,9 @@ function CategoryBar({ categories, active, onSelect }) {
           className={`category-bar__highlight${animated ? ' category-bar__highlight--animated' : ''}`}
           aria-hidden="true"
           style={{
-            transform: `translate(${rect.left - FLARE}px, ${rect.top}px)`,
-            width: `${rect.width + FLARE * 2}px`,
+            transform: `translate(${rect.left}px, ${rect.top}px)`,
+            width: `${rect.width}px`,
             height: `${rect.height}px`,
-            clipPath: trapezoid,
           }}
         />
       )}
@@ -567,7 +550,17 @@ export default function App() {
     const onScroll = () => {
       setAtTop(window.scrollY < 8)
       setScrolledFar(window.scrollY > 400)
+      // 고무줄 스크롤 차단(html/body의 overscroll-behavior:none, App.css)은
+      // 흔들 때 타이틀바가 같이 밀리는 걸 막지만, 그 값 그대로 두면 당겨서
+      // 새로고침(pull-to-refresh)도 같이 막힌다. 맨 위(scrollY 0)일 때만
+      // 풀어준다 — 그 지점에서만 아래로 당기는 제스처가 새로고침 의도이고,
+      // 스크롤이 이미 내려간 상태의 흔들림 방지는 그대로 유지된다.
+      // documentElement가 아니라 body에 건다 — html(루트)이 auto일 때만
+      // "뷰포트 오버스크롤 값은 body를 따른다"는 전파 규칙이 적용된다.
+      // (App.css에서 html에는 이제 규칙을 안 준다.)
+      document.body.style.overscrollBehaviorY = window.scrollY <= 0 ? 'auto' : 'none'
     }
+    onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
