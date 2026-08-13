@@ -92,7 +92,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 
 .title-bar__inner {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   max-width: 880px;
   margin: 0 auto;
   padding: 0;
@@ -125,57 +125,53 @@ h1 {
   margin: 0;
 }
 
+/* 카테고리는 배지 줄과 별개 줄이다. 배지 줄 바로 밑에 밀착시키고
+   (margin-top 없음), 판이 컴팩트하게 탭 자기 높이만 차지하도록
+   배지 높이(40px)와 더는 엮이지 않는다. */
+.title-bar__categories {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  min-width: 0;
+}
 /* 카테고리 줄만 가로 스크롤한다. 하이라이트 좌표계(.category-bar,
    position:relative)는 그대로 두고 이 래퍼가 스크롤만 맡는다 —
    offsetLeft는 .category-bar 자신 기준이라 바깥이 스크롤돼도
    좌표 계산엔 영향이 없다. */
 .title-bar__scroll {
   display: flex;
-  /* 세로 가운데 정렬이면 40px 배지 높이만큼 판(하이라이트) 위아래로
-     빈 공간이 남는다. 위로 붙여서 그 여백을 위쪽으로 몰아준다 —
-     판이 천장에 붙는 시각 효과와도 더 맞는다. */
-  align-items: flex-start;
+  align-items: center;
   gap: .5rem;
   flex: 1 1 auto;
   min-width: 0;
-  /* 바 높이를 꽉 채운다 — 선택 판(.category-bar__highlight)이 이 안에서
-     그려지는데 overflow-x:auto는 세로도 같이 잘라내므로, 판이 잘리지
-     않으려면 이 상자가 먼저 커야 한다. 아래로 넘기지는 않는다. */
-  align-self: stretch;
   overflow-x: auto;
   /* 이 줄 위에서의 터치 제스처는 가로 스크롤 전용. 기본값(auto)이면
      모바일에서 탭을 옆으로 넘기려고 스와이프해도 브라우저가 세로
      스크롤로 채가서 화면이 통째로 위로 날아가 버린다. */
   touch-action: pan-x;
   overscroll-behavior-x: contain;
-  /* 오른쪽으로 더 있다는 걸 암시하는 페이드. 왼쪽은 페이드 대신 배지와
-     .4rem 띄워서 나눈다(.page-head__apps). */
+  /* 오른쪽으로 더 있다는 걸 암시하는 페이드. */
   mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
   -webkit-mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
   scrollbar-width: none;
 }
 .title-bar__scroll::-webkit-scrollbar { display: none; }
-/* 펼친 상태 — 가로 스크롤 대신 여러 줄로 접는다. 천장에 매단 판
-   연출은 한 줄 띠에서만 말이 되므로 여기선 카테고리 자체 높이로
-   되돌아간다(CategoryBar가 expanded일 때 그렇게 잰다). */
+/* 펼친 상태 — 가로 스크롤 대신 여러 줄로 접는다. */
 .title-bar__scroll--expanded {
   flex-wrap: wrap;
   overflow: visible;
-  align-self: auto;
   touch-action: auto;
   mask-image: none;
   -webkit-mask-image: none;
 }
 
-/* 아이콘끼리 살짝 겹치게 — 음수 margin으로 뒤 요소를 왼쪽으로 당긴다.
-   왼쪽 여백 없이 바 시작점에 붙이고, 카테고리 탭과는 한 칸 띄운다. */
+/* 밀착 — 서로 안 겹치되 최소 간격만 준다. */
 .page-head__apps {
   display: flex;
-  gap: .3rem;
+  gap: 1px;
   margin: 0;
   flex: none;
   background: transparent;
-  margin-right: .4rem;
 }
 /* 아이콘 파일이 256×256 정사각·바깥 여백 0으로 규격화돼 있고 둥근 모서리는
    파일의 투명 픽셀이 들고 있다. 그래서 배지는 판을 깔지 않고 그림만 꽉
@@ -795,10 +791,9 @@ h1 {
   position: absolute;
   top: 0;
   left: 0;
-  /* 알약이 아니라 타이틀바 천장에서 내려온 판이다 — 위 두 모서리는
-     각지게 두고 아래만 둥글려 위쪽과 이어져 보이게 한다. 높이·위치는
-     JS가 실측해서 넣는다(CategoryBar). */
-  border-radius: 0 0 14px 14px;
+  /* 컴팩트한 알약. 높이·위치는 JS가 버튼 자체를 실측해서 넣는다
+     (CategoryBar) — 더는 배지 줄에 맞춰 늘어나지 않는다. */
+  border-radius: 999px;
   background: var(--text);
   /* 첫 배치 전에는 안 미끄러진다 — 안 그러면 로드할 때마다 판이 0,0에서
      선택 탭까지 날아오는 게 보인다. JS가 자리를 잡은 뒤 --animated를

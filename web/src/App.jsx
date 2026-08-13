@@ -413,7 +413,7 @@ function SiteFooter() {
 // 길이가 제각각이라(전체/치킨/패스트푸드) 폭을 CSS만으로는 못 구하고
 // 버튼의 offsetLeft/offsetWidth를 재서 옮긴다. 폰트가 늦게 로드되면
 // 폭이 바뀔 수 있어 document.fonts.ready에서도 한 번 더 잰다.
-function CategoryBar({ categories, active, onSelect, expanded }) {
+function CategoryBar({ categories, active, onSelect }) {
   const btnRefs = useRef({})
   const barRef = useRef(null)
   const [rect, setRect] = useState(null)
@@ -421,41 +421,15 @@ function CategoryBar({ categories, active, onSelect, expanded }) {
   // 0,0)에서 선택 탭까지 미끄러지는 게 로드할 때마다 보인다.
   const [animated, setAnimated] = useState(false)
 
+  // 판(하이라이트)은 버튼 자기 크기 그대로 알약이다 — 예전엔 배지 높이에
+  // 맞춰 늘리고 타이틀바 천장까지 끌어올렸지만, 배지 줄과 별개 줄이 된
+  // 지금은 그럴 이유가 없다. 컴팩트하게 텍스트만 감싼다.
   const measure = () => {
     const btn = btnRefs.current[active]
-    // top/height도 재서 넣는다 — CSS로 고정값을 박으면 컨테이너 패딩이
-    // 바뀔 때마다(예: 그라데이션 꼬리 공간) 하이라이트가 버튼과 어긋난다.
     if (btn) {
-      if (expanded) {
-        // 펼친 상태에선 여러 줄로 접혀 줄마다 y가 다르다 — 천장에 매단
-        // 판 연출은 한 줄짜리 스크롤 띠에서만 말이 되므로, 펼쳤을 땐
-        // 버튼 자기 크기 그대로 알약 하이라이트로 되돌린다.
-        setRect({
-          left: btn.offsetLeft, width: btn.offsetWidth,
-          top: btn.offsetTop, height: btn.offsetHeight,
-          overhang: 0,
-          plateHeight: btn.offsetHeight,
-        })
-        return
-      }
-      // 하이라이트를 글자 주위 알약이 아니라 타이틀바 천장에서 내려온
-      // 모양으로 그린다 — 위쪽 끝까지 얼마나 더 뻗어야 하는지(overhang)를
-      // 타이틀바와의 실제 거리로 잰다. 바 높이가 바뀌어도 따라간다.
-      // 판은 앱 배지와 같은 높이·같은 줄에 놓는다 — 배지가 이 바의
-      // 기준 높이라 거기에 맞춰야 한 줄로 읽힌다. 배지를 실측해서
-      // 쓰므로 배지 크기를 바꾸면 판도 따라간다.
-      // (판이 그려지는 스크롤 래퍼는 overflow-x:auto라 세로로도 잘린다.
-      //  그래서 래퍼를 바 높이로 stretch해 두고 — App.css — 판은 그
-      //  안에서 배지 위치만큼 끌어올린다.)
-      const badge = document.querySelector('.page-head__apps .platform-badge')
-      const badgeRect = badge?.getBoundingClientRect()
-      const myTop = barRef.current.getBoundingClientRect().top
-      const overhang = badgeRect ? myTop - badgeRect.top : 0
       setRect({
         left: btn.offsetLeft, width: btn.offsetWidth,
         top: btn.offsetTop, height: btn.offsetHeight,
-        overhang,
-        plateHeight: badgeRect ? badgeRect.height : btn.offsetHeight,
       })
     }
   }
@@ -463,7 +437,7 @@ function CategoryBar({ categories, active, onSelect, expanded }) {
   // categories도 의존성에 넣는다 — 분류 기준이 바뀌면(카테고리 ↔
   // 금액대) active 값은 그대로 'all'이어도 탭 구성 자체가 바뀌므로
   // 하이라이트를 다시 재야 한다.
-  useLayoutEffect(measure, [active, categories, expanded])
+  useLayoutEffect(measure, [active, categories])
   useEffect(() => {
     if (rect && !animated) requestAnimationFrame(() => setAnimated(true))
   }, [rect, animated])
@@ -471,7 +445,7 @@ function CategoryBar({ categories, active, onSelect, expanded }) {
     window.addEventListener('resize', measure)
     document.fonts?.ready?.then(measure)
     return () => window.removeEventListener('resize', measure)
-  }, [active, categories, expanded])
+  }, [active, categories])
 
   return (
     <div className="category-bar" role="tablist" aria-label="카테고리" ref={barRef}>
@@ -480,9 +454,9 @@ function CategoryBar({ categories, active, onSelect, expanded }) {
           className={`category-bar__highlight${animated ? ' category-bar__highlight--animated' : ''}`}
           aria-hidden="true"
           style={{
-            transform: `translate(${rect.left}px, ${rect.top - rect.overhang}px)`,
+            transform: `translate(${rect.left}px, ${rect.top}px)`,
             width: `${rect.width}px`,
-            height: `${rect.plateHeight}px`,
+            height: `${rect.height}px`,
           }}
         />
       )}
@@ -724,27 +698,30 @@ export default function App() {
               </span>
             ))}
           </div>
-          {/* 카테고리 탭 — 접혀 있으면 이 영역만 가로 스크롤하고, 펼치면
-              여러 줄로 접혀 스크롤 없이 전부 보인다. */}
-          <div
-            className={`title-bar__scroll${catExpanded ? ' title-bar__scroll--expanded' : ''}`}
-            onWheel={handleLabelsWheel}
-          >
-            <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} expanded={catExpanded} />
+          {/* 카테고리는 배지 줄과 별개 줄이다 — 배지 높이(40px)에 눌려
+              늘어나던 판을 걷어내고 탭 자기 높이만큼만 차지한다. 이
+              div가 그 자체 줄이라 위아래 밀착 여백도 여기서 잡는다. */}
+          <div className="title-bar__categories">
+            <div
+              className={`title-bar__scroll${catExpanded ? ' title-bar__scroll--expanded' : ''}`}
+              onWheel={handleLabelsWheel}
+            >
+              <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} />
+            </div>
+            {/* 접히면 아래로 펼치는 버튼, 펼치면 다시 접는 버튼 — 화살표
+                방향으로 어느 쪽 동작인지 드러낸다. */}
+            <button
+              type="button"
+              className={`scroll-hint-arrow${catExpanded ? ' scroll-hint-arrow--open' : ''}`}
+              aria-expanded={catExpanded}
+              aria-label={catExpanded ? '카테고리 접기' : '카테고리 모두 보기'}
+              onClick={() => setCatExpanded((v) => !v)}
+            >
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
           </div>
-          {/* 접히면 아래로 펼치는 버튼, 펼치면 다시 접는 버튼 — 화살표
-              방향으로 어느 쪽 동작인지 드러낸다. */}
-          <button
-            type="button"
-            className={`scroll-hint-arrow${catExpanded ? ' scroll-hint-arrow--open' : ''}`}
-            aria-expanded={catExpanded}
-            aria-label={catExpanded ? '카테고리 접기' : '카테고리 모두 보기'}
-            onClick={() => setCatExpanded((v) => !v)}
-          >
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
         </div>
         {/* 검색·초기화는 바 안에서 빼내 바로 아래 여백에 띄운다.
             absolute라 카드 그리드를 밀어내지 않고, 윗줄 배지 공간을
