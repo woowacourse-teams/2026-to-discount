@@ -116,20 +116,21 @@ h1 {
   gap: .5rem;
   flex: 1 1 auto;
   min-width: 0;
-  /* 바 높이를 꽉 채우고 아래로 6px 흘러넘친다 — 선택 판(.category-bar__
-     highlight)이 이 안에서 그려지는데, overflow-x:auto는 세로도 같이
-     잘라내기 때문에 판을 늘리는 대신 이 상자를 늘려야 한다. */
+  /* 바 높이를 꽉 채운다 — 선택 판(.category-bar__highlight)이 이 안에서
+     그려지는데 overflow-x:auto는 세로도 같이 잘라내므로, 판이 잘리지
+     않으려면 이 상자가 먼저 커야 한다. 아래로 넘기지는 않는다. */
   align-self: stretch;
-  margin-bottom: -6px;
   overflow-x: auto;
   /* 이 줄 위에서의 터치 제스처는 가로 스크롤 전용. 기본값(auto)이면
      모바일에서 탭을 옆으로 넘기려고 스와이프해도 브라우저가 세로
      스크롤로 채가서 화면이 통째로 위로 날아가 버린다. */
   touch-action: pan-x;
   overscroll-behavior-x: contain;
-  /* 오른쪽으로 더 있다는 걸 암시하는 페이드. */
-  mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
+  /* 배지와 탭 사이엔 여백을 두지 않고 페이드로 나눈다 — 왼쪽 .2rem이
+     투명해지면서 탭이 배지 밑으로 사라지는 것처럼 보인다. 오른쪽 끝
+     페이드는 옆으로 더 있다는 힌트. */
+  mask-image: linear-gradient(to right, transparent 0, black .2rem, black calc(100% - 14px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black .2rem, black calc(100% - 14px), transparent);
   scrollbar-width: none;
 }
 .title-bar__scroll::-webkit-scrollbar { display: none; }
@@ -138,7 +139,7 @@ h1 {
    왼쪽 여백 없이 바 시작점에 붙이고, 카테고리 탭과는 한 칸 띄운다. */
 .page-head__apps {
   display: flex;
-  margin: 0 .6rem 0 0;
+  margin: 0;
   flex: none;
 }
 /* 아이콘 파일이 256×256 정사각·바깥 여백 0으로 규격화돼 있고 둥근 모서리는
