@@ -64,23 +64,15 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
     color-mix(in srgb, var(--bg) 55%, transparent) 80%,
     transparent 100%);
 }
+/* 배지와 카테고리를 한 줄에 둔다. 안쪽 여백은 0 — 배지가 화면
+   왼쪽 위 끝에 그대로 붙는다. */
 .title-bar__inner {
   display: flex;
-  flex-direction: column;
-  gap: .3rem;
+  align-items: center;
   max-width: 880px;
   margin: 0 auto;
-  padding: .4rem .75rem .5rem;
+  padding: 0;
 }
-/* 두 줄 공통 — 각 줄은 가로 한 행. */
-.title-bar__row {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  min-width: 0;
-}
-/* 앱 줄: 배지만 남아 왼쪽에 몰린다. */
-.title-bar__row--apps .page-head__apps { margin-right: auto; }
 
 /* 검색·초기화 — 바 안이 아니라 바 바로 아래 여백에 떠 있다.
    absolute라 문서 흐름에서 빠져 카드 그리드를 밀어내지 않고,
