@@ -361,6 +361,7 @@ function SiteFooter() {
 // 폭이 바뀔 수 있어 document.fonts.ready에서도 한 번 더 잰다.
 function CategoryBar({ categories, active, onSelect }) {
   const btnRefs = useRef({})
+  const barRef = useRef(null)
   const [rect, setRect] = useState(null)
 
   const measure = () => {
@@ -368,9 +369,17 @@ function CategoryBar({ categories, active, onSelect }) {
     // top/height도 재서 넣는다 — CSS로 고정값을 박으면 컨테이너 패딩이
     // 바뀔 때마다(예: 그라데이션 꼬리 공간) 하이라이트가 버튼과 어긋난다.
     if (btn) {
+      // 하이라이트를 글자 주위 알약이 아니라 타이틀바 천장에서 내려온
+      // 모양으로 그린다 — 위쪽 끝까지 얼마나 더 뻗어야 하는지(overhang)를
+      // 타이틀바와의 실제 거리로 잰다. 바 높이가 바뀌어도 따라간다.
+      const bar = barRef.current?.closest('.title-bar')
+      const overhang = bar
+        ? barRef.current.getBoundingClientRect().top - bar.getBoundingClientRect().top
+        : 0
       setRect({
         left: btn.offsetLeft, width: btn.offsetWidth,
         top: btn.offsetTop, height: btn.offsetHeight,
+        overhang,
       })
     }
   }
@@ -386,15 +395,15 @@ function CategoryBar({ categories, active, onSelect }) {
   }, [active, categories])
 
   return (
-    <div className="category-bar" role="tablist" aria-label="카테고리">
+    <div className="category-bar" role="tablist" aria-label="카테고리" ref={barRef}>
       {rect && (
         <span
           className="category-bar__highlight"
           aria-hidden="true"
           style={{
-            transform: `translate(${rect.left}px, ${rect.top}px)`,
+            transform: `translate(${rect.left}px, ${rect.top - rect.overhang}px)`,
             width: `${rect.width}px`,
-            height: `${rect.height}px`,
+            height: `${rect.height + rect.overhang}px`,
           }}
         />
       )}
@@ -485,6 +494,17 @@ export default function App() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // 앱을 고른 직후 3초만 띄우고 스스로 사라진다 — 아직 누를 수 없는
+  // 안내라 계속 자리를 지키면 카드 위 방해물이 된다. 타이머는 선택이
+  // 바뀔 때마다 처음부터 다시 간다(고르는 중엔 계속 보인다).
+  const [showMembership, setShowMembership] = useState(false)
+  useEffect(() => {
+    if (platformFilter.size === 0) { setShowMembership(false); return }
+    setShowMembership(true)
+    const id = setTimeout(() => setShowMembership(false), 3000)
+    return () => clearTimeout(id)
+  }, [platformFilter])
 
   const isFiltered = filterKey !== 'all' || platformFilter.size > 0 || search.trim() !== ''
   const resetFilters = () => {
@@ -624,7 +644,7 @@ export default function App() {
         {/* 선택한 앱의 멤버십 — 타이틀바 아래 여백에 얇게 붙는다.
             absolute라 카드 그리드를 밀어내지 않고, 아직 계산 로직이
             없어 누를 수 없는 표시용이다. */}
-        {platformFilter.size > 0 && atTop && (
+        {showMembership && atTop && (
           <div className="membership-tags" aria-label="선택한 앱 멤버십">
             {PLATFORMS.filter((p) => platformFilter.has(p.key)).map((p) => (
               <span key={p.key} className="membership-tag" title="구현예정">
