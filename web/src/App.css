@@ -55,8 +55,14 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
    원인이 되기도 한다. 안쪽 내용은 title-bar__inner가 main과 같은
    max-width로 잡아 카드 그리드와 좌우가 맞는다. */
 .title-bar {
-  position: sticky;
+  /* sticky가 아니라 fixed다. sticky는 문서에 붙어 있어서 오버스크롤로
+     문서가 밀리거나 sticky 재배치가 늦으면 바도 같이 밀렸다. fixed는
+     뷰포트에 박히므로 문서가 뭘 하든 움직이지 않는다. 흐름에서 빠진
+     높이는 .title-bar-spacer가 대신 차지한다(App.jsx에서 실측). */
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 60;
   /* 빠르게 스크롤하면 바가 위로 밀렸다가 스크롤이 느려질 때 제자리로
      돌아오는 현상이 있었다 — sticky 재배치가 컴포지터가 아니라 메인
@@ -67,7 +73,6 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
   /* 바 안쪽 레이아웃 변화가 바깥으로 새어나가지 않게 잘라둔다 — 바가
      다른 div의 리플로우에 딸려 다시 계산되지 않도록. */
   contain: layout style;
-  margin-bottom: -1.0rem;
   /* 스크롤 상태로 배경을 껐다 켜면 "없던 판이 갑자기 생기는" 것처럼
      보였다 — 대신 항상 같은 그라데이션을 깔되, 시작색을 페이지 배경색
      자체(--bg)로 잡는다. 맨 위에선 배경과 완전히 같은 색이라 경계가
@@ -81,6 +86,10 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 }
 /* 배지와 카테고리를 한 줄에 둔다. 안쪽 여백은 0 — 배지가 화면
    왼쪽 위 끝에 그대로 붙는다. */
+/* 고정된 바가 비운 자리를 대신 차지한다. 바가 갖고 있던 겹침
+   (margin-bottom:-1rem)도 이제 여기가 들고 있다. */
+.title-bar-spacer { margin-bottom: -1rem; }
+
 .title-bar__inner {
   display: flex;
   align-items: center;
@@ -136,11 +145,10 @@ h1 {
      스크롤로 채가서 화면이 통째로 위로 날아가 버린다. */
   touch-action: pan-x;
   overscroll-behavior-x: contain;
-  /* 배지와 탭 사이엔 여백을 두지 않고 페이드로 나눈다 — 왼쪽 .2rem이
-     투명해지면서 탭이 배지 밑으로 사라지는 것처럼 보인다. 오른쪽 끝
-     페이드는 옆으로 더 있다는 힌트. */
-  mask-image: linear-gradient(to right, transparent 0, black .5rem, black calc(100% - 14px), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, black .5rem, black calc(100% - 14px), transparent);
+  /* 오른쪽으로 더 있다는 걸 암시하는 페이드. 왼쪽은 페이드 대신 배지와
+     .4rem 띄워서 나눈다(.page-head__apps). */
+  mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 14px), transparent);
   scrollbar-width: none;
 }
 .title-bar__scroll::-webkit-scrollbar { display: none; }
@@ -152,6 +160,7 @@ h1 {
   margin: 0;
   flex: none;
   background: transparent;
+  margin-right: .4rem;
 }
 /* 아이콘 파일이 256×256 정사각·바깥 여백 0으로 규격화돼 있고 둥근 모서리는
    파일의 투명 픽셀이 들고 있다. 그래서 배지는 판을 깔지 않고 그림만 꽉

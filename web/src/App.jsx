@@ -502,6 +502,20 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // 타이틀바는 position:fixed다 — sticky는 문서에 붙어 있어서 오버스크롤이나
+  // 스크롤 지연에 함께 밀렸다. 흐름에서 빠진 높이는 스페이서가 대신 차지하고,
+  // 그 높이는 바를 실측해 따라간다.
+  const titleBarRef = useRef(null)
+  const [barHeight, setBarHeight] = useState(0)
+  useLayoutEffect(() => {
+    const el = titleBarRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => setBarHeight(entry.contentRect.height))
+    ro.observe(el)
+    setBarHeight(el.getBoundingClientRect().height)
+    return () => ro.disconnect()
+  }, [])
+
   // 앱을 고른 직후 3초만 띄우고 스스로 사라진다 — 아직 누를 수 없는
   // 안내라 계속 자리를 지키면 카드 위 방해물이 된다. 타이머는 선택이
   // 바뀔 때마다 처음부터 다시 간다(고르는 중엔 계속 보인다).
@@ -590,7 +604,10 @@ export default function App() {
       <EventBanner banners={banners} />
       {/* 플랫폼 배지와 카테고리 탭을 한 스크롤 영역에 같이 넣는다. main 밖에 두어 full-bleed가 100vw 트릭 없이 자연히 성립하고, sticky도 안 깨진다. */}
 
-      <div className="title-bar">
+      {/* 고정된 바가 문서 흐름에서 빠진 만큼을 대신 차지하는 자리. 높이는
+          바를 실측해서 넣는다(탭 줄바꿈·폰트 로딩으로 바뀔 수 있다). */}
+      <div className="title-bar-spacer" style={{ height: `${barHeight}px` }} aria-hidden="true" />
+      <div className="title-bar" ref={titleBarRef}>
         <div className="title-bar__inner">
           <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
 
