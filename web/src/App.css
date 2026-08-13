@@ -52,6 +52,11 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
   position: sticky;
   top: 0;
   z-index: 60;
+  /* 빠르게 스크롤하면 바가 위로 밀렸다가 스크롤이 느려질 때 제자리로
+     돌아오는 현상이 있었다 — sticky 재배치가 컴포지터가 아니라 메인
+     스레드에서 일어나면 스크롤이 먼저 가고 바가 뒤늦게 따라붙는다.
+     자체 레이어로 승격시켜 스크롤과 같은 스레드에서 움직이게 한다. */
+  will-change: transform;
   margin-bottom: -1.0rem;
   /* 스크롤 상태로 배경을 껐다 켜면 "없던 판이 갑자기 생기는" 것처럼
      보였다 — 대신 항상 같은 그라데이션을 깔되, 시작색을 페이지 배경색
