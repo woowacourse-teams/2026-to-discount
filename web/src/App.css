@@ -92,7 +92,11 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 
 .title-bar__inner {
   display: flex;
-  align-items: center;
+  /* 카테고리 줄을 배지와 같은 윗선에서 시작시킨다 — 가운데 정렬이면
+     40px 배지 높이 안에서 카테고리(더 얕음)가 위아래로 나뉘어 뜨고,
+     밑선이 배지와 맞아떨어져 버린다. 위로 붙이면 밑선은 자연히
+     갈라지고, 판(하이라이트) top이 곧 바 천장이 된다. */
+  align-items: flex-start;
   max-width: 880px;
   margin: 0 auto;
   padding: 0;
@@ -793,9 +797,9 @@ h1 {
   position: absolute;
   top: 0;
   left: 0;
-  /* 컴팩트한 알약. 높이·위치는 JS가 버튼 자체를 실측해서 넣는다
-     (CategoryBar) — 더는 배지 줄에 맞춰 늘어나지 않는다. */
-  border-radius: 999px;
+  /* 위가 넓고 아래가 좁은 사다리꼴 — 모서리 둥글림까지 포함한 정확한
+     모양은 JS가 clip-path로 그린다(CategoryBar). border-radius는
+     clip-path와 같이 못 써서 여기선 안 건다. */
   background: var(--text);
   /* 첫 배치 전에는 안 미끄러진다 — 안 그러면 로드할 때마다 판이 0,0에서
      선택 탭까지 날아오는 게 보인다. JS가 자리를 잡은 뒤 --animated를

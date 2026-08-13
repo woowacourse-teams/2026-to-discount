@@ -421,9 +421,11 @@ function CategoryBar({ categories, active, onSelect }) {
   // 0,0)에서 선택 탭까지 미끄러지는 게 로드할 때마다 보인다.
   const [animated, setAnimated] = useState(false)
 
-  // 판(하이라이트)은 버튼 자기 크기 그대로 알약이다 — 예전엔 배지 높이에
-  // 맞춰 늘리고 타이틀바 천장까지 끌어올렸지만, 배지 줄과 별개 줄이 된
-  // 지금은 그럴 이유가 없다. 컴팩트하게 텍스트만 감싼다.
+  // 판(하이라이트)은 알약이 아니라 위가 넓고 아래가 좁은 사다리꼴이다 —
+  // 카테고리 줄이 배지 줄과 같은 윗선에서 시작하므로(App.css
+  // .title-bar__inner, align-items:flex-start) 이 판의 top도 곧 바
+  // 천장이다. 버튼보다 위쪽만 좌우로 더 벌려서 "천장에서 흘러내려
+  // 버튼을 물고 있다"는 인상을 준다.
   const measure = () => {
     const btn = btnRefs.current[active]
     if (btn) {
@@ -433,6 +435,22 @@ function CategoryBar({ categories, active, onSelect }) {
       })
     }
   }
+
+  // 위쪽으로 벌어지는 폭과 모서리를 둥글리는 정도. clip-path는
+  // border-radius를 못 받아서, 모서리마다 대각선으로 살짝 깎아
+  // 둥근 느낌을 흉내낸다.
+  const FLARE = 8
+  const CUT = 6
+  const trapezoid = rect && (() => {
+    const w = rect.width + FLARE * 2
+    const h = rect.height
+    const pts = [
+      [CUT, 0], [w - CUT, 0], [w, CUT],
+      [w - FLARE, h - CUT], [w - FLARE - CUT, h],
+      [FLARE + CUT, h], [FLARE, h - CUT], [0, CUT],
+    ]
+    return `polygon(${pts.map(([x, y]) => `${x}px ${y}px`).join(', ')})`
+  })()
 
   // categories도 의존성에 넣는다 — 분류 기준이 바뀌면(카테고리 ↔
   // 금액대) active 값은 그대로 'all'이어도 탭 구성 자체가 바뀌므로
@@ -454,9 +472,10 @@ function CategoryBar({ categories, active, onSelect }) {
           className={`category-bar__highlight${animated ? ' category-bar__highlight--animated' : ''}`}
           aria-hidden="true"
           style={{
-            transform: `translate(${rect.left}px, ${rect.top}px)`,
-            width: `${rect.width}px`,
+            transform: `translate(${rect.left - FLARE}px, ${rect.top}px)`,
+            width: `${rect.width + FLARE * 2}px`,
             height: `${rect.height}px`,
+            clipPath: trapezoid,
           }}
         />
       )}
