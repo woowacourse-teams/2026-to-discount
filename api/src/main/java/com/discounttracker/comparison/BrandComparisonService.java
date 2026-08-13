@@ -35,6 +35,15 @@ public class BrandComparisonService {
     }
 
     public List<BrandComparison> compare() {
+        return compare(offers.findAll());
+    }
+
+    /**
+     * 원장 대신 넘겨받은 레코드로 비교한다 — 검수용 더미 데이터
+     * ({@code /api/test})가 운영과 똑같은 판정 규칙을 타게 하려고 열어둔다.
+     * 규칙을 따로 복사해두면 그 복사본이 먼저 낡는다.
+     */
+    public List<BrandComparison> compare(List<OfferRecord> records) {
         // 원장은 tracker가 push할 때만 바뀌지만 오늘 날짜는 계속 바뀐다.
         // 그래서 만료 판정은 적재 시점이 아니라 요청을 처리하는 지금 한다.
         LocalDate today = LocalDate.now(clock);
@@ -44,7 +53,7 @@ public class BrandComparisonService {
         Map<String, Integer> maxConfirmed = new LinkedHashMap<>();
         Map<String, Integer> maxHeld = new LinkedHashMap<>();
 
-        for (OfferRecord record : offers.findAll()) {
+        for (OfferRecord record : records) {
             // 묶기·중복정리·대표금액 계산 어디에도 넣지 않는다. 정리한 뒤에
             // 빼면 만료된 오퍼가 승자로 뽑힌 다음 사라지면서, 같은 앱에서
             // 진 살아 있는 오퍼까지 함께 없앤다(ADR-008).
