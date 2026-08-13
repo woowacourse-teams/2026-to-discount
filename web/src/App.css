@@ -658,11 +658,13 @@ h1 {
   font: inherit;
   font-size: .85rem;
   font-weight: 600;
-  color: var(--text);
+  /* 앱 배지와 같은 규칙 — 고르지 않은 쪽이 물러난다. 배지는 색을 빼고,
+     글자는 뺄 색이 없으니 대비를 낮춘다. */
+  color: var(--text-muted);
   cursor: pointer;
   transition: color 150ms ease, padding 120ms ease, font-size 120ms ease;
 }
-.category-btn:hover { opacity: .8; }
+.category-btn:hover { color: var(--text); }
 .category-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .category-btn--active {
   /* 색은 즉시 바뀐다(no transition) — 하이라이트 이동(260ms)과 맞춰
