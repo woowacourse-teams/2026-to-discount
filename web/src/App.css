@@ -997,16 +997,19 @@ h1 {
   white-space: nowrap;
   /* 원래 테두리가 없던 배지라 border-color 애니메이션은 안 먹는다 —
      대신 회전하는 conic-gradient를 얇은 링 모양으로 마스킹해 밑에
-     깐다. 배경(#e3f2fd)은 그대로 두고 가장자리에만 빛이 돈다. */
+     깐다. 배경(#e3f2fd)은 그대로 두고 가장자리에만 빛이 돈다.
+     ::before 자체를 rotate하면 마스크(사각형 링)까지 같이 돌아서
+     모서리가 배지 밖으로 튀어나온다 — 대신 그라데이션의 각도만
+     돌린다(--best-angle, @property로 보간). */
   border: 1px solid transparent;
 }
 .offer__range-badge.offer__range-badge--best::before {
   content: '';
   position: absolute;
-  inset: -1px;
+  inset: -1.5px;
   border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(from var(--best-angle, 0deg), #0a72c4, #7dd3fc, #a78bfa, #0a72c4);
+  padding: 1.5px;
+  background: conic-gradient(from var(--best-angle, 0deg), #00c8ff, #4d6bff, #ff3ec8, #00c8ff);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
