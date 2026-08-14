@@ -138,6 +138,13 @@
 이 외의 행동 이벤트는 발생 지점에서 `track(event, props?)`를 직접
 부른다.
 
+`track()`과 `page_exit`는 메모리 큐에 들어갈 때 UUID 형식의 `eventId`를 한 번
+발급한다. 서버는 유효한 값을 PostHog `$insert_id`로 유지한다. `sendBeacon`이
+실패해 `fetch`로 폴백할 때는 같은 이벤트 객체를 직렬화하므로 `eventId`도
+바뀌지 않는다. 이벤트마다 새 ID를 쓰며 브라우저 저장소에는 보관하지 않는다.
+따라서 같은 메모리 큐 항목의 재전송까지만 중복 제거를 보장하고, 새로고침
+이후 재전송은 보장하지 않는다.
+
 ```js
 import { track } from './analytics.js'
 

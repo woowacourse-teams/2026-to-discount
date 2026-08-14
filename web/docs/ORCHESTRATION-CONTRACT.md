@@ -110,7 +110,11 @@ diff할 때 "프론트가 빠뜨린 것"으로 오해하지 말 것(2026-08-06 �
 
 모든 이벤트에는 `track()`이 공통으로 붙이는 컨텍스트(`visitorId`,
 `sessionId`, `visitCount`, `device`, `viewport`, `referrer`, `dev`, `path`,
-`clientTs`)가 같이 실린다 (`src/analytics.js:83-89, 128-136`). `dev=1`
+`clientTs`, `eventId`)가 같이 실린다. `page_exit`도 큐에 직접 넣을 때
+별도 UUID `eventId`를 발급한다. ID는 메모리 큐 이벤트마다 한 번 생성되고,
+서버가 PostHog `$insert_id`로 보존한다. 따라서 sendBeacon 실패 뒤 fetch
+폴백처럼 같은 큐 항목을 다시 전송할 때는 중복 집계하지 않지만, 브라우저
+새로고침 이후 재전송까지 보장하지는 않는다. `dev=1`
 쿼리로 켠 세션은 `dev: true`가 붙는다 (`src/analytics.js:73-81`) — 집계 시
 제외 대상.
 
