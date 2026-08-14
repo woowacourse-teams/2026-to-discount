@@ -230,3 +230,36 @@ push. 되돌리는 커밋이 워크플로 정의 파일 자체를 지웠기 때�
 
 **재발 방지**: 위 "작업 규칙" 절 신설(검증 직후 원상복구, 커밋 전
 `git status` 확인, push 후 CI 확인).
+
+---
+
+## 사고 기록 — 2026-08-14, PR#4 머지 직후 프로덕션 API 다운
+
+PR#4(PostHog outbox)를 머지(`f7031ba`)하자 `Build and Deploy API` 워크플로가
+자동 트리거됐고, 배포 뒤 헬스체크(`curl localhost:8088/api/brands`)가
+실패했다.
+
+**원인**: 서버 `/etc/delivery-discount-api.env`에 이미
+`DISCOUNT_POSTHOG_ENABLED=true`와 `POSTHOG_PROJECT_TOKEN`이 설정돼
+있었다(테스트 흔적이 아니라 실제로 기능을 켤 준비를 해둔 상태) — 그런데
+`DISCOUNT_POSTHOG_OUTBOX_PATH`는 없었다. 이번 PR에서 반영한 요청사항
+중 하나가 정확히 "forwarding 활성화 상태에서 경로 없으면 기동 실패"
+가드였고, 그게 의도대로 작동해 서버가 crash loop에 들어갔다
+(`PostHogProperties` 생성자에서 `IllegalStateException`).
+
+리뷰 시점에 로컬 테스트로는 이 경로를 못 잡는다 — 유닛테스트는 이
+가드가 "정상적으로 예외를 던지는지"만 확인하지, 실제 배포 환경에 이미
+`enabled=true`가 설정돼 있었는지는 코드 리뷰만으론 알 수 없다.
+
+**조치**: SSH로 서버 접속, env 파일에
+`DISCOUNT_POSTHOG_OUTBOX_PATH=/home/ubuntu/delivery-discount-api/data/posthog-outbox`
+추가 후 `systemctl restart delivery-discount-api`. `active` 상태 및
+`/api/brands` 200 확인, `/api/events`로 실제 이벤트 전송해 outbox
+`pending`/`dead-letter` 디렉토리가 정상 생성되는 것까지 확인. 기능을
+끄는 대신 애초 의도(PostHog 실제로 켜기)대로 경로를 채워 살렸다.
+
+**재발 방지 — PR 요청사항에 배포 설정이 얽혀 있으면**: "환경변수/설정
+필수화" 류의 가드를 요청하거나 반영 확인할 때는, 머지 전에 실제
+배포 환경(서버 env 파일)에 그 설정이 이미 켜져 있는지 먼저 확인한다.
+이번엔 서버 상태를 확인하지 않고 코드 diff와 로컬 테스트만으로
+"반영 확인, 머지 진행"이라고 판단했다 — 그게 이 사고의 진짜 원인이다.
