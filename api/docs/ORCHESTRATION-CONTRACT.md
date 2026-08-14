@@ -137,7 +137,8 @@ priority:  int               프론트는 안 읽는다(서버가 이미 정렬�
 ```
 
 - 응답: `{"accepted": <int>}` (200) 또는 429(레이트리밋 초과, 바디 없음).
-  깨진/빈 본문은 에러 없이 `{"accepted": 0}`.
+  깨진/빈 본문은 에러 없이 `{"accepted": 0}`. `accepted`는 원본
+  `events.jsonl` 기록 건수이며 PostHog 도착을 의미하지 않는다.
 - 서버 측 정제: 배치 최대 20건, 문자열 필드 120자 컷, `props` 최대 6개
   키(`EventController.java:37-39`), `event`가 화이트리스트 밖이면 그 항목만
   조용히 버림(배치 전체는 실패 안 함).
@@ -151,6 +152,18 @@ priority:  int               프론트는 안 읽는다(서버가 이미 정렬�
   - `membership_open`
   - `capture_note_seen`
   - `banner_click` (props `{brand, platform, position}` — `position`은 `top`/`bottom`)
+  - `platform_filter_toggle`
+  - `filters_reset`
+  - `title_bar_hide_toggle`
+  - `brands_retry`
+  - `scroll_to_top`
+- 서버는 수용한 이벤트에 `eventId`를 발급해 JSONL에 기록한다. PostHog 전달이
+  활성화되면 이를 `$insert_id`로 사용하고 `page_view`를 `$pageview`로 바꾼다.
+- PostHog 전달은 영속 outbox를 거치는 비동기 부가 경로다. 외부 장애는 이
+  엔드포인트 응답에 전파하지 않는다. 실패는 1시간 간격, 최초 포함 최대 5회
+  시도 후 dead-letter로 이동한다.
+- `ipHash`와 `dev=true` 이벤트는 PostHog payload에 포함하지 않는다.
+- `visitorId`가 없는 이벤트는 원본에는 기록하지만 PostHog outbox에는 넣지 않는다.
 
 ### GET /api/stats/traffic?days={n}
 
