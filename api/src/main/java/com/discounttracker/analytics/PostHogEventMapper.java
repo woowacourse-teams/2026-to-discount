@@ -45,16 +45,15 @@ public class PostHogEventMapper {
         properties.put("$insert_id", source.eventId());
 
         String eventName = "page_view".equals(source.event()) ? "$pageview" : source.event();
-        String timestamp = timestamp(source.clientTs(), source.ts());
+        String timestamp = timestamp(source.ts());
         return Optional.of(new PostHogEvent(
                 eventName,
                 Collections.unmodifiableMap(new LinkedHashMap<>(properties)),
                 timestamp));
     }
 
-    private String timestamp(String clientTimestamp, String serverTimestamp) {
-        Instant parsed = parse(clientTimestamp);
-        if (parsed == null) parsed = parse(serverTimestamp);
+    private String timestamp(String serverTimestamp) {
+        Instant parsed = parse(serverTimestamp);
         return (parsed == null ? clock.instant() : parsed).toString();
     }
 

@@ -66,7 +66,7 @@ IP)`를 16진수 8바이트로 잘라 `ipHash`로 남긴다.
 | `clientTs` | 클라이언트 측 타임스탬프(있으면) |
 | `ipHash` | 위 프라이버시 절 참고 |
 | `dev` | 본인 테스트 트래픽 표시(2026-07-31 추가). 아래 참고 |
-| `eventId` | 서버가 발급한 UUID. PostHog 재전송 중복 방지용 `$insert_id` |
+| `eventId` | 클라이언트가 이벤트마다 발급한 UUID. 없거나 잘못된 값이면 서버가 발급하며, PostHog 재전송 중복 방지용 `$insert_id`로 사용 |
 
 ### 본인 테스트 트래픽 (`dev` 플래그)
 
@@ -97,7 +97,7 @@ PostHog 전달은 원본 수집과 분리된 부가 경로다. `EventLog`가
 - `visitorId` → `distinct_id`
 - `sessionId` → `source_session_id`
 - `eventId` → `$insert_id`
-- 유효한 `clientTs` → PostHog top-level `timestamp`
+- 서버 수신 시각 `ts` → PostHog top-level `timestamp`
 - `visitCount`, 페이지 컨텍스트와 정제된 `props` → event properties
 - `ipHash`와 `dev=true` → 전달하지 않음
 
@@ -105,13 +105,16 @@ PostHog 전달은 원본 수집과 분리된 부가 경로다. `EventLog`가
 원본 JSONL에만 남기고 outbox에는 등록하지 않는다.
 
 서버 소유 속성(`distinct_id`, `$insert_id` 등)은 클라이언트의 `props`가
-덮어쓸 수 없다. 응답 유실 후 같은 이벤트를 다시 보내더라도 `$insert_id`가
-같아 PostHog에서 중복 집계되지 않는다.
+덮어쓸 수 없다. 클라이언트가 이벤트 생성 시 발급한 유효한 `eventId`는 서버가
+그대로 `$insert_id`로 사용하므로, 같은 payload를 재전송해도 PostHog에서 중복
+집계되지 않는다. `eventId`가 없거나 잘못된 구버전 요청은 서버 UUID로 보완하므로
+요청 간 중복 제거까지는 보장하지 않고, 동일한 outbox 레코드의 재시도만 같은
+`$insert_id`를 유지한다.
 
 ### outbox와 재시도
 
-기본 경로는 `data/posthog-outbox`이며 운영에서는
-`DISCOUNT_POSTHOG_OUTBOX_PATH`로 jar 밖의 영속 경로를 지정한다.
+전달을 활성화할 때는 `DISCOUNT_POSTHOG_OUTBOX_PATH`로 jar 밖의 영속 경로를
+반드시 지정한다. 비활성 상태에서는 이 값이 없어도 시작할 수 있다.
 
 ```text
 posthog-outbox/

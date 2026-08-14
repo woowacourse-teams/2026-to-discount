@@ -106,7 +106,7 @@ public class EventController {
                     trim(in.clientTs()),
                     ipHash,
                     in.dev(),
-                    UUID.randomUUID().toString()));
+                    eventId(in.eventId())));
         }
         events.append(accepted);
         return ResponseEntity.ok(Map.of("accepted", accepted.size()));
@@ -127,6 +127,22 @@ public class EventController {
         return out;
     }
 
+    /** 유효한 클라이언트 UUID는 재전송에도 유지하고, 구버전·잘못된 값만 서버가 보완한다. */
+    private static String eventId(String value) {
+        if (value != null) {
+            String candidate = value.trim();
+            if (candidate.length() == 36) {
+                try {
+                    UUID parsed = UUID.fromString(candidate);
+                    if (parsed.toString().equalsIgnoreCase(candidate)) return candidate;
+                } catch (IllegalArgumentException ignored) {
+                    // 공개 엔드포인트이므로 잘못된 값은 요청 실패 대신 서버 UUID로 대체한다.
+                }
+            }
+        }
+        return UUID.randomUUID().toString();
+    }
+
     /** 클라이언트가 보내는 모양. 서버가 얹는 ts·ipHash는 여기 없다. */
     public record IncomingEvent(
             String event,
@@ -140,7 +156,8 @@ public class EventController {
             Long dwellMs,
             Map<String, String> props,
             String clientTs,
-            Boolean dev
+            Boolean dev,
+            String eventId
     ) {
     }
 }

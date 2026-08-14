@@ -19,6 +19,6 @@ discount:
     enabled: ${DISCOUNT_POSTHOG_ENABLED:false}
     project-token: ${POSTHOG_PROJECT_TOKEN:}
     host: ${POSTHOG_HOST:https://us.i.posthog.com}
-    outbox-path: ${DISCOUNT_POSTHOG_OUTBOX_PATH:data/posthog-outbox}
+    outbox-path: ${DISCOUNT_POSTHOG_OUTBOX_PATH:}
 server:
   port: 8080

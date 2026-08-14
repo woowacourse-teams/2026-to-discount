@@ -132,7 +132,8 @@ priority:  int               프론트는 안 읽는다(서버가 이미 정렬�
   "dwellMs": "number",
   "props": { "key": "value" },
   "clientTs": "string",
-  "dev": "boolean"
+  "dev": "boolean",
+  "eventId": "UUID string"
 }
 ```
 
@@ -157,8 +158,10 @@ priority:  int               프론트는 안 읽는다(서버가 이미 정렬�
   - `title_bar_hide_toggle`
   - `brands_retry`
   - `scroll_to_top`
-- 서버는 수용한 이벤트에 `eventId`를 발급해 JSONL에 기록한다. PostHog 전달이
-  활성화되면 이를 `$insert_id`로 사용하고 `page_view`를 `$pageview`로 바꾼다.
+- 서버는 클라이언트가 보낸 유효한 UUID 형식의 `eventId`를 JSONL에 그대로
+  기록한다. 값이 없거나 잘못된 구버전 요청만 서버 UUID로 보완한다. PostHog
+  전달이 활성화되면 이를 `$insert_id`로 사용하고 `page_view`를 `$pageview`로
+  바꾼다.
 - PostHog 전달은 영속 outbox를 거치는 비동기 부가 경로다. 외부 장애는 이
   엔드포인트 응답에 전파하지 않는다. 실패는 1시간 간격, 최초 포함 최대 5회
   시도 후 dead-letter로 이동한다.

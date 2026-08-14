@@ -19,16 +19,21 @@ public class PostHogProperties {
             @Value("${discount.posthog.enabled:false}") boolean enabled,
             @Value("${discount.posthog.project-token:}") String projectToken,
             @Value("${discount.posthog.host:https://us.i.posthog.com}") String host,
-            @Value("${discount.posthog.outbox-path:data/posthog-outbox}") String outboxPath) {
+            @Value("${discount.posthog.outbox-path:}") String outboxPath) {
         this.enabled = enabled;
         this.projectToken = projectToken == null ? "" : projectToken.trim();
         this.host = validateHost(host);
-        this.outboxPath = Path.of(outboxPath);
+        String normalizedOutboxPath = outboxPath == null ? "" : outboxPath.trim();
 
         if (enabled && this.projectToken.isBlank()) {
             throw new IllegalStateException(
                     "discount.posthog.enabled=true지만 POSTHOG_PROJECT_TOKEN이 비어 있다");
         }
+        if (enabled && normalizedOutboxPath.isBlank()) {
+            throw new IllegalStateException(
+                    "discount.posthog.enabled=true면 DISCOUNT_POSTHOG_OUTBOX_PATH가 필요하다");
+        }
+        this.outboxPath = Path.of(normalizedOutboxPath);
     }
 
     private static URI validateHost(String value) {

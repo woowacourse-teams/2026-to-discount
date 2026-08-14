@@ -152,9 +152,9 @@ DISCOUNT_POSTHOG_OUTBOX_PATH=/home/ubuntu/delivery-discount-api/data/posthog-out
 `posthog-outbox/dead-letter/`로 이동한다. pending과 dead-letter에는
 `ipHash`를 저장하지 않고 `dev=true` 이벤트는 등록하지 않는다.
 
-`DISCOUNT_POSTHOG_ENABLED=true`인데 토큰이 없거나 outbox 디렉터리를 준비할
-수 없으면 애플리케이션 시작이 실패한다. 실행 중 PostHog 장애는
-`/api/events`의 JSONL 기록과 `accepted` 응답에 영향을 주지 않는다.
+`DISCOUNT_POSTHOG_ENABLED=true`인데 토큰·명시적인 outbox 경로가 없거나
+outbox 디렉터리를 준비할 수 없으면 애플리케이션 시작이 실패한다. 실행 중
+PostHog 장애는 `/api/events`의 JSONL 기록과 `accepted` 응답에 영향을 주지 않는다.
 
 ### 집계 예시
 

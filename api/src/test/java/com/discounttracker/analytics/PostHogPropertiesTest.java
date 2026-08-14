@@ -18,8 +18,14 @@ class PostHogPropertiesTest {
     }
 
     @Test
-    void disabledForwardingCanStartWithoutToken(@TempDir Path dir) {
+    void enabledForwardingRequiresExplicitOutboxPath() {
+        assertThrows(IllegalStateException.class,
+                () -> new PostHogProperties(true, "token", "https://us.i.posthog.com", ""));
+    }
+
+    @Test
+    void disabledForwardingCanStartWithoutTokenOrOutboxPath() {
         assertDoesNotThrow(() -> new PostHogProperties(false, "",
-                "https://us.i.posthog.com", dir.toString()));
+                "https://us.i.posthog.com", ""));
     }
 }

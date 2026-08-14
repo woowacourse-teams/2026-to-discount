@@ -27,7 +27,7 @@ class PostHogEventMapperTest {
         PostHogEvent mapped = mapper.map(source).orElseThrow();
 
         assertEquals("$pageview", mapped.event());
-        assertEquals("2026-08-14T01:02:03Z", mapped.timestamp());
+        assertEquals("2026-08-14T02:00:00Z", mapped.timestamp());
         assertEquals("visitor-1", mapped.properties().get("distinct_id"));
         assertEquals("session-1", mapped.properties().get("source_session_id"));
         assertEquals("event-1", mapped.properties().get("$insert_id"));
@@ -50,11 +50,11 @@ class PostHogEventMapperTest {
     }
 
     @Test
-    void fallsBackToClockWhenClientAndServerTimestampsAreInvalid() {
+    void ignoresClientTimestampAndFallsBackToClockWhenServerTimestampIsInvalid() {
         VisitEvent source = new VisitEvent(
                 "invalid-server-time", "offer_link_click", "visitor-1", "session-1", 1,
                 "/", "direct", "mobile", "390x844", null, Map.of(),
-                "invalid-client-time", "private-ip-hash", false, "event-3");
+                "2026-08-14T01:02:03Z", "private-ip-hash", false, "event-3");
 
         assertEquals(NOW.toString(), mapper.map(source).orElseThrow().timestamp());
     }
