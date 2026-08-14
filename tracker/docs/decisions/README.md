@@ -23,3 +23,4 @@
 | [ADR-016](ADR-016-confirmed-beats-recency-on-dedup.md) | 중복 정리는 확정을 최신보다 우선, 상세는 병합 | 확정 |
 | [ADR-017](ADR-017-ddangyo-subtract-first-order-coupon.md) | 땡겨요 `최대 N원`은 첫주문 쿠폰 5,000원을 빼고 기록 | 확정 |
 | [ADR-018](ADR-018-original-repo-is-the-working-copy.md) | 개발은 이 저장소에서만, 모노레포엔 정해진 파일만 옮긴다 | 확정 |
+| [ADR-019](ADR-019-cumulative-tiers-and-domain-judged-amount.md) | 겹쳐 쓰는 쿠폰은 `tier_mode`, 정률 상한액은 `cap`으로 분리 | 확정 |

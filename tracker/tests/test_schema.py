@@ -121,18 +121,21 @@ def test_validate_record_rejects_non_list_tiers():
 
 def test_validate_record_keeps_percent_tier():
     # 요기요 실측(굽네치킨, 2026-07-31): 25,000원 이상 주문 시 5%,
-    # 최대 3,000원 할인 — 정률+상한. amount는 상한액, percent는 별도.
+    # 최대 3,000원 할인. amount는 그 문턱에서 실제 받는 금액(25,000 x 5%),
+    # 상한 3,000원은 cap이다(ADR-019).
     record = validate_record(dict(BASE, tiers=[
-        {"min_order": 25000, "amount": 3000, "percent": 5},
+        {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
     ]))
-    assert record["tiers"][0] == {"min_order": 25000, "amount": 3000, "percent": 5}
+    assert record["tiers"][0] == {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000}
 
 
 def test_validate_record_rejects_percent_out_of_range():
     with pytest.raises(ValueError):
-        validate_record(dict(BASE, tiers=[{"min_order": 25000, "amount": 3000, "percent": 0}]))
+        validate_record(dict(BASE, tiers=[
+            {"min_order": 25000, "amount": 1250, "percent": 0, "cap": 3000}]))
     with pytest.raises(ValueError):
-        validate_record(dict(BASE, tiers=[{"min_order": 25000, "amount": 3000, "percent": 101}]))
+        validate_record(dict(BASE, tiers=[
+            {"min_order": 25000, "amount": 1250, "percent": 101, "cap": 3000}]))
 
 
 def test_validate_record_keeps_channel_tier():
@@ -163,4 +166,76 @@ def test_validate_tiers_rejects_malformed_tier_expires_at():
     with pytest.raises(ValueError, match="expires_at"):
         validate_record(dict(BASE, tiers=[
             {"min_order": 18900, "amount": 4000, "expires_at": "2026.08.30"},
+        ]))
+
+
+def test_validate_tiers_requires_cap_with_percent():
+    # 정률 tier의 amount는 "이 문턱에서 실제 받는 금액"이고 상한은 cap이다.
+    # percent만 있고 cap이 없으면 amount가 무슨 뜻인지 알 수 없다(ADR-019).
+    with pytest.raises(ValueError, match="cap"):
+        validate_record(dict(BASE, tiers=[
+            {"min_order": 25000, "amount": 1250, "percent": 5},
+        ]))
+
+
+def test_validate_tiers_rejects_cap_without_percent():
+    # 정액 tier에 상한은 뜻이 없다.
+    with pytest.raises(ValueError, match="cap"):
+        validate_record(dict(BASE, tiers=[
+            {"min_order": 17000, "amount": 4000, "cap": 5000},
+        ]))
+
+
+def test_validate_tiers_rejects_amount_over_cap():
+    with pytest.raises(ValueError, match="cap"):
+        validate_record(dict(BASE, tiers=[
+            {"min_order": 25000, "amount": 4000, "percent": 5, "cap": 3000},
+        ]))
+
+
+def test_validate_tiers_keeps_percent_with_cap():
+    # 요기요 굽네치킨 실측(2026-07-31): 25,000원 이상 5%, 최대 3,000원.
+    # 25,000 x 5% = 1,250이 그 문턱에서 실제 받는 금액이고 3,000은 상한.
+    record = validate_record(dict(BASE, tiers=[
+        {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
+    ]))
+    assert record["tiers"][0]["cap"] == 3000
+    assert record["tiers"][0]["amount"] == 1250
+
+
+def test_validate_record_tier_mode_defaults_to_exclusive():
+    record = validate_record(dict(BASE))
+    assert record["tier_mode"] == "exclusive"
+
+
+def test_validate_record_rejects_unknown_tier_mode():
+    with pytest.raises(ValueError, match="tier_mode"):
+        validate_record(dict(BASE, tier_mode="stacked"))
+
+
+def test_validate_record_keeps_cumulative_tier_mode():
+    # 요기요 굽네치킨 실측(2026-07-31): 고정 메뉴할인과 정률 쿠폰을
+    # 겹쳐 쓸 수 있다.
+    record = validate_record(dict(BASE, tier_mode="cumulative", qualifier="최소", tiers=[
+        {"min_order": 17000, "amount": 4000},
+        {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
+    ]))
+    assert record["tier_mode"] == "cumulative"
+
+
+def test_validate_record_rejects_cumulative_with_single_tier():
+    # 겹칠 상대가 없으면 cumulative가 뜻을 갖지 않는다.
+    with pytest.raises(ValueError, match="cumulative"):
+        validate_record(dict(BASE, tier_mode="cumulative", qualifier="최소", tiers=[
+            {"min_order": 17000, "amount": 4000},
+        ]))
+
+
+def test_validate_record_rejects_cumulative_without_minimum_qualifier():
+    # cumulative의 대표값은 사다리 최저 문턱이라 "최소" 표기여야 한다.
+    # 도메인이 qualifier를 덮어쓰는 대신 여기서 강제한다(ADR-019).
+    with pytest.raises(ValueError, match="qualifier"):
+        validate_record(dict(BASE, tier_mode="cumulative", qualifier="최대", tiers=[
+            {"min_order": 17000, "amount": 4000},
+            {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
         ]))

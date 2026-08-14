@@ -58,15 +58,16 @@ def test_build_export_carries_detail_fields_as_camel_case():
 
 
 def test_build_export_carries_percent_tier():
-    # 요기요 실측(굽네치킨, 2026-07-31): 정률+상한 tier도 percent가
-    # export.json까지 살아남아야 한다 — 정액 tier는 그대로 없어야 한다.
+    # 요기요 실측(굽네치킨, 2026-07-31): 정률 tier는 percent와 cap이 같이
+    # 살아남아야 한다. amount는 그 문턱에서 실제 받는 금액(25,000 x 5%),
+    # cap은 상한(60,000원 주문에서야 닿는다) — ADR-019.
     records = [dict(RECORDS[1], tiers=[
-        {"min_order": 25000, "amount": 3000, "percent": 5},
+        {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
         {"min_order": 17000, "amount": 4000},
     ])]
     item = build_export(records)[0]
     assert item["tiers"] == [
-        {"minOrder": 25000, "amount": 3000, "percent": 5},
+        {"minOrder": 25000, "amount": 1250, "percent": 5, "cap": 3000},
         {"minOrder": 17000, "amount": 4000},
     ]
 
@@ -311,3 +312,30 @@ def test_tier_level_expiry_also_keeps_an_older_sweep():
     brands = sorted(o["brand"] for o in build_export([old, new], today="2026-08-10"))
 
     assert brands == ["이번주", "지난주"]
+
+
+def test_build_export_carries_tier_mode():
+    records = [dict(RECORDS[1], tier_mode="cumulative", tiers=[
+        {"min_order": 17000, "amount": 4000},
+        {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
+    ])]
+    item = build_export(records)[0]
+    assert item["tierMode"] == "cumulative"
+
+
+def test_build_export_defaults_tier_mode_to_exclusive():
+    # 기존 원장 레코드는 이 필드가 없다 — 없으면 exclusive다.
+    item = build_export(RECORDS)[0]
+    assert item["tierMode"] == "exclusive"
+
+
+def test_camel_tiers_carries_cap():
+    # 정률 tier의 상한액(ADR-019). 정액 tier에는 붙지 않는다.
+    out = camel_tiers([
+        {"min_order": 17000, "amount": 4000},
+        {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
+    ])
+    assert out == [
+        {"minOrder": 17000, "amount": 4000},
+        {"minOrder": 25000, "amount": 1250, "percent": 5, "cap": 3000},
+    ]

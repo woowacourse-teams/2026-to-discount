@@ -2,7 +2,7 @@ import re
 
 ALLOWED_PLATFORMS = {"baemin", "coupangeats", "yogiyo", "ddangyo", "specialdelivery"}
 EXPIRES_AT_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-ALLOWED_QUALIFIERS = {None, "최대", "최소"}
+ALLOWED_QUALIFIERS = {None, "최대", "최소", "특정메뉴"}
 ALLOWED_SCOPES = {"brand", "store"}
 ALLOWED_OFFER_TYPES = {"discount", "gift", "coupon", "unknown"}
 # backfill: 원장이 아니라 export.json에 먼저 들어갔던 관측을 뒤늦게 원장으로
@@ -11,6 +11,11 @@ ALLOWED_OFFER_TYPES = {"discount", "gift", "coupon", "unknown"}
 # 신뢰도로 취급하면 안 되므로 출처를 구분해서 남긴다.
 ALLOWED_CAPTURE_MODES = {"auto", "manual", "backfill"}
 ALLOWED_CHANNELS = {"배달", "포장", "매장식사"}
+# 한 레코드의 tiers를 어떻게 읽을지. "exclusive"는 문턱마다 택일(지금까지의
+# 해석), "cumulative"는 문턱을 넘을수록 쿠폰이 겹친다(요기요 2단 실측,
+# 굽네치킨 2026-07-31). tier마다 플래그를 달지 않고 레코드 레벨로 둔 이유는
+# 읽는 쪽이 tier를 하나씩 살피지 않고 한 번에 갈래를 정하게 하려는 것이다.
+ALLOWED_TIER_MODES = {"exclusive", "cumulative"}
 
 REQUIRED_FIELDS = (
     "platform", "brand", "raw_text", "captured_at",
@@ -45,6 +50,7 @@ DEFAULTS = {
     # 5,000원과 하루짜리 청피데이 9,000원이 한 레코드에 같이 있었고,
     # 레코드 종료일만 보고 살아있는 5,000원까지 통째로 내려버렸다
     # (2026-08-06). 비어 있으면 레코드의 expires_at을 따른다.
+    "tier_mode": "exclusive",
     "tiers": None,
     "conditions": None,         # 그 외 문구 그대로 (예: "1일 1회, 배달만")
     "expires_at": None,         # 쿠폰 종료일(YYYY-MM-DD). 앱에 "~2026.08.31 사용가능"처럼 날짜만 나온다.
@@ -75,6 +81,13 @@ def validate_tiers(tiers) -> None:
             raise ValueError(f"tier needs min_order and amount: {tier!r}")
         if "percent" in tier and not (isinstance(tier["percent"], (int, float)) and 0 < tier["percent"] <= 100):
             raise ValueError(f"tier percent must be in (0, 100]: {tier!r}")
+        # 정률 tier의 amount는 "이 문턱에서 실제 받는 금액"이고, 상한은 cap이
+        # 따로 든다. 예전엔 amount가 상한을 겸했는데 같은 필드가 정액 tier에선
+        # 받는 금액, 정률 tier에선 상한을 뜻해 실제로 오독을 낳았다(ADR-019).
+        if ("percent" in tier) != ("cap" in tier):
+            raise ValueError(f"tier percent and cap must come together: {tier!r}")
+        if "cap" in tier and tier["amount"] is not None and tier["amount"] > tier["cap"]:
+            raise ValueError(f"tier amount must not exceed cap: {tier!r}")
         if "channel" in tier and tier["channel"] not in ALLOWED_CHANNELS:
             raise ValueError(f"invalid tier channel: {tier!r}")
         if "sold_out" in tier and not isinstance(tier["sold_out"], bool):
@@ -107,6 +120,14 @@ def validate_record(record: dict) -> dict:
         raise ValueError(f"invalid scope: {normalized['scope']!r}")
     if normalized["offer_type"] not in ALLOWED_OFFER_TYPES:
         raise ValueError(f"invalid offer_type: {normalized['offer_type']!r}")
+    if normalized["tier_mode"] not in ALLOWED_TIER_MODES:
+        raise ValueError(f"invalid tier_mode: {normalized['tier_mode']!r}")
+    if normalized["tier_mode"] == "cumulative":
+        if not normalized["tiers"] or len(normalized["tiers"]) < 2:
+            raise ValueError(f"cumulative needs at least two tiers: {normalized['tiers']!r}")
+        if normalized["qualifier"] != "최소":
+            raise ValueError(
+                f"cumulative record must use qualifier '최소': {normalized['qualifier']!r}")
     validate_tiers(normalized["tiers"])
 
     return normalized
