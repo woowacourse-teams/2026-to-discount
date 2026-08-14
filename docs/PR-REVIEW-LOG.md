@@ -146,6 +146,54 @@ stale인 걸 아무도 몰랐던 사고)이 동기.
 
 ---
 
+## #4 — feat: PostHog 이벤트 영속 outbox 전달 추가
+
+- 링크: https://github.com/woowacourse-teams/2026-to-discount/pull/4
+- 작성자: everypine
+- 상태: 리뷰완료, 반영대기(코멘트 게시)
+
+### 규모
+24개 파일, +1272줄. 커밋 2개(`a81acf39` 기능, `0f79ff5d` 문서). 핵심:
+`AnalyticsEventService`(경계 조정) · `PostHogOutbox`(파일 기반 영속
+큐, pending/dead-letter) · `PostHogForwardingWorker`(단일 스레드,
+5회 재시도 1시간) · `PostHogEventMapper`(필드 매핑) · `PostHogClient`.
+dev 트래픽·visitorId 없는 이벤트 전달 제외, ipHash 외부 미전달, 기본
+비활성.
+
+### CodeRabbit 지적 5건 — 직접 코드 대조 (2026-08-14)
+- [x] ~~"EventController가 AnalyticsEventService를 안 거치고 EventLog를
+  직접 부른다"~~ — **오탐.** `EventController`는 `AnalyticsEventService
+  events` 필드를 주입받아 `events.append(accepted)`로 호출하고, 그 안에서
+  `eventLog.append()` → outbox enqueue → `worker.trigger()` 순서로
+  이어진다(`AnalyticsEventService.java` 32-48행 직접 읽음). EventLog를
+  우회하는 경로 없음. CodeRabbit이 리네임 전 코드나 다른 리비전을 보고
+  낸 판단으로 보인다 — PR 코멘트에 반영 불필요라고 명시했다.
+- [ ] resend 중복제거 문서·구현 불일치 — `IncomingEvent`에 `eventId`
+  없음, 서버가 요청마다 새 UUID 발급(`EventController.java`
+  `UUID.randomUUID().toString()`). 재전송 시 PostHog에 중복 이벤트
+  가능. **유효.**
+- [ ] `PostHogEventMapper.timestamp()`가 `clientTs`를 `ts`보다 우선
+  — 문서 계약(`ts` → PostHog `timestamp`)과 어긋남. 코드 직접
+  확인(`PostHogEventMapper.java` `timestamp()` 메서드, clientTs 먼저
+  파싱 시도). **유효.**
+- [ ] `PostHogProperties` — forwarding 활성화 상태에서
+  `DISCOUNT_POSTHOG_OUTBOX_PATH` 미설정 시 상대경로
+  `data/posthog-outbox`로 조용히 폴백(`@Value(...:data/posthog-outbox)`
+  확인). 재시작 시 pending 유실 위험. **유효.**
+- [ ] (nitpick) `PostHogForwardingWorker.trigger()`가 요청마다 단일
+  스레드 executor(`Executors.newSingleThreadExecutor`, 무제한 큐)에
+  스캔을 큐잉 — `processDue()`가 while(true)로 다 비우므로 데이터
+  유실은 없지만 버스트 시 중복 스캔 낭비. 급하지 않음.
+
+### 요청사항 (내가 남김, [코멘트](https://github.com/woowacourse-teams/2026-to-discount/pull/4#issuecomment-5291486746))
+- resend 중복제거, 타임스탬프 우선순위, outbox 경로 강제 — 3건 반영
+  요청. 반영되면 재검토.
+
+### 다음
+- 3건 반영 확인되면 머지. PR 열어둔 채 대기.
+
+---
+
 ## 사고 기록 — 2026-08-14, PR#2 검증 파일이 main에 직접 커밋됨
 
 PR#2를 로컬에서 실행 검증하려고 `git checkout pr-2 -- <path>`로 스크립트
