@@ -147,4 +147,33 @@ class OfferRepositoryTest {
             """);
         assertEquals(OfferStatus.HELD, repo.findAll().get(0).status());
     }
+
+    @Test
+    void readsCapOnPercentTier() {
+        // 요기요 굽네치킨 실측(2026-07-31): amount는 그 문턱에서 실제 받는
+        // 금액(25,000 x 5% = 1,250)이고 cap이 상한 3,000원이다(ADR-019).
+        OfferRepository repo = repositoryFor("""
+            [{"platform":"yogiyo","brand":"굽네치킨","amount":4000,"qualifier":"최소",
+              "needsReview":false,"offerType":"discount","section":null,
+              "rawText":"최소 4,000원","capturedAt":"2026-07-31T10:00:00+09:00",
+              "screenshotPath":"x.jpg",
+              "tiers":[{"minOrder":17000,"amount":4000},
+                       {"minOrder":25000,"amount":1250,"percent":5,"cap":3000}]}]
+            """);
+        DiscountTier percentTier = repo.findAll().get(0).tiers().get(1);
+        assertEquals(1250, percentTier.amount());
+        assertEquals(5, percentTier.percent());
+        assertEquals(3000, percentTier.cap());
+    }
+
+    @Test
+    void capIsNullOnFixedTier() {
+        OfferRepository repo = repositoryFor("""
+            [{"platform":"yogiyo","brand":"굽네치킨","amount":4000,"qualifier":null,
+              "needsReview":false,"offerType":"discount","section":null,
+              "rawText":"4,000원","capturedAt":"2026-07-31T10:00:00+09:00",
+              "screenshotPath":"x.jpg","tiers":[{"minOrder":17000,"amount":4000}]}]
+            """);
+        assertNull(repo.findAll().get(0).tiers().get(0).cap());
+    }
 }

@@ -46,6 +46,7 @@ class BrandControllerTest {
            .andExpect(jsonPath("$[0].offers[0].capturedAt").exists())
            .andExpect(jsonPath("$[0].offers[0]", org.hamcrest.Matchers.hasKey("minOrderAmount")))
            .andExpect(jsonPath("$[0].offers[0]", org.hamcrest.Matchers.hasKey("tiers")))
+           .andExpect(jsonPath("$[0].offers[0]", org.hamcrest.Matchers.hasKey("tierMode")))
            .andExpect(jsonPath("$[0].offers[0]", org.hamcrest.Matchers.hasKey("conditions")))
            // 내부 표현이 응답에 새면 안 된다
            .andExpect(jsonPath("$[0].brand").doesNotExist())

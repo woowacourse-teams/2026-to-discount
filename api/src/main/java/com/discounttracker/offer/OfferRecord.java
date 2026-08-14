@@ -24,6 +24,12 @@ public record OfferRecord(
         String capturedAt,
         String screenshotPath,
         Integer minOrderAmount,
+        // 이 레코드의 tiers를 택일로 볼지 누적으로 볼지. "cumulative"면
+        // 쿠폰 여러 장을 겹쳐 쓴다는 뜻이라 대표값을 사다리에서 계산한다
+        // (tracker ADR-019). null 허용이다 — tracker가 이 필드를 실어
+        // 보내기 전의 export.json에는 키 자체가 없고, 없으면 지금까지의
+        // 해석(택일)이다.
+        String tierMode,
         List<DiscountTier> tiers,
         String conditions,
         String expiresAt,
@@ -43,6 +49,25 @@ public record OfferRecord(
      */
     public OfferStatus status() {
         return amount != null && !needsReview ? OfferStatus.CONFIRMED : OfferStatus.HELD;
+    }
+
+    /** 쿠폰을 겹쳐 쓰는 오퍼인가. 모르면(null) 아니다 — 지금까지의 해석이 택일이다. */
+    public boolean isCumulative() {
+        return "cumulative".equals(tierMode);
+    }
+
+    /**
+     * 오늘 실제로 받을 수 있는 구간 — 만료된 것과 품절된 것을 뺀 나머지.
+     *
+     * <p>{@link #liveTiers}는 만료만 본다. 상세 패널에는 품절 구간도
+     * "품절"이라고 보여줘야 하기 때문이다. 반면 금액을 더할 때는 품절 구간을
+     * 빼야 한다 — 못 받는 금액을 더하면 카드가 실제보다 큰 값을 말한다
+     * (쿠팡이츠 메가MGC커피 실측: 20,000원 구간이 품절이라 대표값이 6,000원).
+     */
+    private List<DiscountTier> claimableTiers(LocalDate today) {
+        return liveTiers(today).stream()
+                .filter(t -> !Boolean.TRUE.equals(t.soldOut()))
+                .toList();
     }
 
     /**
@@ -97,8 +122,20 @@ public record OfferRecord(
      * 멤버십 7,500원인데 대표값은 4,000원). 그 조건들은 구간에 실려 있지 않아
      * 여기서 다시 만들 수 없다 — 남은 구간 중 최대가 대표값보다 크더라도
      * 그건 일반 사용자가 못 받는 금액일 수 있으므로 손대지 않는다.
+     *
+     * <p><b>겹쳐 쓰는 오퍼는 다르다.</b> {@code tierMode}가 {@code "cumulative"}면
+     * 대표값을 사다리에서 계산한다({@link DiscountLadder}). 겹친다는 사실이
+     * 데이터에 실려 있어 계산에 필요한 정보가 전부 있으므로, 아래의 "올리지
+     * 않는다"가 적용되지 않는다(ADR-010).
      */
     public Integer amountAsOf(LocalDate today) {
+        if (isCumulative()) {
+            if (tiers == null || tiers.isEmpty()) {
+                return amount;
+            }
+            Integer floor = DiscountLadder.of(claimableTiers(today)).floorAmount();
+            return floor != null ? floor : amount;
+        }
         if (tiers == null || tiers.isEmpty() || amount == null) {
             return amount;
         }

@@ -19,7 +19,7 @@ import java.util.List;
 public record Offer(String platform, Integer amount, String qualifier,
                     @JsonIgnore OfferStatus status,
                     String rawText, @JsonIgnore String screenshotPath, String capturedAt,
-                    Integer minOrderAmount, List<DiscountTier> tiers, String conditions,
+                    Integer minOrderAmount, String tierMode, List<DiscountTier> tiers, String conditions,
                     String expiresAt, String badge, boolean soldOut) {
 
     /**
@@ -32,7 +32,7 @@ public record Offer(String platform, Integer amount, String qualifier,
     public static Offer from(OfferRecord r, LocalDate today) {
         return new Offer(r.platform(), r.amountAsOf(today), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
-                r.minOrderAmount(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
+                r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
                 Boolean.TRUE.equals(r.soldOut()));
     }
 
@@ -112,6 +112,6 @@ public record Offer(String platform, Integer amount, String qualifier,
         // soldOut은 병합하지 않는다 — 이긴 쪽 자신의 amount에 매인 상태라
         // 진 쪽에서 옮겨 붙이면 관계없는 확정 레코드가 잘못 품절로 보인다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                mergedMinOrder, mergedTiers, mergedConditions, mergedExpiresAt, mergedBadge, soldOut);
+                mergedMinOrder, tierMode, mergedTiers, mergedConditions, mergedExpiresAt, mergedBadge, soldOut);
     }
 }
