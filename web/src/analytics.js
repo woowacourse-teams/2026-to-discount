@@ -38,6 +38,18 @@ function randomId(prefix) {
   return prefix + Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
 }
 
+// 이벤트마다 한 번만 발급하는 UUID다. 이 객체가 메모리 큐에 남아 있는 동안
+// sendBeacon 실패 뒤 fetch로 폴백해도 같은 eventId가 PostHog $insert_id까지 간다.
+function createEventId() {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  bytes[6] = (bytes[6] & 0x0f) | 0x40
+  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+
 function identity() {
   let visitorId = safeStore(localStorage, VISITOR_KEY)
   if (!visitorId) visitorId = safeStore(localStorage, VISITOR_KEY, randomId('v_'))
@@ -128,6 +140,7 @@ function flush(useBeacon = false) {
 export function track(event, props) {
   if (optedOut()) return
   queue.push({
+    eventId: createEventId(),
     event,
     ...context,
     path: location.pathname,
@@ -157,6 +170,7 @@ function sendExit() {
   accumulate()
   exitSent = true
   queue.push({
+    eventId: createEventId(),
     event: 'page_exit',
     ...context,
     path: location.pathname,
