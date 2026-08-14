@@ -17,6 +17,8 @@ import java.util.Map;
  * @param ipHash     원본 IP가 아니라 날짜별 솔트로 해시한 값(하루 지나면 연결 불가).
  * @param dev        개발자 본인의 테스트 트래픽 표시({@code ?dev=1}로 켬). 집계 시
  *                   {@code jq 'select(.dev != true)'}로 제외한다.
+ * @param eventId    클라이언트가 부여한 이벤트 UUID. 없거나 잘못된 값이면 서버가 발급하며,
+ *                   외부 분석 도구 재전송 시 중복 방지에 쓴다.
  */
 public record VisitEvent(
         String ts,
@@ -32,6 +34,7 @@ public record VisitEvent(
         Map<String, String> props,
         String clientTs,
         String ipHash,
-        Boolean dev
+        Boolean dev,
+        String eventId
 ) {
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -25,7 +26,8 @@ class TrafficStatsServiceTest {
         if (tsOffsetFromNow != null) {
             ts = OffsetDateTime.parse(tsOffsetFromNow).toString();
         }
-        return new VisitEvent(ts, event, visitorId, sessionId, 1, path, referrer, device, null, dwellMs, props, null, "hash", dev);
+        return new VisitEvent(ts, event, visitorId, sessionId, 1, path, referrer, device,
+                null, dwellMs, props, null, "hash", dev, "event-id");
     }
 
     private EventLog logWith(Path dir, List<VisitEvent> events) {
@@ -107,6 +109,20 @@ class TrafficStatsServiceTest {
         assertEquals(1, stats.uniqueVisitors());
         assertEquals(1L, stats.eventCounts().get("page_view"));
         assertNull(stats.eventCounts().get("offer_link_click"));
+    }
+
+    @Test
+    void readsExistingLogWithoutEventId(@TempDir Path dir) throws Exception {
+        Path path = dir.resolve("events.jsonl");
+        Files.writeString(path, """
+                {"ts":"%s","event":"page_view","visitorId":"v_old","sessionId":"s_old","visitCount":1,"path":"/","referrer":"direct","device":"mobile","dev":false}
+                """.formatted(OffsetDateTime.now()));
+
+        TrafficStats stats = new TrafficStatsService(
+                new EventLog(path.toString(), new ObjectMapper())).compute(7);
+
+        assertEquals(1, stats.totalEvents());
+        assertEquals(1, stats.uniqueVisitors());
     }
 
     @Test

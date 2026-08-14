@@ -14,7 +14,9 @@
   객체(전부 optional).
 - **허용 이벤트 화이트리스트**: `page_view`, `page_exit`, `category_change`,
   `classify_change`, `brand_expand`, `offer_link_click`, `membership_open`,
-  `capture_note_seen`. 목록에 없는 `event` 값은 조용히 버려진다.
+  `capture_note_seen`, `banner_click`, `platform_filter_toggle`, `filters_reset`,
+  `title_bar_hide_toggle`, `brands_retry`, `scroll_to_top`. 목록에 없는 `event`
+  값은 조용히 버려진다.
 - **배치 상한**: 요청 하나당 최대 20건(넘으면 앞의 20건만 처리).
 - **필드 길이 제한**: 문자열 필드는 120자로 잘리고, `props`는 키 6개까지만
   유지된다(악성/비대 payload 방어).
@@ -64,6 +66,7 @@ IP)`를 16진수 8바이트로 잘라 `ipHash`로 남긴다.
 | `clientTs` | 클라이언트 측 타임스탬프(있으면) |
 | `ipHash` | 위 프라이버시 절 참고 |
 | `dev` | 본인 테스트 트래픽 표시(2026-07-31 추가). 아래 참고 |
+| `eventId` | 클라이언트가 이벤트마다 발급한 UUID. 없거나 잘못된 값이면 서버가 발급하며, PostHog 재전송 중복 방지용 `$insert_id`로 사용 |
 
 ### 본인 테스트 트래픽 (`dev` 플래그)
 
@@ -79,6 +82,63 @@ IP)`를 16진수 8바이트로 잘라 `ipHash`로 남긴다.
 ```bash
 jq -c 'select(.dev != true)' events.jsonl
 ```
+
+## PostHog 자동 전달
+
+PostHog 전달은 원본 수집과 분리된 부가 경로다. `EventLog`가
+`events.jsonl` 기록을 마친 뒤 `AnalyticsEventService`가 정제된 payload를
+파일 outbox에 등록하고, 단일 worker가 PostHog `/batch/`로 전달한다.
+`POST /api/events`의 `accepted`는 PostHog 도착 건수가 아니라 원본 JSONL에
+기록된 건수다.
+
+### 변환 규칙
+
+- `page_view` → `$pageview`
+- `visitorId` → `distinct_id`
+- `sessionId` → `source_session_id`
+- `eventId` → `$insert_id`
+- 서버 수신 시각 `ts` → PostHog top-level `timestamp`
+- `visitCount`, 페이지 컨텍스트와 정제된 `props` → event properties
+- `ipHash`와 `dev=true` → 전달하지 않음
+
+`visitorId`가 없는 이벤트는 PostHog의 필수 `distinct_id`를 만들 수 없으므로
+원본 JSONL에만 남기고 outbox에는 등록하지 않는다.
+
+서버 소유 속성(`distinct_id`, `$insert_id` 등)은 클라이언트의 `props`가
+덮어쓸 수 없다. 클라이언트가 이벤트 생성 시 발급한 유효한 `eventId`는 서버가
+그대로 `$insert_id`로 사용하므로, 같은 payload를 재전송해도 PostHog에서 중복
+집계되지 않는다. `eventId`가 없거나 잘못된 구버전 요청은 서버 UUID로 보완하므로
+요청 간 중복 제거까지는 보장하지 않고, 동일한 outbox 레코드의 재시도만 같은
+`$insert_id`를 유지한다.
+
+### outbox와 재시도
+
+전달을 활성화할 때는 `DISCOUNT_POSTHOG_OUTBOX_PATH`로 jar 밖의 영속 경로를
+반드시 지정한다. 비활성 상태에서는 이 값이 없어도 시작할 수 있다.
+
+```text
+posthog-outbox/
+├── pending/{eventId}.json
+└── dead-letter/{eventId}.json
+```
+
+pending 파일은 임시 파일 작성 후 원자적으로 이동한다. worker는 HTTP 요청
+전에 `attemptCount`를 올리고 다음 시도 시각을 저장한다. 실패하면 1시간 뒤
+다시 시도하며 최초 시도를 포함해 최대 5회만 전송한다. 다섯 번째 실패 파일은
+마지막 오류와 실패 시각을 기록해 dead-letter로 이동하고 자동 재시도를
+중단한다.
+
+기능은 기본적으로 꺼져 있다. 운영 활성화에 필요한 환경변수:
+
+```bash
+DISCOUNT_POSTHOG_ENABLED=true
+POSTHOG_PROJECT_TOKEN=<project-token>
+POSTHOG_HOST=https://us.i.posthog.com
+DISCOUNT_POSTHOG_OUTBOX_PATH=/home/ubuntu/delivery-discount-api/data/posthog-outbox
+```
+
+활성 상태에서 토큰이 비어 있거나 outbox를 준비할 수 없으면 시작을 실패시킨다.
+PostHog의 HTTP 오류·타임아웃·네트워크 오류는 원본 수집 응답에 전파하지 않는다.
 
 ## 통계 조회 (신규)
 

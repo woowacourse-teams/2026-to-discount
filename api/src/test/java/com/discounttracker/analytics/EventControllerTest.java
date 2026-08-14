@@ -11,7 +11,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -40,6 +42,44 @@ class EventControllerTest {
                             """)))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.accepted").value(1));
+    }
+
+    @Test
+    void preservesValidClientEventIdAcrossRepeatedRequests() throws Exception {
+        String eventId = UUID.randomUUID().toString();
+        String body = batch("""
+                {"event":"page_view","visitorId":"v_stable","sessionId":"s_stable",
+                 "visitCount":1,"path":"/","device":"mobile","eventId":"%s"}
+                """.formatted(eventId));
+
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON).content(body))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.accepted").value(1));
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON).content(body))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.accepted").value(1));
+
+        String logged = Files.readString(Path.of(logPath));
+        String serializedId = "\"eventId\":\"" + eventId + "\"";
+        assertTrue(logged.indexOf(serializedId) != logged.lastIndexOf(serializedId));
+    }
+
+    @Test
+    void invalidClientEventIdFallsBackToServerUuid() throws Exception {
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content(batch("""
+                            {"event":"page_view","visitorId":"v_invalid_event_id",
+                             "sessionId":"s_1","eventId":"not-a-uuid"}
+                            """)))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.accepted").value(1));
+
+        String loggedEvent = Files.readString(Path.of(logPath)).lines()
+                .filter(line -> line.contains("\"visitorId\":\"v_invalid_event_id\""))
+                .reduce((first, second) -> second)
+                .orElseThrow();
+        assertTrue(loggedEvent.matches(".*\"eventId\":\"[0-9a-f-]{36}\".*"));
+        assertFalse(loggedEvent.contains("not-a-uuid"));
     }
 
     @Test
@@ -88,6 +128,7 @@ class EventControllerTest {
         String logged = Files.readString(Path.of(logPath));
         assertTrue(logged.contains("\"visitorId\":\"v_dev\""));
         assertTrue(logged.contains("\"dev\":true"));
+        assertTrue(logged.matches("(?s).*\"eventId\":\"[0-9a-f-]{36}\".*"));
     }
 
     @Test

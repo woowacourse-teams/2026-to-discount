@@ -15,5 +15,10 @@
 discount:
   export-path: ${DISCOUNT_EXPORT_PATH:classpath:data/export.json}
   banners-path: ${DISCOUNT_BANNERS_PATH:classpath:banners.yml}
+  posthog:
+    enabled: ${DISCOUNT_POSTHOG_ENABLED:false}
+    project-token: ${POSTHOG_PROJECT_TOKEN:}
+    host: ${POSTHOG_HOST:https://us.i.posthog.com}
+    outbox-path: ${DISCOUNT_POSTHOG_OUTBOX_PATH:}
 server:
   port: 8080
