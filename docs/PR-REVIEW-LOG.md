@@ -75,7 +75,7 @@
 
 - 링크: https://github.com/woowacourse-teams/2026-to-discount/pull/2
 - 작성자: miniminjae92
-- 상태: 리뷰 대기(diff 확보, 아직 내용 검토 전)
+- 상태: 리뷰완료, 반영대기(테스트 추가 요청, 코멘트 게시)
 
 ### 배경
 `docs/PROJECT-STRUCTURE.md`를 `git ls-files` 기반으로 자동 생성하고
@@ -96,8 +96,35 @@ stale인 걸 아무도 몰랐던 사고)이 동기.
   배포 권한 있는 러너에 접근하지 못하게 하려는 의도로 보임, 타당해 보임
 
 ### CodeRabbit
-- PR 작성 시점(2026-08-13) 기준 OSS 리뷰 한도 걸려 자동 리뷰 없음.
-  재확인 필요.
+- PR 작성 시점(2026-08-13) 기준 OSS 리뷰 한도 걸려 자동 리뷰 없음. 재확인
+  시점(2026-08-14)에도 여전히 rate limited — 이번 PR은 CodeRabbit 없이
+  직접 검증으로 갔다.
+
+### 검증 (2026-08-14, 로컬에서 직접 실행)
+- `python scripts/generate_project_structure.py`를 현재 main 기준 실행
+  — 예외 없이 통과. 재생성 diff가 그 사이 새로 생긴 파일
+  (`DiscountLadder.java`, `DiscountLadderTest.java`, `OfferRecordTest.java`,
+  `test_ledger_consistency.py`)만 정확히 잡아냄 — 로직 정상.
+- 엔드포인트 정규식(`@(Get|Post|Put|Delete|Patch)Mapping\("..."\)` 단일
+  문자열 형태만 매칭)을 api 컨트롤러 7개(`EventController`,
+  `StatsController`, `BannerController`, `BrandController`,
+  `TestDataController` 등) 전수 대조 — 전부 이 형태라 지금 시점
+  false-positive 없음. 작성자 본인이 제기한 위험(질문 #1)이지만 현재
+  코드베이스에선 실현 안 됨. 스타일이 바뀌면 `declared != parsed`로
+  fail-fast 걸리게 짜여 있다.
+- CI 워크플로(`check-project-structure.yml`) — `permissions: contents:
+  read`, `persist-credentials: false`, `ubuntu-latest`(self-hosted 배포
+  권한 러너 안 씀), path filter 없음(새 top-level 유닛·새 deploy-*.yml
+  놓치는 구멍 방지 목적으로 의도적) — 전부 근거 있고 타당. 작성자 질문
+  #3·#4 둘 다 보안 의식한 설계로 확인됨.
+- CI check 자체도 `pass` 확인.
+
+### 요청사항 (내가 남김, 2026-08-14)
+- [ ] 생성기 스크립트(436줄, fail-fast 가드 3종: 미분류 top-level
+  유닛 / 배포 워크플로 불일치 / 엔드포인트 매핑 수 불일치)에
+  유닛테스트가 없다. 지금은 수동 실행으로만 확인되고 회귀로 못 잡힌다.
+  각 가드가 실제로 raise하는 경로 하나씩만이라도 테스트 요청 —
+  [코멘트](https://github.com/woowacourse-teams/2026-to-discount/pull/2#issuecomment-5291400355)
 
 ### 다음
-- 코드 내용(스크립트 로직) 리뷰 안 함 — PR #1 마무리되는 대로 착수.
+- 테스트 반영 확인되면 머지. PR은 열어둔 채 대기, PR #4로 이동.
