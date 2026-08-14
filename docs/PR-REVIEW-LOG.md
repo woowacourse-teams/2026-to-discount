@@ -25,6 +25,21 @@
   받아들였다"가 아니라 "맞는지 확인했다"를 기록한다.
 ```
 
+## 작업 규칙 — PR 브랜치를 로컬에서 검증할 때
+
+2026-08-14 사고(아래 "사고 기록" 참고) 이후로 고정한다:
+
+1. `git checkout <pr-branch>` 또는 `git checkout <pr-branch> -- <path>`로
+   PR 내용을 로컬에 꺼낸 뒤에는, **그 검증이 끝나는 즉시** `git checkout main`
+   (또는 `git restore --staged --worktree <path>`)으로 되돌린다. 다음 작업
+   시작 전이 아니라 검증 직후다.
+2. `git status --short`로 워킹트리가 비어 있는지 확인하고 나서만 그다음
+   커밋(리뷰 로그든 뭐든)을 만든다. 조회용으로 꺼내둔 파일이 다음
+   `git add`에 같이 잡히는 게 이번 사고의 원인이었다 — 상태 확인 없이
+   연달아 커밋하지 않는다.
+3. 위 두 단계를 건너뛰고 커밋했다면, push 직후 `gh run list`로 그 커밋의
+   CI 결과를 확인한다. 실패했으면 바로 되돌리고 여기에 기록한다.
+
 ---
 
 ## #1 — docs: 원장 재생성 금지 서술을 해소 기록으로 전환
@@ -128,3 +143,32 @@ stale인 걸 아무도 몰랐던 사고)이 동기.
 
 ### 다음
 - 테스트 반영 확인되면 머지. PR은 열어둔 채 대기, PR #4로 이동.
+
+---
+
+## 사고 기록 — 2026-08-14, PR#2 검증 파일이 main에 직접 커밋됨
+
+PR#2를 로컬에서 실행 검증하려고 `git checkout pr-2 -- <path>`로 스크립트
+3개(`scripts/generate_project_structure.py`,
+`.github/workflows/check-project-structure.yml`,
+`docs/PROJECT-STRUCTURE.md`)를 워킹트리에 꺼냈다. 검증이 끝난 뒤 되돌리지
+않은 채로 이어서 "PR#2 리뷰 로그" 커밋을 만들었는데, 그 커밋이
+`docs/PR-REVIEW-LOG.md`만이 아니라 워킹트리에 남아 있던 그 3개 파일까지
+같이 담아 **main에 직접 push됐다**(`74d9632`). PR#2는 아직 유닛테스트
+보강을 요청해둔 상태라 리뷰 프로세스를 거치지 않은 코드가 main에 들어간
+것.
+
+CI(`Check Project Structure`)가 그 커밋에서 즉시 실패했다 — 커밋된
+`docs/PROJECT-STRUCTURE.md`가 PR#2 작성 시점 기준으로 생성된 것이라 그
+사이 main에 들어간 다른 변경(PR#1 등)과 맞지 않았다.
+
+**조치**: 3개 파일을 `git rm --cached` + 삭제로 되돌리고 `5f3ca27`로
+push. 되돌리는 커밋이 워크플로 정의 파일 자체를 지웠기 때문에
+`Check Project Structure`는 그 커밋에서 아예 실행되지 않았다(트리거
+평가가 그 커밋 시점의 워크플로 파일 존재 여부를 따름) — 별도 조치
+없이 실패한 체크가 사라진 상태로 정리됨. self-hosted 배포 워크플로
+(`Deploy Data`, `Build and Deploy API`)는 이 사고가 건드린 경로와
+무관해 애초에 실행되지 않았다 — 실서버엔 영향 없음.
+
+**재발 방지**: 위 "작업 규칙" 절 신설(검증 직후 원상복구, 커밋 전
+`git status` 확인, push 후 CI 확인).
