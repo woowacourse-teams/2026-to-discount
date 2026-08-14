@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict'
-import { pathToFileURL } from 'node:url'
 
 function store() {
   const values = new Map()
@@ -52,7 +51,7 @@ globalThis.fetch = async (_, options) => {
 globalThis.setTimeout = () => 1
 globalThis.clearTimeout = () => {}
 
-const analyticsUrl = pathToFileURL(new URL('../src/analytics.js', import.meta.url).pathname)
+const analyticsUrl = new URL('../src/analytics.js', import.meta.url)
 const { startAnalytics, track } = await import(analyticsUrl.href)
 startAnalytics()
 for (let i = 0; i < 9; i += 1) track('brand_expand', { brand: String(i) })
