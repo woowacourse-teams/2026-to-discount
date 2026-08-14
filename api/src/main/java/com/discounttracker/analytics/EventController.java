@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * 방문 이벤트 수집. 브라우저가 배치로 보내고 서버는 받아 적기만 한다.
@@ -40,14 +41,14 @@ public class EventController {
     private static final int MAX_TEXT = 120;
     private static final int MAX_PROPS = 6;
 
-    private final EventLog log;
+    private final AnalyticsEventService events;
     private final ClientFingerprint fingerprint;
     private final EventRateLimiter limiter;
     private final ObjectMapper mapper;
 
-    public EventController(EventLog log, ClientFingerprint fingerprint,
+    public EventController(AnalyticsEventService events, ClientFingerprint fingerprint,
                            EventRateLimiter limiter, ObjectMapper mapper) {
-        this.log = log;
+        this.events = events;
         this.fingerprint = fingerprint;
         this.limiter = limiter;
         this.mapper = mapper;
@@ -104,9 +105,10 @@ public class EventController {
                     trimProps(in.props()),
                     trim(in.clientTs()),
                     ipHash,
-                    in.dev()));
+                    in.dev(),
+                    UUID.randomUUID().toString()));
         }
-        log.append(accepted);
+        events.append(accepted);
         return ResponseEntity.ok(Map.of("accepted", accepted.size()));
     }
 

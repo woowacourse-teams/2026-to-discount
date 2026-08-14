@@ -88,6 +88,7 @@ class EventControllerTest {
         String logged = Files.readString(Path.of(logPath));
         assertTrue(logged.contains("\"visitorId\":\"v_dev\""));
         assertTrue(logged.contains("\"dev\":true"));
+        assertTrue(logged.matches("(?s).*\"eventId\":\"[0-9a-f-]{36}\".*"));
     }
 
     @Test
