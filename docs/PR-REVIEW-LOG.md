@@ -150,7 +150,7 @@ stale인 걸 아무도 몰랐던 사고)이 동기.
 
 - 링크: https://github.com/woowacourse-teams/2026-to-discount/pull/4
 - 작성자: everypine
-- 상태: 리뷰완료, 반영대기(코멘트 게시)
+- 상태: 머지완료 (`f7031ba`, 2026-08-14)
 
 ### 규모
 24개 파일, +1272줄. 커밋 2개(`a81acf39` 기능, `0f79ff5d` 문서). 핵심:
@@ -168,29 +168,39 @@ dev 트래픽·visitorId 없는 이벤트 전달 제외, ipHash 외부 미전달
   이어진다(`AnalyticsEventService.java` 32-48행 직접 읽음). EventLog를
   우회하는 경로 없음. CodeRabbit이 리네임 전 코드나 다른 리비전을 보고
   낸 판단으로 보인다 — PR 코멘트에 반영 불필요라고 명시했다.
-- [ ] resend 중복제거 문서·구현 불일치 — `IncomingEvent`에 `eventId`
+- [x] resend 중복제거 문서·구현 불일치 — `IncomingEvent`에 `eventId`
   없음, 서버가 요청마다 새 UUID 발급(`EventController.java`
   `UUID.randomUUID().toString()`). 재전송 시 PostHog에 중복 이벤트
-  가능. **유효.**
-- [ ] `PostHogEventMapper.timestamp()`가 `clientTs`를 `ts`보다 우선
+  가능. **유효 → 반영됨(`012865b`).**
+- [x] `PostHogEventMapper.timestamp()`가 `clientTs`를 `ts`보다 우선
   — 문서 계약(`ts` → PostHog `timestamp`)과 어긋남. 코드 직접
   확인(`PostHogEventMapper.java` `timestamp()` 메서드, clientTs 먼저
-  파싱 시도). **유효.**
-- [ ] `PostHogProperties` — forwarding 활성화 상태에서
+  파싱 시도). **유효 → 반영됨(`012865b`).**
+- [x] `PostHogProperties` — forwarding 활성화 상태에서
   `DISCOUNT_POSTHOG_OUTBOX_PATH` 미설정 시 상대경로
   `data/posthog-outbox`로 조용히 폴백(`@Value(...:data/posthog-outbox)`
-  확인). 재시작 시 pending 유실 위험. **유효.**
+  확인). 재시작 시 pending 유실 위험. **유효 → 반영됨(`012865b`).**
 - [ ] (nitpick) `PostHogForwardingWorker.trigger()`가 요청마다 단일
   스레드 executor(`Executors.newSingleThreadExecutor`, 무제한 큐)에
   스캔을 큐잉 — `processDue()`가 while(true)로 다 비우므로 데이터
-  유실은 없지만 버스트 시 중복 스캔 낭비. 급하지 않음.
+  유실은 없지만 버스트 시 중복 스캔 낭비. 급하지 않아 머지 보류
+  사유로 안 삼음, 미반영 상태로 머지.
 
 ### 요청사항 (내가 남김, [코멘트](https://github.com/woowacourse-teams/2026-to-discount/pull/4#issuecomment-5291486746))
 - resend 중복제거, 타임스탬프 우선순위, outbox 경로 강제 — 3건 반영
   요청. 반영되면 재검토.
 
+### 재검증 (2026-08-14, 새 커밋 `012865b`)
+- 3건 diff 직접 대조 — 전부 정확히 반영 확인(위 체크박스).
+- CodeRabbit이 재리뷰를 안 돌렸다(코멘트 5개 그대로, 새 코멘트 없음) —
+  기다리지 않고 직접 검증으로 대체.
+- `git checkout FETCH_HEAD`(PR 브랜치 전체)로 옮겨 로컬에서
+  `./gradlew test --tests "com.discounttracker.analytics.*"` 직접 실행,
+  통과 확인(EXIT=0). 검증 직후 `git checkout main`으로 복귀.
+- [코멘트](https://github.com/woowacourse-teams/2026-to-discount/pull/4#issuecomment-5294399125)로 반영 확인 남기고 머지(squash, 브랜치 삭제).
+
 ### 다음
-- 3건 반영 확인되면 머지. PR 열어둔 채 대기.
+- 없음. 머지 완료.
 
 ---
 
