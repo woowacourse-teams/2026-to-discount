@@ -103,6 +103,7 @@ web/README.md
 web/index.html
 web/package-lock.json
 web/package.json
+web/scripts/verify-analytics-event-id.mjs
 web/src/App.css
 web/src/App.jsx
 web/src/EventBanner.jsx
@@ -159,7 +160,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 21 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 15 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 16 |
 
 ### Tracker
 
