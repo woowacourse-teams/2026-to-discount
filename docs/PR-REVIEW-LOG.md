@@ -364,3 +364,27 @@ main과 브랜치를 합친 트리에서 `--check`를 돌려 **실패를 확인*
   후속 커밋으로 처리하고 머지한다.** 더 두면 리베이스 비용만 커진다.
 - **생성물을 검사하는 CI가 있는 저장소에서는, 머지 커밋에 생성물 재생성을 같이
   넣는다.** 나눠 넣으면 main이 반드시 한 번 빨개진다.
+
+## mono#6 — [WEB] feat: analytics eventId 추가 (머지 2026-08-16, `1ba793e`)
+
+웹이 논리 이벤트 생성 시점에 UUID를 발급해 서버가 PostHog `$insert_id`로
+보존하게 하는 변경. 서버 절반은 PR#4에서 이미 들어와 있었다
+(`EventController.eventId()`가 36자 UUID를 보존, `PostHogEventMapper`가
+`$insert_id`로 매핑) — 이 PR이 클라이언트 절반을 채웠다.
+
+### 검증
+
+- main과 합친 트리에서 `npm run test:analytics` 실행 — PASS. beacon 실패 →
+  fetch 폴백에서 payload가 바이트 단위로 같은 것까지 잡는다.
+- 구조 문서 재생성을 머지 커밋에 포함(mono#2에서 세운 규칙 적용).
+
+### 후속 (`cd3fe07`)
+
+`.github/workflows/check-web.yml` 신설. `npm run test:analytics`와
+`npm run build`가 수동 실행에만 있어 회귀를 못 잡았다. `ubuntu-latest` 고정.
+
+### 확인된 성질 (mono#2에서 예고한 것)
+
+PR#6은 `web/scripts/verify-analytics-event-id.mjs` 하나를 추가했을 뿐인데
+구조 검사가 실패했다. **main이 움직이면 열린 PR의 문서가 낡는다**는 성질이
+바로 다음 PR에서 실증됐다. 머지할 때마다 재생성이 필요하다.
