@@ -91,7 +91,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
    왼쪽 위 끝에 그대로 붙는다. */
 /* 고정된 바가 비운 자리를 대신 차지한다. 바가 갖고 있던 겹침
    (margin-bottom:-1rem)도 이제 여기가 들고 있다. */
-.title-bar-spacer { margin-bottom: -1rem; }
+.title-bar-spacer { margin-bottom: calc(-1rem + 5px); }
 
 /* 앱 필터·분류·초기화·검색을 한 줄에 둔다. 별도 줄로 띄우면 같은 조작
    묶음인데도 따로 노는 것처럼 보였다. */
@@ -255,7 +255,7 @@ h1 {
 /* 판을 걷고 로고만 남긴다 — 버튼 배경·테두리가 있으면 로고보다 판이
    먼저 읽혔다. 체크 배지는 이제 로고 모서리에 바로 붙는다. */
 .page-head__apps .platform-badge {
-  width: 52px; height: 52px;
+  width: 49px; height: 49px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1319,7 +1319,8 @@ h1 {
    달리 흐름 안에 자리를 차지한다. */
 /* 단독 줄이라 폭에 여유가 있다 — 로고를 흐름 안에 놓아 어느 앱으로 가는
    링크인지가 누르기 전에 보이게 한다. */
-.offer--hero .offer__icon-badge {
+.offer--hero .offer__icon-badge,
+.offer--wide .offer__icon-badge {
   position: static;
   display: flex;
   align-items: center;
@@ -1536,12 +1537,12 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    한 줄에 앱 버튼 넷과 조작 셋이 같이 서야 한다. */
 @media (max-width: 560px) {
 
-  .page-head__apps .platform-badge { width: 60px; height: 60px; border-radius: 14px; }
+  .page-head__apps .platform-badge { width: 57px; height: 57px; border-radius: 14px; }
 }
 /* 360px대 기기 — 앱 버튼 넷과 조작 셋이 한 줄에 들어가야 하므로
    버튼 판을 한 단계 더 줄인다(로고는 그대로 49px). */
 @media (max-width: 400px) {
-  .page-head__apps .platform-badge { width: 54px; height: 54px; border-radius: 13px; }
+  .page-head__apps .platform-badge { width: 51px; height: 51px; border-radius: 13px; }
   .filter-reset-btn, .search-control__btn, .search-control { width: 34px; height: 34px; }
   .category-toggle { height: 34px; }
   .search-control--open { width: min(62vw, 320px); }
@@ -1551,5 +1552,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 
 /* 최고 칩 외의 로고는 2배로 키운다 — 어느 앱 것인지 스치듯 봐도
    구분되게. 최고 칩은 링크 옆이라 1.3배만 키웠다(위 규칙). */
-.offer:not(.offer--hero) .offer__icon-badge .platform-badge { width: 40px; height: 40px; border-radius: 9px; }
+.offer:not(.offer--hero) .offer__icon-badge .platform-badge { width: 32px; height: 32px; border-radius: 8px; }
+.offer--wide .offer__icon-badge .platform-badge { width: 42px; height: 42px; border-radius: 10px; }
 .detail__head .platform-badge { width: 40px; height: 40px; border-radius: 9px; }
