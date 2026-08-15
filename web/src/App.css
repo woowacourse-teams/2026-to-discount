@@ -255,7 +255,7 @@ h1 {
 /* 판을 걷고 로고만 남긴다 — 버튼 배경·테두리가 있으면 로고보다 판이
    먼저 읽혔다. 체크 배지는 이제 로고 모서리에 바로 붙는다. */
 .page-head__apps .platform-badge {
-  width: 49px; height: 49px;
+  width: 45px; height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -772,7 +772,29 @@ h1 {
   flex: none;
   transition: width 320ms cubic-bezier(.22, 1, .36, 1);
 }
-.search-control--open { width: min(58vw, 320px); }
+/* 열리면 남은 자리를 차지한다 — 고정 폭을 주면 좁은 화면에서 입력창이
+   오른쪽 밖으로 넘어갔다. flex가 남은 만큼만 준다. */
+.search-control--open { flex: 1 1 auto; width: auto; min-width: 0; max-width: 100%; }
+/* 검색을 열면 카테고리와 초기화는 자리를 내주고 플랫폼 버튼 뒤로
+   접힌다 — 셋이 그대로 남으면 입력창이 화면 밖으로 밀려났다. 닫으면
+   같은 곡선으로 되돌아온다. */
+.title-bar__inner:has(.search-control--open) .category-toggle,
+.title-bar__inner:has(.search-control--open) .filter-reset-btn {
+  max-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 0;
+  border-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.category-toggle,
+.filter-reset-btn {
+  max-width: 220px;
+  transition: max-width 320ms cubic-bezier(.22, 1, .36, 1), opacity 200ms ease,
+              color 150ms ease, background 150ms ease, border-color 150ms ease;
+}
 .search-control__btn {
   display: flex;
   align-items: center;
@@ -1558,15 +1580,15 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    한 줄에 앱 버튼 넷과 조작 셋이 같이 서야 한다. */
 @media (max-width: 560px) {
 
-  .page-head__apps .platform-badge { width: 57px; height: 57px; border-radius: 14px; }
+  .page-head__apps .platform-badge { width: 53px; height: 53px; border-radius: 14px; }
 }
 /* 360px대 기기 — 앱 버튼 넷과 조작 셋이 한 줄에 들어가야 하므로
    버튼 판을 한 단계 더 줄인다(로고는 그대로 49px). */
 @media (max-width: 400px) {
-  .page-head__apps .platform-badge { width: 51px; height: 51px; border-radius: 13px; }
+  .page-head__apps .platform-badge { width: 47px; height: 47px; border-radius: 13px; }
   .filter-reset-btn, .search-control__btn, .search-control { width: 34px; height: 34px; }
   .category-toggle { height: 34px; }
-  .search-control--open { width: min(62vw, 320px); }
+
   .search-control__input { height: 34px; }
   .title-bar__inner { gap: .25rem; padding: 0 .35rem; }
 }
