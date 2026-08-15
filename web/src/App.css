@@ -727,15 +727,17 @@ h1 {
    버튼)가 밀려난다. 포커스를 잃으면 다시 아이콘 버튼으로 접힌다
    (App.jsx SearchControl). */
 /* 닫힌 상태는 초기화 버튼과 같은 36px 원이다 — 같은 줄에 나란히 서는
-   조작이라 크기도 스타일도 나눌 이유가 없다. 열리면 입력창이 오른쪽
-   끝에 고정된 채 왼쪽으로만 자란다(absolute). 흐름 안에서 넓히면 늘어난
-   만큼 왼쪽 형제(초기화·카테고리)가 통째로 밀려났다. */
+   조작이라 크기도 스타일도 나눌 이유가 없다. 열리면 흐름 안에서 폭을
+   넓혀 왼쪽 형제(초기화·카테고리)를 밀어낸다. */
 .search-control {
-  position: relative;
+  display: flex;
+  align-items: center;
   width: 36px;
   height: 36px;
   flex: none;
+  transition: width 220ms cubic-bezier(.65, 0, .35, 1);
 }
+.search-control--open { width: min(58vw, 320px); }
 .search-control__btn {
   display: flex;
   align-items: center;
@@ -753,25 +755,25 @@ h1 {
 }
 .search-control__btn:hover { color: var(--text); }
 .search-control__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 카테고리와 같은 결 — 판 없이 밑줄만 있는 글자다. 알약 입력창을 두면
+   같은 줄에서 이것만 부품이 하나 더 붙은 것처럼 보였다. */
 .search-control__input {
-  position: absolute;
-  right: 0;
-  top: 0;
-  z-index: 12;
   display: block;
   box-sizing: border-box;
-  width: min(58vw, 320px);
+  width: 100%;
   height: 36px;
   font: inherit;
-  font-size: .85rem;
-  padding: 0 .9rem;
-  border: 1px solid var(--accent);
-  border-radius: 999px;
-  background: var(--surface);
+  font-size: .9rem;
+  padding: 0 .2rem;
+  border: 0;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--text) 35%, transparent);
+  border-radius: 0;
+  background: none;
   color: var(--text);
 }
+.search-control__input:focus { outline: none; border-bottom-color: var(--accent); }
 .search-control__input::placeholder { color: var(--text-muted); }
-.search-control__input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 
 /* 금액대 분류일 때 탭 대신 쓰는 스텝 슬라이더. 이퀄라이저처럼 정해진
    값에서만 멈춘다 — <input type="range" step="1">이 브랜드마다 하나씩
@@ -1498,6 +1500,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 @media (max-width: 400px) {
   .page-head__apps .platform-badge { width: 54px; height: 54px; border-radius: 13px; }
   .filter-reset-btn, .search-control__btn, .search-control { width: 34px; height: 34px; }
+  .search-control--open { width: min(62vw, 320px); }
   .search-control__input { height: 34px; }
   .title-bar__inner { gap: .25rem; padding: 0 .35rem; }
 }
