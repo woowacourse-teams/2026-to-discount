@@ -729,12 +729,21 @@
   "offerType": "discount",
   "section": null,
   "rawText": "꾸브라꼬숯불치킨 6,000원 할인 최소주문금액 30,000원",
-  "capturedAt": "2026-08-03T14:49:00+09:00",
+  "capturedAt": "2026-08-03T14:49:01+09:00",
   "screenshotPath": "ref/delivery/2026-08-03/ddangyo_혜택탭.png",
-  "minOrderAmount": 30000,
+  "minOrderAmount": 21000,
   "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": "쿠폰 2종(4,000원, 6,000원) - 해당 쿠폰의 최소주문금액은 21,000원과 30,000원입니다. 단, 가맹점에서 설정한 최소주문금액이 있을 시 이를 우선합니다.",
+  "tiers": [
+   {
+    "minOrder": 21000,
+    "amount": 4000
+   },
+   {
+    "minOrder": 30000,
+    "amount": 6000
+   }
+  ],
+  "conditions": "가맹점이 정한 최소주문금액이 있으면 그 금액이 우선",
   "expiresAt": "2026-08-31",
   "badge": null,
   "soldOut": false
@@ -824,12 +833,12 @@
   "offerType": "discount",
   "section": "전체",
   "rawText": "최대 10,000원 할인",
-  "capturedAt": "2026-08-05T00:00:00+09:00",
+  "capturedAt": "2026-08-05T00:00:01+09:00",
   "screenshotPath": "ref/delivery/ddangeyo_2026-07-27.jpg",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
-  "conditions": "쿠폰 0종(미확인) - 최소주문금액은 가맹점에서 설정한 최소주문금액을 기준으로 설정됩니다.",
+  "conditions": "가맹점이 정한 최소주문금액이 있으면 그 금액이 우선",
   "expiresAt": null,
   "badge": null,
   "soldOut": false
@@ -998,12 +1007,21 @@
   "offerType": "discount",
   "section": "전체",
   "rawText": "최대 10,000원 할인",
-  "capturedAt": "2026-08-05T00:00:00+09:00",
+  "capturedAt": "2026-08-05T00:00:01+09:00",
   "screenshotPath": "ref/delivery/ddangeyo_2026-07-27.jpg",
-  "minOrderAmount": null,
+  "minOrderAmount": 18900,
   "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": "쿠폰 2종(3,000원, 5,000원) - 해당 쿠폰의 최소주문금액은 18,900원과 29,900원입니다. 단, 가맹점에서 설정한 최소주문금액이 있을 시 이를 우선합니다.",
+  "tiers": [
+   {
+    "minOrder": 18900,
+    "amount": 3000
+   },
+   {
+    "minOrder": 29900,
+    "amount": 5000
+   }
+  ],
+  "conditions": "가맹점이 정한 최소주문금액이 있으면 그 금액이 우선",
   "expiresAt": "2026-08-31",
   "badge": null,
   "soldOut": false
@@ -1112,7 +1130,7 @@
   "offerType": "discount",
   "section": "배짱할인 이번주 브랜드특가",
   "rawText": "10,000원 (브랜드관·배짱할인 중 큰 값)",
-  "capturedAt": "2026-08-10T02:30:00+09:00",
+  "capturedAt": "2026-08-10T02:30:01+09:00",
   "screenshotPath": null,
   "minOrderAmount": null,
   "tierMode": "exclusive",
@@ -1122,7 +1140,7 @@
     "amount": 10000
    }
   ],
-  "conditions": "24,000원 이상 주문 시 자동 적용 · 브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
+  "conditions": "24,000원 이상 주문 시 자동 적용",
   "expiresAt": null,
   "badge": null,
   "soldOut": false
@@ -1208,12 +1226,12 @@
   "offerType": "discount",
   "section": "배짱할인 배민클럽 단독할인",
   "rawText": "9,000원 (브랜드관·배짱할인 중 큰 값)",
-  "capturedAt": "2026-08-10T02:30:00+09:00",
+  "capturedAt": "2026-08-10T02:30:01+09:00",
   "screenshotPath": "ref/delivery/2026-08-09/baemin_baejjang_club_도미노피자.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
-  "conditions": "브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
+  "conditions": "",
   "expiresAt": null,
   "badge": "배민클럽 전용쿠폰",
   "soldOut": false
@@ -1628,12 +1646,12 @@
   "offerType": "discount",
   "section": "배짱할인 배민클럽 단독할인",
   "rawText": "3,500원 (브랜드관·배짱할인 중 큰 값)",
-  "capturedAt": "2026-08-10T02:30:00+09:00",
+  "capturedAt": "2026-08-10T02:30:01+09:00",
   "screenshotPath": "ref/delivery/2026-08-09/baemin_baejjang_club_배스킨라빈스.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
-  "conditions": "브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
+  "conditions": "",
   "expiresAt": null,
   "badge": "배민클럽 전용쿠폰",
   "soldOut": false
@@ -1647,12 +1665,12 @@
   "offerType": "discount",
   "section": "배짱할인 배민클럽 단독할인",
   "rawText": "4,000원 (브랜드관·배짱할인 중 큰 값)",
-  "capturedAt": "2026-08-10T02:30:00+09:00",
+  "capturedAt": "2026-08-10T02:30:01+09:00",
   "screenshotPath": "ref/delivery/2026-08-09/baemin_baejjang_club_파리바게뜨.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
-  "conditions": "메뉴 한정: 아이스 아메리카노 · 브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
+  "conditions": "메뉴 한정: 아이스 아메리카노",
   "expiresAt": null,
   "badge": "배민클럽 전용쿠폰",
   "soldOut": false
@@ -2015,12 +2033,12 @@
   "offerType": "discount",
   "section": "배짱할인 배민클럽 단독할인",
   "rawText": "16,000원 (브랜드관·배짱할인 중 큰 값)",
-  "capturedAt": "2026-08-10T02:30:00+09:00",
+  "capturedAt": "2026-08-10T02:30:01+09:00",
   "screenshotPath": "ref/delivery/2026-08-09/baemin_baejjang_club_열정국밥.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
-  "conditions": "메뉴 한정: 열정충전해장국 · 브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
+  "conditions": "메뉴 한정: 열정충전해장국",
   "expiresAt": null,
   "badge": "배민클럽 전용쿠폰",
   "soldOut": false
@@ -2034,12 +2052,12 @@
   "offerType": "discount",
   "section": "배짱할인 배민클럽 단독할인",
   "rawText": "7,500원 (브랜드관·배짱할인 중 큰 값)",
-  "capturedAt": "2026-08-10T02:30:00+09:00",
+  "capturedAt": "2026-08-10T02:30:01+09:00",
   "screenshotPath": "ref/delivery/2026-08-09/baemin_baejjang_club_청년피자.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
-  "conditions": "브랜드관/배짱할인 중복 관측, 더 큰 금액 채택",
+  "conditions": "",
   "expiresAt": null,
   "badge": "배민클럽 전용쿠폰",
   "soldOut": false
