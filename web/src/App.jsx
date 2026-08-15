@@ -504,22 +504,6 @@ function SearchControl({ value, onChange }) {
         </svg>
       </button>
 
-      {/* 확정한 검색어는 버튼 아래 칩으로 남는다 — 고른 분류를 보여주는
-          자리와 같은 규칙이다. X로 그 자리에서 푼다. */}
-      {value.trim() !== '' && (
-        <span className="filter-chip search-chip">
-          {value}
-          <button
-            type="button"
-            className="filter-chip__clear"
-            aria-label="검색어 지우기"
-            onClick={() => onChange('')}
-          >
-            ×
-          </button>
-        </span>
-      )}
-
       {open && (
         <div className="category-panel search-panel">
           <input
@@ -764,20 +748,37 @@ export default function App() {
                 <span className="category-toggle__label">CATEGORY</span>
               </button>
 
-              {/* 고른 분류는 목록을 접어도 남는다 — 접힌 뒤에 무엇이 걸려
-                  있는지 안 보이면 결과가 왜 줄었는지 알 수 없다. X로 그
-                  자리에서 바로 푼다. */}
-              {filterKey !== 'all' && (
-                <span className="filter-chip category-chip">
-                  {tabs.find((c) => c.key === filterKey)?.label ?? filterKey}
-                  <button
-                    type="button"
-                    className="filter-chip__clear"
-                    aria-label="카테고리 해제"
-                    onClick={() => setFilterKey('all')}
-                  >
-                    ×
-                  </button>
+              {/* 지금 걸린 필터는 조작을 접어도 남는다 — 안 보이면 결과가
+                  왜 줄었는지 알 수 없다. 분류와 검색어를 한 줄에 모아
+                  토글 아래에 건다. X로 각각 그 자리에서 푼다. */}
+              {(filterKey !== 'all' || search.trim() !== '') && (
+                <span className="filter-chips">
+                  {filterKey !== 'all' && (
+                    <span className="filter-chip">
+                      {tabs.find((c) => c.key === filterKey)?.label ?? filterKey}
+                      <button
+                        type="button"
+                        className="filter-chip__clear"
+                        aria-label="카테고리 해제"
+                        onClick={() => setFilterKey('all')}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  )}
+                  {search.trim() !== '' && (
+                    <span className="filter-chip filter-chip--search">
+                      {search}
+                      <button
+                        type="button"
+                        className="filter-chip__clear"
+                        aria-label="검색어 지우기"
+                        onClick={() => setSearch('')}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  )}
                 </span>
               )}
             </span>

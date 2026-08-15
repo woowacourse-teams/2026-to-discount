@@ -153,45 +153,60 @@ h1 {
 /* 지금 걸린 필터를 그 조작 바로 아래 남기는 칩. 분류와 검색어가 같은
    규칙을 쓴다 — 접힌 뒤에 무엇이 걸려 있는지 안 보이면 결과가 왜 줄었는지
    알 수 없다. 글자는 CATEGORY 라벨과 같은 크기로 맞춘다. */
-.filter-chip {
+/* 분류와 검색어를 한 줄에 모아 토글 아래에 건다. absolute라 줄 높이를
+   밀어내지 않는다. */
+.filter-chips {
   position: absolute;
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
   z-index: 11;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  max-width: 46vw;
+  margin-top: .3rem;
+}
+.filter-chip {
   display: inline-flex;
   align-items: center;
   gap: .2rem;
-  max-width: 40vw;
-  margin-top: .3rem;
-  padding: .1rem .25rem .1rem .45rem;
+  min-width: 0;
+  padding: .08rem .22rem .08rem .4rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 14%, var(--surface));
   color: var(--accent);
-  font-size: .82rem;
+  font-size: .74rem;
   font-weight: 700;
   line-height: 1.5;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* 검색 칩은 버튼이 36px 원이라 가운데를 맞추면 오른쪽으로 넘친다 —
-   오른쪽 끝에 건다. */
-.search-chip { left: auto; right: 0; transform: none; }
+/* 검색어는 분류와 성격이 달라 색으로 가른다 — 분류는 고르는 것이고
+   검색어는 사람이 쓴 말이다. */
+.filter-chip--search {
+  background: var(--text);
+  color: var(--bg);
+}
+.filter-chip--search .filter-chip__clear {
+  background: color-mix(in srgb, var(--bg) 28%, transparent);
+}
+.filter-chip--search .filter-chip__clear:hover { background: var(--bg); color: var(--text); }
 .filter-chip__clear {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   padding: 0;
   border: 0;
   border-radius: 50%;
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   color: inherit;
   font: inherit;
-  font-size: .78rem;
+  font-size: .72rem;
   line-height: 1;
   cursor: pointer;
 }
