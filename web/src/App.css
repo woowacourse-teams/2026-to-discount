@@ -1371,7 +1371,6 @@ h1 {
     linear-gradient(180deg, rgba(255, 255, 255, .45) 0%, rgba(255, 255, 255, .1) 42%,
                     rgba(0, 0, 0, .06) 58%, rgba(0, 0, 0, .16) 100%),
     linear-gradient(135deg, #00c8ff 0%, #4d6bff 55%, #ff3ec8 100%);
-  border-color: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .6);
 }
 .offer--best .offer__amount--soldout { color: rgba(255, 255, 255, .75); }
@@ -1421,6 +1420,8 @@ h1 {
   position: absolute;
   top: -8px;
   right: -8px;
+  /* 칩(배경 있는 버튼)이 나중에 그려져 배지를 덮었다. */
+  z-index: 4;
 }
 
 /* 최고 할인 칩 — 단독 줄이라 세로로도 여유가 있다. 금액을 키우고
@@ -1454,7 +1455,10 @@ h1 {
 .offer--hero .offer__icon-badge .platform-badge {
   width: 42px; height: 42px;
   border-radius: 10px;
+  border: 0;
+  background: none;
 }
+.offer--hero .offer__icon-badge .platform-badge img { padding: 0; }
 /* 오른쪽은 로고 폭(42) + 여백만큼 비워 둔다 — 가운데 정렬된 금액이
    로고에 닿지 않게. */
 .offer--hero .offer__chip { justify-content: center; gap: 0; padding-right: 66px; padding-left: 66px; }
