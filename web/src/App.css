@@ -129,27 +129,28 @@ h1 {
   display: inline-flex;
   align-items: center;
   flex: none;
+  height: 36px;
   padding: 0 .2rem;
   border: 0;
+  /* 검색 입력과 같은 줄, 같은 높이, 같은 밑줄이다 — 둘 다 36px 상자의
+     바닥에 선을 긋는다. 글자에 text-decoration을 걸면 선이 글자 높이를
+     따라 올라와 옆의 입력창과 어긋난다. */
+  border-bottom: 1.5px solid color-mix(in srgb, var(--text) 35%, transparent);
   background: none;
   box-shadow: none;
   color: var(--text-muted);
   font: inherit;
   cursor: pointer;
-  transition: color 120ms ease;
+  transition: color 120ms ease, border-color 120ms ease;
 }
 .category-toggle:hover { color: var(--text); }
 .category-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.category-toggle--active { color: var(--accent); }
+.category-toggle--active { color: var(--accent); border-bottom-color: var(--accent); }
 .category-toggle__label {
   font-size: .82rem;
   font-weight: 700;
   letter-spacing: .06em;
   line-height: 1;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
-  text-underline-offset: 4px;
-  text-decoration-thickness: 1.5px;
 }
 
 /* 펼친 목록 — absolute라 카드 그리드를 밀어내지 않는다. */
@@ -691,6 +692,7 @@ h1 {
 }
 @media (prefers-reduced-motion: reduce) {
   .scroll-hint-arrow { animation: none; }
+  .search-control { transition: none; }
 }
 
 .filter-reset-btn {
@@ -735,7 +737,7 @@ h1 {
   width: 36px;
   height: 36px;
   flex: none;
-  transition: width 220ms cubic-bezier(.65, 0, .35, 1);
+  transition: width 320ms cubic-bezier(.22, 1, .36, 1);
 }
 .search-control--open { width: min(58vw, 320px); }
 .search-control__btn {
@@ -1500,6 +1502,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 @media (max-width: 400px) {
   .page-head__apps .platform-badge { width: 54px; height: 54px; border-radius: 13px; }
   .filter-reset-btn, .search-control__btn, .search-control { width: 34px; height: 34px; }
+  .category-toggle { height: 34px; }
   .search-control--open { width: min(62vw, 320px); }
   .search-control__input { height: 34px; }
   .title-bar__inner { gap: .25rem; padding: 0 .35rem; }
