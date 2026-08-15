@@ -352,12 +352,14 @@ h1 {
 }
 .membership-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* 아직 안 만든 기능이다. 앱 색은 변수로 그대로 두고(--pc) 회색으로만
-   덮는다 — 구현되면 이 블록만 지우면 색이 돌아온다. 버튼을 감추지 않는
-   이유는 자리와 크기를 미리 잡아둬야 나중에 레이아웃이 안 흔들려서다. */
+/* 아직 안 만든 기능이다. 앱 색은 변수로 그대로 두고(--pc) 채도만 낮춘다 —
+   완전 무채색으로 죽이면 어느 앱 것인지가 안 읽히는데, 이 버튼은 수요를
+   재려고 둔 것이라 무엇을 누르는지는 보여야 한다. 구현되면 이 블록만
+   지우면 색이 돌아온다. 버튼을 감추지 않는 이유는 자리와 크기를 미리
+   잡아둬야 나중에 레이아웃이 안 흔들려서다. */
 .membership-btn--soon {
-  filter: grayscale(1);
-  opacity: .55;
+  filter: saturate(.4);
+  opacity: .7;
   cursor: not-allowed;
 }
 /* 눌렀을 때(data-hint)와 올렸을 때 같은 말풍선을 띄운다 — 눌렀는데
