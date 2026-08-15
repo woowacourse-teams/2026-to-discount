@@ -5,6 +5,7 @@ API가 그 값을 계산해서 내려주므로, 원장 쪽 숫자가 어긋나 �
 원장이 다른 말을 하게 된다. 사람이 손으로 더하다 틀리는 걸 여기서 잡는다.
 """
 import json
+import re
 from pathlib import Path
 
 from export_data import ladder_floor
@@ -99,3 +100,22 @@ def test_percent_tier_amount_is_the_floored_threshold_share():
                     f"amount={tier['amount']} != {expected} "
                     f"({tier['min_order']} x {tier['percent']}%)")
     assert not wrong, "\n".join(wrong)
+
+
+DATE_IN_TEXT = re.compile(r"\d{1,2}\s*월\s*\d{1,2}\s*일|\d{4}[-.]\d{1,2}[-.]\d{1,2}")
+
+
+def test_conditions_carry_no_dates():
+    # 기간 한정은 expires_at이 담는다. 문장에 날짜를 적으면 만료 판정이
+    # 손을 못 대고, 병합(store._prefer)이 같은 (앱, 브랜드) 안에서 그
+    # 문장을 새 관측으로 계속 옮겨 실어 날이 지나도 화면에 남는다 —
+    # 배민 자담치킨의 "8월 11일 땡데이 이벤트"가 그랬다(2026-08-16 정정).
+    # 승자만 본다. 원장은 append-only라 옛 관측은 고칠 수 없다.
+    from store import latest_per_brand
+
+    dated = [
+        f"{record['platform']}/{record['brand']}: {record['conditions']}"
+        for record in latest_per_brand(read_log()).values()
+        if DATE_IN_TEXT.search(record.get("conditions") or "")
+    ]
+    assert not dated, "conditions에 날짜를 쓰지 않는다 — expires_at으로 옮겨라:\n" + "\n".join(dated)
