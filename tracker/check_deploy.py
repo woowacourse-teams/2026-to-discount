@@ -89,6 +89,11 @@ def staleness(incoming: list[dict], server: list[dict]) -> str | None:
 
 
 def main(argv: list[str]) -> int:
+    # 로컬(윈도우 콘솔)은 기본이 cp949라 안내 문구의 줄표에서 죽는다. 배포를
+    # 막아야 할 자리에서 인코딩 때문에 죽으면 원인을 못 읽는다.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
     incoming_path, server_path = Path(argv[1]), Path(argv[2])
     incoming = json.loads(incoming_path.read_text(encoding="utf-8"))
     if not server_path.exists():
