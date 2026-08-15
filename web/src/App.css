@@ -351,6 +351,37 @@ h1 {
   cursor: pointer;
 }
 .membership-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 아직 안 만든 기능이다. 앱 색은 변수로 그대로 두고(--pc) 회색으로만
+   덮는다 — 구현되면 이 블록만 지우면 색이 돌아온다. 버튼을 감추지 않는
+   이유는 자리와 크기를 미리 잡아둬야 나중에 레이아웃이 안 흔들려서다. */
+.membership-btn--soon {
+  filter: grayscale(1);
+  opacity: .55;
+  cursor: not-allowed;
+}
+/* 눌렀을 때(data-hint)와 올렸을 때 같은 말풍선을 띄운다 — 눌렀는데
+   아무 일도 안 일어나면 고장으로 읽힌다. */
+.membership-btn--soon::after {
+  content: '구현 예정입니다';
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: .12rem .4rem;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: .6rem;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+.membership-btn--soon:hover::after,
+.membership-btn--soon:focus-visible::after,
+.membership-btn--soon[data-hint="on"]::after { opacity: 1; }
 /* 켜면 그 앱 색으로 채운다 — 테두리만 있는 꺼짐과 한눈에 갈린다. */
 .membership-btn--on {
   background: linear-gradient(135deg, var(--pc, var(--text)), var(--pc2, var(--text)));

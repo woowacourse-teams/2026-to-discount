@@ -553,20 +553,14 @@ export default function App() {
     return () => ro.disconnect()
   }, [])
 
-  // 멤버십은 두 단계다. (1) 앱을 고르면 그 앱 버튼 밑에 켜기/끄기를
-  // 묻는 칸이 2초만 떴다 사라진다 — 물어보는 칸이 계속 남으면 카드
-  // 위 방해물이 된다. (2) 켠 멤버십은 그 앱 버튼 밑에 배너로 계속
-  // 남는다 — 지금 무슨 조건으로 금액을 보고 있는지가 상시로 보여야
-  // 한다. 묻는 칸과 결과 배너를 분리한 이유가 이것이다.
-  const [membershipOn, setMembershipOn] = useState(() => new Set())
-
+  // 멤버십 필터는 아직 안 만들었다. 버튼은 자리와 색을 미리 잡아두되
+  // 누르면 상태가 바뀌지 않고 "구현 예정"만 알린다 — 눌렀는데 아무 일도
+  // 안 일어나면 고장으로 읽힌다. 수요는 그대로 집계한다.
+  const [membershipHint, setMembershipHint] = useState(null)
   const toggleMembership = (key) => {
-    setMembershipOn((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key); else next.add(key)
-      return next
-    })
-    track('membership_toggle', { platform: key })
+    setMembershipHint(key)
+    setTimeout(() => setMembershipHint((cur) => (cur === key ? null : cur)), 1600)
+    track('membership_toggle', { platform: key, state: 'soon' })
   }
 
   const isFiltered = filterKey !== 'all' || platformFilter.size < PLATFORMS.length || search.trim() !== ''
@@ -675,9 +669,11 @@ export default function App() {
                 {platformFilter.has(p.key) && (
                   <button
                     type="button"
-                    className={`membership-btn${membershipOn.has(p.key) ? ' membership-btn--on' : ''}`}
+                    className="membership-btn membership-btn--soon"
                     data-platform={p.key}
-                    aria-pressed={membershipOn.has(p.key)}
+                    data-hint={membershipHint === p.key ? 'on' : undefined}
+                    aria-disabled="true"
+                    title="구현 예정입니다"
                     onClick={() => toggleMembership(p.key)}
                   >
                     {MEMBERSHIP_LABEL[p.key]}
