@@ -103,7 +103,9 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
   max-width: 880px;
   margin: 0 auto;
   /* 위 여백은 선택 체크 라벨이 버튼 밖으로 나와도 잘리지 않게 둔다. */
-  padding: 9px .5rem 0;
+  /* 오른쪽은 거의 비우지 않는다 — 검색이 화면 끝에 붙어야 열렸을 때
+     입력 폭이 최대가 된다. 위 여백은 선택 체크 라벨이 잘리지 않게 둔다. */
+  padding: 9px 2px 0 .5rem;
 }
 /* 검색은 오른쪽 끝에 붙인다 — 그 앞(초기화)까지가 필터 묶음이다. */
 .title-bar__inner .category-toggle { margin-left: auto; order: 0; }
@@ -1630,7 +1632,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   .category-toggle { height: 34px; }
 
   .search-control__input { height: 34px; }
-  .title-bar__inner { gap: .25rem; padding: 0 .35rem; }
+  .title-bar__inner { gap: .25rem; padding: 0 2px 0 .35rem; }
 }
 
 /* 최고 칩 외의 로고는 2배로 키운다 — 어느 앱 것인지 스치듯 봐도
