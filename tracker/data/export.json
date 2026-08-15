@@ -8,7 +8,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "25,000원 이상 주문 시 5,250원 할인(정액 4,000 + 쿠폰 1,250)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_푸라닭.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
@@ -18,9 +18,9 @@
     "amount": 5250
    }
   ],
-  "conditions": "정액 4,000원(18,000원 이상) + 쿠폰 5%(25,000원 기준 1,250원, 최대 3,000원)",
+  "conditions": "25,000원 × 5% + 4,000원",
   "expiresAt": "2026-08-16",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -32,7 +32,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "23,000원 이상 주문 시 4,150원 할인(정액 3,000 + 쿠폰 1,150)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_BHC치킨.png",
   "minOrderAmount": 23000,
   "tierMode": "exclusive",
@@ -42,9 +42,9 @@
     "amount": 4150
    }
   ],
-  "conditions": "정액 3,000원(18,000원 이상) + 쿠폰 5%(23,000원 기준 1,150원, 최대 3,000원)",
+  "conditions": "23,000원 × 5% + 3,000원",
   "expiresAt": "2026-08-16",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -56,7 +56,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "25,000원 이상 주문 시 4,250원 할인(정액 3,000 + 쿠폰 1,250)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_또래오래.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
@@ -66,9 +66,9 @@
     "amount": 4250
    }
   ],
-  "conditions": "정액 3,000원(18,000원 이상) + 쿠폰 5%(25,000원 기준 1,250원, 최대 3,000원)",
+  "conditions": "25,000원 × 5% + 3,000원",
   "expiresAt": "2026-08-31",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -80,7 +80,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "5,000원 메뉴할인, 5,000원 이상 구매 시",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_수피자.png",
   "minOrderAmount": 5000,
   "tierMode": "exclusive",
@@ -104,7 +104,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "25,000원 이상 주문 시 4,250원 할인(정액 3,000 + 쿠폰 1,250)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_꾸브라꼬숯불치킨.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
@@ -114,9 +114,9 @@
     "amount": 4250
    }
   ],
-  "conditions": "정액 3,000원(21,000원 이상) + 쿠폰 5%(25,000원 기준 1,250원, 최대 3,000원)",
+  "conditions": "25,000원 × 5% + 3,000원",
   "expiresAt": "2026-08-23",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -128,7 +128,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "25,000원 이상 주문 시 3,250원 할인(정액 2,000 + 쿠폰 1,250)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_큰맘할매순대국.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
@@ -138,9 +138,9 @@
     "amount": 3250
    }
   ],
-  "conditions": "정액 2,000원(14,000원 이상) + 쿠폰 5%(25,000원 기준 1,250원, 최대 3,000원)",
+  "conditions": "25,000원 × 5% + 2,000원",
   "expiresAt": "2026-08-16",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -152,7 +152,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "25,000원 이상 주문 시 8,250원 할인(정액 7,000 + 쿠폰 1,250)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_청년피자.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
@@ -162,9 +162,9 @@
     "amount": 8250
    }
   ],
-  "conditions": "정액 7,000원(18,900원 이상) + 쿠폰 5%(25,000원 기준 1,250원, 최대 2,000원)",
+  "conditions": "25,000원 × 5% + 7,000원",
   "expiresAt": "2026-08-23",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -176,7 +176,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "25,000원 이상 주문 시 6,250원 할인(정액 5,000 + 쿠폰 1,250)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_계근상.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
@@ -186,9 +186,9 @@
     "amount": 6250
    }
   ],
-  "conditions": "정액 5,000원(15,000원 이상) + 쿠폰 5%(25,000원 기준 1,250원, 최대 3,000원)",
+  "conditions": "25,000원 × 5% + 5,000원",
   "expiresAt": "2026-08-27",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -200,7 +200,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "25,900원 이상 주문 시 7,777원 할인(정액 7,000 + 쿠폰 777)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_도미노피자.png",
   "minOrderAmount": 25900,
   "tierMode": "exclusive",
@@ -210,9 +210,9 @@
     "amount": 7777
    }
   ],
-  "conditions": "정액 7,000원(25,900원 이상) + 쿠폰 3%(25,900원 기준 777원, 최대 2,000원)",
+  "conditions": "25,900원 × 3% + 7,000원",
   "expiresAt": "2026-08-31",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -3308,7 +3308,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "20,000원 이상 주문 시 5,000원 할인(정액 4,000 + 쿠폰 1,000)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_삼첩분식.png",
   "minOrderAmount": 20000,
   "tierMode": "exclusive",
@@ -3318,9 +3318,9 @@
     "amount": 5000
    }
   ],
-  "conditions": "정액 4,000원(18,000원 이상) + 쿠폰 5%(20,000원 기준 1,000원, 최대 3,000원)",
+  "conditions": "20,000원 × 5% + 4,000원",
   "expiresAt": "2026-08-16",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -3386,7 +3386,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "25,000원 이상 주문 시 4,250원 할인(정액 3,000 + 쿠폰 1,250)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_티바두마리치킨.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
@@ -3396,9 +3396,9 @@
     "amount": 4250
    }
   ],
-  "conditions": "정액 3,000원(19,900원 이상) + 쿠폰 5%(25,000원 기준 1,250원, 최대 3,000원)",
+  "conditions": "25,000원 × 5% + 3,000원",
   "expiresAt": "2026-08-16",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -3437,7 +3437,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "25,000원 이상 주문 시 3,250원 할인(정액 2,000 + 쿠폰 1,250)",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_국민낙곱새.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
@@ -3447,9 +3447,9 @@
     "amount": 3250
    }
   ],
-  "conditions": "정액 2,000원(25,000원 이상) + 쿠폰 5%(25,000원 기준 1,250원, 최대 3,000원)",
+  "conditions": "25,000원 × 5% + 2,000원",
   "expiresAt": "2026-08-23",
-  "badge": null,
+  "badge": "정액+쿠폰",
   "soldOut": false
  },
  {
@@ -3518,7 +3518,7 @@
   "offerType": "discount",
   "section": null,
   "rawText": "5%, 25,000원 이상 주문 시 최대 3,000원 할인",
-  "capturedAt": "2026-08-15T22:22:18.912239+09:00",
+  "capturedAt": "2026-08-15T22:27:34.702989+09:00",
   "screenshotPath": "captures\\yogiyo_full\\yogiyo_2026-08-15_처갓집양념치킨.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
