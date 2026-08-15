@@ -96,6 +96,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 /* 앱 필터·분류·초기화·검색을 한 줄에 둔다. 별도 줄로 띄우면 같은 조작
    묶음인데도 따로 노는 것처럼 보였다. */
 .title-bar__inner {
+  position: relative;
   display: flex;
   align-items: center;
   gap: .35rem;
@@ -772,28 +773,17 @@ h1 {
   flex: none;
   transition: width 320ms cubic-bezier(.22, 1, .36, 1);
 }
-/* 열리면 남은 자리를 차지한다 — 고정 폭을 주면 좁은 화면에서 입력창이
-   오른쪽 밖으로 넘어갔다. flex가 남은 만큼만 준다. */
-.search-control--open { flex: 1 1 auto; width: auto; min-width: 0; max-width: 100%; }
-/* 검색을 열면 카테고리와 초기화는 자리를 내주고 플랫폼 버튼 뒤로
-   접힌다 — 셋이 그대로 남으면 입력창이 화면 밖으로 밀려났다. 닫으면
-   같은 곡선으로 되돌아온다. */
-.title-bar__inner:has(.search-control--open) .category-toggle,
-.title-bar__inner:has(.search-control--open) .filter-reset-btn {
-  max-width: 0;
-  padding-left: 0;
-  padding-right: 0;
-  margin-left: 0;
-  border-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.category-toggle,
-.filter-reset-btn {
-  max-width: 220px;
-  transition: max-width 320ms cubic-bezier(.22, 1, .36, 1), opacity 200ms ease,
-              color 150ms ease, background 150ms ease, border-color 150ms ease;
+/* 입력창은 줄 위에 겹치는 별개 층이다. 형제를 접었다 폈다 하면 열 때마다
+   줄 전체가 다시 배치돼 버벅였다 — 아무도 안 움직이는 편이 낫다. */
+.search-control--open .search-control__input {
+  position: absolute;
+  right: .5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 12;
+  width: min(62vw, 320px);
+  max-width: calc(100% - 1rem);
+  background: var(--surface);
 }
 .search-control__btn {
   display: flex;

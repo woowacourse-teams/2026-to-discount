@@ -627,6 +627,19 @@ export default function App() {
   // 전부를 한 번에 보여준다. 카테고리를 실제로 고르면 다시 접는다 —
   // 펼쳐둔 채로 남으면 매번 화면을 도로 차지한다.
   const [catExpanded, setCatExpanded] = useState(false)
+
+  // 펼친 목록은 바깥을 만지면 닫힌다. 토글을 다시 찾아 눌러야만 닫히면
+  // 목록이 카드 위에 얹힌 채로 길을 막는다. pointerdown이라 클릭이
+  // 완성되기 전에 닫히고, 목록 안쪽 클릭은 target으로 걸러낸다.
+  useEffect(() => {
+    if (!catExpanded) return
+    const close = (e) => {
+      if (e.target.closest('.category-panel, .category-toggle')) return
+      setCatExpanded(false)
+    }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
+  }, [catExpanded])
   const handleFilterSelect = (key) => {
     setCatExpanded(false)
     setFilterKey(key)
