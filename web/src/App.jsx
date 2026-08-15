@@ -105,7 +105,7 @@ function detailRows(offer) {
 // 배민 칩에 걸면 안 된다. 브랜드별 링크가 없으면 PLATFORM_APP_LINKS(쿠팡
 // 이츠·요기요만 해당)로 대신 앱을 연다. 그마저 없는 칩은 상세를 여는
 // 버튼이 된다(링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
-function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best }) {
+function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier !== null
   // "최대"는 최소주문금액을 채워야 나오는 상한액이다 — 액면대로 읽히지
@@ -120,21 +120,37 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
       <span className="offer__amount">
         {/* 최고와 qualifier는 동시에 붙지 않는다(조건 붙은 값은 최고
             후보에서 빠진다) — 같은 자리, 같은 배지를 색만 바꿔 쓴다. */}
-        {(best || showRangeBadge) && (
-          <span className={`offer__range-badge${best ? ' offer__range-badge--best' : ''}`}>
-            {best ? '최고' : offer.qualifier}
+        {/* 최고 할인은 칩 왼쪽에 라벨로 붙인다 — 금액 위에 떠 있던
+            배지는 카드가 여럿 늘어서면 어느 칩 것인지 헷갈렸다. */}
+        {best && (
+          <span className="offer__best-label" aria-label="최고 할인">
+            <span>최고</span>
+            <span>할인</span>
           </span>
+        )}
+        {/* 위 칸(qualifier 자리)은 금액의 성격을 말한다 — "최대 할인
+            금액"이나 "n%할인"처럼 그 숫자가 어떻게 나온 값인지. 아래
+            칸은 멤버십·조건 배지 몫이다. */}
+        {!best && showRangeBadge && (
+          <span className="offer__range-badge">
+            {offer.qualifier === '최대' ? '최대 할인 금액' : offer.qualifier}
+          </span>
+        )}
+        {!best && !showRangeBadge && /^\d+%할인$/.test(offer.badge || '') && (
+          <span className="offer__range-badge offer__range-badge--rate">{offer.badge}</span>
         )}
         {/* "배민클럽 전용쿠폰" 같은 원문 대신 이름만 남긴다 — 칩이 이미
             그 앱 하나로 정해져 있으니 "전용쿠폰"은 군더더기다. 그 외
             배지("선착순" 등)는 원문 그대로 둔다. */}
         {offer.badge && (
-          offer.badge.includes('전용쿠폰') ? (
+          offer.badge.endsWith('전용쿠폰') ? (
             <span className="offer__status-badge offer__status-badge--membership" data-platform={offer.platform}>
               {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
             </span>
           ) : (
-            <span className="offer__status-badge">{offer.badge}</span>
+            !/^\d+%할인$/.test(offer.badge) && (
+              <span className="offer__status-badge">{offer.badge}</span>
+            )
           )
         )}
         {offer.soldOut ? (
@@ -151,7 +167,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   )
 
   return (
-    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}${best ? ' offer--best' : ''}${capped ? ' offer--capped' : ''}`}>
+    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}${best ? ' offer--best' : ''}${capped ? ' offer--capped' : ''}${hero ? ' offer--hero' : ''}`}>
       {link ? (
         <a
           className="offer__chip offer__chip--link"
@@ -270,11 +286,11 @@ function BrandCard({ brand, highlighted, onInteract }) {
   // 같은 최대군끼리·같은 비최대군끼리는 금액 큰 순.
   // 그 브랜드에서 가장 큰 확정 할인액. 조건이 붙은 값(qualifier)과 품절은
   // 비교에서 뺀다 — 같은 선에서 견줄 수 없는 값이다. 동점이면 동점인
-  // 만큼 전부 표시한다(하나만 고르면 거짓 우열이 생긴다). 비교 대상이
-  // 하나뿐이면 최고랄 것도 없어 표시하지 않는다.
+  // 만큼 전부 표시한다(하나만 고르면 거짓 우열이 생긴다). 하나뿐이어도
+  // 그 값이 그 브랜드에서 받을 수 있는 최고다 — 그대로 표시한다.
   const bestAmount = useMemo(() => {
     const plain = brand.offers.filter((o) => !o.qualifier && o.amount != null && !o.soldOut)
-    if (plain.length < 2) return null
+    if (plain.length === 0) return null
     return Math.max(...plain.map((o) => o.amount))
   }, [brand.offers])
 
@@ -288,10 +304,15 @@ function BrandCard({ brand, highlighted, onInteract }) {
     [brand.offers],
   )
 
-  // 펼침은 클릭으로만 한다. 마우스가 있는 환경에서 hover로 바로 펼치면
-  // 지나가기만 해도 카드마다 내용이 들쭉날쭉 늘어나 산만했다 — 지금은
-  // hover가 "눌러서 자세히 보기" 안내만 띄운다(CSS ::after, App.css).
-  const [pinned, setPinned] = useState(false)
+  // 최고 할인 하나를 단독으로 올리고 나머지를 아래로 내린다.
+  // sortedOffers가 이미 "최대 뒤로, 금액 큰 순"으로 정렬돼 있으므로
+  // 맨 앞이 곧 그 브랜드의 대표 할인이다.
+  const [heroOffer, ...restOffers] = sortedOffers
+
+  // 상세를 펼친 상태를 기본으로 둔다 — 조건(최소주문금액 등)을 봐야
+  // 금액이 실제로 무슨 뜻인지 알 수 있는데, 접어두면 매번 눌러야 했다.
+  // 접기는 여전히 가능하다.
+  const [pinned, setPinned] = useState(true)
   const open = pinned
   const detailId = `${useId()}-detail`
   const cardRef = useRef(null)
@@ -342,20 +363,43 @@ function BrandCard({ brand, highlighted, onInteract }) {
         <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
       </button>
 
-      <ul className="offer-list">
-        {sortedOffers.map((o) => (
+      {/* 최고 할인 하나를 단독 줄로 올리고 나머지는 아래 가로 그리드로
+          내린다. 넷을 균등한 격자에 늘어놓으면 "어느 게 제일 센가"를
+          매번 눈으로 비교해야 한다 — 답을 먼저 보여주고, 나머지는
+          비교하고 싶을 때 보는 부가 정보로 둔다. */}
+      {heroOffer && (
+        <ul className="offer-list offer-list--hero">
           <OfferChip
-            key={o.platform}
-            offer={o}
+            key={heroOffer.platform}
+            offer={heroOffer}
             brandLinks={brand.links}
             brandName={brand.name}
             detailId={detailId}
             open={open}
             onToggle={toggle}
-            best={bestAmount != null && !o.qualifier && !o.soldOut && o.amount === bestAmount}
+            best={bestAmount != null && !heroOffer.qualifier && !heroOffer.soldOut
+                  && heroOffer.amount === bestAmount}
+            hero
           />
-        ))}
-      </ul>
+        </ul>
+      )}
+
+      {restOffers.length > 0 && (
+        <ul className="offer-list offer-list--rest">
+          {restOffers.map((o) => (
+            <OfferChip
+              key={o.platform}
+              offer={o}
+              brandLinks={brand.links}
+              brandName={brand.name}
+              detailId={detailId}
+              open={open}
+              onToggle={toggle}
+              best={bestAmount != null && !o.qualifier && !o.soldOut && o.amount === bestAmount}
+            />
+          ))}
+        </ul>
+      )}
 
       {/* 상세는 펼쳤을 때만 그린다. 캡처 원본이 스크린샷 한 장에 1MB가 넘어,
           브랜드 73개 × 앱 4개어치를 미리 심어두면 첫 화면이 통째로 멎는다.
@@ -408,77 +452,6 @@ function SiteFooter() {
   )
 }
 
-// 세그먼트 컨트롤(segmented control) — 탭이 각자 배경을 켜고 끄는 대신,
-// 하나의 하이라이트가 활성 탭의 실측 위치·너비로 슬라이드된다. 라벨
-// 길이가 제각각이라(전체/치킨/패스트푸드) 폭을 CSS만으로는 못 구하고
-// 버튼의 offsetLeft/offsetWidth를 재서 옮긴다. 폰트가 늦게 로드되면
-// 폭이 바뀔 수 있어 document.fonts.ready에서도 한 번 더 잰다.
-function CategoryBar({ categories, active, onSelect }) {
-  const btnRefs = useRef({})
-  const barRef = useRef(null)
-  const [rect, setRect] = useState(null)
-  // 첫 배치까지는 애니메이션을 끈다 — 안 그러면 판이 초기 위치(왼쪽 위
-  // 0,0)에서 선택 탭까지 미끄러지는 게 로드할 때마다 보인다.
-  const [animated, setAnimated] = useState(false)
-
-  // 판(하이라이트)은 버튼과 같은 폭의 사각형이다 — 카테고리 줄이 배지
-  // 줄과 같은 윗선에서 시작하므로(App.css .title-bar__inner,
-  // align-items:flex-start) 이 판의 top도 곧 바 천장이다. 아래쪽
-  // 모서리만 둥글려 천장에서 내려온 판처럼 보이게 한다(App.css
-  // .category-bar__highlight, border-radius: 0 0 14px 14px).
-  const measure = () => {
-    const btn = btnRefs.current[active]
-    if (btn) {
-      setRect({
-        left: btn.offsetLeft, width: btn.offsetWidth,
-        top: btn.offsetTop, height: btn.offsetHeight,
-      })
-    }
-  }
-
-  // categories도 의존성에 넣는다 — 분류 기준이 바뀌면(카테고리 ↔
-  // 금액대) active 값은 그대로 'all'이어도 탭 구성 자체가 바뀌므로
-  // 하이라이트를 다시 재야 한다.
-  useLayoutEffect(measure, [active, categories])
-  useEffect(() => {
-    if (rect && !animated) requestAnimationFrame(() => setAnimated(true))
-  }, [rect, animated])
-  useEffect(() => {
-    window.addEventListener('resize', measure)
-    document.fonts?.ready?.then(measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [active, categories])
-
-  return (
-    <div className="category-bar" role="tablist" aria-label="카테고리" ref={barRef}>
-      {rect && (
-        <span
-          className={`category-bar__highlight${animated ? ' category-bar__highlight--animated' : ''}`}
-          aria-hidden="true"
-          style={{
-            transform: `translate(${rect.left}px, ${rect.top}px)`,
-            width: `${rect.width}px`,
-            height: `${rect.height}px`,
-          }}
-        />
-      )}
-      {categories.map((c) => (
-        <button
-          key={c.key}
-          ref={(el) => { btnRefs.current[c.key] = el }}
-          type="button"
-          role="tab"
-          aria-selected={active === c.key}
-          className={`category-btn ${active === c.key ? 'category-btn--active' : ''}`}
-          onClick={() => onSelect(c.key)}
-        >
-          {c.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
 // 브랜드 검색 — 기본은 작은 버튼. 누르면 입력창으로 바뀌어 레이블 자리를
 // 덮고, 포커스를 잃으면(바깥을 누르거나 다른 곳으로 이동) 다시 버튼으로
 // 돌아간다. 검색어 자체는 버튼 상태에서도 App의 search 상태에 남아
@@ -511,7 +484,7 @@ function SearchControl({ value, onChange }) {
           aria-label="브랜드 검색 열기"
           onClick={() => setOpen(true)}
         >
-          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <circle cx="11" cy="11" r="7" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -530,8 +503,9 @@ export default function App() {
   const [search, setSearch] = useState('')
 
   // 헤더의 플랫폼 배지를 눌러 그 앱에 오퍼가 있는 브랜드만 본다.
-  // 여러 개 동시 선택 가능(Set), 전부 해제하면 원래대로 전체 표시.
-  const [platformFilter, setPlatformFilter] = useState(() => new Set())
+  // 처음엔 전부 선택된 상태다 — 빈 Set(=필터 없음)을 기본으로 두면
+  // 선택·미선택·기본 세 가지 모양이 생겨 무엇이 켜져 있는지 헷갈렸다.
+  const [platformFilter, setPlatformFilter] = useState(() => new Set(PLATFORMS.map((p) => p.key)))
   const togglePlatform = (key) => {
     setPlatformFilter((prev) => {
       const next = new Set(prev)
@@ -579,21 +553,26 @@ export default function App() {
     return () => ro.disconnect()
   }, [])
 
-  // 앱을 고른 직후 3초만 띄우고 스스로 사라진다 — 아직 누를 수 없는
-  // 안내라 계속 자리를 지키면 카드 위 방해물이 된다. 타이머는 선택이
-  // 바뀔 때마다 처음부터 다시 간다(고르는 중엔 계속 보인다).
-  const [showMembership, setShowMembership] = useState(false)
-  useEffect(() => {
-    if (platformFilter.size === 0) { setShowMembership(false); return }
-    setShowMembership(true)
-    const id = setTimeout(() => setShowMembership(false), 3000)
-    return () => clearTimeout(id)
-  }, [platformFilter])
+  // 멤버십은 두 단계다. (1) 앱을 고르면 그 앱 버튼 밑에 켜기/끄기를
+  // 묻는 칸이 2초만 떴다 사라진다 — 물어보는 칸이 계속 남으면 카드
+  // 위 방해물이 된다. (2) 켠 멤버십은 그 앱 버튼 밑에 배너로 계속
+  // 남는다 — 지금 무슨 조건으로 금액을 보고 있는지가 상시로 보여야
+  // 한다. 묻는 칸과 결과 배너를 분리한 이유가 이것이다.
+  const [membershipOn, setMembershipOn] = useState(() => new Set())
 
-  const isFiltered = filterKey !== 'all' || platformFilter.size > 0 || search.trim() !== ''
+  const toggleMembership = (key) => {
+    setMembershipOn((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key); else next.add(key)
+      return next
+    })
+    track('membership_toggle', { platform: key })
+  }
+
+  const isFiltered = filterKey !== 'all' || platformFilter.size < PLATFORMS.length || search.trim() !== ''
   const resetFilters = () => {
     setFilterKey('all')
-    setPlatformFilter(new Set())
+    setPlatformFilter(new Set(PLATFORMS.map((p) => p.key)))
     setSearch('')
     track('filters_reset')
   }
@@ -662,22 +641,6 @@ export default function App() {
     }
   }
 
-  // 레이블(카테고리 탭) 영역은 좁게 줄이고 가로 스크롤로 흡수한다.
-  // 마우스는 기본적으로 세로 휠만 보낸다 — PC에서 shift 없이도 휠로
-  // 옆으로 넘어가게, deltaY를 scrollLeft로 돌려준다. 스크롤할 여지가
-  // 없거나(다 보임) 휠 방향으로 이미 끝(처음/끝)까지 갔으면 페이지
-  // 스크롤이 이어받게 preventDefault 안 함 — 안 그러면 가로 스크롤이
-  // 소진된 뒤에도 배경 세로 스크롤이 안 먹는다.
-  const handleLabelsWheel = (e) => {
-    const el = e.currentTarget
-    if (el.scrollWidth <= el.clientWidth) return
-    const atStart = el.scrollLeft <= 0
-    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1
-    if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return
-    e.preventDefault()
-    el.scrollLeft += e.deltaY
-  }
-
   return (
     <>
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
@@ -698,72 +661,83 @@ export default function App() {
               <span key={p.key} className="platform-badge-wrap">
                 <PlatformBadge
                   platformKey={p.key}
-                  onClick={(e) => { e.stopPropagation(); togglePlatform(p.key) }}
-                  active={platformFilter.size === 0 ? undefined : platformFilter.has(p.key)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    togglePlatform(p.key)
+                  }}
+                  active={platformFilter.has(p.key)}
                 />
-                {/* hover(또는 키보드 포커스)하면 그 앱의 멤버십 안내가
-                    배지 바로 아래 뜬다. 로직은 여전히 보류 상태. */}
-                <div className="membership-popover" role="note">
-                  <span className="membership-popover__title">{MEMBERSHIP_LABEL[p.key]}</span>
-                  <span className="pill pill--pending">구현예정</span>
-                </div>
+
+                {/* 고른 앱에만 멤버십 버튼이 로고 밑에 붙는다. 2초 뒤
+                    사라지는 칸으로 물어보던 걸 걷었다 — 켜고 끄는 걸
+                    언제든 다시 만질 수 있어야 한다. 위치로 어느 앱
+                    것인지 드러나므로 여러 앱을 한 줄로 묶지 않는다. */}
+                {platformFilter.has(p.key) && (
+                  <button
+                    type="button"
+                    className={`membership-btn${membershipOn.has(p.key) ? ' membership-btn--on' : ''}`}
+                    data-platform={p.key}
+                    aria-pressed={membershipOn.has(p.key)}
+                    onClick={() => toggleMembership(p.key)}
+                  >
+                    {MEMBERSHIP_LABEL[p.key]}
+                  </button>
+                )}
               </span>
             ))}
           </div>
-          {/* 카테고리는 배지 줄과 별개 줄이다 — 배지 높이(40px)에 눌려
-              늘어나던 판을 걷어내고 탭 자기 높이만큼만 차지한다. 이
-              div가 그 자체 줄이라 위아래 밀착 여백도 여기서 잡는다. */}
-          <div className="title-bar__categories">
-            <div
-              className={`title-bar__scroll${catExpanded ? ' title-bar__scroll--expanded' : ''}`}
-              onWheel={handleLabelsWheel}
-            >
-              <CategoryBar categories={tabs} active={filterKey} onSelect={handleFilterSelect} />
-            </div>
-            {/* 접히면 아래로 펼치는 버튼, 펼치면 다시 접는 버튼 — 화살표
-                방향으로 어느 쪽 동작인지 드러낸다. */}
-            <button
-              type="button"
-              className={`scroll-hint-arrow${catExpanded ? ' scroll-hint-arrow--open' : ''}`}
-              aria-expanded={catExpanded}
-              aria-label={catExpanded ? '카테고리 접기' : '카테고리 모두 보기'}
-              onClick={() => setCatExpanded((v) => !v)}
-            >
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        {/* 검색·초기화는 바 안에서 빼내 바로 아래 여백에 띄운다.
-            absolute라 카드 그리드를 밀어내지 않고, 윗줄 배지 공간을
-            통째로 비워준다. */}
-        <div className="title-bar__float">
+
+          {/* 분류·초기화·검색은 앱 버튼과 같은 선상에 둔다 — 별도 줄로
+              띄우면 같은 조작 묶음인데도 따로 노는 것처럼 보였다.
+              좁은 화면에서는 "카테고리 설정" 글자를 접고 아이콘만 남긴다. */}
+          <button
+            type="button"
+            className={`category-toggle${catExpanded ? ' category-toggle--open' : ''}${filterKey !== 'all' ? ' category-toggle--active' : ''}`}
+            aria-expanded={catExpanded}
+            aria-label="카테고리 설정"
+            onClick={() => setCatExpanded((v) => !v)}
+          >
+            <span className="category-toggle__label">CATEGORY</span>
+            <svg className="category-toggle__icon" aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="5" x2="21" y2="5" />
+              <line x1="6" y1="10" x2="18" y2="10" />
+              <line x1="9" y1="15" x2="15" y2="15" />
+              <polyline points="8 18 12 22 16 18" />
+            </svg>
+          </button>
           <button
             type="button"
             className={`filter-reset-btn${isFiltered ? ' filter-reset-btn--active' : ''}`}
             onClick={resetFilters}
             aria-label="필터 초기화"
           >
-            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12a9 9 0 1 1-3-6.7" />
               <polyline points="21 3 21 9 15 9" />
             </svg>
           </button>
           <SearchControl value={search} onChange={setSearch} />
+
         </div>
-        {/* 선택한 앱의 멤버십 — 타이틀바 아래 여백에 얇게 붙는다.
-            absolute라 카드 그리드를 밀어내지 않고, 아직 계산 로직이
-            없어 누를 수 없는 표시용이다. */}
-        {showMembership && atTop && (
-          <div className="membership-tags" aria-label="선택한 앱 멤버십">
-            {PLATFORMS.filter((p) => platformFilter.has(p.key)).map((p) => (
-              <span key={p.key} className="membership-tag" title="구현예정">
-                {MEMBERSHIP_LABEL[p.key]}
-              </span>
+        {/* 카테고리 목록 — 토글을 눌렀을 때만 바 아래로 펼쳐진다.
+            absolute라 카드 그리드를 밀어내지 않는다. */}
+        {catExpanded && (
+          <div className="category-panel" role="listbox" aria-label="카테고리 선택">
+            {tabs.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                role="option"
+                aria-selected={filterKey === c.key}
+                className={`category-panel__item${filterKey === c.key ? ' category-panel__item--active' : ''}`}
+                onClick={() => handleFilterSelect(c.key)}
+              >
+                {c.label}
+              </button>
             ))}
           </div>
         )}
+
       </div>
     <main>
 

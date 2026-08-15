@@ -5,7 +5,7 @@
 // 공용 모듈로 빼서 양쪽이 여기서 가져다 쓴다.
 
 export const PLATFORMS = [
-  { key: 'baemin', label: '배민', initial: '배' },
+  { key: 'baemin', label: '배달의민족', initial: '배' },
   { key: 'coupangeats', label: '쿠팡이츠', initial: '쿠' },
   { key: 'ddangyo', label: '땡겨요', initial: '땡' },
   { key: 'yogiyo', label: '요기요', initial: '요' },
