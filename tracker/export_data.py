@@ -151,32 +151,36 @@ def _is_past(expires_at: str | None, today: str) -> bool:
     return bool(expires_at) and expires_at < today
 
 
-# 목록을 처음부터 끝까지 훑었다고 볼 최소 건수. 이보다 적으면 한두 건
-# 손으로 넣은 것이지 전수 수집이 아니다.
-#
-# 2026-08-10에 손으로 넣은 땡겨요 5건이 "오늘 수집함"으로 잡혔고, 그
-# 바람에 오늘 다시 안 본 종료일 없는 브랜드 6개(파리바게뜨·굽네치킨·
-# 해두리치킨·머니머니·BBQ·훌랄라참숯바베큐치킨)가 끝난 것으로 밀렸다.
-# 아직 하는 프로모션인데 링크째 화면에서 사라졌다.
-MIN_SWEEP_RECORDS = 10
+SWEEPS_PATH = Path(__file__).parent / "data" / "sweeps.jsonl"
 
 
-def latest_sweep_dates(records: list[dict]) -> dict[str, str]:
+def latest_sweep_dates(records: list[dict], sweeps_path: Path | None = None) -> dict[str, str]:
     """앱별 가장 최근 **전수 수집** 날짜(YYYY-MM-DD).
 
     "이번 수집에 안 보였다"로 오퍼를 내리려면 그 수집이 실제로 목록을 다
-    훑은 것이어야 한다. 손으로 몇 건 넣은 날은 수집일로 치지 않는다 —
-    안 그러면 그날 안 건드린 브랜드가 통째로 끝난 것으로 밀린다.
-    """
-    per_day: dict[tuple[str, str], int] = {}
-    for record in records:
-        key = (record["platform"], record["captured_at"][:10])
-        per_day[key] = per_day.get(key, 0) + 1
+    훑은 것이어야 한다. 전에는 그날 레코드가 10건을 넘으면 전수 수집으로
+    **추정**했는데, 추정이라 양쪽으로 다 틀렸다.
 
+    - 손으로 5건 넣은 날이 수집일로 잡혀 종료일 없는 브랜드 6개가 끝난
+      것으로 밀렸다(2026-08-10).
+    - 그래서 임계값 10을 세웠더니, 정정 5건을 두 번 넣어 정확히 10건이
+      된 날이 다시 수집일로 잡혀 배민 브랜드 69개가 한꺼번에 사라졌다
+      (2026-08-16, export 160 -> 91건).
+
+    이제 추정하지 않는다. 수집을 마쳤다는 사실을 `data/sweeps.jsonl`에
+    직접 적고 그것만 읽는다. 파일이 없으면 수집일도 없다 — 아무것도
+    내리지 않는 쪽이 안전하다(잘못 내리면 살아 있는 프로모션이 사라지고,
+    안 내리면 끝난 프로모션이 남을 뿐이다).
+    """
+    path = sweeps_path or SWEEPS_PATH
     latest: dict[str, str] = {}
-    for (platform, day), count in per_day.items():
-        if count < MIN_SWEEP_RECORDS:
+    if not path.exists():
+        return latest
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
             continue
+        entry = json.loads(line)
+        platform, day = entry["platform"], entry["date"]
         if day > latest.get(platform, ""):
             latest[platform] = day
     return latest
@@ -211,9 +215,18 @@ def is_stale_sweep(record: dict, sweeps: dict[str, str]) -> bool:
     return record["captured_at"][:10] < sweeps.get(record["platform"], "")
 
 
-def build_export(records: list[dict], today: str | None = None) -> list[dict]:
+def build_export(records: list[dict], today: str | None = None,
+                 sweeps: dict[str, str] | None = None) -> list[dict]:
+    """수집일(`sweeps`)은 호출부가 넣어준다 — 여기서 파일을 읽지 않는다.
+
+    전에는 레코드 건수로 수집일을 추정했는데, 그 추정이 틀려 두 번
+    사고가 났다(latest_sweep_dates 참고). 지금은 사실을 적어둔 파일이
+    출처이고, 그 파일을 읽는 건 main()의 몫이다 — 이 함수는 준 것만
+    보고 판단한다. 안 주면 수집일이 없는 것으로 본다: 아무것도 안
+    내리는 쪽이 잘못 내리는 쪽보다 싸다.
+    """
     today = today or date.today().isoformat()
-    sweeps = latest_sweep_dates(records)
+    sweeps = sweeps or {}
     latest = latest_per_brand(records)
     out = []
     for record in latest.values():
@@ -232,7 +245,7 @@ def sorted_brand_names(records: list[dict]) -> list[str]:
 
 def main() -> int:
     records = read_records(LOG_PATH)
-    exported = build_export(records)
+    exported = build_export(records, sweeps=latest_sweep_dates(records))
     names = sorted_brand_names(records)
 
     EXPORT_PATH.write_text(

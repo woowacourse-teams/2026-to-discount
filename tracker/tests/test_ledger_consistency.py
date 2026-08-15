@@ -49,8 +49,21 @@ def test_ladder_floor_treats_missing_min_order_as_no_threshold():
 
 
 def test_every_cumulative_record_amount_matches_its_ladder_floor():
+    """지금 화면에 나가는 레코드만 본다.
+
+    원장은 append-only라 옛 관측이 그대로 남는다. 그중엔 나중에 정정된
+    것도 있는데(정정은 삭제가 아니라 더 최신 관측으로 덮어쓰기다),
+    진 관측까지 검사하면 한 번 틀린 값이 영원히 이 테스트를 깨뜨린다.
+    검사해야 할 것은 "지금 무엇을 내보내는가"이므로 승자만 본다.
+
+    실제로 2026-08-16에 요기요 두 건을 문턱이 같은 tier 둘로 적으면서
+    합(7,777)이 아니라 정액분(7,000)만 대표로 넣었고, 곧 한 tier로
+    합쳐 정정했다. 정정된 지금 값은 맞지만 진 관측은 그대로 남아 있다.
+    """
+    from store import latest_per_brand
+
     mismatched = []
-    for record in read_log():
+    for record in latest_per_brand(read_log()).values():
         if record.get("tier_mode") != "cumulative":
             continue
         floor = ladder_floor(record["tiers"])

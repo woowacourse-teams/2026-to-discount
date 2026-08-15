@@ -9,6 +9,7 @@
 data/*.jsonl
 !data/.gitkeep
 !data/log.jsonl
+!data/sweeps.jsonl
 data/brands-sorted.txt
 captures/*
 !captures/.gitkeep
