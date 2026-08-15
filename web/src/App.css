@@ -275,12 +275,16 @@ h1 {
 }
 
 /* 밀착 — 서로 안 겹치되 최소 간격만 준다. */
+/* 밀려 들어오는 조작이 로고 뒤로 지나가야 한다 — 위 층에 두고 바탕색을
+   깐다. 로고 PNG는 배경이 투명이라 판이 없으면 글자가 비쳐 보인다. */
 .page-head__apps {
+  position: relative;
+  z-index: 2;
   display: flex;
   gap: 6px;
-  margin: 2px 0 0;
+  margin: 6px 0 0;
   flex: none;
-  background: transparent;
+  background: var(--bg);
 }
 /* 아이콘 파일이 256×256 정사각·바깥 여백 0으로 규격화돼 있고 둥근 모서리는
    파일의 투명 픽셀이 들고 있다. 그래서 배지는 판을 깔지 않고 그림만 꽉
@@ -814,18 +818,23 @@ h1 {
   flex: none;
   transition: width 320ms cubic-bezier(.22, 1, .36, 1);
 }
-/* 입력창은 줄 위에 겹치는 별개 층이다. 형제를 접었다 폈다 하면 열 때마다
-   줄 전체가 다시 배치돼 버벅였다 — 아무도 안 움직이는 편이 낫다. */
-.search-control--open .search-control__input {
-  position: absolute;
-  right: .5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 12;
-  width: min(62vw, 320px);
-  max-width: calc(100% - 1rem);
-  background: var(--surface);
+/* 검색이 열리면 이 상자 안에서 앞의 둘(분류·초기화)이 왼쪽으로 밀린다.
+   상자가 넘치는 쪽을 잘라내므로 밀린 만큼 플랫폼 버튼 아래로 들어간다 —
+   사라졌다 나타나는 게 아니라 밀리고 당겨진다. */
+.title-bar__ops {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .35rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  /* 잘리는 쪽은 왼쪽뿐인데 overflow는 축 단위라 세로도 같이 잘린다 —
+     칩(선택 분류)이 상자 밖 아래로 걸치므로 세로는 열어 둔다. */
+  overflow-x: clip;
+  overflow-y: visible;
 }
+.title-bar__ops > * { flex: none; }
+.search-control--open { flex: 1 1 auto; min-width: 0; width: auto; }
 .search-control__btn {
   display: flex;
   align-items: center;

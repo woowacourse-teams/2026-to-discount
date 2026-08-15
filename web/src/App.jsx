@@ -703,46 +703,51 @@ export default function App() {
           {/* 분류·초기화·검색은 앱 버튼과 같은 선상에 둔다 — 별도 줄로
               띄우면 같은 조작 묶음인데도 따로 노는 것처럼 보였다.
               좁은 화면에서는 "카테고리 설정" 글자를 접고 아이콘만 남긴다. */}
-          <span className="category-toggle-wrap">
+          {/* 분류·초기화·검색을 한 상자에 묶는다. 검색이 열리면 이
+              상자 안에서 앞의 둘이 왼쪽으로 밀려 플랫폼 버튼 아래로
+              들어간다 — 사라졌다 나타나는 게 아니라 밀리고 당겨진다. */}
+          <div className="title-bar__ops">
+            <span className="category-toggle-wrap">
+              <button
+                type="button"
+                className={`category-toggle${catExpanded ? ' category-toggle--open' : ''}${filterKey !== 'all' ? ' category-toggle--active' : ''}`}
+                aria-expanded={catExpanded}
+                aria-label="카테고리 설정"
+                onClick={() => setCatExpanded((v) => !v)}
+              >
+                <span className="category-toggle__label">CATEGORY</span>
+              </button>
+
+              {/* 고른 분류는 목록을 접어도 남는다 — 접힌 뒤에 무엇이 걸려
+                  있는지 안 보이면 결과가 왜 줄었는지 알 수 없다. X로 그
+                  자리에서 바로 푼다. */}
+              {filterKey !== 'all' && (
+                <span className="category-chip">
+                  {tabs.find((c) => c.key === filterKey)?.label ?? filterKey}
+                  <button
+                    type="button"
+                    className="category-chip__clear"
+                    aria-label="카테고리 해제"
+                    onClick={() => setFilterKey('all')}
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+            </span>
             <button
               type="button"
-              className={`category-toggle${catExpanded ? ' category-toggle--open' : ''}${filterKey !== 'all' ? ' category-toggle--active' : ''}`}
-              aria-expanded={catExpanded}
-              aria-label="카테고리 설정"
-              onClick={() => setCatExpanded((v) => !v)}
+              className={`filter-reset-btn${isFiltered ? ' filter-reset-btn--active' : ''}`}
+              onClick={resetFilters}
+              aria-label="필터 초기화"
             >
-              <span className="category-toggle__label">CATEGORY</span>
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12a9 9 0 1 1-3-6.7" />
+                <polyline points="21 3 21 9 15 9" />
+              </svg>
             </button>
-
-            {/* 고른 분류는 목록을 접어도 남는다 — 접힌 뒤에 무엇이 걸려
-                있는지 안 보이면 결과가 왜 줄었는지 알 수 없다. X로 그
-                자리에서 바로 푼다. */}
-            {filterKey !== 'all' && (
-              <span className="category-chip">
-                {tabs.find((c) => c.key === filterKey)?.label ?? filterKey}
-                <button
-                  type="button"
-                  className="category-chip__clear"
-                  aria-label="카테고리 해제"
-                  onClick={() => setFilterKey('all')}
-                >
-                  ×
-                </button>
-              </span>
-            )}
-          </span>
-          <button
-            type="button"
-            className={`filter-reset-btn${isFiltered ? ' filter-reset-btn--active' : ''}`}
-            onClick={resetFilters}
-            aria-label="필터 초기화"
-          >
-            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12a9 9 0 1 1-3-6.7" />
-              <polyline points="21 3 21 9 15 9" />
-            </svg>
-          </button>
-          <SearchControl value={search} onChange={setSearch} />
+            <SearchControl value={search} onChange={setSearch} />
+          </div>
 
         </div>
         {/* 카테고리 목록 — 토글을 눌렀을 때만 바 아래로 펼쳐진다.
