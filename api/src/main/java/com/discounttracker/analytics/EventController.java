@@ -35,7 +35,7 @@ public class EventController {
             "page_view", "page_exit", "category_change", "classify_change",
             "brand_expand", "offer_link_click", "membership_open", "capture_note_seen",
             "banner_click", "platform_filter_toggle", "filters_reset", "title_bar_hide_toggle",
-            "brands_retry", "scroll_to_top");
+            "brands_retry", "scroll_to_top", "membership_toggle");
 
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;
