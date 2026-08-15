@@ -1190,10 +1190,13 @@ h1 {
   }
 }
 
+/* 카드 헤더의 브랜드 로고는 상단 플랫폼 버튼과 같은 규격이다 — 둘 다
+   "무엇에 대한 것인가"를 그림 하나로 말하는 자리라 크기가 다르면
+   위계가 있는 것처럼 보인다. */
 .brand-logo {
   position: relative;
-  width: 38px; height: 38px;
-  border-radius: 10px;
+  width: 45px; height: 45px;
+  border-radius: 12px;
   overflow: hidden;
   flex: none;
   background: var(--bg);
@@ -1670,11 +1673,13 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 @media (max-width: 560px) {
 
   .page-head__apps .platform-badge { width: 53px; height: 53px; border-radius: 14px; }
+  .brand-card__head .brand-logo { width: 53px; height: 53px; border-radius: 14px; }
 }
 /* 360px대 기기 — 앱 버튼 넷과 조작 셋이 한 줄에 들어가야 하므로
    버튼 판을 한 단계 더 줄인다(로고는 그대로 49px). */
 @media (max-width: 400px) {
   .page-head__apps .platform-badge { width: 47px; height: 47px; border-radius: 13px; }
+  .brand-card__head .brand-logo { width: 47px; height: 47px; border-radius: 13px; }
   .filter-reset-btn, .search-control__btn, .search-control { width: 34px; height: 34px; }
   .category-toggle { height: 34px; }
 
