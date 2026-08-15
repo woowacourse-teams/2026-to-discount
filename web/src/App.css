@@ -1319,17 +1319,26 @@ h1 {
    달리 흐름 안에 자리를 차지한다. */
 /* 단독 줄이라 폭에 여유가 있다 — 로고를 흐름 안에 놓아 어느 앱으로 가는
    링크인지가 누르기 전에 보이게 한다. */
+/* 로고는 칩 안쪽 오른쪽 끝에 세로 가운데로 앉는다. 흐름 안에 두면
+   금액과 한 덩어리로 묶여 가운데 정렬되고, 긴 금액을 만나면 칩 밖으로
+   밀려났다. 흐름에서 빼고 오른쪽에 고정하면 금액은 칩 기준으로 가운데를
+   지키고 로고는 어떤 금액에서도 같은 자리에 있는다. */
 .offer--hero .offer__icon-badge {
-  position: static;
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
-  margin-left: .55rem;
+  margin: 0;
 }
 .offer--hero .offer__icon-badge .platform-badge {
   width: 42px; height: 42px;
   border-radius: 10px;
 }
-.offer--hero .offer__chip { justify-content: center; gap: 0; }
+/* 오른쪽은 로고 폭(42) + 여백만큼 비워 둔다 — 가운데 정렬된 금액이
+   로고에 닿지 않게. */
+.offer--hero .offer__chip { justify-content: center; gap: 0; padding-right: 66px; padding-left: 66px; }
 
 
 /* 목록 액면 금액이 실제론 못 받는 상태(재고 소진)거나 매일 바뀌는
