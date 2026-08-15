@@ -1295,13 +1295,13 @@ h1 {
   z-index: 1;
 }
 
-/* 로고는 모든 칩에서 금액 오른쪽에 붙는다. 최고 할인 칩만 흐름 안에
-   두고 나머지는 모서리에 얹었더니, 같은 줄에 선 칩끼리 로고 위치가
-   달라 서로 다른 부품처럼 보였다. */
+/* 차순위 칩은 금액이 짧아서 로고를 흐름에 넣으면 칩 폭을 잡아먹는다 —
+   모서리에 얹는다. 단독 줄로 서는 칩(최고 할인, 오퍼가 하나뿐인 경우)만
+   아래에서 흐름 안으로 되돌린다. */
 .offer__icon-badge {
-  display: flex;
-  align-items: center;
-  margin-left: .5rem;
+  position: absolute;
+  top: -8px;
+  right: -8px;
 }
 
 /* 최고 할인 칩 — 단독 줄이라 세로로도 여유가 있다. 금액을 키우고
@@ -1317,6 +1317,14 @@ h1 {
 /* 플랫폼 로고를 링크 버튼 옆에 붙여 키운다 — 어느 앱으로 가는
    링크인지가 누르기 전에 보이게. 모서리에 겹쳐 얹던 작은 배지와
    달리 흐름 안에 자리를 차지한다. */
+/* 단독 줄이라 폭에 여유가 있다 — 로고를 흐름 안에 놓아 어느 앱으로 가는
+   링크인지가 누르기 전에 보이게 한다. */
+.offer--hero .offer__icon-badge {
+  position: static;
+  display: flex;
+  align-items: center;
+  margin-left: .55rem;
+}
 .offer--hero .offer__icon-badge .platform-badge {
   width: 42px; height: 42px;
   border-radius: 10px;
@@ -1543,5 +1551,5 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 
 /* 최고 칩 외의 로고는 2배로 키운다 — 어느 앱 것인지 스치듯 봐도
    구분되게. 최고 칩은 링크 옆이라 1.3배만 키웠다(위 규칙). */
-.offer:not(.offer--hero) .offer__icon-badge .platform-badge { width: 34px; height: 34px; border-radius: 9px; }
+.offer:not(.offer--hero) .offer__icon-badge .platform-badge { width: 40px; height: 40px; border-radius: 9px; }
 .detail__head .platform-badge { width: 40px; height: 40px; border-radius: 9px; }
