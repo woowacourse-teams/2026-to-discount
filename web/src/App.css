@@ -952,12 +952,15 @@ h1 {
   flex-direction: column;
   gap: .8rem;
   background: var(--surface);
-  border: 1px solid var(--border);
+  /* 카드가 세로로 길어지면서 경계가 흐려졌다 — 테두리를 진하게 하고
+     그림자를 얹어 어디서 끊기는지 스치듯 봐도 읽히게 한다. */
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   border-radius: 14px;
   padding: 1.15rem 1.15rem 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(0, 0, 0, .06);
   transition: box-shadow 200ms ease, border-color 200ms ease;
 }
-.brand-card:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, .04); }
+.brand-card:hover { box-shadow: 0 2px 6px rgba(0, 0, 0, .07), 0 10px 24px rgba(0, 0, 0, .09); }
 /* URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유했을 때만 붙는다 —
    카드를 만지면(App.jsx onInteract) 곧바로 떨어진다. */
 .brand-card--highlighted {
@@ -1192,7 +1195,8 @@ h1 {
   line-height: 1.15;
   letter-spacing: -.03em;
 }
-.offer--hero .offer__best-label { width: 60px; height: 60px; font-size: 1.08rem; }
+/* 최고 할인이 여럿이면 단독 줄과 차순위 줄에 같이 선다 — 크기를 나누면
+   같은 뜻의 표식이 두 종류로 보인다. 한 규격으로 통일한다. */
 /* 금액 줄을 가로로 세워 라벨이 왼쪽에 서게 한다. */
 /* 표식은 왼쪽 끄트머리에 고정하고 금액은 칩 가운데에 둔다 —
    라벨을 흐름에서 빼(absolute) 금액이 그 폭에 밀리지 않게 한다. */
@@ -1250,10 +1254,13 @@ h1 {
   z-index: 1;
 }
 
+/* 로고는 모든 칩에서 금액 오른쪽에 붙는다. 최고 할인 칩만 흐름 안에
+   두고 나머지는 모서리에 얹었더니, 같은 줄에 선 칩끼리 로고 위치가
+   달라 서로 다른 부품처럼 보였다. */
 .offer__icon-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
+  display: flex;
+  align-items: center;
+  margin-left: .5rem;
 }
 
 /* 최고 할인 칩 — 단독 줄이라 세로로도 여유가 있다. 금액을 키우고
@@ -1269,12 +1276,6 @@ h1 {
 /* 플랫폼 로고를 링크 버튼 옆에 붙여 키운다 — 어느 앱으로 가는
    링크인지가 누르기 전에 보이게. 모서리에 겹쳐 얹던 작은 배지와
    달리 흐름 안에 자리를 차지한다. */
-.offer--hero .offer__icon-badge {
-  position: static;
-  display: flex;
-  align-items: center;
-  margin-left: .55rem;
-}
 .offer--hero .offer__icon-badge .platform-badge {
   width: 42px; height: 42px;
   border-radius: 10px;
@@ -1498,5 +1499,5 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 
 /* 최고 칩 외의 로고는 2배로 키운다 — 어느 앱 것인지 스치듯 봐도
    구분되게. 최고 칩은 링크 옆이라 1.3배만 키웠다(위 규칙). */
-.offer:not(.offer--hero) .offer__icon-badge .platform-badge { width: 40px; height: 40px; border-radius: 9px; }
+.offer:not(.offer--hero) .offer__icon-badge .platform-badge { width: 34px; height: 34px; border-radius: 9px; }
 .detail__head .platform-badge { width: 40px; height: 40px; border-radius: 9px; }
