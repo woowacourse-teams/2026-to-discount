@@ -456,10 +456,10 @@ function SiteFooter() {
   )
 }
 
-// 브랜드 검색 — 기본은 작은 버튼. 누르면 입력창으로 바뀌어 레이블 자리를
-// 덮고, 포커스를 잃으면(바깥을 누르거나 다른 곳으로 이동) 다시 버튼으로
-// 돌아간다. 검색어 자체는 버튼 상태에서도 App의 search 상태에 남아
-// 필터링은 계속 적용된다 — UI만 접힌다.
+// 브랜드 검색 — 버튼은 자리를 지키고, 입력창은 카테고리 목록처럼 바 아래로
+// 펼쳐진다. 줄 안에서 폭을 넓히면 옆 조작들이 밀려 배치가 매번 다시
+// 잡혔다. 열려 있는 동안 버튼은 색을 뒤집어 지금 무엇이 켜져 있는지
+// 알린다. 검색어는 접어도 App의 search 상태에 남아 필터링은 계속 걸린다.
 function SearchControl({ value, onChange }) {
   const [open, setOpen] = useState(false)
   const inputRef = useRef(null)
@@ -468,31 +468,46 @@ function SearchControl({ value, onChange }) {
     if (open) inputRef.current?.focus()
   }, [open])
 
+  // 바깥을 만지면 닫는다(카테고리 목록과 같은 규칙). 검색어가 남아 있으면
+  // 열어 둔다 — 무엇으로 거르고 있는지가 안 보이면 결과를 못 읽는다.
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => {
+      if (e.target.closest('.search-control')) return
+      if (!value.trim()) setOpen(false)
+    }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
+  }, [open, value])
+
   return (
-    <div className={`search-control ${open ? 'search-control--open' : ''}`}>
-      {open ? (
-        <input
-          ref={inputRef}
-          type="search"
-          className="search-control__input"
-          placeholder="브랜드 검색"
-          aria-label="브랜드 검색"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={() => setOpen(false)}
-        />
-      ) : (
-        <button
-          type="button"
-          className="search-control__btn"
-          aria-label="브랜드 검색 열기"
-          onClick={() => setOpen(true)}
-        >
-          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <circle cx="11" cy="11" r="7" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </button>
+    <div className="search-control">
+      <button
+        type="button"
+        className={`search-control__btn${open ? ' search-control__btn--open' : ''}`}
+        aria-expanded={open}
+        aria-label={open ? '브랜드 검색 닫기' : '브랜드 검색 열기'}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="search-panel">
+          <input
+            ref={inputRef}
+            type="search"
+            className="search-control__input"
+            placeholder="브랜드 검색"
+            aria-label="브랜드 검색"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
+          />
+        </div>
       )}
     </div>
   )
