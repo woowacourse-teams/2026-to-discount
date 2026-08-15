@@ -1689,5 +1689,10 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 
 /* 최고 칩 외의 로고는 2배로 키운다 — 어느 앱 것인지 스치듯 봐도
    구분되게. 최고 칩은 링크 옆이라 1.3배만 키웠다(위 규칙). */
-.offer:not(.offer--hero) .offer__icon-badge .platform-badge { width: 28px; height: 28px; border-radius: 8px; }
+/* 칩 모서리에 얹히는 배지라 테두리가 칩 선과 겹쳐 두 줄로 보였다. */
+.offer:not(.offer--hero) .offer__icon-badge .platform-badge {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  border: 0;
+}
 .detail__head .platform-badge { width: 40px; height: 40px; border-radius: 9px; }
