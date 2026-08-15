@@ -12,10 +12,19 @@ api/gradlew
 api/gradlew.bat
 api/settings.gradle
 api/src/main/java/com/discounttracker/DiscountApiApplication.java
+api/src/main/java/com/discounttracker/analytics/AnalyticsEventService.java
 api/src/main/java/com/discounttracker/analytics/ClientFingerprint.java
 api/src/main/java/com/discounttracker/analytics/EventController.java
 api/src/main/java/com/discounttracker/analytics/EventLog.java
 api/src/main/java/com/discounttracker/analytics/EventRateLimiter.java
+api/src/main/java/com/discounttracker/analytics/PostHogClient.java
+api/src/main/java/com/discounttracker/analytics/PostHogConfiguration.java
+api/src/main/java/com/discounttracker/analytics/PostHogDelivery.java
+api/src/main/java/com/discounttracker/analytics/PostHogEvent.java
+api/src/main/java/com/discounttracker/analytics/PostHogEventMapper.java
+api/src/main/java/com/discounttracker/analytics/PostHogForwardingWorker.java
+api/src/main/java/com/discounttracker/analytics/PostHogOutbox.java
+api/src/main/java/com/discounttracker/analytics/PostHogProperties.java
 api/src/main/java/com/discounttracker/analytics/StatsController.java
 api/src/main/java/com/discounttracker/analytics/TrafficStats.java
 api/src/main/java/com/discounttracker/analytics/TrafficStatsService.java
@@ -27,6 +36,7 @@ api/src/main/java/com/discounttracker/brand/BrandCatalog.java
 api/src/main/java/com/discounttracker/brand/Category.java
 api/src/main/java/com/discounttracker/comparison/BrandComparison.java
 api/src/main/java/com/discounttracker/comparison/BrandComparisonService.java
+api/src/main/java/com/discounttracker/offer/DiscountLadder.java
 api/src/main/java/com/discounttracker/offer/DiscountTier.java
 api/src/main/java/com/discounttracker/offer/Offer.java
 api/src/main/java/com/discounttracker/offer/OfferRecord.java
@@ -48,13 +58,21 @@ api/src/main/resources/test-export.json
 api/src/test/http/reload.http
 api/src/test/http/reloadRemoteServer.http
 api/src/test/java/com/discounttracker/DiscountApiApplicationTests.java
+api/src/test/java/com/discounttracker/analytics/AnalyticsEventServiceTest.java
 api/src/test/java/com/discounttracker/analytics/ClientFingerprintTest.java
 api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogTest.java
+api/src/test/java/com/discounttracker/analytics/PostHogClientTest.java
+api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java
+api/src/test/java/com/discounttracker/analytics/PostHogForwardingWorkerTest.java
+api/src/test/java/com/discounttracker/analytics/PostHogOutboxTest.java
+api/src/test/java/com/discounttracker/analytics/PostHogPropertiesTest.java
 api/src/test/java/com/discounttracker/analytics/TrafficStatsServiceTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogTest.java
 api/src/test/java/com/discounttracker/brand/BrandCatalogTest.java
 api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java
+api/src/test/java/com/discounttracker/offer/DiscountLadderTest.java
+api/src/test/java/com/discounttracker/offer/OfferRecordTest.java
 api/src/test/java/com/discounttracker/offer/OfferRepositoryTest.java
 api/src/test/java/com/discounttracker/testdata/TestDataCatalogTest.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
@@ -66,15 +84,18 @@ tracker/backfill_export.py
 tracker/check_brands.py
 tracker/check_deploy.py
 tracker/conftest.py
+tracker/contract_numbers.py
 tracker/export_data.py
 tracker/ingest.py
 tracker/parse/CONTRACT.md
+tracker/record_sweep.py
 tracker/schema.py
 tracker/store.py
 tracker/tests/test_check_brands.py
 tracker/tests/test_check_deploy.py
 tracker/tests/test_export_data.py
 tracker/tests/test_ingest.py
+tracker/tests/test_ledger_consistency.py
 tracker/tests/test_schema.py
 tracker/tests/test_store.py
 web/.gitignore
@@ -136,8 +157,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 18 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 58 |
+| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 21 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 15 |
 
 ### Tracker
@@ -151,6 +172,7 @@ flowchart TB
 | 판독 계약 | `parse` |
 | 테스트 설정 | `conftest.py` |
 | 검증 | `tests` |
+| 기타 현재 모듈 | `contract_numbers.py`, `record_sweep.py` |
 
 공개 모노레포에는 수집 실행 원본인 `capture/`, `tracker.py`, `dashboard.py`,
 `config/`, `ref/`가 의도적으로 없다. 이 경계는
@@ -162,11 +184,11 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 8 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 17 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 2 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
-| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 6 |
+| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 7 |
 | `testdata/` | 검수용 더미 데이터, 오류를 일부러 섞는다 | 1 |
 | `web/` | HTTP 엔드포인트와 CORS | 5 |
 

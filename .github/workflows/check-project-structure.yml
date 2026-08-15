@@ -27,4 +27,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      # 가드가 조용히 죽으면 --check는 통과하면서 문서만 틀린다. 가드 자체를
+      # 먼저 검사한다.
+      - run: pip install pytest
+      - run: python3 -m pytest scripts/test_generate_project_structure.py -q
       - run: python3 scripts/generate_project_structure.py --check
