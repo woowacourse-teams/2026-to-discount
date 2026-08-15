@@ -147,6 +147,47 @@ h1 {
 .category-toggle:hover { color: var(--text); }
 .category-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .category-toggle--active { color: var(--accent); border-bottom-color: var(--accent); }
+/* 토글과 그 아래 붙는 선택 칩을 한 묶음으로 잡는다. 칩은 absolute라
+   줄 높이를 밀어내지 않는다 — 멤버십 배너가 로고 밑에 붙는 것과 같다. */
+.category-toggle-wrap { position: relative; display: inline-flex; align-items: center; }
+.category-chip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  display: inline-flex;
+  align-items: center;
+  gap: .15rem;
+  margin-top: .25rem;
+  padding: .05rem .2rem .05rem .35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent);
+  font-size: .6rem;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.category-chip__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: inherit;
+  font: inherit;
+  font-size: .62rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.category-chip__clear:hover { background: var(--accent); color: #fff; }
+.category-chip__clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
 .category-toggle__label {
   font-size: .82rem;
   font-weight: 700;
@@ -236,8 +277,8 @@ h1 {
 /* 밀착 — 서로 안 겹치되 최소 간격만 준다. */
 .page-head__apps {
   display: flex;
-  gap: .45rem;
-  margin: 0;
+  gap: 6px;
+  margin: 2px 0 0;
   flex: none;
   background: transparent;
 }
@@ -338,14 +379,14 @@ h1 {
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  margin-top: .3rem;
-  padding: .1rem .4rem;
+  margin-top: .25rem;
+  padding: .05rem .35rem;
   border: 1px solid var(--pc, var(--text));
   border-radius: 999px;
   background: var(--surface);
   color: var(--pc, var(--text));
   font: inherit;
-  font-size: .64rem;
+  font-size: .6rem;
   font-weight: 700;
   line-height: 1.6;
   white-space: nowrap;

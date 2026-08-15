@@ -703,15 +703,34 @@ export default function App() {
           {/* 분류·초기화·검색은 앱 버튼과 같은 선상에 둔다 — 별도 줄로
               띄우면 같은 조작 묶음인데도 따로 노는 것처럼 보였다.
               좁은 화면에서는 "카테고리 설정" 글자를 접고 아이콘만 남긴다. */}
-          <button
-            type="button"
-            className={`category-toggle${catExpanded ? ' category-toggle--open' : ''}${filterKey !== 'all' ? ' category-toggle--active' : ''}`}
-            aria-expanded={catExpanded}
-            aria-label="카테고리 설정"
-            onClick={() => setCatExpanded((v) => !v)}
-          >
-            <span className="category-toggle__label">CATEGORY</span>
-          </button>
+          <span className="category-toggle-wrap">
+            <button
+              type="button"
+              className={`category-toggle${catExpanded ? ' category-toggle--open' : ''}${filterKey !== 'all' ? ' category-toggle--active' : ''}`}
+              aria-expanded={catExpanded}
+              aria-label="카테고리 설정"
+              onClick={() => setCatExpanded((v) => !v)}
+            >
+              <span className="category-toggle__label">CATEGORY</span>
+            </button>
+
+            {/* 고른 분류는 목록을 접어도 남는다 — 접힌 뒤에 무엇이 걸려
+                있는지 안 보이면 결과가 왜 줄었는지 알 수 없다. X로 그
+                자리에서 바로 푼다. */}
+            {filterKey !== 'all' && (
+              <span className="category-chip">
+                {tabs.find((c) => c.key === filterKey)?.label ?? filterKey}
+                <button
+                  type="button"
+                  className="category-chip__clear"
+                  aria-label="카테고리 해제"
+                  onClick={() => setFilterKey('all')}
+                >
+                  ×
+                </button>
+              </span>
+            )}
+          </span>
           <button
             type="button"
             className={`filter-reset-btn${isFiltered ? ' filter-reset-btn--active' : ''}`}
