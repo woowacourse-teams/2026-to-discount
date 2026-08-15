@@ -462,23 +462,32 @@ function SiteFooter() {
 // 알린다. 검색어는 접어도 App의 search 상태에 남아 필터링은 계속 걸린다.
 function SearchControl({ value, onChange }) {
   const [open, setOpen] = useState(false)
+  // 패널 안에서 고치는 동안에는 목록이 흔들리지 않는다 — 확정(엔터나
+  // 검색 버튼)해야 필터가 걸린다. 카테고리를 고르는 것과 같은 리듬이다.
+  const [draft, setDraft] = useState(value)
   const inputRef = useRef(null)
 
   useEffect(() => {
-    if (open) inputRef.current?.focus()
-  }, [open])
+    if (open) {
+      setDraft(value)
+      inputRef.current?.focus()
+    }
+  }, [open, value])
 
-  // 바깥을 만지면 닫는다(카테고리 목록과 같은 규칙). 검색어가 남아 있으면
-  // 열어 둔다 — 무엇으로 거르고 있는지가 안 보이면 결과를 못 읽는다.
   useEffect(() => {
     if (!open) return
     const close = (e) => {
       if (e.target.closest('.search-control')) return
-      if (!value.trim()) setOpen(false)
+      setOpen(false)
     }
     document.addEventListener('pointerdown', close)
     return () => document.removeEventListener('pointerdown', close)
-  }, [open, value])
+  }, [open])
+
+  const submit = () => {
+    onChange(draft.trim())
+    setOpen(false)
+  }
 
   return (
     <div className="search-control">
@@ -495,18 +504,40 @@ function SearchControl({ value, onChange }) {
         </svg>
       </button>
 
+      {/* 확정한 검색어는 버튼 아래 칩으로 남는다 — 고른 분류를 보여주는
+          자리와 같은 규칙이다. X로 그 자리에서 푼다. */}
+      {value.trim() !== '' && (
+        <span className="filter-chip search-chip">
+          {value}
+          <button
+            type="button"
+            className="filter-chip__clear"
+            aria-label="검색어 지우기"
+            onClick={() => onChange('')}
+          >
+            ×
+          </button>
+        </span>
+      )}
+
       {open && (
-        <div className="search-panel">
+        <div className="category-panel search-panel">
           <input
             ref={inputRef}
             type="search"
             className="search-control__input"
             placeholder="브랜드 검색"
             aria-label="브랜드 검색"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyDown={(e) => e.key === 'Escape' && setOpen(false)}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') submit()
+              if (e.key === 'Escape') setOpen(false)
+            }}
           />
+          <button type="button" className="search-panel__submit" onClick={submit}>
+            검색
+          </button>
         </div>
       )}
     </div>
@@ -737,11 +768,11 @@ export default function App() {
                   있는지 안 보이면 결과가 왜 줄었는지 알 수 없다. X로 그
                   자리에서 바로 푼다. */}
               {filterKey !== 'all' && (
-                <span className="category-chip">
+                <span className="filter-chip category-chip">
                   {tabs.find((c) => c.key === filterKey)?.label ?? filterKey}
                   <button
                     type="button"
-                    className="category-chip__clear"
+                    className="filter-chip__clear"
                     aria-label="카테고리 해제"
                     onClick={() => setFilterKey('all')}
                   >

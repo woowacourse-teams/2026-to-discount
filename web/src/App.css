@@ -150,7 +150,10 @@ h1 {
 /* 토글과 그 아래 붙는 선택 칩을 한 묶음으로 잡는다. 칩은 absolute라
    줄 높이를 밀어내지 않는다 — 멤버십 배너가 로고 밑에 붙는 것과 같다. */
 .category-toggle-wrap { position: relative; display: inline-flex; align-items: center; }
-.category-chip {
+/* 지금 걸린 필터를 그 조작 바로 아래 남기는 칩. 분류와 검색어가 같은
+   규칙을 쓴다 — 접힌 뒤에 무엇이 걸려 있는지 안 보이면 결과가 왜 줄었는지
+   알 수 없다. 글자는 CATEGORY 라벨과 같은 크기로 맞춘다. */
+.filter-chip {
   position: absolute;
   top: 100%;
   left: 50%;
@@ -158,35 +161,42 @@ h1 {
   z-index: 11;
   display: inline-flex;
   align-items: center;
-  gap: .15rem;
-  margin-top: .25rem;
-  padding: .05rem .2rem .05rem .35rem;
+  gap: .2rem;
+  max-width: 40vw;
+  margin-top: .3rem;
+  padding: .1rem .25rem .1rem .45rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 14%, var(--surface));
   color: var(--accent);
-  font-size: .6rem;
+  font-size: .82rem;
   font-weight: 700;
-  line-height: 1.6;
+  line-height: 1.5;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.category-chip__clear {
+/* 검색 칩은 버튼이 36px 원이라 가운데를 맞추면 오른쪽으로 넘친다 —
+   오른쪽 끝에 건다. */
+.search-chip { left: auto; right: 0; transform: none; }
+.filter-chip__clear {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 13px;
-  height: 13px;
+  width: 16px;
+  height: 16px;
   padding: 0;
   border: 0;
   border-radius: 50%;
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   color: inherit;
   font: inherit;
-  font-size: .62rem;
+  font-size: .78rem;
   line-height: 1;
   cursor: pointer;
 }
-.category-chip__clear:hover { background: var(--accent); color: #fff; }
-.category-chip__clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.filter-chip__clear:hover { background: var(--accent); color: #fff; }
+.filter-chip__clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .category-toggle__label {
   font-size: .82rem;
@@ -829,20 +839,28 @@ h1 {
 }
 .title-bar__ops > * { flex: none; }
 
-/* 카테고리 목록과 같은 자리, 같은 모양으로 바 아래에 뜬다. */
+/* .category-panel을 그대로 입고 방향만 가로로 돌린다 — 같은 자리에 뜨는
+   같은 상자인데 모양이 다르면 둘이 다른 기능처럼 보인다. */
 .search-panel {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  z-index: 11;
+  flex-direction: row;
+  align-items: center;
+  gap: .4rem;
   width: min(78vw, 320px);
-  margin-top: .3rem;
-  padding: .5rem .6rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
+  min-width: 0;
 }
+.search-panel__submit {
+  flex: none;
+  padding: .25rem .6rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.search-panel__submit:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 /* 열려 있는 동안 버튼은 색을 뒤집는다 — 접힌 입력창이 안 보여도 지금
    검색이 켜져 있다는 게 읽혀야 한다. */
 .search-control__btn--open {
@@ -871,7 +889,9 @@ h1 {
 .search-control__input {
   display: block;
   box-sizing: border-box;
+  flex: 1 1 auto;
   width: 100%;
+  min-width: 0;
   height: 30px;
   font: inherit;
   font-size: .9rem;
