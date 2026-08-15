@@ -239,3 +239,16 @@ def test_validate_record_rejects_cumulative_without_minimum_qualifier():
             {"min_order": 17000, "amount": 4000},
             {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
         ]))
+
+
+def test_validate_record_keeps_evidence_status():
+    # ADR-021: 검증 불가 표시는 선택 필드로 남는다. 부재가 기본이다.
+    marked = validate_record(dict(BASE, evidence_status="not_in_capture"))
+    assert marked["evidence_status"] == "not_in_capture"
+    assert "evidence_status" not in validate_record(dict(BASE))
+
+
+def test_validate_record_rejects_invalid_evidence_status():
+    bad = dict(BASE, evidence_status="unverified")
+    with pytest.raises(ValueError):
+        validate_record(bad)

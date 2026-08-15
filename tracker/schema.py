@@ -16,6 +16,10 @@ ALLOWED_CHANNELS = {"배달", "포장", "매장식사"}
 # 굽네치킨 2026-07-31). tier마다 플래그를 달지 않고 레코드 레벨로 둔 이유는
 # 읽는 쪽이 tier를 하나씩 살피지 않고 한 번에 갈래를 정하게 하려는 것이다.
 ALLOWED_TIER_MODES = {"exclusive", "cumulative"}
+# 영구 검증 불가 증거 표시(ADR-021). 필드 부재가 기본값이며 "경로 실존,
+# 표본 수준 검증 통과 군"을 뜻한다. 값은 셋: 파일이 디스크에 없음 /
+# 경로가 기록되지 않음 / 파일은 있으나 화면에 이 행의 브랜드가 없음.
+ALLOWED_EVIDENCE_STATUS = {None, "missing_file", "no_path", "not_in_capture"}
 
 REQUIRED_FIELDS = (
     "platform", "brand", "raw_text", "captured_at",
@@ -128,6 +132,8 @@ def validate_record(record: dict) -> dict:
         if normalized["qualifier"] != "최소":
             raise ValueError(
                 f"cumulative record must use qualifier '최소': {normalized['qualifier']!r}")
+    if normalized.get("evidence_status") not in ALLOWED_EVIDENCE_STATUS:
+        raise ValueError(f"invalid evidence_status: {normalized['evidence_status']!r}")
     validate_tiers(normalized["tiers"])
 
     return normalized
