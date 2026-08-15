@@ -105,7 +105,7 @@ function detailRows(offer) {
 // 배민 칩에 걸면 안 된다. 브랜드별 링크가 없으면 PLATFORM_APP_LINKS(쿠팡
 // 이츠·요기요만 해당)로 대신 앱을 연다. 그마저 없는 칩은 상세를 여는
 // 버튼이 된다(링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
-function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero, wide }) {
+function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier !== null
   // "최대"는 최소주문금액을 채워야 나오는 상한액이다 — 액면대로 읽히지
@@ -133,7 +133,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             칸은 멤버십·조건 배지 몫이다. */}
         {!best && showRangeBadge && (
           <span className="offer__range-badge">
-            {offer.qualifier === '최대' ? '최대 할인 금액' : offer.qualifier}
+            {offer.qualifier === '최대' ? '불확정 할인' : offer.qualifier}
           </span>
         )}
         {!best && !showRangeBadge && /^\d+%할인$/.test(offer.badge || '') && (
@@ -167,7 +167,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   )
 
   return (
-    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}${best ? ' offer--best' : ''}${capped ? ' offer--capped' : ''}${hero ? ' offer--hero' : ''}${wide ? ' offer--wide' : ''}`}>
+    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}${best ? ' offer--best' : ''}${capped ? ' offer--capped' : ''}${hero ? ' offer--hero' : ''}`}>
       {link ? (
         <a
           className="offer__chip offer__chip--link"
@@ -396,9 +396,6 @@ function BrandCard({ brand, highlighted, onInteract }) {
               open={open}
               onToggle={toggle}
               best={bestAmount != null && !o.qualifier && !o.soldOut && o.amount === bestAmount}
-              // 차순위가 하나뿐이면 그 칩이 줄 전체를 차지한다 — 폭이
-              // 남으므로 로고를 모서리가 아니라 흐름 안에 놓는다.
-              wide={restOffers.length === 1}
             />
           ))}
         </ul>
