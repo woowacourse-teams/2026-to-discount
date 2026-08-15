@@ -70,7 +70,7 @@ const CATEGORIES = [
 // 의도적 보류 상태 — 계산 모델이 나오면 그 레포 docs/plans에 계획이 생긴다.
 const MEMBERSHIP_OPTIONS = [
   { key: 'baemin', label: '배민클럽' },
-  { key: 'coupangeats', label: '쿠팡 와우' },
+  { key: 'coupangeats', label: '쿠팡와우' },
   { key: 'yogiyo', label: '요기패스' },
   { key: 'ddangyo', label: '지역화폐' },
 ]
