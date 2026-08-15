@@ -10,7 +10,10 @@ ALLOWED_OFFER_TYPES = {"discount", "gift", "coupon", "unknown"}
 # target_address 같은 캡처 맥락 일부를 추정으로 채웠다 — auto/manual과 같은
 # 신뢰도로 취급하면 안 되므로 출처를 구분해서 남긴다.
 ALLOWED_CAPTURE_MODES = {"auto", "manual", "backfill"}
-ALLOWED_CHANNELS = {"배달", "포장", "매장식사"}
+# 쿠폰이 어느 주문 방식에 걸리는지. 화면에 그대로 나가는 문구라 값이 곧
+# 라벨이다. "배달/포장"은 한 쿠폰이 둘 다 되는 경우 — 배달용과 포장용을
+# 따로 적으면 같은 쿠폰이 두 줄로 보인다.
+ALLOWED_CHANNELS = {"배달", "포장", "배달/포장", "매장식사"}
 # 한 레코드의 tiers를 어떻게 읽을지. "exclusive"는 문턱마다 택일(지금까지의
 # 해석), "cumulative"는 문턱을 넘을수록 쿠폰이 겹친다(요기요 2단 실측,
 # 굽네치킨 2026-07-31). tier마다 플래그를 달지 않고 레코드 레벨로 둔 이유는

@@ -1463,6 +1463,19 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   margin-bottom: .45rem;
 }
 .detail__platform { font-size: .9rem; color: var(--text-muted); }
+/* 금액 오른쪽에 붙는 채널 라벨(배달/포장). 금액과 같은 줄, 같은 덩어리
+   안에 둔다 — 줄을 나누면 어느 금액에 걸린 조건인지 흐려진다. */
+.detail__channel {
+  margin-left: .35rem;
+  padding: .05rem .3rem;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text-muted);
+  font-size: .68rem;
+  font-weight: 700;
+  vertical-align: middle;
+  white-space: nowrap;
+}
 .detail__amount {
   margin-left: auto;
   font-size: .82rem;

@@ -3060,12 +3060,12 @@
   "offerType": "discount",
   "section": "배짱할인 배민클럽 단독할인",
   "rawText": "4,000원 배민단독 할인",
-  "capturedAt": "2026-08-10T02:00:00+09:00",
+  "capturedAt": "2026-08-10T02:00:01+09:00",
   "screenshotPath": "ref/delivery/2026-08-09/baemin_baejjang_club_자담치킨.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
-  "conditions": "8월 11일 땡데이 한정쿠폰",
+  "conditions": "",
   "expiresAt": null,
   "badge": "배민클럽 전용쿠폰",
   "soldOut": false
@@ -3371,28 +3371,26 @@
  {
   "platform": "yogiyo",
   "brand": "BBQ치킨",
-  "amount": 1250,
+  "amount": 3250,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": null,
-  "rawText": "25000원 이상 주문 시 5%, 최대 3000원 할인, ~2026-08-16",
-  "capturedAt": "2026-08-14T20:43:15.268749+09:00",
+  "rawText": "18,000원 이상 2,000원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-16",
+  "capturedAt": "2026-08-14T20:43:16.268749+09:00",
   "screenshotPath": "captures\\yogiyo_gyeonggi\\yogiyo_2026-08-14_BBQ치킨.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
   "tiers": [
    {
     "minOrder": 25000,
-    "amount": 1250,
-    "percent": 5,
-    "expiresAt": "2026-08-16",
-    "cap": 3000
+    "amount": 3250,
+    "expiresAt": "2026-08-16"
    }
   ],
-  "conditions": null,
+  "conditions": "25,000원 × 5% + 2,000원",
   "expiresAt": "2026-08-16",
-  "badge": null,
+  "badge": "5%할인",
   "soldOut": false
  },
  {

@@ -133,7 +133,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             칸은 멤버십·조건 배지 몫이다. */}
         {!best && showRangeBadge && (
           <span className="offer__range-badge">
-            {offer.qualifier === '최대' ? '불확정 할인' : offer.qualifier}
+            {offer.qualifier === '최대' ? '불확정' : offer.qualifier}
           </span>
         )}
         {!best && !showRangeBadge && /^\d+%할인$/.test(offer.badge || '') && (
@@ -229,6 +229,10 @@ function OfferDetail({ offer }) {
                       <span className="offer__soldout-label">품절</span>
                     </>
                   ) : won(t.amount)}
+                  {/* 같은 브랜드에 배달용과 포장용 쿠폰이 따로 걸리기도
+                      한다(땡겨요 바른치킨). 어느 쪽에 쓰는 금액인지가
+                      금액 바로 옆에 있어야 헷갈리지 않는다. */}
+                  {t.channel && <span className="detail__channel">{t.channel}</span>}
                 </span>
                 <span className="detail__tier-min">
                   {t.minOrder != null
