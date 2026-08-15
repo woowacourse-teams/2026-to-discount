@@ -26,10 +26,10 @@
 푸시하면 `.github/workflows/deploy.yml`이 서버로 옮기고 `POST /api/reload`
 까지 부른다 — 사람이 복사하지 않는다.
 
-> **지금 `export_data.py`를 그대로 돌리면 안 된다.** 원장에 "이 프로모션은
-> 끝났다"를 적을 자리가 없어 종료 프로모션 제거가 `export.json`에서만
-> 일어났고, 재생성하면 그것들이 되살아난다. 무력화 설계가 정해질 때까지의
-> 한계다 — [오케스트레이션 계약](docs/ORCHESTRATION-CONTRACT.md) §1·§5.
+재생성은 원장만으로 완결된다. 2026-08-10 이후 `export.json`이 바뀐 커밋은
+전부 원장 재생성 결과와 일치한다. 한동안은 그렇지 않아 "그대로 돌리면 안
+된다"는 경고가 여기 있었다. 경위와 커밋별 검증은
+[오케스트레이션 계약](docs/ORCHESTRATION-CONTRACT.md) §1.
 
 원장에 새 관측을 넣을 때는 `export.json`을 직접 고치지 말고
 `python ingest.py <records.json>`을 쓴다(`--dry-run`으로 판정을 먼저 볼 수
@@ -92,6 +92,6 @@ dashboard(log)     → 정적 HTML 재생성
 - Python + `adb` CLI ([ADR-001](docs/decisions/ADR-001-python-adb-cli.md))
 - **USB로 연결한 실기** — 에뮬레이터는 쓰지 않는다 ([ADR-009](docs/decisions/ADR-009-real-device-over-emulator.md))
 - 앱 로그인은 사람이 최초 1회 직접 수행한다
-- 기기·앱 패키지명·좌표 상수는 [기기 설정 문서](docs/setup/device-setup.md) 참고
+- 기기, 앱 패키지명, 좌표 상수는 [기기 설정 문서](docs/setup/device-setup.md) 참고
 
 좌표 상수가 현재 기기 해상도(1220x2712)에 묶여 있어 **기기를 바꾸면 재측정이 필요하다.**
