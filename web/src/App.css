@@ -1701,7 +1701,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 칩 모서리에 얹히는 배지라 테두리가 칩 선과 겹쳐 두 줄로 보였다.
    판(배경색)도 걷고 그림만 남긴다. */
 .offer:not(.offer--hero) .offer__icon-badge .platform-badge {
-  width: 28px; height: 28px;
+  width: 26.5px; height: 26.5px;
   border-radius: 8px;
   border: 0;
   background: none;
