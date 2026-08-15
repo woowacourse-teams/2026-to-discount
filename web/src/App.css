@@ -1419,7 +1419,7 @@ h1 {
 .offer__icon-badge {
   position: absolute;
   top: -8px;
-  right: -8px;
+  right: -6px;
   /* 칩(배경 있는 버튼)이 나중에 그려져 배지를 덮었다. */
   z-index: 4;
 }
