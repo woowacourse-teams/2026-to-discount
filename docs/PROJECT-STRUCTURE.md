@@ -115,6 +115,7 @@ web/src/brandColor.js
 web/src/ga4.js
 web/src/logos.jsx
 web/src/main.jsx
+web/vercel.json
 web/vite.config.js
 -->
 
@@ -162,7 +163,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 23 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 16 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 17 |
 
 ### Tracker
 

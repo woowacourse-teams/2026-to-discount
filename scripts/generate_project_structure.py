@@ -101,8 +101,16 @@ WEB_RESPONSIBILITIES = {
 
 
 def tracked_files() -> list[PurePosixPath]:
+    """추적 중인 파일 + 아직 추가 안 된 파일(.gitignore 대상 제외).
+
+    `--others --exclude-standard`가 붙은 이유가 있다. 추적 중인 것만 세면
+    새 파일을 만든 직후에 돌린 생성 결과와, 그 파일을 커밋한 뒤 CI가 보는
+    결과가 달라진다 — 로컬에서 통과시키고 푸시했는데 CI만 빨개지는 일이
+    2026-08-16 하루에 세 번 났다. 커밋하면 어차피 들어올 파일이므로 지금
+    같이 센다.
+    """
     result = subprocess.run(
-        ["git", "ls-files", "-z"],
+        ["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
         cwd=ROOT,
         check=True,
         capture_output=True,
