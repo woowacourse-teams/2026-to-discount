@@ -27,3 +27,4 @@
 | [ADR-020](ADR-020-sweep-is-recorded-not-inferred.md) | 전수 수집은 `sweeps.jsonl`에 기록 — 건수로 추정하지 않는다 | 확정 |
 | [ADR-021](ADR-021-mark-unverifiable-evidence.md) | 검증 불가 증거는 원장 행에 `evidence_status`로 표시 | 확정 |
 | [ADR-022](ADR-022-no-ledger-only-incident-gate.md) | 사고일 검문을 원장-단독 규칙으로 확장하지 않는다 | 확정 |
+| [ADR-023](ADR-023-estimate-expiry-as-next-monday.md) | 종료일 없는 앱은 수집일 다음 월요일로 추정, 원장엔 안 적는다 | 확정 |

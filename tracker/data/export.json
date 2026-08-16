@@ -410,9 +410,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -429,9 +430,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -448,9 +450,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -467,9 +470,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -486,9 +490,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -505,9 +510,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -524,9 +530,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -543,9 +550,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -562,9 +570,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -581,9 +590,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -600,9 +610,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -619,9 +630,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -638,9 +650,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -657,9 +670,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "ddangyo",
@@ -2026,9 +2040,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -2045,9 +2060,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -2064,9 +2080,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -2083,9 +2100,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -2102,9 +2120,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "yogiyo",
@@ -3341,9 +3360,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3360,9 +3380,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3379,9 +3400,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3398,9 +3420,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3417,9 +3440,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3436,9 +3460,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3455,9 +3480,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3474,9 +3500,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3493,9 +3520,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3512,9 +3540,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
@@ -3531,9 +3560,10 @@
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-08-17",
   "badge": null,
-  "soldOut": false
+  "soldOut": false,
+  "expiresAtEstimated": true
  },
  {
   "platform": "yogiyo",

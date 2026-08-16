@@ -8,7 +8,7 @@
 `is_live()`가 긋는다 — 저장은 하되 내보내지는 않는다.
 """
 import json
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 from store import read_records, latest_per_brand
@@ -221,6 +221,36 @@ def is_stale_sweep(record: dict, sweeps: dict[str, str]) -> bool:
     return record["captured_at"][:10] < sweeps.get(record["platform"], "")
 
 
+# 종료일을 화면에 안 적어주는 앱의 추정 만료일. 쿠팡이츠가 그렇다 — 168건
+# 전부 종료일이 없어 "이번 수집에 안 보였다"만이 유일한 종료 신호였다.
+#
+# 프로모션은 네 앱 모두 월요일 00시에 통째로 갈린다(2026-08-10 실측).
+# 그러니 수집일 다음 월요일이 그 관측이 확실히 유효한 마지막 순간이다.
+# 관측이 아니라 추정이므로 원장에는 안 적고 export에서만 붙인다 — 원장은
+# 화면에서 본 것만 담는다(ADR-004).
+ESTIMATED_EXPIRY_PLATFORMS = {"coupangeats"}
+
+
+def next_monday(day: str) -> str:
+    """`day`(YYYY-MM-DD) 다음 월요일. 그날이 월요일이면 일주일 뒤."""
+    d = date.fromisoformat(day)
+    return (d + timedelta(days=7 - d.weekday() or 7)).isoformat()
+
+
+def estimated_expiry(record: dict) -> str | None:
+    """앱이 안 알려준 종료일을 수집일 다음 월요일로 추정한다.
+
+    추정이 실제보다 이르면 살아 있는 할인이 하루 이틀 일찍 내려가고, 늦으면
+    끝난 할인이 남는다. 월요일 교체가 관측된 규칙이므로 이 경계가 둘 다
+    가장 작게 만든다.
+    """
+    if record["platform"] not in ESTIMATED_EXPIRY_PLATFORMS:
+        return None
+    if has_expiry(record):
+        return None
+    return next_monday(record["captured_at"][:10])
+
+
 def build_export(records: list[dict], today: str | None = None,
                  sweeps: dict[str, str] | None = None) -> list[dict]:
     """수집일(`sweeps`)은 호출부가 넣어준다 — 여기서 파일을 읽지 않는다.
@@ -241,6 +271,14 @@ def build_export(records: list[dict], today: str | None = None,
         item = {camel: record.get(snake) for snake, camel in FIELDS}
         item["tierMode"] = record.get("tier_mode") or "exclusive"
         item["tiers"] = camel_tiers(record.get("tiers"))
+        # 추정 만료일은 원장에 없고 여기서 붙는다. 붙인 사실을 같이 실어
+        # 화면이 "예상"임을 말할 수 있게 한다.
+        estimated = estimated_expiry(record)
+        if estimated:
+            item["expiresAt"] = estimated
+            item["expiresAtEstimated"] = True
+        if not is_live({**record, "expires_at": item["expiresAt"]}, today):
+            continue
         out.append(item)
     return out
 
