@@ -55,7 +55,13 @@ BRANDS_PATH = Path(__file__).parent / "data" / "brands-sorted.txt"
 # 없으면 끝난 것으로 본다.
 #
 # 지우지는 않는다. 그때 그랬다는 관측은 원장에 남고 export에서만 빠진다.
-SWEEP_SCOPED_PLATFORMS = {"baemin", "coupangeats", "yogiyo", "ddangyo"}
+#
+# 요기요는 뺀다. 다른 셋은 주소와 무관하게 브랜드 전체를 보여주지만,
+# 요기요 목록은 그 주소 주변 가게만 담는다 — 역삼동에서 훑었더니 고양시에서
+# 잡았던 브랜드 18개가 "이번에 안 보였다"로 밀려 화면에서 사라졌다
+# (2026-08-16). 한 주소에서 안 보인 것은 끝났다는 증거가 아니다. 요기요는
+# 여러 주소의 수집을 합쳐서 보고, 만료는 종료일(is_live)로만 판정한다.
+SWEEP_SCOPED_PLATFORMS = {"baemin", "coupangeats", "ddangyo"}
 
 
 def camel_tiers(tiers):

@@ -160,6 +160,12 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?hk6PXvd
       baemin: https://s.baemin.com/7o3.h24j5
 
+  60계치킨:
+    category: chicken
+  교촌치킨:
+    category: chicken
+    aliases: [교촌치킨, 교촌]
+
   # --- 피자 ---
   반올림피자:
     category: pizza
@@ -222,6 +228,9 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?YVE9ZY9
       baemin: https://s.baemin.com/7o3.f2e5b
+
+  노모어피자:
+    category: pizza
 
   # --- 패스트푸드 ---
   맘스터치:
@@ -290,6 +299,10 @@ brands:
     links:
       baemin: https://s.baemin.com/7o3.fjjn5
 
+  메가MGC커피:
+    category: cafe
+    aliases: [메가MGC커피, 메가커피]
+
   # --- 편의점 ---
   CU:
     category: convenience
@@ -328,11 +341,21 @@ brands:
     category: korean
     aliases: [호세야, 호세야 오리바베큐]
 
+  양은이네동태:
+    category: korean
+  인생아구찜:
+    category: korean
+
   # --- 중식 ---
   홍콩반점0410:
     category: chinese
 
+  마라공방:
+    category: chinese
+
   # --- 미분류 (전체에서만 노출) ---
+  요아잇:
+    category: snack
   떡참:
     aliases: [떡참, 떡볶이참잘하는집 떡참&치킨]
     links:
