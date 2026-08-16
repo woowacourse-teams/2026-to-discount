@@ -1,6 +1,8 @@
-// 로컬이든 배포든 항상 이 주소로 쏜다 — 프록시나 상대경로 대신 백엔드
-// 고정 주소를 직접 부른다.
-const API_BASE = 'https://bebeggars.duckdns.org'
+// 같은 오리진으로 쏜다. 실제 백엔드는 다른 호스트(bebeggars.duckdns.org)에
+// 있지만 배포는 vercel.json rewrites가, 개발은 vite 프록시가 /api를 그쪽으로
+// 넘긴다. 브라우저 입장에선 동일 출처라 CORS 프리플라이트가 아예 안 생긴다 —
+// sendBeacon이 text/plain으로만 갈 수 있던 제약도 여기서 나온 것이었다.
+const API_BASE = ''
 
 export async function fetchBrands() {
   const res = await fetch(`${API_BASE}/api/brands`)

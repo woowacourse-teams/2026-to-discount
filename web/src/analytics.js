@@ -6,7 +6,7 @@
 // 유입 URL 원본(direct/internal/external 구분만), 쿠키(localStorage만 씀).
 // visitorId는 이 브라우저가 만든 난수라 지우면 그대로 끊긴다.
 
-const API_BASE = 'https://bebeggars.duckdns.org'
+const API_BASE = ''  // 같은 오리진 — api.js 주석 참고
 const VISITOR_KEY = 'dk_visitor'
 const VISITS_KEY = 'dk_visits'
 const SESSION_KEY = 'dk_session'
