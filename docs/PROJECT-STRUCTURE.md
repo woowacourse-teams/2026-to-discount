@@ -98,6 +98,7 @@ tracker/tests/test_evidence_links.py
 tracker/tests/test_export_data.py
 tracker/tests/test_ingest.py
 tracker/tests/test_ledger_consistency.py
+tracker/tests/test_record_sweep.py
 tracker/tests/test_schema.py
 tracker/tests/test_store.py
 web/.gitignore
@@ -161,7 +162,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 23 |
+| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 24 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 17 |
 
