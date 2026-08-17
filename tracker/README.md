@@ -11,10 +11,14 @@
 > 공급 중이고, [delivery-discount-web](../delivery-discount-web)이 실제
 > 화면을 배포해 운영 중이다.**
 
+> 진행 중인 수집이 있다: 배민 브랜드관 68브랜드 중 2개까지 받았다.
+> 이어받는 법은 [인수인계 문서](docs/HANDOFF-baemin-20260817.md)에 있다.
+
 ## 문서
 
 | 문서 | 내용 |
 |---|---|
+| [배민 수집 인수인계](docs/HANDOFF-baemin-20260817.md) | 지금 어디까지 됐고 무엇부터 하면 되는지 |
 | [설계 명세](docs/specs/2026-07-26-design.md) | 수집 대상 화면, 아키텍처, 스키마, 자동화 비용 지도, 범위 |
 | [의사결정기록](docs/decisions/) | 되돌리기 어려운 판단과 근거 |
 | [기기 설정](docs/setup/device-setup.md) | 캡처 기기, 앱 패키지명, 앱별 실측 좌표 상수 |
