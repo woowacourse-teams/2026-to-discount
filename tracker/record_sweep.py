@@ -56,19 +56,36 @@ def count_records(platform: str, day: str, log_path: Path = LOG_PATH) -> int:
     return total
 
 
+def split_args(argv: list[str]) -> tuple[list[str], str]:
+    """위치 인자와 --note 값을 나눈다.
+
+    `--note`의 **값**까지 걷어내지 않으면 그 문구가 날짜 자리로 들어간다
+    (2026-08-17 실측: sweeps.jsonl의 date에 "역삼동 브랜드 할인 탭 전수
+    24개 카드"가 적혔다). 날짜가 문구면 그 수집은 어떤 관측도 못 내린다.
+    """
+    positional, note, rest = [], "", list(argv)
+    while rest:
+        arg = rest.pop(0)
+        if arg == "--note":
+            note = rest.pop(0) if rest else ""
+        elif not arg.startswith("--"):
+            positional.append(arg)
+    return positional, note
+
+
 def main(argv: list[str]) -> int:
-    args = [a for a in argv[1:] if not a.startswith("--")]
+    args, note = split_args(argv[1:])
     if not args or args[0] not in ALLOWED_PLATFORMS:
         print(f"사용법: python record_sweep.py <{'|'.join(sorted(ALLOWED_PLATFORMS))}> [YYYY-MM-DD]")
         return 2
 
     platform = args[0]
     day = args[1] if len(args) > 1 else date.today().isoformat()
-    note = ""
-    if "--note" in argv:
-        idx = argv.index("--note")
-        if idx + 1 < len(argv):
-            note = argv[idx + 1]
+    try:
+        date.fromisoformat(day)
+    except ValueError:
+        print(f"날짜가 YYYY-MM-DD 형식이 아니다: {day!r}")
+        return 2
 
     existing = read_sweeps()
     if any(s["platform"] == platform and s["date"] == day for s in existing):
