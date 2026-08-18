@@ -6,10 +6,12 @@
 ## 작업 저장소
 
 ```
-C:\Users\soldesk\IdeaProjects\delivery-discount-tracker\.claude\worktrees\brand-detail-collection
+D:\Dev\_Woowahan-Techcourse\Project\delivery-discount-tracker
 ```
 
-원본 저장소의 워크트리다. **시작 전에 뒤처졌는지 확인할 것**
+main 단일 워크트리가 정본이다. 이전 버전이 가리키던
+`C:\Users\soldesk\...\worktrees\brand-detail-collection`은 잘못된 지정이었다.
+**시작 전에 뒤처졌는지 확인할 것**
 (`git fetch origin && git log --oneline HEAD..origin/main`) — 낡은
 워크트리에서 이미 있는 기능을 다시 구현한 사고가 있었다. 근거는
 `docs/decisions/ADR-018-original-repo-is-the-working-copy.md`.
@@ -37,6 +39,11 @@ python scripts/sweep_baemin_links.py --date 2026-08-17
 이미 받은 브랜드는 건너뛴다. 결과는 브랜드마다 즉시
 `captures/baemin_links_2026-08-17.json`에 쓴다.
 
+`--serial`은 생략하면 `adb devices`에 붙은 기기를 자동 감지한다(폰이
+바뀌어 시리얼 고정이 더는 안 맞아 2026-08-17에 해제). 기기가 둘 이상
+붙어 있으면 에러로 멈추니 그때만 `--serial $SERIAL`로 직접 지정한다.
+아래 온도·잠금 확인 명령의 `$SERIAL`도 같은 값 — `adb devices`로 확인.
+
 ### 먼저 확인할 것 — 화면 잠금
 
 이게 유일한 실패 원인이었다. 2026-08-17에 68개 중 66개가 전부 같은
@@ -50,7 +57,7 @@ deeplink_did_not_open_app: com.sampleapp 화면에 안 뜸
 딥링크가 앱을 못 띄운다. 돌리기 전에 확인한다.
 
 ```bash
-adb -s e7f06aaf shell dumpsys window | grep -E "mAwake=|mDreamingLockscreen"
+adb -s $SERIAL shell dumpsys window | grep -E "mAwake=|mDreamingLockscreen"
 ```
 
 `mAwake=true`, `mDreamingLockscreen=false`여야 한다.
@@ -62,7 +69,7 @@ adb -s e7f06aaf shell dumpsys window | grep -E "mAwake=|mDreamingLockscreen"
 충전을 뺀 채로 화면 꺼짐 시간만 늘리는 쪽이 낫다.
 
 ```bash
-adb -s e7f06aaf shell settings put system screen_off_timeout 1800000   # 30분
+adb -s $SERIAL shell settings put system screen_off_timeout 1800000   # 30분
 ```
 
 30분이면 68개 순회가 끝난다. 배터리 100%라 전원도 버틴다. 백라이트
@@ -91,7 +98,7 @@ adb -s e7f06aaf shell settings put system screen_off_timeout 1800000   # 30분
 온도 직접 보기:
 
 ```bash
-adb -s e7f06aaf shell 'for z in /sys/class/thermal/thermal_zone*; do echo "$(cat $z/temp) $(cat $z/type)"; done' | sort -rn | head -3
+adb -s $SERIAL shell 'for z in /sys/class/thermal/thermal_zone*; do echo "$(cat $z/temp) $(cat $z/type)"; done' | sort -rn | head -3
 ```
 
 `dumpsys battery`의 `temperature`는 다른 센서라 값이 안 맞는다. thermal_zone 쪽을 본다.
