@@ -58,7 +58,7 @@ brands:
     category: chicken
     aliases: [두찜, 두찜찜닭]
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?58CkDfN
+      ddangyo: https://fdofd.ddangyo.com/gateway.html?T0qTf0A
   디디치킨:
     category: chicken
     links:
@@ -139,7 +139,7 @@ brands:
   푸라닭:
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?c2ytzEn
+      ddangyo: https://fdofd.ddangyo.com/gateway.html?QgXqFri
   해두리치킨:
     category: chicken
     links:
@@ -237,6 +237,8 @@ brands:
     # 부모 브랜드. 맘스터치피자앤치킨(버거 제외 피자·치킨 파생)과는 행사가
     # 별개라 alias로 합치지 않는다.
     category: fastfood
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway.html?dxgjyLy
   맘스터치피자앤치킨:
     category: fastfood
     aliases: [맘스터치피자앤치킨, 맘스터치 피자앤치킨, 맘스터치앤피자]
@@ -269,6 +271,8 @@ brands:
     category: cafe
   파리바게뜨:
     category: cafe
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway.html?NBQPChf
   폴바셋:
     category: cafe
   공차:
@@ -319,8 +323,6 @@ brands:
   # --- 한식 ---
   광안천지식당:
     category: korean
-  국민낙곱새:
-    category: korean
   동궁찜닭:
     category: korean
   마선생얼큰국밥:
@@ -331,6 +333,7 @@ brands:
     # 쿠폰이 앱마다 갈릴 때도 있는 같은 브랜드.
     category: korean
     aliases: [유가네닭갈비, 유가네찜닭]
+    links: https://baemin.go.link/5H0ry
   지지고:
     category: korean
   천지두루치기:
@@ -388,6 +391,7 @@ brands:
     links:
       baemin: https://s.baemin.com/Fi000dRKUT3HK
   국민낙곱새:
+    category: korean
     links:
       baemin: https://s.baemin.com/7o6.doja2
   기떡찜:
