@@ -1,6 +1,6 @@
 """원장이 스스로 모순되지 않는지 본다.
 
-cumulative 레코드의 대표값(amount)은 사다리 최저 문턱과 같아야 한다.
+cumulative 레코드의 대표값(amount)은 사다리 최고 문턱과 같아야 한다.
 API가 그 값을 계산해서 내려주므로, 원장 쪽 숫자가 어긋나 있으면 화면과
 원장이 다른 말을 하게 된다. 사람이 손으로 더하다 틀리는 걸 여기서 잡는다.
 """
@@ -8,7 +8,7 @@ import json
 import re
 from pathlib import Path
 
-from export_data import ladder_floor
+from export_data import ladder_best
 from schema import validate_record
 
 LOG_PATH = Path(__file__).parent.parent / "data" / "log.jsonl"
@@ -19,37 +19,39 @@ def read_log():
         return [json.loads(line) for line in f if line.strip()]
 
 
-def test_ladder_floor_of_yogiyo_two_step_coupon():
+def test_ladder_best_of_yogiyo_two_step_coupon():
     # 굽네치킨 실측(2026-07-31): 17,000원 이상 4,000원 고정 메뉴할인 +
     # 25,000원 이상 5%(상한 3,000)의 정률 쿠폰을 겹쳐 쓴다.
     #   17,000원 주문 -> 4,000
     #   25,000원 주문 -> 4,000 + 1,250 = 5,250
-    # 대표값은 최저 문턱인 4,000이다(ADR-019).
+    # 대표값은 최고 문턱인 5,250이다 — 배지 "최적"이 조건을 다 맞췄을
+    # 때임을 알린다.
     tiers = [
         {"min_order": 17000, "amount": 4000},
         {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
     ]
-    assert ladder_floor(tiers) == 4000
+    assert ladder_best(tiers) == 5250
 
 
-def test_ladder_floor_ignores_tier_order():
+def test_ladder_best_ignores_tier_order():
     tiers = [
         {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
         {"min_order": 17000, "amount": 4000},
     ]
-    assert ladder_floor(tiers) == 4000
+    assert ladder_best(tiers) == 5250
 
 
-def test_ladder_floor_treats_missing_min_order_as_no_threshold():
-    # min_order가 없으면 문턱이 없다는 뜻이라 가장 낮은 칸이다.
+def test_ladder_best_treats_missing_min_order_as_no_threshold():
+    # min_order가 없으면 문턱이 없다는 뜻이라 가장 낮은 칸이고, 위 칸에서
+    # 함께 더해진다.
     tiers = [
         {"min_order": None, "amount": 2000},
         {"min_order": 18000, "amount": 3000},
     ]
-    assert ladder_floor(tiers) == 2000
+    assert ladder_best(tiers) == 5000
 
 
-def test_every_cumulative_record_amount_matches_its_ladder_floor():
+def test_every_cumulative_record_amount_matches_its_ladder_best():
     """지금 화면에 나가는 레코드만 본다.
 
     원장은 append-only라 옛 관측이 그대로 남는다. 그중엔 나중에 정정된
@@ -67,17 +69,32 @@ def test_every_cumulative_record_amount_matches_its_ladder_floor():
     for record in latest_per_brand(read_log()).values():
         if record.get("tier_mode") != "cumulative":
             continue
-        floor = ladder_floor(record["tiers"])
-        if record["amount"] != floor:
+        best = ladder_best(record["tiers"])
+        if record["amount"] != best:
             mismatched.append(
                 f"{record['brand']}/{record['platform']}: "
-                f"amount={record['amount']} != 사다리 최저 {floor}")
+                f"amount={record['amount']} != 사다리 최고 {best}")
     assert not mismatched, "\n".join(mismatched)
+
+
+def test_live_cumulative_records_use_the_optimal_qualifier():
+    """화면에 나가는 겹침 쿠폰은 "최적" 배지를 달아야 한다.
+
+    스키마는 과거 표기("최소")를 통과시킨다 — 원장이 append-only라 대표값
+    규칙을 바꾸기 전에 쓴 행이 그대로 남기 때문이다. 그래서 "지금 무엇이
+    나가는가"는 여기서 승자만 골라 본다.
+    """
+    from store import latest_per_brand
+
+    stale = [f"{r['brand']}/{r['platform']}: qualifier={r.get('qualifier')!r}"
+             for r in latest_per_brand(read_log()).values()
+             if r.get("tier_mode") == "cumulative" and r.get("qualifier") != "최적"]
+    assert not stale, "\n".join(stale)
 
 
 def test_every_ledger_record_passes_current_schema():
     # 마이그레이션이 스키마를 어기지 않았는지. cap 동반 필수, cumulative의
-    # tier 2개·qualifier "최소"가 전부 여기서 걸린다.
+    # tier 2개·qualifier "최적"이 전부 여기서 걸린다.
     for record in read_log():
         validate_record(dict(record))
 

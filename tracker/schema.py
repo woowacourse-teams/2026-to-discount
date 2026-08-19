@@ -2,7 +2,7 @@ import re
 
 ALLOWED_PLATFORMS = {"baemin", "coupangeats", "yogiyo", "ddangyo", "specialdelivery"}
 EXPIRES_AT_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-ALLOWED_QUALIFIERS = {None, "최대", "최소", "특정메뉴"}
+ALLOWED_QUALIFIERS = {None, "최대", "최소", "최적", "특정메뉴"}
 ALLOWED_SCOPES = {"brand", "store"}
 ALLOWED_OFFER_TYPES = {"discount", "gift", "coupon", "unknown"}
 # backfill: 원장이 아니라 export.json에 먼저 들어갔던 관측을 뒤늦게 원장으로
@@ -19,6 +19,10 @@ ALLOWED_CHANNELS = {"배달", "포장", "배달/포장", "매장식사"}
 # 굽네치킨 2026-07-31). tier마다 플래그를 달지 않고 레코드 레벨로 둔 이유는
 # 읽는 쪽이 tier를 하나씩 살피지 않고 한 번에 갈래를 정하게 하려는 것이다.
 ALLOWED_TIER_MODES = {"exclusive", "cumulative"}
+# cumulative 레코드가 쓸 수 있는 qualifier. 지금 규칙은 "최적"(사다리
+# 꼭대기) 하나뿐이고, "최소"는 대표값이 최저 문턱이던 시절의 표기라
+# 원장에 남은 과거 행을 위해서만 통과시킨다.
+CUMULATIVE_QUALIFIERS = {"최적", "최소"}
 # 영구 검증 불가 증거 표시(ADR-021). 필드 부재가 기본값이며 "경로 실존,
 # 표본 수준 검증 통과 군"을 뜻한다. 값은 셋: 파일이 디스크에 없음 /
 # 경로가 기록되지 않음 / 파일은 있으나 화면에 이 행의 브랜드가 없음.
@@ -132,9 +136,15 @@ def validate_record(record: dict) -> dict:
     if normalized["tier_mode"] == "cumulative":
         if not normalized["tiers"] or len(normalized["tiers"]) < 2:
             raise ValueError(f"cumulative needs at least two tiers: {normalized['tiers']!r}")
-        if normalized["qualifier"] != "최소":
+        # "최소"는 대표값이 사다리 최저 문턱이던 시절의 표기다(ADR-019
+        # 원안). 대표값을 사다리 꼭대기로 바꾸면서 "최적"으로 갈았지만,
+        # 원장은 append-only라 그때 쓴 행이 그대로 남는다 — 과거 행까지
+        # 거부하면 검증이 역사 자체를 깨뜨린다. 지금 화면에 나가는
+        # 레코드가 "최적"을 쓰는지는 test_ledger_consistency가 승자만
+        # 골라 확인한다.
+        if normalized["qualifier"] not in CUMULATIVE_QUALIFIERS:
             raise ValueError(
-                f"cumulative record must use qualifier '최소': {normalized['qualifier']!r}")
+                f"cumulative record must use qualifier '최적': {normalized['qualifier']!r}")
     if normalized.get("evidence_status") not in ALLOWED_EVIDENCE_STATUS:
         raise ValueError(f"invalid evidence_status: {normalized['evidence_status']!r}")
     validate_tiers(normalized["tiers"])

@@ -133,8 +133,8 @@ public record OfferRecord(
             if (tiers == null || tiers.isEmpty()) {
                 return amount;
             }
-            Integer floor = DiscountLadder.of(claimableTiers(today)).floorAmount();
-            return floor != null ? floor : amount;
+            Integer best = DiscountLadder.of(claimableTiers(today)).bestAmount();
+            return best != null ? best : amount;
         }
         if (tiers == null || tiers.isEmpty() || amount == null) {
             return amount;

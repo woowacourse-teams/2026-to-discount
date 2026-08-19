@@ -87,26 +87,32 @@ def camel_tiers(tiers):
     return out
 
 
-def ladder_floor(tiers: list[dict]) -> int | None:
-    """겹쳐 쓰는 쿠폰의 사다리에서 가장 낮은 칸의 금액.
+def ladder_best(tiers: list[dict]) -> int | None:
+    """겹쳐 쓰는 쿠폰의 사다리에서 가장 높은 칸의 금액.
 
     문턱을 낮은 순으로 훑으며 그 문턱에서 자격이 되는 tier를 전부 더한다.
-    가장 낮은 문턱의 합이 곧 "적어도 이만큼은 받는다"는 보장 바닥값이고,
-    카드에 뜨는 대표 금액이다(ADR-019, ADR-014의 보장 바닥값 원칙).
+    가장 높은 문턱의 합이 곧 "쿠폰을 다 겹쳤을 때 받는 금액"이고, 카드에
+    뜨는 대표 금액이다.
+
+    처음에는 최저 문턱(보장 바닥값)을 대표로 썼다(ADR-019). 그러면 굽네치킨
+    카드가 4,000원으로 떠서, 정률 쿠폰을 겹칠 수 있다는 사실 자체가 화면에서
+    사라진다 — 겹침 쿠폰을 따로 모델링한 의미가 없어진다. 대신 사다리
+    꼭대기를 쓰고 `qualifier: "최적"` 배지로 "조건을 다 맞췄을 때"임을
+    표시한다. 상세를 펼치면 문턱별 사다리가 그대로 보이므로 4,000원만 받는
+    구간도 감춰지지 않는다.
 
     각 tier의 amount는 이미 "그 문턱에서 실제 받는 금액"이라 여기서 정률을
-    다시 계산하지 않는다 — 문턱을 넘어 더 시키면 정률분이 cap까지 늘지만,
-    대표값은 최저 문턱 기준이므로 그 계산이 필요 없다.
+    다시 계산하지 않는다.
 
-    API `DiscountLadder.floorAmount()`와 같은 값을 내야 한다. 두 레이어가
+    API `DiscountLadder.bestAmount()`와 같은 값을 내야 한다. 두 레이어가
     다른 규칙을 쓰면 어느 쪽을 거치느냐로 화면 금액이 갈린다(ADR-016).
     """
     if not tiers:
         return None
     thresholds = sorted({t.get("min_order") or 0 for t in tiers})
-    floor = thresholds[0]
+    top = thresholds[-1]
     return sum(t["amount"] for t in tiers
-               if (t.get("min_order") or 0) <= floor and t.get("amount") is not None)
+               if (t.get("min_order") or 0) <= top and t.get("amount") is not None)
 
 
 def is_live(record: dict, today: str) -> bool:

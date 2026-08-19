@@ -262,8 +262,8 @@ class BrandComparisonServiceTest {
     void carriesTierModeThroughToOffer() {
         // 프론트가 "겹치는 쿠폰이 더 있다"(+a 표시)를 판단하는 근거라
         // 응답까지 그대로 나가야 한다.
-        OfferRecord cumulative = new OfferRecord("yogiyo", "굽네치킨", 4000, "최소", false,
-                "discount", null, "최소 4,000원", "2026-07-31T10:00:00+09:00",
+        OfferRecord cumulative = new OfferRecord("yogiyo", "굽네치킨", 5250, "최적", false,
+                "discount", null, "최적 5,250원", "2026-07-31T10:00:00+09:00",
                 "x.jpg", null, "cumulative", List.of(
                         new DiscountTier(17000, 4000, null, null, null, null, null),
                         new DiscountTier(25000, 1250, 5, 3000, null, null, null)),
@@ -271,7 +271,7 @@ class BrandComparisonServiceTest {
         Offer offer = serviceWith(List.of(cumulative), "brands: {}")
                 .compare().get(0).offers().get(0);
         assertEquals("cumulative", offer.tierMode());
-        assertEquals(4000, offer.amount());
+        assertEquals(5250, offer.amount());
         assertEquals(3000, offer.tiers().get(1).cap());
     }
 

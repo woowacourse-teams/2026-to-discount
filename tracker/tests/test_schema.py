@@ -216,7 +216,7 @@ def test_validate_record_rejects_unknown_tier_mode():
 def test_validate_record_keeps_cumulative_tier_mode():
     # 요기요 굽네치킨 실측(2026-07-31): 고정 메뉴할인과 정률 쿠폰을
     # 겹쳐 쓸 수 있다.
-    record = validate_record(dict(BASE, tier_mode="cumulative", qualifier="최소", tiers=[
+    record = validate_record(dict(BASE, tier_mode="cumulative", qualifier="최적", tiers=[
         {"min_order": 17000, "amount": 4000},
         {"min_order": 25000, "amount": 1250, "percent": 5, "cap": 3000},
     ]))
@@ -226,13 +226,13 @@ def test_validate_record_keeps_cumulative_tier_mode():
 def test_validate_record_rejects_cumulative_with_single_tier():
     # 겹칠 상대가 없으면 cumulative가 뜻을 갖지 않는다.
     with pytest.raises(ValueError, match="cumulative"):
-        validate_record(dict(BASE, tier_mode="cumulative", qualifier="최소", tiers=[
+        validate_record(dict(BASE, tier_mode="cumulative", qualifier="최적", tiers=[
             {"min_order": 17000, "amount": 4000},
         ]))
 
 
 def test_validate_record_rejects_cumulative_without_minimum_qualifier():
-    # cumulative의 대표값은 사다리 최저 문턱이라 "최소" 표기여야 한다.
+    # cumulative의 대표값은 사다리 최고 문턱이라 "최적" 표기여야 한다.
     # 도메인이 qualifier를 덮어쓰는 대신 여기서 강제한다(ADR-019).
     with pytest.raises(ValueError, match="qualifier"):
         validate_record(dict(BASE, tier_mode="cumulative", qualifier="최대", tiers=[

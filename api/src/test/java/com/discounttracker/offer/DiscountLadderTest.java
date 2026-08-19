@@ -18,16 +18,16 @@ class DiscountLadderTest {
     }
 
     @Test
-    void floorIsTheSumAtTheLowestThreshold() {
+    void bestIsTheSumAtTheHighestThreshold() {
         // 요기요 굽네치킨 실측(2026-07-31): 17,000원 이상 4,000원 고정
         // 메뉴할인 + 25,000원 이상 5%(상한 3,000)를 겹쳐 쓴다.
         //   17,000원 주문 -> 4,000
         //   25,000원 주문 -> 4,000 + 1,250 = 5,250
-        // 대표값은 최저 문턱인 4,000이다.
+        // 대표값은 최고 문턱인 5,250이고 "최적" 배지가 함께 붙는다.
         DiscountLadder ladder = DiscountLadder.of(List.of(
                 fixed(17000, 4000),
                 percent(25000, 1250, 5, 3000)));
-        assertEquals(4000, ladder.floorAmount());
+        assertEquals(5250, ladder.bestAmount());
     }
 
     @Test
@@ -43,7 +43,7 @@ class DiscountLadderTest {
         DiscountLadder ladder = DiscountLadder.of(List.of(
                 percent(25000, 1250, 5, 3000),
                 fixed(17000, 4000)));
-        assertEquals(4000, ladder.floorAmount());
+        assertEquals(5250, ladder.bestAmount());
     }
 
     @Test
@@ -51,17 +51,17 @@ class DiscountLadderTest {
         DiscountLadder ladder = DiscountLadder.of(List.of(
                 fixed(null, 2000),
                 fixed(18000, 3000)));
-        assertEquals(2000, ladder.floorAmount());
+        assertEquals(5000, ladder.bestAmount());
     }
 
     @Test
     void singleTierLadderIsThatTier() {
-        assertEquals(4000, DiscountLadder.of(List.of(fixed(17000, 4000))).floorAmount());
+        assertEquals(4000, DiscountLadder.of(List.of(fixed(17000, 4000))).bestAmount());
     }
 
     @Test
-    void emptyLadderHasNoFloor() {
-        assertNull(DiscountLadder.of(List.of()).floorAmount());
+    void emptyLadderHasNoBest() {
+        assertNull(DiscountLadder.of(List.of()).bestAmount());
     }
 
     @Test
@@ -70,6 +70,6 @@ class DiscountLadderTest {
         DiscountLadder ladder = DiscountLadder.of(List.of(
                 fixed(17000, null),
                 fixed(17000, 4000)));
-        assertEquals(4000, ladder.floorAmount());
+        assertEquals(4000, ladder.bestAmount());
     }
 }

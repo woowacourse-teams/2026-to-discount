@@ -44,14 +44,14 @@ class OfferRecordTest {
     }
 
     @Test
-    void cumulativeAmountComesFromTheLadderFloor() {
+    void cumulativeAmountComesFromTheLadderBest() {
         // 굽네치킨: 사다리는 17,000원에 4,000 / 25,000원에 5,250이고
-        // 대표값은 최저 문턱인 4,000이다.
-        OfferRecord r = record(4000, "cumulative", List.of(
+        // 대표값은 최고 문턱인 5,250이다("최적" 배지가 함께 붙는다).
+        OfferRecord r = record(5250, "cumulative", List.of(
                 fixed(17000, 4000),
                 percent(25000, 1250, 5, 3000)));
         assertTrue(r.isCumulative());
-        assertEquals(4000, r.amountAsOf(TODAY));
+        assertEquals(5250, r.amountAsOf(TODAY));
     }
 
     @Test
@@ -61,7 +61,7 @@ class OfferRecordTest {
         OfferRecord r = record(9999, "cumulative", List.of(
                 fixed(17000, 4000),
                 percent(25000, 1250, 5, 3000)));
-        assertEquals(4000, r.amountAsOf(TODAY));
+        assertEquals(5250, r.amountAsOf(TODAY));
     }
 
     @Test
