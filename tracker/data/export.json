@@ -1084,6 +1084,25 @@
  },
  {
   "platform": "baemin",
+  "brand": "훌랄라참숯바베큐치킨",
+  "amount": 12100,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "12,100원 배민클럽 훌랄라참숯치킨 할인",
+  "capturedAt": "2026-08-19T11:04:15+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-08-17/f19.png",
+  "minOrderAmount": 25000,
+  "tierMode": "exclusive",
+  "tiers": null,
+  "conditions": "특정 메뉴 한정 할인",
+  "expiresAt": "2026-08-31",
+  "badge": "배민클럽",
+  "soldOut": false
+ },
+ {
+  "platform": "baemin",
   "brand": "피자헛",
   "amount": 10000,
   "qualifier": null,
@@ -1504,15 +1523,15 @@
  {
   "platform": "baemin",
   "brand": "반찬가게 슈퍼키친",
-  "amount": 4000,
+  "amount": 2500,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드관",
   "rawText": "25,000원 이상 2,500원 / 30,000원 이상 4,000원",
-  "capturedAt": "2026-08-17T18:08:17+09:00",
+  "capturedAt": "2026-08-19T11:07:41+09:00",
   "screenshotPath": "captures/baemin_links_2026-08-17/baemin_2026-08-17_반찬가게 슈퍼키친.png",
-  "minOrderAmount": 30000,
+  "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": [
    {
@@ -1524,7 +1543,7 @@
     "amount": 4000
    }
   ],
-  "conditions": "",
+  "conditions": null,
   "expiresAt": null,
   "badge": null,
   "soldOut": false

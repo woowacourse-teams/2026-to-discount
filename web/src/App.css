@@ -1635,6 +1635,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   max-width: 340px;
 }
 .detail__tier-min { color: var(--text-muted); }
+.detail__tier-percent { color: var(--text-muted); font-size: .85em; margin-left: .25em; }
 /* 구간마다 끝나는 날이 다를 때만 붙는다(오퍼 만료일과 같으면 생략) —
    조건 문구 옆에 작게 얹어 어느 쿠폰이 먼저 끝나는지 보이게 한다. */
 .detail__tier-expiry {

@@ -229,6 +229,17 @@ function OfferDetail({ offer }) {
                       <span className="offer__soldout-label">품절</span>
                     </>
                   ) : won(t.amount)}
+                  {/* percent가 있으면 이 금액이 정률 계산 결과다(요기요
+                      cumulative 실측 2026-08-19: "18,000원 이상 3,000원 +
+                      25,000원 이상 5%(최대 3,000원)"에서 두 번째 줄이
+                      percent 없이 "25,000원 이상 1,250원"으로만 보이면
+                      마치 별개 정액 쿠폰처럼 읽힌다 — 정률이라는 사실
+                      자체가 사라진다). 금액 옆에 %와 상한을 병기한다. */}
+                  {t.percent != null && (
+                    <span className="detail__tier-percent">
+                      ({t.percent}%{t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''})
+                    </span>
+                  )}
                   {/* 같은 브랜드에 배달용과 포장용 쿠폰이 따로 걸리기도
                       한다(땡겨요 바른치킨). 어느 쪽에 쓰는 금액인지가
                       금액 바로 옆에 있어야 헷갈리지 않는다. */}
