@@ -84,6 +84,14 @@ def losing_detail(incoming: list[dict], server: list[dict]) -> list[str]:
             # (2026-08-19 실측: 열정국밥 conditions '' -> None).
             if not record.get(field):
                 continue
+            # minOrderAmount는 tier_mode가 cumulative로 바뀌면 정당하게
+            # 비고 그 값이 tiers 안 min_order로 옮겨간다(CONTRACT.md
+            # §금액 판정 4번: "이 케이스는 min_order_amount는 안 쓴다").
+            # 정보가 없어진 게 아니라 자리를 옮긴 것이라 tiers가 채워져
+            # 있으면 손실로 안 친다(2026-08-19 실측: 요기요 겹침 쿠폰
+            # 14건 정정에서 minOrderAmount 손실로 오판돼 배포가 막혔다).
+            if field == "minOrderAmount" and any(c.get("tiers") for c in candidates):
+                continue
             if all(not c.get(field) for c in candidates):
                 out.append(f"{record.get('brand')} / {record.get('platform')}: "
                            f"{field} {record.get(field)!r} -> 없음")

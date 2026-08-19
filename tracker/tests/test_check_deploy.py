@@ -91,6 +91,18 @@ def test_empty_string_is_not_a_filled_detail():
     assert staleness(incoming, server) is None
 
 
+def test_min_order_moving_into_tiers_is_not_a_loss():
+    """2026-08-19 실측 재현: cumulative로 정정하며 minOrderAmount가
+    tiers 안 min_order로 옮겨갔는데 손실로 오판돼 배포가 막혔다."""
+    server = [dict(rec("굽네치킨", "yogiyo", "2026-08-17T01:11:27+09:00"),
+                    minOrderAmount=25000, tiers=None)]
+    incoming = [dict(rec("굽네치킨", "yogiyo", "2026-08-19T10:49:57+09:00"),
+                      minOrderAmount=None,
+                      tiers=[{"minOrder": 17000, "amount": 4000},
+                             {"minOrder": 25000, "amount": 1250, "percent": 5, "cap": 3000}])]
+    assert staleness(incoming, server) is None
+
+
 def test_main_passes_when_server_file_absent(tmp_path):
     incoming = tmp_path / "incoming.json"
     incoming.write_text(json.dumps([rec("BBQ", "ddangyo", "2026-08-05T00:00:00+09:00")]),
