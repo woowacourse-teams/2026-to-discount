@@ -43,10 +43,24 @@ jobs:
             echo "서버에 export.json이 없다 — 첫 배포로 보고 통과"
             exit 0
           fi
-          newest() {
-            grep -o '"capturedAt"[[:space:]]*:[[:space:]]*"[^"]*"' "$1" \
-              | sed 's/.*"\([^"]*\)"$/\1/' | sort | tail -1
-          }
+          # "수기입력"/"수기작성"은 원장(log.jsonl)을 거치지 않고 서버
+          # export.json에 사람이 바로 써넣은 값이다(2026-08-18 실측:
+          # screenshotPath가 그 문구인 레코드 5건). 정식 경로가 아니라서
+          # 원장 재생성으로는 절대 못 따라잡는다 — 최신성 비교에 넣으면
+          # 정상적으로 갱신한 커밋도 영원히 "낡았다"고 막힌다. jq가 있으면
+          # 그 레코드만 빼고 비교한다. jq가 없으면(검증된 적 없는 조건)
+          # 기존 grep 방식 그대로 — 수기입력도 포함해 비교하는 원래 동작을
+          # 유지해 가드 자체가 죽지 않게 한다.
+          if command -v jq >/dev/null 2>&1; then
+            newest() {
+              jq -r '[.[] | select(.screenshotPath != "수기입력" and .screenshotPath != "수기작성") | .capturedAt] | max // ""' "$1"
+            }
+          else
+            newest() {
+              grep -o '"capturedAt"[[:space:]]*:[[:space:]]*"[^"]*"' "$1" \
+                | sed 's/.*"\([^"]*\)"$/\1/' | sort | tail -1
+            }
+          fi
           INCOMING=$(newest tracker/data/export.json)
           CURRENT=$(newest "$SERVER")
           echo "들어오는 최신 캡처: ${INCOMING:-없음} / 서버: ${CURRENT:-없음}"
