@@ -81,6 +81,16 @@ def test_manual_entry_detail_does_not_block_when_ledger_lacks_it():
     assert staleness(incoming, server) is None
 
 
+def test_empty_string_is_not_a_filled_detail():
+    """2026-08-19 실측 재현: 서버의 conditions ''가 '채워진 값'으로 잘못
+    세져, 다음 배포에서 None으로 정리될 때마다 실손실 없이 막혔다."""
+    server = [dict(rec("열정국밥", "baemin", "2026-08-17T18:08:17+09:00"),
+                    conditions="")]
+    incoming = [dict(rec("열정국밥", "baemin", "2026-08-19T10:18:34+09:00"),
+                      conditions=None)]
+    assert staleness(incoming, server) is None
+
+
 def test_main_passes_when_server_file_absent(tmp_path):
     incoming = tmp_path / "incoming.json"
     incoming.write_text(json.dumps([rec("BBQ", "ddangyo", "2026-08-05T00:00:00+09:00")]),

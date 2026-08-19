@@ -78,9 +78,13 @@ def losing_detail(incoming: list[dict], server: list[dict]) -> list[str]:
         if not candidates:
             continue
         for field in DETAIL_FIELDS:
-            if record.get(field) is None:
+            # 빈 문자열·빈 리스트는 "채워진 값"이 아니다 — conditions:
+            # ''를 채워진 것으로 잘못 세면, 다음 배포에서 그 자리가
+            # None으로 정리될 때마다 실제 손실이 없는데도 막힌다
+            # (2026-08-19 실측: 열정국밥 conditions '' -> None).
+            if not record.get(field):
                 continue
-            if all(c.get(field) is None for c in candidates):
+            if all(not c.get(field) for c in candidates):
                 out.append(f"{record.get('brand')} / {record.get('platform')}: "
                            f"{field} {record.get(field)!r} -> 없음")
     return out
