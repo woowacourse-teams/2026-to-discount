@@ -2,21 +2,28 @@
  {
   "platform": "yogiyo",
   "brand": "굽네치킨",
-  "amount": 5250,
-  "qualifier": null,
+  "amount": 4000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "17,000원 이상 4,000원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_굽네치킨.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 25000,
-    "amount": 5250,
+    "minOrder": 17000,
+    "amount": 4000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "25,000원 × 5% + 4,000원",
@@ -27,21 +34,28 @@
  {
   "platform": "yogiyo",
   "brand": "BHC치킨",
-  "amount": 4150,
-  "qualifier": null,
+  "amount": 3000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "18,000원 이상 3,000원 + 23,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_BHC치킨.png",
-  "minOrderAmount": 23000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 23000,
-    "amount": 4150,
+    "minOrder": 18000,
+    "amount": 3000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 23000,
+    "amount": 1150,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "23,000원 × 5% + 3,000원",
@@ -71,21 +85,28 @@
  {
   "platform": "yogiyo",
   "brand": "또래오래",
-  "amount": 4250,
-  "qualifier": null,
+  "amount": 3000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "18,000원 이상 3,000원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_또래오래.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 25000,
-    "amount": 4250,
+    "minOrder": 18000,
+    "amount": 3000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "25,000원 × 5% + 3,000원",
@@ -215,21 +236,28 @@
  {
   "platform": "yogiyo",
   "brand": "꾸브라꼬숯불치킨",
-  "amount": 4250,
-  "qualifier": null,
+  "amount": 3000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "21,000원 이상 3,000원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_꾸브라꼬숯불치킨.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 25000,
-    "amount": 4250,
+    "minOrder": 21000,
+    "amount": 3000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "25,000원 × 5% + 3,000원",
@@ -259,21 +287,28 @@
  {
   "platform": "yogiyo",
   "brand": "큰맘할매순대국",
-  "amount": 4750,
-  "qualifier": null,
+  "amount": 3500,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "14,000원 이상 3,500원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_큰맘할매순대국.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 25000,
-    "amount": 4750,
+    "minOrder": 14000,
+    "amount": 3500,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "25,000원 × 5% + 3,500원",
@@ -284,21 +319,28 @@
  {
   "platform": "yogiyo",
   "brand": "청년피자",
-  "amount": 5250,
-  "qualifier": null,
+  "amount": 4000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "18,900원 이상 4,000원 + 25,000원 이상 5%(최대 2,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_청년피자.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 25000,
-    "amount": 5250,
+    "minOrder": 18900,
+    "amount": 4000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 2000
    }
   ],
   "conditions": "25,000원 × 5% + 4,000원",
@@ -309,21 +351,28 @@
  {
   "platform": "yogiyo",
   "brand": "전통숙성황실김치찜&찌개",
-  "amount": 6250,
-  "qualifier": null,
+  "amount": 5000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "15,000원 이상 5,000원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-27",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_전통숙성황실김치찜&amp;찌개.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 25000,
-    "amount": 6250,
+    "minOrder": 15000,
+    "amount": 5000,
     "expiresAt": "2026-08-27"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-27",
+    "cap": 3000
    }
   ],
   "conditions": "25,000원 × 5% + 5,000원",
@@ -334,21 +383,28 @@
  {
   "platform": "yogiyo",
   "brand": "계근상",
-  "amount": 6250,
-  "qualifier": null,
+  "amount": 5000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "15,000원 이상 5,000원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-27",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_계근상.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 25000,
-    "amount": 6250,
+    "minOrder": 15000,
+    "amount": 5000,
     "expiresAt": "2026-08-27"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-27",
+    "cap": 3000
    }
   ],
   "conditions": "25,000원 × 5% + 5,000원",
@@ -360,20 +416,27 @@
   "platform": "yogiyo",
   "brand": "도미노피자",
   "amount": 5777,
-  "qualifier": null,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "25,900원 이상 5,000원 + 25,900원 이상 3%(최대 2,000원), ~2026-08-31",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_도미노피자.png",
   "minOrderAmount": 25900,
-  "tierMode": "exclusive",
+  "tierMode": "cumulative",
   "tiers": [
    {
     "minOrder": 25900,
-    "amount": 5777,
+    "amount": 5000,
     "expiresAt": "2026-08-31"
+   },
+   {
+    "minOrder": 25900,
+    "amount": 777,
+    "percent": 3,
+    "expiresAt": "2026-08-31",
+    "cap": 2000
    }
   ],
   "conditions": "25,900원 × 3% + 5,000원",
@@ -403,21 +466,28 @@
  {
   "platform": "yogiyo",
   "brand": "뚜레쥬르",
-  "amount": 5000,
-  "qualifier": null,
+  "amount": 4000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "18,000원 이상 4,000원 + 20,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_뚜레쥬르.png",
-  "minOrderAmount": 20000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 20000,
-    "amount": 5000,
+    "minOrder": 18000,
+    "amount": 4000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 20000,
+    "amount": 1000,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "20,000원 × 5% + 4,000원",
@@ -1770,21 +1840,28 @@
  {
   "platform": "yogiyo",
   "brand": "버거킹",
-  "amount": 3000,
-  "qualifier": null,
+  "amount": 2000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "18,000원 이상 2,000원 + 20,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_버거킹.png",
-  "minOrderAmount": 20000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 20000,
-    "amount": 3000,
+    "minOrder": 18000,
+    "amount": 2000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 20000,
+    "amount": 1000,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "20,000원 × 5% + 2,000원",
@@ -2992,20 +3069,27 @@
   "platform": "yogiyo",
   "brand": "국민낙곱새",
   "amount": 3250,
-  "qualifier": null,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "25,000원 이상 2,000원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_국민낙곱새.png",
   "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "tierMode": "cumulative",
   "tiers": [
    {
     "minOrder": 25000,
-    "amount": 3250,
+    "amount": 2000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "25,000원 × 5% + 2,000원",
@@ -3119,21 +3203,28 @@
  {
   "platform": "yogiyo",
   "brand": "네네치킨",
-  "amount": 4250,
-  "qualifier": null,
+  "amount": 3000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "18,000원 이상 3,000원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_네네치킨.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 25000,
-    "amount": 4250,
+    "minOrder": 18000,
+    "amount": 3000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "25,000원 × 5% + 3,000원",
@@ -3144,21 +3235,28 @@
  {
   "platform": "yogiyo",
   "brand": "곱분이곱창",
-  "amount": 5250,
-  "qualifier": null,
+  "amount": 4000,
+  "qualifier": "최소",
   "needsReview": false,
   "offerType": "discount",
   "section": "브랜드 할인",
   "rawText": "15,000원 이상 4,000원 + 25,000원 이상 5%(최대 3,000원), ~2026-08-23",
-  "capturedAt": "2026-08-17T01:11:27+09:00",
+  "capturedAt": "2026-08-19T10:49:57+09:00",
   "screenshotPath": "captures/yogiyo_full_2026-08-17/yogiyo_2026-08-17_곱분이곱창.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
+  "minOrderAmount": null,
+  "tierMode": "cumulative",
   "tiers": [
    {
-    "minOrder": 25000,
-    "amount": 5250,
+    "minOrder": 15000,
+    "amount": 4000,
     "expiresAt": "2026-08-23"
+   },
+   {
+    "minOrder": 25000,
+    "amount": 1250,
+    "percent": 5,
+    "expiresAt": "2026-08-23",
+    "cap": 3000
    }
   ],
   "conditions": "25,000원 × 5% + 4,000원",
