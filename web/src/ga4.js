@@ -7,7 +7,7 @@
 // 이 도구만 쿠키(_ga)를 쓰고 데이터가 Google로 넘어간다 — 다른 둘과
 // 성격이 다르므로 SiteFooter에 그 사실을 그대로 고지한다.
 // 제거 조건·전체 맥락은 docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md.
-import { optedOut } from './analytics.js'
+import { optedOut } from './privacy.js'
 
 const MEASUREMENT_ID = 'G-7T4DN0NXV5'
 
