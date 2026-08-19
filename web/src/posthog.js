@@ -52,6 +52,8 @@ export function createPostHogAdapter({
         capture_performance: false,
         disableDeviceModel: true,
         respect_dnt: true,
+        // 계정·개인 단위 분석은 하지 않는다. 재방문 분석은 이벤트의
+        // visit_count 속성으로만 수행한다.
         person_profiles: 'never',
       })
       initialized = true

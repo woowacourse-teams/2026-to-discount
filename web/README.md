@@ -174,6 +174,10 @@ VITE_POSTHOG_HOST=https://us.i.posthog.com
 `dev: true`, `source_session_id`, `visit_count`를 확인한다. 이 이벤트는 제품
 Insight에서 제외한다.
 
+PostHog Person Profile은 만들지 않는다(`person_profiles: 'never'`). 재방문 분석은
+사용자 프로필이 아니라 각 이벤트의 `visit_count` 속성으로 수행한다. 향후 계정 기반
+분석이 필요해지면 이 정책과 개인정보 고지를 함께 재검토한다.
+
 `track()`과 `page_exit`는 메모리 큐에 들어갈 때 UUID 형식의 `eventId`를 한 번
 발급한다. 서버는 유효한 값을 PostHog `$insert_id`로 유지한다. `sendBeacon`이
 실패해 `fetch`로 폴백할 때는 같은 이벤트 객체를 직렬화하므로 `eventId`도
