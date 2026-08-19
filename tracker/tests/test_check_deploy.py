@@ -63,6 +63,24 @@ def test_main_blocks_stale_and_reports_vanishing(tmp_path, capsys):
     assert "배포 중단" in out
 
 
+def test_manual_entry_on_server_does_not_block_regular_deploy():
+    """2026-08-18 실측 재현: 서버에 원장 밖 수기입력 레코드가 있으면 정상
+    갱신한 커밋이 영원히 '낡았다'고 막혔다."""
+    server = [dict(rec("스타벅스", "ddangyo", "2026-08-18T10:30:00+09:00"),
+                    screenshotPath="수기작성")]
+    incoming = [rec("BBQ", "ddangyo", "2026-08-17T18:08:17+09:00")]
+    assert staleness(incoming, server) is None
+
+
+def test_manual_entry_detail_does_not_block_when_ledger_lacks_it():
+    """수기입력 레코드가 상세를 채워 갖고 있어도, 정식 원장에 그 상세가
+    없다는 이유로 배포를 막지 않는다 — 비교 대상 자체가 정식 경로 밖이다."""
+    server = [dict(rec("세븐일레븐", "yogiyo", "2026-08-18T01:11:27+09:00"),
+                    screenshotPath="수기입력", minOrderAmount=20000)]
+    incoming = [rec("세븐일레븐", "yogiyo", "2026-08-19T00:00:00+09:00")]
+    assert staleness(incoming, server) is None
+
+
 def test_main_passes_when_server_file_absent(tmp_path):
     incoming = tmp_path / "incoming.json"
     incoming.write_text(json.dumps([rec("BBQ", "ddangyo", "2026-08-05T00:00:00+09:00")]),

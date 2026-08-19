@@ -28,10 +28,17 @@ from pathlib import Path
 
 from config import use_utf8_stdout
 
+# 원장(log.jsonl)을 거치지 않고 서버 export.json에 사람이 바로 써넣은
+# 레코드의 표시(2026-08-18 실측: ddangyo 스타벅스 등 5건). 정식 경로가
+# 아니라서 원장 재생성으로는 절대 못 따라잡는다 — 최신성 비교에 넣으면
+# 정상 갱신한 커밋도 영원히 "낡았다"고 막힌다.
+MANUAL_ENTRY_MARKERS = {"수기입력", "수기작성"}
+
 
 def latest_capture(records: list[dict]) -> str:
     """가장 최근 capturedAt. 비어 있으면 빈 문자열(어떤 값보다도 이르다)."""
-    return max((r.get("capturedAt") or "" for r in records), default="")
+    dated = (r for r in records if r.get("screenshotPath") not in MANUAL_ENTRY_MARKERS)
+    return max((r.get("capturedAt") or "" for r in dated), default="")
 
 
 def vanishing(incoming: list[dict], server: list[dict]) -> list[tuple[str, str]]:
@@ -65,6 +72,8 @@ def losing_detail(incoming: list[dict], server: list[dict]) -> list[str]:
 
     out = []
     for record in server:
+        if record.get("screenshotPath") in MANUAL_ENTRY_MARKERS:
+            continue  # 정식 경로 밖 값과 비교해 원장을 막지 않는다
         candidates = have.get(key(record))
         if not candidates:
             continue
