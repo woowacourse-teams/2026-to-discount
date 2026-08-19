@@ -109,25 +109,29 @@
 
 ## 방문 측정 (analytics)
 
-방문 측정은 세 가지다.
+방문 측정은 네 가지 경로가 있다.
 
 1. **`src/analytics.js`(자체)** — 경로·재방문·체류·행동을 API
-   (`/api/events`)로만 보낸다. 자체 서버에만 기록하고 제3자에게
-   안 넘긴다 — 왜 자체 구현인지, 무엇을 수집하고 무엇을 안 하는지는
+   (`/api/events`)로 보낸다. 자체 서버의 원본 JSONL에 기록한 뒤 백엔드
+   outbox가 PostHog로 전달한다. 왜 자체 구현인지, 무엇을 수집하고 무엇을 안 하는지는
    delivery-discount-api의
    [ADR-005](../delivery-discount-api/docs/decisions/ADR-005-first-party-analytics.md).
    재방문(`visitCount`)은 `localStorage` 기반이라 삭제·기기 변경에
    취약하다.
-2. **`@vercel/analytics/react`(Vercel)** — `src/main.jsx`에서 `<Analytics />`
+2. **`src/posthog.js`(PostHog SDK)** — 후속 제품 신호를 브라우저에서
+   PostHog로 직접 보낼 때 쓴다. 기존 자체 이벤트를 자동으로 미러링하지 않으며,
+   자동 페이지뷰·자동 캡처·세션 리플레이·쿠키를 모두 끈다. 자체 경로와 같은
+   `visitorId`와 `source_session_id`를 사용한다.
+3. **`@vercel/analytics/react`(Vercel)** — `src/main.jsx`에서 `<Analytics />`
    마운트. 쿠키 없는 집계형 페이지뷰만 Vercel 대시보드로 간다. Next.js용
    `/next` 엔트리가 아니라 Vite에 맞는 `/react` 엔트리를 쓴다. 쿠키를
    안 쓰는 구조라 신규/재방문 구분 자체가 없다.
-3. **`src/ga4.js`(GA4, 임시)** — 위 두 방식으로는 재방문을 정확히 못 재서
+4. **`src/ga4.js`(GA4, 임시)** — 위 방식만으로는 재방문을 정확히 못 재서
    임시로 병행 도입. 유일하게 쿠키(`_ga`)를 쓰고 데이터가 Google로
    전달된다. 광고 개인화·Google Signals는 꺼서 붙였다. 도입 배경·제거
    조건은 [ADR-002](docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md).
 
-셋 다 쓴다는 사실은 `SiteFooter`에 고지돼 있다 — "외부 도구를 안 쓴다"는
+모든 경로를 쓴다는 사실은 `SiteFooter`에 고지돼 있다 — "외부 도구를 안 쓴다"는
 더는 정확하지 않으니 이 문구를 다시 단순화하지 말 것. GA4는 쿠키를 쓰는
 유일한 도구라 그 사실도 고지문에 그대로 남겨둔다.
 
@@ -137,6 +141,42 @@
 `page_view`를 찍고, 탭 가시성 변화·`pagehide`에 체류 시간 전송을 건다.
 이 외의 행동 이벤트는 발생 지점에서 `track(event, props?)`를 직접
 부른다.
+
+PostHog SDK 직접 이벤트는 별도 adapter를 쓴다. 이벤트명과 props는 제한하지
+않지만, 같은 사용자 행동에서 `track()`과 `captureProductSignal()`을 함께
+호출하면 PostHog에 중복 집계되므로 한 경로만 선택한다.
+
+```js
+import { captureProductSignal } from './posthog.js'
+
+captureProductSignal('brand_search_started', {
+  query_length: 3,
+  result_count: 5,
+})
+```
+
+SDK 설정은 Vite 빌드 환경변수로 주입한다. Project API Key는 브라우저 공개용
+키지만 Personal API Key는 절대 넣지 않는다. Vercel에서 값을 바꾼 뒤에는
+새 빌드가 필요하다.
+
+```text
+VITE_POSTHOG_KEY=phc_...
+VITE_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+브라우저 직접 요청의 IP는 SDK의 `ip: false` 옵션으로 폐기할 수 없다. 운영 키를
+설정하기 전에 PostHog 프로젝트에서 **Discard client IP data** 설정
+(`anonymize_ips`)을 활성화하고 실제 이벤트에서 GeoIP 속성이 생성되지 않는지
+확인한다. 확인 전에는 운영 `VITE_POSTHOG_KEY`를 설정하지 않는다.
+
+연결 검증은 `?dev=1&posthog_test=1`을 함께 붙여 연다. 같은 탭에서는
+`posthog_sdk_connection_test`를 한 번만 보내며, PostHog Live Events에서
+`dev: true`, `source_session_id`, `visit_count`를 확인한다. 이 이벤트는 제품
+Insight에서 제외한다.
+
+PostHog Person Profile은 만들지 않는다(`person_profiles: 'never'`). 재방문 분석은
+사용자 프로필이 아니라 각 이벤트의 `visit_count` 속성으로 수행한다. 향후 계정 기반
+분석이 필요해지면 이 정책과 개인정보 고지를 함께 재검토한다.
 
 `track()`과 `page_exit`는 메모리 큐에 들어갈 때 UUID 형식의 `eventId`를 한 번
 발급한다. 서버는 유효한 값을 PostHog `$insert_id`로 유지한다. `sendBeacon`이
@@ -184,13 +224,14 @@ jq -r 'select(.event=="offer_link_click" and .dev!=true) | ...' events.jsonl
 ### 개인정보 관련 동작
 
 - **DNT/GPC를 존중한다.** `navigator.doNotTrack === '1'` 이거나
-  `navigator.globalPrivacyControl === true`이면 `track()`도
-  `startAnalytics()`도 아무것도 보내지 않는다. 브라우저 설정에서
-  "추적 안 함(Do Not Track)"을 켜고 새로고침하면 확인할 수 있다
-  (개발자 도구 콘솔에서 `navigator.doNotTrack`로도 값 확인 가능).
+  `navigator.globalPrivacyControl === true`이면 자체 `track()`·`startAnalytics()`,
+  PostHog SDK, GA4, Vercel Analytics 모두 전송하지 않는다. Vercel Analytics는
+  컴포넌트 자체를 렌더링하지 않는다. 브라우저 설정에서 "추적 안 함(Do Not Track)"을
+  켜고 새로고침하면 확인할 수 있다 (개발자 도구 콘솔에서
+  `navigator.doNotTrack`로도 값 확인 가능).
 - **쿠키를 안 쓴다.** `visitorId`/`visitCount`는 `localStorage`,
-  `sessionId`는 `sessionStorage` — 사용자가 사이트 데이터를 지우면
-  전부 끊긴다.
+  `sessionId`는 `sessionStorage`, PostHog SDK persistence는 `localStorage`를
+  쓴다. 사용자가 사이트 데이터를 지우면 전부 끊긴다.
 - **체류 시간은 sendBeacon으로 나간다.** `application/json`으로 보내면
   CORS 프리플라이트에 걸려 조용히 유실되므로 `text/plain`으로 보낸다
   (API README·ADR-005 참고). 이 부분을 건드릴 때는 반드시 실제 페이지
