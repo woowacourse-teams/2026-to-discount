@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { startAnalytics } from './analytics.js'
 import { startGa4 } from './ga4.js'
 import { capturePostHogConnectionTest, initPostHog } from './posthog.js'
+import { optedOut } from './privacy.js'
 import './App.css'
 
 // StrictMode가 컴포넌트를 두 번 마운트하므로 page_view가 두 번 찍히지
@@ -19,7 +20,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
     {/* Vercel 배포 트래픽 집계. /react 엔트리를 쓴다 — Next.js가 아니라
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
-        별개로, Vercel 대시보드에서 보는 용도다. */}
-    <Analytics />
+        별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면
+        컴포넌트를 마운트하지 않아 전송도 하지 않는다. */}
+    {!optedOut() && <Analytics />}
   </React.StrictMode>,
 )

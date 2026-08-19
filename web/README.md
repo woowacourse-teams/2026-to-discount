@@ -220,10 +220,11 @@ jq -r 'select(.event=="offer_link_click" and .dev!=true) | ...' events.jsonl
 ### 개인정보 관련 동작
 
 - **DNT/GPC를 존중한다.** `navigator.doNotTrack === '1'` 이거나
-  `navigator.globalPrivacyControl === true`이면 `track()`도
-  `startAnalytics()`도 아무것도 보내지 않는다. 브라우저 설정에서
-  "추적 안 함(Do Not Track)"을 켜고 새로고침하면 확인할 수 있다
-  (개발자 도구 콘솔에서 `navigator.doNotTrack`로도 값 확인 가능).
+  `navigator.globalPrivacyControl === true`이면 자체 `track()`·`startAnalytics()`,
+  PostHog SDK, GA4, Vercel Analytics 모두 전송하지 않는다. Vercel Analytics는
+  컴포넌트 자체를 렌더링하지 않는다. 브라우저 설정에서 "추적 안 함(Do Not Track)"을
+  켜고 새로고침하면 확인할 수 있다 (개발자 도구 콘솔에서
+  `navigator.doNotTrack`로도 값 확인 가능).
 - **쿠키를 안 쓴다.** `visitorId`/`visitCount`는 `localStorage`,
   `sessionId`는 `sessionStorage`, PostHog SDK persistence는 `localStorage`를
   쓴다. 사용자가 사이트 데이터를 지우면 전부 끊긴다.
