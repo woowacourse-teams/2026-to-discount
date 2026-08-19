@@ -423,3 +423,39 @@ tracker 미러에 새 파일이 있었다), 인코딩 helper, `vercel.json`.
 **교훈**: "로컬에서 통과했는데 CI만 실패"는 검사 대상이 두 곳에서 다르게
 정의됐다는 신호다. 사람의 순서(먼저 add하고 나서 검사)를 규율로 만들지 말고
 정의를 하나로 맞춘다.
+
+
+## PR #9 리뷰 — 2026-08-19, PostHog 프론트엔드 SDK 연동 (everypine)
+
+브랜치를 받아 직접 돌려 확인했다: `test:analytics` PASS, `test:posthog`
+PASS, `build` OK. 설명과 코드가 일치했다.
+
+**검증한 것.** 이 PR의 핵심 위험 셋을 코드로 확인했다.
+
+- 중복 집계: `App.jsx`에 `captureProductSignal` 호출이 0건이고 기존
+  `track()`만 남아 같은 행동이 두 경로로 안 나간다.
+- `distinct_id` 분열: 백엔드가 `PostHogEventMapper`에서
+  `distinct_id = visitorId`를 쓰는데, `analytics-context.js`가 같은
+  `visitorId`를 SDK `bootstrap.distinctID`로 넘긴다. 어긋났으면 한 사람이
+  두 명으로 잡혀 퍼널이 통째로 깨졌다.
+- `autocapture: false`: 켜져 있었으면 SDK가 클릭을 통째로 주워
+  `offer_link_click`과 같은 클릭이 두 번 잡혔다.
+
+**지적한 것.**
+
+1. `package.json`에 `test` 스크립트가 없다. 워크플로가 `test:analytics`만
+   부르므로 `test:posthog`가 CI에서 안 돈다. 검사를 추가하면서 워크플로에
+   연결하지 않으면 그 검사는 없는 것과 같다.
+2. 번들 175KB -> 429KB(gzip 58 -> 142). SDK로 실제 보내는 건 진단 이벤트
+   하나뿐이라 지금은 얻는 것 대비 비용이 크다. 막을 이유는 아니고 알고
+   머지할 일이다.
+3. `person_profiles: 'never'`와 `visit_count` 조합 — 사람 단위 분석이
+   필요해지면 이 설정을 먼저 풀어야 한다.
+
+**순서 문제.** 웹 검사를 `npm test`로 묶는 변경(`5b518fa`)을 준비해뒀는데,
+이 PR에 `test` 스크립트가 없어 먼저 밀면 CI가 깨진다. PR 머지 뒤로 미뤘다.
+reflog에 남아 있으니 머지 후 cherry-pick한다.
+
+**교훈**: 새 검사를 추가하는 PR은 그 검사가 CI에서 실제로 도는지까지가
+범위다. 스크립트만 늘리고 워크플로를 안 건드리면 로컬에서만 도는 검사가
+쌓인다.
