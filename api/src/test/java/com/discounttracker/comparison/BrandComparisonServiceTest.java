@@ -148,6 +148,39 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void menuLimitedOffersSortJustBelowFiveThousand() {
+        // 열정국밥 배민 실측: 액면 14,000원이지만 메뉴 하나에만 쓴다.
+        // 브랜드 전체에 걸리는 5,000원 일반 할인을 못 넘어야 한다.
+        var result = serviceWith(
+                List.of(rec("baemin", "메뉴한정", 14000, "특정메뉴", false),
+                        rec("baemin", "일반할인", 5000, null, false)),
+                "brands: {}").compare();
+        assertEquals("일반할인", result.get(0).name());
+        assertEquals("메뉴한정", result.get(1).name());
+        assertEquals(4999, result.get(1).maxConfirmedAmount());
+    }
+
+    @Test
+    void menuLimitedOffersStillOutrankSmallerGeneralDiscounts() {
+        // 정렬에서 통째로 빼면 그 쿠폰밖에 없는 브랜드가 근거를 잃는다.
+        var result = serviceWith(
+                List.of(rec("baemin", "소액할인", 3000, null, false),
+                        rec("baemin", "메뉴한정", 14000, "특정메뉴", false)),
+                "brands: {}").compare();
+        assertEquals("메뉴한정", result.get(0).name());
+        assertEquals("소액할인", result.get(1).name());
+    }
+
+    @Test
+    void menuLimitedFaceAmountStaysOnTheOffer() {
+        // 정렬용 대체값이지 표시값이 아니다 — 칩엔 14,000원이 그대로 뜬다.
+        var result = serviceWith(
+                List.of(rec("baemin", "메뉴한정", 14000, "특정메뉴", false)),
+                "brands: {}").compare();
+        assertEquals(14000, result.get(0).offers().get(0).amount());
+    }
+
+    @Test
     void confirmedlessBrandsSortByHeldAmountDescending() {
         // held 작은 쪽을 먼저 넣어, 삽입 순서가 아니라 금액으로 정렬되는지 본다.
         var result = serviceWith(
