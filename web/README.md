@@ -165,9 +165,9 @@ VITE_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 브라우저 직접 요청의 IP는 SDK의 `ip: false` 옵션으로 폐기할 수 없다. 운영 키를
-설정하기 전에 PostHog 프로젝트에서 **Discard IP data** 변환을 활성화하고 실제
-이벤트에서 GeoIP 속성이 생성되지 않는지 확인한다. 확인 전에는 운영
-`VITE_POSTHOG_KEY`를 설정하지 않는다.
+설정하기 전에 PostHog 프로젝트에서 **Discard client IP data** 설정
+(`anonymize_ips`)을 활성화하고 실제 이벤트에서 GeoIP 속성이 생성되지 않는지
+확인한다. 확인 전에는 운영 `VITE_POSTHOG_KEY`를 설정하지 않는다.
 
 연결 검증은 `?dev=1&posthog_test=1`을 함께 붙여 연다. 같은 탭에서는
 `posthog_sdk_connection_test`를 한 번만 보내며, PostHog Live Events에서
