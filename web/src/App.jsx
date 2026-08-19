@@ -652,16 +652,28 @@ export default function App() {
 
   // category는 API가 brands.yml에서 읽어 내려준다. 분류가 없는 브랜드는
   // null이라 "전체"에서만 보인다. 검색은 항상 같이 적용된다.
+  // 플랫폼 토글은 카드를 거르는 게 아니라 그 앱의 오퍼를 켜고 끈다.
+  // 전에는 "켜진 앱 오퍼가 하나라도 있으면 카드를 통째로 남긴다"라서,
+  // 배민을 꺼도 배민 칩이 그대로 붙어 있었다 — 끈 앱 금액이 화면에
+  // 남아 있으면 토글이 무슨 일을 했는지 알 수 없다.
+  //
+  // 오퍼를 걷어내고 나서 남는 게 없는 카드는 뺀다. 그 브랜드에서 볼
+  // 것이 하나도 없는데 이름만 남기면 빈 카드가 격자를 채운다.
   const visibleBrands = useMemo(() => {
     if (!brands) return brands
     const q = search.trim()
-    return brands.filter((b) => {
-      const inSearch = q === '' || b.name.includes(q)
-      if (!inSearch) return false
-      if (platformFilter.size > 0 && !b.offers.some((o) => platformFilter.has(o.platform))) return false
-      if (filterKey === 'all') return true
-      return b.category === filterKey
-    })
+    return brands
+      .map((b) => {
+        const offers = b.offers.filter((o) => platformFilter.has(o.platform))
+        return offers.length === b.offers.length ? b : { ...b, offers }
+      })
+      .filter((b) => {
+        if (b.offers.length === 0) return false
+        const inSearch = q === '' || b.name.includes(q)
+        if (!inSearch) return false
+        if (filterKey === 'all') return true
+        return b.category === filterKey
+      })
   }, [brands, filterKey, search, platformFilter])
 
   // 화살표를 눌러 아래로 펼치면 스크롤 띠 대신 여러 줄 그리드로 카테고리
