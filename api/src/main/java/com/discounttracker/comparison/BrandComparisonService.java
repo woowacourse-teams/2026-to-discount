@@ -69,9 +69,24 @@ public class BrandComparisonService {
 
             // 원장의 금액이 아니라 오늘 기준 금액을 쓴다 — 만료된 구간 때문에
             // 대표값이 내려갔으면 카드 대표 금액과 정렬도 같이 내려가야 한다.
+            //
+            // qualifier가 붙은 값은 maxConfirmed에 넣지 않는다. "최대"는
+            // 최소주문금액을 채워야 나오는 상한액이라(화면 배지가 "불확정")
+            // 액면 그대로 확정값과 견주면 그 브랜드가 실제보다 위로 올라간다
+            // — 카드 정렬과 "최고 할인" 배지가 둘 다 거짓이 된다. 프론트가
+            // 카드 안에서 쓰는 bestAmount는 이미 qualifier를 빼고 고르는데
+            // 여기가 안 빼서 두 레이어가 다른 답을 내고 있었다(ADR-016).
+            //
+            // maxHeld는 그대로 둔다 — 확정이 하나도 없는 브랜드끼리만 줄
+            // 세우는 내부값이고, 그 브랜드들은 이미 확정 있는 브랜드 전부
+            // 아래에 깔린다. 여기서까지 빼면 정렬 근거가 없어져 삽입 순서로
+            // 흩어진다.
             if (offer.amount() != null) {
-                Map<String, Integer> target =
-                        record.status().isConfirmed() ? maxConfirmed : maxHeld;
+                boolean confirmed = record.status().isConfirmed();
+                if (confirmed && offer.qualifier() != null) {
+                    continue;
+                }
+                Map<String, Integer> target = confirmed ? maxConfirmed : maxHeld;
                 target.merge(name, offer.amount(), Math::max);
             }
         }

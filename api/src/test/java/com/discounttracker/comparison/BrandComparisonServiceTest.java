@@ -124,6 +124,30 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void qualifiedAmountsDoNotFeedMaxConfirmed() {
+        // "최대"는 최소주문금액을 채워야 나오는 상한액이라(화면 배지가
+        // "불확정") 확정 정액과 같은 선에서 견줄 수 없다. 액면이 더 커도
+        // 카드 대표 금액이 되면 안 된다.
+        var result = serviceWith(
+                List.of(rec("baemin", "브랜드", 3000, null, false),
+                        rec("yogiyo", "브랜드", 8000, "최대", false)),
+                "brands: {}").compare();
+        assertEquals(3000, result.get(0).maxConfirmedAmount());
+    }
+
+    @Test
+    void qualifiedOnlyBrandDoesNotOutrankAConfirmedOne() {
+        // 불확정 8,000원이 확정 5,000원 위로 올라가면 카드 정렬이 거짓말을
+        // 한다. 확정이 없는 브랜드는 확정 있는 브랜드 아래로 내려간다.
+        var result = serviceWith(
+                List.of(rec("yogiyo", "불확정만", 8000, "최대", false),
+                        rec("baemin", "확정있음", 5000, null, false)),
+                "brands: {}").compare();
+        assertEquals("확정있음", result.get(0).name());
+        assertEquals("불확정만", result.get(1).name());
+    }
+
+    @Test
     void confirmedlessBrandsSortByHeldAmountDescending() {
         // held 작은 쪽을 먼저 넣어, 삽입 순서가 아니라 금액으로 정렬되는지 본다.
         var result = serviceWith(
