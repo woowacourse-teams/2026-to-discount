@@ -75,6 +75,7 @@ tracker  →  export.json  →  api  →  /api/brands  →  web
 | [기술 선택과 근거](docs/TECH-CHOICES.md) | 무엇을 골랐고, 무엇이 아쉽고, 플랜 B는 무엇인지 |
 | [오케스트레이션 계약](docs/ORCHESTRATION.md) | 층을 가로지를 때 지켜야 하는 것과 실제 사고 사례 |
 | [프로젝트 구조](docs/PROJECT-STRUCTURE.md) | 코드에서 자동 생성되는 구조, 데이터 흐름, 배포 경계 |
+| [수집 데이터 명세](docs/ANALYTICS.md) | 무엇을 모으고 어떻게 가르나 — **분석 전에 읽는다** |
 | [컨벤션](docs/CONVENTIONS.md) | 커밋·주석·문서·데이터 규칙 |
 | [의사결정기록](docs/decisions/) | 되돌리기 어려운 판단과 근거 |
 
