@@ -91,6 +91,10 @@ PostHog 전달은 원본 수집과 분리된 부가 경로다. `EventLog`가
 `POST /api/events`의 `accepted`는 PostHog 도착 건수가 아니라 원본 JSONL에
 기록된 건수다.
 
+웹 SDK 직접 전송 구성을 배포할 때는 서버 outbox를
+`DISCOUNT_POSTHOG_ENABLED=false`로 둔다. 이 절의 mapper·outbox·재시도 계약은
+웹 롤백 시 서버 전달을 복구하기 위해 유지하는 비활성 경로의 설명이다.
+
 ### 변환 규칙
 
 - `page_view` → `$pageview`
@@ -128,7 +132,13 @@ pending 파일은 임시 파일 작성 후 원자적으로 이동한다. worker�
 마지막 오류와 실패 시각을 기록해 dead-letter로 이동하고 자동 재시도를
 중단한다.
 
-기능은 기본적으로 꺼져 있다. 운영 활성화에 필요한 환경변수:
+웹 SDK 직접 전송 배포 전 운영 서버에 적용할 설정:
+
+```bash
+DISCOUNT_POSTHOG_ENABLED=false
+```
+
+웹을 이전 버전으로 롤백해 서버 전달을 다시 활성화할 때 필요한 환경변수:
 
 ```bash
 DISCOUNT_POSTHOG_ENABLED=true

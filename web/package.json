@@ -6,9 +6,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "npm run test:analytics && npm run test:posthog",
+    "test": "npm run test:analytics && npm run test:posthog && npm run test:event-contract",
     "test:analytics": "node scripts/verify-analytics-event-id.mjs",
-    "test:posthog": "node scripts/verify-posthog-sdk.mjs"
+    "test:posthog": "node scripts/verify-posthog-sdk.mjs",
+    "test:event-contract": "node scripts/verify-analytics-event-contract.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

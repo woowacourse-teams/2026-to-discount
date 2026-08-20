@@ -461,9 +461,9 @@ function SiteFooter() {
       </p>
       <p>
         어떤 화면이 실제로 쓰이는지 보려고 방문 통계를 씁니다. 하나는 직접 만든
-        <strong> 익명 통계</strong>로, 자체 서버에 기록한 뒤 제품 사용 흐름 분석을 위해
-        <strong> PostHog</strong>에도 전달합니다. 새로운 화면 행동 신호 일부는 브라우저에서 PostHog로
-        직접 보낼 수 있습니다. 자체 서버에는 IP 원본을 저장하지 않고, PostHog에는 이름·연락처를
+        <strong> 익명 통계</strong>로 자체 서버에 기록하고, 같은 화면 행동을 제품 사용 흐름
+        분석을 위해 브라우저에서 <strong>PostHog</strong>로 직접 전달합니다.
+        자체 서버에는 IP 원본을 저장하지 않고, PostHog에는 이름·연락처를
         보내지 않으며 쿠키도 사용하지 않습니다.
         브라우저의 <strong>추적 안 함(DNT/GPC)</strong> 설정이 켜져 있으면 아무것도 보내지 않습니다.
         배포 플랫폼의 <strong>쿠키 없는 집계형 통계</strong>(Vercel Analytics)도 페이지뷰 수준으로 사용하며,
