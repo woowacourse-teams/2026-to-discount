@@ -203,11 +203,11 @@ JSONL에만 남긴다. `?dev=1&posthog_test=1`의 연결 진단 이벤트만 예
 ```js
 import { track } from './analytics.js'
 
-// 지금 붙어 있는 지점들 (App.jsx)
+// 지금 붙어 있는 지점들 (App.jsx, FilterSheet.jsx)
 track('category_change', { category: c.key })
 track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
 track('offer_link_click', { brand: brandName, platform: offer.platform })
-track('membership_open')
+track('membership_toggle', { platform: membership.key, state: 'soon', from: 'sheet' })
 track('banner_click', { brand: banner.brand ?? 'none', platform: banner.platform, position: 'top' })
 ```
 

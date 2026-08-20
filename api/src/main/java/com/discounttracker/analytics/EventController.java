@@ -33,9 +33,8 @@ public class EventController {
 
     /** 프론트가 실제로 보내는 것만 받는다. 모르는 이름은 조용히 버린다. */
     private static final Set<String> ALLOWED_EVENTS = Set.of(
-            "page_view", "page_exit", "category_change", "classify_change",
-            "brand_expand", "offer_link_click", "membership_open", "capture_note_seen",
-            "banner_click", "platform_filter_toggle", "filters_reset", "title_bar_hide_toggle",
+            "page_view", "page_exit", "category_change", "brand_expand",
+            "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
             "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
             "cart_toggle", "filter_sheet_open", "cart_view_toggle", "cart_clear");
 

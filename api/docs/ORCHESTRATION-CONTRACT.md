@@ -147,17 +147,19 @@ priority:  int               프론트는 안 읽는다(서버가 이미 정렬�
   - `page_view`
   - `page_exit`
   - `category_change`
-  - `classify_change`
   - `brand_expand`
   - `offer_link_click`
-  - `membership_open`
-  - `capture_note_seen`
   - `banner_click` (props `{brand, platform, position}` — `position`은 `top`/`bottom`)
   - `platform_filter_toggle`
   - `filters_reset`
-  - `title_bar_hide_toggle`
   - `brands_retry`
   - `scroll_to_top`
+  - `membership_toggle`
+  - `filters_apply`
+  - `cart_toggle`
+  - `filter_sheet_open`
+  - `cart_view_toggle`
+  - `cart_clear`
 - 서버는 클라이언트가 보낸 유효한 UUID 형식의 `eventId`를 JSONL에 그대로
   기록한다. 값이 없거나 잘못된 구버전 요청만 서버 UUID로 보완한다. PostHog
   전달이 활성화되면 이를 `$insert_id`로 사용하고 `page_view`를 `$pageview`로
