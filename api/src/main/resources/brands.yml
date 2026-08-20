@@ -32,8 +32,12 @@ brands:
     category: chicken
   계근상:
     category: chicken
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=4723
   굽네치킨:
     category: chicken
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=18
   기영이숯불두마리치킨:
     category: chicken
     links:
@@ -44,6 +48,7 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?FmPxvqc
       baemin: https://s.baemin.com/arr.e9j1z
+      yogiyo: yogiyolink://push.page/franchise?fr_id=1692
   냠냠숯불두마리치킨:
     category: chicken
     links:
@@ -53,6 +58,7 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?JULhdCt
       baemin: https://s.baemin.com/7o3.izwes
+      yogiyo: yogiyolink://push.page/franchise?fr_id=7
   노랑통닭:
     category: chicken
   두찜:
@@ -95,6 +101,7 @@ brands:
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?gCj91aW
+      yogiyo: yogiyolink://push.page/franchise?fr_id=740
   아라치치킨:
     category: chicken
     aliases: [아라치치킨, 아라치]
@@ -118,6 +125,7 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?2A200zC
       baemin: https://s.baemin.com/7o3.ffp9z
+      yogiyo: yogiyolink://push.page/franchise?fr_id=418
   처갓집양념치킨:
     category: chicken
     links:
@@ -150,6 +158,7 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?9MQ4XxR
       baemin: https://s.baemin.com/7o3.fztoy
+      yogiyo: yogiyolink://push.page/franchise?fr_id=21
   후라이드참잘하는집:
     category: chicken
     links:
@@ -182,6 +191,7 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?v5FFUA2
       baemin: https://s.baemin.com/f3e.6uol0
+      yogiyo: yogiyolink://push.page/franchise?fr_id=652
   맘스피자:
     category: pizza
     links:
@@ -190,6 +200,7 @@ brands:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?L95SznU
+      yogiyo: yogiyolink://push.page/franchise?fr_id=20101
   빽보이피자:
     category: pizza
     links:
@@ -211,10 +222,12 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?S5kWs2d
       baemin: https://s.baemin.com/7o3.f3g7j
+      yogiyo: yogiyolink://push.page/franchise?fr_id=821
   파파존스:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?K7T2Lrz
+      yogiyo: yogiyolink://push.page/franchise?fr_id=41
   피자알볼로:
     category: pizza
     links:
@@ -252,6 +265,7 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?DFNhNQ1
       baemin: https://s.baemin.com/7o3.f6syp
+      yogiyo: yogiyolink://push.page/franchise?fr_id=75
   써브웨이:
     category: fastfood
   쉐이크쉑:
@@ -285,6 +299,7 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?Ah1eLMD
       baemin: https://s.baemin.com/Vz000vNQLilUR
+      yogiyo: yogiyolink://push.page/franchise?fr_id=606
   배스킨라빈스:
     category: cafe
   설빙:
@@ -303,6 +318,7 @@ brands:
     category: cafe
     links:
       baemin: https://s.baemin.com/7o3.fjjn5
+      yogiyo: yogiyolink://push.page/franchise?fr_id=482
 
   메가MGC커피:
     category: cafe
@@ -312,14 +328,24 @@ brands:
   CU:
     category: convenience
     aliases: [CU, CU픽업, CU주류픽업]
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=682
   GS25:
     category: convenience
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=646
   세븐일레븐:
     category: convenience
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=970
   세븐픽업:
     category: convenience
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=1585
   요편의점:
     category: convenience
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=1789
 
   # --- 한식 ---
   광안천지식당:
@@ -386,6 +412,8 @@ brands:
       baemin: https://s.baemin.com/7o8.5zae7
   포케올데이:
     aliases: [포케올데이, poke all day]
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=20047
 
   # --- 미분류: 배민에서만 확인, 아직 캡처 데이터 없음 ---
   강다짐 삼각김밥:
@@ -395,6 +423,7 @@ brands:
     category: korean
     links:
       baemin: https://s.baemin.com/7o6.doja2
+      yogiyo: yogiyolink://push.page/franchise?fr_id=20072
   기떡찜:
     links:
       baemin: https://s.baemin.com/7o3.gggxg
@@ -416,9 +445,11 @@ brands:
   미스터피자:
     links:
       baemin: https://s.baemin.com/7oa.7w51k
+      yogiyo: yogiyolink://push.page/franchise?fr_id=80
   반찬가게 슈퍼키친:
     links:
       baemin: https://s.baemin.com/7o3.kujr7
+      yogiyo: yogiyolink://push.page/franchise?fr_id=3225
   백억커피:
     links:
       baemin: https://s.baemin.com/7o3.jg6j4
@@ -428,6 +459,7 @@ brands:
   본스치킨:
     links:
       baemin: https://s.baemin.com/7o4.bp56j
+      yogiyo: yogiyolink://push.page/franchise?fr_id=396
   순살몬스터:
     links:
       baemin: https://s.baemin.com/7o8.6f0em
