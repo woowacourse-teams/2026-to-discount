@@ -31,12 +31,19 @@ import java.util.regex.Pattern;
 @RequestMapping("/api")
 public class EventController {
 
-    /** 프론트가 실제로 보내는 것만 받는다. 모르는 이름은 조용히 버린다. */
+    /**
+     * 프론트가 실제로 보내는 것만 받는다. 모르는 이름은 조용히 버린다.
+     *
+     * <p>조용히 버리는 대신 목록을 프론트와 맞춰야 한다. 필터 시트와
+     * 담아보기 화면을 올린 뒤 여섯 종이 여기 없어서, 서버가 받자마자
+     * 버리고 있었다 — 정작 A/B가 답하려는 질문(조건을 설정한 사람이
+     * 링크 이동까지 가는가)이 그 이벤트들에 걸려 있었다.
+     */
     private static final Set<String> ALLOWED_EVENTS = Set.of(
-            "page_view", "page_exit", "category_change", "classify_change",
-            "brand_expand", "offer_link_click", "membership_open", "capture_note_seen",
-            "banner_click", "platform_filter_toggle", "filters_reset", "title_bar_hide_toggle",
-            "brands_retry", "scroll_to_top", "membership_toggle");
+            "page_view", "page_exit", "category_change", "brand_expand",
+            "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
+            "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
+            "cart_toggle", "filter_sheet_open", "cart_view_toggle", "cart_clear");
 
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;
