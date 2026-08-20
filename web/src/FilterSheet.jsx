@@ -70,7 +70,11 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
 
         <div className="sheet__body">
           <h2 className="sheet__title">배달앱</h2>
-          <div className="sheet__apps">
+          {/* A안 바의 앱 버튼을 그대로 쓴다(page-head__apps). 작은 회색
+              배지로는 어느 앱을 껐는지 한눈에 안 읽혔다 — 앱 아이콘은
+              사람들이 이미 아는 그림이라 크게 두는 편이 낫다. 규칙을
+              베끼지 않고 같은 클래스를 붙여, 한쪽만 고쳐지는 일을 막는다. */}
+          <div className="sheet__apps page-head__apps">
             {PLATFORMS.map((p) => (
               <button
                 key={p.key}
@@ -138,9 +142,6 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
               </button>
             ))}
           </div>
-          <p className="sheet__hint">
-            {draft.categories.size === 0 ? '아무것도 안 고르면 전체다.' : `${draft.categories.size}개 선택`}
-          </p>
 
           <h2 className="sheet__title">정렬</h2>
           <div className="sheet__chips">
@@ -169,9 +170,9 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
               </button>
             ))}
           </div>
-          {/* 확정 없는 브랜드가 뒤로 가는 건 정렬 기준과 무관하게 늘
-              적용된다 — 순서가 기대와 다를 때 여기서 이유를 찾는다. */}
-          <p className="sheet__hint">받을 수 있는 값이 확정 안 된 브랜드는 어느 기준에서도 뒤에 선다.</p>
+          {/* 확정 없는 브랜드는 어느 기준에서도 뒤에 선다(filters.js
+             sortBrands). 화면에 문장으로 적어두진 않는다 — 규칙을 다
+             적으면 시트가 설명서가 되고, 정작 고르는 자리가 밀린다. */}
         </div>
 
         <div className="sheet__actions">

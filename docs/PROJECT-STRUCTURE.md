@@ -117,6 +117,7 @@ web/src/App.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
 web/src/MenuBar.jsx
+web/src/TopBarA.jsx
 web/src/analytics-context.js
 web/src/analytics.js
 web/src/api.js
@@ -176,7 +177,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 25 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 28 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 29 |
 
 ### Tracker
 
@@ -228,6 +229,7 @@ HTTP 경계:
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬을 고르는 바텀시트 |
 | `MenuBar.jsx` | 스크롤 중 따라오는 분류 바 |
+| `TopBarA.jsx` | A안 상단 바(앱 버튼·분류 캐러셀) |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
 | `api.js` | 브랜드와 배너 API 호출 |

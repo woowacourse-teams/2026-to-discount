@@ -13,8 +13,6 @@ import { track } from './analytics.js'
 const ROTATE_MS = 5000
 const DISMISS_KEY = 'dk_banner_hidden'
 
-// 배너가 0건일 때도 훅은 같은 순서로 불려야 한다 — 그때 useSeed에 넘길 자리.
-const NO_BANNER = { id: null, brand: null, color: null, platform: 'baemin' }
 
 // 닫기는 배너별이 아니라 하루 통짜다. localStorage 기반이라 사이트 데이터를
 // 지우거나 기기를 바꾸면 초기화된다 — visitCount와 같은 한계이고 배너에서는
@@ -81,7 +79,11 @@ function useSeed(banner) {
   return seed
 }
 
-function BannerCard({ banner, palette, position, dots, onClose }) {
+function BannerCard({ banner, position, dots, onClose }) {
+  // 색은 카드가 직접 뽑는다. 여러 장이 한 줄에 나란히 놓이면서 배너마다
+  // 색이 달라졌다 — 바깥에서 하나만 계산해 내리면 전부 같은 색이 된다.
+  const seed = useSeed(banner)
+  const palette = useMemo(() => bannerPalette(seed), [seed])
   const platform = PLATFORM_BY_KEY[banner.platform]
   // 커스텀 스킴(baemin://, ddangyo:// ...)은 새 탭에서 열면 브라우저가
   // about:blank만 띄우고 인텐트를 넘기지 않는다 — 오퍼 칩과 같은 규칙이다.
@@ -100,6 +102,9 @@ function BannerCard({ banner, palette, position, dots, onClose }) {
           position,
         })}
       >
+        {/* 로고와 플랫폼 배지는 한 덩어리다 — 배지가 로고 위에 얹혀야
+            "이 브랜드를 이 앱에서"가 한 눈에 읽힌다. 앱 전체 행사면
+            로고 자리에 이미 같은 아이콘이 있으니 겹쳐 그리지 않는다. */}
         <span className="banner__logo">
           {banner.brand
             ? <BrandLogo name={banner.brand} />
@@ -108,27 +113,25 @@ function BannerCard({ banner, palette, position, dots, onClose }) {
                 <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
               </span>
             )}
+          {banner.brand && (
+            <span className="banner__platform">
+              <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
+            </span>
+          )}
         </span>
 
-        <span className="banner__amount">{banner.amount}</span>
-
-        {/* 기간은 금액 우측 상단, 부가정보는 그 아래. extra가 없으면 줄이
-            하나뿐이라 기간이 금액 옆 세로 가운데로 내려온다 — 빈 자리를
-            남기지 않는다. */}
-        <span className="banner__meta">
-          <span className="banner__period">{banner.period}</span>
+        {/* 금액이 먼저, 기간과 조건이 그 아래. 셋을 한 세로줄로 두면
+            눈이 왼쪽 로고에서 오른쪽으로 한 번만 건너간다 — 금액과
+            설명이 좌우로 갈라져 있으면 두 번 건너가야 했다. */}
+        <span className="banner__text">
+          {/* 금액과 기간은 한 줄에 둔다 — "얼마를 언제까지"가 한 문장으로
+              읽힌다. 조건은 길이가 들쭉날쭉해 아래로 내린다. */}
+          <span className="banner__headline">
+            <span className="banner__amount">{banner.amount}</span>
+            <span className="banner__period">{banner.period}</span>
+          </span>
           {banner.extra && <span className="banner__extra">{banner.extra}</span>}
         </span>
-
-        {/* 플랫폼 로고는 오른쪽 세로 가운데 — 어느 앱에서 쓰는
-            혜택인지가 금액 다음으로 필요한 정보다. 브랜드가 없는 앱
-            전체 행사면 왼쪽에 이미 같은 아이콘이 있으니 겹쳐 그리지
-            않는다. */}
-        {banner.brand && (
-          <span className="banner__platform">
-            <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
-          </span>
-        )}
       </a>
 
       {onClose && (
@@ -173,10 +176,25 @@ export default function EventBanner({ banners }) {
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const pageHidden = usePageHidden()
 
+  const trackRef = useRef(null)
+
   const count = banners?.length ?? 0
   const current = count > 0 ? banners[index % count] : null
-  const seed = useSeed(current ?? NO_BANNER)
-  const palette = useMemo(() => bannerPalette(seed), [seed])
+
+  // 어느 장을 보고 있는지는 스크롤 위치가 정한다. 상태를 먼저 바꾸고
+  // 화면을 따라오게 하면, 손으로 넘기는 동안 둘이 계속 어긋난다.
+  function onTrackScroll(e) {
+    const el = e.currentTarget
+    const next = Math.round(el.scrollLeft / el.clientWidth)
+    setIndex((i) => (next === i ? i : next))
+  }
+
+  // 점을 누르거나 자동 전환이 돌 때 그 장으로 밀어준다.
+  function scrollTo(i, smooth = true) {
+    const el = trackRef.current
+    if (!el) return
+    el.scrollTo({ left: el.clientWidth * i, behavior: smooth ? 'smooth' : 'auto' })
+  }
 
   // 자동 전환. 한 건이면 돌릴 것이 없고, 손이 올라가 있거나 포커스가 안에
   // 있거나 탭이 숨겨져 있으면 멈춘다. prefers-reduced-motion이면 아예 안 돈다
@@ -184,7 +202,12 @@ export default function EventBanner({ banners }) {
   const paused = hovered || focused || pageHidden || reduceMotion
   useEffect(() => {
     if (count < 2 || paused) return
-    const timer = setInterval(() => setIndex((i) => (i + 1) % count), ROTATE_MS)
+    const timer = setInterval(() => {
+      const el = trackRef.current
+      if (!el) return
+      const next = (Math.round(el.scrollLeft / el.clientWidth) + 1) % count
+      el.scrollTo({ left: el.clientWidth * next, behavior: 'smooth' })
+    }, ROTATE_MS)
     return () => clearInterval(timer)
   }, [count, paused])
 
@@ -208,15 +231,19 @@ export default function EventBanner({ banners }) {
     onBlur: () => setFocused(false),
   }
   const dots = count > 1
-    ? <Indicators count={count} index={index % count} onSelect={setIndex} />
+    ? <Indicators count={count} index={index % count} onSelect={scrollTo} />
     : null
 
   return (
     <>
       <div className="banner-slot" ref={topRef} {...hoverProps}>
-        {/* key를 배너 id로 두면 내용이 바뀔 때마다 요소가 새로 마운트돼
-            등장 애니메이션(App.css banner-in)이 다시 걸린다. */}
-        <BannerCard key={current.id} banner={current} palette={palette} position="top" dots={dots} />
+        {/* 전부 한 줄에 깔고 가로로 넘긴다. 자동 전환만 있으면 지나간
+            배너를 다시 볼 길이 손가락에 없고, 점을 정확히 눌러야 했다. */}
+        <div className="banner-track" ref={trackRef} onScroll={onTrackScroll}>
+          {banners.map((b) => (
+            <BannerCard key={b.id} banner={b} position="top" dots={dots} />
+          ))}
+        </div>
       </div>
 
       {/* 하단 배너는 항상 DOM에 있고 보임 상태만 토글한다 — 언마운트하면
@@ -230,7 +257,6 @@ export default function EventBanner({ banners }) {
           <BannerCard
             key={current.id}
             banner={current}
-            palette={palette}
             position="bottom"
             dots={dots}
             onClose={() => { setDismissed(true); writeDismissed() }}

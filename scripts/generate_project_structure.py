@@ -101,6 +101,7 @@ WEB_RESPONSIBILITIES = {
     "MenuBar.jsx": "스크롤 중 따라오는 분류 바",
     "filters.js": "필터 상태와 적용·정렬 규칙",
     "variant.js": "A/B 화면 갈래 배정",
+    "TopBarA.jsx": "A안 상단 바(앱 버튼·분류 캐러셀)",
     "analytics-context.js": "익명 ID와 방문 회차",
     "posthog.js": "PostHog SDK 어댑터",
     "privacy.js": "DNT/GPC 추적 거부 판정",

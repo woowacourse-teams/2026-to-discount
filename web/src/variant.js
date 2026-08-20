@@ -48,3 +48,17 @@ export const uiVariant = (() => {
   if (!visitorId) return 'a'
   return VARIANTS[hash(visitorId) % VARIANTS.length]
 })()
+
+/**
+ * 두 안이 한 스타일시트를 쓰므로, 같은 이름의 규칙이 서로를 덮지 않게
+ * 뿌리에 어느 안인지 새긴다. CSS는 [data-variant="a"] 아래에서만 A의
+ * 바 규칙을 켠다 — 클래스 이름만으로 가르면 나중에 이름이 겹치는 순간
+ * 조용히 어긋난다.
+ *
+ * <p>부르는 쪽(main.jsx)이 실행한다. import만으로 DOM을 건드리면 이
+ * 모듈이 브라우저 밖(테스트 러너)에서 못 불린다 — 실제로 계측 테스트가
+ * document 없이 이 파일을 읽다 죽었다.
+ */
+export function markVariantOnRoot() {
+  document.documentElement.dataset.variant = uiVariant
+}

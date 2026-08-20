@@ -5,6 +5,8 @@ import EventBanner from './EventBanner.jsx'
 import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.jsx'
 import FilterSheet from './FilterSheet.jsx'
 import MenuBar from './MenuBar.jsx'
+import TopBarA from './TopBarA.jsx'
+import { uiVariant } from './variant.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, defaultFilters, isDefaultFilters } from './filters.js'
 
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
@@ -733,25 +735,46 @@ export default function App() {
   )
 
 
+  // A안은 조건을 바에 전부 펼쳐 두고, B안은 바텀시트에 감춘다. 바 아래는
+  // 두 안이 완전히 같다 — 카드도 배너도 계측도 하나의 코드를 쓴다. 갈라진
+  // 브랜치로 두면 공통 부분을 고칠 때마다 두 번 하고, 한쪽을 빠뜨린다.
+  const variantA = uiVariant === 'a'
+
   return (
     <>
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
-      <FilterSheet
-        open={sheetOpen}
-        filters={filters}
-        onApply={applyFromSheet}
-        onClose={() => setSheetOpen(false)}
-      />
+      {!variantA && (
+        <FilterSheet
+          open={sheetOpen}
+          filters={filters}
+          onApply={applyFromSheet}
+          onClose={() => setSheetOpen(false)}
+        />
+      )}
 
       {/* 고정된 바가 문서 흐름에서 빠진 만큼을 대신 차지하는 자리. 높이는
           바를 실측해서 넣는다(폰트 로딩·줄바꿈으로 바뀔 수 있다). */}
       <div className="title-bar-spacer" style={{ height: `${barHeight}px` }} aria-hidden="true" />
 
-      {/* 상단 바: 선형 메뉴바 한 줄 + 그 아래 조작 한 줄. 플랫폼 배지는
-          시트로 옮겼다 — 앱·분류·정렬이 한 자리에 모여야 무엇이 걸려
-          있는지 한 번에 읽힌다. 바에 남는 건 자주 만지는 것뿐이다. */}
+      {variantA ? (
+        <TopBarA
+          barRef={titleBarRef}
+          filters={filters}
+          setFilters={setFilters}
+          search={search}
+          setSearch={setSearch}
+          cart={cart}
+          cartOnly={cartOnly}
+          setCartOnly={setCartOnly}
+          isFiltered={isFiltered}
+          resetFilters={resetFilters}
+        />
+      ) : (
+      /* 상단 바: 선형 메뉴바 한 줄 + 그 아래 조작 한 줄. 플랫폼 배지는
+         시트로 옮겼다 — 앱·분류·정렬이 한 자리에 모여야 무엇이 걸려
+         있는지 한 번에 읽힌다. 바에 남는 건 자주 만지는 것뿐이다. */
       <div className="title-bar" ref={titleBarRef}>
         {/* 1행 — 이름과 상시 조작(검색·담아둔 것). 배달앱들이 쓰는 구조
             그대로다: 위는 정체성과 도구, 아래는 분류. */}
@@ -768,26 +791,29 @@ export default function App() {
               <>
                 {/* 모아보기가 켜지면 다른 조건이 안 먹는다 — 결과가 왜
                     이런지 알려면 그 사실만 보여야 한다. */}
+                {/* 칩 전체가 해제 버튼이다. ×만 눌리게 두면 손가락으로는
+                    너무 작은 과녁이라, 칩을 눌렀는데 아무 일도 안 일어난다.
+                    ×는 무엇이 일어날지 알려주는 표시로만 남긴다. */}
                 {cartOnly && (
-                  <span className="search-chip search-chip--cart">
+                  <button type="button" className="search-chip search-chip--cart"
+                    aria-label="전체 보기" onClick={() => setCartOnly(false)}>
                     담아둔 {cart.size}개
-                    <button type="button" className="search-chip__x" aria-label="전체 보기"
-                      onClick={() => setCartOnly(false)}>×</button>
-                  </span>
+                    <span className="search-chip__x" aria-hidden="true">×</span>
+                  </button>
                 )}
                 {!cartOnly && CATEGORIES.filter((c) => filters.categories.has(c.key)).map((c) => (
-                  <span className="search-chip" key={c.key}>
+                  <button type="button" className="search-chip" key={c.key}
+                    aria-label={`${c.label} 해제`} onClick={() => toggleCategory(c.key)}>
                     {c.label}
-                    <button type="button" className="search-chip__x" aria-label={`${c.label} 해제`}
-                      onClick={() => toggleCategory(c.key)}>×</button>
-                  </span>
+                    <span className="search-chip__x" aria-hidden="true">×</span>
+                  </button>
                 ))}
                 {!cartOnly && filters.platforms.size < PLATFORMS.length && (
-                  <span className="search-chip">
+                  <button type="button" className="search-chip" aria-label="앱 선택 초기화"
+                    onClick={() => setFilters((f) => ({ ...f, platforms: new Set(PLATFORMS.map((x) => x.key)) }))}>
                     앱 {filters.platforms.size}
-                    <button type="button" className="search-chip__x" aria-label="앱 선택 초기화"
-                      onClick={() => setFilters((f) => ({ ...f, platforms: new Set(PLATFORMS.map((x) => x.key)) }))}>×</button>
-                  </span>
+                    <span className="search-chip__x" aria-hidden="true">×</span>
+                  </button>
                 )}
               </>
             )}
@@ -799,9 +825,12 @@ export default function App() {
             <button
               type="button"
               className={`icon-btn${isFiltered ? ' icon-btn--active' : ''}`}
+              // 되돌릴 것이 없으면 누를 수 없다. 늘 눌리는 채로 두면 눌러본
+              // 뒤에야 아무 일도 안 일어난다는 걸 알게 된다.
+              disabled={!isFiltered}
               onClick={resetFilters}
               aria-label="필터 초기화"
-              title="필터 초기화"
+              title={isFiltered ? '필터 초기화' : '되돌릴 필터가 없습니다'}
             >
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 12a9 9 0 1 1-3-6.7" />
@@ -811,7 +840,9 @@ export default function App() {
 
             <button
               type="button"
-              className={`icon-btn${sheetOpen ? ' icon-btn--on' : ''}`}
+              // 열려 있으면 반전, 닫혀 있어도 조건이 걸려 있으면 드러낸다 —
+              // 시트를 닫고 나면 필터가 걸린 목록인지 알 길이 없었다.
+              className={`icon-btn${sheetOpen ? ' icon-btn--on' : isFiltered ? ' icon-btn--active' : ''}`}
               aria-expanded={sheetOpen}
               aria-label="필터 열기"
               title="필터"
@@ -858,6 +889,7 @@ export default function App() {
         {/* 걸린 필터·초기화·검색은 메뉴바 아래 한 줄로. 지금 뭐가 걸려
             있는지(칩)와 그걸 푸는 수단(X·초기화)이 같은 줄에 있어야 한다. */}
       </div>
+      )}
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}

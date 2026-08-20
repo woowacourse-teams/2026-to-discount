@@ -19,6 +19,19 @@
 
 * { box-sizing: border-box; }
 
+/* 글자 크기를 화면 폭에 태운다. 화면마다 중단점을 두고 font-size를 다시
+   적어 내려가면, 새 글자가 늘 때마다 그 목록을 빠뜨려 좁은 화면에서만
+   넘친다 — 실제로 그렇게 넘치고 있었다.
+
+   루트 크기 하나만 움직이면 rem으로 적힌 글자와 여백이 같이 따라온다.
+   320px에서 14.5px, 400px 위로는 16px에서 멈춘다. 아래를 14.5px로 막는 건
+   그 아래로 내려가면 본문이 읽기 힘들어지기 때문이고, 위를 16px로 막는 건
+   넓은 화면에서 글자만 커져 봐야 읽기 좋아지지 않기 때문이다.
+   
+   px로 적힌 값(터치 영역 44px 등)은 여기 영향을 안 받는다 — 손가락 크기는
+   화면 폭을 따라 줄어들면 안 된다. */
+html { font-size: clamp(14.5px, 3.6vw + 3px, 16px); }
+
 /* 고무줄 스크롤(끝에서 잡아당길 때 화면이 통째로 밀리는 것)을 끈다 —
    흔들면 타이틀바까지 같이 밀리는 증상이 있었다. 값은 App.jsx가
    스크롤 위치에 따라 동적으로 바꾼다: 맨 위(scrollY 0)에선 당겨서
@@ -228,10 +241,12 @@ h1 {
 
 /* 앱마다 자기 색을 변수로 들고 있는다 — 선택 테두리와 체크 배지가
    같은 색을 쓰므로 한 곳에서만 정한다. */
-.page-head__apps .platform-badge--baemin { --pc: #2ac1bc; --pc2: #6fe0dc; }
-.page-head__apps .platform-badge--coupangeats { --pc: #d62d34; --pc2: #ff6b70; }
-.page-head__apps .platform-badge--ddangyo { --pc: #f5a623; --pc2: #ffd07a; }
-.page-head__apps .platform-badge--yogiyo { --pc: #fa0050; --pc2: #ff5d90; }
+/* 앱 색 한 개씩. 그라데이션을 걷으면서 두 번째 색(--pc2)은 안 쓰이게
+   됐다 — 정의만 남겨두면 다음에 고치는 사람이 쓰이는 값으로 읽는다. */
+.page-head__apps .platform-badge--baemin { --pc: #2ac1bc; }
+.page-head__apps .platform-badge--coupangeats { --pc: #d62d34; }
+.page-head__apps .platform-badge--ddangyo { --pc: #f5a623; }
+.page-head__apps .platform-badge--yogiyo { --pc: #fa0050; }
 
 /* 로고가 흰색인 앱(쿠팡이츠)은 흰 판 위에서 사라진다 — 로고 뒤에
    옅은 회색을 깔아 어떤 로고든 형태가 남게 한다. */
@@ -245,19 +260,15 @@ h1 {
   border-radius: 10px;
   background: #fff;
 }
+/* 고른 앱 — 글자로 알리는 대신 그 앱 색 테두리를 두른다. 그라데이션은
+   걷었다. 앱 아이콘 자체가 이미 색이 많은 그림이라, 그 둘레에 색이 변하는
+   테두리를 두르면 무엇이 로고고 무엇이 표시인지 흐려진다. 단색이면
+   배경을 두 겹 깔던 트릭도 필요 없다. */
 .page-head__apps .platform-badge {
-  border: 2px solid transparent;
+  border: 2px solid var(--pc, var(--text));
   border-radius: 12px;
-  background-image:
-    linear-gradient(#fff, #fff),
-    linear-gradient(135deg, var(--pc, var(--text)), var(--pc2, var(--text)));
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
+  background: #fff;
 }
-
-/* 고른 앱 — 글자로 알리는 대신 그 앱 색 테두리를 두른다. 테두리에
-   그라데이션을 쓰려면 배경을 두 겹으로 깔고(안쪽 padding-box, 바깥
-   border-box) 테두리를 투명하게 비워야 한다. */
 /* 안 고른 앱은 흐리게 물러난다 — 판이 없으니 선택은 체크와 선명도로만
    갈린다. */
 .page-head__apps .platform-badge[aria-pressed="false"] {
@@ -276,7 +287,7 @@ h1 {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--pc, var(--text)), var(--pc2, var(--text)));
+  background: var(--pc, var(--text));
   color: #fff;
   font-size: .85rem;
   font-weight: 800;
@@ -348,63 +359,142 @@ h1 {
   to { opacity: 1; transform: none; }
 }
 
+/* 안쪽 요소가 각자 여백을 들고 있다. 링크가 또 패딩을 주면 로고 패딩
+   12px이 실제로는 12 + 링크 패딩이 되어 값이 뜻대로 안 먹는다. 오른쪽만
+   닫기 버튼 자리를 비운다. */
 .banner__link {
   display: flex;
   align-items: center;
-  gap: .85rem;
-  padding: .75rem .95rem;
+  gap: .9rem;
+  padding: 0 2.4rem 0 0;
   text-decoration: none;
   color: inherit;
 }
 .banner__link:focus-visible { outline: 2px solid var(--banner-ink-c); outline-offset: 2px; border-radius: 14px; }
 /* 인디케이터가 있는 배너만 아래를 더 비운다 — 한 건짜리 배너에 빈 자리를
    남기지 않는다. */
-.banner--dots .banner__link { padding-bottom: 1.35rem; }
-.banner--bottom .banner__link { padding: .6rem 2.3rem .6rem .8rem; }
-.banner--bottom.banner--dots .banner__link { padding-bottom: 1.2rem; }
+/* 인디케이터는 자리를 따로 차지하지 않고 배너 위에 얹는다. 아래에만
+   자리를 비우면 위 11px / 아래 28px이 되어 여백이 아니라 덧대진 테두리로
+   읽혔다. 위아래를 같게 두고 점은 겹쳐 그린다 — 캐러셀에서 흔한 배치다. */
 
-/* .brand-logo는 span이라 그 자체로는 inline이다 — 폭·높이가 먹으려면
-   감싼 쪽이 flex여야 한다(브랜드 카드에서는 .brand-card__head가 그 역할). */
-.banner__logo { display: flex; flex: none; line-height: 0; }
-.banner__logo .brand-logo { width: 44px; height: 44px; border-radius: 12px; }
-.banner--bottom .banner__logo .brand-logo { width: 36px; height: 36px; border-radius: 10px; }
+/* 가로로 넘기는 배너 줄. 한 장이 화면 폭을 꽉 채우고 경계에서 멈춘다 —
+   반쯤 걸친 채로 서면 어디까지가 한 배너인지 안 읽힌다. */
+.banner-track {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  /* 스크롤 막대가 배너 위에 겹쳐 뜨면 글자를 가린다. */
+  scrollbar-width: none;
+}
+.banner-track::-webkit-scrollbar { display: none; }
+.banner-track > .banner {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  /* 여러 장이 한 줄에 있으므로 등장 애니메이션은 첫 장에만 의미가 있다.
+     전부 걸면 옆으로 넘길 때마다 이미 있던 배너가 다시 떠오른다. */
+  animation: none;
+}
+
+/* 로고 덩어리. --logo 하나로 로고와 그 위 배지 크기가 같이 움직인다 —
+   두 값을 따로 적어두면 한쪽만 고쳐서 배지가 로고 밖으로 나간다.
+   .brand-logo는 span이라 감싼 쪽이 flex여야 폭·높이가 먹는다. */
+.banner__logo {
+  --logo: 56px;
+  --logo-radius: 14px;
+  position: relative;
+  display: flex;
+  flex: none;
+  line-height: 0;
+  /* 로고가 배너 모서리에 붙으면 띠가 아니라 잘린 그림처럼 보인다. */
+  padding: 12px;
+}
+.banner__logo .brand-logo {
+  width: var(--logo);
+  height: var(--logo);
+  border-radius: var(--logo-radius);
+  /* 네모난 로고를 둥근 상자에 넣으면 모서리가 깎여 나간다. 깎이는 만큼
+     안쪽으로 들여 그린다(반지름 * 0.3 ≈ 45도 지점의 잘림 깊이). */
+  padding: calc(var(--logo-radius) * .3);
+}
+/* cover는 상자를 채우려고 잘라낸다 — 로고는 잘리면 안 되는 그림이다. */
+.banner__logo .brand-logo img { object-fit: contain; }
 /* 브랜드가 없는 앱 전체 행사 — 로고 자리에 앱 아이콘이 들어간다. */
 .brand-logo--platform { background: var(--surface); }
 .brand-logo--platform img { object-fit: contain; padding: 4px; }
 
-/* 금액이 배너의 주인공이다. 좁은 화면에서도 이 글씨는 줄이지 않는다 —
-   밀리는 건 부가정보 쪽이다(아래 말줄임). */
+/* 플랫폼 배지는 로고 우측 하단에 얹는다. 따로 떨어뜨려 두면 "이 브랜드"와
+   "이 앱"이 각각 읽히는데, 겹쳐 두면 한 덩어리로 읽힌다 — 앱 아이콘에
+   흔한 배치다. 로고 크기를 따라가므로 어느 자리에서든 비율이 같다. */
+.banner__platform {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  /* 25%로는 어느 앱인지 못 알아봤다. 로고 절반을 넘겨 잡는다. */
+  width: calc(var(--logo) * .6);
+  height: calc(var(--logo) * .6);
+  display: grid;
+  place-items: center;
+  /* 앱 아이콘은 그 자체로 모양과 색을 가진 그림이다. 판을 깔거나 테두리를
+     두르면 한 겹 덧댄 스티커처럼 보인다 — 그림만 남긴다. */
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.banner__platform img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 금액·기간·조건을 한 세로줄로. 높이는 내용이 정한다 — 줄 수를 미리
+   박아두면 조건이 긴 배너에서 글자가 잘린다. */
+.banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 12px 0;
+}
+
+/* 금액이 배너의 주인공이다. 좁은 화면에서도 이 글씨는 줄이지 않는다. */
+/* 금액과 기간을 한 줄에. 기간은 baseline에 맞춰 금액 밑변에 나란히
+   서게 한다 — 세로 가운데에 두면 큰 숫자 옆에서 붕 떠 보인다. */
+.banner__headline {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .1rem .5rem;
+  min-width: 0;
+}
+
 .banner__amount {
-  flex: none;
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   font-weight: 800;
+  line-height: 1.15;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  /* 제일 큰 글씨가 제일 높은 대비를 갖는다. 금액을 틴트색으로 두고
+     기간을 흰색으로 뒀더니 눈이 기간부터 읽었다. */
   color: var(--banner-ink-c);
 }
 .banner--bottom .banner__amount { font-size: 1.15rem; }
 
-.banner__meta {
-  display: flex;
-  flex-direction: column;
-  gap: .1rem;
-  min-width: 0;
-  flex: 1 1 auto;
-}
 .banner__period {
   font-size: .78rem;
   font-weight: 700;
-  white-space: nowrap;
+  line-height: 1.3;
   color: var(--banner-accent-c);
 }
+/* 조건은 말줄임하지 않는다. 최소주문금액이나 선착순 여부가 잘리면
+   눌러야 할지 말지를 판단할 수 없어, 있으나 마나 한 줄이 된다. */
 .banner__extra {
-  font-size: .7rem;
+  font-size: .72rem;
+  line-height: 1.4;
   color: var(--banner-ink-c);
-  opacity: .72;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  opacity: .78;
+  overflow-wrap: anywhere;
 }
 
 /* 오른쪽 위 모서리 밖으로 걸치되, 오른쪽 테두리에서는 유격을 둔다.
@@ -445,11 +535,14 @@ h1 {
    손가락으로 누를 자리를 남긴다. */
 .banner__dots {
   position: absolute;
-  bottom: .25rem;
+  bottom: 2px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: .15rem;
+  /* 글자 위에 겹치므로 뒤를 살짝 눌러 점이 묻히지 않게 한다. */
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .18);
 }
 .banner__dot {
   position: relative;
@@ -508,12 +601,12 @@ h1 {
 
 @media (prefers-reduced-motion: reduce) {
   .banner { animation: none; }
-  /* 하단 플로팅도 본문 폭을 넘지 않는다 — 화면이 넓으면 배너만 끝까지
-   늘어나 목록과 어긋나 보인다. */
-.banner-dock {
-  max-width: 880px;
-  margin-left: auto;
-  margin-right: auto; transition: opacity 200ms ease, visibility 200ms; transform: none; }
+  /* 움직임을 줄이라고 했으면 올라오는 동작만 뺀다 — 보이고 안 보이고는
+     그대로 둔다. 폭·정렬 규칙까지 여기서 다시 적을 이유가 없다. */
+  .banner-dock {
+    transition: opacity 200ms ease, visibility 200ms;
+    transform: none;
+  }
 }
 
 .sub { color: var(--text-muted); font-size: .9rem; margin: 0; text-align: center; }
@@ -1436,30 +1529,38 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   .banner-dock__inner { padding-left: 1rem; padding-right: 1rem; }
 }
 
-/* 좁은 화면(360px)에서 줄이는 건 로고와 배지뿐이다. 금액은 배너의 주인공이라
-   글씨를 줄이지 않고, 자리가 모자라면 부가정보가 말줄임된다. */
+/* 좁은 화면(360px 이하)에서 줄이는 건 로고와 배지뿐이다. 금액은 배너의
+   주인공이라 글씨를 줄이지 않는다. */
 @media (max-width: 400px) {
-  .banner__link { gap: .6rem; padding-left: .75rem; padding-right: .75rem; }
-  .banner__logo .brand-logo { width: 36px; height: 36px; }
-  .banner--bottom .banner__logo .brand-logo { width: 32px; height: 32px; }
-  .banner__platform { width: 28px; height: 28px; }
-  .banner__platform img { width: 20px; height: 20px; }
+  .banner__link { gap: .6rem; }
+  /* --logo 하나만 줄이면 배지도 같은 비율로 따라온다. */
+  .banner__logo { --logo: 48px; padding: 10px; }
+  .banner--bottom .banner__logo { --logo: 40px; }
 }
 
-/* 좁은 화면에서는 "카테고리 설정" 글자를 접고 아이콘만 남긴다 —
-   한 줄에 앱 버튼 넷과 조작 셋이 같이 서야 한다. */
 @media (max-width: 560px) {
-
-  .page-head__apps .platform-badge { width: 53px; height: 53px; border-radius: 14px; }
   .brand-card__head .brand-logo { width: 53px; height: 53px; border-radius: 14px; }
 }
-/* 360px대 기기 — 앱 버튼 넷과 조작 셋이 한 줄에 들어가야 하므로
-   버튼 판을 한 단계 더 줄인다(로고는 그대로 49px). */
 @media (max-width: 400px) {
-  .page-head__apps .platform-badge { width: 47px; height: 47px; border-radius: 13px; }
   .brand-card__head .brand-logo { width: 47px; height: 47px; border-radius: 13px; }
-
   .title-bar__inner { gap: .25rem; padding: 0 .35rem; }
+}
+
+/* 앱 버튼은 화면이 좁아질수록 작아진다. 전에는 반대로 45 -> 53 -> 47px로
+   커져서, A안 바에서 앱 넷과 조작 셋이 한 줄에 못 들어가 세 줄로 밀렸다.
+
+   한 줄에 들어갈 수 있는 최대 폭은 이렇게 나온다:
+
+     조작 셋 44*3 + 사이 8 = 140,  inner 좌우 여백 11
+     앱 넷   4w + 사이 18 ≤ 화면폭 - 151
+
+   360px -> w ≤ 45,  320px -> w ≤ 37. 그 아래로 잡는다. */
+@media (max-width: 480px) {
+  .page-head__apps .platform-badge { width: 42px; height: 42px; border-radius: 11px; }
+}
+@media (max-width: 380px) {
+  .page-head__apps .platform-badge { width: 36px; height: 36px; border-radius: 10px; }
+  .page-head__apps { gap: 4px; }
 }
 
 /* 최고 칩 외의 로고는 2배로 키운다 — 어느 앱 것인지 스치듯 봐도
@@ -1815,10 +1916,71 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   border-radius: 8px;
   transition: color .16s ease, background .16s ease;
 }
-.icon-btn:hover { color: var(--text); }
-.icon-btn--active { color: var(--text); }
+/* 상태를 색으로만 나눈다. 아이콘은 stroke가 currentColor라 글자색을
+   바꾸면 그림도 같이 따라온다 — 판만 바꾸면 아이콘이 그대로라 눌린
+   건지 알기 어려웠다.
+
+     기본      흐린 회색   아무 조건 없음
+     --active  진한 글자 + 연한 판   조건이 걸려 있음
+     --on      반전       지금 열려 있음
+     :disabled 더 흐리게  누를 수 없음 */
+.icon-btn:hover:not(:disabled) { color: var(--text); background: var(--save-soft); }
+.icon-btn--active { color: var(--text); background: var(--save-soft); }
 .icon-btn--on { background: var(--text); color: #fff; }
-.icon-btn:active { transform: scale(.96); }
+.icon-btn--on:hover { background: var(--save-hover); color: #fff; }
+.icon-btn:active:not(:disabled) { transform: scale(.96); }
+/* 누를 수 없는 버튼이 눌리는 것처럼 보이면 안 된다 — 커서와 명암을
+   같이 죽인다. */
+.icon-btn:disabled { opacity: .3; cursor: default; }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 누를 수 있는 것은 전부 같은 네 가지로 답한다: 손을 올리면(hover),
+   누르는 동안(active), 키보드로 짚었을 때(focus-visible), 누를 수 없을
+   때(disabled). 규칙을 자리마다 따로 적다 보니 어떤 버튼은 눌러도
+   아무 반응이 없고, 키보드로는 어디에 서 있는지 안 보이는 곳이 있었다.
+
+   여기 모아 적는 건 "빠진 것을 채우는" 몫이고, 각 컴포넌트 고유의
+   색·판은 그대로 자기 자리에 남는다. */
+.menu-bar__item,
+.cart-btn,
+.sheet__chip,
+.sheet__app,
+.sheet__reset,
+.sheet__apply,
+.banner__close,
+.banner__dot {
+  transition: color .16s ease, background .16s ease, opacity .16s ease, transform .12s ease;
+}
+.menu-bar__item:active:not(:disabled),
+.cart-btn:active:not(:disabled),
+.sheet__chip:active,
+.sheet__app:active,
+.sheet__reset:active,
+.sheet__apply:active,
+.banner__close:active { transform: scale(.96); }
+
+.menu-bar__item:focus-visible,
+.sheet__chip:focus-visible,
+.sheet__app:focus-visible,
+.sheet__reset:focus-visible,
+.sheet__apply:focus-visible,
+.cart-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 손을 올렸을 때의 답. 시트 안 버튼들과 인디케이터가 통째로 빠져 있어,
+   마우스로는 누를 수 있는 것인지 올려봐도 알 수 없었다. */
+.sheet__chip:hover:not(.sheet__chip--on),
+.sheet__app:hover:not(.sheet__app--on) { border-color: var(--text-muted); color: var(--text); }
+.sheet__reset:hover { background: var(--save-soft); }
+.sheet__apply:hover { background: var(--save-hover); }
+.banner__dot:hover::after { opacity: 1; }
+.banner__dot:active::after { transform: scale(.85); }
+/* 카드 담기(+)는 키보드로 짚었을 때 표시가 없었다 — 카드마다 하나씩
+   있는 버튼이라, 지금 어느 카드에 서 있는지 안 보이면 순회가 불가능하다. */
+.brand-card__add:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 못 누르는 상태의 명암을 하나로 맞춘다. 담기 버튼만 .35, 나머지는 .3
+   이었다 — 같은 뜻인데 밝기가 다르면 하나는 고장 난 것처럼 보인다. */
+.cart-btn:disabled { opacity: .3; }
 
 .title-bar__tools { gap: .15rem; }
 
@@ -1833,26 +1995,8 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
 }
 
-/* 브랜드 로고는 왼쪽 세로 가운데(원래 자리). 크기만 키운다. */
-.banner__logo .brand-logo { width: 56px; height: 56px; border-radius: 14px; }
-.banner--bottom .banner__logo .brand-logo { width: 44px; height: 44px; border-radius: 12px; }
-
-/* 플랫폼 로고는 오른쪽 세로 가운데. 어느 앱에서 쓰는 혜택인지가 금액
-   다음으로 필요한 정보다. 닫기(우상단)와 "맨 위로"(우하단 고정) 사이
-   높이에 놓여 둘 다 안 건드린다. */
-.banner__platform {
-  flex: none;
-  margin-left: auto;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, .92);
-}
-.banner__platform img { width: 24px; height: 24px; object-fit: contain; }
-.banner--bottom .banner__platform { width: 28px; height: 28px; }
-.banner--bottom .banner__platform img { width: 20px; height: 20px; }
+/* 하단 플로팅은 카드 위에 겹쳐 뜨는 층이라 더 낮게 잡는다. */
+.banner--bottom .banner__logo { --logo: 44px; padding: 10px; }
 
 /* ── 카드 담기 줄 ──────────────────────────────────────────────────
    카드 위에 얹은 체크박스는 로고·이름과 자리를 다투고 무엇을 체크하는
@@ -1950,28 +2094,35 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   display: inline-flex;
   align-items: center;
   gap: .15rem;
-  height: 24px;
-  padding: 0 .2rem 0 .5rem;
-  border-radius: 6px;
+  /* 손가락 과녁. 24px일 때는 ×만 겨우 눌렸다 — 이제 칩 전체가 버튼이라
+     높이가 곧 과녁 높이다. 입력칸(36px) 안에 들어가야 해 32px로 잡는다. */
+  height: 32px;
+  padding: 0 .35rem 0 .6rem;
+  border-radius: 8px;
   background: var(--bg);
   border: 1px solid var(--border);
+  font: inherit;
   font-size: .78rem;
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
-}
-.search-chip--cart { background: var(--text); border-color: var(--text); color: #fff; }
-.search-chip__x {
-  border: 0;
-  background: none;
+  /* 칩 전체가 해제 버튼이다 — 누를 수 있다는 걸 커서로도 알린다. */
   cursor: pointer;
+}
+.search-chip:hover { border-color: var(--text-muted); }
+.search-chip:hover .search-chip__x { opacity: 1; }
+.search-chip:active { transform: scale(.96); }
+.search-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.search-chip--cart { background: var(--text); border-color: var(--text); color: #fff; }
+.search-chip--cart:hover { border-color: var(--text); background: var(--save-hover); }
+/* 누르면 무엇이 일어나는지 알려주는 표시. 이제 버튼이 아니라 그림이다. */
+.search-chip__x {
   color: inherit;
   opacity: .55;
   font-size: 1rem;
   line-height: 1;
   padding: 0 .2rem;
 }
-.search-chip__x:hover { opacity: 1; }
 
 /* 토큰이 늘면 입력칸이 밀리므로 가로로 흐르게 둔다. 입력칸은 최소 폭을
    지켜 토큰이 많아도 글자를 칠 자리가 남는다. */
@@ -2022,3 +2173,251 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    먼저 눈에 들어왔다. 두 안 공통 규격이다. */
 .brand-card__add { width: 51px; height: 48px; border-radius: 0 13px 0 12px; }
 .brand-card__head { padding-right: 60px; }
+
+
+/* ══ A안 상단 바 ═══════════════════════════════════════════════════
+   두 안이 한 스타일시트를 쓰므로 A의 바 규칙은 전부 [data-variant="a"]
+   아래에 둔다(variant.js가 뿌리에 새긴다). 클래스 이름만으로 가르면
+   나중에 이름이 겹치는 순간 조용히 어긋난다.
+
+   바 아래(카드·배너·계측)는 두 안이 완전히 같다 — 여기 적히는 건
+   "조건을 어디에 두는가"의 차이뿐이다. */
+
+[data-variant="a"] .platform-badge-wrap { position: relative; }
+
+/* 멤버십 라벨은 앱 버튼 아래에 떠 있다. 흐름 안에 두면 라벨 글자 폭이
+   곧 버튼 폭이 되어("배민클럽" 등) 앱 넷이 269px을 차지했다 — 배지만
+   따지면 156px인데도 조작 셋이 밀려 바가 세 줄로 갈렸다. */
+[data-variant="a"] .membership-btn {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  /* 로고에 바싹 붙인다. 떨어져 있으면 아래 분류 줄과 어느 쪽에 딸린
+     라벨인지 헷갈렸다 — 위치가 곧 소속이다. */
+  margin-top: 2px;
+  padding: .05rem .35rem;
+  border: 1px solid var(--pc, var(--text));
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--pc, var(--text));
+  font: inherit;
+  font-size: .6rem;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
+  cursor: pointer;
+}
+[data-variant="a"] .membership-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 아직 안 만든 기능이다. 앱 색은 그대로 두고 채도만 낮춘다 — 무채색으로
+   죽이면 어느 앱 것인지가 안 읽히는데, 이 버튼은 수요를 재려고 둔 것이라
+   무엇을 누르는지는 보여야 한다. */
+[data-variant="a"] .membership-btn--soon { filter: saturate(.4); }
+/* 라벨이 상자 밖에 떠 있어 레이아웃 높이에 안 잡힌다 — 아래로 오는 줄과
+   반드시 겹친다. 라벨이 차지하는 만큼 자리를 비운다: 간격 2px + 라벨
+   높이 19px = 21px(실측). 18px로 뒀더니 분류 줄을 3px 파고들었다. */
+[data-variant="a"] .page-head__apps { padding-bottom: 21px; }
+
+/* 조작 셋(담기·초기화·검색)은 앱 줄 오른쪽에 붙는다. inner가
+   flex-start라 위로 붙어 떠 보여서, 앱 줄 상자 한가운데에 맞춘다 —
+   앱 줄은 멤버십 라벨 자리까지 포함해 키가 크다. */
+[data-variant="a"] .title-bar__ops {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .25rem;
+  flex: none;
+  margin-left: auto;
+  align-self: center;
+}
+[data-variant="a"] .title-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+}
+/* 담기는 B에서 패딩으로 크기가 정해진다. A의 조작 줄에서는 옆의 둘과
+   같은 44px 상자여야 한다 — 셋이 한 벌인데 하나만 작으면 그것만 다른
+   기능처럼 보이고, 실측 29px은 손가락 최소치에도 못 미쳤다. */
+[data-variant="a"] .cart-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+
+/* 초기화 — 판 없이 글자처럼 가볍게 두고, 조건이 걸릴 때만 진해진다.
+   아이콘 stroke가 currentColor라 글자색을 바꾸면 그림도 따라온다. */
+[data-variant="a"] .filter-reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease, transform .12s ease;
+}
+[data-variant="a"] .filter-reset-btn:hover:not(:disabled) { color: var(--text); background: var(--bg); }
+[data-variant="a"] .filter-reset-btn:active:not(:disabled) { transform: scale(.96); }
+[data-variant="a"] .filter-reset-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-variant="a"] .filter-reset-btn:disabled { opacity: .3; cursor: default; }
+[data-variant="a"] .filter-reset-btn--active,
+[data-variant="a"] .filter-reset-btn--active:hover {
+  color: var(--text);
+  background: var(--save-soft);
+}
+
+/* 검색 — 접힌 원형 버튼. 누르면 바 아래로 입력칸이 펼쳐진다. 줄 안에서
+   넓어지지 않으므로 옆의 조작이 밀리지 않는다. */
+[data-variant="a"] .search-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+}
+[data-variant="a"] .search-control__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease, transform .12s ease;
+}
+[data-variant="a"] .search-control__btn:hover { color: var(--text); background: var(--bg); }
+[data-variant="a"] .search-control__btn:active { transform: scale(.96); }
+[data-variant="a"] .search-control__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 열려 있는 동안 버튼은 색을 뒤집는다 — 접힌 입력칸이 안 보여도 지금
+   검색이 켜져 있다는 게 읽혀야 한다. */
+[data-variant="a"] .search-control__btn--open,
+[data-variant="a"] .search-control__btn--open:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+[data-variant="a"] .search-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: .4rem;
+  width: min(78vw, 320px);
+  min-width: 0;
+  margin-top: .3rem;
+  padding: .6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
+  animation: search-panel-in 140ms ease;
+}
+@keyframes search-panel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+/* 판 없이 밑줄만 있는 글자 — 분류 캐러셀과 같은 결이다. */
+[data-variant="a"] .search-control__input {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  font: inherit;
+  font-size: .9rem;
+  padding: 0 .2rem;
+  border: 0;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--text) 35%, transparent);
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+}
+[data-variant="a"] .search-control__input:focus { outline: none; border-bottom-color: var(--accent); }
+[data-variant="a"] .search-control__input::placeholder { color: var(--text-muted); }
+[data-variant="a"] .search-panel__submit {
+  flex: none;
+  padding: .25rem .6rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+[data-variant="a"] .search-panel__submit:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* ── 분류 캐러셀 ──────────────────────────────────────────────────
+   버튼을 눌러 패널을 여는 대신 분류를 그냥 깔아둔다. 분류를 고르는 건
+   이 화면의 주된 조작이고, 한 번 더 누르게 하면 그만큼 안 쓴다.
+
+   좁으면 옆으로 흐른다 — 줄바꿈으로 두면 분류가 늘 때마다 바 높이가
+   변해 스페이서 실측이 매번 따라다녀야 한다. */
+[data-variant="a"] .cat-bar {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+[data-variant="a"] .cat-bar__list {
+  display: flex;
+  align-items: center;
+  gap: .1rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  max-width: 880px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* 손을 떼면 항목 경계에 멈춘다 — 글자가 반쯤 잘린 채로 서면 무엇이
+     더 있는지 읽히지 않는다. */
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+[data-variant="a"] .cat-bar__list::-webkit-scrollbar { display: none; }
+[data-variant="a"] .cat-bar__item {
+  position: relative;
+  scroll-snap-align: start;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  white-space: nowrap;
+  /* 44px 세로 타깃. 글자는 작게 두되 눌리는 상자는 손가락에 맞춘다. */
+  height: 44px;
+  padding: 0 .55rem;
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color .16s ease, transform .12s ease;
+}
+[data-variant="a"] .cat-bar__item:hover { color: var(--text); }
+[data-variant="a"] .cat-bar__item:active { transform: scale(.96); }
+[data-variant="a"] .cat-bar__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 고른 분류만 밑줄. 판을 깔면 캐러셀이 알약 줄처럼 무거워진다. */
+[data-variant="a"] .cat-bar__item--on { color: var(--text); font-weight: 700; }
+[data-variant="a"] .cat-bar__item--on::after {
+  content: '';
+  position: absolute;
+  left: .45rem;
+  right: .45rem;
+  bottom: 6px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--text);
+}
+
+/* A는 바가 한 줄이라 배너가 바에 바로 닿는다 — 30px 띄워 갈라 놓는다.
+   B는 메뉴바까지 두 줄이라 이 여백이 필요 없다. */
+[data-variant="a"] .banner-slot { margin-top: 30px; }
