@@ -1,4 +1,5 @@
-// 방문 측정. 자체 서버로 보낸다 — 개인 식별로 이어질 값은 원래 안 받는다.
+// 방문 측정. 자체 서버 원장과 PostHog SDK로 나눈다 — 개인 식별로 이어질
+// 값은 원래 안 받는다.
 // Vercel Analytics(main.jsx)와 GA4(ga4.js, 임시)도 별도로 붙어 있다 —
 // 셋의 관계는 SiteFooter 고지 문구와 docs/decisions/ADR-002 참고.
 //
@@ -13,6 +14,7 @@ import { uiVariant } from './variant.js'
 export { optedOut } from './privacy.js'
 
 const API_BASE = ''  // 같은 오리진 — api.js 주석 참고
+const MAX_PENDING_POSTHOG_EVENTS = 100
 
 // 이벤트마다 한 번만 발급하는 UUID다. 이 객체가 메모리 큐에 남아 있는 동안
 // sendBeacon 실패 뒤 fetch로 폴백해도 같은 eventId가 PostHog $insert_id까지 간다.
@@ -59,6 +61,94 @@ export function setFilterContext(next) {
 
 let queue = []
 let flushTimer = null
+let postHogState = 'disabled'
+let postHogSink = null
+let pendingPostHogEvents = []
+
+function warnPostHog(message, error) {
+  if (import.meta.env?.DEV) console.warn(message, error)
+}
+
+function captureWithSink(sink, event) {
+  try {
+    sink(event)
+  } catch (error) {
+    // SDK 실패가 자체 원장 기록이나 사용자 기능을 막지 않게 한다.
+    warnPostHog('PostHog 이벤트 fan-out에 실패했습니다.', error)
+  }
+}
+
+function fanOutToPostHog(event) {
+  if (postHogState === 'ready') {
+    captureWithSink(postHogSink, event)
+    return
+  }
+  if (postHogState !== 'buffering') return
+
+  if (pendingPostHogEvents.length >= MAX_PENDING_POSTHOG_EVENTS) {
+    warnPostHog('PostHog 대기 큐가 가득 차 새 이벤트를 건너뜁니다.')
+    return
+  }
+  pendingPostHogEvents.push(event)
+}
+
+export function enablePostHogFanout() {
+  if (postHogState === 'ready') return false
+  if (postHogState === 'buffering') return true
+  postHogState = 'buffering'
+  return true
+}
+
+export function registerPostHogSink(sink) {
+  if (postHogState !== 'buffering' || typeof sink !== 'function') return false
+
+  const pending = pendingPostHogEvents
+  pendingPostHogEvents = []
+  for (const event of pending) captureWithSink(sink, event)
+
+  postHogSink = sink
+  postHogState = 'ready'
+  return true
+}
+
+export function disablePostHogFanout() {
+  postHogState = 'disabled'
+  postHogSink = null
+  pendingPostHogEvents = []
+}
+
+// main.jsx와 검증 코드가 같은 시작 순서를 사용한다. 첫 page_view 전에 fan-out을
+// 켜야 SDK 청크가 준비될 때까지 동일 이벤트 객체를 보관할 수 있다.
+export function startAnalyticsDelivery({ postHogConfigured, startPostHog }) {
+  if (postHogConfigured) enablePostHogFanout()
+  startAnalytics()
+  if (postHogConfigured && typeof startPostHog === 'function') startPostHog()
+}
+
+function createAnalyticsEvent(event, additions = {}) {
+  const { props, ...eventFields } = additions
+  return {
+    eventId: createEventId(),
+    event,
+    ...context,
+    path: location.pathname,
+    ...eventFields,
+    props: (props || Object.keys(filterContext).length)
+      ? { ...filterContext, ...props }
+      : undefined,
+    clientTs: new Date().toISOString(),
+  }
+}
+
+function enqueue(event, scheduleFlush = true) {
+  queue.push(event)
+  fanOutToPostHog(event)
+
+  if (!scheduleFlush) return
+  // 클릭마다 요청을 날리지 않고 잠깐 모은다.
+  if (!flushTimer) flushTimer = setTimeout(() => flush(), 3000)
+  if (queue.length >= 10) flush()
+}
 
 function post(body, useBeacon) {
   const url = `${API_BASE}/api/events`
@@ -96,19 +186,9 @@ function flush(useBeacon = false) {
 
 export function track(event, props) {
   if (optedOut()) return
-  queue.push({
-    eventId: createEventId(),
-    event,
-    ...context,
-    path: location.pathname,
-    props: (props || Object.keys(filterContext).length)
-      ? { ...filterContext, ...props }
-      : undefined,
-    clientTs: new Date().toISOString(),
-  })
-  // 클릭마다 요청을 날리지 않고 잠깐 모은다.
-  if (!flushTimer) flushTimer = setTimeout(() => flush(), 3000)
-  if (queue.length >= 10) flush()
+  enqueue(createAnalyticsEvent(event, {
+    props,
+  }))
 }
 
 // 체류 시간은 "보고 있던 시간"이어야 한다. 탭을 백그라운드로 돌린 시간은
@@ -128,14 +208,9 @@ function sendExit() {
   if (optedOut() || exitSent) return
   accumulate()
   exitSent = true
-  queue.push({
-    eventId: createEventId(),
-    event: 'page_exit',
-    ...context,
-    path: location.pathname,
+  enqueue(createAnalyticsEvent('page_exit', {
     dwellMs: activeMs,
-    clientTs: new Date().toISOString(),
-  })
+  }), false)
   flush(true)
 }
 

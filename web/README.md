@@ -112,16 +112,20 @@
 방문 측정은 네 가지 경로가 있다.
 
 1. **`src/analytics.js`(자체)** — 경로·재방문·체류·행동을 API
-   (`/api/events`)로 보낸다. 자체 서버의 원본 JSONL에 기록한 뒤 백엔드
-   outbox가 PostHog로 전달한다. 왜 자체 구현인지, 무엇을 수집하고 무엇을 안 하는지는
+   (`/api/events`)와 PostHog SDK에 함께 fan-out한다. API는 자체 서버의 원본
+   JSONL에 기록하고, 이 구성을 배포할 때 운영 백엔드 outbox를 비활성화한다.
+   왜 자체 구현인지,
+   무엇을 수집하고 무엇을 안 하는지는
    delivery-discount-api의
    [ADR-005](../delivery-discount-api/docs/decisions/ADR-005-first-party-analytics.md).
    재방문(`visitCount`)은 `localStorage` 기반이라 삭제·기기 변경에
    취약하다.
-2. **`src/posthog.js`(PostHog SDK)** — 후속 제품 신호를 브라우저에서
-   PostHog로 직접 보낼 때 쓴다. 기존 자체 이벤트를 자동으로 미러링하지 않으며,
-   자동 페이지뷰·자동 캡처·세션 리플레이·쿠키를 모두 끈다. 자체 경로와 같은
-   `visitorId`와 `source_session_id`를 사용한다.
+2. **`src/posthog.js`(PostHog SDK)** — 도메인 `track()` 이벤트와 `page_exit`를
+   브라우저에서 PostHog로 직접 보낸다. 페이지 이동은 SDK가 표준 `$pageview`와
+   `$pageleave`로 자동 수집하고, Web Vitals와 표준 기기·브라우저 속성도 SDK가
+   수집한다. 클릭 행동은 명시적 이벤트와 겹치지 않게 autocapture를 끄고, 세션
+   리플레이와 쿠키도 사용하지 않는다. 익명 방문자 연결에는 자체 API 원장과 같은
+   `visitorId`·`source_session_id`를 사용한다.
 3. **`@vercel/analytics/react`(Vercel)** — `src/main.jsx`에서 `<Analytics />`
    마운트. 쿠키 없는 집계형 페이지뷰만 Vercel 대시보드로 간다. Next.js용
    `/next` 엔트리가 아니라 Vite에 맞는 `/react` 엔트리를 쓴다. 쿠키를
@@ -140,11 +144,15 @@
 앱 시작 시 한 번만 `startAnalytics()`를 부른다(`src/main.jsx`) — 이게
 `page_view`를 찍고, 탭 가시성 변화·`pagehide`에 체류 시간 전송을 건다.
 이 외의 행동 이벤트는 발생 지점에서 `track(event, props?)`를 직접
-부른다.
+부른다. PostHog 환경변수가 설정된 운영 빌드에서는 도메인 `track()` 이벤트와
+`page_exit`가 같은 이벤트 객체를 SDK와 `/api/events`에 자동으로 나눠 보내므로
+호출처가 PostHog adapter를 따로 부르지 않는다. 첫 `page_view`는 SDK가 지연
+로딩되는 동안 보관했다가 PostHog의 표준 `$pageview`로 보내며, API 원장과 같은
+이벤트 객체와 `eventId`를 유지한다. 이후 History API 이동은 SDK가 자동 수집한다.
 
-PostHog SDK 직접 이벤트는 별도 adapter를 쓴다. 이벤트명과 props는 제한하지
-않지만, 같은 사용자 행동에서 `track()`과 `captureProductSignal()`을 함께
-호출하면 PostHog에 중복 집계되므로 한 경로만 선택한다.
+`captureProductSignal()`은 자체 API 원장에 남기지 않을 별도 SDK 전용 신호를 위한
+adapter다. 같은 사용자 행동에서 `track()`과 함께 호출하면 중복 집계되므로 기존
+analytics 이벤트에는 사용하지 않는다.
 
 ```js
 import { captureProductSignal } from './posthog.js'
@@ -174,25 +182,37 @@ VITE_POSTHOG_HOST=https://us.i.posthog.com
 `dev: true`, `source_session_id`, `visit_count`를 확인한다. 이 이벤트는 제품
 Insight에서 제외한다.
 
-PostHog Person Profile은 만들지 않는다(`person_profiles: 'never'`). 재방문 분석은
-사용자 프로필이 아니라 각 이벤트의 `visit_count` 속성으로 수행한다. 향후 계정 기반
-분석이 필요해지면 이 정책과 개인정보 고지를 함께 재검토한다.
+PostHog Person Profile은 `person_profiles: 'always'`로 만든다. 서버 릴레이가
+같은 이벤트를 보내면서 프로필을 만드는데, 두 경로의 방침이 갈리면 어느 쪽이
+먼저 닿느냐에 따라 프로필이 생겼다 말았다 해서 리텐션이 들쭉날쭉해진다.
 
-`track()`과 `page_exit`는 메모리 큐에 들어갈 때 UUID 형식의 `eventId`를 한 번
-발급한다. 서버는 유효한 값을 PostHog `$insert_id`로 유지한다. `sendBeacon`이
-실패해 `fetch`로 폴백할 때는 같은 이벤트 객체를 직렬화하므로 `eventId`도
-바뀌지 않는다. 이벤트마다 새 ID를 쓰며 브라우저 저장소에는 보관하지 않는다.
-따라서 같은 메모리 큐 항목의 재전송까지만 중복 제거를 보장하고, 새로고침
-이후 재전송은 보장하지 않는다.
+프로필을 만들어도 계정 기반 분석은 아니다. `distinct_id`는 브라우저가 만든
+난수(`visitorId`)라 지우면 그대로 끊긴다 — 이름·연락처는 여전히 안 보낸다.
+재방문은 프로필과 각 이벤트의 `visit_count` 둘 다로 볼 수 있다. 향후 로그인
+기반 식별이 필요해지면 이 정책과 개인정보 고지를 함께 재검토한다.
+
+도메인 `track()` 이벤트와 `page_exit`, 첫 `page_view`는 UUID 형식의 `eventId`를
+한 번 발급해 API 본문과 SDK `$insert_id`·capture `uuid`에 함께 쓴다. 첫
+`page_view`는 대기 큐에서 표준 `$pageview`로 변환한다. SDK가 지연 로딩되는
+동안은 최대 100건을 메모리에 보관하고 초기화 뒤 발생 시각(`clientTs`)을 유지해
+전송한다. 배포 뒤에는 Live Events의 첫 `$pageview` `$insert_id`와 API 원장의
+`page_view.eventId`가 같은지 확인한다.
+SDK가 준비된 뒤의 `page_exit`는 즉시 `sendBeacon` transport로 보내며, SDK의
+`$pageleave`는 별도로 브라우저 종료를 관측한다. 준비 전 초단기 방문은 API 원장
+기록만 보장한다. 이벤트 ID는 브라우저 저장소에 보관하지 않으므로 새로고침 이후
+재전송의 중복 제거는 보장하지 않는다.
+
+`?dev=1` 제품 이벤트는 기존 백엔드 mapper와 같은 기준으로 PostHog에 보내지 않고
+JSONL에만 남긴다. `?dev=1&posthog_test=1`의 연결 진단 이벤트만 예외다.
 
 ```js
 import { track } from './analytics.js'
 
-// 지금 붙어 있는 지점들 (App.jsx)
+// 지금 붙어 있는 지점들 (App.jsx, FilterSheet.jsx)
 track('category_change', { category: c.key })
 track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
 track('offer_link_click', { brand: brandName, platform: offer.platform })
-track('membership_open')
+track('membership_toggle', { platform: membership.key, state: 'soon', from: 'sheet' })
 track('banner_click', { brand: banner.brand ?? 'none', platform: banner.platform, position: 'top' })
 ```
 

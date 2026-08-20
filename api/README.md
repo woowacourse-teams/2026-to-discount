@@ -82,8 +82,10 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 ## 방문 측정 (analytics)
 
 경로·재방문·체류·행동은 자체 API가 수집하고 `events.jsonl`을 원본으로
-보존한다. 운영에서 명시적으로 활성화하면 개인정보를 제외한 이벤트 사본을
-PostHog로 비동기 전달한다. 자체 수집을 둔 배경은
+보존한다. 웹 SDK 직접 전송을 켠 뒤에도 서버 outbox는 켜 둔다
+(`DISCOUNT_POSTHOG_ENABLED=true`) — 두 경로가 같은 `eventId`를 `$insert_id`로
+쓰므로 PostHog가 하나로 합치고, 광고 차단기로 클라이언트가 막힌 방문자는
+서버 경로로만 남는다. 자체 수집을 둔 배경은
 [ADR-005](docs/decisions/ADR-005-first-party-analytics.md), 전달 세부사항은
 [트래픽 수집·통계 문서](docs/traffic-analytics.md)를 참고한다.
 
@@ -135,10 +137,18 @@ curl -X POST http://localhost:8080/api/events \
 DISCOUNT_EVENT_LOG_PATH=/tmp/events.jsonl ./gradlew bootRun
 ```
 
-### PostHog 자동 전달
+### PostHog outbox (웹 SDK 직접 전송 시 비활성)
 
-기본값은 비활성이다. 운영에서 사용할 때 systemd 환경 파일에 다음 값을
-주입한다. 토큰은 저장소나 서비스 유닛 본문에 직접 기록하지 않는다.
+웹 SDK와 서버가 같은 이벤트를 이중 전송하지 않도록 웹 SDK 직접 전송 배포 전에
+운영 systemd 환경에 다음 값을 명시한다. 비활성 상태에서도 `/api/events`와
+`events.jsonl` 기록은 그대로 동작한다.
+
+```bash
+DISCOUNT_POSTHOG_ENABLED=false
+```
+
+롤백으로 서버 전달을 다시 사용할 때만 다음 값을 모두 주입한다. 토큰은 저장소나
+서비스 유닛 본문에 직접 기록하지 않는다.
 
 ```bash
 DISCOUNT_POSTHOG_ENABLED=true
