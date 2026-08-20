@@ -3,10 +3,22 @@ import { readFile } from 'node:fs/promises'
 
 const root = new URL('../..', import.meta.url)
 
+/**
+ * Reads a repository file as UTF-8 text.
+ * @param {string} path - The file path relative to the repository root.
+ * @return {Promise<string>} The file contents.
+ */
 async function source(path) {
   return readFile(new URL(path, root), 'utf8')
 }
 
+/**
+ * Extracts statically declared analytics event names from `track()` calls.
+ * @param {string} path - The source file path used in assertion errors.
+ * @param {string} contents - The source file contents to inspect.
+ * @returns {string[]} The extracted event names.
+ * @throws {AssertionError} If a `track()` call uses a dynamic event name.
+ */
 function staticTrackEvents(path, contents) {
   const calls = [...contents.matchAll(/\btrack\s*\(/g)]
   const staticCalls = [...contents.matchAll(/\btrack\s*\(\s*(['"])([^'"]+)\1/g)]

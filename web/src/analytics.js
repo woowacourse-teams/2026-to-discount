@@ -69,6 +69,11 @@ function warnPostHog(message, error) {
   if (import.meta.env?.DEV) console.warn(message, error)
 }
 
+/**
+ * Forwards an analytics event to a sink without affecting the primary event flow.
+ * @param {Function} sink - The function that receives the event.
+ * @param {Object} event - The analytics event to forward.
+ */
 function captureWithSink(sink, event) {
   try {
     sink(event)
@@ -92,6 +97,10 @@ function fanOutToPostHog(event) {
   pendingPostHogEvents.push(event)
 }
 
+/**
+ * Enables PostHog event fan-out and begins buffering events until a sink is registered.
+ * @return {boolean} `true` when fan-out is enabled or buffering, `false` if a sink is already ready.
+ */
 export function enablePostHogFanout() {
   if (postHogState === 'ready') return false
   if (postHogState === 'buffering') return true
@@ -99,6 +108,11 @@ export function enablePostHogFanout() {
   return true
 }
 
+/**
+ * Registers the PostHog event sink and forwards buffered events to it.
+ * @param {Function} sink - Function that receives each buffered analytics event.
+ * @return {boolean} `true` if the sink is registered, `false` otherwise.
+ */
 export function registerPostHogSink(sink) {
   if (postHogState !== 'buffering' || typeof sink !== 'function') return false
 
@@ -111,6 +125,9 @@ export function registerPostHogSink(sink) {
   return true
 }
 
+/**
+ * Disables PostHog event fan-out and clears its registered sink and pending events.
+ */
 export function disablePostHogFanout() {
   postHogState = 'disabled'
   postHogSink = null
@@ -118,13 +135,23 @@ export function disablePostHogFanout() {
 }
 
 // main.jsx와 검증 코드가 같은 시작 순서를 사용한다. 첫 page_view 전에 fan-out을
-// 켜야 SDK 청크가 준비될 때까지 동일 이벤트 객체를 보관할 수 있다.
+/**
+ * Starts analytics delivery and optionally initializes PostHog fan-out.
+ * @param {boolean} postHogConfigured - Whether PostHog delivery is configured.
+ * @param {Function} [startPostHog] - Callback that initializes the PostHog SDK.
+ */
 export function startAnalyticsDelivery({ postHogConfigured, startPostHog }) {
   if (postHogConfigured) enablePostHogFanout()
   startAnalytics()
   if (postHogConfigured && typeof startPostHog === 'function') startPostHog()
 }
 
+/**
+ * Creates an analytics event with shared context, the current path, filter state, and additional properties.
+ * @param {string} event - The event name.
+ * @param {Object} [additions={}] - Additional event fields and properties.
+ * @returns {Object} The analytics event payload.
+ */
 function createAnalyticsEvent(event, additions = {}) {
   const { props, ...eventFields } = additions
   return {
@@ -140,6 +167,11 @@ function createAnalyticsEvent(event, additions = {}) {
   }
 }
 
+/**
+ * Queues an analytics event for delivery to the self-hosted ledger and PostHog.
+ * @param {Object} event - The analytics event to queue.
+ * @param {boolean} [scheduleFlush=true] - Whether to schedule or trigger queued-event delivery.
+ */
 function enqueue(event, scheduleFlush = true) {
   queue.push(event)
   fanOutToPostHog(event)
@@ -150,6 +182,11 @@ function enqueue(event, scheduleFlush = true) {
   if (queue.length >= 10) flush()
 }
 
+/**
+ * Sends analytics data to the events endpoint, using a beacon when requested and available.
+ * @param {Object} body - The analytics payload to send.
+ * @param {boolean} useBeacon - Whether to prefer `sendBeacon` for delivery.
+ */
 function post(body, useBeacon) {
   const url = `${API_BASE}/api/events`
   const json = JSON.stringify(body)
@@ -184,6 +221,11 @@ function flush(useBeacon = false) {
   post(batch, useBeacon)
 }
 
+/**
+ * Records a general analytics event when analytics collection is enabled.
+ * @param {string} event - The event name.
+ * @param {Object} props - Additional event properties.
+ */
 export function track(event, props) {
   if (optedOut()) return
   enqueue(createAnalyticsEvent(event, {
@@ -204,6 +246,9 @@ function accumulate() {
   }
 }
 
+/**
+ * Records the current page's dwell time and sends a page exit event once.
+ */
 function sendExit() {
   if (optedOut() || exitSent) return
   accumulate()

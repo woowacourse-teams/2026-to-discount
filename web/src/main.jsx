@@ -11,10 +11,19 @@ import { startGa4 } from './ga4.js'
 import { optedOut } from './privacy.js'
 import './App.css'
 
+/**
+ * Determines whether a value is a non-empty string after trimming whitespace.
+ * @param {*} value - The value to check.
+ * @return {boolean} `true` if the value is a non-empty trimmed string, `false` otherwise.
+ */
 function configured(value) {
   return typeof value === 'string' && value.trim() !== ''
 }
 
+/**
+ * Loads and initializes PostHog, registering it as an analytics event sink when successful.
+ * Disables PostHog fanout if loading or initialization fails.
+ */
 function startPostHog() {
   // 실제 SDK는 별도 청크로 늦게 불러온다. 초기 화면의 JavaScript 비용을
   // 키·호스트가 없는 환경과 첫 렌더링에서 늘리지 않는다.

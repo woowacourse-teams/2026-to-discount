@@ -6,20 +6,47 @@ export const POSTHOG_CONNECTION_TEST_EVENT = 'posthog_sdk_connection_test'
 
 const CONNECTION_TEST_KEY = 'dk_posthog_connection_test'
 
+/**
+ * Trims a string value.
+ * @param {*} value - The value to clean.
+ * @return {string} The trimmed string, or an empty string for non-string values.
+ */
 function clean(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+/**
+ * Assigns a value to an object property when the value is defined and non-null.
+ * @param {Object} target - The object to update.
+ * @param {string} key - The property key to assign.
+ * @param {*} value - The value to assign.
+ */
 function put(target, key, value) {
   if (value !== undefined && value !== null) target[key] = value
 }
 
+/**
+ * Parses a non-empty timestamp string into a valid date.
+ * @param {*} value - The value to parse as a timestamp.
+ * @return {Date|undefined} The parsed date, or `undefined` for an empty or invalid value.
+ */
 function captureTimestamp(value) {
   if (typeof value !== 'string' || value.trim() === '') return undefined
   const parsed = new Date(value)
   return Number.isNaN(parsed.getTime()) ? undefined : parsed
 }
 
+/**
+ * Creates a PostHog analytics adapter with injected runtime dependencies.
+ * @param {Object} dependencies - Adapter dependencies and environment accessors.
+ * @param {Function} dependencies.getEnvironment - Returns the PostHog configuration values.
+ * @param {Function} dependencies.isOptedOut - Reports whether analytics collection is disabled.
+ * @param {Function} dependencies.getContext - Returns the current visitor, session, and environment context.
+ * @param {Function} dependencies.getLocation - Returns the current browser location.
+ * @param {Function} dependencies.getSessionStore - Returns session storage used for connection-test state.
+ * @param {Function} [dependencies.warn] - Reports initialization and capture failures.
+ * @returns {Object} An adapter with PostHog initialization and event-capture methods.
+ */
 export function createPostHogAdapter({
   client,
   getEnvironment,

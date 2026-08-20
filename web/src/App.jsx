@@ -443,7 +443,10 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
 
 // 이 서비스가 무엇이고 무엇이 아닌지, 정보를 어떻게 모았는지 밝힌다.
 // 앱 화면 캡처를 그대로 올리던 갤러리는 뺐다 — 금액은 사실이라 옮겨
-// 적을 수 있지만 캡처 이미지 자체는 각 플랫폼의 저작물이다.
+/**
+ * Render the site's privacy, affiliation, data-use, and trademark disclosures.
+ * @returns {JSX.Element} The site footer.
+ */
 function SiteFooter() {
   return (
     <footer className="site-footer">
