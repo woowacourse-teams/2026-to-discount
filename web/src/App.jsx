@@ -1,8 +1,11 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { fetchBanners, fetchBrands } from './api.js'
-import { track } from './analytics.js'
+import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.jsx'
+import FilterSheet from './FilterSheet.jsx'
+import MenuBar from './MenuBar.jsx'
+import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, defaultFilters, isDefaultFilters } from './filters.js'
 
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
@@ -51,30 +54,7 @@ function searchFallbackLink(platformKey, brandName) {
   return `https://www.google.com/search?q=${encodeURIComponent(`${prefix} ${brandName}`)}`
 }
 
-// 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
-// (실제 브랜드별 분류는 API 쪽 brands.yml이 단일 출처다).
-const CATEGORIES = [
-  { key: 'all', label: '전체' },
-  { key: 'chicken', label: '치킨' },
-  { key: 'pizza', label: '피자' },
-  { key: 'fastfood', label: '패스트푸드' },
-  { key: 'snack', label: '분식' },
-  { key: 'cafe', label: '카페' },
-  { key: 'convenience', label: '편의점' },
-  { key: 'korean', label: '한식' },
-  { key: 'chinese', label: '중식' },
-]
-
-// 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
-// docs/specs/2026-07-28-product-brief.md에 "UI만 배치, 로직 보류"로 명시된
-// 의도적 보류 상태 — 계산 모델이 나오면 그 레포 docs/plans에 계획이 생긴다.
-const MEMBERSHIP_OPTIONS = [
-  { key: 'baemin', label: '배민클럽' },
-  { key: 'coupangeats', label: '쿠팡와우' },
-  { key: 'yogiyo', label: '요기패스' },
-  { key: 'ddangyo', label: '지역화폐' },
-]
-const MEMBERSHIP_LABEL = Object.fromEntries(MEMBERSHIP_OPTIONS.map((m) => [m.key, m.label]))
+const CART_KEY = 'dk_cart'
 
 function won(value) {
   return `${value.toLocaleString()}원`
@@ -294,7 +274,7 @@ function BrandGridSkeleton() {
 // highlighted는 URL 해시(#brand-이름)로 이 카드를 콕 집어 공유했을 때만
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
-function BrandCard({ brand, highlighted, onInteract }) {
+function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -357,25 +337,30 @@ function BrandCard({ brand, highlighted, onInteract }) {
       ref={cardRef}
       className={`brand-card ${open ? 'brand-card--open' : ''} ${highlighted ? 'brand-card--highlighted' : ''}`}
     >
-      <button
-        type="button"
-        className="brand-card__head"
-        aria-expanded={open}
-        aria-controls={detailId}
-        onClick={toggle}
-      >
+      {/* 헤더는 이름표다. 펼침 트리거는 카드 아래 한 곳뿐이다 —
+          헤더 전체·화살표·아래 버튼 셋이 같은 일을 하면 어느 것을
+          눌러야 하는지 생각하게 된다. */}
+      <div className="brand-card__head">
         <BrandLogo name={brand.name} />
         <h2 className="brand-card__name">{brand.name}</h2>
-        {/* 화살표 왼쪽 안내 문구. 마우스가 있는 환경에서 hover할 때만
-            드러난다(App.css @media (hover: hover)) — 펼치지는 않는다,
-            펼침은 클릭 전용. 여기에 원본 캡처 미리보기를 넣지 않는다:
-            판독 근거는 상세를 펼쳐야 보는 정보지 스치며 보는 정보가
-            아니고, 브랜드 수만큼 이미지를 hover마다 물면 무겁다. */}
-        <span className="brand-card__hover-affordance">
-          <span className="brand-card__hover-hint" aria-hidden="true">눌러서 펼치기</span>
-          <span className="brand-card__chevron" aria-hidden="true" />
-        </span>
-        <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
+      </div>
+
+      {/* 담기 + 버튼. 헤더 버튼의 형제라 눌러도 카드가 안 펼쳐진다.
+          아래 담기 줄과 같은 동작이고, 스크롤 중에 카드 아래까지 안 가도
+          바로 담을 수 있는 지름길이다. */}
+      <button
+        type="button"
+        className={`brand-card__add${checked ? ' brand-card__add--on' : ''}`}
+        aria-pressed={checked}
+        aria-label={checked ? `${brand.name} 담기 해제` : `${brand.name} 담기`}
+        title={checked ? '담기 해제' : '담기'}
+        onClick={() => onToggleCheck(brand.name)}
+      >
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+          {checked
+            ? <polyline points="20 6 9 17 4 12" />
+            : <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>}
+        </svg>
       </button>
 
       {/* 최고 할인 하나를 단독 줄로 올리고 나머지는 아래 가로 그리드로
@@ -421,6 +406,36 @@ function BrandCard({ brand, highlighted, onInteract }) {
           컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
       <div id={detailId} className="brand-detail" hidden={!open}>
         {open && sortedOffers.map((o) => <OfferDetail key={o.platform} offer={o} />)}
+      </div>
+
+      {/* 카드 맨 아래 줄 — 담기와 펼치기. 펼치기를 헤더에서 내린 건
+          헤더가 로고·이름만 갖게 하려는 것이고, 담기와 나란히 두면
+          "이 카드로 할 수 있는 일"이 한자리에 모인다. */}
+      <div className="brand-card__foot">
+        <button
+          type="button"
+          className={`brand-card__save${checked ? ' brand-card__save--on' : ''}`}
+          aria-pressed={checked}
+          onClick={() => onToggleCheck(brand.name)}
+        >
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            {checked
+              ? <polyline points="20 6 9 17 4 12" />
+              : <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>}
+          </svg>
+          {checked ? '담김' : '담기'}
+        </button>
+
+        <button
+          type="button"
+          className="brand-card__expand"
+          aria-expanded={open}
+          aria-controls={detailId}
+          onClick={toggle}
+        >
+          {open ? '접기' : '자세히'}
+          <span className="brand-card__chevron" aria-hidden="true" />
+        </button>
       </div>
     </article>
   )
@@ -473,70 +488,47 @@ function SiteFooter() {
 // 펼쳐진다. 줄 안에서 폭을 넓히면 옆 조작들이 밀려 배치가 매번 다시
 // 잡혔다. 열려 있는 동안 버튼은 색을 뒤집어 지금 무엇이 켜져 있는지
 // 알린다. 검색어는 접어도 App의 search 상태에 남아 필터링은 계속 걸린다.
-function SearchControl({ value, onChange }) {
-  const [open, setOpen] = useState(false)
-  // 패널 안에서 고치는 동안에는 목록이 흔들리지 않는다 — 확정(엔터나
-  // 검색 버튼)해야 필터가 걸린다. 카테고리를 고르는 것과 같은 리듬이다.
+/**
+ * 상시 노출 검색 입력. 예전에는 돋보기 버튼을 눌러야 패널이 열렸는데,
+ * 로고 자리를 이 입력으로 바꾸면서 접을 이유가 없어졌다 — 바에서 가장
+ * 넓은 자리를 차지하는 것이 곧 이 화면의 주된 조작이라는 뜻이다.
+ *
+ * 입력하는 동안에는 목록이 흔들리지 않는다. 엔터나 돋보기로 확정해야
+ * 필터가 걸린다 — 글자마다 다시 거르면 지우는 중에도 결과가 요동친다.
+ */
+function SearchControl({ value, onChange, chips }) {
   const [draft, setDraft] = useState(value)
-  const inputRef = useRef(null)
 
-  useEffect(() => {
-    if (open) {
-      setDraft(value)
-      inputRef.current?.focus()
-    }
-  }, [open, value])
+  // 바깥에서 검색어를 지우면(칩의 X, 초기화) 입력창도 따라 비어야 한다.
+  useEffect(() => { setDraft(value) }, [value])
 
-  useEffect(() => {
-    if (!open) return
-    const close = (e) => {
-      if (e.target.closest('.search-control')) return
-      setOpen(false)
-    }
-    document.addEventListener('pointerdown', close)
-    return () => document.removeEventListener('pointerdown', close)
-  }, [open])
-
-  const submit = () => {
-    onChange(draft.trim())
-    setOpen(false)
-  }
+  const submit = () => onChange(draft.trim())
 
   return (
-    <div className="search-control">
-      <button
-        type="button"
-        className={`search-control__btn${open ? ' search-control__btn--open' : ''}`}
-        aria-expanded={open}
-        aria-label={open ? '브랜드 검색 닫기' : '브랜드 검색 열기'}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+    <div className="search-field">
+      {/* 걸린 조건은 검색창 안에 토큰으로 앉는다. 바 아래 따로 줄을
+          두면 조건이 없을 때 빈 줄이 남고, 있을 때는 검색과 필터가
+          서로 다른 층에 있는 것처럼 보인다 — 둘 다 "지금 무엇을
+          보고 있는가"를 말하는 같은 정보다. */}
+      {chips}
+      <input
+        type="search"
+        className="search-field__input"
+        placeholder="브랜드 검색"
+        aria-label="브랜드 검색"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') submit()
+          if (e.key === 'Escape') { setDraft(''); onChange('') }
+        }}
+      />
+      <button type="button" className="search-field__submit" aria-label="검색" onClick={submit}>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
           <circle cx="11" cy="11" r="7" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
       </button>
-
-      {open && (
-        <div className="category-panel search-panel">
-          <input
-            ref={inputRef}
-            type="search"
-            className="search-control__input"
-            placeholder="브랜드 검색"
-            aria-label="브랜드 검색"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') submit()
-              if (e.key === 'Escape') setOpen(false)
-            }}
-          />
-          <button type="button" className="search-panel__submit" onClick={submit}>
-            검색
-          </button>
-        </div>
-      )}
     </div>
   )
 }
@@ -546,30 +538,40 @@ export default function App() {
   const [brands, setBrands] = useState(null)
   const [banners, setBanners] = useState([])
   const [error, setError] = useState(null)
-  const [filterKey, setFilterKey] = useState('all')
-  const [search, setSearch] = useState('')
+  // 앱·분류·정렬·검색을 한 덩어리로 든다. 시트가 draft를 만들어 통째로
+  // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
+  // 중간 상태로 한 번 더 그려진다.
+  const [filters, setFilters] = useState(defaultFilters)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
-  // 헤더의 플랫폼 배지를 눌러 그 앱에 오퍼가 있는 브랜드만 본다.
-  // 처음엔 전부 선택된 상태다 — 빈 Set(=필터 없음)을 기본으로 두면
-  // 선택·미선택·기본 세 가지 모양이 생겨 무엇이 켜져 있는지 헷갈렸다.
-  const [platformFilter, setPlatformFilter] = useState(() => new Set(PLATFORMS.map((p) => p.key)))
-  const togglePlatform = (key) => {
-    setPlatformFilter((prev) => {
-      const next = new Set(prev)
+  const { search } = filters
+  const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
+
+  // 메뉴바에서 분류를 켜고 끈다 — 여기서는 바로 반영한다(시트와 달리
+  // 조건 하나만 빠르게 만지는 자리다).
+  const toggleCategory = (key) => {
+    setFilters((f) => {
+      const next = new Set(f.categories)
       if (next.has(key)) next.delete(key); else next.add(key)
-      return next
+      return { ...f, categories: next }
     })
-    track('platform_filter_toggle', { platform: key })
+    track('category_change', { category: key })
   }
 
-  // 멤버십 라벨은 타이틀바 아래 여백에 떠 있어서, 스크롤해서 카드가
-  // 올라오면 카드 위에 덩그러니 남는다 — 맨 위에서만 보이게 한다.
-  const [atTop, setAtTop] = useState(true)
+  const applyFromSheet = (draft) => {
+    setFilters(draft)
+    setSheetOpen(false)
+    track('filters_apply', {
+      platforms: draft.platforms.size,
+      categories: draft.categories.size,
+      sort: `${draft.sortKey}_${draft.sortDir}`,
+    })
+  }
+
   // "맨 위로" 버튼은 한참 내려갔을 때만 — 조금 내려간 상태에선 방해다.
   const [scrolledFar, setScrolledFar] = useState(false)
   useEffect(() => {
     const onScroll = () => {
-      setAtTop(window.scrollY < 8)
       setScrolledFar(window.scrollY > 400)
       // 고무줄 스크롤 차단(html/body의 overscroll-behavior:none, App.css)은
       // 흔들 때 타이틀바가 같이 밀리는 걸 막지만, 그 값 그대로 두면 당겨서
@@ -600,21 +602,9 @@ export default function App() {
     return () => ro.disconnect()
   }, [])
 
-  // 멤버십 필터는 아직 안 만들었다. 버튼은 자리와 색을 미리 잡아두되
-  // 누르면 상태가 바뀌지 않고 "구현 예정"만 알린다 — 눌렀는데 아무 일도
-  // 안 일어나면 고장으로 읽힌다. 수요는 그대로 집계한다.
-  const [membershipHint, setMembershipHint] = useState(null)
-  const toggleMembership = (key) => {
-    setMembershipHint(key)
-    setTimeout(() => setMembershipHint((cur) => (cur === key ? null : cur)), 1600)
-    track('membership_toggle', { platform: key, state: 'soon' })
-  }
-
-  const isFiltered = filterKey !== 'all' || platformFilter.size < PLATFORMS.length || search.trim() !== ''
+  const isFiltered = !isDefaultFilters(filters)
   const resetFilters = () => {
-    setFilterKey('all')
-    setPlatformFilter(new Set(PLATFORMS.map((p) => p.key)))
-    setSearch('')
+    setFilters(defaultFilters())
     track('filters_reset')
   }
 
@@ -650,7 +640,6 @@ export default function App() {
     fetchBanners().then(setBanners).catch(() => setBanners([]))
   }, [])
 
-  const tabs = CATEGORIES
 
   // category는 API가 brands.yml에서 읽어 내려준다. 분류가 없는 브랜드는
   // null이라 "전체"에서만 보인다. 검색은 항상 같이 적용된다.
@@ -661,187 +650,218 @@ export default function App() {
   //
   // 오퍼를 걷어내고 나서 남는 게 없는 카드는 뺀다. 그 브랜드에서 볼
   // 것이 하나도 없는데 이름만 남기면 빈 카드가 격자를 채운다.
-  const visibleBrands = useMemo(() => {
-    if (!brands) return brands
-    const q = search.trim()
-    return brands
-      .map((b) => {
-        const offers = b.offers.filter((o) => platformFilter.has(o.platform))
-        return offers.length === b.offers.length ? b : { ...b, offers }
-      })
-      .filter((b) => {
-        if (b.offers.length === 0) return false
-        const inSearch = q === '' || b.name.includes(q)
-        if (!inSearch) return false
-        if (filterKey === 'all') return true
-        return b.category === filterKey
-      })
-  }, [brands, filterKey, search, platformFilter])
+  // 담아둔 브랜드. 비교하려고 몇 개를 골라두면 스크롤을 오가지 않고
+  // 그것만 모아 볼 수 있다. 브랜드명이 곧 키다(API가 별칭을 이미 대표명
+  // 하나로 합쳐 내려준다). localStorage라 새로고침해도 남고, 사이트
+  // 데이터를 지우면 끊긴다 — visitorId와 같은 한계다.
+  const [cart, setCart] = useState(() => {
+    try {
+      const raw = localStorage.getItem(CART_KEY)
+      return new Set(raw ? JSON.parse(raw) : [])
+    } catch {
+      return new Set()
+    }
+  })
+  const [cartOnly, setCartOnly] = useState(false)
 
-  // 화살표를 눌러 아래로 펼치면 스크롤 띠 대신 여러 줄 그리드로 카테고리
-  // 전부를 한 번에 보여준다. 카테고리를 실제로 고르면 다시 접는다 —
-  // 펼쳐둔 채로 남으면 매번 화면을 도로 차지한다.
-  const [catExpanded, setCatExpanded] = useState(false)
-
-  // 펼친 목록은 바깥을 만지면 닫힌다. 토글을 다시 찾아 눌러야만 닫히면
-  // 목록이 카드 위에 얹힌 채로 길을 막는다. pointerdown이라 클릭이
-  // 완성되기 전에 닫히고, 목록 안쪽 클릭은 target으로 걸러낸다.
   useEffect(() => {
-    if (!catExpanded) return
-    const close = (e) => {
-      if (e.target.closest('.category-panel, .category-toggle')) return
-      setCatExpanded(false)
+    try {
+      localStorage.setItem(CART_KEY, JSON.stringify([...cart]))
+    } catch {
+      /* 사파리 프라이빗 등 — 못 적으면 이번 세션에만 남는다 */
     }
-    document.addEventListener('pointerdown', close)
-    return () => document.removeEventListener('pointerdown', close)
-  }, [catExpanded])
-  const handleFilterSelect = (key) => {
-    setCatExpanded(false)
-    setFilterKey(key)
-    if (key !== filterKey) {
-      track('category_change', { category: key })
-      // 분류를 바꾸면 목록 자체가 갈리므로 보던 위치는 의미가 없다.
-      // 순간이동이다(smooth 아님) — 새 목록을 훑는 게 목적이지
-      // 이동 과정을 보여주는 게 목적이 아니다.
-      window.scrollTo(0, 0)
-    }
+  }, [cart])
+
+  const toggleCart = (name) => {
+    setCart((prev) => {
+      const next = new Set(prev)
+      const adding = !next.has(name)
+      if (adding) next.add(name); else next.delete(name)
+      track('cart_toggle', { brand: name, state: adding ? 'add' : 'remove' })
+      return next
+    })
   }
+
+  // 담은 게 하나도 없으면 모아보기를 켜둔 채로 둘 이유가 없다 — 빈
+  // 화면만 남는다.
+  useEffect(() => {
+    if (cart.size === 0) setCartOnly(false)
+  }, [cart.size])
+
+  // 조건이 하나라도 바뀌면 이 값이 바뀌고, 그러면 카드 격자가 새로
+  // 마운트돼 등장 애니메이션이 다시 걸린다. 정렬만 바꿔도 순서가 통째로
+  // 달라지므로 분류와 똑같이 "새 목록"으로 다룬다.
+  // 링크를 누른 순간 어떤 조건이 걸려 있었는지가 "분류를 설정한 사람이
+  // 실제로 이동까지 하는가"의 답이다. A안과 같은 키를 쓴다 — 이름이
+  // 다르면 두 안을 나란히 못 놓는다.
+  useEffect(() => {
+    setFilterContext({
+      fCategory: filters.categories.size === 0 ? 'all' : [...filters.categories].sort().join('+'),
+      fPlatforms: filters.platforms.size,
+      fSearch: filters.search.trim() !== '' || undefined,
+      fCart: cartOnly || undefined,
+      fSaved: cart.size || undefined,
+      fSort: `${filters.sortKey}_${filters.sortDir}`,
+    })
+  }, [filters, cartOnly, cart.size])
+
+  const gridKey = [
+    [...filters.categories].sort().join('|'),
+    [...filters.platforms].sort().join('|'),
+    filters.sortKey,
+    filters.sortDir,
+    filters.search.trim(),
+    cartOnly ? 'cart' : '',
+  ].join('/')
+
+  // 조건이 바뀌면 목록 자체가 갈리므로 보던 위치는 의미가 없다. 맨 위로
+  // 올려 새 목록을 처음부터 보게 한다 — 첫 렌더에는 건너뛴다(들어오자마자
+  // 스크롤이 튀면 안 된다).
+  const firstGrid = useRef(true)
+  useEffect(() => {
+    if (firstGrid.current) {
+      firstGrid.current = false
+      return
+    }
+    window.scrollTo(0, 0)
+  }, [gridKey])
+
+  // 필터·정렬 규칙은 filters.js가 단일 출처다(시트·메뉴바와 같은 규칙).
+  const visibleBrands = useMemo(
+    () => (brands ? applyFilters(brands, filters, { cart, cartOnly }) : brands),
+    [brands, filters, cart, cartOnly],
+  )
+
 
   return (
     <>
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
-      <EventBanner banners={banners} />
-      {/* 플랫폼 배지와 카테고리 탭을 한 스크롤 영역에 같이 넣는다. main 밖에 두어 full-bleed가 100vw 트릭 없이 자연히 성립하고, sticky도 안 깨진다. */}
+      <FilterSheet
+        open={sheetOpen}
+        filters={filters}
+        onApply={applyFromSheet}
+        onClose={() => setSheetOpen(false)}
+      />
 
       {/* 고정된 바가 문서 흐름에서 빠진 만큼을 대신 차지하는 자리. 높이는
-          바를 실측해서 넣는다(탭 줄바꿈·폰트 로딩으로 바뀔 수 있다). */}
+          바를 실측해서 넣는다(폰트 로딩·줄바꿈으로 바뀔 수 있다). */}
       <div className="title-bar-spacer" style={{ height: `${barHeight}px` }} aria-hidden="true" />
+
+      {/* 상단 바: 선형 메뉴바 한 줄 + 그 아래 조작 한 줄. 플랫폼 배지는
+          시트로 옮겼다 — 앱·분류·정렬이 한 자리에 모여야 무엇이 걸려
+          있는지 한 번에 읽힌다. 바에 남는 건 자주 만지는 것뿐이다. */}
       <div className="title-bar" ref={titleBarRef}>
-        <div className="title-bar__inner">
+        {/* 1행 — 이름과 상시 조작(검색·담아둔 것). 배달앱들이 쓰는 구조
+            그대로다: 위는 정체성과 도구, 아래는 분류. */}
+        <div className="title-bar__top">
           <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
 
-          <div className="page-head__apps" aria-label="비교 대상 배달앱">
-            {PLATFORMS.map((p) => (
-              <span key={p.key} className="platform-badge-wrap">
-                <PlatformBadge
-                  platformKey={p.key}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    togglePlatform(p.key)
-                  }}
-                  active={platformFilter.has(p.key)}
-                />
-
-                {/* 고른 앱에만 멤버십 버튼이 로고 밑에 붙는다. 2초 뒤
-                    사라지는 칸으로 물어보던 걸 걷었다 — 켜고 끄는 걸
-                    언제든 다시 만질 수 있어야 한다. 위치로 어느 앱
-                    것인지 드러나므로 여러 앱을 한 줄로 묶지 않는다. */}
-                {platformFilter.has(p.key) && (
-                  <button
-                    type="button"
-                    className="membership-btn membership-btn--soon"
-                    data-platform={p.key}
-                    data-hint={membershipHint === p.key ? 'on' : undefined}
-                    aria-disabled="true"
-                    title="구현 예정입니다"
-                    onClick={() => toggleMembership(p.key)}
-                  >
-                    {MEMBERSHIP_LABEL[p.key]}
-                  </button>
+          {/* 로고가 있던 자리를 검색 입력이 차지한다. 바에서 가장 넓은
+              자리를 쓰는 것이 곧 이 화면의 주된 조작이라는 뜻이다 —
+              이름은 스크린리더용으로만 남긴다. */}
+          <SearchControl
+            value={search}
+            onChange={setSearch}
+            chips={(
+              <>
+                {/* 모아보기가 켜지면 다른 조건이 안 먹는다 — 결과가 왜
+                    이런지 알려면 그 사실만 보여야 한다. */}
+                {cartOnly && (
+                  <span className="search-chip search-chip--cart">
+                    담아둔 {cart.size}개
+                    <button type="button" className="search-chip__x" aria-label="전체 보기"
+                      onClick={() => setCartOnly(false)}>×</button>
+                  </span>
                 )}
-              </span>
-            ))}
-          </div>
+                {!cartOnly && CATEGORIES.filter((c) => filters.categories.has(c.key)).map((c) => (
+                  <span className="search-chip" key={c.key}>
+                    {c.label}
+                    <button type="button" className="search-chip__x" aria-label={`${c.label} 해제`}
+                      onClick={() => toggleCategory(c.key)}>×</button>
+                  </span>
+                ))}
+                {!cartOnly && filters.platforms.size < PLATFORMS.length && (
+                  <span className="search-chip">
+                    앱 {filters.platforms.size}
+                    <button type="button" className="search-chip__x" aria-label="앱 선택 초기화"
+                      onClick={() => setFilters((f) => ({ ...f, platforms: new Set(PLATFORMS.map((x) => x.key)) }))}>×</button>
+                  </span>
+                )}
+              </>
+            )}
+          />
 
-          {/* 분류·초기화·검색은 앱 버튼과 같은 선상에 둔다 — 별도 줄로
-              띄우면 같은 조작 묶음인데도 따로 노는 것처럼 보였다.
-              좁은 화면에서는 "카테고리 설정" 글자를 접고 아이콘만 남긴다. */}
-          {/* 분류·초기화·검색을 한 상자에 묶는다. 검색이 열리면 이
-              상자 안에서 앞의 둘이 왼쪽으로 밀려 플랫폼 버튼 아래로
-              들어간다 — 사라졌다 나타나는 게 아니라 밀리고 당겨진다. */}
-          <div className="title-bar__ops">
-            <span className="category-toggle-wrap">
-              <button
-                type="button"
-                className={`category-toggle${catExpanded ? ' category-toggle--open' : ''}${filterKey !== 'all' ? ' category-toggle--active' : ''}`}
-                aria-expanded={catExpanded}
-                aria-label="카테고리 설정"
-                onClick={() => setCatExpanded((v) => !v)}
-              >
-                <span className="category-toggle__label">CATEGORY</span>
-              </button>
-
-              {/* 지금 걸린 필터는 조작을 접어도 남는다 — 안 보이면 결과가
-                  왜 줄었는지 알 수 없다. 분류와 검색어를 한 줄에 모아
-                  토글 아래에 건다. X로 각각 그 자리에서 푼다. */}
-              {(filterKey !== 'all' || search.trim() !== '') && (
-                <span className="filter-chips">
-                  {filterKey !== 'all' && (
-                    <span className="filter-chip">
-                      {tabs.find((c) => c.key === filterKey)?.label ?? filterKey}
-                      <button
-                        type="button"
-                        className="filter-chip__clear"
-                        aria-label="카테고리 해제"
-                        onClick={() => setFilterKey('all')}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  )}
-                  {search.trim() !== '' && (
-                    <span className="filter-chip filter-chip--search">
-                      {search}
-                      <button
-                        type="button"
-                        className="filter-chip__clear"
-                        aria-label="검색어 지우기"
-                        onClick={() => setSearch('')}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  )}
-                </span>
-              )}
-            </span>
+          <div className="title-bar__tools">
+            {/* 초기화 · 필터 · 담아둔 것 순. 왼쪽 검색에서 오른쪽으로
+                갈수록 범위가 넓은 조작이다. */}
             <button
               type="button"
-              className={`filter-reset-btn${isFiltered ? ' filter-reset-btn--active' : ''}`}
+              className={`icon-btn${isFiltered ? ' icon-btn--active' : ''}`}
               onClick={resetFilters}
               aria-label="필터 초기화"
+              title="필터 초기화"
             >
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 12a9 9 0 1 1-3-6.7" />
                 <polyline points="21 3 21 9 15 9" />
               </svg>
             </button>
-            <SearchControl value={search} onChange={setSearch} />
-          </div>
 
+            <button
+              type="button"
+              className={`icon-btn${sheetOpen ? ' icon-btn--on' : ''}`}
+              aria-expanded={sheetOpen}
+              aria-label="필터 열기"
+              title="필터"
+              onClick={() => { setSheetOpen(true); track('filter_sheet_open') }}
+            >
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                <line x1="4" y1="7" x2="20" y2="7" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+                <line x1="10" y1="17" x2="14" y2="17" />
+              </svg>
+            </button>
+
+            {/* 담아둔 브랜드만 모아 본다. 개수를 배지로 달아 몇 개
+                담았는지 열지 않고도 안다. */}
+            <button
+              type="button"
+              className={`cart-btn${cartOnly ? ' cart-btn--on' : ''}`}
+              aria-pressed={cartOnly}
+              disabled={cart.size === 0}
+              aria-label={cartOnly ? '전체 보기' : '담아둔 브랜드만 보기'}
+              title={cart.size === 0 ? '담아둔 브랜드가 없다' : (cartOnly ? '전체 보기' : '담아둔 것만 보기')}
+              onClick={() => {
+                setCartOnly((v) => {
+                  track('cart_view_toggle', { state: v ? 'off' : 'on', count: cart.size })
+                  return !v
+                })
+              }}
+            >
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="20" r="1.4" />
+                <circle cx="18" cy="20" r="1.4" />
+                <path d="M2 3h3l2.4 12.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6" />
+              </svg>
+              {cart.size > 0 && <span className="cart-btn__count">{cart.size}</span>}
+            </button>
+          </div>
         </div>
-        {/* 카테고리 목록 — 토글을 눌렀을 때만 바 아래로 펼쳐진다.
-            absolute라 카드 그리드를 밀어내지 않는다. */}
-        {catExpanded && (
-          <div className="category-panel" role="listbox" aria-label="카테고리 선택">
-            {tabs.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                role="option"
-                aria-selected={filterKey === c.key}
-                className={`category-panel__item${filterKey === c.key ? ' category-panel__item--active' : ''}`}
-                onClick={() => handleFilterSelect(c.key)}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-        )}
 
+        <MenuBar
+          selected={filters.categories}
+          onToggle={toggleCategory}
+        />
+
+        {/* 걸린 필터·초기화·검색은 메뉴바 아래 한 줄로. 지금 뭐가 걸려
+            있는지(칩)와 그걸 푸는 수단(X·초기화)이 같은 줄에 있어야 한다. */}
       </div>
+
+      {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가
+          그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
+      <EventBanner banners={banners} />
     <main>
 
       {error && (
@@ -861,9 +881,31 @@ export default function App() {
           도착했을 때 레이아웃이 튀지 않는다. */}
       {!error && !brands && <BrandGridSkeleton />}
 
+      {/* 담아둔 것만 보는 중이라는 표시와 비우는 길. 검색창 토큰은
+          "지금 무엇을 보는가"를 말하고, 이 줄은 "그래서 무엇을 할 수
+          있는가"를 말한다 — 비우기를 토큰 옆에 두면 X(모아보기 끄기)와
+          뜻이 헷갈린다. */}
+      {cartOnly && (
+        <div className="cart-bar">
+          <span className="cart-bar__label">담아둔 브랜드 {cart.size}개</span>
+          <button
+            type="button"
+            className="cart-bar__clear"
+            onClick={() => {
+              track('cart_clear', { count: cart.size })
+              setCart(new Set())
+            }}
+          >
+            비우기
+          </button>
+        </div>
+      )}
+
       {visibleBrands && visibleBrands.length === 0 && (
         <p className="msg">
-          {search.trim() ? `"${search}" 검색 결과가 없습니다.` : '이 분류엔 브랜드가 없습니다.'}
+          {cartOnly
+            ? '담아둔 브랜드가 없습니다.'
+            : (search.trim() ? `"${search}" 검색 결과가 없습니다.` : '이 분류엔 브랜드가 없습니다.')}
         </p>
       )}
 
@@ -873,13 +915,15 @@ export default function App() {
         // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
-        <div className="brand-grid" key={filterKey}>
+        <div className="brand-grid" key={gridKey}>
           {visibleBrands.map((b) => (
             <BrandCard
               key={b.name}
               brand={b}
               highlighted={linkedBrand === brandCardId(b.name)}
               onInteract={() => setLinkedBrand(null)}
+              checked={cart.has(b.name)}
+              onToggleCheck={toggleCart}
             />
           ))}
         </div>

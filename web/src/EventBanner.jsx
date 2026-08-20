@@ -6,7 +6,7 @@
 // 다시 배포할 필요가 없다 — api의 banners.yml만 고치면 된다.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BrandLogo, PlatformBadge, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
+import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
 
@@ -119,12 +119,17 @@ function BannerCard({ banner, palette, position, dots, onClose }) {
           <span className="banner__period">{banner.period}</span>
           {banner.extra && <span className="banner__extra">{banner.extra}</span>}
         </span>
-      </a>
 
-      {/* 플랫폼 배지는 오른쪽 위 모서리 밖으로 걸친다(App.css). */}
-      <span className="banner__badge" aria-hidden="true">
-        <PlatformBadge platformKey={banner.platform} />
-      </span>
+        {/* 플랫폼 로고는 오른쪽 세로 가운데 — 어느 앱에서 쓰는
+            혜택인지가 금액 다음으로 필요한 정보다. 브랜드가 없는 앱
+            전체 행사면 왼쪽에 이미 같은 아이콘이 있으니 겹쳐 그리지
+            않는다. */}
+        {banner.brand && (
+          <span className="banner__platform">
+            <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
+          </span>
+        )}
+      </a>
 
       {onClose && (
         <button type="button" className="banner__close" aria-label="배너 오늘 하루 닫기" onClick={onClose}>

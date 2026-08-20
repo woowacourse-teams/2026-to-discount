@@ -8,6 +8,7 @@
 
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
+import { uiVariant } from './variant.js'
 
 export { optedOut } from './privacy.js'
 
@@ -41,6 +42,19 @@ const context = {
   device: window.matchMedia('(hover: hover)').matches ? 'desktop' : 'mobile',
   viewport: `${window.innerWidth}x${window.innerHeight}`,
   referrer: referrerKind(),
+  // 어느 화면 안을 보고 있었는지. 안 붙이면 클릭 수만 쌓이고 "어느
+  // 화면에서 눌렀나"를 되짚을 수 없다.
+  variant: uiVariant,
+}
+
+// 지금 걸려 있는 조건. 링크를 누른 순간 어떤 필터 상태였는지가 "분류를
+// 설정한 사람이 실제로 이동까지 하는가"의 답이라, 이벤트마다 실어 보낸다.
+// 화면이 바꿔주고 여기서는 들고만 있는다 — 이벤트를 쏘는 자리마다 상태를
+// prop으로 끌고 다니면 새 필터가 늘 때 빠뜨린다.
+let filterContext = {}
+
+export function setFilterContext(next) {
+  filterContext = next
 }
 
 let queue = []
@@ -87,7 +101,9 @@ export function track(event, props) {
     event,
     ...context,
     path: location.pathname,
-    props: props ?? undefined,
+    props: (props || Object.keys(filterContext).length)
+      ? { ...filterContext, ...props }
+      : undefined,
     clientTs: new Date().toISOString(),
   })
   // 클릭마다 요청을 날리지 않고 잠깐 모은다.
