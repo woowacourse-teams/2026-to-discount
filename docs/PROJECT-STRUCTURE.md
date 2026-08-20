@@ -103,25 +103,31 @@ tracker/tests/test_record_sweep.py
 tracker/tests/test_schema.py
 tracker/tests/test_store.py
 web/.env.example
+web/.env.production
 web/.gitignore
 web/README.md
 web/index.html
 web/package-lock.json
 web/package.json
+web/scripts/verify-analytics-event-contract.mjs
 web/scripts/verify-analytics-event-id.mjs
 web/scripts/verify-posthog-sdk.mjs
 web/src/App.css
 web/src/App.jsx
 web/src/EventBanner.jsx
+web/src/FilterSheet.jsx
+web/src/MenuBar.jsx
 web/src/analytics-context.js
 web/src/analytics.js
 web/src/api.js
 web/src/brandColor.js
+web/src/filters.js
 web/src/ga4.js
 web/src/logos.jsx
 web/src/main.jsx
 web/src/posthog.js
 web/src/privacy.js
+web/src/variant.js
 web/vercel.json
 web/vite.config.js
 -->
@@ -170,7 +176,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 25 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 22 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 28 |
 
 ### Tracker
 
@@ -220,15 +226,19 @@ HTTP 경계:
 | `App.css` | 서비스 전체 스타일 |
 | `App.jsx` | 브랜드 비교, 분류, 검색, 상세 |
 | `EventBanner.jsx` | 당일 행사 배너 |
+| `FilterSheet.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `MenuBar.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics-context.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics.js` | 자체 행동 이벤트 |
 | `api.js` | 브랜드와 배너 API 호출 |
 | `brandColor.js` | 배너 색 파생 |
+| `filters.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `ga4.js` | 임시 GA4 측정 |
 | `logos.jsx` | 브랜드와 플랫폼 로고 |
 | `main.jsx` | React와 분석 도구 진입점 |
 | `posthog.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `privacy.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `variant.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 
 `public/`은 런타임 자산이지만 대형 로고 목록은 구조 문서에서 제외한다.
 
