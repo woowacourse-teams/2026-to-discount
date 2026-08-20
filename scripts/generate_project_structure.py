@@ -97,6 +97,13 @@ WEB_RESPONSIBILITIES = {
     "logos.jsx": "브랜드와 플랫폼 로고",
     "brandColor.js": "배너 색 파생",
     "main.jsx": "React와 분석 도구 진입점",
+    "FilterSheet.jsx": "앱·분류·정렬을 고르는 바텀시트",
+    "MenuBar.jsx": "스크롤 중 따라오는 분류 바",
+    "filters.js": "필터 상태와 적용·정렬 규칙",
+    "variant.js": "A/B 화면 갈래 배정",
+    "analytics-context.js": "익명 ID와 방문 회차",
+    "posthog.js": "PostHog SDK 어댑터",
+    "privacy.js": "DNT/GPC 추적 거부 판정",
 }
 
 
