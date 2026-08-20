@@ -231,7 +231,22 @@ track('banner_click', { brand: banner.brand ?? 'none', platform: banner.platform
 배포된 사이트를 직접 열어 테스트하면 그 클릭도 실 트래픽처럼 로그에
 쌓인다. 테스트 중인 브라우저에서 `https://beggars-five.vercel.app/?dev=1`을
 한 번 열면 `localStorage`에 남아 이후 모든 이벤트에 `dev: true`가 붙는다
-(`?dev=0`으로 다시 끔). 집계할 때는 이 값을 제외한다:
+(`?dev=0`으로 다시 끔).
+
+> **확인용으로 여는 창마다 한 번씩 켜야 한다.** `localStorage`라
+> 브라우저·프로필·시크릿창이 각각 별개로 잡힌다. 폰에서 켰다고 데스크톱이
+> 따라오지 않고, 크롬에서 켰다고 사파리가 따라오지 않는다. 브라우저 데이터를
+> 지우거나 시크릿창을 닫으면 표시도 사라진다.
+>
+> 2026-08-20 실측에서 방문자 43명 중 8명(19%)이 표시 없는 개발 트래픽이었다.
+> A/B 표본이 수십 명일 때 이 비율은 결론을 뒤집는다.
+>
+> 표시를 빠뜨린 경우를 위해 서버가 `device=desktop`이면서 뷰포트 폭이 400px
+> 미만인 이벤트에 `dev_suspect`를 붙인다(데스크톱 창을 줄인 반응형 확인).
+> 판정 기준과 배경은 [api/docs/traffic-analytics.md](../api/docs/traffic-analytics.md)에
+> 있다. 보조 수단일 뿐이니 `?dev=1`을 켜는 편이 확실하다.
+
+집계할 때는 이 값을 제외한다:
 
 ```bash
 jq -r 'select(.event=="offer_link_click" and .dev!=true) | ...' events.jsonl

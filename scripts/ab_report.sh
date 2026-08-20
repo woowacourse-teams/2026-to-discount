@@ -26,6 +26,11 @@
 # 이 규칙은 집계에만 있다. 서버는 들어온 것을 그대로 적는다 — 무엇이
 # 개발 트래픽인지는 나중에 바뀔 수 있는 판단이라, 지워버리면 되돌릴 수
 # 없다.
+#
+# 같은 규칙이 PostHogEventMapper.looksLikeDeveloper()에도 있다(거기서는
+# dev_suspect 속성으로 PostHog에 넘긴다). 한쪽만 고치면 도구마다 다른
+# 숫자가 나온다 — 기준을 바꿀 때는 둘 다 고치고, 배경은
+# api/docs/traffic-analytics.md에 적는다.
 set -euo pipefail
 
 REMOTE_HOST="${AB_REPORT_HOST:-ubuntu@bebeggars.duckdns.org}"
