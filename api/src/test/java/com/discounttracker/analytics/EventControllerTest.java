@@ -45,6 +45,30 @@ class EventControllerTest {
     }
 
     @Test
+    void recordsExperimentVariantAndRejectsJunk() throws Exception {
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content(batch("""
+                            {"event":"page_view","visitorId":"v_var","sessionId":"s_var",
+                             "visitCount":1,"path":"/","device":"mobile","variant":"b"}
+                            """)))
+           .andExpect(status().isOk());
+
+        // 갈래를 못 남기면 A/B를 나눠도 나중에 가를 수가 없다.
+        assertTrue(Files.readString(Path.of(logPath)).contains("\"variant\":\"b\""));
+
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content(batch("""
+                            {"event":"page_view","visitorId":"v_junk","sessionId":"s_junk",
+                             "visitCount":1,"path":"/","device":"mobile",
+                             "variant":"<script>alert(1)</script>"}
+                            """)))
+           .andExpect(status().isOk());
+
+        // 자유 문자열로 열어두면 무엇이 진짜 갈래인지 알 수 없게 된다.
+        assertFalse(Files.readString(Path.of(logPath)).contains("script"));
+    }
+
+    @Test
     void preservesValidClientEventIdAcrossRepeatedRequests() throws Exception {
         String eventId = UUID.randomUUID().toString();
         String body = batch("""

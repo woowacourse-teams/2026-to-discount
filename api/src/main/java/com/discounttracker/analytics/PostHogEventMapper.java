@@ -39,6 +39,7 @@ public class PostHogEventMapper {
         put(properties, "path", source.path());
         put(properties, "referrer", source.referrer());
         put(properties, "device", source.device());
+        put(properties, "variant", source.variant());
         put(properties, "viewport", source.viewport());
         put(properties, "dwell_ms", source.dwellMs());
         put(properties, "server_timestamp", source.ts());

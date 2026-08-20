@@ -18,7 +18,7 @@ class EventLogTest {
         return new VisitEvent("2026-07-29T14:00:00+09:00", name, "v_1", "s_1", 2,
                 "/", "direct", "mobile", "430x932", 1200L,
                 Map.of("brand", "BBQ"), "2026-07-29T05:00:00Z", "abcd1234", null,
-                "event-id");
+                "a", "event-id");
     }
 
     @Test

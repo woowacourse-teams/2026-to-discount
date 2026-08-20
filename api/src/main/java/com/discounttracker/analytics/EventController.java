@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * 방문 이벤트 수집. 브라우저가 배치로 보내고 서버는 받아 적기만 한다.
@@ -40,6 +41,7 @@ public class EventController {
 
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;
+    private static final Pattern VARIANT_TOKEN = Pattern.compile("[a-z0-9_-]{1,16}");
     private static final int MAX_PROPS = 6;
 
     private final AnalyticsEventService events;
@@ -107,10 +109,20 @@ public class EventController {
                     trim(in.clientTs()),
                     ipHash,
                     in.dev(),
+                    variant(in.variant()),
                     eventId(in.eventId())));
         }
         events.append(accepted);
         return ResponseEntity.ok(Map.of("accepted", accepted.size()));
+    }
+
+    // 실험 갈래는 짧은 토큰만 받는다. 자유 문자열로 열어두면 아무 값이나
+    // 섞여 들어와 나중에 갈래별로 가를 때 무엇이 진짜 갈래인지 알 수 없다.
+    // 갈래가 늘 때마다 서버를 고치지 않도록 목록 대신 모양으로 거른다.
+    private static String variant(String v) {
+        if (v == null) return null;
+        String t = v.trim();
+        return VARIANT_TOKEN.matcher(t).matches() ? t : null;
     }
 
     private static String trim(String v) {
@@ -158,6 +170,7 @@ public class EventController {
             Map<String, String> props,
             String clientTs,
             Boolean dev,
+            String variant,
             String eventId
     ) {
     }
