@@ -78,12 +78,13 @@ export function createPostHogAdapter({
     }
   }
 
-  function captureProductSignal(event, props = {}) {
+  function captureSignal(event, props, allowDev) {
     try {
       if (!initialized || isOptedOut()) return false
       if (typeof event !== 'string' || event.trim() === '') return false
 
       const context = getContext()
+      if (context.dev && !allowDev) return false
       client.capture(event, {
         ...props,
         source_session_id: context.sessionId,
@@ -95,6 +96,10 @@ export function createPostHogAdapter({
       warn('PostHog 이벤트를 전송하지 못했습니다.', error)
       return false
     }
+  }
+
+  function captureProductSignal(event, props = {}) {
+    return captureSignal(event, props, false)
   }
 
   function captureAnalyticsEvent(envelope) {
@@ -147,9 +152,11 @@ export function createPostHogAdapter({
       const store = getSessionStore()
       if (store.getItem(CONNECTION_TEST_KEY) === '1') return false
 
-      const captured = captureProductSignal(POSTHOG_CONNECTION_TEST_EVENT, {
+      // dev 방문에서 허용하는 유일한 SDK 전용 신호다. 공개
+      // captureProductSignal()의 dev 차단을 우회하지 못하게 내부에서만 연다.
+      const captured = captureSignal(POSTHOG_CONNECTION_TEST_EVENT, {
         source: 'sdk_connection_test',
-      })
+      }, true)
       if (!captured) return false
 
       try {

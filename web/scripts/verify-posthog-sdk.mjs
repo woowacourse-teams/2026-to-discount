@@ -189,6 +189,7 @@ const [, ordinaryConfig] = ordinaryVisit.client.calls.init[0]
 assert.equal(ordinaryConfig.capture_pageview, false)
 assert.equal(ordinaryConfig.capture_pageleave, false)
 assert.equal(ordinaryConfig.capture_performance, false)
+assert.equal(ordinaryVisit.instance.captureProductSignal('any_product_signal'), false)
 assert.equal(ordinaryVisit.instance.captureConnectionTest(), false)
 assert.equal(ordinaryVisit.client.calls.capture.length, 0)
 
