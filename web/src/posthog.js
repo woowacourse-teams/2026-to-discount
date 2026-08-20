@@ -66,9 +66,18 @@ export function createPostHogAdapter({
         // SDK 기본 기기·브라우저 속성과 Android 기기 모델 수집을 허용한다.
         disableDeviceModel: false,
         respect_dnt: true,
-        // 계정·개인 단위 분석은 하지 않는다. 재방문 분석은 이벤트의
-        // visit_count 속성으로만 수행한다.
-        person_profiles: 'never',
+        // 서버 릴레이와 클라이언트가 같은 이벤트를 둘 다 보낸다($insert_id가
+        // 같아 PostHog가 하나로 합친다). 둘 중 어느 쪽이 먼저 닿을지는
+        // 정해져 있지 않으므로, person 처리 방침이 서로 달라선 안 된다.
+        //
+        // 'never'는 $process_person_profile: false를 실어 보낸다. 서버는
+        // 그 값을 안 붙여 프로필을 만든다 — 엇갈리면 어떤 이벤트에서는
+        // 프로필이 생기고 어떤 이벤트에서는 안 생겨 리텐션이 들쭉날쭉해진다.
+        // 서버 쪽에 맞춰 여기서도 프로필을 만든다.
+        //
+        // 계정은 여전히 안 만든다. distinct_id는 브라우저가 만든 난수
+        // (visitorId)라 개인 식별자가 아니다.
+        person_profiles: 'always',
       })
       initialized = true
       return true
@@ -119,6 +128,10 @@ export function createPostHogAdapter({
       put(properties, 'path', envelope.path)
       put(properties, 'referrer', envelope.referrer)
       put(properties, 'device', envelope.device)
+      // 서버 매퍼(PostHogEventMapper)도 같은 이름으로 넘긴다. 여기서
+      // 빠지면 PostHog에서 A/B를 못 가른다 — 원장에는 남지만 퍼널·리텐션이
+      // 두 안을 구분하지 못한다.
+      put(properties, 'variant', envelope.variant)
       put(properties, 'viewport', envelope.viewport)
       put(properties, 'dwell_ms', envelope.dwellMs)
 

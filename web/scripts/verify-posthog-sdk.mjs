@@ -72,7 +72,10 @@ assert.equal(config.capture_exceptions, false)
 assert.deepEqual(config.capture_performance, { web_vitals: true })
 assert.equal(config.disableDeviceModel, false)
 assert.equal(config.respect_dnt, true)
-assert.equal(config.person_profiles, 'never')
+// 서버 릴레이와 같은 방침이어야 한다. 서버는 $process_person_profile을
+// 안 붙여 프로필을 만드는데 클라이언트만 'never'면, 같은 이벤트라도 어느
+// 쪽이 먼저 닿느냐에 따라 프로필이 생겼다 말았다 한다.
+assert.equal(config.person_profiles, 'always')
 
 assert.equal(ready.instance.captureProductSignal('any_product_signal', {
   arbitrary_number: 42,
@@ -99,6 +102,7 @@ assert.equal(ready.instance.captureAnalyticsEvent({
   path: '/discounts',
   referrer: 'direct',
   device: 'mobile',
+  variant: 'a',
   viewport: '390x844',
   props: {
     category: 'chicken',
@@ -117,6 +121,9 @@ assert.deepEqual(domainEventProperties, {
   path: '/discounts',
   referrer: 'direct',
   device: 'mobile',
+  // A/B 갈래는 서버 매퍼도 같은 이름으로 넘긴다. 빠지면 PostHog에서
+  // 두 안을 구분하지 못한다.
+  variant: 'a',
   viewport: '390x844',
 })
 assert.equal(domainEventOptions.uuid, '123e4567-e89b-42d3-a456-426614174000')

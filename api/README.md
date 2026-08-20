@@ -82,9 +82,10 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 ## 방문 측정 (analytics)
 
 경로·재방문·체류·행동은 자체 API가 수집하고 `events.jsonl`을 원본으로
-보존한다. 웹 SDK 직접 전송 구성을 배포할 때는 같은 이벤트의 중복을 막기 위해
-운영 API의 PostHog outbox를 `DISCOUNT_POSTHOG_ENABLED=false`로 둔다. 서버에는
-롤백을 위한 비동기 전달 구현이 남아 있다. 자체 수집을 둔 배경은
+보존한다. 웹 SDK 직접 전송을 켠 뒤에도 서버 outbox는 켜 둔다
+(`DISCOUNT_POSTHOG_ENABLED=true`) — 두 경로가 같은 `eventId`를 `$insert_id`로
+쓰므로 PostHog가 하나로 합치고, 광고 차단기로 클라이언트가 막힌 방문자는
+서버 경로로만 남는다. 자체 수집을 둔 배경은
 [ADR-005](docs/decisions/ADR-005-first-party-analytics.md), 전달 세부사항은
 [트래픽 수집·통계 문서](docs/traffic-analytics.md)를 참고한다.
 

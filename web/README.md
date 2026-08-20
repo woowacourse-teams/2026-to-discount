@@ -182,9 +182,14 @@ VITE_POSTHOG_HOST=https://us.i.posthog.com
 `dev: true`, `source_session_id`, `visit_count`를 확인한다. 이 이벤트는 제품
 Insight에서 제외한다.
 
-PostHog Person Profile은 만들지 않는다(`person_profiles: 'never'`). 재방문 분석은
-사용자 프로필이 아니라 각 이벤트의 `visit_count` 속성으로 수행한다. 향후 계정 기반
-분석이 필요해지면 이 정책과 개인정보 고지를 함께 재검토한다.
+PostHog Person Profile은 `person_profiles: 'always'`로 만든다. 서버 릴레이가
+같은 이벤트를 보내면서 프로필을 만드는데, 두 경로의 방침이 갈리면 어느 쪽이
+먼저 닿느냐에 따라 프로필이 생겼다 말았다 해서 리텐션이 들쭉날쭉해진다.
+
+프로필을 만들어도 계정 기반 분석은 아니다. `distinct_id`는 브라우저가 만든
+난수(`visitorId`)라 지우면 그대로 끊긴다 — 이름·연락처는 여전히 안 보낸다.
+재방문은 프로필과 각 이벤트의 `visit_count` 둘 다로 볼 수 있다. 향후 로그인
+기반 식별이 필요해지면 이 정책과 개인정보 고지를 함께 재검토한다.
 
 도메인 `track()` 이벤트와 `page_exit`, 첫 `page_view`는 UUID 형식의 `eventId`를
 한 번 발급해 API 본문과 SDK `$insert_id`·capture `uuid`에 함께 쓴다. 첫

@@ -91,9 +91,24 @@ PostHog 전달은 원본 수집과 분리된 부가 경로다. `EventLog`가
 `POST /api/events`의 `accepted`는 PostHog 도착 건수가 아니라 원본 JSONL에
 기록된 건수다.
 
-웹 SDK 직접 전송 구성을 배포할 때는 서버 outbox를
-`DISCOUNT_POSTHOG_ENABLED=false`로 둔다. 이 절의 mapper·outbox·재시도 계약은
-웹 롤백 시 서버 전달을 복구하기 위해 유지하는 비활성 경로의 설명이다.
+웹 SDK 직접 전송을 켠 뒤에도 서버 outbox는 그대로 둔다
+(`DISCOUNT_POSTHOG_ENABLED=true`). 두 경로가 같은 이벤트를 보내지만 같은
+`eventId`를 `$insert_id`로 쓰므로 PostHog가 하나로 합친다.
+
+둘을 함께 두는 이유는 각자 못 보는 곳이 다르기 때문이다.
+
+| 경로 | 얻는 것 | 못 보는 것 |
+|---|---|---|
+| 클라이언트 SDK | Web Vitals, 기기·브라우저 속성 | 광고 차단기를 쓰는 방문자 |
+| 서버 릴레이 | 차단기와 무관하게 도착 | 브라우저 정보 |
+
+차단기를 쓰면 클라이언트 경로가 통째로 막힌다. 서버가 살아 있으면 그
+방문자의 이벤트도 남는다.
+
+대신 두 경로의 person 처리 방침이 갈리면 안 된다. 어느 쪽이 먼저 닿을지
+정해져 있지 않아서, 한쪽만 `$process_person_profile: false`를 실어 보내면
+같은 종류의 이벤트인데도 프로필이 생겼다 말았다 한다. 웹 SDK를
+`person_profiles: 'always'`로 두어 서버(프로필 생성)와 맞춘다.
 
 ### 변환 규칙
 
