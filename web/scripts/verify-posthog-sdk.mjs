@@ -127,8 +127,18 @@ assert.equal(domainEventOptions.transport, undefined)
 assert.equal(ready.instance.captureAnalyticsEvent({
   event: 'page_view',
   eventId: '123e4567-e89b-42d3-a456-426614174005',
-}), false)
-assert.equal(ready.client.calls.capture.length, 2)
+  sessionId: context.sessionId,
+  visitCount: context.visitCount,
+  path: '/discounts',
+  clientTs,
+}), true)
+const [pageViewName, pageViewProperties, pageViewOptions] = ready.client.calls.capture[2]
+assert.equal(pageViewName, '$pageview')
+assert.equal(pageViewProperties.$insert_id, '123e4567-e89b-42d3-a456-426614174005')
+assert.equal(pageViewProperties.source_session_id, context.sessionId)
+assert.equal(pageViewProperties.path, '/discounts')
+assert.equal(pageViewOptions.uuid, '123e4567-e89b-42d3-a456-426614174005')
+assert.equal(pageViewOptions.timestamp.toISOString(), clientTs)
 
 assert.equal(ready.instance.captureAnalyticsEvent({
   event: 'page_exit',
@@ -139,7 +149,7 @@ assert.equal(ready.instance.captureAnalyticsEvent({
   dwellMs: 4321,
   clientTs,
 }), true)
-const [pageExitName, pageExitProperties, pageExitOptions] = ready.client.calls.capture[2]
+const [pageExitName, pageExitProperties, pageExitOptions] = ready.client.calls.capture[3]
 assert.equal(pageExitName, 'page_exit')
 assert.equal(pageExitProperties.dwell_ms, 4321)
 assert.equal(pageExitOptions.send_instantly, true)
@@ -151,7 +161,7 @@ assert.equal(ready.instance.captureAnalyticsEvent({
   eventId: '123e4567-e89b-42d3-a456-426614174002',
   dev: true,
 }), false)
-assert.equal(ready.client.calls.capture.length, 3)
+assert.equal(ready.client.calls.capture.length, 4)
 assert.equal(ready.instance.captureAnalyticsEvent({ event: 'brand_expand' }), false)
 
 const optedOut = adapter({ isOptedOut: () => true })

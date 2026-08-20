@@ -56,12 +56,16 @@ const {
   disablePostHogFanout,
   enablePostHogFanout,
   registerPostHogSink,
-  startAnalytics,
+  startAnalyticsDelivery,
   track,
 } = await import(analyticsUrl.href)
 const sdkEvents = []
-enablePostHogFanout()
-startAnalytics()
+let postHogStarted = false
+startAnalyticsDelivery({
+  postHogConfigured: true,
+  startPostHog: () => { postHogStarted = true },
+})
+assert.equal(postHogStarted, true)
 for (let i = 0; i < 9; i += 1) track('brand_expand', { brand: String(i) })
 
 const uuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -72,6 +76,7 @@ assert.equal(new Set(tracked.map(({ eventId }) => eventId)).size, 10)
 assert.equal(sdkEvents.length, 0)
 assert.equal(registerPostHogSink((event) => sdkEvents.push(event)), true)
 assert.deepEqual(sdkEvents.map(({ eventId }) => eventId), tracked.map(({ eventId }) => eventId))
+assert.equal(sdkEvents[0].event, 'page_view')
 
 pagehide()
 const beaconBody = await beacon.text()

@@ -117,6 +117,14 @@ export function disablePostHogFanout() {
   pendingPostHogEvents = []
 }
 
+// main.jsx와 검증 코드가 같은 시작 순서를 사용한다. 첫 page_view 전에 fan-out을
+// 켜야 SDK 청크가 준비될 때까지 동일 이벤트 객체를 보관할 수 있다.
+export function startAnalyticsDelivery({ postHogConfigured, startPostHog }) {
+  if (postHogConfigured) enablePostHogFanout()
+  startAnalytics()
+  if (postHogConfigured && typeof startPostHog === 'function') startPostHog()
+}
+
 function createAnalyticsEvent(event, additions = {}) {
   const { props, ...eventFields } = additions
   return {

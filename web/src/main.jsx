@@ -4,9 +4,8 @@ import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
 import {
   disablePostHogFanout,
-  enablePostHogFanout,
   registerPostHogSink,
-  startAnalytics,
+  startAnalyticsDelivery,
 } from './analytics.js'
 import { startGa4 } from './ga4.js'
 import { optedOut } from './privacy.js'
@@ -39,13 +38,10 @@ const postHogConfigured = (
   && configured(import.meta.env.VITE_POSTHOG_KEY)
   && configured(import.meta.env.VITE_POSTHOG_HOST)
 )
-if (postHogConfigured) enablePostHogFanout()
-
 // StrictMode가 컴포넌트를 두 번 마운트하므로 page_view가 두 번 찍히지
 // 않도록 React 밖에서 한 번만 시작한다.
-startAnalytics()
+startAnalyticsDelivery({ postHogConfigured, startPostHog })
 startGa4() // 임시 — ADR-002 참고
-if (postHogConfigured) startPostHog()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

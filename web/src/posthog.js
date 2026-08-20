@@ -105,11 +105,6 @@ export function createPostHogAdapter({
       const event = clean(envelope.event)
       const eventId = clean(envelope.eventId)
       if (!event || !eventId) return false
-      // SDK 자동 $pageview와 수동 page_view를 함께 보내면 같은 방문이 두 번
-      // 집계된다. API 원장의 page_view는 유지하고 PostHog에서는 SDK 표준 이벤트를
-      // 단일 출처로 사용한다.
-      if (event === 'page_view') return false
-
       const properties = (
         envelope.props && typeof envelope.props === 'object' && !Array.isArray(envelope.props)
       ) ? { ...envelope.props } : {}
@@ -130,7 +125,10 @@ export function createPostHogAdapter({
         options.transport = 'sendBeacon'
       }
 
-      client.capture(event, properties, options)
+      // 첫 page_view는 SDK가 늦게 준비돼도 analytics.js 대기 큐에서 꺼내
+      // 표준 $pageview로 보낸다. API 원장과 같은 eventId·발생 시각을 유지한다.
+      const captureEvent = event === 'page_view' ? '$pageview' : event
+      client.capture(captureEvent, properties, options)
       return true
     } catch (error) {
       warn('PostHog analytics 이벤트를 전송하지 못했습니다.', error)

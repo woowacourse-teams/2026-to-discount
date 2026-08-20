@@ -146,8 +146,9 @@
 이 외의 행동 이벤트는 발생 지점에서 `track(event, props?)`를 직접
 부른다. PostHog 환경변수가 설정된 운영 빌드에서는 도메인 `track()` 이벤트와
 `page_exit`가 같은 이벤트 객체를 SDK와 `/api/events`에 자동으로 나눠 보내므로
-호출처가 PostHog adapter를 따로 부르지 않는다. `page_view`는 API 원장에는 계속
-기록하되 PostHog에서는 SDK의 자동 `$pageview`를 단일 출처로 사용한다.
+호출처가 PostHog adapter를 따로 부르지 않는다. 첫 `page_view`는 SDK가 지연
+로딩되는 동안 보관했다가 PostHog의 표준 `$pageview`로 보내며, API 원장과 같은
+이벤트 객체와 `eventId`를 유지한다. 이후 History API 이동은 SDK가 자동 수집한다.
 
 `captureProductSignal()`은 자체 API 원장에 남기지 않을 별도 SDK 전용 신호를 위한
 adapter다. 같은 사용자 행동에서 `track()`과 함께 호출하면 중복 집계되므로 기존
@@ -185,10 +186,12 @@ PostHog Person Profile은 만들지 않는다(`person_profiles: 'never'`). 재�
 사용자 프로필이 아니라 각 이벤트의 `visit_count` 속성으로 수행한다. 향후 계정 기반
 분석이 필요해지면 이 정책과 개인정보 고지를 함께 재검토한다.
 
-도메인 `track()` 이벤트와 `page_exit`는 UUID 형식의 `eventId`를 한 번 발급해 API
-본문과 SDK `$insert_id`·capture `uuid`에 함께 쓴다. `page_view`는 SDK가 자동
-`$pageview`로 보내므로 이 상관관계의 대상이 아니다. SDK가 지연 로딩되는 동안은
-최대 100건을 메모리에 보관하고 초기화 뒤 발생 시각(`clientTs`)을 유지해 전송한다.
+도메인 `track()` 이벤트와 `page_exit`, 첫 `page_view`는 UUID 형식의 `eventId`를
+한 번 발급해 API 본문과 SDK `$insert_id`·capture `uuid`에 함께 쓴다. 첫
+`page_view`는 대기 큐에서 표준 `$pageview`로 변환한다. SDK가 지연 로딩되는
+동안은 최대 100건을 메모리에 보관하고 초기화 뒤 발생 시각(`clientTs`)을 유지해
+전송한다. 배포 뒤에는 Live Events의 첫 `$pageview` `$insert_id`와 API 원장의
+`page_view.eventId`가 같은지 확인한다.
 SDK가 준비된 뒤의 `page_exit`는 즉시 `sendBeacon` transport로 보내며, SDK의
 `$pageleave`는 별도로 브라우저 종료를 관측한다. 준비 전 초단기 방문은 API 원장
 기록만 보장한다. 이벤트 ID는 브라우저 저장소에 보관하지 않으므로 새로고침 이후
