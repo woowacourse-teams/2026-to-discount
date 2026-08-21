@@ -82,4 +82,23 @@ class BrandCatalogTest {
             """);
         assertNull(c.find("뭔가").category());
     }
+
+    @Test
+    void matchesAliasesRegardlessOfCase() {
+        // 배너와 캡처 원장 양쪽 다 사람이 손으로 적는 값이 들어온다.
+        // 표기마다 별칭을 한 줄씩 적게 하면 언젠가 하나를 빠뜨린다.
+        String yaml = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        BrandCatalog catalog = catalogFor(yaml);
+        assertEquals("굽네치킨", catalog.canonical("goobne"));
+        assertEquals("굽네치킨", catalog.canonical("Goobne"));
+        assertEquals("굽네치킨", catalog.canonical("GOOBNE"));
+        assertEquals("굽네치킨", catalog.canonical(" goobne "));
+        // 모르는 이름은 손대지 않는다 — 적힌 그대로 돌려준다.
+        assertEquals("BBQ", catalog.canonical("BBQ"));
+    }
 }

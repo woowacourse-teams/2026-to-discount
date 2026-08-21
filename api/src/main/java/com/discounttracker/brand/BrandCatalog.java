@@ -1,6 +1,8 @@
 package com.discounttracker.brand;
 
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -23,6 +26,8 @@ import java.util.Map;
  */
 @Component
 public class BrandCatalog {
+
+    private static final Logger log = LoggerFactory.getLogger(BrandCatalog.class);
 
     private final Resource source;
     private final Map<String, String> aliasToCanonical = new HashMap<>();
@@ -57,16 +62,33 @@ public class BrandCatalog {
                         readLinks(attrs)));
 
                 // 대표명 자신도 별칭으로 넣어야 원장에 대표명 그대로 찍힌 경우도 걸린다.
-                aliasToCanonical.put(name, name);
+                putAlias(name, name);
                 Object aliases = attrs.get("aliases");
                 if (aliases instanceof List<?> list) {
                     for (Object alias : list) {
-                        aliasToCanonical.put(String.valueOf(alias), name);
+                        putAlias(String.valueOf(alias), name);
                     }
                 }
             }
         } catch (IOException e) {
             throw new IllegalStateException("brands.yml 읽기 실패", e);
+        }
+    }
+
+    /**
+     * 별칭은 대소문자를 접어서 담는다. 사람이 손으로 적는 값이 여럿 들어온다 —
+     * 배너(banners.yml)와 캡처 원장 양쪽 다. goobne / Goobne / GOOBNE를 별칭
+     * 세 줄로 적게 하면 언젠가 하나를 빠뜨린다.
+     *
+     * <p>접었을 때 겹치는 이름이 생기면 먼저 온 쪽을 남기고 알린다 — 조용히
+     * 덮으면 서로 다른 두 브랜드가 한 브랜드로 합쳐진 걸 한참 뒤에나 안다.
+     */
+    private void putAlias(String alias, String canonical) {
+        String key = alias.trim().toLowerCase(Locale.ROOT);
+        String prev = aliasToCanonical.putIfAbsent(key, canonical);
+        if (prev != null && !prev.equals(canonical)) {
+            log.warn("별칭 '{}'이(가) '{}'와 '{}' 둘에 걸린다. 먼저 온 '{}'를 쓴다 — "
+                    + "brands.yml에서 한쪽을 고쳐야 한다.", alias, prev, canonical, prev);
         }
     }
 
@@ -84,7 +106,8 @@ public class BrandCatalog {
 
     /** 원장에 찍힌 이름 -> 대표명. 모르는 이름은 그대로 돌려준다. */
     public String canonical(String rawBrand) {
-        return aliasToCanonical.getOrDefault(rawBrand, rawBrand);
+        if (rawBrand == null) return null;
+        return aliasToCanonical.getOrDefault(rawBrand.trim().toLowerCase(Locale.ROOT), rawBrand);
     }
 
     /** 대표명 -> 브랜드 정보. 목록에 없으면 이름만 있는 빈 브랜드. */
