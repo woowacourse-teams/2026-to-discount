@@ -43,7 +43,8 @@ public class EventController {
             "page_view", "page_exit", "category_change", "brand_expand",
             "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
             "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
-            "cart_toggle", "filter_sheet_open", "cart_view_toggle", "cart_clear");
+            "cart_toggle", "filter_sheet_open", "cart_view_toggle", "cart_clear",
+            "banner_impression", "banner_dismiss");
 
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;

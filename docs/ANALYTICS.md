@@ -6,7 +6,7 @@
 
 | 질문 | 답 |
 |---|---|
-| 무엇을 모으나 | 브라우저 행동 이벤트 16종 (`page_view`, `offer_link_click` 등) |
+| 무엇을 모으나 | 브라우저 행동 이벤트 18종 (`page_view`, `offer_link_click` 등) |
 | 어디에 쌓이나 | **자체 원장** `events.jsonl`(단일 진실) + **PostHog**(탐색용) |
 | 누구인지 아나 | 모른다. `visitorId`는 브라우저가 만든 난수, 지우면 끊긴다 |
 | A/B는 어떻게 가르나 | 모든 이벤트의 `variant` 속성 (`a` / `b`) |
@@ -54,7 +54,7 @@ cd <monorepo> && bash scripts/ab_report.sh
 
 ---
 
-## 이벤트 16종
+## 이벤트 18종
 
 ### 화면 진입·이탈
 
@@ -68,7 +68,9 @@ cd <monorepo> && bash scripts/ab_report.sh
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
 | `offer_link_click` | 할인 칩을 눌러 배달앱으로 나갈 때 | `brand`, `platform` |
-| `banner_click` | 상단·하단 행사 배너 | `brand`, `platform`, `position`(top/bottom) |
+| `banner_click` | 상단·하단 행사 배너 | `banner`(id), `brand`, `platform`, `position`(top/bottom) |
+| `banner_impression` | 그 배너가 화면에 절반 이상 들어옴 | `banner`(id), `brand`, `platform`, `position` |
+| `banner_dismiss` | 하단 배너 닫기(오늘 하루) | `banner`(id), `brand`, `platform` |
 | `brand_expand` | 브랜드 카드를 펼침 | `brand`, `category` |
 | `brands_retry` | 목록 불러오기 실패 후 재시도 | — |
 | `scroll_to_top` | "맨 위로" | — |

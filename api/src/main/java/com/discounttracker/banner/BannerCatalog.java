@@ -1,5 +1,6 @@
 package com.discounttracker.banner;
 
+import com.discounttracker.brand.BrandCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,12 @@ import java.util.Map;
  *
  * <p>날짜 판정은 여기서만 한다. 프론트는 받은 것을 그대로 띄우기만 한다 —
  * 프론트에서 판정하면 사용자 기기 시계를 따라가 시차 문제가 생긴다.
+ *
+ * <p>브랜드명도 여기서 대표명으로 맞춰 내려보낸다. 프론트는 배너 브랜드명을
+ * 그대로 로고 파일명으로 쓰는데(BrandLogo), 손으로 적는 파일이라 앱에서
+ * 복사한 표기가 그대로 들어온다 — 2026-08-21 배너에 {@code goobne}라고
+ * 적혀 로고 파일(굽네치킨.png)을 못 찾고 폴백 글자만 떴다. brands.yml의
+ * 별칭표가 이미 서버에 있으니 여기서 한 번 통과시킨다.
  */
 @Component
 public class BannerCatalog {
@@ -36,14 +43,16 @@ public class BannerCatalog {
 
     private final Resource source;
     private final Clock clock;
+    private final BrandCatalog brands;
 
     /** 기간 밖인 것까지 전부. 걸러내는 건 {@link #active()}에서 한다. */
     private volatile List<Banner> all = List.of();
 
     public BannerCatalog(@Value("${discount.banners-path:classpath:banners.yml}") Resource source,
-                         Clock clock) {
+                         Clock clock, BrandCatalog brands) {
         this.source = source;
         this.clock = clock;
+        this.brands = brands;
         reload();
     }
 
@@ -97,7 +106,7 @@ public class BannerCatalog {
             List<Banner> parsed = new ArrayList<>();
             for (Object item : list) {
                 if (item instanceof Map<?, ?> map) {
-                    Banner banner = toBanner((Map<String, Object>) map);
+                    Banner banner = toBanner((Map<String, Object>) map, brands);
                     if (banner != null) parsed.add(banner);
                 }
             }
@@ -116,7 +125,7 @@ public class BannerCatalog {
      * 기동을 막거나 reload를 500으로 만들면 나머지 배너까지 같이 죽는다.
      * 몇 건이 올라갔는지는 {@code POST /api/reload} 응답으로 확인한다.
      */
-    private static Banner toBanner(Map<String, Object> attrs) {
+    private static Banner toBanner(Map<String, Object> attrs, BrandCatalog brands) {
         String id = text(attrs.get("id"));
         String platform = text(attrs.get("platform"));
         String url = text(attrs.get("url"));
@@ -130,9 +139,14 @@ public class BannerCatalog {
         }
 
         Object priority = attrs.get("priority");
+        // 별칭표에 없는 이름은 canonical이 그대로 돌려준다 — 대표명을 직접
+        // 적은 배너(BBQ, bhc, 파파존스)는 지금처럼 그냥 통과한다. 표기가
+        // 대소문자만 다르면 여전히 못 잡는다. 그때는 brands.yml에 그 표기를
+        // 별칭으로 한 줄 더 적는다.
+        String brand = text(attrs.get("brand"));
         return new Banner(
                 id,
-                text(attrs.get("brand")),
+                brand == null ? null : brands.canonical(brand),
                 platform,
                 url,
                 amount,
