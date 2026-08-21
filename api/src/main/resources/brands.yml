@@ -35,6 +35,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=4723
   굽네치킨:
     category: chicken
+    aliases: [굽네, 굽네치킨, goobne, goobnechicken]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=18
   기영이숯불두마리치킨:
@@ -62,7 +63,7 @@ brands:
     category: chicken
   두찜:
     category: chicken
-    aliases: [두찜, 두찜찜닭]
+    aliases: [두찜, 두찜찜닭, 두찜 찜닭, 두찜_찜닭]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?T0qTf0A
   디디치킨:
