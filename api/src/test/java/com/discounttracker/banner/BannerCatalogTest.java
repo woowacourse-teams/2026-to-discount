@@ -44,6 +44,34 @@ class BannerCatalogTest {
             endsOn: 2026-08-07
         """;
 
+    @Test
+    void startsUpEvenWhenTheFileIsUnparseable() {
+        // 2026-08-21: 배너 항목 사이 콤마 하나가 빠져 이 생성자가 예외를 던졌고,
+        // 스프링 컨텍스트가 못 떠 API 전체가 502였다(systemd 재시작 4회).
+        // 배너는 부가 정보다 — 배너만 비고 브랜드·통계·이벤트 수집은 살아야 한다.
+        String broken = """
+            banners: [
+              { id: a, platform: baemin, url: https://x, amount: "1원",
+                period: 오늘, startsOn: 2026-08-21, endsOn: 2026-08-21 }
+              { id: b, platform: baemin, url: https://y, amount: "2원",
+                period: 오늘, startsOn: 2026-08-21, endsOn: 2026-08-21 }
+            ]
+            """;
+        BannerCatalog catalog = catalogOn(broken, "2026-08-21");
+        assertEquals(List.of(), catalog.active());
+    }
+
+    @Test
+    void keepsPreviousBannersWhenAReloadFails() {
+        // 고치려다 더 깨뜨렸을 때, 멀쩡히 떠 있던 배너까지 사라지면 안 된다.
+        BannerCatalog catalog = catalogOn(YAML, "2026-08-11");
+        int before = catalog.active().size();
+        assertTrue(before > 0);
+
+        catalog.reload();
+        assertEquals(before, catalog.active().size());
+    }
+
     /** 한국 날짜 기준 그날 09:00. UTC로 떠 있어도 같은 날이 나오는지까지 본다. */
     private BannerCatalog catalogOn(String yaml, String isoDate) {
         Clock clock = Clock.fixed(Instant.parse(isoDate + "T00:00:00Z"), SEOUL);

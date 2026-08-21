@@ -226,8 +226,22 @@ brands:
 
 ## 당일 행사 배너 추가·수정
 
-`src/main/resources/banners.yml`을 고치고 `POST /api/reload`. 프론트 재배포는
-필요 없다.
+운영 서버는 jar 밖 파일을 문다(`DISCOUNT_BANNERS_PATH`, 기본
+`/home/ubuntu/delivery-discount-api/data/banners.yml`). 그 파일을 고치고
+`POST /api/reload`. 프론트 재배포도 API 재배포도 필요 없다.
+
+> **고친 뒤 파싱부터 확인한다.**
+>
+> ```bash
+> ssh <서버> "python3 -c \"import yaml; d=yaml.safe_load(open('/home/ubuntu/delivery-discount-api/data/banners.yml')); print('OK', len(d['banners']), '건')\""
+> ```
+>
+> `reload`는 파싱에 실패해도 서비스를 죽이지 않고 이전 목록을 유지한다
+> (2026-08-21 사고 뒤 그렇게 바꿨다). 그래서 **고친 줄 알았는데 건수가
+> 그대로면 아직 깨져 있는 것**이다. 응답의 `banners` 수를 꼭 본다.
+>
+> 항목 사이 콤마를 빠뜨리는 실수가 잦다. `extra` 값에 콤마가 들어가면
+> 따옴표로 감싸야 한다 — `{}` 안에서는 콤마가 항목 구분자로 먹힌다.
 
 ```yaml
 banners:

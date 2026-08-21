@@ -1,5 +1,7 @@
 package com.discounttracker.banner;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,8 @@ import java.util.Map;
 @Component
 public class BannerCatalog {
 
+    private static final Logger log = LoggerFactory.getLogger(BannerCatalog.class);
+
     private final Resource source;
     private final Clock clock;
 
@@ -43,9 +47,28 @@ public class BannerCatalog {
         reload();
     }
 
-    /** 파일을 갈아끼웠을 때 다시 읽는다. 읽기에 실패하면 이전 목록을 그대로 둔다. */
+    /**
+     * 파일을 갈아끼웠을 때 다시 읽는다. 읽기에 실패하면 이전 목록을 그대로 둔다.
+     *
+     * <p>실패를 삼키는 이유: 배너는 부가 정보인데, 이 파일 하나가 깨지면
+     * 생성자에서 예외가 올라가 스프링 컨텍스트가 못 뜨고 브랜드·통계·이벤트
+     * 수집까지 통째로 죽는다. 2026-08-21 새벽에 배너 항목 사이 콤마 하나가
+     * 빠져 API가 502였고 systemd가 재시작을 네 번 반복했다.
+     *
+     * <p>항목 단위 오류는 {@link #toBanner}가 이미 건너뛰고 있었는데, 파일
+     * 전체가 파싱 안 되는 경우는 막혀 있지 않았다.
+     *
+     * <p>배너만 안 보이고 나머지는 살아야 한다. 실패는 로그로 남고
+     * {@code POST /api/reload} 응답 건수로도 드러난다 — 고친 줄 알았는데
+     * 건수가 그대로면 아직 깨져 있는 것이다.
+     */
     public final void reload() {
-        all = read();
+        try {
+            all = read();
+        } catch (RuntimeException e) {
+            log.error("banners.yml을 읽지 못해 이전 목록을 유지한다(배너 {}건). "
+                    + "파일을 고친 뒤 POST /api/reload로 다시 시도한다.", all.size(), e);
+        }
     }
 
     /**
@@ -80,6 +103,8 @@ public class BannerCatalog {
             }
             return List.copyOf(parsed);
         } catch (IOException e) {
+            // 파일이 사라졌거나 못 읽는 경우. 부르는 쪽(reload)이 이전 목록을
+            // 유지하도록 예외 종류를 맞춘다.
             throw new IllegalStateException("banners.yml 읽기 실패", e);
         }
     }
