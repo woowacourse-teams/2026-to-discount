@@ -1,5 +1,7 @@
 package com.discounttracker.comparison;
 
+import com.discounttracker.banner.Banner;
+import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.offer.Offer;
 import com.discounttracker.offer.OfferRecord;
@@ -12,6 +14,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 원장의 낱개 레코드를 브랜드 단위 비교 결과로 묶는다.
@@ -26,16 +30,83 @@ public class BrandComparisonService {
 
     private final OfferRepository offers;
     private final BrandCatalog brands;
+    private final BannerCatalog banners;
     private final Clock clock;
 
-    public BrandComparisonService(OfferRepository offers, BrandCatalog brands, Clock clock) {
+    public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
+                                  BannerCatalog banners, Clock clock) {
         this.offers = offers;
         this.brands = brands;
+        this.banners = banners;
         this.clock = clock;
     }
 
     public List<BrandComparison> compare() {
-        return compare(offers.findAll());
+        // 배너는 사람이 그날 손으로 적는 행사다. 원장(캡처)에는 안 잡히지만
+        // 실제로 받을 수 있는 할인이라, 배너에 올린 순간 그 브랜드 카드에도
+        // 뜨고 기간이 지나면 알아서 빠져야 한다.
+        //
+        // 레코드로 바꿔 원장 앞에 붙이면 그 뒤 처리(별칭 묶기, 같은 앱 중복
+        // 정리, 만료 판정, 정렬)를 전부 그대로 탄다 — 배너용 경로를 따로
+        // 내면 그쪽이 먼저 낡는다.
+        List<OfferRecord> withBanners = new ArrayList<>(bannerRecords());
+        withBanners.addAll(offers.findAll());
+        return compare(withBanners);
+    }
+
+    /** 배너 금액의 맨 앞 "n,nnn원". "최대 30%"처럼 정액이 아니면 안 걸린다. */
+    private static final Pattern BANNER_AMOUNT = Pattern.compile("([0-9][0-9,]*)\s*원");
+
+    /**
+     * 오늘 띄우는 배너 중 오퍼로 세울 수 있는 것.
+     *
+     * <p>브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없고, 금액이 정액이
+     * 아닌 배너("최대 30%")는 다른 오퍼와 견줄 수가 없다. 둘 다 오퍼로는
+     * 안 넣고 배너로만 둔다 — 억지로 넣으면 정렬과 최고 할인이 흔들린다.
+     */
+    private List<OfferRecord> bannerRecords() {
+        String today = LocalDate.now(clock).toString();
+        List<OfferRecord> records = new ArrayList<>();
+        for (Banner banner : banners.active()) {
+            if (banner.brand() == null) continue;
+            Integer amount = amountOf(banner.amount());
+            if (amount == null) continue;
+
+            records.add(new OfferRecord(
+                    banner.platform(),
+                    banner.brand(),
+                    amount,
+                    BANNER_QUALIFIER,
+                    false,
+                    "banner",
+                    null,
+                    banner.amount(),
+                    // 오늘 확인한 행사다. capturedAt이 오늘이라 같은 앱에
+                    // 어제 캡처된 오퍼가 있으면 이쪽이 이긴다(Offer.preferredOver).
+                    today,
+                    null,
+                    null,
+                    null,
+                    null,
+                    banner.extra(),
+                    banner.endsOn().toString(),
+                    // 기간 문구를 배지로 올린다 — "오전 11시부터 선착순"이
+                    // 안 보이면 아무 때나 받을 수 있는 할인으로 읽힌다.
+                    banner.period(),
+                    null));
+        }
+        return records;
+    }
+
+    private static Integer amountOf(String text) {
+        if (text == null) return null;
+        Matcher m = BANNER_AMOUNT.matcher(text);
+        if (!m.find()) return null;
+        try {
+            return Integer.valueOf(m.group(1).replace(",", ""));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
@@ -115,6 +186,9 @@ public class BrandComparisonService {
      */
     private static final int MENU_LIMITED_SORTING_AMOUNT = 4999;
 
+    /** 배너에서 온 오퍼임을 화면에 알리는 표식. 프론트가 배지로 그린다. */
+    private static final String BANNER_QUALIFIER = "행사";
+
     /**
      * 확정 오퍼가 카드 정렬(maxConfirmedAmount)에 기여하는 금액.
      * 견줄 수 없는 값이면 {@code null}이라 아예 안 들어간다.
@@ -127,9 +201,18 @@ public class BrandComparisonService {
         if ("특정메뉴".equals(qualifier)) {
             return MENU_LIMITED_SORTING_AMOUNT;
         }
-        // "최대"(화면 배지 "불확정")는 최소주문금액을 채워야 나오는 상한액,
-        // "최적"은 쿠폰을 다 겹쳤을 때의 값이다. 둘 다 액면 그대로 확정
-        // 정액과 견주면 그 브랜드가 실제보다 위로 올라간다.
-        return null;
+        // "최대"(화면 배지 "불확정")만 뺀다. 최소주문금액을 채워야 나오는
+        // 상한액이라 얼마를 받는지가 아직 정해지지 않은 값이다.
+        //
+        // "최적"(쿠폰을 다 겹쳤을 때)과 "행사"(당일 배너)는 넣는다 — 조건은
+        // 붙지만 액수 자체는 확정이고, 빼두면 그 브랜드에서 실제로 받을 수
+        // 있는 가장 큰 값이 화면에서 사라진다.
+        //
+        // 프론트의 isBest(App.jsx)가 같은 규칙을 들고 있다. 한쪽만 고치면
+        // 카드 정렬과 카드 안 "최고 할인" 표식이 서로 다른 답을 낸다(ADR-016).
+        if ("최대".equals(qualifier)) {
+            return null;
+        }
+        return offer.amount();
     }
 }

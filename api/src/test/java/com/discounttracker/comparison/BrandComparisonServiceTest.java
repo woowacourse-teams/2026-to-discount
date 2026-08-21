@@ -1,5 +1,6 @@
 package com.discounttracker.comparison;
 
+import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.brand.Category;
 import com.discounttracker.offer.DiscountTier;
@@ -46,7 +47,15 @@ class BrandComparisonServiceTest {
     }
 
     private BrandComparisonService serviceWith(List<OfferRecord> records, String yaml, Clock clock) {
-        return new BrandComparisonService(repositoryWith(records), catalogWith(yaml), clock);
+        return serviceWith(records, yaml, clock, "banners: []");
+    }
+
+    private BrandComparisonService serviceWith(List<OfferRecord> records, String yaml,
+                                               Clock clock, String bannerYaml) {
+        BrandCatalog brands = catalogWith(yaml);
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource(bannerYaml.getBytes(StandardCharsets.UTF_8)), clock, brands);
+        return new BrandComparisonService(repositoryWith(records), brands, banners, clock);
     }
 
     /** KST 기준 그 날짜 정오를 가리키는 시계. */
@@ -553,5 +562,108 @@ class BrandComparisonServiceTest {
                 "brands: {}", on("2026-08-06")).compare();
         assertEquals(6000, result.get(0).offers().get(0).amount());
         assertEquals(3, result.get(0).offers().get(0).tiers().size(), "품절 구간은 만료가 아니라 그대로 있다");
+    }
+
+    private static final String BANNER_YAML = """
+            banners:
+              - id: goobne-20260817
+                brand: goobne
+                platform: yogiyo
+                url: https://example.test/a
+                amount: "6,500원(4,000+10%)"
+                period: 매일 오후 3시부터 선착순
+                extra: "25,000원↑, 선착순"
+                startsOn: 2026-08-17
+                endsOn: 2026-08-23
+              - id: allapps-20260817
+                platform: baemin
+                url: https://example.test/b
+                amount: "첫 주문 5,000원"
+                period: 상시
+                startsOn: 2026-08-17
+                endsOn: 2026-08-23
+              - id: rate-20260817
+                brand: BBQ
+                platform: baemin
+                url: https://example.test/c
+                amount: "최대 30%"
+                period: 상시
+                startsOn: 2026-08-17
+                endsOn: 2026-08-23
+            """;
+
+    @Test
+    void putsTodaysBannerOnTheBrandCardAsAnOffer() {
+        // 배너에 올린 순간 그 브랜드 카드에도 떠야 한다 — 실제로 받을 수
+        // 있는 할인인데 원장(캡처)에는 안 잡힌다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        BrandComparison card = serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow();
+
+        Offer offer = card.offers().get(0);
+        assertEquals(6500, offer.amount());
+        assertEquals("행사", offer.qualifier());
+        assertEquals("2026-08-23", offer.expiresAt());
+        // 기간 문구가 사라지면 아무 때나 받는 할인으로 읽힌다.
+        assertEquals("매일 오후 3시부터 선착순", offer.badge());
+    }
+
+    @Test
+    void dropsBannersThatCannotStandAsAnOffer() {
+        // 브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없고, 정액이 아닌
+        // 금액("최대 30%")은 다른 오퍼와 견줄 수가 없다.
+        String brands = """
+                brands:
+                  BBQ:
+                    category: chicken
+                """;
+        List<String> withEventOffer =
+                serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML).compare().stream()
+                        .filter(c -> c.offers().stream().anyMatch(o -> "행사".equals(o.qualifier())))
+                        .map(c -> c.brand().name())
+                        .toList();
+
+        // 셋 중 정액에 브랜드까지 있는 배너 하나만 남는다.
+        assertEquals(List.of("goobne"), withEventOffer);
+    }
+
+    @Test
+    void dropsBannersOnceTheirPeriodHasPassed() {
+        // 기간이 지나면 알아서 빠져야 한다 — 손으로 지우게 하면 지난 행사가
+        // 계속 카드에 남는다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        assertEquals(List.of(),
+                serviceWith(List.of(), brands, on("2026-08-24"), BANNER_YAML).compare());
+    }
+
+    @Test
+    void countsEventAndBestCombinationOffersTowardTheBestDiscount() {
+        // "최대"만 뺀다 — 그건 최소주문금액을 채워야 나오는 상한액이라
+        // 얼마를 받는지가 아직 안 정해졌다. "행사"와 "최적"은 조건이 붙을
+        // 뿐 액수 자체는 확정이다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        BrandComparison card = serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow();
+
+        assertEquals(6500, card.maxConfirmedAmount());
     }
 }
