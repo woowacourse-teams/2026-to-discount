@@ -1,0 +1,94 @@
+name: Mirror to deploy repos
+
+# 사람은 여기(모노레포)에만 쓰고, 배포는 개별 저장소에서 나간다.
+#
+#   woowacourse-teams/2026-to-discount   PR·리뷰·머지
+#     ├─ web/ ─→ nn98/delivery-discount-web  ─→ Vercel
+#     └─ api/ ─→ nn98/delivery-discount-api  ─→ self-hosted 러너
+#
+# 왜 이 모양인가: Vercel 프로젝트와 self-hosted 러너가 개별 저장소에 물려
+# 있고 그 연결을 옮길 권한이 없다. 그렇다고 사람이 개별 저장소에서 일하면
+# 팀원이 여기 연 PR이 서비스에 안 닿는다 — 실제로 2026-08-20 PostHog SDK
+# 작업이 손복사를 기다렸고, 2026-08-21 하루에만 사본이 두 번 벌어졌다.
+# 그중 하나는 문서가 코드보다 앞서 있었다(이벤트 18종이라 적힌 저장소의
+# 코드는 16종이었다).
+#
+# 그래서 방향을 하나로 못박는다. **개별 저장소에 직접 커밋하지 않는다.**
+# 여기서 밀 때 --delete로 덮으므로 거기 직접 넣은 것은 다음 미러에 사라진다.
+#
+# 지키는 것은 두 가지뿐이다.
+#   .git      당연히
+#   .github   nn98/delivery-discount-api의 deploy.yml이 여기 있다. 이걸
+#             지우면 배포가 통째로 멈춘다.
+#
+# 자격 증명은 저장소 하나씩만 열리는 deploy key다(계정 전체가 열리는 PAT
+# 대신). 시크릿 이름은 MIRROR_KEY_WEB / MIRROR_KEY_API.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    strategy:
+      # 한쪽이 실패해도 다른 쪽은 밀어 둔다 — 둘 다 멈추면 배포가 통째로
+      # 늦어지고, 어차피 다음 push에서 다시 맞춰진다.
+      fail-fast: false
+      matrix:
+        include:
+          - dir: web
+            repo: nn98/delivery-discount-web
+            secret: MIRROR_KEY_WEB
+          - dir: api
+            repo: nn98/delivery-discount-api
+            secret: MIRROR_KEY_API
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up deploy key
+        env:
+          KEY: ${{ secrets[matrix.secret] }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::시크릿 ${{ matrix.secret }}가 비어 있다. deploy key를 등록해야 한다."
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/mirror
+          chmod 600 ~/.ssh/mirror
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Push ${{ matrix.dir }}/ to ${{ matrix.repo }}
+        env:
+          GIT_SSH_COMMAND: ssh -i ~/.ssh/mirror -o IdentitiesOnly=yes
+        run: |
+          git clone --depth 1 "git@github.com:${{ matrix.repo }}.git" /tmp/target
+
+          # --delete가 있어야 여기서 지운 파일이 저쪽에서도 사라진다.
+          # 없으면 미러가 쓰레기를 계속 쌓는다.
+          rsync -a --delete \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            "${{ matrix.dir }}/" /tmp/target/
+
+          cd /tmp/target
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "바뀐 것이 없다 — 밀지 않는다."
+            exit 0
+          fi
+
+          git config user.name  "mono-mirror[bot]"
+          git config user.email "mono-mirror@users.noreply.github.com"
+          git add -A
+          # 원본 커밋을 적어둔다 — 배포된 것이 모노의 어느 지점인지
+          # 저쪽 로그만 보고도 되짚을 수 있어야 한다.
+          git commit -m "mirror: ${{ github.repository }}@${{ github.sha }}" \
+                     -m "이 저장소에 직접 커밋하지 않는다. 원본은 ${{ github.repository }}의 ${{ matrix.dir }}/ 이고, 여기 직접 넣은 것은 다음 미러에 덮인다."
+          git push origin HEAD:main
