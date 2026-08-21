@@ -131,9 +131,14 @@ PostHog 전달은 원본 수집과 분리된 부가 경로다. `EventLog`가
 `POST /api/events`의 `accepted`는 PostHog 도착 건수가 아니라 원본 JSONL에
 기록된 건수다.
 
-웹 SDK 직접 전송을 켠 뒤에도 서버 outbox는 그대로 둔다
-(`DISCOUNT_POSTHOG_ENABLED=true`). 두 경로가 같은 이벤트를 보내지만 같은
-`eventId`를 `$insert_id`로 쓰므로 PostHog가 하나로 합친다.
+**서버 outbox는 2026-08-21 현재 꺼져 있다**(`DISCOUNT_POSTHOG_ENABLED=false`).
+우리가 만든 이벤트끼리는 같은 `eventId`를 `$insert_id`로 써서 PostHog가 하나로
+합치지만, SDK가 자동으로 쏘는 이벤트(`$pageview` 등)는 제 uuid를 달고 와서 그
+규칙에 안 걸렸다 — 같은 방문이 속성이 다른 두 건으로 남았다.
+
+아래 표는 둘을 함께 켰을 때 각자 무엇을 보고 무엇을 못 보는지다. 지금은
+서버 열이 비어 있다는 뜻이고, 그만큼(차단기로 막힌 방문자, 실측 10% 안팎)을
+못 보고 있다.
 
 둘을 함께 두는 이유는 각자 못 보는 곳이 다르기 때문이다.
 

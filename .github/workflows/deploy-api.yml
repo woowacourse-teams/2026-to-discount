@@ -4,16 +4,16 @@ name: Build and Deploy API
 # 루트 .github/workflows 만 읽는다. 코드가 api/ 아래로 내려간 만큼
 # working-directory 와 paths 필터를 붙였다.
 #
-# 러너 turbom-v0-2026-to-discount를 이 저장소에 등록하고(2026-08-08)
-# 원본 저장소(nn98/delivery-discount-api)의 push 트리거는 껐다 — 운영
-# 배포는 이제 여기서만 돈다. workflow_dispatch는 수동 폴백으로 남긴다.
+# 2026-08-21: 운영 배포를 nn98/delivery-discount-api로 되돌렸다. web은
+# 애초에 nn98/delivery-discount-web에서 Vercel로 나가고 있었는데 api만
+# 여기서 나가다 보니, 양쪽 저장소에 서로 다른 "뒤처진 사본"이 하나씩
+# 생겼다 — 하루에 두 번 벌어졌고 그중 하나는 문서가 코드보다 앞서
+# 있었다(이벤트 18종이라 적힌 저장소의 코드는 16종이었다).
+#
+# 자동 배포는 이제 nn98 쪽에서만 돈다. 여기는 수동 폴백으로만 남긴다 —
+# 두 저장소가 다 push로 배포하면 같은 서버에 경쟁 배포가 된다.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'api/**'
-      - '.github/workflows/deploy-api.yml'
   workflow_dispatch:
 
 jobs:
