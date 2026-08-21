@@ -198,7 +198,12 @@ PostHog에서 개발자를 빼려면 `dev_suspect is not set` 필터를 건다.
 
 ## 왜 둘인가
 
-같은 이벤트가 **두 경로로** PostHog에 간다. 같은 `eventId`를 `$insert_id`로 쓰므로 하나로 합쳐진다.
+같은 이벤트가 **두 경로로** PostHog에 갈 수 있다. 같은 `eventId`를 `$insert_id`로 쓰므로 하나로 합쳐진다.
+
+> **2026-08-21 현재 서버 릴레이는 꺼져 있다**(`DISCOUNT_POSTHOG_ENABLED=false`).
+> 같은 방문이 두 번 찍혀서 껐다 — SDK 자동 pageview가 우리 `eventId`를
+> 모르는 별개 id로 쏘고 있었다. 그 자동 발사를 껐으니(`capture_pageview:
+> false`) 다시 켜도 안전하다. 켜면 광고 차단기 사용자도 회수된다.
 
 | 경로 | 얻는 것 | 못 보는 것 |
 |---|---|---|
@@ -210,6 +215,34 @@ PostHog에서 개발자를 빼려면 `dev_suspect is not set` 필터를 건다.
 **자체 원장은 항상 전량을 받는다** — 같은 오리진이라 차단기에 안 막힌다. 그래서 판정을 원장으로 한다.
 
 ---
+
+## 우리가 못 보는 사람들
+
+**DNT/GPC를 켜면 네 경로 모두 아무것도 안 보낸다** — 자체 API·PostHog·GA4·Vercel Analytics. 광고 차단기도 `/api/events`를 막는다.
+
+그 규모는 잴 수 있다. 화면을 그리려면 `/api/brands`를 반드시 부르는데 거기엔 게이트가 없다.
+
+```
+브랜드는 불렀는데 이벤트는 한 건도 안 보낸 IP  =  누락 추정
+```
+
+2026-08-07~21 실측: 하루 **4~17%**, 평균 **10% 안팎**이 그렇게 빠진다.
+
+nginx 로그는 14일 뒤 사라지므로(`logrotate rotate 14`) 매일 새벽 집계만 뽑아 원장에 남긴다.
+
+```
+서버      /home/ubuntu/coverage_snapshot.sh   (크론 매일 01:05)
+원장      data/coverage.jsonl
+소스      scripts/coverage_snapshot.sh
+```
+
+```bash
+ssh <서버> "cat /home/ubuntu/delivery-discount-api/data/coverage.jsonl"
+```
+
+**자릿수만 보는 값이다.** IP 기준이라 같은 와이파이는 뭉치고, 모바일은 흩어지고, 봇도 섞인다. "우리 통계가 실제의 대략 90%를 보고 있다" 정도로 읽는다.
+
+전환율이나 A/B 비율을 볼 때 분모가 실제보다 작다는 뜻이라, **비율은 조금 부풀려져 있다.** 두 갈래에 같은 비율로 빠지므로 A/B 비교 자체는 성립한다.
 
 ## 안 모으는 것
 
