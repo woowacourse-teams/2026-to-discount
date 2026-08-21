@@ -79,24 +79,47 @@ function useSeed(banner) {
   return seed
 }
 
-function BannerCard({ banner, position, dots, onClose }) {
+function BannerCard({ banner, position, dots, onClose, onSeen }) {
   // 색은 카드가 직접 뽑는다. 여러 장이 한 줄에 나란히 놓이면서 배너마다
   // 색이 달라졌다 — 바깥에서 하나만 계산해 내리면 전부 같은 색이 된다.
   const seed = useSeed(banner)
   const palette = useMemo(() => bannerPalette(seed), [seed])
   const platform = PLATFORM_BY_KEY[banner.platform]
+  const cardRef = useRef(null)
+
+  // 클릭 수만으로는 배너가 잘 먹히는지 알 수 없다 — 안 눌린 게 안 보여서인지
+  // 보고도 안 눌러서인지 구분이 안 된다. 실제로 화면에 들어온 장만 세서
+  // 분모를 만든다. 캐러셀에서 옆 장은 track의 overflow에 잘려 있어 여기
+  // 걸리지 않는다(교차 영역은 조상 클리핑까지 반영된다).
+  // 콜백은 부르는 쪽에서 매 렌더 새로 만들어진다 — 의존성에 그대로 두면
+  // 렌더마다 관찰자를 새로 달았다 뗀다. 최신 것만 붙들어 둔다.
+  const seenRef = useRef(onSeen)
+  seenRef.current = onSeen
+
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([entry]) => {
+      // 절반은 보여야 봤다고 친다. 스쳐 지나간 것까지 세면 분모가 부풀어
+      // 클릭률이 실제보다 낮게 나온다.
+      if (entry.isIntersecting) seenRef.current?.()
+    }, { threshold: .5 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
   // 커스텀 스킴(baemin://, ddangyo:// ...)은 새 탭에서 열면 브라우저가
   // about:blank만 띄우고 인텐트를 넘기지 않는다 — 오퍼 칩과 같은 규칙이다.
   const external = banner.url.startsWith('http')
 
   return (
-    <div className={`banner banner--${position} ${dots ? 'banner--dots' : ''}`} style={palette}>
+    <div className={`banner banner--${position} ${dots ? 'banner--dots' : ''}`} style={palette} ref={cardRef}>
       <a
         className="banner__link"
         href={banner.url}
         target={external ? '_blank' : undefined}
         rel={external ? 'noreferrer' : undefined}
         onClick={() => track('banner_click', {
+          banner: banner.id,
           brand: banner.brand ?? 'none',
           platform: banner.platform,
           position,
@@ -172,6 +195,23 @@ export default function EventBanner({ banners }) {
   const [topVisible, setTopVisible] = useState(true)
   const [dismissed, setDismissed] = useState(readDismissed)
   const topRef = useRef(null)
+  // 같은 장을 한 번만 센다. 캐러셀은 앞뒤로 오갈 수 있고 하단 배너는
+  // 스크롤을 오르내릴 때마다 다시 들어온다 — 그때마다 세면 노출이
+  // 실제보다 몇 배로 부풀어 클릭률이 무의미해진다. 위/아래는 따로 센다.
+  const seen = useRef(new Set())
+
+  const markSeen = (banner, position) => {
+    const key = `${banner.id}:${position}`
+    if (seen.current.has(key)) return
+    seen.current.add(key)
+    track('banner_impression', {
+      banner: banner.id,
+      brand: banner.brand ?? 'none',
+      platform: banner.platform,
+      position,
+    })
+  }
+
 
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const pageHidden = usePageHidden()
@@ -211,6 +251,15 @@ export default function EventBanner({ banners }) {
     return () => clearInterval(timer)
   }, [count, paused])
 
+  // 하단 배너는 안 보일 때도 DOM에 남아 있다(visibility:hidden). 관찰자는
+  // visibility를 보지 않아 그대로 달면 페이지를 열자마자 노출로 세어진다.
+  // 떠 있는 조건이 이미 여기 상태로 있으니 그 조건으로 직접 센다 — 하단
+  // 배너는 화면에 고정이라 떠 있으면 곧 보이는 것이다.
+  useEffect(() => {
+    if (topVisible || dismissed || !current) return
+    markSeen(current, 'bottom')
+  }, [topVisible, dismissed, current])
+
   // 상단 배너가 화면에서 벗어나면 하단으로 넘긴다. 스크롤 픽셀값이 아니라
   // 관찰로 하는 이유는 배너 높이가 내용(extra 유무, 금액 길이, 화면 폭)에
   // 따라 달라져 임계값을 고정하면 어긋나기 때문이다.
@@ -241,7 +290,13 @@ export default function EventBanner({ banners }) {
             배너를 다시 볼 길이 손가락에 없고, 점을 정확히 눌러야 했다. */}
         <div className="banner-track" ref={trackRef} onScroll={onTrackScroll}>
           {banners.map((b) => (
-            <BannerCard key={b.id} banner={b} position="top" dots={dots} />
+            <BannerCard
+              key={b.id}
+              banner={b}
+              position="top"
+              dots={dots}
+              onSeen={() => markSeen(b, 'top')}
+            />
           ))}
         </div>
       </div>
@@ -259,7 +314,17 @@ export default function EventBanner({ banners }) {
             banner={current}
             position="bottom"
             dots={dots}
-            onClose={() => { setDismissed(true); writeDismissed() }}
+            onClose={() => {
+              setDismissed(true)
+              writeDismissed()
+              // 닫기는 "봤고, 싫다"는 뜻이다 — 무시(노출만 있고 아무 것도
+              // 안 함)와 구분해야 배너가 방해가 되는지 알 수 있다.
+              track('banner_dismiss', {
+                banner: current.id,
+                brand: current.brand ?? 'none',
+                platform: current.platform,
+              })
+            }}
           />
         </div>
       </div>

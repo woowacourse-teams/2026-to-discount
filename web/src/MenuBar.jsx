@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { CATEGORIES } from './filters.js'
 
 /**
@@ -18,10 +19,36 @@ import { CATEGORIES } from './filters.js'
  * 셈이라, 분류만 남긴다.
  */
 export default function MenuBar({ selected, onToggle }) {
+  const listRef = useRef(null)
+  // 어느 쪽으로 더 갈 수 있는지. 양쪽 화살표를 늘 켜두면 끝에 닿았는데도
+  // 더 있는 것처럼 보인다.
+  const [more, setMore] = useState({ left: false, right: false })
+
+  useEffect(() => {
+    const el = listRef.current
+    if (!el) return
+    const update = () => setMore({
+      left: el.scrollLeft > 4,
+      // clientWidth 0은 바가 아직 접혀 있다는 뜻이다 — 안 보이는 바에
+      // 화살표를 켜두면 펼쳐지는 순간 한 프레임 잘못 뜬다.
+      right: el.clientWidth > 0 && el.scrollLeft + el.clientWidth < el.scrollWidth - 4,
+    })
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    // 분류가 늘거나 화면 폭이 바뀌면 넘칠지 여부도 달라진다.
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => { el.removeEventListener('scroll', update); ro.disconnect() }
+  }, [])
+
   return (
     <nav className="menu-bar" aria-label="분류 메뉴">
       <div className="menu-bar__inner">
-        <ul className="menu-bar__list">
+        {/* 옆으로 더 있다는 표시. 가로 스크롤은 화면에 흔적이 안 남아서
+            분류가 잘린 줄 모르고 지나친다. 장식이라 스크린리더에서는 뺀다. */}
+        <span className={`menu-bar__more menu-bar__more--left${more.left ? ' menu-bar__more--on' : ''}`} aria-hidden="true">‹</span>
+        <span className={`menu-bar__more menu-bar__more--right${more.right ? ' menu-bar__more--on' : ''}`} aria-hidden="true">›</span>
+        <ul className="menu-bar__list" ref={listRef}>
           {CATEGORIES.map((c) => {
             const on = selected.has(c.key)
             return (

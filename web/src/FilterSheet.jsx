@@ -14,7 +14,6 @@ import { CATEGORIES, MEMBERSHIP_OPTIONS, SORT_KEYS, defaultFilters, isDefaultFil
  */
 export default function FilterSheet({ open, filters, onApply, onClose }) {
   const [draft, setDraft] = useState(filters)
-  const [membershipHint, setMembershipHint] = useState(null)
   // 배경을 눌러 닫을 때, 누른 자리가 배경이었는지 기억해둔다. 시트 안에서
   // 끌기 시작해 배경에서 손을 뗀 동작까지 닫기로 세면 고르던 게 날아간다.
   const downOnScrim = useRef(false)
@@ -70,27 +69,27 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
 
         <div className="sheet__body">
           <h2 className="sheet__title">배달앱</h2>
-          {/* A안 바의 앱 버튼을 그대로 쓴다(page-head__apps). 작은 회색
-              배지로는 어느 앱을 껐는지 한눈에 안 읽혔다 — 앱 아이콘은
-              사람들이 이미 아는 그림이라 크게 두는 편이 낫다. 규칙을
-              베끼지 않고 같은 클래스를 붙여, 한쪽만 고쳐지는 일을 막는다. */}
+          {/* A안 바의 앱 버튼을 그대로 쓴다. 배지 자체가 버튼이어야
+              aria-pressed가 붙고, 거기 걸린 A안 규칙(체크 배지·안 고른 앱
+              흐리기)이 그대로 산다. 배지를 버튼 안에 넣으면 span으로
+              렌더돼 그 규칙이 하나도 안 걸렸다.
+
+              작은 회색 배지로는 어느 앱을 껐는지 한눈에 안 읽혔다 — 앱
+              아이콘은 사람들이 이미 아는 그림이라 크게 두는 편이 낫다. */}
           <div className="sheet__apps page-head__apps">
             {PLATFORMS.map((p) => (
-              <button
-                key={p.key}
-                type="button"
-                className={`sheet__app${draft.platforms.has(p.key) ? ' sheet__app--on' : ''}`}
-                aria-pressed={draft.platforms.has(p.key)}
-                onClick={() => {
-                  toggleIn('platforms', p.key)
-                  // 바의 플랫폼 배지가 여기로 옮겨왔다 — 조작 위치만
-                  // 바뀐 것이라 같은 이벤트 이름을 그대로 쓴다.
-                  track('platform_filter_toggle', { platform: p.key, from: 'sheet' })
-                }}
-              >
-                <PlatformBadge platformKey={p.key} active={draft.platforms.has(p.key)} />
-                <span>{p.label}</span>
-              </button>
+              <span key={p.key} className="platform-badge-wrap">
+                <PlatformBadge
+                  platformKey={p.key}
+                  active={draft.platforms.has(p.key)}
+                  onClick={() => {
+                    toggleIn('platforms', p.key)
+                    // 바의 플랫폼 배지가 여기로 옮겨왔다 — 조작 위치만
+                    // 바뀐 것이라 같은 이벤트 이름을 그대로 쓴다.
+                    track('platform_filter_toggle', { platform: p.key, from: 'sheet' })
+                  }}
+                />
+              </span>
             ))}
           </div>
 
@@ -100,27 +99,26 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             <p className="sheet__warn">앱을 하나도 안 고르면 결과가 비어 있다.</p>
           )}
 
-          <h2 className="sheet__title">멤버십</h2>
           {/* 멤버십 반영 로직은 아직 없다(api docs/specs의 의도적 보류).
-              자리와 이름을 미리 두되 누르면 상태가 안 바뀌고 "구현 예정"만
-              알린다 — 눌렀는데 아무 일도 안 일어나면 고장으로 읽힌다.
-              수요는 그대로 집계한다. */}
+              "구현 예정"을 제목에 붙여 누르기 전에 알린다 — 눌러야 알려주면
+              눌러본 사람만 알게 되고, 그 전까지는 고장으로 읽힌다.
+              자리와 이름은 미리 두고 수요는 그대로 집계한다. */}
+          <h2 className="sheet__title">
+            멤버십 <span className="sheet__soon">구현 예정</span>
+          </h2>
           <div className="sheet__chips">
             {MEMBERSHIP_OPTIONS.map((m) => (
               <button
                 key={m.key}
                 type="button"
-                className={`sheet__chip sheet__chip--soon${membershipHint === m.key ? ' sheet__chip--hint' : ''}`}
+                className="sheet__chip sheet__chip--soon"
                 aria-disabled="true"
                 title="구현 예정입니다"
                 onClick={() => {
-                  setMembershipHint(m.key)
-                  setTimeout(() => setMembershipHint((cur) => (cur === m.key ? null : cur)), 1600)
                   track('membership_toggle', { platform: m.key, state: 'soon', from: 'sheet' })
                 }}
               >
                 {m.label}
-                {membershipHint === m.key && <span className="sheet__soon">구현 예정</span>}
               </button>
             ))}
           </div>

@@ -1090,10 +1090,16 @@ h1 {
 }
 .offer-list::-webkit-scrollbar { display: none; }
 
-/* 최고 할인 한 건만 단독으로 놓는 줄. 나머지와 같은 격자에 섞이면
-   "어느 게 제일 센가"를 매번 눈으로 비교해야 한다 — 답을 먼저 크게
-   보여주고, 비교는 아래 줄에서 하게 한다. */
+/* 최고 할인을 단독으로 놓는 줄. 나머지와 같은 격자에 섞이면 "어느 게
+   제일 센가"를 매번 눈으로 비교해야 한다 — 답을 먼저 크게 보여주고,
+   비교는 아래 줄에서 하게 한다.
+
+   동점이 여럿이면 전부 여기 온다. 세로로 쌓아 각자 한 줄을 차지하게
+   한다 — 나란히 놓아 폭을 반씩 나누면 동점인데도 아래 줄 차순위와
+   크기가 비슷해져 "최고"라는 신호가 죽는다. */
 .offer-list--hero {
+  flex-direction: column;
+  gap: .5rem;
   margin-bottom: .5rem;
 }
 .offer-list--hero .offer { flex: 1 1 100%; }
@@ -1496,7 +1502,10 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   max-width: 340px;
 }
 .detail__tier-min { color: var(--text-muted); }
-.detail__tier-percent { color: var(--text-muted); font-size: .85em; margin-left: .25em; }
+/* 금액 뒤에 이어 붙이면 "3,000원(5%, 최대 3,000원)"이 한 줄로 길어져
+   좁은 화면에서 잘렸다. 조건은 금액을 설명하는 딸린 값이라 아래 줄로
+   내린다 — 금액이 먼저 읽히고 조건이 뒤따른다. */
+.detail__tier-percent { display: block; color: var(--text-muted); font-size: .85em; }
 /* 구간마다 끝나는 날이 다를 때만 붙는다(오퍼 만료일과 같으면 생략) —
    조건 문구 옆에 작게 얹어 어느 쿠폰이 먼저 끝나는지 보이게 한다. */
 .detail__tier-expiry {
@@ -1589,12 +1598,60 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   border-bottom: 1px solid var(--border);
 }
 .menu-bar__inner {
+  position: relative;
   display: flex;
   align-items: center;
   gap: .25rem;
   max-width: 880px;
   margin: 0 auto;
   padding: 0 1.25rem;
+}
+
+/* 옆으로 더 있다는 표시. 가로 스크롤은 화면에 흔적이 안 남아서 분류가
+   잘린 줄 모르고 지나친다. 살짝 흔들어 "밀 수 있다"를 알린다 — 가만히
+   있는 화살표는 장식으로 읽힌다.
+
+   글자 위에 겹치므로 배경색으로 한 겹 깔아 글자가 화살표 밑으로
+   흘러들어가 보이지 않게 한다. */
+.menu-bar__more {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  width: 1.6rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.menu-bar__more--on { opacity: .75; animation: menu-bar-nudge 1.6s ease-in-out infinite; }
+.menu-bar__more--left {
+  left: .35rem;
+  justify-content: flex-start;
+  background: linear-gradient(to right, var(--surface) 55%, transparent);
+}
+.menu-bar__more--right {
+  right: .35rem;
+  justify-content: flex-end;
+  background: linear-gradient(to left, var(--surface) 55%, transparent);
+}
+@keyframes menu-bar-nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-2px); }
+}
+.menu-bar__more--right.menu-bar__more--on { animation-name: menu-bar-nudge-right; }
+@keyframes menu-bar-nudge-right {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+}
+/* 움직임을 줄이라고 했으면 흔들지 않는다. 화살표 자체는 남긴다 —
+   그게 정보다. */
+@media (prefers-reduced-motion: reduce) {
+  .menu-bar__more--on { animation: none; }
 }
 .menu-bar__list {
   display: flex;
@@ -1687,24 +1744,10 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 }
 .sheet__body > .sheet__title:first-child { margin-top: .3rem; }
 
+/* 앱 버튼 모양은 .page-head__apps 규칙이 정한다(A안 바와 같은 것). 여기서는
+   시트 안에서의 배치만 잡는다. 라벨 붙은 카드형 버튼(.sheet__app)을 쓰다가
+   걷었다 — 작은 회색 배지로는 어느 앱을 껐는지 한눈에 안 읽혔다. */
 .sheet__apps { display: flex; gap: .5rem; flex-wrap: wrap; }
-.sheet__app {
-  flex: 1 1 0;
-  min-width: 72px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .3rem;
-  padding: .6rem .3rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  cursor: pointer;
-  font-size: .78rem;
-  color: var(--text-muted);
-  transition: border-color .16s ease, color .16s ease;
-}
-.sheet__app--on { border-color: var(--text); color: var(--text); font-weight: 600; }
 
 .sheet__chips { display: flex; gap: .4rem; flex-wrap: wrap; }
 .sheet__chip {
@@ -1739,16 +1782,19 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   padding: .75rem 1.25rem calc(.75rem + env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
 }
+/* 좁은 화면에서 글자가 두 줄로 접혔다. 손가락 높이(.7rem 상하 여백)는
+   지키고 글자와 좌우 여백만 줄여 한 줄에 넣는다. */
 .sheet__reset, .sheet__apply {
   border-radius: 12px;
-  padding: .7rem 1rem;
-  font-size: .92rem;
+  padding: .7rem .75rem;
+  font-size: .86rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
 }
 .sheet__reset {
   flex: none;
-  min-width: 88px;
+  min-width: 76px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-muted);
@@ -1774,18 +1820,26 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    그 자리를 덮어 스크롤 전에는 안 보였다. 메뉴바와 카드 사이 자리다. */
 .banner-slot { margin-top: 0; }
 
-/* 멤버십 칩 — 미구현이라 눌러도 상태가 안 바뀐다. 고를 수 있는 칩과
-   구분되게 점선 테두리로 두고, 누르면 "구현 예정"을 잠깐 붙인다. */
+/* 제목 옆에 붙는 "구현 예정". 누르기 전에 알려야 한다 — 눌러야 알려주면
+   눌러본 사람만 알게 되고 그 전까지는 고장으로 읽힌다. */
+.sheet__soon {
+  margin-left: .4rem;
+  padding: .1rem .4rem;
+  border-radius: 999px;
+  background: var(--pending-bg);
+  color: var(--pending-text);
+  font-size: .65rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+/* 아직 못 누르는 칩. 색과 커서로 드러내되 자리와 이름은 남긴다 —
+   수요를 재려고 둔 것이라 무엇을 누르려 했는지는 보여야 한다. */
 .sheet__chip--soon {
   border-style: dashed;
+  opacity: .5;
   cursor: default;
 }
-.sheet__chip--hint { border-color: var(--pending-text); color: var(--pending-text); }
-.sheet__soon {
-  margin-left: .35rem;
-  font-size: .7rem;
-  color: var(--pending-text);
-}
+.sheet__chip--soon:hover { border-color: var(--border); color: var(--text-muted); }
 
 
 /* ── 상단 바 1행: 이름 + 도구(2026-08-19) ─────────────────────────
@@ -1822,7 +1876,12 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .cart-btn:disabled { opacity: .35; cursor: default; }
 /* 켜져 있으면 목록 전체가 그 범위로 좁혀진 상태다 — 버튼 하나만 보고도
    알 수 있게 반전한다. */
-.cart-btn--on { background: var(--text); color: #fff; }
+/* 켜져 있으면 목록 전체가 그 범위로 좁혀진 상태다 — 버튼 하나만 보고도
+   알 수 있게 반전한다. 아이콘 stroke가 currentColor라 글자색이 곧 그림색이다.
+   hover 규칙이 더 구체적이라(:not 포함) 손이 올라가면 아이콘이 도로
+   검어졌다 — 켜진 동안에는 hover에서도 흰색을 지킨다. */
+.cart-btn--on,
+.cart-btn--on:hover:not(:disabled) { background: var(--text); color: #fff; }
 .cart-btn__count {
   position: absolute;
   top: -1px;
@@ -2183,7 +2242,9 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    바 아래(카드·배너·계측)는 두 안이 완전히 같다 — 여기 적히는 건
    "조건을 어디에 두는가"의 차이뿐이다. */
 
-[data-variant="a"] .platform-badge-wrap { position: relative; }
+/* 멤버십 라벨이 배지 기준으로 떠야 해서 자리를 잡아둔다. A안 바와 B안
+   시트가 같은 앱 버튼을 쓰므로 갈래로 나누지 않는다. */
+.platform-badge-wrap { position: relative; }
 
 /* 멤버십 라벨은 앱 버튼 아래에 떠 있다. 흐름 안에 두면 라벨 글자 폭이
    곧 버튼 폭이 되어("배민클럽" 등) 앱 넷이 269px을 차지했다 — 배지만

@@ -12,9 +12,6 @@ import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, defaultFilters, isDefaultFi
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
 //
-// yogiyo: 공유 링크가 살아 있고 "할인/혜택" 탭으로 정확히 떨어진다 —
-// 셋 중 유일하게 목적지가 할인 화면이라 그대로 쓴다.
-//
 // coupangeats: 예전 공유 링크(share.coupangeats.com/RM8HgQyr64b)는
 // 프로모션 딥링크였고 이제 "종료된 프로모션 입니다" 화면으로 떨어진다.
 // 앱이 선언한 경로 중 할인 화면으로 가는 외부 딥링크는 없어서(와우컬렉션
@@ -30,7 +27,6 @@ import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, defaultFilters, isDefaultFi
 // 안드로이드 전용이라 iOS가 깨진다.
 const PLATFORM_APP_LINKS = {
   coupangeats: 'coupangeats://',
-  yogiyo: 'https://url.customer.yogiyo.co.kr/MUVJRHpYU2',
   ddangyo: 'ddangyo://',
   // capture/baemin.py의 BRAND_LOUNGE_DEEPLINK와 같은 주소 — 브랜드관
   // 목록으로 바로 간다(추측 아니라 캡처 파이프라인이 실기로 확인한 값).
@@ -38,14 +34,30 @@ const PLATFORM_APP_LINKS = {
     'https%3A%2F%2Finapp-webview.baemin.com%2Fbrand-lounge',
 }
 
+// 앱 안 브랜드 검색으로 바로 떨어지는 딥링크. 브랜드별 공유링크가 없을 때
+// 앱만 열고 마는 것보다, 구글로 튕기는 것보다 낫다. 추측으로 만들지 않고
+// 실기기에서 착지 화면까지 본 것만 넣는다.
+//
+// yogiyo: 2026-08-19, 2026-08-20 실기 확인(iPhone 12 Pro Max, iOS 26.6).
+//   brands.yml의 브랜드 링크와 같은 형식을 쓴다. 값을 바꾸지 말 것.
+// coupangeats, ddangyo: 같은 자리에 넣을 값을 아직 못 찾았다.
+//   search?keyword=, search?q= 둘 다 앱 홈으로만 떨어지는 것을 같은 날
+//   실기로 확인했다.
+//
+// PLATFORM_APP_LINKS 주석의 마지막 문단이 그대로 적용된다. 커스텀 스킴이라
+// 앱이 안 깔려 있으면 아무 일도 안 일어난다. 대신 도착점이 틀리지는 않는다.
+const PLATFORM_BRAND_SEARCH_LINKS = {
+  yogiyo: (brandName) => `yogiyolink://search?keyword=${encodeURIComponent(brandName)}`,
+}
+
 // 브랜드별 링크(brandLinks)가 없고 PLATFORM_APP_LINKS도 앱만 여는 커스텀
 // 스킴뿐인 플랫폼은 앱을 열어도 그 브랜드 화면으로 안 간다 — 최소한
 // 검색이라도 되게 구글 검색으로 보낸다. 앱 안의 실제 브랜드 검색 딥링크
-// 스킴은 확인된 게 없다(추측으로 만들면 안 열리는 경로를 또 만드는
-// 꼴이라 안 쓴다). 배민은 브랜드관 목록 딥링크가 있어 검색 폴백이
-// 필요 없다. 쿠팡이츠는 구글 검색으로 보내지 않는다 — 최소한 자기 앱은
-// 열리게 두는 쪽을 택함(PLATFORM_APP_LINKS의 'coupangeats://'가 대신
-// 적용된다).
+// 스킴은 요기요만 확인됐다(PLATFORM_BRAND_SEARCH_LINKS). 나머지는 추측으로
+// 만들면 안 열리는 경로를 또 만드는 꼴이라 안 쓴다. 배민은 브랜드관 목록
+// 딥링크가 있어 검색 폴백이 필요 없다. 쿠팡이츠는 구글 검색으로 보내지
+// 않는다 — 최소한 자기 앱은 열리게 두는 쪽을 택함(PLATFORM_APP_LINKS의
+// 'coupangeats://'가 대신 적용된다).
 const PLATFORM_SEARCH_QUERY = {
   ddangyo: '땡겨요',
 }
@@ -57,6 +69,22 @@ function searchFallbackLink(platformKey, brandName) {
 }
 
 const CART_KEY = 'dk_cart'
+
+// 다른 오퍼와 같은 선에서 견줄 수 있는 값인가.
+//
+// "최대"(화면 배지 "불확정")는 최소주문금액을 채워야 나오는 상한액이고
+// "특정메뉴"는 메뉴 하나에만 쓰는 값이라, 액면 그대로 견주면 그 오퍼가
+// 실제보다 세 보인다. "최적"(쿠폰을 다 겹쳤을 때)과 "행사"(당일 배너)는
+// 조건이 붙을 뿐 액수 자체는 확정이라 넣는다.
+//
+// 같은 규칙이 api의 BrandComparisonService.confirmedSortingAmount()에도
+// 있다(카드 정렬용). 한쪽만 고치면 카드 순서와 카드 안 "최고 할인" 표식이
+// 서로 다른 답을 낸다(ADR-016).
+const INCOMPARABLE = new Set(['최대', '특정메뉴'])
+
+function comparable(offer) {
+  return !INCOMPARABLE.has(offer.qualifier)
+}
 
 function won(value) {
   return `${value.toLocaleString()}원`
@@ -84,9 +112,11 @@ function detailRows(offer) {
 
 // brandLinks는 API가 내려주는 앱별 브랜드 쿠폰 바로가기(brands.yml 출처,
 // 플랫폼 키 -> 링크). 그 앱 오퍼에만 건다 — 예를 들어 땡겨요 링크를
-// 배민 칩에 걸면 안 된다. 브랜드별 링크가 없으면 PLATFORM_APP_LINKS(쿠팡
-// 이츠·요기요만 해당)로 대신 앱을 연다. 그마저 없는 칩은 상세를 여는
-// 버튼이 된다(링크가 있는 칩은 링크가 우선이라 카드 헤더로 펼친다).
+// 배민 칩에 걸면 안 된다. 브랜드별 링크가 없으면 사다리를 타고 내려간다.
+// 앱 안 브랜드 검색(요기요) -> 구글 검색(땡겨요) -> 앱만 열기(쿠팡이츠,
+// 배민). 네 플랫폼 모두 어느 한 칸이 차 있어서 실제로는 링크 없는 칩이
+// 없다. 상세를 여는 버튼 경로는 남겨두되 지금은 안 쓰인다(링크가 있는
+// 칩은 링크가 우선이라 카드 헤더로 펼친다).
 function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier !== null
@@ -94,6 +124,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   // 않도록 칩 전체를 흐리게 깔아 다른 확정값과 구분한다.
   const capped = offer.qualifier === '최대'
   const link = brandLinks?.[offer.platform]
+    ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
     ?? searchFallbackLink(offer.platform, brandName)
     ?? PLATFORM_APP_LINKS[offer.platform]
 
@@ -286,7 +317,7 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
   // 만큼 전부 표시한다(하나만 고르면 거짓 우열이 생긴다). 하나뿐이어도
   // 그 값이 그 브랜드에서 받을 수 있는 최고다 — 그대로 표시한다.
   const bestAmount = useMemo(() => {
-    const plain = brand.offers.filter((o) => !o.qualifier && o.amount != null && !o.soldOut)
+    const plain = brand.offers.filter((o) => comparable(o) && o.amount != null && !o.soldOut)
     if (plain.length === 0) return null
     return Math.max(...plain.map((o) => o.amount))
   }, [brand.offers])
@@ -301,10 +332,19 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
     [brand.offers],
   )
 
-  // 최고 할인 하나를 단독으로 올리고 나머지를 아래로 내린다.
-  // sortedOffers가 이미 "최대 뒤로, 금액 큰 순"으로 정렬돼 있으므로
-  // 맨 앞이 곧 그 브랜드의 대표 할인이다.
-  const [heroOffer, ...restOffers] = sortedOffers
+  const isBest = (o) => bestAmount != null && comparable(o) && !o.soldOut && o.amount === bestAmount
+
+  // 최고 할인을 위로 올리고 나머지를 아래로 내린다. 동점이면 동점인 만큼
+  // 전부 올린다 — 같은 금액인데 하나만 크게 놓으면 나머지가 열등해 보여
+  // 거짓 우열이 생긴다(bestAmount가 동점을 그대로 두는 이유와 같다).
+  // 최고가 없는 브랜드(전부 조건부거나 품절)는 sortedOffers가 이미
+  // "최대 뒤로, 금액 큰 순"이라 맨 앞이 대표값이다.
+  const [heroOffers, restOffers] = useMemo(() => {
+    const best = sortedOffers.filter(isBest)
+    return best.length > 0
+      ? [best, sortedOffers.filter((o) => !isBest(o))]
+      : [sortedOffers.slice(0, 1), sortedOffers.slice(1)]
+  }, [sortedOffers, bestAmount])
 
   // 상세를 펼친 상태를 기본으로 둔다 — 조건(최소주문금액 등)을 봐야
   // 금액이 실제로 무슨 뜻인지 알 수 있는데, 접어두면 매번 눌러야 했다.
@@ -365,24 +405,25 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
         </svg>
       </button>
 
-      {/* 최고 할인 하나를 단독 줄로 올리고 나머지는 아래 가로 그리드로
-          내린다. 넷을 균등한 격자에 늘어놓으면 "어느 게 제일 센가"를
+      {/* 최고 할인을 단독 줄로 올리고 나머지는 아래 가로 그리드로
+          내린다. 동점이면 그만큼 줄이 늘어난다. 넷을 균등한 격자에 늘어놓으면 "어느 게 제일 센가"를
           매번 눈으로 비교해야 한다 — 답을 먼저 보여주고, 나머지는
           비교하고 싶을 때 보는 부가 정보로 둔다. */}
-      {heroOffer && (
+      {heroOffers.length > 0 && (
         <ul className="offer-list offer-list--hero">
-          <OfferChip
-            key={heroOffer.platform}
-            offer={heroOffer}
-            brandLinks={brand.links}
-            brandName={brand.name}
-            detailId={detailId}
-            open={open}
-            onToggle={toggle}
-            best={bestAmount != null && !heroOffer.qualifier && !heroOffer.soldOut
-                  && heroOffer.amount === bestAmount}
-            hero
-          />
+          {heroOffers.map((o) => (
+            <OfferChip
+              key={o.platform}
+              offer={o}
+              brandLinks={brand.links}
+              brandName={brand.name}
+              detailId={detailId}
+              open={open}
+              onToggle={toggle}
+              best={isBest(o)}
+              hero
+            />
+          ))}
         </ul>
       )}
 
@@ -397,7 +438,7 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
               detailId={detailId}
               open={open}
               onToggle={toggle}
-              best={bestAmount != null && !o.qualifier && !o.soldOut && o.amount === bestAmount}
+              best={isBest(o)}
             />
           ))}
         </ul>

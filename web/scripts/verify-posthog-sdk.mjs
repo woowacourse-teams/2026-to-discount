@@ -62,7 +62,12 @@ assert.deepEqual(config.bootstrap, {
   isIdentifiedID: false,
 })
 assert.equal(config.persistence, 'localStorage')
-assert.equal(config.capture_pageview, 'history_change')
+// SDK 자동 pageview는 꺼야 한다. 우리도 page_view를 쏘는데 SDK가 스스로
+// 쏘는 것은 우리 eventId를 모른다 — $insert_id가 달라 중복 제거가 안 걸리고
+// 같은 방문이 두 번 찍힌다(2026-08-21 실측).
+assert.equal(config.capture_pageview, false)
+// pageleave는 남긴다. 우리 page_exit과 이름이 달라($pageleave) 중복 계상이
+// 아니고, PostHog 기본 지표(이탈률·세션 길이)가 이 이벤트를 쓴다.
 assert.equal(config.capture_pageleave, true)
 assert.equal(config.autocapture, false)
 assert.equal(config.disable_session_recording, true)
@@ -126,6 +131,25 @@ assert.deepEqual(domainEventProperties, {
   variant: 'a',
   viewport: '390x844',
 })
+
+// 개발 추정 표시. 서버 매퍼와 같은 규칙이라야 경로에 따라 표시가 있다
+// 없다 하지 않는다.
+const devSuspect = (device, viewport) => {
+  const fresh = adapter()
+  fresh.instance.initPostHog()
+  fresh.instance.captureAnalyticsEvent({
+    event: 'brand_expand',
+    eventId: '123e4567-e89b-42d3-a456-426614174111',
+    visitorId: context.visitorId,
+    device,
+    viewport,
+  })
+  return fresh.client.calls.capture.at(-1)?.[1]?.dev_suspect
+}
+assert.equal(devSuspect('desktop', '360x900'), true)
+assert.equal(devSuspect('desktop', '400x900'), undefined)
+assert.equal(devSuspect('mobile', '360x780'), undefined)
+assert.equal(devSuspect('desktop', undefined), undefined)
 assert.equal(domainEventOptions.uuid, '123e4567-e89b-42d3-a456-426614174000')
 assert.equal(domainEventOptions.timestamp.toISOString(), clientTs)
 assert.equal(domainEventOptions.send_instantly, undefined)

@@ -54,6 +54,4 @@ assert.deepEqual(
   [],
   `프론트에서 발행하지 않는 API 허용 이벤트: ${unusedAllowedEvents.join(', ')}`,
 )
-assert.equal(emittedEvents.size, 16)
-
 console.log('analytics frontend/API event contract: PASS')

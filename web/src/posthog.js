@@ -14,6 +14,26 @@ function put(target, key, value) {
   if (value !== undefined && value !== null) target[key] = value
 }
 
+/**
+ * 표시가 안 붙은 개발 트래픽으로 보이는지. 서버 쪽
+ * `PostHogEventMapper.looksLikeDeveloper()`와 같은 규칙이다.
+ *
+ * <p>서버 릴레이만 이 표시를 붙이고 있어서, 클라이언트가 직접 보내는
+ * 이벤트에는 안 붙었다 — SDK가 돌기 시작한 2026-08-21부터 같은 사람의
+ * 이벤트가 경로에 따라 표시가 있다 없다 했다.
+ *
+ * <p>기준을 바꿀 때는 세 곳을 함께 고친다: 여기, 서버 매퍼,
+ * `scripts/ab_report.sh`. 한 곳만 고치면 도구마다 다른 숫자가 나온다.
+ * 배경은 api/docs/traffic-analytics.md에 있다.
+ */
+function looksLikeDeveloper(envelope) {
+  if (envelope.device !== 'desktop') return false
+  const width = Number.parseInt(String(envelope.viewport ?? '').split('x')[0], 10)
+  // 폭을 못 읽었으면 모르는 것이지 좁은 것이 아니다 — 모르는 것을 개발
+  // 트래픽으로 몰면 실사용자가 조용히 빠진다.
+  return Number.isFinite(width) && width > 0 && width < 400
+}
+
 function captureTimestamp(value) {
   if (typeof value !== 'string' || value.trim() === '') return undefined
   const parsed = new Date(value)
@@ -52,9 +72,18 @@ export function createPostHogAdapter({
           isIdentifiedID: false,
         },
         persistence: 'localStorage',
-        // 페이지 이동은 SDK가 표준 $pageview/$pageleave로 맡는다. 도메인
-        // 행동은 analytics.js의 명시적 track()만 capture해 의미상 중복을 막는다.
-        capture_pageview: context.dev ? false : 'history_change',
+        // SDK 자동 pageview는 끈다. 우리도 page_view를 쏘는데 SDK가 스스로
+        // 쏘는 것은 우리 eventId를 모른다 — $insert_id가 달라 중복 제거가
+        // 안 걸리고 같은 방문이 두 번 찍힌다(2026-08-21 실측, 하나는 URL
+        // 속성이 붙고 하나는 안 붙은 채로).
+        //
+        // 우리 page_view만 $pageview로 보내면 id가 하나로 통일돼, 서버
+        // 릴레이가 같은 이벤트를 보내도 PostHog가 합쳐준다.
+        //
+        // 라우터가 없고 pushState도 안 쓴다 — history_change가 지금 잡을
+        // 것이 없다. 나중에 URL로 화면이 갈리면(필터 공유 링크, 브랜드
+        // 상세 경로) 그때 track('page_view')를 직접 쏜다.
+        capture_pageview: false,
         capture_pageleave: context.dev ? false : true,
         autocapture: false,
         disable_session_recording: true,
@@ -132,6 +161,7 @@ export function createPostHogAdapter({
       // 빠지면 PostHog에서 A/B를 못 가른다 — 원장에는 남지만 퍼널·리텐션이
       // 두 안을 구분하지 못한다.
       put(properties, 'variant', envelope.variant)
+      if (looksLikeDeveloper(envelope)) properties.dev_suspect = true
       put(properties, 'viewport', envelope.viewport)
       put(properties, 'dwell_ms', envelope.dwellMs)
 
