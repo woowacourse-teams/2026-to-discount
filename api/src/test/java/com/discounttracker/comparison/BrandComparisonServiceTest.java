@@ -573,6 +573,7 @@ class BrandComparisonServiceTest {
                 amount: "6,500원(4,000+10%)"
                 period: 매일 오후 3시부터 선착순
                 extra: "25,000원↑, 선착순"
+                minOrder: 25000
                 startsOn: 2026-08-17
                 endsOn: 2026-08-23
               - id: allapps-20260817
@@ -611,6 +612,9 @@ class BrandComparisonServiceTest {
         assertEquals(6500, offer.amount());
         assertEquals("행사", offer.qualifier());
         assertEquals("2026-08-23", offer.expiresAt());
+        // 적어둔 최소주문금액이 조건으로 함께 들어가야 상세가 "미확인"으로
+        // 남지 않는다.
+        assertEquals(25000, offer.minOrderAmount());
         // 기간 문구가 사라지면 아무 때나 받는 할인으로 읽힌다.
         assertEquals("매일 오후 3시부터 선착순", offer.badge());
     }

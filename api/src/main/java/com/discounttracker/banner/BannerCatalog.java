@@ -178,10 +178,23 @@ public class BannerCatalog {
                 amount,
                 period,
                 text(attrs.get("extra")),
+                number(attrs.get("minOrder")),
                 text(attrs.get("color")),
                 startsOn,
                 endsOn,
                 priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY);
+    }
+
+    /** 선택 필드라 못 읽으면 null이다 — 항목을 통째로 버리지 않는다. */
+    private static Integer number(Object value) {
+        if (value instanceof Number n) return n.intValue();
+        String s = text(value);
+        if (s == null) return null;
+        try {
+            return Integer.valueOf(s.replace(",", "").replace("원", "").trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static String text(Object value) {

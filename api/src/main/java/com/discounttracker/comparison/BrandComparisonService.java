@@ -85,7 +85,9 @@ public class BrandComparisonService {
                     // 어제 캡처된 오퍼가 있으면 이쪽이 이긴다(Offer.preferredOver).
                     today,
                     null,
-                    null,
+                    // 적혀 있으면 조건으로 함께 들어간다. 없으면 상세에
+                    // "최소주문 미확인"이 뜬다 — 감추지 않는다.
+                    banner.minOrder(),
                     null,
                     null,
                     banner.extra(),

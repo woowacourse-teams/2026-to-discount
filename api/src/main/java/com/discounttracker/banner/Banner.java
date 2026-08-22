@@ -18,6 +18,10 @@ import java.time.LocalDate;
  *                 원장에서 떼어낸 이유가 사라진다.
  * @param period   금액 우측 상단에 붙는 기간 문구("8/11 하루만").
  * @param extra    부가 조건. 없으면 null이고 화면에서 그 줄이 사라진다.
+ * @param minOrder 최소주문금액. 선택이지만 적어두면 이 배너가 오퍼로 설 때
+ *                 조건으로 함께 들어간다. {@code extra}에 "18,000원↑"이라고
+ *                 적어도 그건 사람이 읽는 문장일 뿐이라, 오퍼 상세의 조건
+ *                 칸은 빈 채로 "최소주문 미확인"이 뜬다.
  * @param color    브랜드색 강제 지정. 없으면 로고에서 뽑고, 그마저 실패하면
  *                 플랫폼 색으로 간다(프론트 brandColor.js).
  * @param priority 낮을수록 먼저. 안 적으면 {@link #DEFAULT_PRIORITY}.
@@ -30,6 +34,7 @@ public record Banner(
         String amount,
         String period,
         String extra,
+        Integer minOrder,
         String color,
         LocalDate startsOn,
         LocalDate endsOn,
