@@ -243,8 +243,12 @@ function OfferDetail({ offer }) {
                   {t.channel && <span className="detail__channel">{t.channel}</span>}
                 </span>
                 <span className="detail__tier-min">
+                  {/* "18,000원 이상 주문 시"는 구간이 여럿이면 같은 문구가
+                      줄마다 반복돼 정작 다른 부분(금액)이 안 읽힌다. 배너
+                      부가정보가 이미 쓰던 표기로 맞춘다 — 화살표 하나면
+                      "이 금액을 넘겨야 한다"가 전달된다. */}
                   {t.minOrder != null
-                    ? `${won(t.minOrder)} 이상 주문 시`
+                    ? <span aria-label={`${won(t.minOrder)} 이상 주문 시`}>{won(t.minOrder)}↑</span>
                     : <span className="detail__unknown">최소주문 미확인</span>}
                   {/* 구간마다 끝나는 날이 다를 수 있다 — 배민 청년피자는
                       일반 08-30, 배민클럽 08-31로 하루 차이다. 오퍼 전체의
