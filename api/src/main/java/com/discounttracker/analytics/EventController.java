@@ -49,7 +49,12 @@ public class EventController {
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;
     private static final Pattern VARIANT_TOKEN = Pattern.compile("[a-z0-9_-]{1,16}");
-    private static final int MAX_PROPS = 6;
+    // 필터 맥락 4종(fCategory, fPlatforms, fSort, fSearch)이 모든 이벤트에
+    // 붙는다. 6이면 이벤트 자신의 값을 두 개밖에 못 싣는데, banner_click은
+    // 네 개(banner, brand, platform, position)를 싣는다. 둘 다 들어가는
+    // 크기로 올린다. 순서는 프론트가 이벤트 값을 앞에 두므로, 그래도
+    // 넘치면 맥락이 먼저 떨어진다.
+    private static final int MAX_PROPS = 8;
 
     private final AnalyticsEventService events;
     private final ClientFingerprint fingerprint;

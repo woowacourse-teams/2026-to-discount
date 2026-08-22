@@ -133,8 +133,13 @@ function createAnalyticsEvent(event, additions = {}) {
     ...context,
     path: location.pathname,
     ...eventFields,
+    // 이벤트 고유 값이 먼저다. 서버가 props를 앞에서부터 세어 자르는데
+    // (EventController.MAX_PROPS), 맥락을 앞에 두니 잘리는 쪽이 하필
+    // 그 이벤트가 말하려던 값이었다 — banner_impression의 position이
+    // 통째로 유실돼 상단/하단 구분이 안 됐다(2026-08-22). 넘치면 맥락이
+    // 먼저 떨어져야 한다.
     props: (props || Object.keys(filterContext).length)
-      ? { ...filterContext, ...props }
+      ? { ...props, ...filterContext }
       : undefined,
     clientTs: new Date().toISOString(),
   }
