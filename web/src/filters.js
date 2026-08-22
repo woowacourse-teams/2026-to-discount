@@ -60,13 +60,30 @@ export function isDefaultFilters(f) {
 }
 
 /**
- * 그 카드의 최고 확정 할인액. 조건이 붙은 값(qualifier)과 품절은 뺀다 —
- * "최대"는 최소주문금액을 채워야 나오는 상한액이고 "특정메뉴"는 메뉴
- * 하나에만 쓰는 값이라, 같은 선에서 견줄 수 없다. 카드의 "최고 할인"
- * 배지가 고르는 값과 같은 규칙이다.
+ * 다른 오퍼와 같은 선에서 견줄 수 있는 값인가.
+ *
+ * "최대"(화면 배지 "불확정")는 최소주문금액을 채워야 나오는 상한액이고
+ * "특정메뉴"는 메뉴 하나에만 쓰는 값이라 액면 그대로 견주면 그 오퍼가
+ * 실제보다 세 보인다. "최적"(쿠폰을 다 겹쳤을 때)과 "행사"(당일 배너)는
+ * 조건이 붙을 뿐 액수 자체는 확정이라 넣는다.
+ *
+ * 같은 규칙이 api의 BrandComparisonService.confirmedSortingAmount()에도
+ * 있다(카드 정렬용). 한쪽만 고치면 API가 준 순서와 화면이 다시 세운 순서가
+ * 어긋난다(ADR-016).
+ */
+const INCOMPARABLE = new Set(['최대', '특정메뉴'])
+
+export function comparable(offer) {
+  return !INCOMPARABLE.has(offer.qualifier)
+}
+
+/**
+ * 그 카드의 최고 확정 할인액. 견줄 수 없는 값과 품절은 뺀다. 카드의
+ * "최고 할인" 배지가 고르는 값과 같은 규칙이다 — App.jsx가 이 함수의
+ * 판정(comparable)을 그대로 가져다 쓴다.
  */
 export function bestConfirmedAmount(offers) {
-  const plain = offers.filter((o) => !o.qualifier && o.amount != null && !o.soldOut)
+  const plain = offers.filter((o) => comparable(o) && o.amount != null && !o.soldOut)
   return plain.length === 0 ? null : Math.max(...plain.map((o) => o.amount))
 }
 

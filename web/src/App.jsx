@@ -7,7 +7,7 @@ import FilterSheet from './FilterSheet.jsx'
 import MenuBar from './MenuBar.jsx'
 import TopBarA from './TopBarA.jsx'
 import { uiVariant } from './variant.js'
-import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, defaultFilters, isDefaultFilters } from './filters.js'
+import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
 
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
@@ -69,22 +69,6 @@ function searchFallbackLink(platformKey, brandName) {
 }
 
 const CART_KEY = 'dk_cart'
-
-// 다른 오퍼와 같은 선에서 견줄 수 있는 값인가.
-//
-// "최대"(화면 배지 "불확정")는 최소주문금액을 채워야 나오는 상한액이고
-// "특정메뉴"는 메뉴 하나에만 쓰는 값이라, 액면 그대로 견주면 그 오퍼가
-// 실제보다 세 보인다. "최적"(쿠폰을 다 겹쳤을 때)과 "행사"(당일 배너)는
-// 조건이 붙을 뿐 액수 자체는 확정이라 넣는다.
-//
-// 같은 규칙이 api의 BrandComparisonService.confirmedSortingAmount()에도
-// 있다(카드 정렬용). 한쪽만 고치면 카드 순서와 카드 안 "최고 할인" 표식이
-// 서로 다른 답을 낸다(ADR-016).
-const INCOMPARABLE = new Set(['최대', '특정메뉴'])
-
-function comparable(offer) {
-  return !INCOMPARABLE.has(offer.qualifier)
-}
 
 function won(value) {
   return `${value.toLocaleString()}원`

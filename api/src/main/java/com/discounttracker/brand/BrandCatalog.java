@@ -110,6 +110,18 @@ public class BrandCatalog {
         return aliasToCanonical.getOrDefault(rawBrand.trim().toLowerCase(Locale.ROOT), rawBrand);
     }
 
+    /**
+     * brands.yml이 아는 이름인가(대표명이든 별칭이든).
+     *
+     * <p>배너는 사람이 앱에서 복사한 표기를 그대로 적는다 — 모르는 이름이면
+     * 로고 파일을 못 찾고 카드도 따로 선다. 부르는 쪽이 미리 알 수 있게
+     * 물어볼 길을 연다.
+     */
+    public boolean knows(String rawBrand) {
+        if (rawBrand == null) return false;
+        return aliasToCanonical.containsKey(rawBrand.trim().toLowerCase(Locale.ROOT));
+    }
+
     /** 대표명 -> 브랜드 정보. 목록에 없으면 이름만 있는 빈 브랜드. */
     public Brand find(String canonicalName) {
         return byName.getOrDefault(canonicalName, Brand.unknown(canonicalName));

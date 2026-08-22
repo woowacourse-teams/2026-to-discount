@@ -146,6 +146,7 @@ brands:
   페리카나:
     category: chicken
   푸라닭:
+    aliases: [푸라닭, 푸라닭치킨, puradak]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?QgXqFri
@@ -219,6 +220,7 @@ brands:
   오구쌀피자:
     category: pizza
   청년피자:
+    aliases: [청년피자, youngmanpizza]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?S5kWs2d
@@ -294,8 +296,10 @@ brands:
   공차:
     category: cafe
   던킨:
+    aliases: [던킨, 던킨도너츠, dunkin, dunkindonuts]
     category: cafe
   뚜레쥬르:
+    aliases: [뚜레쥬르, touslesjours, tlj]
     category: cafe
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?Ah1eLMD

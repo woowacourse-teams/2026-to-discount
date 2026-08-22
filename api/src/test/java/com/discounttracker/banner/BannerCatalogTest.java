@@ -270,4 +270,31 @@ class BannerCatalogTest {
         assertFalse(catalogOn(broken, "2026-08-22").reload());
         assertTrue(catalogOn(YAML, "2026-08-11").reload());
     }
+
+    @Test
+    void listsBannerBrandsThatBrandsYmlDoesNotKnow() {
+        // 모르는 이름이면 로고를 못 찾아 폴백 글자가 뜨고 기존 브랜드
+        // 카드와도 안 합쳐진다. 파일을 고친 사람이 바로 알아야 한다.
+        String yaml = """
+                banners:
+                  - id: known-20260820
+                    brand: goobne
+                    platform: yogiyo
+                    url: https://example.test/a
+                    amount: "6,500원"
+                    period: 상시
+                    startsOn: 2026-08-17
+                    endsOn: 2026-08-23
+                  - id: unknown-20260820
+                    brand: touslesjours
+                    platform: baemin
+                    url: https://example.test/b
+                    amount: "6,000원"
+                    period: 상시
+                    startsOn: 2026-08-17
+                    endsOn: 2026-08-23
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-08-20");
+        assertEquals(List.of("touslesjours"), catalog.unknownBrands());
+    }
 }

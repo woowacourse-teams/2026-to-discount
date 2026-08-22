@@ -52,6 +52,9 @@ public class BrandController {
         return Map.of(
                 "reloaded", offers.findAll().size(),
                 "banners", banners.active().size(),
-                "bannersOk", bannersOk);
+                "bannersOk", bannersOk,
+                // 비어 있어야 정상이다. 이름이 있으면 그 배너는 로고를 못 찾고
+                // 기존 브랜드 카드와도 안 합쳐진다 — brands.yml에 별칭 한 줄.
+                "unknownBrands", banners.unknownBrands());
     }
 }

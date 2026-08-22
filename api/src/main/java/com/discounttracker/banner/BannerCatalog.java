@@ -48,6 +48,9 @@ public class BannerCatalog {
     /** 기간 밖인 것까지 전부. 걸러내는 건 {@link #active()}에서 한다. */
     private volatile List<Banner> all = List.of();
 
+    /** brands.yml이 모르는 배너 브랜드 표기. {@link #reload()}가 채운다. */
+    private volatile List<String> unknownBrands = List.of();
+
     public BannerCatalog(@Value("${discount.banners-path:classpath:banners.yml}") Resource source,
                          Clock clock, BrandCatalog brands) {
         this.source = source;
@@ -78,6 +81,11 @@ public class BannerCatalog {
     public final boolean reload() {
         try {
             all = read();
+            unknownBrands = all.stream()
+                    .map(Banner::brand)
+                    .filter(b -> b != null && !brands.knows(b))
+                    .distinct()
+                    .toList();
             return true;
         } catch (RuntimeException e) {
             log.error("banners.yml을 읽지 못해 이전 목록을 유지한다(배너 {}건). "
@@ -97,6 +105,18 @@ public class BannerCatalog {
                 .filter(b -> b.activeOn(today))
                 .sorted(Comparator.comparingInt(Banner::priority).thenComparing(Banner::endsOn))
                 .toList();
+    }
+
+    /**
+     * brands.yml이 모르는 배너 브랜드 표기.
+     *
+     * <p>이 목록에 이름이 있으면 그 배너는 뜨긴 뜨지만 로고를 못 찾아 폴백
+     * 글자가 나오고, 오퍼로 세워도 기존 브랜드 카드와 안 합쳐진다. 파일을
+     * 고친 사람이 바로 알 수 있게 {@code POST /api/reload} 응답에 싣는다 —
+     * 2026-08-22에 goobne·hosigi가 그렇게 폴백 글자로 떴다.
+     */
+    public List<String> unknownBrands() {
+        return unknownBrands;
     }
 
     @SuppressWarnings("unchecked")
