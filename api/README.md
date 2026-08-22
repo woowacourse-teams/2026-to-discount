@@ -82,15 +82,14 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 ## 방문 측정 (analytics)
 
 경로·재방문·체류·행동은 자체 API가 수집하고 `events.jsonl`을 원본으로
-보존한다. **서버 outbox는 2026-08-21 현재 꺼져 있다**
-(`DISCOUNT_POSTHOG_ENABLED=false`) — 웹 SDK가 직접 보내는 것과 겹쳐 PostHog에
-`$pageview`가 두 번 기록됐다. 우리가 만든 이벤트는 같은 `eventId`를
-`$insert_id`로 써서 합쳐지지만, SDK가 자동으로 쏘는 이벤트는 제 uuid를 달고
-와서 그 규칙에 안 걸린다.
+보존한다. **서버 outbox는 2026-08-21 13:18(KST)부터 켜져 있다**
+(`DISCOUNT_POSTHOG_ENABLED=true`) — 광고 차단기·DNT로 클라이언트가 막힌
+방문자를 서버 경로로 회수한다(실측 10% 안팎, `scripts/coverage_snapshot.sh`).
 
-끈 대가는 광고 차단기·DNT로 클라이언트가 막힌 방문자를 아예 못 본다는
-것이다(실측 10% 안팎, `scripts/coverage_snapshot.sh`). 다시 켠다면 SDK의
-자동 발사를 먼저 확인해야 한다. 자체 수집을 둔 배경은
+그 전에 잠시 꺼 뒀던 이유는 `$pageview`가 두 번 기록돼서였다. 우리가 만든
+이벤트는 같은 `eventId`를 `$insert_id`로 써서 합쳐지지만, SDK가 자동으로
+쏘는 이벤트는 제 uuid를 달고 와서 그 규칙에 안 걸린다. 자동 발사를 끄면서
+(`capture_pageview: false`) 원인이 사라졌다. 자체 수집을 둔 배경은
 [ADR-005](docs/decisions/ADR-005-first-party-analytics.md), 전달 세부사항은
 [트래픽 수집·통계 문서](docs/traffic-analytics.md)를 참고한다.
 
