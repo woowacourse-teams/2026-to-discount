@@ -67,16 +67,22 @@ public class BannerCatalog {
      * <p>항목 단위 오류는 {@link #toBanner}가 이미 건너뛰고 있었는데, 파일
      * 전체가 파싱 안 되는 경우는 막혀 있지 않았다.
      *
-     * <p>배너만 안 보이고 나머지는 살아야 한다. 실패는 로그로 남고
-     * {@code POST /api/reload} 응답 건수로도 드러난다 — 고친 줄 알았는데
-     * 건수가 그대로면 아직 깨져 있는 것이다.
+     * <p>배너만 안 보이고 나머지는 살아야 한다. 다만 조용히 살면 안 된다 —
+     * 2026-08-22에 URL의 {@code ?}를 따옴표로 안 감싸 파일 전체가 깨졌는데,
+     * {@code POST /api/reload}가 200에 건수까지 돌려주는 바람에 배너를 넣은
+     * 사람은 반영된 줄 알았다. 성공 여부를 돌려줘 부르는 쪽이 알리게 한다.
+     *
+     * @return 파일을 다시 읽었으면 {@code true}, 실패해 이전 목록을 유지하면
+     *         {@code false}
      */
-    public final void reload() {
+    public final boolean reload() {
         try {
             all = read();
+            return true;
         } catch (RuntimeException e) {
             log.error("banners.yml을 읽지 못해 이전 목록을 유지한다(배너 {}건). "
                     + "파일을 고친 뒤 POST /api/reload로 다시 시도한다.", all.size(), e);
+            return false;
         }
     }
 

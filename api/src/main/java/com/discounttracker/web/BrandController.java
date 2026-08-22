@@ -42,11 +42,16 @@ public class BrandController {
      * 의심하면 된다.
      */
     @PostMapping("/reload")
-    public Map<String, Integer> reload() {
+    public Map<String, Object> reload() {
         offers.reload();
-        banners.reload();
+        // 배너 파일이 깨져도 200을 돌려준다 — 오퍼는 멀쩡히 다시 읽혔고,
+        // 배너는 부가 정보다. 대신 깨졌다는 사실을 응답에 실어 보낸다.
+        // 건수만 보고 판단하게 두면 "이전 목록 그대로"와 "새 배너가 마침
+        // 한 건"이 구분되지 않는다.
+        boolean bannersOk = banners.reload();
         return Map.of(
                 "reloaded", offers.findAll().size(),
-                "banners", banners.active().size());
+                "banners", banners.active().size(),
+                "bannersOk", bannersOk);
     }
 }

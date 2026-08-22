@@ -248,4 +248,26 @@ class BannerCatalogTest {
         assertTrue(catalogOn("", "2026-08-11").active().isEmpty());
         assertTrue(catalogOn("banners: []", "2026-08-11").active().isEmpty());
     }
+
+    @Test
+    void reportsWhetherTheFileCouldBeRead() {
+        // 깨진 파일을 조용히 넘기면 배너를 넣은 사람은 반영된 줄 안다 —
+        // 2026-08-22에 URL의 ?를 따옴표로 안 감싸 하루치 배너가 안 떴는데
+        // POST /api/reload는 200에 건수까지 돌려줬다.
+        String broken = """
+                banners: [
+                  {
+                    id: a-20260822,
+                    platform: ddangyo,
+                    url: https://example.test/x.html?abc,
+                    amount: "7,000원",
+                    period: 하루만,
+                    startsOn: 2026-08-22,
+                    endsOn: 2026-08-22
+                  }
+                ]
+                """;
+        assertFalse(catalogOn(broken, "2026-08-22").reload());
+        assertTrue(catalogOn(YAML, "2026-08-11").reload());
+    }
 }
