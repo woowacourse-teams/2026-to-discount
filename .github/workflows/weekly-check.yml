@@ -1,0 +1,53 @@
+name: Weekly Check
+
+# 매주 한 번 "어느 플랫폼을 다시 훑어야 하나"를 묻는다.
+#
+# 수집 자체는 실기(안드로이드)를 붙들어야 해서 자동화할 수 없다. 자동화할
+# 수 있는 것은 그 앞뒤다 — 언제 마지막으로 훑었는지, 무엇이 곧 끝나는지,
+# 그리고 커밋된 export가 원장에서 다시 만든 것과 같은지.
+#
+# 마지막 항목만 실패로 잡는다. export.json은 원장의 파생물이라 손으로
+# 고치면 다음 재생성 한 번에 조용히 되돌아간다 — 2026-08-22에 실제로
+# 그랬고, 그때는 배포까지 성공해서 아무도 몰랐다.
+#
+# "훑을 때가 됐다"는 실패로 잡지 않는다. 훑기 전까지 매주 빨간 불이 켜져
+# 있으면 그 불은 곧 무시된다 — check_deploy.py 서두가 같은 이유로 건수
+# 기반 가드를 기각했다.
+#
+# 결과는 잡 요약(Summary)에 그대로 붙는다. 실기 작업을 시작하기 전에
+# 그 화면만 보면 된다.
+
+on:
+  schedule:
+    # 월요일 00:00 UTC = 월요일 09:00 KST. 주가 시작될 때 무엇을 훑을지
+    # 알아야 한 주 안에 처리할 수 있다.
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tracker
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: pip install pytest
+
+      # 파이프라인이 깨져 있으면 아래 점검 결과 자체가 무의미하다. 먼저 본다.
+      - name: Tracker tests
+        run: python -m pytest -q
+
+      - name: Weekly check
+        run: |
+          set -o pipefail
+          python weekly_check.py | tee "$GITHUB_STEP_SUMMARY"

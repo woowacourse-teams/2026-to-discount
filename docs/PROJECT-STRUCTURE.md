@@ -102,6 +102,8 @@ tracker/tests/test_ledger_consistency.py
 tracker/tests/test_record_sweep.py
 tracker/tests/test_schema.py
 tracker/tests/test_store.py
+tracker/tests/test_weekly_check.py
+tracker/weekly_check.py
 web/.env.example
 web/.env.production
 web/.gitignore
@@ -175,7 +177,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 25 |
+| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 27 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 29 |
 
@@ -190,7 +192,7 @@ flowchart TB
 | 판독 계약 | `parse` |
 | 테스트 설정 | `conftest.py` |
 | 검증 | `tests` |
-| 기타 현재 모듈 | `config.py`, `contract_numbers.py`, `record_sweep.py` |
+| 기타 현재 모듈 | `config.py`, `contract_numbers.py`, `record_sweep.py`, `weekly_check.py` |
 
 공개 모노레포에는 수집 실행 원본인 `capture/`, `tracker.py`, `dashboard.py`,
 `config/`, `ref/`가 의도적으로 없다. 이 경계는
