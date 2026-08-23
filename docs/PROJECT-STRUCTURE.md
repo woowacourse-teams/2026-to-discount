@@ -90,6 +90,7 @@ tracker/export_data.py
 tracker/ingest.py
 tracker/parse/CONTRACT.md
 tracker/record_sweep.py
+tracker/requirements.txt
 tracker/schema.py
 tracker/store.py
 tracker/tests/test_check_brands.py
@@ -177,7 +178,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 27 |
+| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 29 |
 
@@ -192,7 +193,7 @@ flowchart TB
 | 판독 계약 | `parse` |
 | 테스트 설정 | `conftest.py` |
 | 검증 | `tests` |
-| 기타 현재 모듈 | `config.py`, `contract_numbers.py`, `record_sweep.py`, `weekly_check.py` |
+| 기타 현재 모듈 | `config.py`, `contract_numbers.py`, `record_sweep.py`, `requirements.txt`, `weekly_check.py` |
 
 공개 모노레포에는 수집 실행 원본인 `capture/`, `tracker.py`, `dashboard.py`,
 `config/`, `ref/`가 의도적으로 없다. 이 경계는

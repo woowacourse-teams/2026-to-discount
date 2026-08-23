@@ -41,7 +41,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install pytest
+      - run: pip install -r requirements.txt pytest
 
       # 파이프라인이 깨져 있으면 아래 점검 결과 자체가 무의미하다. 먼저 본다.
       - name: Tracker tests
