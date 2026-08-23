@@ -365,7 +365,8 @@ brands:
     # 쿠폰이 앱마다 갈릴 때도 있는 같은 브랜드.
     category: korean
     aliases: [유가네닭갈비, 유가네찜닭]
-    links: https://baemin.go.link/5H0ry
+    links:
+      baemin: https://baemin.go.link/5H0ry
   지지고:
     category: korean
   천지두루치기:
