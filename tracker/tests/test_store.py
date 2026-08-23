@@ -1,5 +1,5 @@
 import pytest
-from store import append_record, read_records, latest_per_brand
+from store import _prefer, append_record, read_records, latest_per_brand
 
 BASE = {
     "platform": "baemin",
@@ -167,3 +167,30 @@ def test_multi_platform_brands_respects_min_platforms():
     ]
     assert multi_platform_brands(records, min_platforms=3) == {"A": {"baemin", "ddangyo", "yogiyo"}}
     assert multi_platform_brands(records, min_platforms=4) == {}
+
+
+def test_badge_is_not_pulled_from_an_older_record():
+    """목록 카드에 같이 찍히는 값이라, 최신 캡처에 없으면 없어진 것이다.
+
+    2026-08-22 실측: 청년피자 땡겨요의 08-05·08-06 backfill 레코드가
+    07-31 스크린샷을 그대로 가리키면서 원문에 없는 "포장 +1,000"을 달고
+    있었고, 08-17 자동 전수 캡처가 같은 카드를 badge 없이 기록했는데도
+    그 값이 되살아났다.
+    """
+    old = dict(BASE, platform="ddangyo", brand="청년피자", amount=5000,
+               captured_at="2026-08-06T00:00:00+09:00", badge="포장 +1,000")
+    new = dict(BASE, platform="ddangyo", brand="청년피자", amount=5000,
+               captured_at="2026-08-17T01:24:03+09:00")
+
+    assert _prefer(old, new).get("badge") is None
+
+
+def test_detail_behind_a_tap_is_still_pulled_from_an_older_record():
+    """최소주문금액은 상세를 열어야 보인다 — 목록 캡처에 없는 게 정상이다."""
+    old = dict(BASE, platform="ddangyo", brand="청년피자", amount=5000,
+               captured_at="2026-08-06T00:00:00+09:00", min_order_amount=18900)
+    new = dict(BASE, platform="ddangyo", brand="청년피자", amount=5000,
+               captured_at="2026-08-17T01:24:03+09:00")
+
+    assert _prefer(old, new).get("min_order_amount") == 18900
+

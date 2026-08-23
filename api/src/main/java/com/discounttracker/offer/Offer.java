@@ -93,6 +93,20 @@ public record Offer(String platform, Integer amount, String qualifier,
         return winner.withDetailFrom(loser);
     }
 
+    /**
+     * 진 쪽에서 끌어올 수 있는 값. <b>화면 어디에 찍히는 값인지</b>로 가른다.
+     *
+     * <p>상세를 열어야 보이는 값(최소주문금액, 구간, 조건)은 목록 캡처에
+     * 없는 것이 정상이라 끌어온다. 반면 {@code badge}는 목록 카드에 금액과
+     * 나란히 찍힌다 — 최신 캡처가 그 카드를 보고도 안 적었으면 "못 봤다"가
+     * 아니라 "없어졌다"이다. 그래서 병합하지 않는다.
+     *
+     * <p>2026-08-22 실측: 청년피자 땡겨요의 근거 없는 backfill 배지가
+     * 08-17 자동 전수 캡처를 이기고 되살아났다.
+     *
+     * <p>tracker의 {@code store.MERGEABLE_DETAIL}과 <b>글자까지 같아야
+     * 한다</b>(ADR-016).
+     */
     private Offer withDetailFrom(Offer other) {
         boolean sameCoupon = amount == null || other.amount == null || amount.equals(other.amount);
         Integer mergedMinOrder = minOrderAmount != null ? minOrderAmount
@@ -103,15 +117,13 @@ public record Offer(String platform, Integer amount, String qualifier,
                 : sameCoupon ? other.conditions : null;
         String mergedExpiresAt = expiresAt != null ? expiresAt
                 : sameCoupon ? other.expiresAt : null;
-        String mergedBadge = badge != null ? badge
-                : sameCoupon ? other.badge : null;
         if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions
-                && mergedExpiresAt == expiresAt && mergedBadge == badge) {
+                && mergedExpiresAt == expiresAt) {
             return this;
         }
         // soldOut은 병합하지 않는다 — 이긴 쪽 자신의 amount에 매인 상태라
         // 진 쪽에서 옮겨 붙이면 관계없는 확정 레코드가 잘못 품절로 보인다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                mergedMinOrder, tierMode, mergedTiers, mergedConditions, mergedExpiresAt, mergedBadge, soldOut);
+                mergedMinOrder, tierMode, mergedTiers, mergedConditions, mergedExpiresAt, badge, soldOut);
     }
 }

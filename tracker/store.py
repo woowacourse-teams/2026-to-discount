@@ -47,6 +47,26 @@ def _same_coupon(winner: dict, loser: dict) -> bool:
         or winner["amount"] == loser["amount"]
 
 
+# 진 쪽에서 끌어올 수 있는 필드. **화면 어디에 찍히는 값인지**로 가른다.
+#
+#   상세를 열어야 보이는 값(최소주문금액, 구간, 조건)은 목록 캡처에 없는
+#   것이 정상이다. 없다고 "없어졌다"고 읽으면 안 되므로 끌어온다.
+#
+#   badge는 목록 카드에 금액과 나란히 찍힌다. 최신 캡처가 그 카드를 보고도
+#   badge를 안 적었으면 그건 "못 봤다"가 아니라 "없어졌다"이다. 그래서
+#   병합하지 않는다 — 2026-08-22에 청년피자 땡겨요가 이 때문에 막혔다.
+#   08-05·08-06 backfill 레코드가 07-31 스크린샷을 그대로 가리키면서
+#   원문에 없는 "포장 +1,000"을 달고 있었고, 08-17 자동 전수 캡처가 같은
+#   카드를 보고 badge 없이 기록했는데도 그 값이 되살아났다.
+#
+# expires_at은 남긴다. 목록에 찍히긴 하지만 빼면 23건이 만료일을 잃고
+# 추정(ADR-023)으로 떨어진다 — 그 판단은 따로 해야 한다.
+#
+# 이 목록은 API의 Offer.withDetailFrom과 **글자까지 같아야 한다**(ADR-016).
+# 두 레이어가 다르면 어느 쪽을 거치느냐에 따라 결과가 달라진다.
+MERGEABLE_DETAIL = ("min_order_amount", "tiers", "conditions", "expires_at")
+
+
 def _prefer(current: dict, incoming: dict) -> dict:
     """같은 (앱, 브랜드)에 레코드가 둘 이상이면 남길 쪽을 고른다.
 
@@ -81,12 +101,8 @@ def _prefer(current: dict, incoming: dict) -> dict:
 
     merged = dict(winner)
     if _same_coupon(winner, loser):
-        # API Offer.withDetailFrom과 같은 목록이어야 한다(ADR-016). 여기가
-        # 3개(min_order_amount/tiers/conditions)뿐이라 expires_at·badge가
-        # 병합되지 않아, 같은 원장을 tracker로 내보낼 때와 API가 읽을 때
-        # 결과가 달랐다 — 2026-08-05 백필 검증에서 땡겨요 bhc치킨·멕시카나
-        # 등의 만료일이 export 재생성에서 사라지며 드러났다.
-        for field in ("min_order_amount", "tiers", "conditions", "expires_at", "badge"):
+        # 목록 근거는 MERGEABLE_DETAIL 위 주석에 있다.
+        for field in MERGEABLE_DETAIL:
             if merged.get(field) is None and loser.get(field) is not None:
                 merged[field] = loser[field]
     return merged
