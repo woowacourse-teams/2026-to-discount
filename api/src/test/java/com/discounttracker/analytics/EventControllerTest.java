@@ -45,6 +45,27 @@ class EventControllerTest {
     }
 
     @Test
+    void acceptsBrandSearchSubmittedWithoutRawQuery() throws Exception {
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content(batch("""
+                            {"event":"brand_search_submitted","visitorId":"v_search",
+                             "sessionId":"s_search","props":{"inputLength":"4",
+                             "resultCount":"2","submitMethod":"enter"}}
+                            """)))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.accepted").value(1));
+
+        String loggedEvent = Files.readString(Path.of(logPath)).lines()
+                .filter(line -> line.contains("\"visitorId\":\"v_search\""))
+                .reduce((first, second) -> second)
+                .orElseThrow();
+        assertTrue(loggedEvent.contains("\"inputLength\":\"4\""));
+        assertTrue(loggedEvent.contains("\"resultCount\":\"2\""));
+        assertTrue(loggedEvent.contains("\"submitMethod\":\"enter\""));
+        assertFalse(loggedEvent.contains("query"));
+    }
+
+    @Test
     void recordsExperimentVariantAndRejectsJunk() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content(batch("""
