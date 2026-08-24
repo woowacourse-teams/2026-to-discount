@@ -108,3 +108,31 @@ def test_main_passes_when_server_file_absent(tmp_path):
     incoming.write_text(json.dumps([rec("BBQ", "ddangyo", "2026-08-05T00:00:00+09:00")]),
                         encoding="utf-8")
     assert main(["check_deploy.py", str(incoming), str(tmp_path / "nope.json")]) == 0
+
+
+def test_newer_capture_may_replace_an_expired_coupon():
+    """더 최신 관측이 옛 조건을 안 들고 있는 것은 손실이 아니다.
+
+    2026-08-24 실측: 또래오래 배민이 08-23 만료 쿠폰(19,000/4,000)을
+    들고 있었는데 08-24 캡처는 새 쿠폰(15,000/3,500)을 봤다. 쿠폰은
+    끝나고 갈리므로, 시각을 안 보면 정상 갱신마다 배포가 막힌다.
+    """
+    server = [dict(rec("또래오래", "baemin", "2026-08-17T10:00:00+09:00"),
+                   tiers=[{"minOrder": 19000, "amount": 4000}],
+                   expiresAt="2026-08-23")]
+    incoming = [dict(rec("또래오래", "baemin", "2026-08-24T12:00:00+09:00"),
+                     amount=3500, minOrderAmount=15000)]
+    assert staleness(incoming, server) is None
+
+
+def test_same_day_capture_that_drops_detail_is_still_blocked():
+    """같은 날 캡처끼리는 그대로 막는다.
+
+    이 가드가 원래 잡으려던 사고가 "시각이 같은데 내용만 비는" 경우다
+    (2026-08-05 청년피자 tiers·badge 소실). 위 완화가 그 구멍을 다시
+    열면 안 된다.
+    """
+    server = [dict(rec("청년피자", "ddangyo", "2026-07-31T16:00:00+09:00"),
+                   tiers=[{"minOrder": 18900, "amount": 5000}])]
+    incoming = [rec("청년피자", "ddangyo", "2026-07-31T16:00:00+09:00")]
+    assert staleness(incoming, server) is not None

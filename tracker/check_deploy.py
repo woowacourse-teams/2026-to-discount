@@ -60,6 +60,11 @@ def vanishing(incoming: list[dict], server: list[dict]) -> list[tuple[str, str]]
 DETAIL_FIELDS = ("tiers", "badge", "minOrderAmount", "conditions", "expiresAt")
 
 
+def _captured_day(record: dict) -> str:
+    """그 레코드를 본 날. 없으면 빈 문자열(어떤 날짜보다도 이르다)."""
+    return (record.get("capturedAt") or "")[:10]
+
+
 def losing_detail(incoming: list[dict], server: list[dict]) -> list[str]:
     """서버엔 채워져 있는데 들어오는 쪽에선 비는 상세 필드.
 
@@ -83,6 +88,17 @@ def losing_detail(incoming: list[dict], server: list[dict]) -> list[str]:
             continue  # 정식 경로 밖 값과 비교해 원장을 막지 않는다
         candidates = have.get(key(record))
         if not candidates:
+            continue
+        # 새 관측이 더 최신이면 값이 바뀌는 것이 정상이다. 쿠폰은 끝나고
+        # 갈린다 — 그때 옛 조건이 안 보이는 것은 손실이 아니라 갱신이다.
+        #
+        # 2026-08-24 실측: 또래오래 배민이 08-23 만료 쿠폰(19,000/4,000)을
+        # 들고 있었는데 08-24 캡처는 새 쿠폰(15,000/3,500)을 봤다. 시각을
+        # 안 보는 규칙이 이걸 "tiers 소실"로 막았다.
+        #
+        # 같은 날 캡처끼리는 그대로 본다 — 원래 이 가드가 잡으려던 사고가
+        # "시각이 같은데 내용만 비는" 경우였다(2026-08-05 청년피자).
+        if all(_captured_day(c) > _captured_day(record) for c in candidates):
             continue
         for field in DETAIL_FIELDS:
             # 빈 문자열·빈 리스트는 "채워진 값"이 아니다 — conditions:
