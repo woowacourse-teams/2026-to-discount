@@ -66,18 +66,51 @@ echo "== 갈래별 이벤트 =="
 jq -r "$KEEP | [.variant, .event] | @tsv" "$SRC" | sort | uniq -c
 
 # 이 실험이 답하려는 질문: 조건을 설정한 사람이 실제로 링크 이동까지
-# 가는가. 방문자 수로 나눠야 두 갈래를 견줄 수 있다 — 갈래마다 사람
-# 수가 다르면 총합만 봐서는 어느 쪽이 나은지 알 수 없다.
+# 가는가.
+#
+# **전환율이 주 지표다.** "1인당 링크이동"(총합 / 사람 수)은 소수가 많이
+# 누르면 통째로 부풀어 오판을 부른다 — 2026-08-24 실측에서 b의 클릭
+# 115회 중 43회가 한 사람이었고, 그 한 명 때문에 1인당이 0.37 대 0.74로
+# 갈려 "b가 두 배 낫다"처럼 보였다. 정작 전환율은 18.7% 대 18.1%로
+# 차이가 없었다(p=0.89).
+#
+# 그래서 셋을 같이 낸다.
+#   전환율    누른 사람 / 전체 사람 — 한 명이 여러 번 눌러도 1로 센다
+#   중앙값    전환자가 보통 몇 번 누르는가 — 헤비 유저에 안 흔들린다
+#   1인당     참고용. 위 둘과 어긋나면 분포를 의심할 것
 echo
-echo "== 방문자당 링크 이동 =="
+echo "== 갈래별 전환 =="
 jq -r "$KEEP | [.variant, .event, .visitorId] | @tsv" "$SRC" | awk -F'\t' '
   { seen[$1 "\t" $3] = 1 }
-  $2 == "offer_link_click" { clicks[$1]++ }
+  $2 == "offer_link_click" { clicks[$1 "\t" $3]++ }
   END {
-    for (k in seen) { split(k, p, "\t"); people[p[1]]++ }
-    for (v in people)
-      printf "  %s  방문자 %d명  링크이동 %d회  1인당 %.2f\n",
-             v, people[v], clicks[v] + 0, (people[v] ? (clicks[v] + 0) / people[v] : 0)
+    for (k in seen) {
+      split(k, p, "\t")
+      people[p[1]]++
+      n = clicks[k] + 0
+      total[p[1]] += n
+      if (n > 0) {
+        conv[p[1]]++
+        list[p[1]] = list[p[1]] " " n
+        if (n > top[p[1]]) top[p[1]] = n
+      }
+    }
+    for (v in people) {
+      m = 0
+      cnt = split(list[v], arr, " ")
+      s = 0
+      for (i = 1; i <= cnt; i++) if (arr[i] != "") vals[++s] = arr[i] + 0
+      if (s > 0) {
+        for (i = 1; i < s; i++)
+          for (j = i + 1; j <= s; j++)
+            if (vals[i] > vals[j]) { t = vals[i]; vals[i] = vals[j]; vals[j] = t }
+        m = (s % 2) ? vals[int(s / 2) + 1] : (vals[s / 2] + vals[s / 2 + 1]) / 2
+      }
+      delete vals
+      printf "  %s  방문자 %d명  전환 %d명(%.1f%%)  전환자 중앙 %g회  1인당 %.2f  최다 1명 %d회\n",
+             v, people[v], conv[v] + 0, (conv[v] + 0) / people[v] * 100,
+             m, total[v] / people[v], top[v] + 0
+    }
   }' | sort
 BODY
 }
