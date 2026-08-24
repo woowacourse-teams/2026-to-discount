@@ -527,13 +527,13 @@ function SiteFooter() {
  * 입력하는 동안에는 목록이 흔들리지 않는다. 엔터나 돋보기로 확정해야
  * 필터가 걸린다 — 글자마다 다시 거르면 지우는 중에도 결과가 요동친다.
  */
-function SearchControl({ value, onChange, chips }) {
+function SearchControl({ value, onChange, onSubmit, chips }) {
   const [draft, setDraft] = useState(value)
 
   // 바깥에서 검색어를 지우면(칩의 X, 초기화) 입력창도 따라 비어야 한다.
   useEffect(() => { setDraft(value) }, [value])
 
-  const submit = () => onChange(draft.trim())
+  const submit = (method) => onSubmit(draft, method)
 
   return (
     <div className="search-field">
@@ -550,11 +550,12 @@ function SearchControl({ value, onChange, chips }) {
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') submit()
+          if (e.key === 'Enter') submit('enter')
           if (e.key === 'Escape') { setDraft(''); onChange('') }
         }}
       />
-      <button type="button" className="search-field__submit" aria-label="검색" onClick={submit}>
+      <button type="button" className="search-field__submit" aria-label="검색"
+        onClick={() => submit('button')}>
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
           <circle cx="11" cy="11" r="7" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -695,6 +696,23 @@ export default function App() {
   })
   const [cartOnly, setCartOnly] = useState(false)
 
+  // 입력 중인 문자열이 아니라 사용자가 확정한 검색만 센다. 원문은 보내지
+  // 않고 길이만 남겨, 검색 행동은 분석하되 자유 입력 개인정보는 수집하지 않는다.
+  const submitSearch = (raw, submitMethod) => {
+    const query = raw.trim()
+    const nextFilters = { ...filters, search: query }
+    setFilters(nextFilters)
+    if (query === '') return
+
+    track('brand_search_submitted', {
+      inputLength: query.length,
+      resultCount: brands
+        ? applyFilters(brands, nextFilters, { cart, cartOnly }).length
+        : undefined,
+      submitMethod,
+    })
+  }
+
   useEffect(() => {
     try {
       localStorage.setItem(CART_KEY, JSON.stringify([...cart]))
@@ -793,7 +811,7 @@ export default function App() {
           filters={filters}
           setFilters={setFilters}
           search={search}
-          setSearch={setSearch}
+          onSearchSubmit={submitSearch}
           cart={cart}
           cartOnly={cartOnly}
           setCartOnly={setCartOnly}
@@ -816,6 +834,7 @@ export default function App() {
           <SearchControl
             value={search}
             onChange={setSearch}
+            onSubmit={submitSearch}
             chips={(
               <>
                 {/* 모아보기가 켜지면 다른 조건이 안 먹는다 — 결과가 왜
