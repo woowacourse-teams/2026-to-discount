@@ -61,26 +61,13 @@ class PostHogEventMapperTest {
     }
 
     @Test
-    void marksNarrowDesktopAsSuspectedDeveloperTraffic() {
-        // ?dev=1 표시는 브라우저·프로필마다 따로 잡혀 일부만 걸린다. desktop인데
-        // 창이 좁으면 반응형 확인이므로 표시를 남긴다(거르지는 않는다).
-        assertEquals(true, mapper.map(withDevice("desktop", "360x900"))
-                .orElseThrow().properties().get("dev_suspect"));
-
-        // 경계: 400px은 아직 실기기 범위다(가장 넓은 흔한 폰이 430px).
-        assertNull(mapper.map(withDevice("desktop", "400x900"))
-                .orElseThrow().properties().get("dev_suspect"));
-
-        // 좁아도 mobile이면 그냥 폰이다.
-        assertNull(mapper.map(withDevice("mobile", "360x780"))
-                .orElseThrow().properties().get("dev_suspect"));
-
-        // 폭을 못 읽으면 모르는 것이지 좁은 것이 아니다 — 실사용자를 조용히
-        // 빼지 않는다.
-        assertNull(mapper.map(withDevice("desktop", null))
-                .orElseThrow().properties().get("dev_suspect"));
-        assertNull(mapper.map(withDevice("desktop", "이상한값"))
-                .orElseThrow().properties().get("dev_suspect"));
+    void keepsViewportButNeverGuessesDeveloperTraffic() {
+        // 좁은 desktop을 개발 트래픽으로 몰던 규칙을 걷었다. 안드로이드
+        // 폰 사용자 368명이 그렇게 빠지고 있었다. viewport는 그대로 실어
+        // 보내고, 판정은 원장 전체를 보는 scripts/experiments.py가 한다.
+        var narrowDesktop = mapper.map(withDevice("desktop", "360x900")).orElseThrow();
+        assertNull(narrowDesktop.properties().get("dev_suspect"));
+        assertEquals("360x900", narrowDesktop.properties().get("viewport"));
     }
 
     private VisitEvent withDevice(String device, String viewport) {

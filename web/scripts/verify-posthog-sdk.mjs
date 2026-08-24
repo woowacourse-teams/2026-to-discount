@@ -132,9 +132,10 @@ assert.deepEqual(domainEventProperties, {
   viewport: '390x844',
 })
 
-// 개발 추정 표시. 서버 매퍼와 같은 규칙이라야 경로에 따라 표시가 있다
-// 없다 하지 않는다.
-const devSuspect = (device, viewport) => {
+// 개발 추정 표시는 더 이상 붙이지 않는다. 좁은 desktop을 개발 트래픽으로
+// 몰던 규칙이 안드로이드 폰 사용자를 걸러냈다. viewport만 실어 보내고
+// 판정은 원장 전체를 보는 scripts/experiments.py가 한다.
+const captured = (device, viewport) => {
   const fresh = adapter()
   fresh.instance.initPostHog()
   fresh.instance.captureAnalyticsEvent({
@@ -144,12 +145,12 @@ const devSuspect = (device, viewport) => {
     device,
     viewport,
   })
-  return fresh.client.calls.capture.at(-1)?.[1]?.dev_suspect
+  return fresh.client.calls.capture.at(-1)?.[1]
 }
-assert.equal(devSuspect('desktop', '360x900'), true)
-assert.equal(devSuspect('desktop', '400x900'), undefined)
-assert.equal(devSuspect('mobile', '360x780'), undefined)
-assert.equal(devSuspect('desktop', undefined), undefined)
+assert.equal(captured('desktop', '360x900').dev_suspect, undefined)
+assert.equal(captured('desktop', '360x900').viewport, '360x900')
+assert.equal(captured('mobile', '360x780').dev_suspect, undefined)
+
 assert.equal(domainEventOptions.uuid, '123e4567-e89b-42d3-a456-426614174000')
 assert.equal(domainEventOptions.timestamp.toISOString(), clientTs)
 assert.equal(domainEventOptions.send_instantly, undefined)

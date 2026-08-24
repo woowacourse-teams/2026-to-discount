@@ -241,10 +241,11 @@ track('banner_click', { brand: banner.brand ?? 'none', platform: banner.platform
 > 2026-08-20 실측에서 방문자 43명 중 8명(19%)이 표시 없는 개발 트래픽이었다.
 > A/B 표본이 수십 명일 때 이 비율은 결론을 뒤집는다.
 >
-> 표시를 빠뜨린 경우를 위해 서버가 `device=desktop`이면서 뷰포트 폭이 400px
-> 미만인 이벤트에 `dev_suspect`를 붙인다(데스크톱 창을 줄인 반응형 확인).
-> 판정 기준과 배경은 [api/docs/traffic-analytics.md](../api/docs/traffic-analytics.md)에
-> 있다. 보조 수단일 뿐이니 `?dev=1`을 켜는 편이 확실하다.
+> 표시를 빠뜨린 트래픽은 집계할 때 세션 모양으로 추정해 뺀다(한 세션 안에서
+> 창 폭이 여러 개면 개발자). 수집 시점에는 판정하지 않는다 — 예전에 그렇게
+> 했다가 안드로이드 폰 사용자 368명을 개발자로 몰아냈다. 배경은
+> [api/docs/traffic-analytics.md](../api/docs/traffic-analytics.md)에 있다.
+> 추정은 추정이니 `?dev=1`을 켜는 편이 확실하다.
 
 집계할 때는 이 값을 제외한다:
 

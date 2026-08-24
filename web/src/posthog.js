@@ -14,25 +14,19 @@ function put(target, key, value) {
   if (value !== undefined && value !== null) target[key] = value
 }
 
-/**
- * 표시가 안 붙은 개발 트래픽으로 보이는지. 서버 쪽
- * `PostHogEventMapper.looksLikeDeveloper()`와 같은 규칙이다.
+/*
+ * 개발 트래픽 추정은 여기서 하지 않는다.
  *
- * <p>서버 릴레이만 이 표시를 붙이고 있어서, 클라이언트가 직접 보내는
- * 이벤트에는 안 붙었다 — SDK가 돌기 시작한 2026-08-21부터 같은 사람의
- * 이벤트가 경로에 따라 표시가 있다 없다 했다.
+ * 예전에는 desktop이면서 폭 400px 미만이면 dev_suspect를 붙였다. 그 규칙이
+ * 안드로이드 폰 사용자 368명을 개발자로 몰아냈다 — device를 아래
+ * analytics.js가 matchMedia('(hover: hover)')로 정하는데 일부 안드로이드
+ * 브라우저가 hover:hover를 보고하기 때문이다.
  *
- * <p>기준을 바꿀 때는 세 곳을 함께 고친다: 여기, 서버 매퍼,
- * `scripts/ab_report.sh`. 한 곳만 고치면 도구마다 다른 숫자가 나온다.
- * 배경은 api/docs/traffic-analytics.md에 있다.
+ * 진짜 개발자는 한 세션 안에서 창 크기를 바꿔 가며 본다(폭 [390, 1280]).
+ * 폰은 세션 내내 폭이 하나다. 이벤트 하나만 보고는 못 가르는 판단이라
+ * 원장을 통째로 읽는 scripts/experiments.py 한 곳에만 둔다. 여기서는
+ * viewport를 그대로 실어 보내기만 하면 된다.
  */
-function looksLikeDeveloper(envelope) {
-  if (envelope.device !== 'desktop') return false
-  const width = Number.parseInt(String(envelope.viewport ?? '').split('x')[0], 10)
-  // 폭을 못 읽었으면 모르는 것이지 좁은 것이 아니다 — 모르는 것을 개발
-  // 트래픽으로 몰면 실사용자가 조용히 빠진다.
-  return Number.isFinite(width) && width > 0 && width < 400
-}
 
 function captureTimestamp(value) {
   if (typeof value !== 'string' || value.trim() === '') return undefined
@@ -161,7 +155,6 @@ export function createPostHogAdapter({
       // 빠지면 PostHog에서 A/B를 못 가른다 — 원장에는 남지만 퍼널·리텐션이
       // 두 안을 구분하지 못한다.
       put(properties, 'variant', envelope.variant)
-      if (looksLikeDeveloper(envelope)) properties.dev_suspect = true
       put(properties, 'viewport', envelope.viewport)
       put(properties, 'dwell_ms', envelope.dwellMs)
 

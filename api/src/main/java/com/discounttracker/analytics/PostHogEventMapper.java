@@ -15,12 +15,6 @@ import java.util.Optional;
 @Component
 public class PostHogEventMapper {
 
-    /**
-     * 이 폭 미만이면서 desktop이면 개발 트래픽으로 본다. 400px은 가장 넓은
-     * 흔한 폰(430px)보다 아래라 실기기와 겹치지 않는다.
-     */
-    private static final int DEV_SUSPECT_MAX_WIDTH = 400;
-
     private final Clock clock;
 
     public PostHogEventMapper(Clock clock) {
@@ -46,7 +40,6 @@ public class PostHogEventMapper {
         put(properties, "referrer", source.referrer());
         put(properties, "device", source.device());
         put(properties, "variant", source.variant());
-        if (looksLikeDeveloper(source)) properties.put("dev_suspect", true);
         put(properties, "viewport", source.viewport());
         put(properties, "dwell_ms", source.dwellMs());
         put(properties, "server_timestamp", source.ts());
@@ -60,41 +53,22 @@ public class PostHogEventMapper {
                 timestamp));
     }
 
-    /**
-     * 표시가 안 붙은 개발 트래픽으로 보이는지.
+    /*
+     * 개발 트래픽 추정은 여기서 하지 않는다.
      *
-     * <p>{@code ?dev=1}로 켜는 표시는 localStorage에 남아 브라우저·프로필·
-     * 시크릿창마다 따로 잡힌다. 기기가 여럿이면 일부만 걸리고 나머지는 그대로
-     * 섞여 들어온다 — 실측으로 방문자 43명 중 8명(19%)이 그렇게 새고 있었다.
+     * 예전에는 desktop이면서 폭 400px 미만이면 dev_suspect를 붙였다. 그
+     * 규칙이 안드로이드 폰 사용자 368명을 개발자로 몰아냈다 — device를
+     * 프론트가 matchMedia('(hover: hover)')로 정하는데 일부 안드로이드
+     * 브라우저가 hover:hover를 보고하기 때문이다. 걸러낸 무리의 전환율이
+     * 남은 쪽보다 높았던 것이 단서였다.
      *
-     * <p>{@code device}는 프론트가 {@code matchMedia('(hover: hover)')}로 정한다.
-     * desktop인데 뷰포트 폭이 좁으면 데스크톱 브라우저 창을 줄여 놓은 것, 곧
-     * 반응형 확인이다. 실제 사용자에게는 거의 안 나오는 조합이다.
-     *
-     * <p>거르지 않고 표시만 남긴다. 무엇이 개발 트래픽인지는 나중에 바뀔 수
-     * 있는 판단이라, 안 보내버리면 되돌릴 수 없다. PostHog에서는 이 속성으로
-     * 필터한다. 자체 원장은 원본을 그대로 갖고 있어 집계할 때 같은 규칙을
-     * 다시 적용한다(scripts/ab_report.sh).
+     * 개발 트래픽은 세션 전체를 봐야 갈린다: 진짜 개발자는 한 세션 안에서
+     * 창 크기를 바꿔 가며 본다(폭 [390, 1280]), 폰은 세션 내내 폭이 하나다.
+     * 이벤트 하나만 보는 여기서는 알 수 없는 판단이라 원장을 통째로 읽는
+     * scripts/experiments.py 한 곳에만 둔다. 명시 표시(?dev=1)는 위 map()
+     * 첫 줄에서 그대로 걸러 PostHog로 안 보낸다.
      */
-    private static boolean looksLikeDeveloper(VisitEvent source) {
-        if (!"desktop".equals(source.device())) return false;
-        int width = viewportWidth(source.viewport());
-        // 폭을 못 읽었으면(0) 모르는 것이지 좁은 것이 아니다 — 모르는 것을
-        // 개발 트래픽으로 몰면 실사용자가 조용히 빠진다.
-        return width > 0 && width < DEV_SUSPECT_MAX_WIDTH;
-    }
 
-    /** {@code "390x844"}에서 앞 숫자. 못 읽으면 0(모름). */
-    private static int viewportWidth(String viewport) {
-        if (viewport == null) return 0;
-        int x = viewport.indexOf('x');
-        if (x <= 0) return 0;
-        try {
-            return Integer.parseInt(viewport.substring(0, x).trim());
-        } catch (NumberFormatException ex) {
-            return 0;
-        }
-    }
 
     private String timestamp(String serverTimestamp) {
         Instant parsed = parse(serverTimestamp);

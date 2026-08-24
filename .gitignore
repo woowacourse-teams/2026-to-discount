@@ -2,3 +2,6 @@
 .DS_Store
 *.log
 __pycache__/
+
+# experiments.py가 받아 두는 원장 사본. 방문 데이터라 저장소에 안 넣는다.
+scripts/.events.jsonl

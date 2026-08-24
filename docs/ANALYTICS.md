@@ -10,13 +10,15 @@
 | 어디에 쌓이나 | **자체 원장** `events.jsonl`(단일 진실) + **PostHog**(탐색용) |
 | 누구인지 아나 | 모른다. `visitorId`는 브라우저가 만든 난수, 지우면 끊긴다 |
 | A/B는 어떻게 가르나 | 모든 이벤트의 `variant` 속성 (`a` / `b`) |
-| 개발자 트래픽은 | `dev`(확실) + `dev_suspect`(추정) 두 표시로 구분. **지우지 않는다** |
+| 개발자 트래픽은 | `dev`(확실) 표시 + 원장 집계 때 세션 모양으로 추정. **지우지 않는다** |
 | 판정은 무엇으로 | **원장**. PostHog는 탐색용 (아래 "왜 둘인가") |
 
 **바로 쓰는 집계 명령**
 
 ```bash
-cd <monorepo> && bash scripts/ab_report.sh
+cd <monorepo> && python scripts/experiments.py segments   # 차원별 전환율
+python scripts/experiments.py compare --by variant        # A/B + z검정
+python scripts/experiments.py --help                      # 나머지 명령
 ```
 
 ---
@@ -33,7 +35,7 @@ cd <monorepo> && bash scripts/ab_report.sh
   원장     방문자 a 13명 / b 22명
 ```
 
-원장에는 `dev_suspect` 규칙이 처음부터 있었고 PostHog에는 나중에 붙었다. **과거 데이터에는 PostHog 쪽에 그 표시가 없다.** 확정 수치는 원장으로 낸다.
+원장은 원본을 그대로 갖고 있어 판정 규칙을 나중에 고쳐 다시 셀 수 있다. PostHog는 보낸 시점의 속성이 박혀 있어 그럴 수 없다 — 실제로 개발 트래픽 추정 규칙이 틀린 것으로 드러났을 때 원장만 되돌릴 수 있었다. 확정 수치는 원장으로 낸다.
 
 ### 2. 표본이 작을 때 "1인당"은 거짓말한다
 
@@ -113,8 +115,8 @@ cd <monorepo> && bash scripts/ab_report.sh
 | 필드 | 뜻 | 주의 |
 |---|---|---|
 | `variant` | A/B 갈래 (`a`/`b`) | `visitorId` 해시로 정해져 재방문해도 안 바뀐다 |
-| `device` | `mobile` / `desktop` | UA가 아니라 `matchMedia('(hover: hover)')` |
-| `viewport` | `"390x844"` | `dev_suspect` 판정에 쓰인다 |
+| `device` | `mobile` / `desktop` | UA가 아니라 `matchMedia('(hover: hover)')`. **일부 안드로이드 브라우저가 `hover:hover`를 보고해 폰이 desktop으로 잡힌다 — 이 값만으로 기기를 가르지 말 것** |
+| `viewport` | `"390x844"` | 개발 트래픽 판정의 핵심 단서 (아래 참고) |
 | `referrer` | `direct` / `internal` / `external` | 원본 URL은 안 받는다 |
 | `path` | 경로만 | 쿼리스트링 없음 |
 | `eventId` | 이벤트마다 UUID 1개 | 재전송·이중 경로 중복 제거 키 |
@@ -137,12 +139,12 @@ cd <monorepo> && bash scripts/ab_report.sh
 
 ## 개발자 트래픽 구분
 
-**두 겹이다. 둘 다 지우지 않고 표시만 남긴다.**
+**표시는 지우지 않는다. 무엇이 개발 트래픽인지는 나중에 바뀔 수 있는 판단이라, 안 받아버리면 되돌릴 수 없다.**
 
-| 표시 | 판정 | 확실성 |
+| 표시 | 판정 | 어디서 |
 |---|---|---|
-| `dev: true` | `?dev=1`을 연 브라우저 | 확실 |
-| `dev_suspect: true` | `device=desktop` **AND** 뷰포트 폭 < 400px | 추정 |
+| `dev: true` | `?dev=1`을 연 브라우저 | 수집 시점. 확실하다 |
+| (추정) | 세션 안에서 창 폭이 여러 개이고 최대 폭 ≥ 800px | **집계 시점**. `scripts/experiments.py`만 |
 
 ### `?dev=1`은 창마다 따로 켜야 한다
 
@@ -150,13 +152,23 @@ cd <monorepo> && bash scripts/ab_report.sh
 
 > 2026-08-20 실측: 방문자 43명 중 **8명(19%)**이 표시 없는 개발 트래픽이었다. 표본이 수십 명일 때 이 비율은 결론을 뒤집는다.
 
-### `dev_suspect`가 보조하는 이유
+### 추정은 이벤트 하나로 못 한다 — 그렇게 하다 368명을 잃었다
 
-`device`는 `matchMedia('(hover: hover)')`로 정한다. desktop인데 창이 좁으면 데스크톱 브라우저를 줄여 놓은 것, 곧 반응형 확인이다. 400px은 가장 넓은 흔한 폰(430px)보다 아래라 실기기와 안 겹친다.
+예전 규칙은 `device == "desktop" AND 뷰포트 폭 < 400px`이었고, 이벤트 하나만 보고 판정해 수집 시점에 `dev_suspect`를 붙였다. **이 규칙이 안드로이드 폰 사용자 368명을 개발자로 몰아냈다.**
 
-폭을 못 읽으면 표시를 **안** 붙인다 — 모르는 것을 개발 트래픽으로 몰면 실사용자가 조용히 빠진다.
+```
+걸러낸 무리의 폭 분포   384(3203)  360(1337)  368(133)  320(83)   전부 폰 폭
+걸러낸 무리의 전환율    41.9%   (남긴 쪽 33.9%보다 높다)  ← 이게 단서였다
+걸러낸 무리의 93%      세션 내내 폭이 하나:  [384]  또는  [360]
 
-**주의**: `dev_suspect`는 2026-08-21부터 붙는다. 그 이전 PostHog 데이터에는 없다.
+진짜 개발자의 폭       [849, 1283]   [1309, 1554, 1745, 1862]   [390, 1280]
+```
+
+원인은 `device`가 `matchMedia('(hover: hover)')`라는 것 — 일부 안드로이드 브라우저가 `hover:hover`를 보고한다.
+
+**지금 규칙**: 한 사람의 세션 전체에서 뷰포트 폭이 여러 개로 나오고 그중 최대가 800px 이상이면 개발자. 창을 조절해 가며 본 흔적이다. 폰은 세션 내내 폭이 하나다.
+
+이 판정은 **한 사람의 이벤트를 전부 모아야** 내릴 수 있다. 그래서 이벤트 하나만 보는 서버 매퍼와 브라우저 SDK에서는 판정하지 않는다. `dev_suspect` 속성은 더 이상 붙지 않는다.
 
 ---
 
@@ -170,8 +182,8 @@ cd <monorepo> && bash scripts/ab_report.sh
 ```
 
 ```bash
-# 갈래별 집계 (개발 트래픽 두 규칙 모두 제외)
-bash scripts/ab_report.sh
+# 집계 (개발 트래픽 제외는 기본값)
+python scripts/experiments.py segments
 
 # 직접 볼 때
 ssh <서버> "jq -c 'select(.dev != true)' /home/ubuntu/delivery-discount-api/data/events.jsonl"
@@ -194,7 +206,7 @@ await fetch('/api/projects/548055/query/', {
 })
 ```
 
-PostHog에서 개발자를 빼려면 `dev_suspect is not set` 필터를 건다.
+PostHog에서는 `?dev=1` 트래픽이 애초에 안 넘어온다. 표시 없는 개발 트래픽은 PostHog 쪽에서 못 거른다 — 세션 전체를 봐야 갈리기 때문이다. 그 구분이 필요한 판정은 원장으로 낸다.
 
 ---
 
@@ -352,10 +364,11 @@ VITE_POSTHOG_KEY / VITE_POSTHOG_HOST 가 있어야 동작
 | 새 이벤트가 안 쌓인다 | `ALLOWED_EVENTS`에 없음 | `npm run test:event-contract` |
 | PostHog에 `web` 출처가 0건 | 키 없음 또는 DNT | 번들에 posthog 청크 있는지, `navigator.doNotTrack` |
 | 내 클릭이 실데이터에 섞임 | 그 창에 `?dev=1` 안 켬 | `localStorage.dk_dev` |
-| PostHog와 원장 숫자가 다름 | `dev_suspect` 시점 차이 | 원장을 믿는다 |
+| PostHog와 원장 숫자가 다름 | 개발 트래픽 제외 범위가 다르다 | 원장을 믿는다 |
 | 리텐션이 끊김 | `person_profiles` 방침이 두 경로에서 갈림 | `posthog.js` 설정 |
 | 갈래가 한쪽만 나옴 | `.env.production`에 `VITE_UI_VARIANT` 남아 있음 | 그 줄을 지운다 |
-| 갈래 차이가 두 배로 보임 | 1인당 총합을 봤다 — 소수가 많이 눌러 부푼다 | `ab_report.sh`의 전환율·최다 1명 |
+| 갈래 차이가 두 배로 보임 | 1인당 총합을 봤다 — 소수가 많이 눌러 부푼다 | `experiments.py compare`의 전환율 |
+| 모바일 사용자가 통계에서 사라짐 | `device`만 보고 걸렀다 — 폰이 desktop으로 잡힌다 | `compare --by width` |
 
 ## 지표를 볼 때 지켜야 할 것
 
@@ -371,8 +384,9 @@ VITE_POSTHOG_KEY / VITE_POSTHOG_HOST 가 있어야 동작
   최다 1명   a 15회   b 43회     ← b 총 클릭 115회 중 43회가 한 사람
 ```
 
-`ab_report.sh`가 이제 넷을 같이 낸다. **전환율이 주 지표**이고 1인당은
-참고값이다 — 둘이 어긋나면 분포를 의심할 것.
+`experiments.py`는 방문자 단위로만 센다 — 한 사람이 몇 번 누르든 1이다.
+신뢰구간(Wilson)과 z검정을 같이 내므로 "차이가 있어 보인다"와 "차이가
+있다"를 구분할 수 있다.
 
 ### 방문자 급증은 배포와 무관하다
 
@@ -392,23 +406,107 @@ UI를 바꾸면 **재방문자만** 흔들린다. 그들은 이전 화면에 익
 
 ```
            08-10~18       08-19~24      검정
-재방문     31.8%          15.8%         z=-5.19  p<0.0001  유의
-신규       17.4%          17.1%         z=-0.09  p=0.93    변화 없음
+재방문     34.8%          18.0%         z=-5.28  p<0.0001  유의
+신규       17.6%          20.6%         z= 1.11  p=0.27    변화 없음
+```
+
+같은 개편에서 `brand_expand`(카드 펼치기)가 사실상 죽었다. 08-14 51건 →
+08-16 7건 → 이후 한 자릿수. 재방문자가 익힌 경로가 통째로 바뀐 것이
+원인이라는 해석과 맞는다.
+
+```bash
+python scripts/experiments.py compare --by period:2026-08-19
+python scripts/experiments.py funnel --steps page_view,category_change,brand_expand,offer_link_click
 ```
 
 합쳐서 보면 "전환율이 25%에서 18%로 떨어졌다"로만 보이고 원인이 안
 드러난다. 갈라야 어느 쪽이 무엇에 반응했는지 보인다.
 
-## 판정 기준이 두 곳에 있다
+## 판정 기준은 한 곳에만 둔다
 
-`dev_suspect` 규칙은 아래 두 곳에 각각 구현돼 있다.
+개발 트래픽 판정은 `scripts/experiments.py`의 `Visitor.looks_developer()`
+하나뿐이다. 예전에는 같은 규칙이 서버 매퍼·브라우저 SDK·집계 셸 스크립트
+세 곳에 복사돼 있었고, 그 규칙이 틀린 것으로 드러났을 때 세 곳이 각각 다른
+숫자를 내고 있었다.
 
+수집 쪽(서버·브라우저)은 판정하지 않는다 — `viewport`를 그대로 실어 보낼
+뿐이다. 판정은 원장 전체를 읽는 집계 쪽에서만 한다. 규칙이 또 바뀌어도
+과거 데이터를 다시 셀 수 있다.
+
+## 실험을 세우고 검증하는 법
+
+`scripts/experiments.py` 하나로 다 한다. 원장을 방문자 단위로 접어
+집단을 나누고, 전환율과 신뢰구간과 z검정을 낸다.
+
+### 시작 전: 표본이 되는지 먼저 본다
+
+```bash
+python scripts/experiments.py power --baseline 0.34
 ```
-api/.../PostHogEventMapper.looksLikeDeveloper()   PostHog로 넘길 때
-scripts/ab_report.sh 의 KEEP 필터                  원장 집계할 때
+```
+기준 전환율 33.3%, 상대 개선 목표별 갈래당 필요 인원 (검정력 80%)
+  +   5%  →  12,730명       ← 이 규모는 못 모은다
+  +  10%  →   3,218명
+  +  15%  →   1,445명
+  +  20%  →     821명
+  +  30%  →     371명       ← 현실적인 하한
 ```
 
-원장은 jq로 읽고 릴레이는 Java라 코드를 공유할 수 없다. **기준을 바꿀 때는 둘 다 고쳐야 한다.** 한쪽만 고치면 도구마다 다른 숫자가 나온다.
+**지금 트래픽(하루 60~250명)으로는 상대 30% 이상 차이만 잡힌다.**
+그보다 작은 개선을 A/B로 증명하려 들면 몇 달이 걸린다. 작은 변화는
+A/B 대신 퍼널의 어느 단계가 새는지로 판단한다.
+
+### 갈래를 가르는 축
+
+| `--by` | 나누는 기준 | 쓰는 곳 |
+|---|---|---|
+| `variant` | `a` / `b` | 계획된 A/B |
+| `returning` | 재방문 / 신규 | UI 개편의 영향 (재방문자만 흔들린다) |
+| `width` | 최소 뷰포트 폭 | 기기 구분. `device`보다 믿을 만하다 |
+| `referrer` | direct / external / internal | 유입 경로 |
+| `period:YYYY-MM-DD` | 그 날 전/후 **첫 유입** | 배포 전후 코호트 |
+
+`--only returning|new`, `--since`, `--until`로 모수를 더 좁힌다.
+
+### 무엇을 전환으로 볼지 바꾼다
+
+`--goal`은 아무 이벤트나 받는다. 링크 이동 말고 다른 것을 재고 싶을 때:
+
+```bash
+python scripts/experiments.py compare --by variant --goal banner_click
+python scripts/experiments.py compare --by variant --goal cart_toggle
+```
+
+### 어디서 새는지 본다
+
+```bash
+python scripts/experiments.py funnel --steps page_view,category_change,brand_expand,offer_link_click --only returning
+```
+
+단계마다 **앞 단계를 모두 거친 사람 중에서만** 센다. 순서를 잘못 주면
+도달률이 100%를 넘는 대신 급격히 줄어든다 — 그건 사용자가 그 순서로
+움직이지 않는다는 뜻이다.
+
+### 어떤 브랜드·배너가 먹혔나
+
+```bash
+python scripts/experiments.py top --event offer_link_click --prop brand
+python scripts/experiments.py top --event banner_click --prop banner
+python scripts/experiments.py top --event banner_click --prop position
+python scripts/experiments.py top --event category_change --prop category
+```
+
+`props`에 실린 키는 위 "지금 걸린 조건" 표와 이벤트별 값 전부 쓸 수 있다.
+
+### 판정을 믿기 전에
+
+1. **`audit`를 먼저 본다.** 개발 트래픽 판정이 사람을 잡아먹고 있지 않은지.
+   걸러낸 무리의 전환율이 남긴 쪽보다 **높으면** 규칙이 틀린 것이다.
+2. **`p >= 0.05`는 "차이 없음"이 아니라 "모른다"다.** 그럴 때 도구가
+   필요한 표본 수를 같이 알려준다.
+3. **여러 축을 훑다 보면 하나는 우연히 유의해진다.** `segments`로 여섯
+   개를 보면 그중 하나가 p<0.05인 것은 정상이다. 미리 정한 가설만 판정에
+   쓰고 나머지는 다음 실험의 후보로 남긴다.
 
 ## 관련 문서
 
