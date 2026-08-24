@@ -13,7 +13,7 @@ import { CATEGORIES, MEMBERSHIP_LABEL } from './filters.js'
  * <p>입력 중에는 목록이 흔들리지 않는다. 확정(엔터·검색 버튼)해야 필터가
  * 걸린다 — 글자를 칠 때마다 결과가 튀면 무엇을 치는 중인지 안 보인다.
  */
-function SearchControlA({ value, onChange }) {
+function SearchControlA({ value, onSubmit }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(value)
   const inputRef = useRef(null)
@@ -35,8 +35,8 @@ function SearchControlA({ value, onChange }) {
     return () => document.removeEventListener('pointerdown', close)
   }, [open])
 
-  const submit = () => {
-    onChange(draft.trim())
+  const submit = (method) => {
+    onSubmit(draft, method)
     setOpen(false)
   }
 
@@ -66,11 +66,12 @@ function SearchControlA({ value, onChange }) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') submit()
+              if (e.key === 'Enter' && !e.repeat) submit('enter')
               if (e.key === 'Escape') setOpen(false)
             }}
           />
-          <button type="button" className="search-panel__submit" onClick={submit}>
+          <button type="button" className="search-panel__submit"
+            onClick={() => submit('button')}>
             검색
           </button>
         </div>
@@ -100,7 +101,7 @@ export default function TopBarA({
   filters,
   setFilters,
   search,
-  setSearch,
+  onSearchSubmit,
   cart,
   cartOnly,
   setCartOnly,
@@ -218,7 +219,7 @@ export default function TopBarA({
               </svg>
             </button>
 
-            <SearchControlA value={search} onChange={setSearch} />
+            <SearchControlA value={search} onSubmit={onSearchSubmit} />
           </div>
         </div>
       </div>

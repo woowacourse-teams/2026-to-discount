@@ -44,7 +44,10 @@ public class EventController {
             "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
             "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
             "cart_toggle", "filter_sheet_open", "cart_view_toggle", "cart_clear",
-            "banner_impression", "banner_dismiss");
+            "banner_impression", "banner_dismiss", "brand_search_submitted");
+    private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
+            "inputLength", "resultCount", "submitMethod",
+            "fCategory", "fPlatforms", "fSearch", "fCart", "fSaved", "fSort");
 
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;
@@ -117,7 +120,7 @@ public class EventController {
                     trim(in.device()),
                     trim(in.viewport()),
                     in.dwellMs(),
-                    trimProps(in.props()),
+                    trimProps(in.event(), in.props()),
                     trim(in.clientTs()),
                     ipHash,
                     in.dev(),
@@ -142,10 +145,12 @@ public class EventController {
         return v.length() <= MAX_TEXT ? v : v.substring(0, MAX_TEXT);
     }
 
-    private static Map<String, String> trimProps(Map<String, String> props) {
+    private static Map<String, String> trimProps(String event, Map<String, String> props) {
         if (props == null || props.isEmpty()) return null;
         Map<String, String> out = new java.util.LinkedHashMap<>();
         for (var e : props.entrySet()) {
+            if ("brand_search_submitted".equals(event)
+                    && !BRAND_SEARCH_PROPS.contains(e.getKey())) continue;
             if (out.size() >= MAX_PROPS) break;
             out.put(trim(e.getKey()), trim(e.getValue()));
         }
