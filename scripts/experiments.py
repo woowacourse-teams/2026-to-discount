@@ -8,6 +8,7 @@
   scripts/experiments.py compare --by period:2026-08-19 --only returning
   scripts/experiments.py paths                     # 실제로 밟은 순서
   scripts/experiments.py funnel --steps brand_expand,offer_link_click
+  scripts/experiments.py features                  # 기능별 사용량과 수명
   scripts/experiments.py events                    # 이벤트별 도달 인원
   scripts/experiments.py top --event offer_link_click --prop brand
   scripts/experiments.py power --baseline 0.34 --lift 0.15
@@ -404,6 +405,67 @@ def cmd_paths(people, rows, args):
         print("  %-40s %5d %5.1f%%  %5d" % (key[:40], n, n / total * 100, conv[key]))
 
 
+def cmd_features(people, rows, args):
+    """기능별 사용량. 무엇이 쓰이고 무엇이 죽었는지 한 장으로 본다.
+
+    침투율만 보면 죽은 기능을 못 잡는다 — 한 달 누적이라 예전에 잘
+    쓰이던 것도 높게 남는다. 최근 7일을 나란히 두면 갈린다.
+    """
+    pop = {v.id for v in population(people, args)}
+    days = sorted({d for d, vid, *_ in rows if vid in pop})
+    if not days:
+        raise SystemExit("해당하는 방문자가 없다")
+    recent_days = set(days[-args.window:])
+
+    seen = collections.defaultdict(set)
+    count = collections.Counter()
+    recent = collections.defaultdict(set)
+    first, last = {}, {}
+    recent_pop = set()
+    for day, vid, ev, _props, _ts, _sid in rows:
+        if vid not in pop:
+            continue
+        seen[ev].add(vid)
+        count[ev] += 1
+        first.setdefault(ev, day)
+        last[ev] = max(last.get(ev, ""), day)
+        if day in recent_days:
+            recent[ev].add(vid)
+            recent_pop.add(vid)
+
+    goal_users = seen[args.goal]
+    n = len(pop)
+    print("모수 %d명 · 최근 %d일 %d명 (%s~%s)"
+          % (n, args.window, len(recent_pop), days[-args.window], days[-1]))
+    print()
+    print("기능(이벤트)             건수  사용자  침투율  최근%2d일  수명"
+          % args.window)
+    for ev, c in count.most_common():
+        if ev in ("page_view", "page_exit"):
+            continue
+        users = seen[ev]
+        now = len(recent[ev]) / len(recent_pop) * 100 if recent_pop else 0
+        print("  %-22s %6d %6d %6.1f%% %7.1f%%  %s~%s"
+              % (ev, c, len(users), len(users) / n * 100, now,
+                 first[ev][5:], last[ev][5:]))
+
+    # 전환율 대비는 따로 낸다. 같은 표에 두면 인과로 읽힌다.
+    print()
+    print("기능을 쓴 사람의 전환율 — %s" % args.goal)
+    print("**이건 인과가 아니다.** 무엇이든 조작하는 사람이 링크도 누른다.")
+    print("기능                     쓴 사람  안 쓴 사람   차이")
+    for ev, _c in count.most_common():
+        if ev in ("page_view", "page_exit", args.goal):
+            continue
+        users = seen[ev]
+        others = pop - users
+        if not users or not others:
+            continue
+        a = len(users & goal_users) / len(users) * 100
+        b = len(others & goal_users) / len(others) * 100
+        print("  %-22s %6.1f%%  %8.1f%%  %+6.1f%%p" % (ev, a, b, a - b))
+
+
 def cmd_top(people, rows, args):
     pop = {v.id for v in population(people, args)}
     seen = collections.defaultdict(set)
@@ -430,6 +492,7 @@ COMMANDS = {
     "audit": cmd_audit, "daily": cmd_daily, "compare": cmd_compare,
     "segments": cmd_segments, "events": cmd_events, "funnel": cmd_funnel,
     "top": cmd_top, "power": cmd_power, "paths": cmd_paths,
+    "features": cmd_features,
 }
 
 
@@ -453,6 +516,7 @@ def main(argv=None):
     p.add_argument("--event", default=GOAL)
     p.add_argument("--prop", default="brand")
     p.add_argument("--limit", type=int, default=15)
+    p.add_argument("--window", type=int, default=7, help="features: 최근 며칠을 현재로 볼지")
     p.add_argument("--baseline", type=float, default=0.34)
     p.add_argument("--lift", type=float, default=0.15)
     args = p.parse_args(argv)
