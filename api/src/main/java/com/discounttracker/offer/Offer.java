@@ -20,7 +20,11 @@ public record Offer(String platform, Integer amount, String qualifier,
                     @JsonIgnore OfferStatus status,
                     String rawText, @JsonIgnore String screenshotPath, String capturedAt,
                     Integer minOrderAmount, String tierMode, List<DiscountTier> tiers, String conditions,
-                    String expiresAt, String badge, boolean soldOut) {
+                    String expiresAt, String badge, boolean soldOut,
+                    // 이 오퍼만 가리키는 곳. 배너에서 세운 오퍼가 그 행사
+                    // 딥링크를 들고 온다. null이면 프론트가 브랜드 링크로
+                    // 떨어진다 — 브랜드 링크를 대체하지는 않는다.
+                    String link) {
 
     /**
      * 원장 한 줄을 오늘 기준으로 화면에 내보낼 모습으로 바꾼다.
@@ -33,7 +37,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(r.platform(), r.amountAsOf(today), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
                 r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
-                Boolean.TRUE.equals(r.soldOut()));
+                Boolean.TRUE.equals(r.soldOut()), r.link());
     }
 
     @JsonProperty("status")
@@ -123,7 +127,11 @@ public record Offer(String platform, Integer amount, String qualifier,
         }
         // soldOut은 병합하지 않는다 — 이긴 쪽 자신의 amount에 매인 상태라
         // 진 쪽에서 옮겨 붙이면 관계없는 확정 레코드가 잘못 품절로 보인다.
+        //
+        // link도 병합하지 않는다. 진 쪽 링크는 그쪽 금액으로 가는 길이라,
+        // 이긴 금액에 붙이면 화면에 적힌 값과 눌러서 가는 곳이 어긋난다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                mergedMinOrder, tierMode, mergedTiers, mergedConditions, mergedExpiresAt, badge, soldOut);
+                mergedMinOrder, tierMode, mergedTiers, mergedConditions, mergedExpiresAt, badge, soldOut,
+                link);
     }
 }

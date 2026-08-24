@@ -16,7 +16,7 @@ class OfferRecordTest {
     private OfferRecord record(Integer amount, String tierMode, List<DiscountTier> tiers) {
         return new OfferRecord("yogiyo", "굽네치킨", amount, "최소", false,
                 "discount", null, "최소 4,000원", "2026-07-31T10:00:00+09:00",
-                "x.jpg", null, tierMode, tiers, null, null, null, false);
+                "x.jpg", null, tierMode, tiers, null, null, null, null, false);
     }
 
     private DiscountTier fixed(Integer minOrder, Integer amount) {
@@ -73,7 +73,7 @@ class OfferRecordTest {
                 "x.jpg", null, "cumulative", List.of(
                         new DiscountTier(17000, 4000, null, null, null, null, "2026-08-01"),
                         new DiscountTier(25000, 1250, 5, 3000, null, null, null)),
-                null, null, null, false);
+                null, null, null, null, false);
         assertEquals(1250, r.amountAsOf(TODAY));
     }
 
@@ -87,7 +87,7 @@ class OfferRecordTest {
                 "x.jpg", null, "cumulative", List.of(
                         new DiscountTier(17000, 4000, null, null, null, null, null),
                         new DiscountTier(17000, 9999, null, null, null, true, null)),
-                null, null, null, false);
+                null, null, null, null, false);
         assertEquals(4000, r.amountAsOf(TODAY));
     }
 

@@ -48,6 +48,7 @@ delivery-discount-web)가 이 레포와 맞물리는 지점만 다룬다. 소스
         "conditions": "string | null",
         "expiresAt": "string | null (YYYY-MM-DD)",
         "badge": "string | null",
+        "link": "string | null",
         "soldOut": "boolean"
       }
     ]
@@ -62,6 +63,16 @@ delivery-discount-web)가 이 레포와 맞물리는 지점만 다룬다. 소스
   `Offer.java:29-32`).
 - `links`의 키는 플랫폼 키(`ddangyo`, `baemin` 등, `brands.yml` 정의) → URL.
   모르는 앱은 키 자체가 없음(빈 맵이지 null 아님).
+- `offers[].link`는 **그 오퍼 하나만** 가리키는 곳. 배너에서 세운 오퍼가
+  행사 딥링크를 들고 온다. 원장(`export.json`)에는 없는 키라 캡처에서 온
+  오퍼는 항상 `null`이다.
+  - 브랜드의 `links`를 **덮어쓰지 않는다.** 같은 앱의 다른 오퍼 칩은 그대로
+    브랜드 링크로 가고, 배너가 끝나면 그 앱 카드도 원래 링크로 돌아온다.
+  - 프론트는 `offer.link` → `links[platform]` → 앱 내 검색 → 구글 → 앱 열기
+    순으로 고른다(`App.jsx`의 `OfferChip`).
+  - 오퍼가 합쳐질 때(`Offer.preferredOver`) 진 쪽 링크는 안 끌어온다 — 진
+    쪽 링크는 그쪽 금액으로 가는 길이라, 이긴 금액에 붙이면 화면에 적힌
+    값과 눌러서 가는 곳이 어긋난다.
 - `tiers`/`minOrderAmount`/`conditions`/`expiresAt`/`badge`는 원장에 없으면
   `null` (ADR-003) — 키는 항상 존재.
 - `soldOut`은 오퍼 레벨에선 `boolean`(null을 `false`로 정규화), tier

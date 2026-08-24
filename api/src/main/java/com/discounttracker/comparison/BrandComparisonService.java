@@ -95,6 +95,11 @@ public class BrandComparisonService {
                     // 기간 문구를 배지로 올린다 — "오전 11시부터 선착순"이
                     // 안 보이면 아무 때나 받을 수 있는 할인으로 읽힌다.
                     banner.period(),
+                    // 행사 딥링크를 이 오퍼가 들고 간다. 브랜드 링크
+                    // (brands.yml)는 그대로 둔다 — 배너와 무관한 다른 오퍼
+                    // 칩까지 행사로 끌려가면 안 되고, 배너가 끝나도 원래
+                    // 링크가 남아 있어야 한다.
+                    banner.url(),
                     null));
         }
         return records;

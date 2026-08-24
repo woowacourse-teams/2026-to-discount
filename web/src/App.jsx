@@ -118,7 +118,11 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   // "최대"는 최소주문금액을 채워야 나오는 상한액이다 — 액면대로 읽히지
   // 않도록 칩 전체를 흐리게 깔아 다른 확정값과 구분한다.
   const capped = offer.qualifier === '최대'
-  const link = brandLinks?.[offer.platform]
+  // 오퍼 자신의 링크가 먼저다. 배너에서 세운 오퍼만 이걸 갖는다 —
+  // 배너의 행사 딜링크가 브랜드 일반 링크에 먹힐서는 안 된다. 반대로
+  // 배너와 무관한 칩은 offer.link가 없어 예전대로 브랜드 링크로 간다.
+  const link = offer.link
+    ?? brandLinks?.[offer.platform]
     ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
     ?? searchFallbackLink(offer.platform, brandName)
     ?? PLATFORM_APP_LINKS[offer.platform]

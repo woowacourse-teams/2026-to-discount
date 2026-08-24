@@ -34,6 +34,9 @@ public record OfferRecord(
         String conditions,
         String expiresAt,
         String badge,
+        // 이 오퍼만 가리키는 곳. 원장(export.json)에는 없는 키다 — 배너에서
+        // 세운 오퍼만 채운다. 브랜드 링크(brands.yml)를 대체하지 않는다.
+        String link,
         // Boolean(nullable)이다 — primitive boolean이면 JSON에 "soldOut":null이
         // 들어올 때 MismatchedInputException으로 reload 전체가 깨진다(사람이
         // 직접 export.json을 편집하다 실측, 2026-08-04). null은 false로

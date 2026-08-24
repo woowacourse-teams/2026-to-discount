@@ -67,14 +67,14 @@ class BrandComparisonServiceTest {
                             String qualifier, boolean needsReview) {
         return new OfferRecord(platform, brand, amount, qualifier, needsReview,
                 "discount", null, amount == null ? "" : amount + "원",
-                "2026-07-27T14:20:00+09:00", "path.jpg", null, null, null, null, null, null, false);
+                "2026-07-27T14:20:00+09:00", "path.jpg", null, null, null, null, null, null, null, false);
     }
 
     private OfferRecord recWithConditions(String platform, String brand, Integer amount,
                                           boolean needsReview, Integer minOrder, String conditions) {
         return new OfferRecord(platform, brand, amount, null, needsReview,
                 "discount", null, amount == null ? "" : amount + "원",
-                "2026-07-29T18:00:00+09:00", "path2.jpg", minOrder, null, null, conditions, null, null, false);
+                "2026-07-29T18:00:00+09:00", "path2.jpg", minOrder, null, null, conditions, null, null, null, false);
     }
 
     @Test
@@ -312,7 +312,7 @@ class BrandComparisonServiceTest {
         OfferRecord detailed = new OfferRecord("yogiyo", "굽네치킨", 7000, "최대", true,
                 "discount", null, "최대 7,000원 할인", "2026-07-27T14:25:00+09:00",
                 "x.jpg", 15000, null, List.of(new DiscountTier(15000, 3000, null, null, null, null, null)), "1일 1회",
-                "2026-08-31", "선착순 품절", true);
+                "2026-08-31", "선착순 품절", null, true);
         Offer offer = serviceWith(List.of(detailed), "brands: {}")
                 .compare().get(0).offers().get(0);
         assertEquals(15000, offer.minOrderAmount());
@@ -333,7 +333,7 @@ class BrandComparisonServiceTest {
                 "x.jpg", null, "cumulative", List.of(
                         new DiscountTier(17000, 4000, null, null, null, null, null),
                         new DiscountTier(25000, 1250, 5, 3000, null, null, null)),
-                null, null, null, false);
+                null, null, null, null, false);
         Offer offer = serviceWith(List.of(cumulative), "brands: {}")
                 .compare().get(0).offers().get(0);
         assertEquals("cumulative", offer.tierMode());
@@ -376,7 +376,7 @@ class BrandComparisonServiceTest {
                                     String expiresAt, String capturedAt) {
         return new OfferRecord(platform, brand, amount, null, false,
                 "discount", null, amount + "원", capturedAt, "path.jpg",
-                null, null, null, null, expiresAt, null, false);
+                null, null, null, null, expiresAt, null, null, false);
     }
 
     @Test
@@ -474,7 +474,7 @@ class BrandComparisonServiceTest {
                                      String expiresAt, List<DiscountTier> tiers) {
         return new OfferRecord(platform, brand, amount, null, false,
                 "discount", null, amount + "원", "2026-08-01T10:00:00+09:00", "path.jpg",
-                null, null, tiers, null, expiresAt, null, false);
+                null, null, tiers, null, expiresAt, null, null, false);
     }
 
     @Test
@@ -617,6 +617,52 @@ class BrandComparisonServiceTest {
         assertEquals(25000, offer.minOrderAmount());
         // 기간 문구가 사라지면 아무 때나 받는 할인으로 읽힌다.
         assertEquals("매일 오후 3시부터 선착순", offer.badge());
+    }
+
+    @Test
+    void bannerOfferCarriesItsOwnLinkAndLeavesBrandLinksAlone() {
+        // 배너의 url은 그 행사로 가는 딜링크다. 배너에서 세운 오퍼가
+        // 그걸 안 들고 가면, 화면엔 배너에서 온 금액이 찍히는데 누르면
+        // 브랜드 일반 링크로 간다 — 금액과 가는 곳이 어긋난다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                    links:
+                      yogiyo: https://example.test/brand-yogiyo
+                """;
+        BrandComparison card = serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow();
+
+        assertEquals("https://example.test/a", card.offers().get(0).link());
+        // 브랜드 링크는 그대로다. 배너가 끝나도 남아 있어야 하고,
+        // 배너와 무관한 다른 오퍼 칩까지 행사로 끌려가면 안 된다.
+        assertEquals("https://example.test/brand-yogiyo", card.links().get("yogiyo"));
+    }
+
+    @Test
+    void bannerDoesNotHandItsLinkToTheOfferItBeats() {
+        // 배너가 같은 앱의 원장 오퍼를 이기면 하나만 남는다. 그때
+        // 이긴 쪽(배너)의 링크만 가지 미끌리면 된다 — 진 쪽 링크를
+        // 끌어오면 배너 금액에 엉뚝한 행사가 붙는다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        OfferRecord older = rec("yogiyo", "굽네치킨", 3000, null, false);
+        BrandComparison card = serviceWith(List.of(older), brands, on("2026-08-20"), BANNER_YAML)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow();
+
+        Offer offer = card.offers().get(0);
+        assertEquals(6500, offer.amount());
+        assertEquals("https://example.test/a", offer.link());
     }
 
     @Test
