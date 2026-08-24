@@ -6,7 +6,7 @@
 
 | 질문 | 답 |
 |---|---|
-| 무엇을 모으나 | 브라우저 행동 이벤트 18종 (`page_view`, `offer_link_click` 등) |
+| 무엇을 모으나 | 브라우저 행동 이벤트 19종 (`page_view`, `offer_link_click` 등) |
 | 어디에 쌓이나 | **자체 원장** `events.jsonl`(단일 진실) + **PostHog**(탐색용) |
 | 누구인지 아나 | 모른다. `visitorId`는 브라우저가 만든 난수, 지우면 끊긴다 |
 | A/B는 어떻게 가르나 | 모든 이벤트의 `variant` 속성 (`a` / `b`) |
