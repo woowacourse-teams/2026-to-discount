@@ -18,7 +18,7 @@
   `filters_apply`, `cart_toggle`, `filter_sheet_open`, `cart_view_toggle`,
   `cart_clear`, `brand_search_submitted`. 목록에 없는 `event` 값은 조용히 버려진다.
 - **배치 상한**: 요청 하나당 최대 20건(넘으면 앞의 20건만 처리).
-- **필드 길이 제한**: 문자열 필드는 120자로 잘리고, `props`는 키 6개까지만
+- **필드 길이 제한**: 문자열 필드는 120자로 잘리고, `props`는 키 8개까지만
   유지된다(악성/비대 payload 방어).
 - **레이트 리밋**: 클라이언트(ipHash)당 분당 120개 이벤트. 초과 시
   `429 Too Many Requests`.
