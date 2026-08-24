@@ -54,7 +54,7 @@ cd <monorepo> && bash scripts/ab_report.sh
 
 ---
 
-## 이벤트 18종
+## 이벤트 19종
 
 ### 화면 진입·이탈
 
@@ -85,6 +85,11 @@ cd <monorepo> && bash scripts/ab_report.sh
 | `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
 | `filters_reset` | 초기화 버튼 | — |
 | `membership_toggle` | 멤버십 라벨 (아직 미구현 기능) | `platform`, `state:'soon'`, `from` |
+| `brand_search_submitted` | 비어 있지 않은 검색어를 엔터·검색 버튼으로 확정 | `inputLength`, `resultCount`(목록 로드 전에는 생략), `submitMethod`(`enter`/`button`) |
+
+`brand_search_submitted`에는 사용자가 입력한 검색어 원문을 싣지 않는다. 자유 입력에
+포함될 수 있는 개인정보는 수집하지 않고, 검색 사용 여부와 결과 유무를 분석하는 데
+필요한 길이와 결과 수만 기록한다.
 
 ### 담아보기
 
