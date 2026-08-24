@@ -469,6 +469,20 @@ h1 {
   min-width: 0;
 }
 
+/* 금액 위 한 줄. 로고 옆이 아니라 글 덩어리 맨 위에 둔다 — 눈이 로고에서
+   오른쪽으로 건너간 뒤 위에서 아래로만 읽으면 되게. */
+.banner__brand {
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--banner-ink-c);
+  /* 이름은 잘려도 로고가 받쳐 준다. 금액·조건과 달리 한 줄로 묶어 둔다. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .banner__amount {
   font-size: 1.45rem;
   font-weight: 800;

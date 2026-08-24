@@ -6,7 +6,8 @@
   scripts/experiments.py segments                  # 차원별 전환율 일람
   scripts/experiments.py compare --by variant      # 갈래별 전환율 + z검정
   scripts/experiments.py compare --by period:2026-08-19 --only returning
-  scripts/experiments.py funnel --steps page_view,brand_expand,offer_link_click
+  scripts/experiments.py paths                     # 실제로 밟은 순서
+  scripts/experiments.py funnel --steps brand_expand,offer_link_click
   scripts/experiments.py events                    # 이벤트별 도달 인원
   scripts/experiments.py top --event offer_link_click --prop brand
   scripts/experiments.py power --baseline 0.34 --lift 0.15
@@ -78,7 +79,7 @@ class Visitor:
 def load(src):
     """원장을 방문자 단위로 접는다. 이벤트 원문은 들고 있지 않는다."""
     people = {}
-    rows = []  # (날짜, 방문자, 이벤트, props)
+    rows = []  # (날짜, 방문자, 이벤트, props, 시각, 세션)
     with open(src, encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
@@ -117,7 +118,8 @@ def load(src):
             day = (e.get("ts") or "")[:10]
             v.days.add(day)
             v.events[e.get("event")] += 1
-            rows.append((day, vid, e.get("event"), e.get("props") or {}))
+            rows.append((day, vid, e.get("event"), e.get("props") or {},
+                         e.get("ts") or "", e.get("sessionId") or ""))
     return people, rows
 
 
@@ -233,7 +235,7 @@ def cmd_audit(people, rows, args):
 
 def cmd_daily(people, rows, args):
     per = collections.defaultdict(lambda: [set(), set()])
-    for day, vid, ev, _ in rows:
+    for day, vid, ev, _p, _ts, _sid in rows:
         v = people[vid]
         if not keep(v, args):
             continue
@@ -308,28 +310,104 @@ def cmd_events(people, rows, args):
     print("\n모수 %d명" % len(pop))
 
 
+def sequences(rows, pop, scope):
+    """(사람 또는 세션)마다 시각순 이벤트 목록. 연속 중복은 접는다."""
+    bucket = collections.defaultdict(list)
+    for _day, vid, ev, _props, ts, sid in rows:
+        if vid not in pop:
+            continue
+        bucket[vid if scope == "visitor" else (vid, sid)].append((ts, ev))
+    out = {}
+    for key, items in bucket.items():
+        seq = []
+        for _ts, ev in sorted(items):
+            if not seq or seq[-1] != ev:
+                seq.append(ev)
+        out[key] = seq
+    return out
+
+
 def cmd_funnel(people, rows, args):
+    """단계를 시각순으로 밟은 사람만 다음 단계로 넘긴다.
+
+    순서를 안 보면 흐름이 아니라 교집합이 된다 — 링크를 먼저 누르고
+    나중에 분류를 바꾼 사람까지 통과했다. 실측에서 마지막 단계가
+    139명(순서 무시) 대 81명(시각순) 대 44명(같은 세션)으로 갈렸다.
+
+    기본 범위가 세션인 이유: 몇 주에 걸친 행동을 한 흐름으로 묶으면
+    이어서 한 일이 아닌 것을 이어진 것으로 센다.
+    """
     steps = args.steps.split(",")
-    pop = [v for v in population(people, args)]
-    base = len(pop)
-    if not base:
+    pop = {v.id for v in population(people, args)}
+    if not pop:
         raise SystemExit("해당하는 방문자가 없다")
-    # 각 단계는 앞 단계를 모두 거친 사람 중에서만 센다. 그러지 않으면
-    # 펼치지 않고 바로 링크로 간 사람 때문에 도달률이 100%를 넘는다.
-    print("단계                     도달     전체 대비  직전 대비")
+    seqs = sequences(rows, pop, args.scope)
+    base = len(seqs)
+    unit = "방문자" if args.scope == "visitor" else "세션"
+
+    alive = list(seqs.values())
+    print("단계                     도달     전체 대비  직전 대비   (모수 %d %s)"
+          % (base, unit))
     prev = base
-    for s in steps:
-        pop = [v for v in pop if v.events[s]]
-        n = len(pop)
+    for i, step in enumerate(steps):
+        kept = []
+        for seq in alive:
+            # 앞 단계를 밟은 지점 뒤에서만 다음 단계를 찾는다.
+            at = -1
+            ok = True
+            for st in steps[:i + 1]:
+                nxt = next((j for j in range(at + 1, len(seq)) if seq[j] == st), None)
+                if nxt is None:
+                    ok = False
+                    break
+                at = nxt
+            if ok:
+                kept.append(seq)
+        alive = kept
+        n = len(alive)
         print("  %-22s %6d   %6.1f%%   %6.1f%%"
-              % (s, n, n / base * 100, n / prev * 100 if prev else 0))
+              % (step, n, n / base * 100, n / prev * 100 if prev else 0))
         prev = n
+
+
+def cmd_paths(people, rows, args):
+    """가정한 흐름 대신 실제로 밟은 순서를 센다.
+
+    퍼널은 단계를 미리 정해야 하는데, 그 단계가 실제 경로가 아니면
+    "여기서 78% 이탈"처럼 없는 이탈이 만들어진다. 실측에서 전환한
+    세션 대부분은 첫 동작이 곧바로 링크였고, 펼침(brand_expand)은
+    링크 앞보다 뒤에 오는 경우가 더 많았다 — 전 단계가 아니라 사후
+    확인 행동이었다.
+    """
+    pop = {v.id for v in population(people, args)}
+    seqs = sequences(rows, pop, args.scope)
+    skip = set(args.ignore.split(",")) if args.ignore else set()
+    paths = collections.Counter()
+    conv = collections.Counter()
+    for seq in seqs.values():
+        # 뺄 이벤트를 걷고 나서 다시 접는다. 먼저 접으면 사이에 끼어
+        # 있던 page_exit이 빠지면서 같은 동작이 둘로 남는다.
+        trimmed = []
+        for e in seq:
+            if e in skip or (trimmed and trimmed[-1] == e):
+                continue
+            trimmed.append(e)
+        key = " > ".join(trimmed[:args.depth]) if trimmed else "(아무것도 안 함)"
+        paths[key] += 1
+        if args.goal in trimmed:
+            conv[key] += 1
+    unit = "방문자" if args.scope == "visitor" else "세션"
+    total = len(seqs)
+    print("첫 %d동작 (연속 중복 접음, %s %d개)" % (args.depth, unit, total))
+    print("경로                                       수   비중   그중 전환")
+    for key, n in paths.most_common(args.limit):
+        print("  %-40s %5d %5.1f%%  %5d" % (key[:40], n, n / total * 100, conv[key]))
 
 
 def cmd_top(people, rows, args):
     pop = {v.id for v in population(people, args)}
     seen = collections.defaultdict(set)
-    for _, vid, ev, props in rows:
+    for _, vid, ev, props, _ts, _sid in rows:
         if ev != args.event or vid not in pop:
             continue
         val = props.get(args.prop)
@@ -351,7 +429,7 @@ def cmd_power(people, rows, args):
 COMMANDS = {
     "audit": cmd_audit, "daily": cmd_daily, "compare": cmd_compare,
     "segments": cmd_segments, "events": cmd_events, "funnel": cmd_funnel,
-    "top": cmd_top, "power": cmd_power,
+    "top": cmd_top, "power": cmd_power, "paths": cmd_paths,
 }
 
 
@@ -367,6 +445,11 @@ def main(argv=None):
     p.add_argument("--until", help="이 날 이전에 처음 온 사람만")
     p.add_argument("--include-dev", action="store_true", help="개발 트래픽도 센다")
     p.add_argument("--steps", default="page_view,brand_expand,offer_link_click")
+    p.add_argument("--scope", choices=("session", "visitor"), default="session",
+                   help="흐름을 어디까지 한 덩어리로 볼지. 기본은 세션")
+    p.add_argument("--depth", type=int, default=3, help="paths: 앞에서 몇 동작까지")
+    p.add_argument("--ignore", default="page_view,page_exit,banner_impression",
+                   help="paths: 경로에서 뺄 이벤트")
     p.add_argument("--event", default=GOAL)
     p.add_argument("--prop", default="brand")
     p.add_argument("--limit", type=int, default=15)
@@ -402,6 +485,28 @@ def selftest():
     assert v.looks_developer()                # 창 조절
     v.widths = {360, 384}
     assert v.looks_developer() is None        # 둘 다 폰 폭이면 사람
+
+    # 퍼널은 순서를 지켜야 한다. 링크를 먼저 누른 사람은 통과하면 안 된다.
+    rows = [
+        ("d", "정순", "brand_expand", {}, "1", "s"),
+        ("d", "정순", "offer_link_click", {}, "2", "s"),
+        ("d", "역순", "offer_link_click", {}, "1", "s"),
+        ("d", "역순", "brand_expand", {}, "2", "s"),
+    ]
+    seqs = sequences(rows, {"정순", "역순"}, "session")
+    assert seqs[("정순", "s")] == ["brand_expand", "offer_link_click"]
+    assert seqs[("역순", "s")] == ["offer_link_click", "brand_expand"]
+
+    # 사이에 낀 이벤트를 걷어내도 같은 동작이 둘로 남지 않는다.
+    rows2 = [("d", "v", e, {}, str(i), "s") for i, e in enumerate(
+        ["offer_link_click", "page_exit", "offer_link_click"])]
+    seq = sequences(rows2, {"v"}, "session")[("v", "s")]
+    trimmed = []
+    for e in seq:
+        if e == "page_exit" or (trimmed and trimmed[-1] == e):
+            continue
+        trimmed.append(e)
+    assert trimmed == ["offer_link_click"], trimmed
     print("ok")
 
 

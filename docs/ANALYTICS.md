@@ -416,7 +416,7 @@ UI를 바꾸면 **재방문자만** 흔들린다. 그들은 이전 화면에 익
 
 ```bash
 python scripts/experiments.py compare --by period:2026-08-19
-python scripts/experiments.py funnel --steps page_view,category_change,brand_expand,offer_link_click
+python scripts/experiments.py paths --only returning
 ```
 
 합쳐서 보면 "전환율이 25%에서 18%로 떨어졌다"로만 보이고 원인이 안
@@ -477,15 +477,42 @@ python scripts/experiments.py compare --by variant --goal banner_click
 python scripts/experiments.py compare --by variant --goal cart_toggle
 ```
 
-### 어디서 새는지 본다
+### 어디서 새는지 본다 — 퍼널보다 경로가 먼저다
+
+**퍼널은 단계를 미리 정해야 한다. 그 단계가 실제 경로가 아니면 없는
+이탈이 만들어진다.** 먼저 사람들이 실제로 무엇을 하는지 본다.
 
 ```bash
-python scripts/experiments.py funnel --steps page_view,category_change,brand_expand,offer_link_click --only returning
+python scripts/experiments.py paths
+```
+```
+첫 3동작 (연속 중복 접음, 세션 4933개)
+경로                                       수   비중   그중 전환
+  (아무것도 안 함)                          2867  58.1%      0   ← 진짜 이탈
+  offer_link_click                        647  13.1%    647   ← 곧바로 링크
+  category_change                         228   4.6%      0
+  brand_expand                            116   2.4%      0
+  category_change > offer_link_click       97   2.0%     97
+  brand_expand > offer_link_click          49   1.0%     49
+  offer_link_click > brand_expand          41   0.8%     41   ← 펼침이 링크 뒤
 ```
 
-단계마다 **앞 단계를 모두 거친 사람 중에서만** 센다. 순서를 잘못 주면
-도달률이 100%를 넘는 대신 급격히 줄어든다 — 그건 사용자가 그 순서로
-움직이지 않는다는 뜻이다.
+여기서 읽히는 것: **세션의 58%가 아무 동작도 없이 나간다.** 그리고 전환한
+세션 대부분은 필터도 펼침도 안 거치고 곧장 링크로 간다. `brand_expand`는
+링크 앞보다 뒤에 오는 경우도 많아 — 전 단계가 아니라 사후 확인 행동이다.
+
+경로를 확인한 다음에야 퍼널이 뜻을 갖는다.
+
+```bash
+python scripts/experiments.py funnel --steps brand_expand,offer_link_click
+```
+
+단계는 **시각순으로** 센다. 앞 단계를 밟은 지점 뒤에서만 다음 단계를 찾는다.
+범위는 기본이 세션이다(`--scope visitor`로 넓힐 수 있다).
+
+> 순서를 안 보면 흐름이 아니라 교집합이 된다. 같은 네 단계로 재 보면
+> 마지막 단계가 **139명(순서 무시) / 81명(시각순) / 44명(같은 세션)**으로
+> 갈렸다. 링크를 먼저 누르고 나중에 분류를 바꾼 사람이 통과하고 있었다.
 
 ### 어떤 브랜드·배너가 먹혔나
 
