@@ -70,6 +70,17 @@ function searchFallbackLink(platformKey, brandName) {
 
 const CART_KEY = 'dk_cart'
 
+function analyticsFilterContext(filters, cartOnly, cartSize) {
+  return {
+    fCategory: filters.categories.size === 0 ? 'all' : [...filters.categories].sort().join('+'),
+    fPlatforms: filters.platforms.size,
+    fSearch: filters.search.trim() !== '' || undefined,
+    fCart: cartOnly || undefined,
+    fSaved: cartSize || undefined,
+    fSort: `${filters.sortKey}_${filters.sortDir}`,
+  }
+}
+
 function won(value) {
   return `${value.toLocaleString()}원`
 }
@@ -550,7 +561,7 @@ function SearchControl({ value, onChange, onSubmit, chips }) {
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') submit('enter')
+          if (e.key === 'Enter' && !e.repeat) submit('enter')
           if (e.key === 'Escape') { setDraft(''); onChange('') }
         }}
       />
@@ -704,6 +715,9 @@ export default function App() {
     setFilters(nextFilters)
     if (query === '') return
 
+    // 상태 반영 뒤 effect를 기다리면 이 이벤트만 이전 검색 맥락을 가진다.
+    // 제출로 확정한 조건을 먼저 알려 같은 이벤트에도 최신 fSearch를 싣는다.
+    setFilterContext(analyticsFilterContext(nextFilters, cartOnly, cart.size))
     track('brand_search_submitted', {
       inputLength: query.length,
       resultCount: brands
@@ -744,14 +758,7 @@ export default function App() {
   // 실제로 이동까지 하는가"의 답이다. A안과 같은 키를 쓴다 — 이름이
   // 다르면 두 안을 나란히 못 놓는다.
   useEffect(() => {
-    setFilterContext({
-      fCategory: filters.categories.size === 0 ? 'all' : [...filters.categories].sort().join('+'),
-      fPlatforms: filters.platforms.size,
-      fSearch: filters.search.trim() !== '' || undefined,
-      fCart: cartOnly || undefined,
-      fSaved: cart.size || undefined,
-      fSort: `${filters.sortKey}_${filters.sortDir}`,
-    })
+    setFilterContext(analyticsFilterContext(filters, cartOnly, cart.size))
   }, [filters, cartOnly, cart.size])
 
   const gridKey = [

@@ -66,7 +66,7 @@ function SearchControlA({ value, onSubmit }) {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') submit('enter')
+              if (e.key === 'Enter' && !e.repeat) submit('enter')
               if (e.key === 'Escape') setOpen(false)
             }}
           />

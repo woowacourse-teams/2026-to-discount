@@ -50,7 +50,8 @@ class EventControllerTest {
                         .content(batch("""
                             {"event":"brand_search_submitted","visitorId":"v_search",
                              "sessionId":"s_search","props":{"inputLength":"4",
-                             "resultCount":"2","submitMethod":"enter"}}
+                             "resultCount":"2","submitMethod":"enter","fSearch":"true",
+                             "query":"010-1234-5678","unexpected":"raw"}}
                             """)))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.accepted").value(1));
@@ -62,7 +63,10 @@ class EventControllerTest {
         assertTrue(loggedEvent.contains("\"inputLength\":\"4\""));
         assertTrue(loggedEvent.contains("\"resultCount\":\"2\""));
         assertTrue(loggedEvent.contains("\"submitMethod\":\"enter\""));
+        assertTrue(loggedEvent.contains("\"fSearch\":\"true\""));
         assertFalse(loggedEvent.contains("query"));
+        assertFalse(loggedEvent.contains("010-1234-5678"));
+        assertFalse(loggedEvent.contains("unexpected"));
     }
 
     @Test
