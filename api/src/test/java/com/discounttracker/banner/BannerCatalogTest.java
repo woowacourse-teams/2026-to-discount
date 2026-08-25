@@ -311,8 +311,14 @@ class BannerCatalogTest {
         assertEquals(25000,
                 banner("25,000원↑, 고정 6,000+선착순 4,000", null).effectiveMinOrder());
 
-        // 명시로 적은 값이 문구보다 세다 — 둘이 어긋날 때 고칠 자리가 있어야 한다.
-        assertEquals(9000, banner("16,000원↑", 9000).effectiveMinOrder());
+        // 문구가 명시된 minOrder보다 세다. extra는 배너를 올리면서 매번
+        // 다시 적는 문장이고, minOrder는 한번 적고 그대로 두는 칸이라
+        // 둘이 어긋나면 문구 쪽이 지금 화면에 뜼는 값이다.
+        assertEquals(16000, banner("16,000원↑", 9000).effectiveMinOrder());
+
+        // 문구가 깨졌을 때만 적어둔 값으로 떨어진다 — 실측으로
+        // "원↑, 사용(발급X) 선착순"처럼 숫자가 빠진 배너가 있었다.
+        assertEquals(9000, banner("원↑, 사용(발급X) 선착순", 9000).effectiveMinOrder());
 
         // 금액을 말하지 않는 문구에서는 지어내지 않는다.
         assertNull(banner("선착순 300명", null).effectiveMinOrder());
@@ -321,9 +327,46 @@ class BannerCatalogTest {
     }
 
     private Banner banner(String extra, Integer minOrder) {
+        return banner("7,000원", extra, minOrder);
+    }
+
+    private Banner banner(String amount, String extra, Integer minOrder) {
         return new Banner("id", "교촌치킨", "baemin", "https://example.test",
-                "7,000원", "상시", extra, minOrder, null,
+                amount, "상시", extra, minOrder, null,
                 java.time.LocalDate.parse("2026-08-25"),
                 java.time.LocalDate.parse("2026-08-25"), 1);
+    }
+
+    @Test
+    void splitsYogiyoCompoundCouponsIntoTiers() {
+        // 요기요 배너는 한 칸에 쿠폰 두 장을 적어 보낸다. 대표값
+        // 하나로만 두면 선착순가 끝나 고정분만 남았을 때 그걸 알 길이 없다.
+
+        // 정액 + 정률 (굽네치킨): 4,000 + 25,000의 10% = 6,500
+        var rate = banner("6,500원(4,000+10%)", "25,000원↑, 사용(발급X) 선착순", null)
+                .compoundTiers();
+        assertEquals(2, rate.size());
+        assertEquals(4000, rate.get(0).amount());
+        assertNull(rate.get(0).percent());
+        assertEquals(10, rate.get(1).percent());
+        assertEquals(25000, rate.get(1).minOrder());
+        // 정률분을 미리 계산해 넣어야 사다리가 6,500을 낸다 —
+        // DiscountLadder는 amount만 더한다.
+        assertEquals(2500, rate.get(1).amount());
+
+        // 정액 + 정액 (파파존스): 6,000 + 4,000 = 10,000
+        var two = banner("10,000원", "25,000원↑, 고정 6,000+선착순 4,000", null)
+                .compoundTiers();
+        assertEquals(2, two.size());
+        assertEquals(6000, two.get(0).amount());
+        assertEquals(4000, two.get(1).amount());
+
+        // 합이 대표값과 다르면 문구를 잘못 읽은 것이다 — 지어낸다.
+        assertTrue(banner("9,000원", "25,000원↑, 고정 6,000+선착순 4,000", null)
+                .compoundTiers().isEmpty());
+
+        // 복합이 아니면 지금까지와 같이 대표값 하나다.
+        assertTrue(banner("7,000원", "16,000원↑, 선착순", null).compoundTiers().isEmpty());
+        assertTrue(banner("최대 30%", "상시", null).compoundTiers().isEmpty());
     }
 }

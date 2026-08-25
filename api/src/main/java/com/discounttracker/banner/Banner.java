@@ -1,6 +1,7 @@
 package com.discounttracker.banner;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,13 +67,89 @@ public record Banner(
      * 이었다. 그 문장을 몸도 읽게 해서 손으로 두 번 적는 일을 없앱니다.
      */
     public Integer effectiveMinOrder() {
-        if (minOrder != null) return minOrder;
+        Integer fromText = minOrderFromExtra();
+        return fromText != null ? fromText : minOrder;
+    }
+
+    private Integer minOrderFromExtra() {
         if (extra == null) return null;
         Matcher m = EXTRA_MIN_ORDER.matcher(extra);
         if (!m.find()) return null;
         String digits = m.group(1) != null ? m.group(1) : m.group(2);
         try {
             return Integer.valueOf(digits.replace(",", ""));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /** {@code amount}의 맨 앞 "n,nnn원". 정액이 아니면 null. */
+    private static final Pattern HEADLINE = Pattern.compile("([0-9][0-9,]*)\\s*원");
+
+    /** "6,500원(4,000+10%)" — 괄호 안에 정액+정률이 들어 있다. */
+    private static final Pattern FIXED_PLUS_RATE =
+            Pattern.compile("\\(\\s*([0-9][0-9,]*)\\s*\\+\\s*([0-9]{1,2})\\s*%\\s*\\)");
+
+    /** "고정 6,000+선착순 4,000" — 정액 두 장을 겹쳐 쓴다. */
+    private static final Pattern FIXED_PLUS_FIXED =
+            Pattern.compile("([0-9][0-9,]*)\\s*\\+\\s*\\D{0,6}?([0-9][0-9,]*)(?!\\s*%)");
+
+    /**
+     * 복합쿠폰을 구간으로 푸는다. 아니면 빈 목록.
+     *
+     * <p>요기요 배너에는 한 칸에 쿠폰 두 장이 적혀 온다 —
+     * 굽네치킨 "6,500원(4,000+10%)", 파파존스 "고정 6,000+선착순 4,000".
+     * 대표값 하나로만 둔 채 카드에 세우면, 선착순가 끝나 고정분만
+     * 남았을 때 사람이 그걸 알 길이 없다.
+     *
+     * <p>합이 적혀 있는 대표값과 다르면 구간을 만들지 않는다 — 문구를
+     * 잘못 읽은 것이지 새 사실을 안 것이 아니라, 지어내는 편이 낛다.
+     * 정률은 최소주문금액 기준으로 맞춰 본다(화면에 적힌 숫자가 그 값이다).
+     */
+    public List<com.discounttracker.offer.DiscountTier> compoundTiers() {
+        Integer headline = headlineAmount();
+        Integer min = effectiveMinOrder();
+        if (headline == null) return List.of();
+
+        Matcher rate = FIXED_PLUS_RATE.matcher(amount == null ? "" : amount);
+        if (rate.find()) {
+            Integer fixed = digits(rate.group(1));
+            Integer percent = digits(rate.group(2));
+            if (fixed == null || percent == null || min == null) return List.of();
+            // 정률분은 미리 계산해 amount에 넣는다. DiscountLadder는 amount만
+            // 더하고 percent를 다시 계산하지 않는다 — "각 구간의 amount는
+            // 이미 그 문턱에서 실제 받는 금액"이라는 규칙이다. percent는
+            // 상세에서 "10%"라고 보여 주려고 함께 남긴다.
+            int rated = min * percent / 100;
+            if (fixed + rated != headline) return List.of();
+            return List.of(
+                    new com.discounttracker.offer.DiscountTier(min, fixed, null, null, null, null, null),
+                    new com.discounttracker.offer.DiscountTier(min, rated, percent, null, null, null, null));
+        }
+
+        Matcher two = FIXED_PLUS_FIXED.matcher(extra == null ? "" : extra);
+        if (two.find()) {
+            Integer a = digits(two.group(1));
+            Integer b = digits(two.group(2));
+            if (a == null || b == null) return List.of();
+            if (a + b != headline) return List.of();
+            return List.of(
+                    new com.discounttracker.offer.DiscountTier(min, a, null, null, null, null, null),
+                    new com.discounttracker.offer.DiscountTier(min, b, null, null, null, null, null));
+        }
+        return List.of();
+    }
+
+    /** 대표값. "최대 30%"처럼 정액이 아니면 null. */
+    private Integer headlineAmount() {
+        if (amount == null) return null;
+        Matcher m = HEADLINE.matcher(amount);
+        return m.find() ? digits(m.group(1)) : null;
+    }
+
+    private static Integer digits(String raw) {
+        try {
+            return Integer.valueOf(raw.replace(",", ""));
         } catch (NumberFormatException e) {
             return null;
         }

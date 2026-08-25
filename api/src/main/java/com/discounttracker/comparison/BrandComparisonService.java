@@ -4,6 +4,7 @@ import com.discounttracker.banner.Banner;
 import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.offer.Offer;
+import com.discounttracker.offer.DiscountTier;
 import com.discounttracker.offer.OfferRecord;
 import com.discounttracker.offer.OfferRepository;
 import org.springframework.stereotype.Service;
@@ -71,6 +72,7 @@ public class BrandComparisonService {
             if (banner.brand() == null) continue;
             Integer amount = amountOf(banner.amount());
             if (amount == null) continue;
+            List<DiscountTier> compound = banner.compoundTiers();
 
             records.add(new OfferRecord(
                     banner.platform(),
@@ -88,8 +90,10 @@ public class BrandComparisonService {
                     // 적혀 있으면 조건으로 함께 들어간다. 없으면 상세에
                     // "최소주문 미확인"이 뜬다 — 감추지 않는다.
                     banner.effectiveMinOrder(),
-                    null,
-                    null,
+                    // 복합쿠폰이면 구간 둘을 겹쳐 놓는다(ADR-019). 아니면 둘 다
+                    // null이라 지금까지와 같은 대표값 하나짜리다.
+                    compound.isEmpty() ? null : "cumulative",
+                    compound.isEmpty() ? null : compound,
                     banner.extra(),
                     banner.endsOn().toString(),
                     // 기간 문구를 배지로 올린다 — "오전 11시부터 선착순"이
