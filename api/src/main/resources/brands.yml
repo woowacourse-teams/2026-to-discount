@@ -394,26 +394,33 @@ brands:
     category: snack
   떡참:
     aliases: [떡참, 떡볶이참잘하는집 떡참&치킨]
+    category: snack
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?pQcogGG
   매드포갈릭:
     links:
       baemin: https://s.baemin.com/7o3.fomtb
   본도시락:
+    category: korean
   아웃백스테이크하우스:
     aliases: [아웃백스테이크하우스, 아웃백]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?wDQg7yL
   원할머니보쌈족발:
+    category: korean
   계양산 전통시장:
   육회야문연어:
+    category: korean
     links:
       baemin: https://s.baemin.com/5K000ycTVzrba
   전통숙성황실김치찜&찌개:
+    category: korean
   큰맘할매순대국:
+    category: korean
     links:
       baemin: https://s.baemin.com/7o3.lmyqr
   하남돼지집:
+    category: korean
     links:
       baemin: https://s.baemin.com/7o8.5zae7
   포케올데이:
@@ -434,48 +441,62 @@ brands:
     links:
       baemin: https://s.baemin.com/7o3.gggxg
   나우카페:
+    category: cafe
     links:
       baemin: https://s.baemin.com/NM000sSGuQMk4
   다운타우너:
+    category: fastfood
     links:
       baemin: https://s.baemin.com/7o3.fpf8d
   따띠삼겹:
+    category: korean
     links:
       baemin: https://s.baemin.com/Qi000xWvlamq5
   명랑핫도그:
+    category: snack
     links:
       baemin: https://s.baemin.com/7o3.hvrvw
   미스터보쌈:
+    category: korean
     links:
       baemin: https://s.baemin.com/7o4.6ll4j
   미스터피자:
+    category: pizza
     links:
       baemin: https://s.baemin.com/7oa.7w51k
       yogiyo: yogiyolink://push.page/franchise?fr_id=80
   반찬가게 슈퍼키친:
+    category: korean
     links:
       baemin: https://s.baemin.com/7o3.kujr7
       yogiyo: yogiyolink://push.page/franchise?fr_id=3225
   백억커피:
+    category: cafe
     links:
       baemin: https://s.baemin.com/7o3.jg6j4
   버거리:
+    category: fastfood
     links:
       baemin: https://s.baemin.com/a0000vO1Qcggk
   본스치킨:
+    category: chicken
     links:
       baemin: https://s.baemin.com/7o4.bp56j
       yogiyo: yogiyolink://push.page/franchise?fr_id=396
   순살몬스터:
+    category: chicken
     links:
       baemin: https://s.baemin.com/7o8.6f0em
   신밥도둑:
+    category: korean
     links:
       baemin: https://s.baemin.com/7o8.8nvsi
   쌀통닭:
+    category: chicken
     links:
       baemin: https://s.baemin.com/7o7.9gu0g
   아구듬뿍&알곤마니:
+    category: korean
     links:
       baemin: https://s.baemin.com/7o4.9b9gz
   열정국밥:
@@ -483,54 +504,70 @@ brands:
     # 해장국 할인")을 그대로 브랜드명으로 넣었다. 실제 로고엔 "열정국밥"
     # 이라 박혀 있다 — 열정충전해장국은 메뉴명이지 상호가 아니다.
     aliases: [열정국밥, 열정충전해장국]
+    category: korean
     links:
       baemin: https://s.baemin.com/7o8.25psm
   영커피:
+    category: cafe
     links:
       baemin: https://s.baemin.com/7o6.xny4f
   요아정:
+    category: snack
     links:
       baemin: https://s.baemin.com/dji.i7f6o
   이경규의 돈치킨:
     aliases: [이경규의 돈치킨, 돈치킨]
+    category: chicken
     links:
       baemin: https://s.baemin.com/7o3.g6b37
   장충동왕족발:
+    category: korean
     links:
       baemin: https://s.baemin.com/7o3.s0o9n
   진교동찜닭:
+    category: korean
     links:
       baemin: https://s.baemin.com/kj000zbp9mSmI
   칠봉통닭:
+    category: chicken
     links:
       baemin: https://s.baemin.com/7o6.xxvtl
   커피앳웍스:
+    category: cafe
     links:
       baemin: https://s.baemin.com/7o3.xwroj
   트리플에이커피:
+    category: cafe
     links:
       baemin: https://s.baemin.com/Iw000oO9msx4U
   티바두마리치킨:
+    category: chicken
     links:
       baemin: https://s.baemin.com/7o5.f7vp0
   파파이스:
+    category: fastfood
     links:
       baemin: https://s.baemin.com/7o3.fuyop
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?zHO0nFF
   피나치공:
+    category: pizza
     links:
       baemin: https://s.baemin.com/Ya000aBNscd6W
   피자에땅:
+    category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?UK70R9a
       baemin: https://s.baemin.com/VJ000vO1G3l9C
   할리스:
+    category: cafe
     links:
       baemin: https://s.baemin.com/7oa.r5l0e
   호치킨:
+    category: chicken
     links:
       baemin: https://s.baemin.com/7o3.g1ec2
   힙둥이 곱도리탕:
+    category: korean
     links:
       baemin: https://s.baemin.com/0M000I2A5Q1i8
 
