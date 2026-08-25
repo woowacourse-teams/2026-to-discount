@@ -590,26 +590,28 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
           두면 조건이 없을 때 빈 줄이 남고, 있을 때는 검색과 필터가
           서로 다른 층에 있는 것처럼 보인다 — 둘 다 "지금 무엇을
           보고 있는가"를 말하는 같은 정보다. */}
-      {chips}
-      <input
-        type="search"
-        className="search-field__input"
-        placeholder="브랜드 검색"
-        aria-label="브랜드 검색"
-        role="combobox"
-        aria-autocomplete="list"
-        aria-expanded={autocomplete.isOpen}
-        aria-controls={autocomplete.isOpen ? listboxId : undefined}
-        aria-activedescendant={autocomplete.activeIndex >= 0 ? `${listboxId}-option-${autocomplete.activeIndex}` : undefined}
-        value={draft}
-        onFocus={autocomplete.open}
-        onChange={(e) => { setDraft(e.target.value); autocomplete.inputChanged() }}
-        onKeyDown={(e) => {
-          if (autocomplete.handleKeyDown(e)) return
-          if (e.key === 'Enter' && !e.repeat) submit('enter')
-          if (e.key === 'Escape') { setDraft(''); onChange('') }
-        }}
-      />
+      <div className="search-field__content">
+        {chips}
+        <input
+          type="search"
+          className="search-field__input"
+          placeholder="브랜드 검색"
+          aria-label="브랜드 검색"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={autocomplete.isOpen}
+          aria-controls={autocomplete.isOpen ? listboxId : undefined}
+          aria-activedescendant={autocomplete.activeIndex >= 0 ? `${listboxId}-option-${autocomplete.activeIndex}` : undefined}
+          value={draft}
+          onFocus={autocomplete.open}
+          onChange={(e) => { setDraft(e.target.value); autocomplete.inputChanged() }}
+          onKeyDown={(e) => {
+            if (autocomplete.handleKeyDown(e)) return
+            if (e.key === 'Enter' && !e.repeat) submit('enter')
+            if (e.key === 'Escape') { setDraft(''); onChange('') }
+          }}
+        />
+      </div>
       <button type="button" className="search-field__submit" aria-label="검색"
         onClick={() => submit('button')}>
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">

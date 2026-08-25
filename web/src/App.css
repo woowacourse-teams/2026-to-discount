@@ -2288,10 +2288,19 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   padding: 0 .2rem;
 }
 
-/* 토큰이 늘면 입력칸이 밀리므로 가로로 흐르게 둔다. 입력칸은 최소 폭을
-   지켜 토큰이 많아도 글자를 칠 자리가 남는다. */
-.search-field { overflow-x: auto; scrollbar-width: none; }
-.search-field::-webkit-scrollbar { display: none; }
+/* 토큰이 늘면 입력칸이 밀리므로 칩과 입력만 가로로 흐르게 둔다. 바깥
+   search-field까지 overflow를 걸면 아래 자동완성 목록도 높이 36px 안에서
+   잘린다. */
+.search-field__content {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: .25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.search-field__content::-webkit-scrollbar { display: none; }
 .search-field__input { min-width: 5rem; }
 
 /* ── 담아둔 것 보기 줄 ─────────────────────────────────────────────
