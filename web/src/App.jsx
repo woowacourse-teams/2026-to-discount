@@ -726,7 +726,18 @@ export default function App() {
   // 않고 길이만 남겨, 검색 행동은 분석하되 자유 입력 개인정보는 수집하지 않는다.
   const submitSearch = (raw, submitMethod) => {
     const query = raw.trim()
-    const nextFilters = { ...filters, search: query }
+    // 검색을 확정하면 켜둔 분류를 푼다.
+    //
+    // 둘을 AND로 걸면 치킨을 켜둔 채 "피자"를 친 사람에게 0건이 나간다.
+    // 실측(2026-08-24~25): 분류가 걸린 채 들어온 검색 13건이 예외 없이
+    // 0건이었다. 검색은 "이걸 찾아 달라"는 말이라 다른 조건이 이기면
+    // 안 된다 — 담아보기가 이미 같은 이유로 최우선이다(applyFilters).
+    //
+    // 조용히 무시하지 않고 상태에서 실제로 지운다. 그래야 검색창의 분류
+    // 칩도 같이 사라져서, 화면이 말하는 것과 걸린 조건이 어긋나지 않는다.
+    const nextFilters = query === ''
+      ? { ...filters, search: query }
+      : { ...filters, search: query, categories: new Set() }
     setFilters(nextFilters)
     if (query === '') return
 
@@ -1004,12 +1015,36 @@ export default function App() {
         </div>
       )}
 
+      {/* 0건일 때는 "없다"로 끝내지 않는다. 무엇이 걸려서 없는지와,
+          거기서 빠져나가는 길을 같이 준다 — 실측에서 검색 제출의 절반이
+          0건이었고, 그 화면에서 할 수 있는 일이 없었다. */}
       {visibleBrands && visibleBrands.length === 0 && (
-        <p className="msg">
-          {cartOnly
-            ? '담아둔 브랜드가 없습니다.'
-            : (search.trim() ? `"${search}" 검색 결과가 없습니다.` : '이 분류엔 브랜드가 없습니다.')}
-        </p>
+        <div className="msg">
+          {cartOnly ? (
+            <p>담아둔 브랜드가 없습니다.</p>
+          ) : search.trim() ? (
+            <>
+              <p>&quot;{search}&quot;와 이름이 겹치는 브랜드가 없습니다.</p>
+              {filters.platforms.size < PLATFORMS.length && (
+                <p>
+                  지금 {filters.platforms.size}개 앱만 켜져 있습니다.
+                  <button type="button" className="msg__action"
+                    onClick={() => setFilters((f) => ({
+                      ...f, platforms: new Set(PLATFORMS.map((x) => x.key)),
+                    }))}>
+                    전체 앱에서 다시 찾기
+                  </button>
+                </p>
+              )}
+              <button type="button" className="msg__action"
+                onClick={() => setSearch('')}>
+                검색어 지우기
+              </button>
+            </>
+          ) : (
+            <p>이 분류엔 브랜드가 없습니다.</p>
+          )}
+        </div>
       )}
 
       {visibleBrands && visibleBrands.length > 0 && (
