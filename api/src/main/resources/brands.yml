@@ -250,6 +250,8 @@ brands:
     category: pizza
 
   # --- 패스트푸드 ---
+  노브랜드버거:
+    category: fastfood
   맘스터치:
     # 부모 브랜드. 맘스터치피자앤치킨(버거 제외 피자·치킨 파생)과는 행사가
     # 별개라 alias로 합치지 않는다.
@@ -281,6 +283,18 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?5bKLeLT
 
   # --- 카페 ---
+  이디야커피:
+    category: cafe
+  파리크라상:
+    category: cafe
+  텐퍼센트커피 픽업:
+    category: cafe
+  카페인중독:
+    category: cafe
+  쏘쏘사라다:
+    # 샐러드 전문. 같은 성격의 샐러리아를 카페로 둔 것을 따른다 —
+    # 따로 분류를 만들 만큼 수가 많지 않다.
+    category: cafe
   샐러리아:
     category: cafe
   오베이글하우스:
@@ -353,6 +367,10 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=1789
 
   # --- 한식 ---
+  밥풀릭스:
+    category: korean
+  숙성고기 육칠이:
+    category: korean
   광안천지식당:
     category: korean
   동궁찜닭:
@@ -393,7 +411,7 @@ brands:
   요아잇:
     category: snack
   떡참:
-    aliases: [떡참, 떡볶이참잘하는집 떡참&치킨]
+    aliases: [떡참, 떡볶이참잘하는집 떡참&치킨, 떡참 떡볶이&치킨]
     category: snack
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?pQcogGG
@@ -403,7 +421,7 @@ brands:
   본도시락:
     category: korean
   아웃백스테이크하우스:
-    aliases: [아웃백스테이크하우스, 아웃백]
+    aliases: [아웃백스테이크하우스, 아웃백, 아웃백스테이크]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?wDQg7yL
   원할머니보쌈족발:
@@ -496,6 +514,7 @@ brands:
     links:
       baemin: https://s.baemin.com/7o7.9gu0g
   아구듬뿍&알곤마니:
+    aliases: [아구듬뿍&알곤마니, 아구듬뿍]
     category: korean
     links:
       baemin: https://s.baemin.com/7o4.9b9gz
