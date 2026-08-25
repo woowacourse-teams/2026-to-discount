@@ -87,7 +87,7 @@ public class BrandComparisonService {
                     null,
                     // 적혀 있으면 조건으로 함께 들어간다. 없으면 상세에
                     // "최소주문 미확인"이 뜬다 — 감추지 않는다.
-                    banner.minOrder(),
+                    banner.effectiveMinOrder(),
                     null,
                     null,
                     banner.extra(),

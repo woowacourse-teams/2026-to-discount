@@ -105,6 +105,7 @@ export default function TopBarA({
   cart,
   cartOnly,
   setCartOnly,
+  cartEnabled,
   isFiltered,
   resetFilters,
 }) {
@@ -182,8 +183,9 @@ export default function TopBarA({
         <div className="title-bar__ops">
           <div className="title-bar__actions">
             {/* 담아둔 브랜드만 모아 본다. 담은 게 없으면 누를 것이
-                없으므로 비활성이다. */}
-            <button
+                없으므로 비활성이다.
+                2026-08-25 끔 — App.jsx의 CART_ENABLED 참고. */}
+            {cartEnabled && <button
               type="button"
               className={`cart-btn${cartOnly ? ' cart-btn--on' : ''}`}
               aria-pressed={cartOnly}
@@ -203,7 +205,7 @@ export default function TopBarA({
                 <path d="M2 3h3l2.4 12.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6" />
               </svg>
               {cart.size > 0 && <span className="cart-btn__count">{cart.size}</span>}
-            </button>
+            </button>}
 
             <button
               type="button"

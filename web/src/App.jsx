@@ -70,6 +70,17 @@ function searchFallbackLink(platformKey, brandName) {
 
 const CART_KEY = 'dk_cart'
 
+// 담기(모아보기)를 끔 스위치. 2026-08-25 비활성.
+//
+// 원장 집계에서 방문자 2,438명 중 cart_toggle 73명(3.0%),
+// cart_clear는 2명이었다. 화면 위아래 두 자리(상단바 버튼,
+// 카드 마다의 담기)를 차지하는 것치고는 안 쓰인다.
+//
+// 지우지 않고 끔만 둔다 — 다시 켜려면 이 줄을 true로 되돌리면
+// 된다. localStorage의 dk_cart도 그대로 둘 다 — 꺼둔 동안 담아둔
+// 것이 지워지면 되돌렸을 때 사람마다 빈 상태로 시작한다.
+const CART_ENABLED = false
+
 function analyticsFilterContext(filters, cartOnly, cartSize) {
   return {
     fCategory: filters.categories.size === 0 ? 'all' : [...filters.categories].sort().join('+'),
@@ -393,7 +404,7 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
       {/* 담기 + 버튼. 헤더 버튼의 형제라 눌러도 카드가 안 펼쳐진다.
           아래 담기 줄과 같은 동작이고, 스크롤 중에 카드 아래까지 안 가도
           바로 담을 수 있는 지름길이다. */}
-      <button
+      {CART_ENABLED && <button
         type="button"
         className={`brand-card__add${checked ? ' brand-card__add--on' : ''}`}
         aria-pressed={checked}
@@ -406,7 +417,7 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
             ? <polyline points="20 6 9 17 4 12" />
             : <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>}
         </svg>
-      </button>
+      </button>}
 
       {/* 최고 할인을 단독 줄로 올리고 나머지는 아래 가로 그리드로
           내린다. 동점이면 그만큼 줄이 늘어난다. 넷을 균등한 격자에 늘어놓으면 "어느 게 제일 센가"를
@@ -458,7 +469,7 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
           헤더가 로고·이름만 갖게 하려는 것이고, 담기와 나란히 두면
           "이 카드로 할 수 있는 일"이 한자리에 모인다. */}
       <div className="brand-card__foot">
-        <button
+        {CART_ENABLED && <button
           type="button"
           className={`brand-card__save${checked ? ' brand-card__save--on' : ''}`}
           aria-pressed={checked}
@@ -470,7 +481,7 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
               : <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>}
           </svg>
           {checked ? '담김' : '담기'}
-        </button>
+        </button>}
 
         <button
           type="button"
@@ -826,6 +837,7 @@ export default function App() {
           cart={cart}
           cartOnly={cartOnly}
           setCartOnly={setCartOnly}
+          cartEnabled={CART_ENABLED}
           isFiltered={isFiltered}
           resetFilters={resetFilters}
         />
@@ -916,7 +928,7 @@ export default function App() {
 
             {/* 담아둔 브랜드만 모아 본다. 개수를 배지로 달아 몇 개
                 담았는지 열지 않고도 안다. */}
-            <button
+            {CART_ENABLED && <button
               type="button"
               className={`cart-btn${cartOnly ? ' cart-btn--on' : ''}`}
               aria-pressed={cartOnly}
@@ -936,7 +948,7 @@ export default function App() {
                 <path d="M2 3h3l2.4 12.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6" />
               </svg>
               {cart.size > 0 && <span className="cart-btn__count">{cart.size}</span>}
-            </button>
+            </button>}
           </div>
         </div>
 
@@ -976,7 +988,7 @@ export default function App() {
           "지금 무엇을 보는가"를 말하고, 이 줄은 "그래서 무엇을 할 수
           있는가"를 말한다 — 비우기를 토큰 옆에 두면 X(모아보기 끄기)와
           뜻이 헷갈린다. */}
-      {cartOnly && (
+      {CART_ENABLED && cartOnly && (
         <div className="cart-bar">
           <span className="cart-bar__label">담아둔 브랜드 {cart.size}개</span>
           <button
@@ -1013,7 +1025,7 @@ export default function App() {
               brand={b}
               highlighted={linkedBrand === brandCardId(b.name)}
               onInteract={() => setLinkedBrand(null)}
-              checked={cart.has(b.name)}
+              checked={CART_ENABLED && cart.has(b.name)}
               onToggleCheck={toggleCart}
             />
           ))}

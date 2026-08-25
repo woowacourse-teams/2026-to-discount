@@ -297,4 +297,33 @@ class BannerCatalogTest {
         BannerCatalog catalog = catalogOn(yaml, "2026-08-20");
         assertEquals(List.of("touslesjours"), catalog.unknownBrands());
     }
+
+    @Test
+    void readsMinOrderOutOfTheExtraLineWhenNobodyFilledTheField() {
+        // 사람은 extra에 "16,000원↑"를 적고 끝낸다. 실측(2026-08-25)에서
+        // 살아 있는 배너 셋 전부가 minOrder를 비워 둔 채였고, 그 배너가
+        // 카드에 설 때 조건이 전부 "최소주문 미확인"으로 떴어졌다.
+        assertEquals(16000, banner("16,000원↑, 사용(발급X) 선착순", null).effectiveMinOrder());
+        assertEquals(18900, banner("18,900원 이상", null).effectiveMinOrder());
+        assertEquals(20000, banner("최소주문 20,000원, 선착순 300명", null).effectiveMinOrder());
+
+        // 뒤에 따라붙는 금액은 할인액이지 최소주문금액이 아니다.
+        assertEquals(25000,
+                banner("25,000원↑, 고정 6,000+선착순 4,000", null).effectiveMinOrder());
+
+        // 명시로 적은 값이 문구보다 세다 — 둘이 어긋날 때 고칠 자리가 있어야 한다.
+        assertEquals(9000, banner("16,000원↑", 9000).effectiveMinOrder());
+
+        // 금액을 말하지 않는 문구에서는 지어내지 않는다.
+        assertNull(banner("선착순 300명", null).effectiveMinOrder());
+        assertNull(banner("7,000원 할인", null).effectiveMinOrder());
+        assertNull(banner(null, null).effectiveMinOrder());
+    }
+
+    private Banner banner(String extra, Integer minOrder) {
+        return new Banner("id", "교촌치킨", "baemin", "https://example.test",
+                "7,000원", "상시", extra, minOrder, null,
+                java.time.LocalDate.parse("2026-08-25"),
+                java.time.LocalDate.parse("2026-08-25"), 1);
+    }
 }

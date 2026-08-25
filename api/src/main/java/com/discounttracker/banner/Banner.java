@@ -1,6 +1,8 @@
 package com.discounttracker.banner;
 
 import java.time.LocalDate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 화면 맨 위에 띄우는 당일 행사 한 건.
@@ -18,10 +20,10 @@ import java.time.LocalDate;
  *                 원장에서 떼어낸 이유가 사라진다.
  * @param period   금액 우측 상단에 붙는 기간 문구("8/11 하루만").
  * @param extra    부가 조건. 없으면 null이고 화면에서 그 줄이 사라진다.
- * @param minOrder 최소주문금액. 선택이지만 적어두면 이 배너가 오퍼로 설 때
- *                 조건으로 함께 들어간다. {@code extra}에 "18,000원↑"이라고
- *                 적어도 그건 사람이 읽는 문장일 뿐이라, 오퍼 상세의 조건
- *                 칸은 빈 채로 "최소주문 미확인"이 뜬다.
+ * @param minOrder 최소주문금액. 적어두면 이 배너가 오퍼로 설 때 조건으로
+ *                 함께 들어간다. 안 적으면 {@code extra}에서 도로 뽑는다
+ *                 ({@link #effectiveMinOrder()}) — 사람이 둘 다 적는 일이 거의
+ *                 없어서 이 칸만 비운 배너가 계속 나왔다.
  * @param color    브랜드색 강제 지정. 없으면 로고에서 뽑고, 그마저 실패하면
  *                 플랫폼 색으로 간다(프론트 brandColor.js).
  * @param priority 낮을수록 먼저. 안 적으면 {@link #DEFAULT_PRIORITY}.
@@ -41,6 +43,40 @@ public record Banner(
         int priority) {
 
     static final int DEFAULT_PRIORITY = 999;
+
+    /**
+     * {@code extra}의 "18,900원↑" / "18,900원 이상"에서 앞 숫자.
+     *
+     * <p>맨 앞 금액만 본다. "25,000원↑, 고정 6,000+선착순 4,000"처럼 뒤에
+     * 다른 금액이 따라붙는 문구가 흔하다 — 그것까지 잡으면 할인액을
+     * 최소주문금액으로 읽는다.
+     */
+    private static final Pattern EXTRA_MIN_ORDER = Pattern.compile(
+            // 맨 앞의 "18,900원↑" / "18,900원 이상"
+            "^\\s*([0-9][0-9,]*)\\s*원\\s*(?:↑|이상)"
+            // 또는 어디에 있든 "최소주문 20,000원" — 말로 밝힌 경우
+            + "|최소주문\\s*([0-9][0-9,]*)\\s*원");
+
+    /**
+     * 오퍼 조건으로 쓸 최소주문금액. 명시로 적은 값이 먼저다.
+     *
+     * <p>배너를 올리는 사람은 {@code extra}에 "16,000원↑"를 적고 끝낸다.
+     * 실측(2026-08-25)으로 살아 있는 배너 셋 전부가 extra에는 금액을
+     * 적고 minOrder는 비워 두어, 카드에 선 오퍼가 전부 "최소주문 미확인"
+     * 이었다. 그 문장을 몸도 읽게 해서 손으로 두 번 적는 일을 없앱니다.
+     */
+    public Integer effectiveMinOrder() {
+        if (minOrder != null) return minOrder;
+        if (extra == null) return null;
+        Matcher m = EXTRA_MIN_ORDER.matcher(extra);
+        if (!m.find()) return null;
+        String digits = m.group(1) != null ? m.group(1) : m.group(2);
+        try {
+            return Integer.valueOf(digits.replace(",", ""));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
 
     /** {@code startsOn <= day <= endsOn}. 경계일 자신도 포함이다. */
     boolean activeOn(LocalDate day) {
