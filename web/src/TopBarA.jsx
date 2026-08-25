@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { track } from './analytics.js'
+import BrandSuggestions from './BrandSuggestions.jsx'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
 import { CATEGORIES, MEMBERSHIP_LABEL } from './filters.js'
+import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 
 /**
  * A안 검색 — 접힌 원형 버튼, 누르면 입력칸이 펼쳐진다.
@@ -13,10 +15,20 @@ import { CATEGORIES, MEMBERSHIP_LABEL } from './filters.js'
  * <p>입력 중에는 목록이 흔들리지 않는다. 확정(엔터·검색 버튼)해야 필터가
  * 걸린다 — 글자를 칠 때마다 결과가 튀면 무엇을 치는 중인지 안 보인다.
  */
-function SearchControlA({ value, onSubmit }) {
+function SearchControlA({ value, onSubmit, brands }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(value)
   const inputRef = useRef(null)
+  const listboxId = useId()
+  const autocomplete = useBrandAutocomplete({
+    brands,
+    input: draft,
+    onSelect: (brand) => {
+      setDraft(brand.name)
+      onSubmit(brand.name, 'autocomplete')
+      setOpen(false)
+    },
+  })
 
   useEffect(() => {
     if (open) {
@@ -36,6 +48,7 @@ function SearchControlA({ value, onSubmit }) {
   }, [open])
 
   const submit = (method) => {
+    autocomplete.close()
     onSubmit(draft, method)
     setOpen(false)
   }
@@ -63,9 +76,16 @@ function SearchControlA({ value, onSubmit }) {
             className="search-control__input"
             placeholder="브랜드 검색"
             aria-label="브랜드 검색"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={autocomplete.isOpen}
+            aria-controls={autocomplete.isOpen ? listboxId : undefined}
+            aria-activedescendant={autocomplete.activeIndex >= 0 ? `${listboxId}-option-${autocomplete.activeIndex}` : undefined}
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onFocus={autocomplete.open}
+            onChange={(e) => { setDraft(e.target.value); autocomplete.inputChanged() }}
             onKeyDown={(e) => {
+              if (autocomplete.handleKeyDown(e)) return
               if (e.key === 'Enter' && !e.repeat) submit('enter')
               if (e.key === 'Escape') setOpen(false)
             }}
@@ -74,6 +94,14 @@ function SearchControlA({ value, onSubmit }) {
             onClick={() => submit('button')}>
             검색
           </button>
+          {autocomplete.isOpen && (
+            <BrandSuggestions
+              suggestions={autocomplete.suggestions}
+              activeIndex={autocomplete.activeIndex}
+              listboxId={listboxId}
+              onSelect={autocomplete.select}
+            />
+          )}
         </div>
       )}
     </div>
@@ -102,6 +130,7 @@ export default function TopBarA({
   setFilters,
   search,
   onSearchSubmit,
+  brands,
   cart,
   cartOnly,
   setCartOnly,
@@ -221,7 +250,7 @@ export default function TopBarA({
               </svg>
             </button>
 
-            <SearchControlA value={search} onSubmit={onSearchSubmit} />
+            <SearchControlA value={search} onSubmit={onSearchSubmit} brands={brands} />
           </div>
         </div>
       </div>
