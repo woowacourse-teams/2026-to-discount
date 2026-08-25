@@ -250,16 +250,41 @@ def cmd_daily(people, rows, args):
               % (day, len(seen), len(conv), len(conv) / len(seen) * 100))
 
 
+def median(values):
+    """가운데 값. 헤비 유저 한 명에 안 흔들린다."""
+    if not values:
+        return 0
+    ordered = sorted(values)
+    mid = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[mid]
+    return (ordered[mid - 1] + ordered[mid]) / 2
+
+
 def table(groups, goal_name):
-    """집단별 전환율 표와, 가장 큰 두 집단의 z검정."""
-    print("집단                방문자   전환    전환율   95%% 구간        (%s)" % goal_name)
+    """집단별 전환율 표와, 가장 큰 두 집단의 z검정.
+
+    groups는 {이름: (사람 수, 전환한 사람 수, [전환자별 횟수])}.
+
+    전환율만 내면 왜곡은 안 생기지만 왜곡이 있었는지를 눈치챌 단서가
+    없다. 애초에 "b가 두 배 낫다"는 오독을 잡아낸 것이 중앙값과 최다
+    한 명이었다(2026-08-24: b의 클릭 115회 중 43회가 한 사람).
+    """
+    print("집단                방문자   전환    전환율   95%% 구간      중앙  최다1명   (%s)"
+          % goal_name)
     order = sorted(groups.items(), key=lambda kv: -kv[1][0])
-    for name, (n, c) in order:
+    for name, (n, c, counts) in order:
         lo, hi = wilson(c, n)
-        print("  %-16s %6d %6d   %5.1f%%   %4.1f~%4.1f%%"
-              % (name, n, c, c / n * 100 if n else 0, lo * 100, hi * 100))
+        print("  %-16s %6d %6d   %5.1f%%   %4.1f~%4.1f%%  %5g %7d"
+              % (name, n, c, c / n * 100 if n else 0, lo * 100, hi * 100,
+                 median(counts), max(counts) if counts else 0))
+        # 한 사람이 그 집단 전체 행동의 상당 부분을 차지하면 짚어 준다.
+        total = sum(counts)
+        if counts and max(counts) >= max(3, total * 0.25):
+            print("       ! 최다 1명이 이 집단 %s %d회 중 %d회 (%.0f%%)"
+                  % (goal_name, total, max(counts), max(counts) / total * 100))
     if len(order) >= 2:
-        (n1, (a_n, a_c)), (n2, (b_n, b_c)) = order[0], order[1]
+        (n1, (a_n, a_c, _a)), (n2, (b_n, b_c, _b)) = order[0], order[1]
         z, p = ztest(a_c, a_n, b_c, b_n)
         verdict = "유의" if p < 0.05 else "판정 불가"
         print("\n  %s vs %s:  z=%.2f  p=%.4f  %s" % (n1, n2, z, p, verdict))
@@ -272,14 +297,23 @@ def table(groups, goal_name):
 
 
 def cmd_compare(people, rows, args):
-    groups = collections.defaultdict(lambda: [0, 0])
+    # [사람 수, 전환한 사람 수, 전환자별 횟수]
+    #
+    # 전환은 사람 단위로 센다 — 한 사람이 43번 눌러도 1이다. 이상치를
+    # 골라 빼는 대신 배제가 필요 없는 단위로 세면, 누구를 이상치로 볼지
+    # 정하는 판단(그 자체로 편향이다)을 안 해도 된다.
+    #
+    # 횟수는 버리지 않고 따로 들고 있다가 분포 진단으로 낸다.
+    groups = collections.defaultdict(lambda: [0, 0, []])
     for v in population(people, args):
         name = bucket(v, args.by)
         if name is None:
             continue
         groups[name][0] += 1
-        if v.events[args.goal]:
+        hits = v.events[args.goal]
+        if hits:
             groups[name][1] += 1
+            groups[name][2].append(hits)
     if not groups:
         raise SystemExit("해당하는 방문자가 없다")
     table(dict(groups), args.goal)
@@ -537,6 +571,10 @@ def selftest():
     assert abs(z + 5.28) < 0.05 and p < 1e-6, (z, p)
     z, p = ztest(50, 200, 52, 200)
     assert p > 0.5, p
+    assert median([1, 1, 43]) == 1, "헤비 유저가 중앙값을 못 움직인다"
+    assert median([2, 4]) == 3
+    assert median([]) == 0
+
     lo, hi = wilson(0, 30)
     assert lo == 0 and 0.05 < hi < 0.2, (lo, hi)
     assert 1300 < sample_size(0.34, 0.15) < 1500, sample_size(0.34, 0.15)
