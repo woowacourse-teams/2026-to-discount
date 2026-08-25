@@ -78,7 +78,7 @@ public class TestDataController {
             links.put(firstPlatform(comparison), broken);
         }
         return new BrandComparison(
-                new Brand(original.name(), original.category(), links),
+                new Brand(original.name(), original.searchAliases(), original.category(), links),
                 comparison.maxConfirmedAmount(),
                 comparison.maxHeldAmount(),
                 comparison.offers());

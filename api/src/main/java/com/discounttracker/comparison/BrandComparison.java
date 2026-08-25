@@ -13,9 +13,9 @@ import java.util.Map;
  * 브랜드 하나를 앱별로 비교한 결과. 화면의 카드 하나에 대응한다.
  *
  * <p>JSON으로 나가는 모양은 평평하다 — {@code name}, {@code category},
- * {@code links}, {@code maxConfirmedAmount}, {@code offers}. 내부에서
- * {@link Brand}를 들고 있다고 해서 응답까지 중첩되면 프론트가 도메인
- * 구조 변경에 끌려다니게 되므로, 내보낼 것만 골라 노출한다.
+ * {@code searchAliases}, {@code links}, {@code maxConfirmedAmount},
+ * {@code offers}. 내부에서 {@link Brand}를 들고 있다고 해서 응답까지 중첩되면
+ * 프론트가 도메인 구조 변경에 끌려다니게 되므로, 내보낼 것만 골라 노출한다.
  *
  * @param maxHeldAmount 보류 오퍼 중 최고액. 확정이 없는 브랜드끼리 줄
  *                      세울 때만 쓰는 내부 값이라 응답에는 안 나간다.
@@ -36,6 +36,12 @@ public record BrandComparison(
     @JsonProperty("category")
     public String categoryKey() {
         return brand.category() == null ? null : brand.category().key();
+    }
+
+    /** 사용자가 대표명을 찾을 때 입력할 수 있는 한국어·영문 별칭. */
+    @JsonProperty("searchAliases")
+    public List<String> searchAliases() {
+        return brand.searchAliases();
     }
 
     /** 앱별 브랜드 쿠폰 바로가기. 플랫폼 키(ddangyo, baemin, ...) -> 링크. */

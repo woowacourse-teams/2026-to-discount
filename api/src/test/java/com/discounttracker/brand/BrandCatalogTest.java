@@ -2,8 +2,15 @@ package com.discounttracker.brand;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,6 +21,7 @@ class BrandCatalogTest {
           멕시카나:
             category: chicken
             aliases: [멕시카나치킨]
+            searchAliases: [멕시카나 치킨, mexicana, "  "]
             links:
               ddangyo: https://example.test/mexicana
               baemin: https://s.baemin.com/mexicana
@@ -48,6 +56,7 @@ class BrandCatalogTest {
     @Test
     void exposesCategoryAndLinksByPlatform() {
         Brand mexicana = catalogFor(YAML).find("멕시카나");
+        assertEquals(java.util.List.of("멕시카나 치킨", "mexicana"), mexicana.searchAliases());
         assertEquals(Category.CHICKEN, mexicana.category());
         assertEquals("https://example.test/mexicana", mexicana.links().get("ddangyo"));
         assertEquals("https://s.baemin.com/mexicana", mexicana.links().get("baemin"));
@@ -56,6 +65,7 @@ class BrandCatalogTest {
     @Test
     void brandWithoutAttributesHasNoCategoryOrLinks() {
         Brand hanam = catalogFor(YAML).find("하남돼지집");
+        assertTrue(hanam.searchAliases().isEmpty());
         assertNull(hanam.category());
         assertTrue(hanam.links().isEmpty());
     }
@@ -65,6 +75,7 @@ class BrandCatalogTest {
         // 원장에는 있는데 brands.yml에 아직 안 넣은 브랜드도 화면에는 떠야 한다.
         Brand unknown = catalogFor(YAML).find("굽네치킨");
         assertEquals("굽네치킨", unknown.name());
+        assertTrue(unknown.searchAliases().isEmpty());
         assertNull(unknown.category());
     }
 
@@ -100,5 +111,37 @@ class BrandCatalogTest {
         assertEquals("굽네치킨", catalog.canonical(" goobne "));
         // 모르는 이름은 손대지 않는다 — 적힌 그대로 돌려준다.
         assertEquals("BBQ", catalog.canonical("BBQ"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void everyBrandHasKoreanAndEnglishSearchAliasesWithoutConflicts() throws Exception {
+        Map<String, List<String>> owners = new HashMap<>();
+
+        try (InputStream in = new ClassPathResource("brands.yml").getInputStream()) {
+            Map<String, Object> root = new Yaml().load(in);
+            Map<String, Map<String, Object>> brands =
+                    (Map<String, Map<String, Object>>) root.get("brands");
+
+            brands.forEach((name, attrs) -> {
+                List<String> searchAliases = ((List<?>) attrs.getOrDefault("searchAliases", List.of()))
+                        .stream().map(String::valueOf).toList();
+
+                assertTrue(searchAliases.size() >= 3 && searchAliases.size() <= 5,
+                        () -> name + "의 searchAliases는 3~5개여야 한다");
+                assertTrue(searchAliases.stream().anyMatch(value -> value.matches(".*[가-힣].*")),
+                        () -> name + "에 한국어 searchAliases가 없다");
+                assertTrue(searchAliases.stream().anyMatch(value -> value.matches(".*[A-Za-z].*")),
+                        () -> name + "에 영문 searchAliases가 없다");
+
+                searchAliases.forEach(alias -> owners
+                        .computeIfAbsent(alias.trim().toLowerCase(Locale.ROOT), ignored ->
+                                new java.util.ArrayList<>())
+                        .add(name));
+            });
+        }
+
+        owners.forEach((alias, names) -> assertEquals(1, names.stream().distinct().count(),
+                () -> "searchAliases 충돌: " + alias + " -> " + names));
     }
 }
