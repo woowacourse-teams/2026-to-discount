@@ -610,7 +610,11 @@ class BrandComparisonServiceTest {
 
         Offer offer = card.offers().get(0);
         assertEquals(6500, offer.amount());
-        assertEquals("행사", offer.qualifier());
+        // "6,500원(4,000+10%)"는 쿠폰 두 장을 겹친 값이라 "행사"가 아니라
+        // "최적"이다(ADR-019) — 상세의 사다리와 칩의 배지가 같은 말을 해야 한다.
+        assertEquals("최적", offer.qualifier());
+        assertEquals("cumulative", offer.tierMode());
+        assertEquals(2, offer.tiers().size());
         assertEquals("2026-08-23", offer.expiresAt());
         // 적어둔 최소주문금액이 조건으로 함께 들어가야 상세가 "미확인"으로
         // 남지 않는다.
@@ -676,7 +680,9 @@ class BrandComparisonServiceTest {
                 """;
         List<String> withEventOffer =
                 serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML).compare().stream()
-                        .filter(c -> c.offers().stream().anyMatch(o -> "행사".equals(o.qualifier())))
+                        // 배너에서 온 오퍼는 "행사", 그중 복합쿠폰은 "최적"이다.
+                        .filter(c -> c.offers().stream().anyMatch(
+                                o -> "행사".equals(o.qualifier()) || "최적".equals(o.qualifier())))
                         .map(c -> c.brand().name())
                         .toList();
 

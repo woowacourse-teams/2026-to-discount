@@ -78,7 +78,10 @@ public class BrandComparisonService {
                     banner.platform(),
                     banner.brand(),
                     amount,
-                    BANNER_QUALIFIER,
+                    // 쿠폰 두 장을 겹쳐 나온 값이면 "최적"이다(ADR-019) — 그래야
+                    // 상세의 사다리와 칩의 배지가 같은 말을 한다. 둘 다 견줄 수 있는
+                    // 값이라 정렬에서 빠지지 않는다(confirmedSortingAmount).
+                    compound.isEmpty() ? BANNER_QUALIFIER : CUMULATIVE_QUALIFIER,
                     false,
                     "banner",
                     null,
@@ -199,6 +202,9 @@ public class BrandComparisonService {
 
     /** 배너에서 온 오퍼임을 화면에 알리는 표식. 프론트가 배지로 그린다. */
     private static final String BANNER_QUALIFIER = "행사";
+
+    /** 겹쳐 쓰는 쿠폰의 대표값임을 알리는 표식. 원장과 같은 말을 쓴다. */
+    private static final String CUMULATIVE_QUALIFIER = "최적";
 
     /**
      * 확정 오퍼가 카드 정렬(maxConfirmedAmount)에 기여하는 금액.

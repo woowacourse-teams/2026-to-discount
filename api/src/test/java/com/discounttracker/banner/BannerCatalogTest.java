@@ -342,7 +342,8 @@ class BannerCatalogTest {
         // 요기요 배너는 한 칸에 쿠폰 두 장을 적어 보낸다. 대표값
         // 하나로만 두면 선착순가 끝나 고정분만 남았을 때 그걸 알 길이 없다.
 
-        // 정액 + 정률 (굽네치킨): 4,000 + 25,000의 10% = 6,500
+        // 정액 + 정률, 대표값이 문턱에서의 합과 같은 경우 (굽네치킨)
+        //   4,000 + 25,000의 10% = 6,500
         var rate = banner("6,500원(4,000+10%)", "25,000원↑, 사용(발급X) 선착순", null)
                 .compoundTiers();
         assertEquals(2, rate.size());
@@ -353,20 +354,48 @@ class BannerCatalogTest {
         // 정률분을 미리 계산해 넣어야 사다리가 6,500을 낸다 —
         // DiscountLadder는 amount만 더한다.
         assertEquals(2500, rate.get(1).amount());
+        // 대표값과 딱 맞으면 상한을 알 길이 없다.
+        assertNull(rate.get(1).cap());
 
-        // 정액 + 정액 (파파존스): 6,000 + 4,000 = 10,000
+        // 정액 + 정률, 대표값이 상한인 경우 (파파존스, 문구가 extra에 있다)
+        //   "최대 10,000원" = 고정 6,000 + 정률 상한 4,000
+        //   25,000원에서 실제 받는 것은 6,000 + 2,500 = 8,500
+        var capped = banner("최대 10,000원", "25,000원↑, 고정 6,000+선착순 10%", null)
+                .compoundTiers();
+        assertEquals(2, capped.size());
+        assertEquals(6000, capped.get(0).amount());
+        assertEquals(2500, capped.get(1).amount());
+        assertEquals(10, capped.get(1).percent());
+        assertEquals(4000, capped.get(1).cap());
+
+        // "최대"를 안 적어도 같은 결과다 — 대표값이 문턱에서의 합보다
+        // 크다는 사실 자체가 그게 상한이라는 뜻이다. 서버의 papajohns-20260824
+        // 배너가 딱 이 모양이다(2026-08-25 실측).
+        var live = banner("10,000원", "25,000원↑, 고정 6,000+선착순 10%", null)
+                .compoundTiers();
+        assertEquals(2, live.size());
+        assertEquals(6000, live.get(0).amount());
+        assertEquals(2500, live.get(1).amount());
+        assertEquals(4000, live.get(1).cap());
+        assertEquals(25000, live.get(1).minOrder());
+
+        // 정액 + 정액 (합이 대표값과 같아야 한다)
         var two = banner("10,000원", "25,000원↑, 고정 6,000+선착순 4,000", null)
                 .compoundTiers();
         assertEquals(2, two.size());
         assertEquals(6000, two.get(0).amount());
         assertEquals(4000, two.get(1).amount());
 
-        // 합이 대표값과 다르면 문구를 잘못 읽은 것이다 — 지어낸다.
+        // 대표값이 문턱 합보다 작으면 문구를 잘못 읽은 것이다 — 지어낸다.
+        assertTrue(banner("5,000원", "25,000원↑, 고정 6,000+선착순 10%", null)
+                .compoundTiers().isEmpty());
         assertTrue(banner("9,000원", "25,000원↑, 고정 6,000+선착순 4,000", null)
                 .compoundTiers().isEmpty());
 
         // 복합이 아니면 지금까지와 같이 대표값 하나다.
         assertTrue(banner("7,000원", "16,000원↑, 선착순", null).compoundTiers().isEmpty());
         assertTrue(banner("최대 30%", "상시", null).compoundTiers().isEmpty());
+        // 최소주문금액을 모르면 정률을 금액으로 바꿀 수 없다.
+        assertTrue(banner("6,500원(4,000+10%)", "선착순", null).compoundTiers().isEmpty());
     }
 }

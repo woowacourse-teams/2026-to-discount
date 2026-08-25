@@ -86,49 +86,62 @@ public record Banner(
     /** {@code amount}의 맨 앞 "n,nnn원". 정액이 아니면 null. */
     private static final Pattern HEADLINE = Pattern.compile("([0-9][0-9,]*)\\s*원");
 
-    /** "6,500원(4,000+10%)" — 괄호 안에 정액+정률이 들어 있다. */
+    /**
+     * "4,000+10%" — 정액 뒤에 정률이 붙는다.
+     *
+     * <p>두 자리에 다 나온다. amount의 괄호 안("6,500원(4,000+10%)")이기도
+     * 하고 extra의 문장 안("고정 6,000+선착순 10%")이기도 하다. 사이의
+     * 말("선착순 ")은 배너마다 달라 길이로만 제한한다.
+     */
     private static final Pattern FIXED_PLUS_RATE =
-            Pattern.compile("\\(\\s*([0-9][0-9,]*)\\s*\\+\\s*([0-9]{1,2})\\s*%\\s*\\)");
+            Pattern.compile("([0-9][0-9,]*)\\s*원?\\s*\\+\\s*\\D{0,6}?([0-9]{1,3})\\s*%");
 
     /** "고정 6,000+선착순 4,000" — 정액 두 장을 겹쳐 쓴다. */
     private static final Pattern FIXED_PLUS_FIXED =
-            Pattern.compile("([0-9][0-9,]*)\\s*\\+\\s*\\D{0,6}?([0-9][0-9,]*)(?!\\s*%)");
+            Pattern.compile("([0-9][0-9,]*)\\s*원?\\s*\\+\\s*\\D{0,6}?([0-9][0-9,]*)(?!\\s*%)");
 
     /**
      * 복합쿠폰을 구간으로 푸는다. 아니면 빈 목록.
      *
-     * <p>요기요 배너에는 한 칸에 쿠폰 두 장이 적혀 온다 —
-     * 굽네치킨 "6,500원(4,000+10%)", 파파존스 "고정 6,000+선착순 4,000".
-     * 대표값 하나로만 둔 채 카드에 세우면, 선착순가 끝나 고정분만
-     * 남았을 때 사람이 그걸 알 길이 없다.
+     * <p>요기요 배너는 한 칸에 쿠폰 두 장을 적어 보낸다 — 굽네치킨
+     * "6,500원(4,000+10%)", 파파존스 "고정 6,000+선착순 10%". 대표값 하나로만
+     * 둔 채 카드에 세우면, 선착순가 끝나 고정분만 남았을 때 사람이
+     * 그걸 알 길이 없다.
      *
-     * <p>합이 적혀 있는 대표값과 다르면 구간을 만들지 않는다 — 문구를
-     * 잘못 읽은 것이지 새 사실을 안 것이 아니라, 지어내는 편이 낛다.
-     * 정률은 최소주문금액 기준으로 맞춰 본다(화면에 적힌 숫자가 그 값이다).
+     * <p><b>정률분은 최소주문금액에서 계산해 amount에 넣는다.</b>
+     * {@code DiscountLadder}가 amount만 더하고 percent를 다시 계산하지 않기
+     * 때문이다("각 구간의 amount는 이미 그 문턱에서 실제 받는 금액").
+     *
+     * <p>대표값이 문턱에서의 합보다 크면 그건 상한이다 — 파파존스
+     * 실측(2026-08-25)에서 "최대 10,000원"은 고정 6,000 + 정률 상한 4,000이었고,
+     * 25,000원에서 실제 받는 것은 6,000 + 2,500 = 8,500이다. 상한을
+     * {@code cap}으로 남기고 사다리는 보장되는 값을 낸다.
+     *
+     * <p>대표값이 합보다 작으면 문구를 잘못 읽은 것이다 — 지어내지 않고
+     * 빈 목록을 돌려 대표값 하나로 둔다.
      */
     public List<com.discounttracker.offer.DiscountTier> compoundTiers() {
         Integer headline = headlineAmount();
         Integer min = effectiveMinOrder();
-        if (headline == null) return List.of();
+        if (headline == null || min == null) return List.of();
 
-        Matcher rate = FIXED_PLUS_RATE.matcher(amount == null ? "" : amount);
-        if (rate.find()) {
+        Matcher rate = firstMatch(FIXED_PLUS_RATE);
+        if (rate != null) {
             Integer fixed = digits(rate.group(1));
             Integer percent = digits(rate.group(2));
-            if (fixed == null || percent == null || min == null) return List.of();
-            // 정률분은 미리 계산해 amount에 넣는다. DiscountLadder는 amount만
-            // 더하고 percent를 다시 계산하지 않는다 — "각 구간의 amount는
-            // 이미 그 문턱에서 실제 받는 금액"이라는 규칙이다. percent는
-            // 상세에서 "10%"라고 보여 주려고 함께 남긴다.
+            if (fixed == null || percent == null || percent == 0) return List.of();
             int rated = min * percent / 100;
-            if (fixed + rated != headline) return List.of();
+            if (headline < fixed + rated) return List.of();
+            // 대표값이 더 크면 그 초과분이 정률의 상한이다. 같으면
+            // 상한을 알 길이 없으니 붙이지 않는다.
+            Integer cap = headline > fixed + rated ? headline - fixed : null;
             return List.of(
                     new com.discounttracker.offer.DiscountTier(min, fixed, null, null, null, null, null),
-                    new com.discounttracker.offer.DiscountTier(min, rated, percent, null, null, null, null));
+                    new com.discounttracker.offer.DiscountTier(min, rated, percent, cap, null, null, null));
         }
 
-        Matcher two = FIXED_PLUS_FIXED.matcher(extra == null ? "" : extra);
-        if (two.find()) {
+        Matcher two = firstMatch(FIXED_PLUS_FIXED);
+        if (two != null) {
             Integer a = digits(two.group(1));
             Integer b = digits(two.group(2));
             if (a == null || b == null) return List.of();
@@ -138,6 +151,16 @@ public record Banner(
                     new com.discounttracker.offer.DiscountTier(min, b, null, null, null, null, null));
         }
         return List.of();
+    }
+
+    /** amount를 먼저 보고 extra를 본다. 둘 다 쓰이는 자리다. */
+    private Matcher firstMatch(Pattern pattern) {
+        for (String text : new String[] {amount, extra}) {
+            if (text == null) continue;
+            Matcher m = pattern.matcher(text);
+            if (m.find()) return m;
+        }
+        return null;
     }
 
     /** 대표값. "최대 30%"처럼 정액이 아니면 null. */
