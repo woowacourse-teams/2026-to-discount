@@ -1,4 +1,5 @@
 const CHOSEONG_KEYS = ['r', 'R', 's', 'e', 'E', 'f', 'a', 'q', 'Q', 't', 'T', 'd', 'w', 'W', 'c', 'z', 'x', 'v', 'g']
+const CHOSEONG_JAMO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 const JUNGSEONG_KEYS = ['k', 'o', 'i', 'O', 'j', 'p', 'u', 'P', 'h', 'hk', 'ho', 'hl', 'y', 'n', 'nj', 'np', 'nl', 'b', 'm', 'ml', 'l']
 const JONGSEONG_KEYS = ['', 'r', 'R', 'rt', 's', 'sw', 'sg', 'e', 'f', 'fr', 'fa', 'fq', 'ft', 'fx', 'fv', 'fg', 'a', 'q', 'qt', 't', 'T', 'd', 'w', 'c', 'z', 'x', 'v', 'g']
 
@@ -65,6 +66,18 @@ export function toDubeolsikHangul(input) {
 }
 
 const normalize = (value) => String(value ?? '').trim().toLocaleLowerCase()
+const isChoseongQuery = (value) => /^[ㄱ-ㅎ]+$/.test(value)
+
+/** 한글 음절과 단독 초성에서 검색에 사용할 초성열을 만든다. */
+export function toChoseong(input) {
+  return [...String(input ?? '')].map((character) => {
+    const code = character.charCodeAt(0)
+    if (code >= 0xac00 && code <= 0xd7a3) {
+      return CHOSEONG_JAMO[Math.floor((code - 0xac00) / (21 * 28))]
+    }
+    return isChoseongQuery(character) ? character : ''
+  }).join('')
+}
 
 function matchRank(target, query) {
   if (target === query) return 0
@@ -74,9 +87,13 @@ function matchRank(target, query) {
 }
 
 function matchBrands(brands, query, limit) {
+  const choseongOnly = isChoseongQuery(query)
   return brands
     .map((brand, originalIndex) => {
-      const targets = [brand.name, ...(brand.searchAliases ?? [])].map(normalize)
+      const targets = [brand.name, ...(brand.searchAliases ?? [])]
+        .map(normalize)
+        .map((target) => choseongOnly ? toChoseong(target) : target)
+        .filter(Boolean)
       const ranks = targets.map((target) => matchRank(target, query)).filter((rank) => rank != null)
       return ranks.length === 0 ? null : { brand, rank: Math.min(...ranks), originalIndex }
     })

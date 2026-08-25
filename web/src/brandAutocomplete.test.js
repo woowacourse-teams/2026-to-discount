@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { findBrandSuggestions, toDubeolsikHangul } from './brandAutocomplete.js'
+import { findBrandSuggestions, toChoseong, toDubeolsikHangul } from './brandAutocomplete.js'
 
 const brands = [
   { name: '굽네치킨', searchAliases: ['굽네', '굽네 치킨', 'goobne', 'goobne chicken'] },
@@ -44,6 +44,22 @@ test('영문 원문 후보가 있으면 두벌식 변환 후보를 섞지 않는
     { name: '해외브랜드', searchAliases: ['rnqsp'] },
   ], 'rnqsp')
   assert.deepEqual(result.map((brand) => brand.name), ['해외브랜드'])
+})
+
+test('한글 브랜드명과 별칭의 초성열을 만든다', () => {
+  assert.equal(toChoseong('굽네 치킨'), 'ㄱㄴㅊㅋ')
+  assert.equal(toChoseong('BBQ 비비큐'), 'ㅂㅂㅋ')
+})
+
+test('초성 하나 또는 여러 개로 시작하는 브랜드 후보를 찾는다', () => {
+  assert.deepEqual(findBrandSuggestions(brands, 'ㄱ').map((brand) => brand.name), ['굽네치킨', '굽네피자'])
+  assert.deepEqual(findBrandSuggestions(brands, 'ㄱㄴ').map((brand) => brand.name), ['굽네치킨', '굽네피자'])
+  assert.deepEqual(findBrandSuggestions(brands, 'ㅍㅈㅎ').map((brand) => brand.name), ['피자헛'])
+})
+
+test('영문 대표명은 한국어 검색 별칭의 초성으로 찾는다', () => {
+  const englishBrand = [{ name: 'BBQ', searchAliases: ['비비큐', '비비큐치킨', 'bbq chicken'] }]
+  assert.deepEqual(findBrandSuggestions(englishBrand, 'ㅂㅂㅋ').map((brand) => brand.name), ['BBQ'])
 })
 
 test('빈 입력, 브랜드 미로딩, 변환 결과도 없는 입력은 후보가 없다', () => {
