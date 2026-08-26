@@ -12,149 +12,183 @@
 brands:
   # --- 치킨 ---
   가마로강정:
+    searchAliases: [가마로, 가마로 닭강정, gamaro, gamaro gangjeong]
     category: chicken
   치킨마루:
+    searchAliases: [치킨 마루, 마루치킨, chicken maru, chikin maru]
     category: chicken
   BBQ:
+    searchAliases: [비비큐, 비비큐치킨, bbq chicken, bbq치킨]
     category: chicken
     aliases: [BBQ, BBQ치킨]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?Ej2faGu
       baemin: https://s.baemin.com/f3e.6ibml
   bhc:
+    searchAliases: [비에이치씨, 비에이치씨치킨, bhc chicken, bhc치킨]
     category: chicken
     aliases: [bhc, bhc치킨, BHC, BHC치킨]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?WxH5HaA
       baemin: https://s.baemin.com/7o3.f7e8q
   감탄계숯불치킨:
+    searchAliases: [감탄계, 감탄계 치킨, gamtangye, gamtangye chicken]
     category: chicken
   계근상:
+    searchAliases: [계근상 치킨, 계근상닭, gyegunsang, gyegunsang chicken]
     category: chicken
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=4723
   굽네치킨:
+    searchAliases: [굽네, 굽네 치킨, goobne, goobne chicken, gubne]
     category: chicken
     aliases: [굽네, 굽네치킨, goobne, goobnechicken]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=18
   기영이숯불두마리치킨:
+    searchAliases: [기영이치킨, 기영이 숯불치킨, giyeongi, giyeongi chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?oO9vVmT
       baemin: https://s.baemin.com/7o3.fea3y
   꾸브라꼬숯불치킨:
+    searchAliases: [꾸브라꼬, 꾸브라꼬 치킨, 꾸브라코, kkuburakko, kkuburakko chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?FmPxvqc
       baemin: https://s.baemin.com/arr.e9j1z
       yogiyo: yogiyolink://push.page/franchise?fr_id=1692
   냠냠숯불두마리치킨:
+    searchAliases: [냠냠치킨, 냠냠 숯불치킨, nyamnyam, nyamnyam chicken]
     category: chicken
     links:
       baemin: https://s.baemin.com/aou.816hq
   네네치킨:
+    searchAliases: [네네, 네네 치킨, nene, nene chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?JULhdCt
       baemin: https://s.baemin.com/7o3.izwes
       yogiyo: yogiyolink://push.page/franchise?fr_id=7
   노랑통닭:
+    searchAliases: [노랑 통닭, 노랑치킨, norang tongdak, norang chicken]
     category: chicken
   두찜:
+    searchAliases: [두찜 찜닭, 두찜찜닭, doojjim, doojjim chicken]
     category: chicken
     aliases: [두찜, 두찜찜닭, 두찜 찜닭, 두찜_찜닭]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?T0qTf0A
   디디치킨:
+    searchAliases: [디디 치킨, 디디, dd chicken, didi chicken]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o3.kx2oa
   땅땅치킨:
+    searchAliases: [땅땅, 땅땅 치킨, ttangttang, ttangttang chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?JWhfyJV
   또래오래:
+    searchAliases: [또래오래 치킨, 또래치킨, toreore, toreore chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?MqV1NOn
       baemin: https://s.baemin.com/7o3.i75r7
   또봉이통닭:
+    searchAliases: [또봉이, 또봉이 통닭, ttobongi, ttobongi chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?AyNa0tH
   멕시카나:
+    searchAliases: [멕시카나치킨, 멕시카나 치킨, mexicana, mexicana chicken]
     category: chicken
     aliases: [멕시카나, 멕시카나치킨]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?cauwVmn
   바른치킨:
+    searchAliases: [바른 치킨, 바른, bareun chicken, barun chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?eBbjwuA
   보끔당:
+    searchAliases: [보끔당 치킨, 보끔, bokkeumdang, bokkeumdang chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?T3hDLfi
       baemin: https://s.baemin.com/vi000uzBO5p4o
   부어치킨:
+    searchAliases: [부어, 부어 치킨, boor chicken, bueo chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?gCj91aW
       yogiyo: yogiyolink://push.page/franchise?fr_id=740
   아라치치킨:
+    searchAliases: [아라치, 아라치 치킨, arachi, arachi chicken]
     category: chicken
     aliases: [아라치치킨, 아라치]
     links:
       baemin: https://s.baemin.com/7o3.j7lu0
   오븐마루치킨:
+    searchAliases: [오븐마루, 오븐마루 치킨, ovenmaru, ovenmaru chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?Hdnrhi4
       baemin: https://s.baemin.com/f3e.7acck
   오븐에빠진닭:
+    searchAliases: [오빠닭, 오븐에 빠진 닭, oppadak, oven chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?zNUTDSs
   일미리금계찜닭:
+    searchAliases: [일미리, 일미리 찜닭, ilmilligeumgye, ilmilli jjimdak]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?AvcBo0q
   자담치킨:
+    searchAliases: [자담, 자담 치킨, jadam, jadam chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?2A200zC
       baemin: https://s.baemin.com/7o3.ffp9z
       yogiyo: yogiyolink://push.page/franchise?fr_id=418
   처갓집양념치킨:
+    searchAliases: [처갓집, 처갓집 치킨, cheogatjip, cheogatjip chicken]
     category: chicken
     links:
       baemin: https://s.baemin.com/f3e.679a4
   치킨매니아:
+    searchAliases: [치킨 매니아, 매니아치킨, chicken mania, chikin mania]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o6.l6m2f
   치킨인류:
+    searchAliases: [치킨 인류, 인류치킨, chicken inryu, chikin inryu]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o3.gf02e
   치킨플러스:
+    searchAliases: [치킨 플러스, 치플, chicken plus, chikin plus]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?QVfBCD2
       baemin: https://s.baemin.com/7o3.gybb1
   페리카나:
+    searchAliases: [페리카나치킨, 페리카나 치킨, pelicana, pelicana chicken]
     category: chicken
   푸라닭:
+    searchAliases: [푸라닭치킨, 푸라닭 치킨, puradak, puradak chicken]
     aliases: [푸라닭, 푸라닭치킨, puradak]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?QgXqFri
   해두리치킨:
+    searchAliases: [해두리, 해두리 치킨, haeduri, haeduri chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?CwOVSYe
   호식이두마리치킨:
+    searchAliases: [호식이, 호식이 치킨, hosigi, hosigi chicken]
     category: chicken
     aliases: [호식이, 호식이두마리치킨, hosigi]
     links:
@@ -162,10 +196,12 @@ brands:
       baemin: https://s.baemin.com/7o3.fztoy
       yogiyo: yogiyolink://push.page/franchise?fr_id=21
   후라이드참잘하는집:
+    searchAliases: [후참잘, 후라이드 잘하는집, hoo cham jal, fried chicken house]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?8YuSHys
   훌랄라참숯바베큐치킨:
+    searchAliases: [훌랄라, 훌랄라 치킨, hoolala, hoolala chicken]
     category: chicken
     aliases: [훌랄라참숯바베큐치킨, 훌랄라참숯치킨]
     links:
@@ -173,53 +209,67 @@ brands:
       baemin: https://s.baemin.com/7o3.h24j5
 
   60계치킨:
+    searchAliases: [육십계, 육십계치킨, 60gye, 60gye chicken]
     category: chicken
   교촌치킨:
+    searchAliases: [교촌, 교촌 치킨, kyochon, kyochon chicken]
     category: chicken
     aliases: [교촌치킨, 교촌]
 
   # --- 피자 ---
   반올림피자:
+    searchAliases: [반올림 피자, 반올림, banolim pizza, banollim pizza]
     category: pizza
   클랩피자:
+    searchAliases: [클랩 피자, 클랩, clap pizza, keullaep pizza]
     category: pizza
   7번가피자:
+    searchAliases: [칠번가피자, 7번가 피자, 7번가, 7th street pizza, seven street pizza]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?DmbfouG
       baemin: https://s.baemin.com/7o3.frwoi
   도미노피자:
+    searchAliases: [도미노, 도미노 피자, domino's, dominos pizza]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?v5FFUA2
       baemin: https://s.baemin.com/f3e.6uol0
       yogiyo: yogiyolink://push.page/franchise?fr_id=652
   맘스피자:
+    searchAliases: [맘스 피자, 맘피, moms pizza, mom's pizza]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?WEpeHjL
   보스피자:
+    searchAliases: [보스 피자, 보스, boss pizza, boseu pizza]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?L95SznU
       yogiyo: yogiyolink://push.page/franchise?fr_id=20101
   빽보이피자:
+    searchAliases: [빽보이, 빽보이 피자, 백피자, 빽피자]
     category: pizza
     links:
       baemin: https://s.baemin.com/7o3.f2zof
   빽보이피자 오구샌:
+    searchAliases: [빽보이 오구샌, 오구샌, 빽보이, 빽보이 피자, 백피자, 빽피자, paekboy ogusaen, backboy ogusan]
     category: pizza
     links:
       baemin: https://s.baemin.com/Pm000CBIkaUXb
   수피자:
+    searchAliases: [수 피자, 수피자집, soo pizza, su pizza]
     category: pizza
   아메리칸피자:
+    searchAliases: [아메리칸 피자, 아메리칸, american pizza, americane pizza]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?pQ43vJA
   오구쌀피자:
+    searchAliases: [오구 피자, 오구쌀 피자, 59 pizza, ogu rice pizza]
     category: pizza
   청년피자:
+    searchAliases: [청년 피자, 청피, youngman pizza, youth pizza]
     aliases: [청년피자, youngmanpizza]
     category: pizza
     links:
@@ -227,92 +277,119 @@ brands:
       baemin: https://s.baemin.com/7o3.f3g7j
       yogiyo: yogiyolink://push.page/franchise?fr_id=821
   파파존스:
+    searchAliases: [파파 존스, 파존, papa johns, papa john's]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?K7T2Lrz
       yogiyo: yogiyolink://push.page/franchise?fr_id=41
   피자알볼로:
+    searchAliases: [알볼로, 알볼로 피자, pizza alvolo, alvolo pizza]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?1KcWnCU
   프레드피자:
+    searchAliases: [프레드 피자, 프레드, fred pizza, peuredeu pizza]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?J0Rf5Ug
       baemin: https://s.baemin.com/7o3.g9xra
   피자헛:
+    searchAliases: [피자 헛, 피자헛 코리아, pizza hut, pizzahut]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?YVE9ZY9
       baemin: https://s.baemin.com/7o3.f2e5b
 
   노모어피자:
+    searchAliases: [노모어 피자, 노모어, no more pizza, nomore pizza]
     category: pizza
 
   # --- 패스트푸드 ---
   노브랜드버거:
+    searchAliases: [노브랜드 버거, 노브랜드, no brand burger, nbb]
     category: fastfood
   맘스터치:
+    searchAliases: [맘스 터치, 맘터, mom's touch, momstouch]
     # 부모 브랜드. 맘스터치피자앤치킨(버거 제외 피자·치킨 파생)과는 행사가
     # 별개라 alias로 합치지 않는다.
     category: fastfood
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?dxgjyLy
   맘스터치피자앤치킨:
+    searchAliases: [맘스터치 피자앤치킨, 맘피치, mom's touch pizza and chicken, momstouch pnc]
     category: fastfood
     aliases: [맘스터치피자앤치킨, 맘스터치 피자앤치킨, 맘스터치앤피자]
     links:
       baemin: https://s.baemin.com/7o3.fsacj
   맥도날드:
+    searchAliases: [맥날, 맥도날드 코리아, mcdonald's, mcdonalds]
     category: fastfood
   버거킹:
+    searchAliases: [버거 킹, 버킹, burger king, burgerking]
     category: fastfood
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?DFNhNQ1
       baemin: https://s.baemin.com/7o3.f6syp
       yogiyo: yogiyolink://push.page/franchise?fr_id=75
   써브웨이:
+    searchAliases: [서브웨이, 섭웨, 써브 웨이, subway, subway korea]
     category: fastfood
   쉐이크쉑:
+    searchAliases: [쉑쉑, 쉐이크 쉑, shake shack, shakeshack]
     category: fastfood
   움버거앤윙스:
+    searchAliases: [움버거, 움버거 앤 윙스, um burger and wings, umburger]
     category: fastfood
   왓더버거:
+    searchAliases: [왓더 버거, 왓버거, what the burger, whattheburger]
     category: fastfood
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?5bKLeLT
 
   # --- 카페 ---
   이디야커피:
+    searchAliases: [이디야, 이디야 커피, ediya coffee, ediya]
     category: cafe
   파리크라상:
+    searchAliases: [파리 크라상, 파크, paris croissant, pariscroissant]
     category: cafe
   텐퍼센트커피 픽업:
+    searchAliases: [텐퍼센트커피, 텐퍼센트 커피, ten percent coffee, 10 percent coffee]
     category: cafe
   카페인중독:
+    searchAliases: [카페인 중독, 카중, caffeine addiction, caffeine jungdok]
     category: cafe
   쏘쏘사라다:
+    searchAliases: [쏘쏘 사라다, 쏘쏘샐러드, ssosso sarada, soso salad]
     # 샐러드 전문. 같은 성격의 샐러리아를 카페로 둔 것을 따른다 —
     # 따로 분류를 만들 만큼 수가 많지 않다.
     category: cafe
   샐러리아:
+    searchAliases: [샐러 리아, 샐러리아 샐러드, salaria, salaria salad]
     category: cafe
   오베이글하우스:
+    searchAliases: [오베이글, 오 베이글 하우스, o bagel house, obagel]
     category: cafe
   토스트카페마리:
+    searchAliases: [토스트 카페 마리, 카페마리, toast cafe mari, cafe mari]
     category: cafe
   파리바게뜨:
+    searchAliases: [파리바게트, 파바, paris baguette, parisbaguette]
     category: cafe
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?NBQPChf
   폴바셋:
+    searchAliases: [폴 바셋, 폴바셋커피, 풀바셋, paul bassett, paulbassett]
     category: cafe
   공차:
+    searchAliases: [공차코리아, 공차 버블티, gong cha, gongcha]
     category: cafe
   던킨:
+    searchAliases: [던킨도너츠, 던킨 도너츠, dunkin, dunkin donuts]
     aliases: [던킨, 던킨도너츠, dunkin, dunkindonuts]
     category: cafe
   뚜레쥬르:
+    searchAliases: [뚜레주르, 뚜쥬, tous les jours, touslesjours]
     aliases: [뚜레쥬르, touslesjours, tlj]
     category: cafe
     links:
@@ -320,205 +397,262 @@ brands:
       baemin: https://s.baemin.com/Vz000vNQLilUR
       yogiyo: yogiyolink://push.page/franchise?fr_id=606
   배스킨라빈스:
+    searchAliases: [베스킨라빈스, 배라, 베라, baskin robbins, baskinrobbins]
     category: cafe
   설빙:
+    searchAliases: [설빙 빙수, 설빙코리아, sulbing, sulbing korea]
     category: cafe
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?EE7GifX
   스타벅스:
+    searchAliases: [스벅, 스타벅스커피, 스타벅수, starbucks, starbucks coffee]
     category: cafe
   잠바주스:
+    searchAliases: [잠바 주스, 잠바, jamba juice, jambajuice]
     category: cafe
     links:
       baemin: https://s.baemin.com/7oa.rgaxn
   팀홀튼:
+    searchAliases: [팀 홀튼, 팀홀튼커피, 팀홀든, tim hortons, timhortons]
     category: cafe
   파스쿠찌:
+    searchAliases: [파스쿠치, 카페 파스쿠찌, caffe pascucci, pascucci]
     category: cafe
     links:
       baemin: https://s.baemin.com/7o3.fjjn5
       yogiyo: yogiyolink://push.page/franchise?fr_id=482
 
   메가MGC커피:
+    searchAliases: [메가커피, 메가 엠지씨 커피, 메가, mega mgc coffee, mega coffee]
     category: cafe
     aliases: [메가MGC커피, 메가커피]
 
   # --- 편의점 ---
   CU:
+    searchAliases: [씨유, 씨유 편의점, 시유, cu convenience, cu korea]
     category: convenience
     aliases: [CU, CU픽업, CU주류픽업]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=682
   GS25:
+    searchAliases: [지에스25, 지에스 편의점, 지에스, gs25, gs twenty five]
     category: convenience
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=646
   세븐일레븐:
+    searchAliases: [세븐 일레븐, 세븐편의점, 세븐, 7-eleven, seven eleven]
     category: convenience
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=970
   세븐픽업:
+    searchAliases: [세븐 픽업, 세븐일레븐 픽업, seven pickup, 7 eleven pickup]
     category: convenience
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=1585
   요편의점:
+    searchAliases: [요 편의점, 요기요 편의점, yo convenience, yogiyo convenience]
     category: convenience
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=1789
 
   # --- 한식 ---
   밥풀릭스:
+    searchAliases: [밥 풀릭스, 밥풀, bapflix, babflix]
     category: korean
   숙성고기 육칠이:
+    searchAliases: [육칠이, 숙성고기육칠이, yukchili, 672 meat]
     category: korean
   광안천지식당:
+    searchAliases: [광안 천지식당, 천지식당, gwangan cheonji, cheonji restaurant]
     category: korean
   동궁찜닭:
+    searchAliases: [동궁 찜닭, 동궁, donggung jjimdak, donggung]
     category: korean
   마선생얼큰국밥:
+    searchAliases: [마선생 국밥, 마선생, 얼큰국밥, master ma gukbap, maseonsaeng gukbap]
     category: korean
   마왕족발:
+    searchAliases: [마왕 족발, 마왕, mawang jokbal, mawang]
     category: korean
   유가네닭갈비:
+    searchAliases: [유가네, 유가네 닭갈비, yoogane, yoogane dakgalbi]
     # 쿠폰이 앱마다 갈릴 때도 있는 같은 브랜드.
     category: korean
     aliases: [유가네닭갈비, 유가네찜닭]
     links:
       baemin: https://s.baemin.com/7o3.fzi0x
   지지고:
+    searchAliases: [지지고컵밥, 지지고 컵밥, gggo, jijigo]
     category: korean
   천지두루치기:
+    searchAliases: [천지 두루치기, 천지, cheonji duruchigi, cheonji]
     category: korean
   최강곱도리:
+    searchAliases: [최강 곱도리, 최강곱도리탕, 최곱, choegang gopdori, strongest gopdori]
     category: korean
   호세야:
+    searchAliases: [호세야 오리바베큐, 호세야 오리바비큐, 호세아, hoseya, hoseya duck barbecue]
     category: korean
     aliases: [호세야, 호세야 오리바베큐]
 
   양은이네동태:
+    searchAliases: [양은이네, 양은이네 동태, yangeunine dongtae, yangeuni]
     category: korean
   인생아구찜:
+    searchAliases: [인생 아구찜, 인생아귀찜, insaeng agujjim, life agujjim]
     category: korean
 
   # --- 중식 ---
   홍콩반점0410:
+    searchAliases: [홍콩반점, 홍반, hong kong banjeom, hongkong banjeom 0410]
     category: chinese
 
   마라공방:
+    searchAliases: [마라 공방, 마라탕공방, mala workshop, maragongbang]
     category: chinese
 
   # --- 미분류 (전체에서만 노출) ---
   요아잇:
+    searchAliases: [요아 잇, 요거트아이스크림, yoait, yo a it]
     category: snack
   떡참:
+    searchAliases: [떡볶이참잘하는집, 떡참잘, 떡참 떡볶이, tteokcham, tteokbokki cham]
     aliases: [떡참, 떡볶이참잘하는집 떡참&치킨, 떡참 떡볶이&치킨]
     category: snack
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?pQcogGG
   매드포갈릭:
+    searchAliases: [매드 포 갈릭, 매포갈, mad for garlic, madforgarlic]
     links:
       baemin: https://s.baemin.com/7o3.fomtb
   본도시락:
+    searchAliases: [본 도시락, 본도락, bon dosirak, bon lunchbox]
     category: korean
   아웃백스테이크하우스:
+    searchAliases: [아웃백, 아웃백 스테이크, outback steakhouse, outback]
     aliases: [아웃백스테이크하우스, 아웃백, 아웃백스테이크]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?wDQg7yL
   원할머니보쌈족발:
+    searchAliases: [원할머니, 원할머니 보쌈, won halmeoni, won grandma bossam]
     category: korean
   계양산 전통시장:
+    searchAliases: [계양산전통시장, 계양산 시장, gyeyangsan market, gyeyang traditional market]
   육회야문연어:
+    searchAliases: [육회야 문연어, 육문, 육회연어, yukhoeya munyeoneo, beef salmon]
     category: korean
     links:
       baemin: https://s.baemin.com/5K000ycTVzrba
   전통숙성황실김치찜&찌개:
+    searchAliases: [황실김치찜, 전통숙성 김치찜, royal kimchi jjim, hwangsil kimchi]
     category: korean
   큰맘할매순대국:
+    searchAliases: [큰맘할매, 큰맘 순대국, 큰맘, keunmam halmae, big mom sundae soup]
     category: korean
     links:
       baemin: https://s.baemin.com/7o3.lmyqr
   하남돼지집:
+    searchAliases: [하남 돼지집, 하남돼지, hanam pig house, hanam dwaejijip]
     category: korean
     links:
       baemin: https://s.baemin.com/7o8.5zae7
   포케올데이:
+    searchAliases: [포케 올데이, 포케, poke all day, pokeallday]
     aliases: [포케올데이, poke all day]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=20047
 
   # --- 미분류: 배민에서만 확인, 아직 캡처 데이터 없음 ---
   강다짐 삼각김밥:
+    searchAliases: [강다짐, 강다짐삼각김밥, gangdajim, gangdajim samgakgimbap]
     links:
       baemin: https://s.baemin.com/Fi000dRKUT3HK
   국민낙곱새:
+    searchAliases: [국민 낙곱새, 국민낙지, gukmin nakgopsae, national nakgopsae]
     category: korean
     links:
       baemin: https://s.baemin.com/7o6.doja2
       yogiyo: yogiyolink://push.page/franchise?fr_id=20072
   기떡찜:
+    searchAliases: [기 떡찜, 기떡, gitteokjjim, gi tteok jjim]
     links:
       baemin: https://s.baemin.com/7o3.gggxg
   나우카페:
+    searchAliases: [나우 카페, 나우커피, now cafe, now coffee]
     category: cafe
     links:
       baemin: https://s.baemin.com/NM000sSGuQMk4
   다운타우너:
+    searchAliases: [다운 타우너, 다운타우너버거, downtowner, downtowner burger]
     category: fastfood
     links:
       baemin: https://s.baemin.com/7o3.fpf8d
   따띠삼겹:
+    searchAliases: [따띠 삼겹, 따띠, ttatti samgyeop, ddatti pork]
     category: korean
     links:
       baemin: https://s.baemin.com/Qi000xWvlamq5
   명랑핫도그:
+    searchAliases: [명랑 핫도그, 명랑, 명량, myungrang hotdog, myeongrang hotdog]
     category: snack
     links:
       baemin: https://s.baemin.com/7o3.hvrvw
   미스터보쌈:
+    searchAliases: [미스터 보쌈, 미스터보쌈족발, mister bossam, mr bossam]
     category: korean
     links:
       baemin: https://s.baemin.com/7o4.6ll4j
   미스터피자:
+    searchAliases: [미스터 피자, 미피, 마스터피자, mr pizza, mister pizza]
     category: pizza
     links:
       baemin: https://s.baemin.com/7oa.7w51k
       yogiyo: yogiyolink://push.page/franchise?fr_id=80
   반찬가게 슈퍼키친:
+    searchAliases: [슈퍼키친, 반찬가게슈퍼키친, super kitchen, superkitchen]
     category: korean
     links:
       baemin: https://s.baemin.com/7o3.kujr7
       yogiyo: yogiyolink://push.page/franchise?fr_id=3225
   백억커피:
+    searchAliases: [백억 커피, 백억, baekeok coffee, 10 billion coffee]
     category: cafe
     links:
       baemin: https://s.baemin.com/7o3.jg6j4
   버거리:
+    searchAliases: [버거리버거, 버거리 버거, burgery, burgerlee]
     category: fastfood
     links:
       baemin: https://s.baemin.com/a0000vO1Qcggk
   본스치킨:
+    searchAliases: [본스 치킨, 본스, bons chicken, bon's chicken]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o4.bp56j
       yogiyo: yogiyolink://push.page/franchise?fr_id=396
   순살몬스터:
+    searchAliases: [순살 몬스터, 순몬, sunsal monster, boneless monster]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o8.6f0em
   신밥도둑:
+    searchAliases: [신 밥도둑, 밥도둑, sin bapdoduk, rice thief]
     category: korean
     links:
       baemin: https://s.baemin.com/7o8.8nvsi
   쌀통닭:
+    searchAliases: [쌀 통닭, 쌀치킨, ssal tongdak, rice chicken]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o7.9gu0g
   아구듬뿍&알곤마니:
+    searchAliases: [아구듬뿍 알곤마니, 알곤마니, agu deumpuk, algon mani]
     aliases: [아구듬뿍&알곤마니, 아구듬뿍]
     category: korean
     links:
       baemin: https://s.baemin.com/7o4.9b9gz
   열정국밥:
+    searchAliases: [열정 국밥, 열정, passion gukbap, yeoljeong gukbap]
     # 배민클럽 쿠폰함 판독(2026-08-17)이 쿠폰 제목("배민클럽 열정충전
     # 해장국 할인")을 그대로 브랜드명으로 넣었다. 실제 로고엔 "열정국밥"
     # 이라 박혀 있다 — 열정충전해장국은 메뉴명이지 상호가 아니다.
@@ -527,86 +661,106 @@ brands:
     links:
       baemin: https://s.baemin.com/7o8.25psm
   영커피:
+    searchAliases: [영 커피, 영카페, young coffee, yeong coffee]
     category: cafe
     links:
       baemin: https://s.baemin.com/7o6.xny4f
   요아정:
+    searchAliases: [요거트아이스크림의정석, 요아정 요거트, yoajung, yogurt ice cream standard]
     category: snack
     links:
       baemin: https://s.baemin.com/dji.i7f6o
   이경규의 돈치킨:
+    searchAliases: [돈치킨, 이경규 돈치킨, don chicken, donchicken]
     aliases: [이경규의 돈치킨, 돈치킨]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o3.g6b37
   장충동왕족발:
+    searchAliases: [장충동 왕족발, 장충동족발, jangchungdong jokbal, king jokbal]
     category: korean
     links:
       baemin: https://s.baemin.com/7o3.s0o9n
   진교동찜닭:
+    searchAliases: [진교동 찜닭, 진교동, jingyodong jjimdak, jingyodong]
     category: korean
     links:
       baemin: https://s.baemin.com/kj000zbp9mSmI
   칠봉통닭:
+    searchAliases: [칠봉 통닭, 칠봉치킨, chilbong tongdak, chilbong chicken]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o6.xxvtl
   커피앳웍스:
+    searchAliases: [커피 앳 웍스, 커피앳워크스, 커피앳윅스, coffee at works, coffeeatworks]
     category: cafe
     links:
       baemin: https://s.baemin.com/7o3.xwroj
   트리플에이커피:
+    searchAliases: [트리플에이 커피, 쓰리에이커피, triple a coffee, aaa coffee]
     category: cafe
     links:
       baemin: https://s.baemin.com/Iw000oO9msx4U
   티바두마리치킨:
+    searchAliases: [티바, 티바 두마리치킨, tiba chicken, tiba two chicken]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o5.f7vp0
   파파이스:
+    searchAliases: [파파이스치킨, 파파이스 치킨, popeyes, popeyes chicken]
     category: fastfood
     links:
       baemin: https://s.baemin.com/7o3.fuyop
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?zHO0nFF
   피나치공:
+    searchAliases: [피자나라치킨공주, 피나치공 피자, pizza nara chicken gongju, pinachigong]
     category: pizza
     links:
       baemin: https://s.baemin.com/Ya000aBNscd6W
   피자에땅:
+    searchAliases: [피자 에땅, 에땅피자, pizza etang, pizza ettang]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?UK70R9a
       baemin: https://s.baemin.com/VJ000vO1G3l9C
   할리스:
+    searchAliases: [할리스커피, 할리스 커피, hollys, hollys coffee]
     category: cafe
     links:
       baemin: https://s.baemin.com/7oa.r5l0e
   호치킨:
+    searchAliases: [호 치킨, 호치킨집, ho chicken, hochicken]
     category: chicken
     links:
       baemin: https://s.baemin.com/7o3.g1ec2
   힙둥이 곱도리탕:
+    searchAliases: [힙둥이곱도리탕, 힙둥이, hipdungi gopdoritang, hip gopdori]
     category: korean
     links:
       baemin: https://s.baemin.com/0M000I2A5Q1i8
 
   # --- 분식/기타 ---
   삼첩분식:
+    searchAliases: [삼첩 분식, 삼첩, samcheop bunsik, samcheop]
     category: snack
   본죽:
+    searchAliases: [본 죽, 본죽 비빔밥, bonjuk, bon porridge]
     category: snack
     aliases: [본죽, 본죽&비빔밥]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?ao0bXqh
   스텔라떡볶이:
+    searchAliases: [스텔라 떡볶이, 스텔라, stella tteokbokki, stellatteokbokki]
     category: snack
     links:
       baemin: https://s.baemin.com/f3e.7ujt7
   프랭크버거:
+    searchAliases: [프랭크 버거, 프랭크, frank burger, frankburger]
     category: fastfood
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?U2P1LxN
   요거트월드:
+    searchAliases: [요거트 월드, 요월, yogurt world, yogurtworld]
     category: cafe
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?ENWjEwq

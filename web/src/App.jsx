@@ -2,10 +2,12 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 're
 import { fetchBanners, fetchBrands } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
+import BrandSuggestions from './BrandSuggestions.jsx'
 import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.jsx'
 import FilterSheet from './FilterSheet.jsx'
 import MenuBar from './MenuBar.jsx'
 import TopBarA from './TopBarA.jsx'
+import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { uiVariant } from './variant.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
 
@@ -553,33 +555,63 @@ function SiteFooter() {
  * 입력하는 동안에는 목록이 흔들리지 않는다. 엔터나 돋보기로 확정해야
  * 필터가 걸린다 — 글자마다 다시 거르면 지우는 중에도 결과가 요동친다.
  */
-function SearchControl({ value, onChange, onSubmit, chips }) {
+function SearchControl({ value, onChange, onSubmit, chips, brands }) {
   const [draft, setDraft] = useState(value)
+  const rootRef = useRef(null)
+  const listboxId = useId()
+  const autocomplete = useBrandAutocomplete({
+    brands,
+    input: draft,
+    onSelect: (brand) => {
+      setDraft(brand.name)
+      onSubmit(brand.name, 'autocomplete')
+    },
+  })
 
   // 바깥에서 검색어를 지우면(칩의 X, 초기화) 입력창도 따라 비어야 한다.
   useEffect(() => { setDraft(value) }, [value])
 
-  const submit = (method) => onSubmit(draft, method)
+  useEffect(() => {
+    const close = (event) => {
+      if (!rootRef.current?.contains(event.target)) autocomplete.close()
+    }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
+  }, [autocomplete.close])
+
+  const submit = (method) => {
+    autocomplete.close()
+    onSubmit(draft, method)
+  }
 
   return (
-    <div className="search-field">
+    <div className="search-field" ref={rootRef}>
       {/* 걸린 조건은 검색창 안에 토큰으로 앉는다. 바 아래 따로 줄을
           두면 조건이 없을 때 빈 줄이 남고, 있을 때는 검색과 필터가
           서로 다른 층에 있는 것처럼 보인다 — 둘 다 "지금 무엇을
           보고 있는가"를 말하는 같은 정보다. */}
-      {chips}
-      <input
-        type="search"
-        className="search-field__input"
-        placeholder="브랜드 검색"
-        aria-label="브랜드 검색"
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.repeat) submit('enter')
-          if (e.key === 'Escape') { setDraft(''); onChange('') }
-        }}
-      />
+      <div className="search-field__content">
+        {chips}
+        <input
+          type="search"
+          className="search-field__input"
+          placeholder="브랜드 검색"
+          aria-label="브랜드 검색"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded={autocomplete.isOpen}
+          aria-controls={autocomplete.isOpen ? listboxId : undefined}
+          aria-activedescendant={autocomplete.activeIndex >= 0 ? `${listboxId}-option-${autocomplete.activeIndex}` : undefined}
+          value={draft}
+          onFocus={autocomplete.open}
+          onChange={(e) => { setDraft(e.target.value); autocomplete.inputChanged() }}
+          onKeyDown={(e) => {
+            if (autocomplete.handleKeyDown(e)) return
+            if (e.key === 'Enter' && !e.repeat) submit('enter')
+            if (e.key === 'Escape') { setDraft(''); onChange('') }
+          }}
+        />
+      </div>
       <button type="button" className="search-field__submit" aria-label="검색"
         onClick={() => submit('button')}>
         <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -587,6 +619,14 @@ function SearchControl({ value, onChange, onSubmit, chips }) {
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
       </button>
+      {autocomplete.isOpen && (
+        <BrandSuggestions
+          suggestions={autocomplete.suggestions}
+          activeIndex={autocomplete.activeIndex}
+          listboxId={listboxId}
+          onSelect={autocomplete.select}
+        />
+      )}
     </div>
   )
 }
@@ -845,6 +885,7 @@ export default function App() {
           setFilters={setFilters}
           search={search}
           onSearchSubmit={submitSearch}
+          brands={brands}
           cart={cart}
           cartOnly={cartOnly}
           setCartOnly={setCartOnly}
@@ -869,6 +910,7 @@ export default function App() {
             value={search}
             onChange={setSearch}
             onSubmit={submitSearch}
+            brands={brands}
             chips={(
               <>
                 {/* 모아보기가 켜지면 다른 조건이 안 먹는다 — 결과가 왜

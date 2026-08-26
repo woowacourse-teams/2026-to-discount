@@ -58,6 +58,7 @@ public class BrandCatalog {
 
                 byName.put(name, new Brand(
                         name,
+                        readStringList(attrs.get("searchAliases")),
                         Category.from((String) attrs.get("category")),
                         readLinks(attrs)));
 
@@ -73,6 +74,16 @@ public class BrandCatalog {
         } catch (IOException e) {
             throw new IllegalStateException("brands.yml 읽기 실패", e);
         }
+    }
+
+    private List<String> readStringList(Object value) {
+        if (!(value instanceof List<?> list)) return List.of();
+        return list.stream()
+                .map(String::valueOf)
+                .map(String::trim)
+                .filter(item -> !item.isEmpty())
+                .distinct()
+                .toList();
     }
 
     /**
