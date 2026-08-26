@@ -65,7 +65,7 @@ export function toDubeolsikHangul(input) {
   return result
 }
 
-const normalize = (value) => String(value ?? '').trim().toLocaleLowerCase()
+const normalize = (value) => String(value ?? '').trim().toLowerCase()
 const isChoseongQuery = (value) => /^[ㄱ-ㅎ]+$/.test(value)
 
 /** 한글 음절과 단독 초성에서 검색에 사용할 초성열을 만든다. */
