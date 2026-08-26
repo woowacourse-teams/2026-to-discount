@@ -116,6 +116,7 @@ web/scripts/prerender.mjs
 web/scripts/verify-analytics-event-contract.mjs
 web/scripts/verify-analytics-event-id.mjs
 web/scripts/verify-posthog-sdk.mjs
+web/scripts/verify-search-filters.mjs
 web/src/App.css
 web/src/App.jsx
 web/src/BrandSuggestions.jsx
@@ -185,7 +186,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 34 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 31 |
 
 ### Tracker
 

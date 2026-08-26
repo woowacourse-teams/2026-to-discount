@@ -79,40 +79,52 @@ function brandBlock(b) {
 // 첫 페인트에 진짜 목록이 떠 있는 편이 스켈레톤보다 낫다.
 const BOOT_STYLE = `
     <style id="prerender-style">
-      #root > header, #page > header, #root > main, #page > main, #root > footer, #page > footer {
-        max-width: 720px; margin: 0 auto; padding: 0 1rem;
-        font-family: Pretendard, system-ui, sans-serif; color: #171717;
+      /* 셀렉터를 전부 .seo 아래로 묶는다.
+         한때 #root > main 같은 요소 셀렉터로 썼다가, 앱이 렌더한 <main>에
+         margin:0이 걸려 가운데 정렬이 죽었다. 심어둔 HTML에만 붙는
+         클래스를 쓰면 앱 스타일과 겹칠 길이 없다. */
+      .seo {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        font-family: Pretendard, system-ui, sans-serif;
+        color: #171717;
       }
-      #root > header, #page > header h1 { font-size: 1.35rem; margin: 1.25rem 0 .35rem; }
-      #root > header, #page > header p { margin: 0 0 1rem; color: #666; font-size: .9rem; }
-      #root > main, #page > main h2 { font-size: 1rem; color: #666; margin: 0 0 .75rem; }
-      #root > main, #page > main > ul { list-style: none; margin: 0; padding: 0; }
-      #root > main, #page > main > ul > li {
-        border: 1px solid #eaeaea; border-radius: 12px;
-        padding: .85rem 1rem; margin-bottom: .6rem;
+      .seo h1 { font-size: 1.35rem; margin: 1.25rem 0 .35rem; }
+      .seo h2 { font-size: 1rem; color: #666; margin: 1.25rem 0 .75rem; }
+      .seo h3 { font-size: 1rem; margin: 0 0 .4rem; }
+      .seo h3 span { font-size: .78rem; color: #888; font-weight: 500; }
+      .seo p { margin: 0 0 .6rem; color: #666; font-size: .9rem; line-height: 1.6; }
+      .seo ul { list-style: none; margin: 0; padding: 0; }
+      .seo > ul > li, .seo section {
+        border: 1px solid #eaeaea;
+        border-radius: 12px;
+        padding: .85rem 1rem;
+        margin-bottom: .6rem;
       }
-      #root > main, #page > main h3 { font-size: 1rem; margin: 0 0 .4rem; }
-      #root > main, #page > main h3 span { font-size: .78rem; color: #888; font-weight: 500; }
-      #root > main, #page > main ul ul { list-style: none; margin: 0; padding: 0; }
-      #root > main, #page > main ul ul li { font-size: .88rem; color: #444; line-height: 1.7; }
-      #root > footer, #page > footer { margin: 1.5rem auto 2rem; font-size: .75rem; color: #999; }
+      .seo li { font-size: .88rem; color: #444; line-height: 1.7; }
+      .seo dl { margin: 0; font-size: .88rem; line-height: 1.7; }
+      .seo dt { color: #888; float: left; clear: left; width: 7.5rem; }
+      .seo dd { margin: 0 0 0 7.5rem; color: #333; }
+      .seo footer, .seo.footer { font-size: .75rem; color: #999; }
+      .seo a { color: #1f6c9f; }
     </style>`
 
 function bodyHtml(brands, today) {
   const blocks = brands.map(brandBlock).filter(Boolean)
   const names = brands.map((b) => b.name)
   return [
-    '    <header>',
+    '    <header class="seo">',
     '      <h1>오늘의 배달앱 브랜드 할인 한눈에 비교</h1>',
     `      <p>배달의민족·쿠팡이츠·요기요·땡겨요 네 앱의 브랜드 할인 쿠폰을 한 화면에서 견줍니다. ${today} 기준 ${blocks.length}개 브랜드.</p>`,
     '    </header>',
-    '    <main>',
+    '    <main class="seo">',
     '      <h2>브랜드별 할인</h2>',
     '      <ul>',
     ...blocks,
     '      </ul>',
     '    </main>',
-    '    <footer>',
+    '    <footer class="seo">',
     `      <p>수록 브랜드: ${esc(names.join(', '))}</p>`,
     '      <p>개인이 만든 비영리 정보 제공 페이지입니다. 각 앱의 공식 서비스가 아니며 제휴 관계가 없습니다. 금액은 확인일 기준이며 주문 전에 각 앱에서 다시 확인하세요.</p>',
     '    </footer>',
@@ -226,12 +238,12 @@ ${BOOT_STYLE}
   </head>
   <body>
     <div id="page">
-      <header>
+      <header class="seo">
         <h1>${esc(b.name)} 배달 할인 쿠폰</h1>
         <p>${esc(desc)}</p>
         <p><a href="${SITE}/#${encodeURIComponent(b.name)}">네 앱 전체를 한 화면에서 비교하기 →</a></p>
       </header>
-      <main>
+      <main class="seo">
         <h2>앱별 할인</h2>
 ${offers.map(offerSection).join('\n')}
         <h2>보는 법</h2>
@@ -241,7 +253,7 @@ ${offers.map(offerSection).join('\n')}
 ${siblings.map((n) => `          <li><a href="${SITE}/brand/${encodeURIComponent(slugOf(n))}.html">${esc(n)} 할인</a></li>`).join('\n')}
         </ul>
       </main>
-      <footer>
+      <footer class="seo footer">
         <p>${today} 기준. 개인이 만든 비영리 정보 제공 페이지입니다. 배달의민족·쿠팡이츠·요기요·땡겨요의 공식 서비스가 아니며 제휴 관계가 없습니다.</p>
         <p><a href="${SITE}/">오늘의할인 홈</a></p>
       </footer>

@@ -341,19 +341,28 @@ h1 {
      덩어리로 읽혀야 배너가 목록 위에 떠 있는 별개 층으로 안 보인다. */
 }
 
+/* 배너 판은 한 색으로 고정한다.
+   브랜드마다 로고에서 색을 뽑아 깔았더니 넘어갈 때마다 판이 통째로
+   바뀌어, 무엇이 바뀐 건지(브랜드인지 배너인지)가 안 읽혔다. 색은 로고와
+   플랫폼 배지가 이미 충분히 들고 있다. 판은 조용히 뒤에 있는 편이 낫다. */
 .banner {
+  --banner-plate: #17171a;
+  --banner-plate-line: rgba(255, 255, 255, .1);
   position: relative;
   border-radius: 14px;
-  background: var(--banner-bg-c);
-  border: 1px solid var(--banner-line-c);
+  background: var(--banner-plate);
+  border: 1px solid var(--banner-plate-line);
+  /* overflow는 건드리지 않는다. 하단 배너의 닫기 버튼이 모서리 밖에
+     걸쳐 있어 잘라내면 사라진다. 진행 막대는 .banner 안이 아니라
+     .banner-slot에 있으므로 여기서 자를 것이 없다. */
   animation: banner-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 /* 상단은 밝은 틴트에 진한 글자, 하단은 진한 브랜드색에 흰 글자다. 하단은
    카드 위에 겹쳐 뜨는 층이라 밝은 틴트로는 카드와 구분이 약하다. */
 .banner--top {
-  --banner-bg-c: var(--banner-tint);
-  --banner-line-c: var(--banner-line);
-  --banner-ink-c: var(--banner-ink);
+  --banner-bg-c: var(--banner-plate);
+  --banner-line-c: var(--banner-plate-line);
+  --banner-ink-c: #f5f5f4;
   --banner-accent-c: var(--banner-accent);
 }
 .banner--bottom {
@@ -423,6 +432,10 @@ h1 {
   width: var(--logo);
   height: var(--logo);
   border-radius: var(--logo-radius);
+  /* 판이 진한 한 색이라 검은 로고는 그대로 두면 사라진다. 흰 받침을
+     깔아 어떤 로고든 형태가 남게 한다 — 로고 파일마다 배경이 있고 없고가
+     제각각이라 이쪽에서 바닥을 만들어 주는 편이 확실하다. */
+  background: #fff;
   /* 네모난 로고를 둥근 상자에 넣으면 모서리가 깎여 나간다. 깎이는 만큼
      안쪽으로 들여 그린다(반지름 * 0.3 ≈ 45도 지점의 잘림 깊이). */
   padding: calc(var(--logo-radius) * .3);
@@ -558,16 +571,50 @@ h1 {
 
 /* 하단 중앙 인디케이터. 점 자체는 6px이지만 버튼은 14px을 차지해
    손가락으로 누를 자리를 남긴다. */
+/* 아래 테두리 자리를 채우는 진행 막대. 트랙 밖(.banner-slot)에 있으므로
+   장이 넘어가도 자리를 지킨다. 다 차면 onAnimationEnd가 다음 장을 부른다 —
+   보이는 시간과 실제로 넘어가는 시점이 하나다. */
+.banner__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  /* 폭을 늘리는 대신 좌우로 눕힌다. 하단 배너는 좌우 패딩만큼 안쪽에
+     있어 width:100%가 배너 폭과 안 맞는데, left/right로 자리를 잡아 두면
+     두 자리에서 같은 규칙이 그대로 쓰인다. */
+  transform: scaleX(0);
+  transform-origin: left center;
+  border-bottom-left-radius: 14px;
+  /* 지금 장의 로고에서 뽑은 색. 밝은 쪽에서 진한 쪽으로 흘러 어디까지
+     찼는지가 길이뿐 아니라 색으로도 읽힌다. 값을 못 뽑으면 흰색으로
+     떨어진다(로고가 없거나 무채색인 브랜드). */
+  background: linear-gradient(
+    90deg,
+    var(--banner-deep-accent, rgba(255, 255, 255, .9)) 0%,
+    var(--banner-accent, rgba(255, 255, 255, .55)) 100%
+  );
+  animation: banner-progress var(--rotate, 5s) linear forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+.banner__progress--paused { animation-play-state: paused; }
+@keyframes banner-progress { to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .banner__progress { display: none; }
+}
+
 .banner__dots {
   position: absolute;
-  bottom: 2px;
+  /* 진행 막대(3px) 바로 위. 둘이 겹치면 점이 막대에 잘린다. */
+  bottom: 7px;
+  z-index: 2;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: .15rem;
-  /* 글자 위에 겹치므로 뒤를 살짝 눌러 점이 묻히지 않게 한다. */
+  /* 판이 진한 한 색이라 뒤판 없이도 흰 점이 그대로 보인다. */
   border-radius: 999px;
-  background: rgba(0, 0, 0, .18);
 }
 .banner__dot {
   position: relative;
@@ -587,12 +634,15 @@ h1 {
   height: 6px;
   margin: -3px 0 0 -3px;
   border-radius: 50%;
-  background: var(--banner-ink-c);
-  opacity: .3;
+  /* 카드 밖 층이라 --banner-* 변수를 못 받는다. 판이 한 색(#17171a)으로
+     고정됐으므로 흰색으로 못박는다 — 변수를 다시 끌어오면 카드가 흐르는
+     동안 색이 따라 바뀐다. */
+  background: #fff;
+  opacity: .35;
   transition: opacity 150ms ease;
 }
-.banner__dot--on::after { opacity: .85; }
-.banner__dot:focus-visible { outline: 2px solid var(--banner-ink-c); outline-offset: -2px; border-radius: 50%; }
+.banner__dot--on::after { opacity: 1; }
+.banner__dot:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: -2px; border-radius: 50%; }
 
 /* 상단 배너가 화면 밖으로 나가면 올라오는 층. 불투명하고, 떠 있는 층은
    뷰포트가 아니라 본문 폭을 따라간다는 이 레포 규칙을 그대로 따른다 —
@@ -617,11 +667,27 @@ h1 {
               visibility 200ms;
 }
 .banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
+.banner-dock__inner .banner__dots { bottom: calc(var(--dock-pad-bottom) + 7px); }
+/* 막대도 배너 아래 테두리 자리에 맞춘다 — 도크는 배너가 패딩만큼
+   안쪽에 있어 슬롯과 자리가 다르다. */
+.banner-dock__inner .banner__progress {
+  left: var(--dock-pad-x);
+  right: var(--dock-pad-x);
+  bottom: var(--dock-pad-bottom);
+}
+
 .banner-dock__inner {
+  /* 점은 absolute다 — 여기가 기준이 아니면 fixed인 .banner-dock을 잡아
+     배너 바깥(도크 바닥)으로 떨어진다. */
+  position: relative;
+  /* 아래 패딩만큼 기준선이 배너 바닥보다 내려가 있다. 점은 그 몫을
+     되돌려 배너 안에 앉는다(상단 슬롯은 패딩이 없어 그대로 맞는다). */
+  --dock-pad-bottom: .85rem;
+  --dock-pad-x: 1.25rem;
   max-width: 880px;
   margin: 0 auto;
   /* 위쪽 여유는 걸쳐 나온 배지 몫이다. */
-  padding: 12px 1.25rem .85rem;
+  padding: 12px var(--dock-pad-x) var(--dock-pad-bottom);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1287,7 +1353,9 @@ h1 {
   width: 49px;
   height: 49px;
   margin-right: .55rem;
-  border: 3px solid rgba(255, 255, 255, .75);
+  /* 테두리는 두지 않는다. 표식 자체가 이미 진한 면이라 선을 더하면
+     그 선이 먼저 읽힌다. */
+  border: 0;
   border-radius: 10px;
   background: rgba(255, 255, 255, .24);
   color: #fff;
@@ -1375,6 +1443,9 @@ h1 {
 .offer--hero .offer__chip {
   padding: .95rem 1rem;
   border-radius: 12px;
+  /* 네온 테(::after)가 이미 테두리 몫을 한다 — 회색 1px까지 두면 선이
+     두 겹으로 겹쳐 보인다. */
+  border: 0;
 }
 /* 단독 줄이라 칩이 크다 — 전환 호도 그만큼 길게 잡는다. */
 .offer--hero.offer--best .offer__chip::after { border-radius: 12px 22px 12px 22px; }
@@ -1619,7 +1690,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 @media (max-width: 560px) {
   main { padding: 0 1rem 3rem; }
   /* .brand-grid는 이제 auto-fit/minmax라 이 폭에서 이미 1열이 된다. */
-  .banner-dock__inner { padding-left: 1rem; padding-right: 1rem; }
+  .banner-dock__inner { --dock-pad-x: 1rem; }
 }
 
 /* 좁은 화면(360px 이하)에서 줄이는 건 로고와 배지뿐이다. 금액은 배너의
