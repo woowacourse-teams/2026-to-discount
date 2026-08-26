@@ -10,7 +10,7 @@ import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
 
-const ROTATE_MS = 5000
+const ROTATE_MS = 3500
 const DISMISS_KEY = 'dk_banner_hidden'
 
 
@@ -184,6 +184,10 @@ function BannerCard({ banner, position, onClose, onSeen }) {
 // 바뀌면 React가 요소를 새로 만들어 애니메이션이 처음부터 다시 돈다.
 //
 // prefers-reduced-motion이면 자동 전환을 안 하므로 막대도 안 그린다.
+//
+// runId에는 '지금 몇 번째 장인가'만 넣는다. 멈춤 여부까지 넣으면 손을
+// 올릴 때마다 key가 바뀌어 요소가 새로 만들어지고, 멈추는 대신 처음부터
+// 다시 돈다. 멈춤은 key가 아니라 animation-play-state가 한다.
 function Progress({ runId, paused, onDone }) {
   return (
     // 도는 시간은 ROTATE_MS 한 곳에서 정하고 CSS가 그 값을 읽어 채운다.
@@ -246,6 +250,12 @@ export default function EventBanner({ banners }) {
 
   const count = banners?.length ?? 0
   const current = count > 0 ? banners[index % count] : null
+
+  // 막대와 점은 카드 밖 층이라 카드가 들고 있는 --banner-* 를 못 받는다.
+  // 지금 보고 있는 장의 팔레트를 슬롯에 얹어 막대가 그 브랜드 색으로
+  // 차오르게 한다. 판은 한 색으로 고정돼 있으므로 색이 겹칠 일이 없다.
+  const currentSeed = useSeed(current ?? { platform: 'baemin' })
+  const currentPalette = useMemo(() => bannerPalette(currentSeed), [currentSeed])
 
   // 어느 장을 보고 있는지는 스크롤 위치가 정한다. 상태를 먼저 바꾸고
   // 화면을 따라오게 하면, 손으로 넘기는 동안 둘이 계속 어긋난다.
@@ -310,7 +320,7 @@ export default function EventBanner({ banners }) {
   const chrome = (
     <>
       {rotating && (
-        <Progress runId={`${index % count}-${paused}`} paused={paused} onDone={advance} />
+        <Progress runId={index % count} paused={paused} onDone={advance} />
       )}
       {count > 1 && (
         <Indicators count={count} index={index % count} onSelect={scrollTo} />
@@ -320,7 +330,7 @@ export default function EventBanner({ banners }) {
 
   return (
     <>
-      <div className="banner-slot" ref={topRef} {...hoverProps}>
+      <div className="banner-slot" ref={topRef} style={currentPalette} {...hoverProps}>
         {/* 전부 한 줄에 깔고 가로로 넘긴다. 자동 전환만 있으면 지나간
             배너를 다시 볼 길이 손가락에 없고, 점을 정확히 눌러야 했다. */}
         <div className="banner-track" ref={trackRef} onScroll={onTrackScroll}>
