@@ -10,7 +10,7 @@ import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
 
-const ROTATE_MS = 3500
+const ROTATE_MS = 4300
 const DISMISS_KEY = 'dk_banner_hidden'
 
 
@@ -188,6 +188,9 @@ function BannerCard({ banner, position, onClose, onSeen }) {
 // runId에는 '지금 몇 번째 장인가'만 넣는다. 멈춤 여부까지 넣으면 손을
 // 올릴 때마다 key가 바뀌어 요소가 새로 만들어지고, 멈추는 대신 처음부터
 // 다시 돈다. 멈춤은 key가 아니라 animation-play-state가 한다.
+// 막대는 상단·하단 두 곳에 뜨는데 넘기는 것은 하나만 한다. 둘 다
+// onAnimationEnd로 넘기면 한 번에 두 장이 지나간다. 같은 runId와 같은
+// 시간으로 같이 마운트되므로 둘은 저절로 같은 속도로 찬다.
 function Progress({ runId, paused, onDone }) {
   return (
     // 도는 시간은 ROTATE_MS 한 곳에서 정하고 CSS가 그 값을 읽어 채운다.
@@ -354,6 +357,7 @@ export default function EventBanner({ banners }) {
         {...hoverProps}
       >
         <div className="banner-dock__inner">
+          {rotating && <Progress runId={index % count} paused={paused} />}
           <BannerCard
             key={current.id}
             banner={current}

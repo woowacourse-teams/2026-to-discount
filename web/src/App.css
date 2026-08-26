@@ -577,9 +577,14 @@ h1 {
 .banner__progress {
   position: absolute;
   left: 0;
+  right: 0;
   bottom: 0;
   height: 3px;
-  width: 0;
+  /* 폭을 늘리는 대신 좌우로 눕힌다. 하단 배너는 좌우 패딩만큼 안쪽에
+     있어 width:100%가 배너 폭과 안 맞는데, left/right로 자리를 잡아 두면
+     두 자리에서 같은 규칙이 그대로 쓰인다. */
+  transform: scaleX(0);
+  transform-origin: left center;
   border-bottom-left-radius: 14px;
   /* 지금 장의 로고에서 뽑은 색. 밝은 쪽에서 진한 쪽으로 흘러 어디까지
      찼는지가 길이뿐 아니라 색으로도 읽힌다. 값을 못 뽑으면 흰색으로
@@ -594,7 +599,7 @@ h1 {
   z-index: 2;
 }
 .banner__progress--paused { animation-play-state: paused; }
-@keyframes banner-progress { to { width: 100%; } }
+@keyframes banner-progress { to { transform: scaleX(1); } }
 @media (prefers-reduced-motion: reduce) {
   .banner__progress { display: none; }
 }
@@ -663,6 +668,13 @@ h1 {
 }
 .banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
 .banner-dock__inner .banner__dots { bottom: calc(var(--dock-pad-bottom) + 7px); }
+/* 막대도 배너 아래 테두리 자리에 맞춘다 — 도크는 배너가 패딩만큼
+   안쪽에 있어 슬롯과 자리가 다르다. */
+.banner-dock__inner .banner__progress {
+  left: var(--dock-pad-x);
+  right: var(--dock-pad-x);
+  bottom: var(--dock-pad-bottom);
+}
 
 .banner-dock__inner {
   /* 점은 absolute다 — 여기가 기준이 아니면 fixed인 .banner-dock을 잡아
@@ -671,10 +683,11 @@ h1 {
   /* 아래 패딩만큼 기준선이 배너 바닥보다 내려가 있다. 점은 그 몫을
      되돌려 배너 안에 앉는다(상단 슬롯은 패딩이 없어 그대로 맞는다). */
   --dock-pad-bottom: .85rem;
+  --dock-pad-x: 1.25rem;
   max-width: 880px;
   margin: 0 auto;
   /* 위쪽 여유는 걸쳐 나온 배지 몫이다. */
-  padding: 12px 1.25rem .85rem;
+  padding: 12px var(--dock-pad-x) var(--dock-pad-bottom);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1677,7 +1690,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 @media (max-width: 560px) {
   main { padding: 0 1rem 3rem; }
   /* .brand-grid는 이제 auto-fit/minmax라 이 폭에서 이미 1열이 된다. */
-  .banner-dock__inner { padding-left: 1rem; padding-right: 1rem; }
+  .banner-dock__inner { --dock-pad-x: 1rem; }
 }
 
 /* 좁은 화면(360px 이하)에서 줄이는 건 로고와 배지뿐이다. 금액은 배너의
