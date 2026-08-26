@@ -352,8 +352,9 @@ h1 {
   border-radius: 14px;
   background: var(--banner-plate);
   border: 1px solid var(--banner-plate-line);
-  /* 진행 막대가 아래 테두리 자리에 앉으므로 넘치는 것을 잘라 낸다. */
-  overflow: hidden;
+  /* overflow는 건드리지 않는다. 하단 배너의 닫기 버튼이 모서리 밖에
+     걸쳐 있어 잘라내면 사라진다. 진행 막대는 .banner 안이 아니라
+     .banner-slot에 있으므로 여기서 자를 것이 없다. */
   animation: banner-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 /* 상단은 밝은 틴트에 진한 글자, 하단은 진한 브랜드색에 흰 글자다. 하단은
@@ -661,7 +662,15 @@ h1 {
               visibility 200ms;
 }
 .banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
+.banner-dock__inner .banner__dots { bottom: calc(var(--dock-pad-bottom) + 7px); }
+
 .banner-dock__inner {
+  /* 점은 absolute다 — 여기가 기준이 아니면 fixed인 .banner-dock을 잡아
+     배너 바깥(도크 바닥)으로 떨어진다. */
+  position: relative;
+  /* 아래 패딩만큼 기준선이 배너 바닥보다 내려가 있다. 점은 그 몫을
+     되돌려 배너 안에 앉는다(상단 슬롯은 패딩이 없어 그대로 맞는다). */
+  --dock-pad-bottom: .85rem;
   max-width: 880px;
   margin: 0 auto;
   /* 위쪽 여유는 걸쳐 나온 배지 몫이다. */
