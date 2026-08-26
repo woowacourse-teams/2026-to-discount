@@ -79,23 +79,23 @@ function brandBlock(b) {
 // 첫 페인트에 진짜 목록이 떠 있는 편이 스켈레톤보다 낫다.
 const BOOT_STYLE = `
     <style id="prerender-style">
-      #root > header, #root > main, #root > footer {
+      #root > header, #page > header, #root > main, #page > main, #root > footer, #page > footer {
         max-width: 720px; margin: 0 auto; padding: 0 1rem;
         font-family: Pretendard, system-ui, sans-serif; color: #171717;
       }
-      #root > header h1 { font-size: 1.35rem; margin: 1.25rem 0 .35rem; }
-      #root > header p { margin: 0 0 1rem; color: #666; font-size: .9rem; }
-      #root > main h2 { font-size: 1rem; color: #666; margin: 0 0 .75rem; }
-      #root > main > ul { list-style: none; margin: 0; padding: 0; }
-      #root > main > ul > li {
+      #root > header, #page > header h1 { font-size: 1.35rem; margin: 1.25rem 0 .35rem; }
+      #root > header, #page > header p { margin: 0 0 1rem; color: #666; font-size: .9rem; }
+      #root > main, #page > main h2 { font-size: 1rem; color: #666; margin: 0 0 .75rem; }
+      #root > main, #page > main > ul { list-style: none; margin: 0; padding: 0; }
+      #root > main, #page > main > ul > li {
         border: 1px solid #eaeaea; border-radius: 12px;
         padding: .85rem 1rem; margin-bottom: .6rem;
       }
-      #root > main h3 { font-size: 1rem; margin: 0 0 .4rem; }
-      #root > main h3 span { font-size: .78rem; color: #888; font-weight: 500; }
-      #root > main ul ul { list-style: none; margin: 0; padding: 0; }
-      #root > main ul ul li { font-size: .88rem; color: #444; line-height: 1.7; }
-      #root > footer { margin: 1.5rem auto 2rem; font-size: .75rem; color: #999; }
+      #root > main, #page > main h3 { font-size: 1rem; margin: 0 0 .4rem; }
+      #root > main, #page > main h3 span { font-size: .78rem; color: #888; font-weight: 500; }
+      #root > main, #page > main ul ul { list-style: none; margin: 0; padding: 0; }
+      #root > main, #page > main ul ul li { font-size: .88rem; color: #444; line-height: 1.7; }
+      #root > footer, #page > footer { margin: 1.5rem auto 2rem; font-size: .75rem; color: #999; }
     </style>`
 
 function bodyHtml(brands, today) {
@@ -147,6 +147,110 @@ function metaTags(brands, today) {
   ].join('\n')
 }
 
+// 브랜드 하나짜리 페이지의 주소. 한글을 그대로 둔다 — 주소창에 브랜드
+// 이름이 보이는 편이 검색 결과에서도 읽힌다. 파일 이름에 못 쓰는 글자만
+// 하이픈으로 바꾼다("아구듬뿍&알곤마니" 같은 이름이 실제로 있다).
+function slugOf(name) {
+  return name.replace(/[^가-힣a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '') || 'brand'
+}
+
+// 구간이 있으면 줄로 편다. 얇은 페이지 100여 개를 만들면 저품질로
+// 묶이므로, 원장이 들고 있는 조건을 아끼지 않고 다 적는다.
+function tierLines(o) {
+  if (!Array.isArray(o.tiers) || o.tiers.length === 0) return []
+  return o.tiers.map((t) => {
+    const bits = []
+    if (t.minOrder != null) bits.push(`${won(t.minOrder)} 이상 주문 시`)
+    if (t.amount != null) bits.push(won(t.amount))
+    if (t.percent != null) bits.push(`${t.percent}%`)
+    if (t.cap != null) bits.push(`최대 ${won(t.cap)}`)
+    if (t.channel) bits.push(t.channel)
+    if (t.soldOut) bits.push('품절')
+    if (t.expiresAt) bits.push(`${t.expiresAt}까지`)
+    return bits.join(' · ')
+  })
+}
+
+function offerSection(o) {
+  const app = PLATFORM_LABEL[o.platform] ?? o.platform
+  const rows = []
+  if (o.amount != null) rows.push(['할인 금액', won(o.amount) + (o.qualifier ? ` (${o.qualifier})` : '')])
+  if (o.minOrderAmount != null) rows.push(['최소 주문 금액', won(o.minOrderAmount)])
+  if (o.expiresAt) rows.push(['사용 기한', o.expiresAt])
+  if (o.badge) rows.push(['받는 방법', o.badge])
+  if (o.conditions) rows.push(['조건', o.conditions])
+  if (o.soldOut) rows.push(['상태', '품절'])
+  if (o.capturedAt) rows.push(['확인일', String(o.capturedAt).slice(0, 10)])
+  const tiers = tierLines(o)
+  return [
+    `      <section>`,
+    `        <h3>${esc(app)}</h3>`,
+    '        <dl>',
+    ...rows.flatMap(([k, v]) => [
+      `          <dt>${esc(k)}</dt>`,
+      `          <dd>${esc(v)}</dd>`,
+    ]),
+    '        </dl>',
+    ...(tiers.length
+      ? ['        <p>주문 금액별 할인</p>', '        <ul>',
+         ...tiers.map((t) => `          <li>${esc(t)}</li>`), '        </ul>']
+      : []),
+    '      </section>',
+  ].join('\n')
+}
+
+function brandPage(b, siblings, today) {
+  const offers = (b.offers ?? []).filter((o) => o.amount != null)
+  const cat = CATEGORY_LABEL[b.category]
+  const apps = offers.map((o) => PLATFORM_LABEL[o.platform] ?? o.platform)
+  const best = Math.max(...offers.map((o) => o.amount))
+  const title = `${b.name} 배달 할인 쿠폰 정리 (${today} 기준)`
+  const desc = `${b.name}${cat ? ` ${cat}` : ''} 배달 할인 — ${apps.join('·')}에서 확인한 쿠폰을 한자리에 모았습니다. 최대 ${won(best)}. 최소 주문 금액과 사용 기한까지 적어 뒀습니다.`
+  const url = `${SITE}/brand/${encodeURIComponent(slugOf(b.name))}.html`
+  return `<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${esc(title)}</title>
+    <meta name="description" content="${esc(desc)}" />
+    <link rel="canonical" href="${url}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="오늘의할인" />
+    <meta property="og:title" content="${esc(title)}" />
+    <meta property="og:description" content="${esc(desc)}" />
+    <meta property="og:url" content="${url}" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta name="twitter:card" content="summary" />
+${BOOT_STYLE}
+  </head>
+  <body>
+    <div id="page">
+      <header>
+        <h1>${esc(b.name)} 배달 할인 쿠폰</h1>
+        <p>${esc(desc)}</p>
+        <p><a href="${SITE}/#${encodeURIComponent(b.name)}">네 앱 전체를 한 화면에서 비교하기 →</a></p>
+      </header>
+      <main>
+        <h2>앱별 할인</h2>
+${offers.map(offerSection).join('\n')}
+        <h2>보는 법</h2>
+        <p>같은 브랜드라도 앱마다 할인 금액과 최소 주문 금액이 다릅니다. 표시된 금액은 확인일 기준이며, 선착순 쿠폰은 시간대에 따라 소진될 수 있습니다. 주문 전에 각 앱에서 실제 금액을 다시 확인하세요.</p>
+        <h2>같은 분류의 다른 브랜드</h2>
+        <ul>
+${siblings.map((n) => `          <li><a href="${SITE}/brand/${encodeURIComponent(slugOf(n))}.html">${esc(n)} 할인</a></li>`).join('\n')}
+        </ul>
+      </main>
+      <footer>
+        <p>${today} 기준. 개인이 만든 비영리 정보 제공 페이지입니다. 배달의민족·쿠팡이츠·요기요·땡겨요의 공식 서비스가 아니며 제휴 관계가 없습니다.</p>
+        <p><a href="${SITE}/">오늘의할인 홈</a></p>
+      </footer>
+    </div>
+  </body>
+</html>
+`
+}
+
 async function fetchBrands() {
   const timeout = AbortSignal.timeout(15000)
   const res = await fetch(API, { signal: timeout })
@@ -189,21 +293,45 @@ async function main() {
 
   // 할인이 매일 바뀌는 것이 이 페이지의 값이다. lastmod를 실제 빌드일로
   // 채워 재크롤 빈도를 올린다.
+  // 브랜드 하나짜리 페이지. "교촌치킨 할인"처럼 브랜드 이름이 들어간
+  // 검색어를 잡는 자리다 — 첫 화면 하나로는 그 말에 걸릴 근거가 없다.
+  const listed = brands.filter((b) => (b.offers ?? []).some((o) => o.amount != null))
+  const byCategory = new Map()
+  for (const b of listed) {
+    const k = b.category ?? '기타'
+    if (!byCategory.has(k)) byCategory.set(k, [])
+    byCategory.get(k).push(b.name)
+  }
+  await mkdir(new URL('brand/', `file://${DIST}`), { recursive: true })
+  for (const b of listed) {
+    const siblings = (byCategory.get(b.category ?? '기타') ?? [])
+      .filter((n) => n !== b.name).slice(0, 12)
+    await writeFile(
+      new URL(`brand/${slugOf(b.name)}.html`, `file://${DIST}`),
+      brandPage(b, siblings, today),
+    )
+  }
+
+  const urls = [
+    ['/', '1.0', 'daily'],
+    ...listed.map((b) => [`/brand/${encodeURIComponent(slugOf(b.name))}.html`, '0.7', 'daily']),
+  ]
   await writeFile(new URL('sitemap.xml', `file://${DIST}`), [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    '  <url>',
-    `    <loc>${SITE}/</loc>`,
-    `    <lastmod>${today}</lastmod>`,
-    '    <changefreq>daily</changefreq>',
-    '    <priority>1.0</priority>',
-    '  </url>',
+    ...urls.flatMap(([loc, pri, freq]) => [
+      '  <url>',
+      `    <loc>${SITE}${loc}</loc>`,
+      `    <lastmod>${today}</lastmod>`,
+      `    <changefreq>${freq}</changefreq>`,
+      `    <priority>${pri}</priority>`,
+      '  </url>',
+    ]),
     '</urlset>',
     '',
   ].join('\n'))
 
-  const withOffers = brands.filter((b) => (b.offers ?? []).some((o) => o.amount != null))
-  console.log(`[prerender] 브랜드 ${withOffers.length}개를 본문에 심었다 (${today})`)
+  console.log(`[prerender] 본문 ${listed.length}개 + 브랜드 페이지 ${listed.length}장 (${today})`)
 }
 
 await mkdir(DIST, { recursive: true })
