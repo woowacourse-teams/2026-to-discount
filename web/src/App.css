@@ -341,19 +341,27 @@ h1 {
      덩어리로 읽혀야 배너가 목록 위에 떠 있는 별개 층으로 안 보인다. */
 }
 
+/* 배너 판은 한 색으로 고정한다.
+   브랜드마다 로고에서 색을 뽑아 깔았더니 넘어갈 때마다 판이 통째로
+   바뀌어, 무엇이 바뀐 건지(브랜드인지 배너인지)가 안 읽혔다. 색은 로고와
+   플랫폼 배지가 이미 충분히 들고 있다. 판은 조용히 뒤에 있는 편이 낫다. */
 .banner {
+  --banner-plate: #17171a;
+  --banner-plate-line: rgba(255, 255, 255, .1);
   position: relative;
   border-radius: 14px;
-  background: var(--banner-bg-c);
-  border: 1px solid var(--banner-line-c);
+  background: var(--banner-plate);
+  border: 1px solid var(--banner-plate-line);
+  /* 진행 막대가 아래 테두리 자리에 앉으므로 넘치는 것을 잘라 낸다. */
+  overflow: hidden;
   animation: banner-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 /* 상단은 밝은 틴트에 진한 글자, 하단은 진한 브랜드색에 흰 글자다. 하단은
    카드 위에 겹쳐 뜨는 층이라 밝은 틴트로는 카드와 구분이 약하다. */
 .banner--top {
-  --banner-bg-c: var(--banner-tint);
-  --banner-line-c: var(--banner-line);
-  --banner-ink-c: var(--banner-ink);
+  --banner-bg-c: var(--banner-plate);
+  --banner-line-c: var(--banner-plate-line);
+  --banner-ink-c: #f5f5f4;
   --banner-accent-c: var(--banner-accent);
 }
 .banner--bottom {
@@ -558,16 +566,38 @@ h1 {
 
 /* 하단 중앙 인디케이터. 점 자체는 6px이지만 버튼은 14px을 차지해
    손가락으로 누를 자리를 남긴다. */
+/* 아래 테두리 자리를 채우는 진행 막대. 트랙 밖(.banner-slot)에 있으므로
+   장이 넘어가도 자리를 지킨다. 다 차면 onAnimationEnd가 다음 장을 부른다 —
+   보이는 시간과 실제로 넘어가는 시점이 하나다. */
+.banner__progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 0;
+  border-bottom-left-radius: 14px;
+  background: rgba(255, 255, 255, .55);
+  animation: banner-progress var(--rotate, 5s) linear forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+.banner__progress--paused { animation-play-state: paused; }
+@keyframes banner-progress { to { width: 100%; } }
+@media (prefers-reduced-motion: reduce) {
+  .banner__progress { display: none; }
+}
+
 .banner__dots {
   position: absolute;
-  bottom: 2px;
+  /* 진행 막대(3px) 바로 위. 둘이 겹치면 점이 막대에 잘린다. */
+  bottom: 7px;
+  z-index: 2;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: .15rem;
-  /* 글자 위에 겹치므로 뒤를 살짝 눌러 점이 묻히지 않게 한다. */
+  /* 판이 진한 한 색이라 뒤판 없이도 흰 점이 그대로 보인다. */
   border-radius: 999px;
-  background: rgba(0, 0, 0, .18);
 }
 .banner__dot {
   position: relative;
@@ -587,12 +617,15 @@ h1 {
   height: 6px;
   margin: -3px 0 0 -3px;
   border-radius: 50%;
-  background: var(--banner-ink-c);
-  opacity: .3;
+  /* 카드 밖 층이라 --banner-* 변수를 못 받는다. 판이 한 색(#17171a)으로
+     고정됐으므로 흰색으로 못박는다 — 변수를 다시 끌어오면 카드가 흐르는
+     동안 색이 따라 바뀐다. */
+  background: #fff;
+  opacity: .35;
   transition: opacity 150ms ease;
 }
-.banner__dot--on::after { opacity: .85; }
-.banner__dot:focus-visible { outline: 2px solid var(--banner-ink-c); outline-offset: -2px; border-radius: 50%; }
+.banner__dot--on::after { opacity: 1; }
+.banner__dot:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: -2px; border-radius: 50%; }
 
 /* 상단 배너가 화면 밖으로 나가면 올라오는 층. 불투명하고, 떠 있는 층은
    뷰포트가 아니라 본문 폭을 따라간다는 이 레포 규칙을 그대로 따른다 —
@@ -1231,50 +1264,9 @@ h1 {
 /* 최고 할인은 테두리 대신 배경으로 말한다 — 얇은 선 하나로는 카드가
    여럿 늘어섰을 때 눈에 안 걸렸다. 배지가 쓰던 네온 계열을 그대로
    깔고 테두리를 없애 면으로 도드라지게 한다. */
-/* 최고 할인은 테두리로 말한다.
-
-   한때 배경을 네온으로 깔았는데, 칩이 면으로 막히면서 색이 금액보다
-   먼저 읽혔다. 칩은 눈에 잘 들어오되 읽히는 것은 숫자여야 한다. 같은
-   네온을 테두리에만 두르고 안은 본문 바탕을 그대로 둔다.
-
-   테두리를 border로 그리면 칩이 차지하는 자리가 달라져 최고 할인 칩만
-   다른 칩과 어긋난다(폭이 아니라 안쪽 여백이 줄어 금액이 좁아진다).
-   그래서 border는 다른 칩과 똑같이 두고, 테를 ::after로 얹는다 —
-   position:absolute라 레이아웃에 전혀 안 낀다.
-
-   왼쪽·위 2px, 오른쪽·아래 5px로 두께를 어긋나게 준다. 빛을 왼쪽 위에서
-   받아 오른쪽 아래로 두께가 쌓인 것처럼 보여, 얇은 선 하나보다 칩이
-   떠 보인다.
-
-   그라디언트를 테에만 입히려고 마스크를 쓴다 — 배경을 border-box로
-   깔고 padding-box 쪽을 xor로 도려내면 테 부분만 남는다. 두께가 네 변
-   다르더라도 그대로 따라온다. */
-.offer--best .offer__chip::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 2px solid transparent;
-  border-right-width: 5px;
-  border-bottom-width: 5px;
-  /* 두께가 바뀌는 곳은 오른쪽 위(2->5)와 왼쪽 아래(2->5) 두 코너뿐이다.
-     그 두 곳의 반경을 키우면 같은 변화가 긴 호를 타고 일어나 툭 꺾이지
-     않고 서서히 넓어진다. 두께가 같은 왼쪽 위(2,2)·오른쪽 아래(5,5)는
-     전환할 것이 없으니 칩과 같은 반경으로 둔다.
-
-     시계 방향으로 좌상 / 우상 / 우하 / 좌하다. */
-  border-radius: 8px 16px 8px 16px;
-  background: linear-gradient(120deg, #00c8ff 0%, #4d6bff 45%, #ff3ec8 100%) border-box;
-  -webkit-mask:
-    linear-gradient(#000 0 0) padding-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) padding-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  /* 칩 위에 덮이는 층이라 누르는 것을 가로채면 안 된다. */
-  pointer-events: none;
-}
+/* 최고 할인은 왼쪽 표식으로만 말한다.
+   한때 네온 테를 둘렀는데(::after + 마스크), 카드가 여럿 늘어서면 테가
+   먼저 읽혀 정작 금액이 뒤로 밀렸다. 표식 하나로 충분하다. */
 /* 최고 할인 라벨 — 금액 위 배지가 아니라 칩 왼쪽에 붙는 표식이다.
    흰 글씨라 네온 배경 위에서 금액과 한 덩어리로 읽힌다. */
 /* 두 줄짜리 정사각 표식 — 칩 왼쪽 끄트머리에 로고처럼 앉는다. */
@@ -1376,8 +1368,6 @@ h1 {
   padding: .95rem 1rem;
   border-radius: 12px;
 }
-/* 단독 줄이라 칩이 크다 — 전환 호도 그만큼 길게 잡는다. */
-.offer--hero.offer--best .offer__chip::after { border-radius: 12px 22px 12px 22px; }
 .offer--hero .offer__amount { font-size: 1.5rem; }
 /* 단독 줄이라 배지에도 여유가 있다 — 차순위 칩보다 한 단계 크게. */
 .offer--hero .offer__range-badge { font-size: .84rem; padding: .1rem .45rem; top: -11px; }

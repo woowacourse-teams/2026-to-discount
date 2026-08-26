@@ -79,7 +79,7 @@ function useSeed(banner) {
   return seed
 }
 
-function BannerCard({ banner, position, dots, onClose, onSeen }) {
+function BannerCard({ banner, position, onClose, onSeen }) {
   // 색은 카드가 직접 뽑는다. 여러 장이 한 줄에 나란히 놓이면서 배너마다
   // 색이 달라졌다 — 바깥에서 하나만 계산해 내리면 전부 같은 색이 된다.
   const seed = useSeed(banner)
@@ -112,7 +112,7 @@ function BannerCard({ banner, position, dots, onClose, onSeen }) {
   const external = banner.url.startsWith('http')
 
   return (
-    <div className={`banner banner--${position} ${dots ? 'banner--dots' : ''}`} style={palette} ref={cardRef}>
+    <div className={`banner banner--${position}`} style={palette} ref={cardRef}>
       <a
         className="banner__link"
         href={banner.url}
@@ -173,8 +173,27 @@ function BannerCard({ banner, position, dots, onClose, onSeen }) {
         </button>
       )}
 
-      {dots}
     </div>
+  )
+}
+
+// 아래 테두리 자리에서 5초를 채우는 막대. 다 차면 다음 장으로 넘어간다.
+//
+// setInterval로 돌리던 것을 이 막대가 대신한다 — 타이머와 화면이 따로
+// 돌면 손으로 넘긴 직후 남은 시간이 어긋나 곧바로 또 넘어간다. key가
+// 바뀌면 React가 요소를 새로 만들어 애니메이션이 처음부터 다시 돈다.
+//
+// prefers-reduced-motion이면 자동 전환을 안 하므로 막대도 안 그린다.
+function Progress({ runId, paused, onDone }) {
+  return (
+    // 도는 시간은 ROTATE_MS 한 곳에서 정하고 CSS가 그 값을 읽어 채운다.
+    <span
+      key={runId}
+      className={`banner__progress ${paused ? 'banner__progress--paused' : ''}`}
+      style={{ '--rotate': `${ROTATE_MS}ms` }}
+      onAnimationEnd={onDone}
+      aria-hidden="true"
+    />
   )
 }
 
@@ -246,17 +265,17 @@ export default function EventBanner({ banners }) {
   // 자동 전환. 한 건이면 돌릴 것이 없고, 손이 올라가 있거나 포커스가 안에
   // 있거나 탭이 숨겨져 있으면 멈춘다. prefers-reduced-motion이면 아예 안 돈다
   // (DNT·GPC를 존중하는 이 레포 관례와 결이 맞는다).
-  const paused = hovered || focused || pageHidden || reduceMotion
-  useEffect(() => {
-    if (count < 2 || paused) return
-    const timer = setInterval(() => {
-      const el = trackRef.current
-      if (!el) return
-      const next = (Math.round(el.scrollLeft / el.clientWidth) + 1) % count
-      el.scrollTo({ left: el.clientWidth * next, behavior: 'smooth' })
-    }, ROTATE_MS)
-    return () => clearInterval(timer)
-  }, [count, paused])
+  const paused = hovered || focused || pageHidden
+  const rotating = count > 1 && !reduceMotion
+
+  // 막대가 다 차면 다음 장. 어느 장에서 왔는지는 스크롤이 정하므로
+  // 여기서도 스크롤 위치를 다시 읽는다(점을 눌러 옮긴 직후에도 맞다).
+  function advance() {
+    const el = trackRef.current
+    if (!el) return
+    const next = (Math.round(el.scrollLeft / el.clientWidth) + 1) % count
+    el.scrollTo({ left: el.clientWidth * next, behavior: 'smooth' })
+  }
 
   // 하단 배너는 안 보일 때도 DOM에 남아 있다(visibility:hidden). 관찰자는
   // visibility를 보지 않아 그대로 달면 페이지를 열자마자 노출로 세어진다.
@@ -286,9 +305,18 @@ export default function EventBanner({ banners }) {
     onFocus: () => setFocused(true),
     onBlur: () => setFocused(false),
   }
-  const dots = count > 1
-    ? <Indicators count={count} index={index % count} onSelect={scrollTo} />
-    : null
+  // 배너 위에 얹는 조작·표시는 카드 밖에 둔다. 카드는 가로로 흐르므로
+  // 안에 있으면 점도 막대도 같이 흘러가 가운데에서 벗어난다.
+  const chrome = (
+    <>
+      {rotating && (
+        <Progress runId={`${index % count}-${paused}`} paused={paused} onDone={advance} />
+      )}
+      {count > 1 && (
+        <Indicators count={count} index={index % count} onSelect={scrollTo} />
+      )}
+    </>
+  )
 
   return (
     <>
@@ -301,11 +329,11 @@ export default function EventBanner({ banners }) {
               key={b.id}
               banner={b}
               position="top"
-              dots={dots}
               onSeen={() => markSeen(b, 'top')}
             />
           ))}
         </div>
+        {chrome}
       </div>
 
       {/* 하단 배너는 항상 DOM에 있고 보임 상태만 토글한다 — 언마운트하면
@@ -320,7 +348,6 @@ export default function EventBanner({ banners }) {
             key={current.id}
             banner={current}
             position="bottom"
-            dots={dots}
             onClose={() => {
               setDismissed(true)
               writeDismissed()
@@ -333,6 +360,9 @@ export default function EventBanner({ banners }) {
               })
             }}
           />
+          {count > 1 && (
+            <Indicators count={count} index={index % count} onSelect={scrollTo} />
+          )}
         </div>
       </div>
     </>
