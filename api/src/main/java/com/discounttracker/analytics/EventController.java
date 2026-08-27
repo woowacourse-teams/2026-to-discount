@@ -44,7 +44,8 @@ public class EventController {
             "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
             "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
             "cart_toggle", "filter_sheet_open", "cart_view_toggle", "cart_clear",
-            "banner_impression", "banner_dismiss", "brand_search_submitted");
+            "banner_impression", "banner_dismiss", "brand_search_submitted",
+            "brand_impression");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
             "inputLength", "resultCount", "submitMethod",
             "fCategory", "fPlatforms", "fSearch", "fCart", "fSaved", "fSort");

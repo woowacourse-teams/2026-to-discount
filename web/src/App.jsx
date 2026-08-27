@@ -3,6 +3,7 @@ import { fetchBanners, fetchBrands } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
+import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.jsx'
 import FilterSheet from './FilterSheet.jsx'
 import MenuBar from './MenuBar.jsx'
@@ -102,6 +103,10 @@ function won(value) {
 // 쓰되, 공백만 앵커에서 다루기 까다로우니 치환한다.
 function brandCardId(name) {
   return `brand-${name.trim().replace(/\s+/g, '_')}`
+}
+
+function captureBrandImpression(props) {
+  track('brand_impression', props)
 }
 
 function offerAmountText(offer) {
@@ -323,7 +328,7 @@ function BrandGridSkeleton() {
 // highlighted는 URL 해시(#brand-이름)로 이 카드를 콕 집어 공유했을 때만
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
-function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
+function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -369,6 +374,7 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
   const open = pinned
   const detailId = `${useId()}-detail`
   const cardRef = useRef(null)
+  const headerRef = useRef(null)
 
   // 어떤 브랜드를 실제로 열어보는지가 "무엇을 궁금해하는가"의 지표다.
   // 접는 동작은 안 남긴다 — 관심 신호가 아니다.
@@ -389,6 +395,12 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
     }
   }, [highlighted])
 
+  useEffect(() => observeBrandImpression(
+    headerRef.current,
+    brandImpressionProps(brand, position),
+    captureBrandImpression,
+  ), [brand, position])
+
   return (
     <article
       id={brandCardId(brand.name)}
@@ -398,7 +410,7 @@ function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
       {/* 헤더는 이름표다. 펼침 트리거는 카드 아래 한 곳뿐이다 —
           헤더 전체·화살표·아래 버튼 셋이 같은 일을 하면 어느 것을
           눌러야 하는지 생각하게 된다. */}
-      <div className="brand-card__head">
+      <div className="brand-card__head" ref={headerRef}>
         <BrandLogo name={brand.name} />
         <h2 className="brand-card__name">{brand.name}</h2>
       </div>
@@ -1096,10 +1108,11 @@ export default function App() {
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className="brand-grid" key={gridKey}>
-          {visibleBrands.map((b) => (
+          {visibleBrands.map((b, index) => (
             <BrandCard
               key={b.name}
               brand={b}
+              position={index + 1}
               highlighted={linkedBrand === brandCardId(b.name)}
               onInteract={() => setLinkedBrand(null)}
               checked={CART_ENABLED && cart.has(b.name)}
