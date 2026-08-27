@@ -703,6 +703,42 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void soldOutOnMarksOnlyThatDay() {
+        // 선착순은 매일 다시 풀린다. soldOut을 켜 두면 다음 날 아침에도
+        // 매진으로 떠서, 늦지 않았는데 늦었다고 말한다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        String yaml = """
+                banners:
+                  - id: goobne-daily
+                    brand: goobne
+                    platform: yogiyo
+                    url: https://example.test/a
+                    amount: "6,000원"
+                    period: 오전 11시 선착순
+                    soldOutOn: 2026-08-20
+                    startsOn: 2026-08-19
+                    endsOn: 2026-08-21
+                """;
+
+        assertTrue(offerOf(brands, yaml, "2026-08-20").soldOut(), "그날은 매진");
+        assertFalse(offerOf(brands, yaml, "2026-08-21").soldOut(), "다음 날은 다시 풀린다");
+        assertFalse(offerOf(brands, yaml, "2026-08-19").soldOut(), "전날도 멀집하다");
+    }
+
+    private Offer offerOf(String brands, String yaml, String day) {
+        return serviceWith(List.of(), brands, on(day), yaml)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow()
+                .offers().get(0);
+    }
+
+    @Test
     void dropsBannersThatCannotStandAsAnOffer() {
         // 브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없고, 정액이 아닌
         // 금액("최대 30%")은 다른 오퍼와 견줄 수가 없다.

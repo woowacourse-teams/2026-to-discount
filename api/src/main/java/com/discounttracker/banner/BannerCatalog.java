@@ -104,6 +104,9 @@ public class BannerCatalog {
         return all.stream()
                 .filter(b -> b.activeOn(today))
                 .sorted(Comparator.comparingInt(Banner::priority).thenComparing(Banner::endsOn))
+                // 매진 여부를 여기서 오늘 기준으로 굳혀 내려보낸다 — 프론트가
+                // 날짜를 다시 따지면 시계가 두 곳이 되고, 자정을 넘길 때 갈린다.
+                .map(b -> b.resolvedFor(today))
                 .toList();
     }
 
@@ -183,6 +186,7 @@ public class BannerCatalog {
                 startsOn,
                 endsOn,
                 flag(attrs.get("soldOut")),
+                date(attrs.get("soldOutOn")),
                 priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY);
     }
 

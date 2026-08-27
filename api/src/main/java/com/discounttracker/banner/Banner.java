@@ -27,9 +27,15 @@ import java.util.regex.Pattern;
  *                 없어서 이 칸만 비운 배너가 계속 나왔다.
  * @param color    브랜드색 강제 지정. 없으면 로고에서 뽑고, 그마저 실패하면
  *                 플랫폼 색으로 간다(프론트 brandColor.js).
- * @param soldOut  오늘 몫이 다 나갔을 때 켠다. 배너를 내리지 않고 남겨
- *                 두는 이유는, 없어진 것과 다 나간 것이 다른 소식이기
- *                 때문이다 — "오늘은 늦었다"를 알아야 내일 일찍 온다.
+ * @param soldOut   기간 내내 다 나간 상태로 둘 때 켠다. 하루짜리 배너가
+ *                  아니면 거의 쓸 일이 없다.
+ * @param soldOutOn 그 날짜에만 다 나간 것으로 본다. 선착순은 매일 다시
+ *                  풀리므로 보통 이쪽을 쓴다 — soldOut을 켜 두면 다음 날
+ *                  아침에도 매진으로 떠서, 늦지 않았는데 늦었다고 말한다.
+ *
+ *                  배너를 내리지 않고 남기는 이유는 없어진 것과 다 나간
+ *                  것이 다른 소식이기 때문이다 — "오늘은 늦었다"를 알아야
+ *                  내일 일찍 온다.
  * @param priority 낮을수록 먼저. 안 적으면 {@link #DEFAULT_PRIORITY}.
  */
 public record Banner(
@@ -45,9 +51,24 @@ public record Banner(
         LocalDate startsOn,
         LocalDate endsOn,
         Boolean soldOut,
+        LocalDate soldOutOn,
         int priority) {
 
     static final int DEFAULT_PRIORITY = 999;
+
+    /** 그날 다 나갔나. 기간 전체를 덮는 soldOut과 그날치 soldOutOn 중 하나면 참. */
+    public boolean soldOutOn(LocalDate today) {
+        return Boolean.TRUE.equals(soldOut) || today.equals(soldOutOn);
+    }
+
+    /** 응답에는 오늘 기준으로 판정한 값 하나만 싣는다 — 프론트가 날짜를 다시 따지지 않게. */
+    public Banner resolvedFor(LocalDate today) {
+        boolean out = soldOutOn(today);
+        return Boolean.valueOf(out).equals(soldOut) && soldOutOn == null
+                ? this
+                : new Banner(id, brand, platform, url, amount, period, extra, minOrder,
+                        color, startsOn, endsOn, out, null, priority);
+    }
 
     /**
      * {@code extra}의 "18,900원↑" / "18,900원 이상"에서 앞 숫자.
