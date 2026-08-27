@@ -96,6 +96,8 @@ WEB_RESPONSIBILITIES = {
     "ga4.js": "임시 GA4 측정",
     "logos.jsx": "브랜드와 플랫폼 로고",
     "brandColor.js": "배너 색 파생",
+    "brandImpression.js": "브랜드 헤더 노출 판정과 세션 중복 방지",
+    "brandImpression.test.js": "브랜드 헤더 노출 판정 검증",
     "main.jsx": "React와 분석 도구 진입점",
     "FilterSheet.jsx": "앱·분류·정렬을 고르는 바텀시트",
     "MenuBar.jsx": "스크롤 중 따라오는 분류 바",

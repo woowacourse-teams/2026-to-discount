@@ -130,6 +130,8 @@ web/src/api.js
 web/src/brandAutocomplete.js
 web/src/brandAutocomplete.test.js
 web/src/brandColor.js
+web/src/brandImpression.js
+web/src/brandImpression.test.js
 web/src/filters.js
 web/src/ga4.js
 web/src/logos.jsx
@@ -186,7 +188,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 35 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 37 |
 
 ### Tracker
 
@@ -246,6 +248,8 @@ HTTP 경계:
 | `brandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandAutocomplete.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandColor.js` | 배너 색 파생 |
+| `brandImpression.js` | 브랜드 헤더 노출 판정과 세션 중복 방지 |
+| `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `ga4.js` | 임시 GA4 측정 |
 | `logos.jsx` | 브랜드와 플랫폼 로고 |
