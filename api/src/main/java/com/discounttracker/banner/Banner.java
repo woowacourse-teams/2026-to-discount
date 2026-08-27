@@ -27,6 +27,9 @@ import java.util.regex.Pattern;
  *                 없어서 이 칸만 비운 배너가 계속 나왔다.
  * @param color    브랜드색 강제 지정. 없으면 로고에서 뽑고, 그마저 실패하면
  *                 플랫폼 색으로 간다(프론트 brandColor.js).
+ * @param soldOut  오늘 몫이 다 나갔을 때 켠다. 배너를 내리지 않고 남겨
+ *                 두는 이유는, 없어진 것과 다 나간 것이 다른 소식이기
+ *                 때문이다 — "오늘은 늦었다"를 알아야 내일 일찍 온다.
  * @param priority 낮을수록 먼저. 안 적으면 {@link #DEFAULT_PRIORITY}.
  */
 public record Banner(
@@ -41,6 +44,7 @@ public record Banner(
         String color,
         LocalDate startsOn,
         LocalDate endsOn,
+        Boolean soldOut,
         int priority) {
 
     static final int DEFAULT_PRIORITY = 999;

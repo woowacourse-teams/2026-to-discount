@@ -182,7 +182,17 @@ public class BannerCatalog {
                 text(attrs.get("color")),
                 startsOn,
                 endsOn,
+                flag(attrs.get("soldOut")),
                 priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY);
+    }
+
+    /** yes/true/1 무엇으로 적어도 참으로 읽는다. 손으로 고치는 파일이다. */
+    private static Boolean flag(Object value) {
+        if (value instanceof Boolean b) return b;
+        if (value == null) return null;
+        String t = String.valueOf(value).trim().toLowerCase(java.util.Locale.ROOT);
+        if (t.isEmpty()) return null;
+        return t.equals("true") || t.equals("yes") || t.equals("y") || t.equals("1");
     }
 
     /** 선택 필드라 못 읽으면 null이다 — 항목을 통째로 버리지 않는다. */

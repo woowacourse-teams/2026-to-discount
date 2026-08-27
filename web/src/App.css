@@ -527,6 +527,29 @@ h1 {
 }
 /* 조건은 말줄임하지 않는다. 최소주문금액이나 선착순 여부가 잘리면
    눌러야 할지 말지를 판단할 수 없어, 있으나 마나 한 줄이 된다. */
+/* 다 나간 배너. 지우지 않고 눌러 둔다 — 금액에 취소선을 긋고 판 전체를
+   흐리게 해서, 눌러도 소용없다는 것이 누르기 전에 읽히게 한다. */
+.banner--soldout .banner__amount {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  opacity: .55;
+}
+.banner--soldout .banner__logo,
+.banner--soldout .banner__brand,
+.banner--soldout .banner__extra { opacity: .55; }
+.banner__soldout {
+  flex: none;
+  margin-left: .35rem;
+  padding: .1rem .4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+
 .banner__extra {
   font-size: .72rem;
   line-height: 1.4;

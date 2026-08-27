@@ -670,6 +670,39 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void soldOutBannerStandsAsASoldOutOffer() {
+        // 다 나간 배너는 내리지 않고 품절로 남긴다 — 사라지면 "원래
+        // 없었나" 싶고, 남아 있으면 "오늘은 늦었다"가 읽힌다. 오퍼로도
+        // 품절이어야 카드에서 취소선이 그어지고 최고 할인 후보에서 빠진다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        String yaml = """
+                banners:
+                  - id: goobne-soldout
+                    brand: goobne
+                    platform: yogiyo
+                    url: https://example.test/a
+                    amount: "6,000원"
+                    period: 오전 11시 선착순
+                    soldOut: true
+                    startsOn: 2026-08-20
+                    endsOn: 2026-08-20
+                """;
+        Offer offer = serviceWith(List.of(), brands, on("2026-08-20"), yaml)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow()
+                .offers().get(0);
+
+        assertEquals(6000, offer.amount());
+        assertTrue(offer.soldOut());
+    }
+
+    @Test
     void dropsBannersThatCannotStandAsAnOffer() {
         // 브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없고, 정액이 아닌
         // 금액("최대 30%")은 다른 오퍼와 견줄 수가 없다.

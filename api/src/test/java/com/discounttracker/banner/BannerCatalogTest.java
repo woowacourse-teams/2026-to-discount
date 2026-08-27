@@ -334,7 +334,7 @@ class BannerCatalogTest {
         return new Banner("id", "교촌치킨", "baemin", "https://example.test",
                 amount, "상시", extra, minOrder, null,
                 java.time.LocalDate.parse("2026-08-25"),
-                java.time.LocalDate.parse("2026-08-25"), 1);
+                java.time.LocalDate.parse("2026-08-25"), null, 1);
     }
 
     @Test

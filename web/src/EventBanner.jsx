@@ -112,7 +112,11 @@ function BannerCard({ banner, position, onClose, onSeen }) {
   const external = banner.url.startsWith('http')
 
   return (
-    <div className={`banner banner--${position}`} style={palette} ref={cardRef}>
+    <div
+      className={`banner banner--${position}${banner.soldOut ? ' banner--soldout' : ''}`}
+      style={palette}
+      ref={cardRef}
+    >
       <a
         className="banner__link"
         href={banner.url}
@@ -159,6 +163,9 @@ function BannerCard({ banner, position, onClose, onSeen }) {
               {banner.brand ?? platform?.label ?? banner.platform}
             </span>
             <span className="banner__period">{banner.period}</span>
+            {/* 다 나갔어도 배너는 남긴다. 사라지면 "원래 없었나" 싶고,
+                남아 있으면 "오늘은 늦었다"가 읽혀 내일 일찍 오게 된다. */}
+            {banner.soldOut && <span className="banner__soldout">오늘 소진</span>}
           </span>
           {banner.extra && <span className="banner__extra">{banner.extra}</span>}
         </span>

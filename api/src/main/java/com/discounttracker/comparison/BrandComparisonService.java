@@ -107,7 +107,10 @@ public class BrandComparisonService {
                     // 칩까지 행사로 끌려가면 안 되고, 배너가 끝나도 원래
                     // 링크가 남아 있어야 한다.
                     banner.url(),
-                    null));
+                    // 다 나간 배너는 오퍼로도 품절이다. 그래야 카드에서
+                    // 취소선이 그어지고 최고 할인 후보에서도 빠진다
+                    // (프론트 bestConfirmedAmount가 soldOut을 거른다).
+                    banner.soldOut()));
         }
         return records;
     }
