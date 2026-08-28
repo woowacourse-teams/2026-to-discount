@@ -674,6 +674,14 @@ export default function App() {
   // 중간 상태로 한 번 더 그려진다.
   const [filters, setFilters] = useState(routeFilters)
   const [sheetOpen, setSheetOpen] = useState(false)
+  // /brand/<이름>으로 들어왔을 때만 값이 있다. 검색으로 들어온 사람에게
+  // 전체 목록으로 나가는 길을 눈에 보이게 두려는 것이다 — 검색어를 지우고
+  // 엔터까지 쳐야 전체가 나오는데(입력 초안과 확정 필터가 갈려 있다),
+  // 그걸 모르면 브랜드 하나만 보고 나간다. 크롤러에게도 이 페이지가
+  // 막다른 곳이 아니라는 표시가 된다.
+  const [routeBrand] = useState(() => (
+    typeof window === 'undefined' ? null : brandFromPath(window.location.pathname)
+  ))
 
   const { search } = filters
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
@@ -1120,6 +1128,13 @@ export default function App() {
             <p>이 분류엔 브랜드가 없습니다.</p>
           )}
         </div>
+      )}
+
+      {/* 그 브랜드만 보고 있는 동안에만 띄운다. 검색어를 바꿨거나 지웠으면
+          이미 목록을 보고 있으니 사라진다. 진짜 <a>라서 크롤러도 따라간다 —
+          이 페이지에서 나가는 길이 있다는 표시다. */}
+      {routeBrand && filters.search === routeBrand && (
+        <a className="route-back" href="/">← 전체 브랜드 보기</a>
       )}
 
       {visibleBrands && visibleBrands.length > 0 && (

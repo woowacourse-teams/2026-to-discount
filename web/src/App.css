@@ -1050,6 +1050,17 @@ h1 {
 }
 .category-btn--active:hover { color: #fff; }
 
+/* /brand/<이름>으로 들어왔을 때만 뜨는 탈출구. 카드 위에 한 줄로 앉는다.
+   눈에 띄되 카드보다 앞서면 안 된다 — 보러 온 것은 그 브랜드다. */
+.route-back {
+  display: inline-block;
+  margin: 0 0 .7rem;
+  font-size: .85rem;
+  color: #787774;
+  text-decoration: none;
+}
+.route-back:hover { color: #171717; }
+
 /* 브랜드 카드 그리드 — 고정 컬럼 수 대신 minmax로 반응형이다.
    300px보다 좁아지면(=모바일) min(100%, 300px)이 100%가 되어 카드 하나가
    컨테이너 폭에 정확히 맞고, 넓어지면 300px 이상인 컬럼을 들어가는 만큼
