@@ -38,7 +38,13 @@ REMOTE_KEY = os.environ.get("EVENTS_KEY", os.path.expanduser("~/key_turbom_v0.ke
 REMOTE_PATH = os.environ.get(
     "EVENTS_PATH", "/home/ubuntu/delivery-discount-api/data/events.jsonl")
 
-GOAL = "offer_link_click"
+# 전환 = 배달앱으로 나가는 모든 길. 오퍼 칩과 배너 둘 다다.
+#
+# 한동안 offer_link_click 하나로 셌는데, 2026-08-19에 배너를 도입하면서
+# 나가는 길이 하나 더 생겼다. banner_click은 그 전 구간에서 구조적으로 0이라
+# 옛 정의로 전후를 비교하면 개편 이후가 무조건 낮게 나온다 — "재방문
+# 반토막"으로 읽었던 것이 실은 이 착시였다(ANALYTICS-CAPABILITY.md §5.2).
+GOAL = "offer_link_click,banner_click"
 
 # 배포 확인이 넣는 붙박이 방문자. 사람이 아니다.
 SYNTHETIC = {"v_deploycheck"}
@@ -217,6 +223,11 @@ def population(people, args):
     return [v for v in people.values() if keep(v, args)]
 
 
+def goals(args):
+    """전환으로 볼 이벤트들. 쉼표로 여럿 받는다 — 합집합이다."""
+    return tuple(g.strip() for g in args.goal.split(",") if g.strip())
+
+
 # ---- 명령 -------------------------------------------------------------
 
 def cmd_audit(people, rows, args):
@@ -235,13 +246,14 @@ def cmd_audit(people, rows, args):
 
 
 def cmd_daily(people, rows, args):
+    gs = goals(args)
     per = collections.defaultdict(lambda: [set(), set()])
     for day, vid, ev, _p, _ts, _sid in rows:
         v = people[vid]
         if not keep(v, args):
             continue
         per[day][0].add(vid)
-        if ev == args.goal:
+        if ev in gs:
             per[day][1].add(vid)
     print("날짜         방문자   전환   전환율")
     for day in sorted(per):
@@ -304,13 +316,14 @@ def cmd_compare(people, rows, args):
     # 정하는 판단(그 자체로 편향이다)을 안 해도 된다.
     #
     # 횟수는 버리지 않고 따로 들고 있다가 분포 진단으로 낸다.
+    gs = goals(args)
     groups = collections.defaultdict(lambda: [0, 0, []])
     for v in population(people, args):
         name = bucket(v, args.by)
         if name is None:
             continue
         groups[name][0] += 1
-        hits = v.events[args.goal]
+        hits = sum(v.events[g] for g in gs)
         if hits:
             groups[name][1] += 1
             groups[name][2].append(hits)
@@ -414,6 +427,7 @@ def cmd_paths(people, rows, args):
     링크 앞보다 뒤에 오는 경우가 더 많았다 — 전 단계가 아니라 사후
     확인 행동이었다.
     """
+    gs = goals(args)
     pop = {v.id for v in population(people, args)}
     seqs = sequences(rows, pop, args.scope)
     skip = set(args.ignore.split(",")) if args.ignore else set()
@@ -429,7 +443,7 @@ def cmd_paths(people, rows, args):
             trimmed.append(e)
         key = " > ".join(trimmed[:args.depth]) if trimmed else "(아무것도 안 함)"
         paths[key] += 1
-        if args.goal in trimmed:
+        if any(g in trimmed for g in gs):
             conv[key] += 1
     unit = "방문자" if args.scope == "visitor" else "세션"
     total = len(seqs)
@@ -467,7 +481,8 @@ def cmd_features(people, rows, args):
             recent[ev].add(vid)
             recent_pop.add(vid)
 
-    goal_users = seen[args.goal]
+    gs = goals(args)
+    goal_users = set().union(*(seen[g] for g in gs))
     n = len(pop)
     print("모수 %d명 · 최근 %d일 %d명 (%s~%s)"
           % (n, args.window, len(recent_pop), days[-args.window], days[-1]))
@@ -489,7 +504,7 @@ def cmd_features(people, rows, args):
     print("**이건 인과가 아니다.** 무엇이든 조작하는 사람이 링크도 누른다.")
     print("기능                     쓴 사람  안 쓴 사람   차이")
     for ev, _c in count.most_common():
-        if ev in ("page_view", "page_exit", args.goal):
+        if ev in ("page_view", "page_exit") or ev in gs:
             continue
         users = seen[ev]
         others = pop - users
@@ -553,11 +568,12 @@ def main(argv=None):
     p.add_argument("--window", type=int, default=7, help="features: 최근 며칠을 현재로 볼지")
     p.add_argument("--baseline", type=float, default=0.34)
     p.add_argument("--lift", type=float, default=0.15)
-    args = p.parse_args(argv)
-
-    # 윈도우 콘솔은 기본이 cp949라 한글 출력에서 죽는다.
+    # 윈도우 콘솔은 기본이 cp949라 한글 출력에서 죽는다. parse_args보다
+    # 먼저 해야 한다 — 도움말도 한글이라 --help가 그대로 죽었다.
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+    args = p.parse_args(argv)
 
     if args.command == "power":   # 원장이 필요 없다
         return cmd_power({}, [], args)
@@ -579,6 +595,11 @@ def selftest():
     assert lo == 0 and 0.05 < hi < 0.2, (lo, hi)
     assert 1300 < sample_size(0.34, 0.15) < 1500, sample_size(0.34, 0.15)
     assert sample_size(0.185, 0.15) > sample_size(0.34, 0.15)
+
+    # 전환은 이벤트 하나가 아니다 — 배너로 나간 사람도 전환이다.
+    ns = argparse.Namespace(goal=GOAL)
+    assert goals(ns) == ("offer_link_click", "banner_click"), goals(ns)
+    assert goals(argparse.Namespace(goal="a, b ,")) == ("a", "b")
 
     v = Visitor("x")
     v.widths = {384}
