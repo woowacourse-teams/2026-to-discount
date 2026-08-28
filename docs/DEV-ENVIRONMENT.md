@@ -74,12 +74,24 @@ self-hosted 러너를 물리는 방법도 있었지만, 두 배포 대상이 이
 **고려한 대안.** 처음엔 `Exception` 하나로 다 잡았는데, 정적 리소스 없음
 같은 정상 404까지 500으로 바뀌면서 봇 스캔(`/.env`, `/.git/config`) 로그가
 30분 만에 쌓였다(2026-08-07 실측) — 그래서 `ResponseEntityExceptionHandler`
-상속으로 좁혔다. 별도 APM/모니터링 SaaS(Sentry, Datadog 등)는 도입한 적
-없다 — 트래픽 규모(하루 방문 수백 명)와 단일 서버 구조에서 값어치가 로그
-확인 비용보다 낮다고 판단했다.
+상속으로 좁혔다. **서버 APM**(Sentry, Datadog 등)은 도입한 적 없다 —
+트래픽 규모(하루 방문 수백 명)와 단일 서버 구조에서 값어치가 로그 확인
+비용보다 낮다고 판단했다.
+
+이와는 별개로 **제품 분석 SaaS는 이미 쓰고 있다** — PostHog다
+(`web/src`의 SDK 초기화, [ANALYTICS-CAPABILITY.md](ANALYTICS-CAPABILITY.md)).
+성격이 다르다: APM은 "서버가 죽었나"를 보는 도구, PostHog은 "사람이 어떻게
+쓰나"를 보는 도구다. 둘 다 SaaS 도입 검토 대상이었는데 후자만 값어치가
+있다고 판단해 붙였다 — 클라이언트 SDK만으로 쓰는 이벤트가 브라우저 새로고침·
+광고 차단기·네트워크 실패로 유실될 수 있어([ANALYTICS-CAPABILITY.md](ANALYTICS-CAPABILITY.md)
+참고), 판정의 SSOT는 자체 서버 원장(`events.jsonl`)에 두고 PostHog은 탐색·
+시각화 전용 보조로만 쓴다 — SDK 값을 버리는 게 아니라, "권위 있는 기록"의
+자리를 원장이 갖고 PostHog은 그 위에서 찾아보는 도구라는 역할 분담이다.
 
 **한계.** 알림이 능동적이지 않다 — 장애가 나도 누가 로그를 보러 가지
 않으면 모른다. 헬스체크는 배포 직후 한 번뿐이고 상시 모니터링이 아니다.
+PostHog 쪽도 마찬가지로 알림을 설정해 두지 않았다 — 사람이 직접 인사이트를
+열어봐야 안다.
 
 ---
 
@@ -229,3 +241,20 @@ DB 자체가 없다([TECH-CHOICES.md](TECH-CHOICES.md#api) "DB가 없다" 참고
 **브랜드 딥링크가 `brands.yml` 하나로 모임.** 브랜드 추가·수정이 가장
 잦은 변경인데 예전엔 네 군데 수정 + 프론트 재배포가 필요했다. 지금은 이
 파일 하나 고치고 `POST /api/reload`만 부르면 반영된다.
+
+**빌드 타임에 크롤러용 정적 페이지를 만든다.** Vite엔 프리렌더 API가
+없고(`web/src`의 `variant.js`가 모듈 로드 시 `localStorage`를 읽어 SSR
+자체가 불가능) SSR로 옮기는 건 스택 전체를 바꾸는 값어치가 없어서, 빌드
+후 스크립트(`web/scripts/prerender.mjs`)로 `dist/`에 검색엔진용 본문을
+따로 주입하는 절충을 택했다. `robots.txt`·`sitemap.xml`(111 URL)·
+브랜드별 정적 페이지(`/brand/*.html`, 110장)를 이 스크립트가 만든다.
+검증 스크립트(`web/scripts/verify-search-filters.mjs`)는 `logos.jsx`의
+JSX import를 인라인 스텁으로 바꿔치기해 node 환경에서도 필터 로직을
+그대로 import해 테스트한다 — 별도 프레임워크 없이 순수 스크립트로
+회귀를 잡는다.
+
+**일일 루틴을 OS 스케줄러로 돌린다.** 배너 갱신(`scripts/banner_routine.py`)은
+CI가 아니라 로컬 기기의 Windows 작업 스케줄러(`schtasks`, 매일 10시)가
+돈다 — 실기 ADB 캡처라 CI 러너에 폰을 물릴 수 없어서다. 읽기 실패 시
+아무것도 안 하는 안전장치(no-op)와 최대 3회 재시도를 붙여, 조용한 실패가
+배너를 잘못 내리는 사고로 이어지지 않게 했다.
