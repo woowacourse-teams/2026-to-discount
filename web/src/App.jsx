@@ -323,6 +323,39 @@ function BrandGridSkeleton() {
 // highlighted는 URL 해시(#brand-이름)로 이 카드를 콕 집어 공유했을 때만
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
+// 주소에서 브랜드 이름을 읽는다 — /brand/열정국밥.
+//
+// 이 주소는 크롤러용 정적 페이지가 이미 쓰고 있던 것이다. 예전에는 그
+// 정적 HTML이 앱과 아무 상관 없는 쌍둥이라, 검색으로 들어온 사람이
+// JavaScript도 없는 막다른 페이지에 떨어졌다. 브랜드마다 URL이 둘(앱은
+// /#이름, 크롤러는 /brand/이름.html)이었던 셈이고, 그 구조가 doorway
+// page로 읽힌다.
+//
+// 같은 주소에서 앱이 뜨게 해 하나로 합친다. 새 화면을 만들지 않고 검색
+// 필터를 그 브랜드로 채워 여는 것으로 충분하다 — 카드도 앱 링크도 계측도
+// 홈과 같은 코드를 쓰고, 검색어를 지우면 전체 목록으로 이어져 막다른
+// 길이 아니다.
+//
+// 라우터 라이브러리는 안 넣는다. 경로가 "/"와 "/brand/*" 둘뿐이라
+// pathname 한 줄이면 갈린다.
+export function brandFromPath(pathname) {
+  const m = /^\/brand\/([^/]+?)(?:\.html)?\/?$/.exec(pathname)
+  if (!m) return null
+  try {
+    return decodeURIComponent(m[1])
+  } catch {
+    // 인코딩이 깨진 주소는 브랜드가 아니라 오타다. 홈처럼 연다.
+    return null
+  }
+}
+
+function routeFilters() {
+  const brand = typeof window === 'undefined'
+    ? null
+    : brandFromPath(window.location.pathname)
+  return brand ? { ...defaultFilters(), search: brand } : defaultFilters()
+}
+
 function BrandCard({ brand, highlighted, onInteract, checked, onToggleCheck }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
@@ -639,7 +672,7 @@ export default function App() {
   // 앱·분류·정렬·검색을 한 덩어리로 든다. 시트가 draft를 만들어 통째로
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
-  const [filters, setFilters] = useState(defaultFilters)
+  const [filters, setFilters] = useState(routeFilters)
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const { search } = filters

@@ -75,7 +75,7 @@ function brandBlock(b) {
   const lines = (b.offers ?? []).map(offerLine).filter(Boolean)
   if (lines.length === 0) return null
   const cat = CATEGORY_LABEL[b.category]
-  const href = `/brand/${encodeURIComponent(slugOf(b.name))}.html`
+  const href = `/brand/${encodeURIComponent(slugOf(b.name))}`
   return [
     '      <li>',
     `        <h3><a href="${href}">${esc(b.name)}</a>${cat ? ` <span>${esc(cat)}</span>` : ''}</h3>`,
@@ -234,14 +234,30 @@ function offerSection(o) {
   ].join('\n')
 }
 
-function brandPage(b, siblings, today) {
+// 앱 번들 태그를 홈 index.html에서 그대로 뽑아 온다.
+//
+// 브랜드 페이지가 앱과 같은 주소를 갖게 되면서, 그 페이지도 JavaScript가
+// 붙어 진짜 앱이 되어야 한다. 예전에는 <script>가 하나도 없는 정적
+// 쌍둥이라 검색으로 들어온 사람이 막다른 페이지에 떨어졌다.
+//
+// 파일 이름에 해시가 붙어(index-Dy_BwySg.js) 빌드마다 달라지므로 손으로
+// 적을 수 없다. Vite가 만든 index.html에서 읽는 것이 유일하게 안 어긋나는
+// 방법이다.
+function appAssetTags(indexHtml) {
+  const tags = indexHtml.match(
+    /<script[^>]*type="module"[^>]*><\/script>|<link[^>]*rel="stylesheet"[^>]*>|<link[^>]*rel="preconnect"[^>]*>/g,
+  ) ?? []
+  return tags.map((t) => `    ${t}`).join(String.fromCharCode(10))
+}
+
+function brandPage(b, siblings, today, appTags) {
   const offers = (b.offers ?? []).filter((o) => o.amount != null)
   const cat = CATEGORY_LABEL[b.category]
   const apps = offers.map((o) => PLATFORM_LABEL[o.platform] ?? o.platform)
   const best = Math.max(...offers.map((o) => o.amount))
   const title = `${b.name} 배달 할인 쿠폰 정리 (${today} 기준)`
   const desc = `${b.name}${cat ? ` ${cat}` : ''} 배달 할인 — ${apps.join('·')}에서 확인한 쿠폰을 한자리에 모았습니다. 최대 ${won(best)}. 최소 주문 금액과 사용 기한까지 적어 뒀습니다.`
-  const url = `${SITE}/brand/${encodeURIComponent(slugOf(b.name))}.html`
+  const url = `${SITE}/brand/${encodeURIComponent(slugOf(b.name))}`
   return `<!doctype html>
 <html lang="ko">
   <head>
@@ -257,10 +273,11 @@ function brandPage(b, siblings, today) {
     <meta property="og:url" content="${url}" />
     <meta property="og:locale" content="ko_KR" />
     <meta name="twitter:card" content="summary" />
+${appTags}
 ${BOOT_STYLE}
   </head>
   <body>
-    <div id="page">
+    <div id="root">
       <header class="seo">
         <h1>${esc(b.name)} 배달 할인 쿠폰</h1>
         <p>${esc(desc)}</p>
@@ -273,7 +290,7 @@ ${offers.map(offerSection).join('\n')}
         <p>같은 브랜드라도 앱마다 할인 금액과 최소 주문 금액이 다릅니다. 표시된 금액은 확인일 기준이며, 선착순 쿠폰은 시간대에 따라 소진될 수 있습니다. 주문 전에 각 앱에서 실제 금액을 다시 확인하세요.</p>
         <h2>같은 분류의 다른 브랜드</h2>
         <ul>
-${siblings.map((n) => `          <li><a href="${SITE}/brand/${encodeURIComponent(slugOf(n))}.html">${esc(n)} 할인</a></li>`).join('\n')}
+${siblings.map((n) => `          <li><a href="${SITE}/brand/${encodeURIComponent(slugOf(n))}">${esc(n)} 할인</a></li>`).join('\n')}
         </ul>
       </main>
       <footer class="seo footer">
@@ -330,6 +347,8 @@ async function main() {
   // 채워 재크롤 빈도를 올린다.
   // 브랜드 하나짜리 페이지. "교촌치킨 할인"처럼 브랜드 이름이 들어간
   // 검색어를 잡는 자리다 — 첫 화면 하나로는 그 말에 걸릴 근거가 없다.
+  // 홈을 다 고친 뒤에 읽는다 — 자산 태그는 Vite가 넣은 그대로다.
+  const appTags = appAssetTags(html)
   const listed = brands.filter((b) => (b.offers ?? []).some((o) => o.amount != null))
   const byCategory = new Map()
   for (const b of listed) {
@@ -337,19 +356,23 @@ async function main() {
     if (!byCategory.has(k)) byCategory.set(k, [])
     byCategory.get(k).push(b.name)
   }
+  // 브랜드마다 폴더를 파고 index.html을 넣는다 — /brand/열정국밥 으로
+  // 열리게 하려는 것이다. 예전에는 /brand/열정국밥.html 이었는데, 그
+  // 주소는 앱에 없는 크롤러 전용 쌍둥이라 검색으로 들어온 사람이 JavaScript
+  // 없는 막다른 페이지에 떨어졌다(브랜드마다 URL이 둘이었다). 앱이 같은
+  // 주소를 받게 하려면 확장자가 없어야 한다.
   await mkdir(new URL('brand/', `file://${DIST}`), { recursive: true })
   for (const b of listed) {
     const siblings = (byCategory.get(b.category ?? '기타') ?? [])
       .filter((n) => n !== b.name).slice(0, 12)
-    await writeFile(
-      new URL(`brand/${slugOf(b.name)}.html`, `file://${DIST}`),
-      brandPage(b, siblings, today),
-    )
+    const dir = new URL(`brand/${slugOf(b.name)}/`, `file://${DIST}`)
+    await mkdir(dir, { recursive: true })
+    await writeFile(new URL('index.html', dir), brandPage(b, siblings, today, appTags))
   }
 
   const urls = [
     ['/', '1.0', 'daily'],
-    ...listed.map((b) => [`/brand/${encodeURIComponent(slugOf(b.name))}.html`, '0.7', 'daily']),
+    ...listed.map((b) => [`/brand/${encodeURIComponent(slugOf(b.name))}`, '0.7', 'daily']),
   ]
   await writeFile(new URL('sitemap.xml', `file://${DIST}`), [
     '<?xml version="1.0" encoding="UTF-8"?>',

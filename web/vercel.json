@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/brand/:name.html",
+      "destination": "/brand/:name",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
