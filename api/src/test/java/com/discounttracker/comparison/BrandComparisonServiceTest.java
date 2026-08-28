@@ -591,7 +591,41 @@ class BrandComparisonServiceTest {
                 period: 상시
                 startsOn: 2026-08-17
                 endsOn: 2026-08-23
+              - id: random-20260817
+                brand: 두찜
+                platform: coupangeats
+                url: https://example.test/d
+                amount: "최대 8,000원"
+                period: 이번주
+                extra: "랜덤쿠폰(3,000~8,000)"
+                startsOn: 2026-08-17
+                endsOn: 2026-08-23
             """;
+
+    @Test
+    void marksBannerWithAnUpperBoundAsMaxNotConfirmed() {
+        // 랜덤 쿠폰(3,000~8,000원)은 상한만 정해져 있다. 금액 추출이
+        // 정규식이라 "8,000원"과 "최대 8,000원"이 똑같이 8000이 되는데,
+        // 표식까지 "행사"로 굳으면 상한이 확정 금액으로 서서 카드 대표값과
+        // "최고 할인"이 8,000원을 약속한다 — 3,000원을 받을 수도 있는데.
+        String brands = """
+                brands:
+                  두찜:
+                    category: chicken
+                """;
+        BrandComparison card = serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("두찜"))
+                .findFirst().orElseThrow();
+
+        Offer offer = card.offers().get(0);
+        assertEquals(8000, offer.amount());
+        // 원장 오퍼와 같은 말을 쓴다 — 화면이 "불확정" 배지를 붙인다.
+        assertEquals("최대", offer.qualifier());
+        // "최대"는 정렬에 안 들어간다(confirmedSortingAmount). 이 브랜드에
+        // 다른 확정 오퍼가 없으니 대표값 자체가 비어야 한다.
+        assertNull(card.maxConfirmedAmount());
+    }
 
     @Test
     void putsTodaysBannerOnTheBrandCardAsAnOffer() {

@@ -81,7 +81,7 @@ public class BrandComparisonService {
                     // 쿠폰 두 장을 겹쳐 나온 값이면 "최적"이다(ADR-019) — 그래야
                     // 상세의 사다리와 칩의 배지가 같은 말을 한다. 둘 다 견줄 수 있는
                     // 값이라 정렬에서 빠지지 않는다(confirmedSortingAmount).
-                    compound.isEmpty() ? BANNER_QUALIFIER : CUMULATIVE_QUALIFIER,
+                    bannerQualifier(banner, compound),
                     false,
                     "banner",
                     null,
@@ -113,6 +113,30 @@ public class BrandComparisonService {
                     banner.soldOut()));
         }
         return records;
+    }
+
+    /**
+     * 배너가 오퍼로 설 때 다는 표식.
+     *
+     * <p>배너 금액은 사람이 적는 자유 문구라 "8,000원"과 "최대 8,000원"이
+     * 같은 칸에 들어온다. 앞의 것은 받는 금액이고 뒤의 것은 상한이다 —
+     * 랜덤 쿠폰(3,000~8,000원)이 그렇다. 그런데 금액 추출은 정규식으로
+     * 숫자만 집어가서 둘이 똑같이 8000이 된다.
+     *
+     * <p>표식을 "행사"로 굳혀 두면 상한이 확정 금액으로 서고
+     * ({@link #confirmedSortingAmount}가 "행사"를 정렬에 넣는다) 카드
+     * 대표값과 "최고 할인"까지 그 값으로 간다. 실제로 3,000원을 받을 수도
+     * 있는데 화면은 8,000원을 약속한다.
+     *
+     * <p>그래서 원장 오퍼와 같은 말을 쓴다 — 문구가 상한을 뜻하면 "최대"다.
+     * 정렬에서 빠지고 화면에는 "불확정" 배지가 붙는다.
+     */
+    private static String bannerQualifier(Banner banner, List<DiscountTier> compound) {
+        String text = banner.amount();
+        if (text != null && text.contains("최대")) {
+            return MAX_QUALIFIER;
+        }
+        return compound.isEmpty() ? BANNER_QUALIFIER : CUMULATIVE_QUALIFIER;
     }
 
     private static Integer amountOf(String text) {
@@ -208,6 +232,9 @@ public class BrandComparisonService {
 
     /** 겹쳐 쓰는 쿠폰의 대표값임을 알리는 표식. 원장과 같은 말을 쓴다. */
     private static final String CUMULATIVE_QUALIFIER = "최적";
+
+    /** 상한액임을 알리는 표식. 원장과 같은 말을 쓴다 — 정렬에서 빠진다. */
+    private static final String MAX_QUALIFIER = "최대";
 
     /**
      * 확정 오퍼가 카드 정렬(maxConfirmedAmount)에 기여하는 금액.
