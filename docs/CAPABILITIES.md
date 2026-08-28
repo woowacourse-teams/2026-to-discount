@@ -10,6 +10,7 @@
 | 이벤트 분석에 무슨 공학을 넣었나 | [ANALYTICS-CAPABILITY.md](ANALYTICS-CAPABILITY.md) |
 | 언제 무엇을 했나 | [WORK-HISTORY.md](WORK-HISTORY.md) |
 | 지표가 어떻게 움직였나 | [PRODUCT-HISTORY.md](PRODUCT-HISTORY.md) |
+| 검색 노출에서 무엇을 고쳐야 하나 | [SEO-ACTIONS.md](SEO-ACTIONS.md) |
 
 ---
 
