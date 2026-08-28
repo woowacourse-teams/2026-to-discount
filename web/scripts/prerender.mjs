@@ -56,13 +56,29 @@ function offerLine(o) {
   return bits.join(' ')
 }
 
+// 브랜드 이름을 상세 페이지로 잇는다.
+//
+// 크롤러는 링크를 타고 다니며 페이지를 찾는다. 여기에 링크가 없던 동안
+// 브랜드 상세 110여 장은 sitemap.xml로만 발견됐고, 홈이 쌓은 신뢰가
+// 그쪽으로 흐르지 않았다(실측 2026-08-28: 홈 프리렌더 본문의 <a> 0개).
+//
+// 링크가 404가 될 일은 없다. 이 함수는 금액을 읽은 오퍼가 하나도 없으면
+// null을 돌려주고, 상세 페이지를 만드는 `listed`도 같은 조건으로 거른다 —
+// 블록이 그려졌다는 것 자체가 그 브랜드에 페이지가 있다는 뜻이다.
+//
+// 상대 경로를 쓴다. 프리뷰 배포는 도메인이 매번 달라서 절대 주소를 박으면
+// 프리뷰에서 운영 사이트로 튄다. canonical·sitemap은 절대 주소가 필요하지만
+// 내부 링크는 상대여도 검색엔진이 똑같이 따라간다.
+//
+// 화면은 안 변한다 — 하이드레이션되면 React가 이 자리를 통째로 덮는다.
 function brandBlock(b) {
   const lines = (b.offers ?? []).map(offerLine).filter(Boolean)
   if (lines.length === 0) return null
   const cat = CATEGORY_LABEL[b.category]
+  const href = `/brand/${encodeURIComponent(slugOf(b.name))}.html`
   return [
     '      <li>',
-    `        <h3>${esc(b.name)}${cat ? ` <span>${esc(cat)}</span>` : ''}</h3>`,
+    `        <h3><a href="${href}">${esc(b.name)}</a>${cat ? ` <span>${esc(cat)}</span>` : ''}</h3>`,
     '        <ul>',
     ...lines.map((l) => `          <li>${esc(l)}</li>`),
     '        </ul>',
