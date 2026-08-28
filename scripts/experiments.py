@@ -27,6 +27,7 @@ hover:hover를 보고하기 때문이다. 지금 규칙은 세션 전체를 봐�
 """
 import argparse
 import collections
+import datetime
 import json
 from urllib.parse import unquote
 import math
@@ -56,7 +57,8 @@ DESKTOP_WIDTH = 800
 
 class Visitor:
     __slots__ = ("id", "dev", "widths", "devices", "referrers", "visits",
-                 "days", "sessions", "events", "variant", "dwell")
+                 "days", "sessions", "events", "variant", "dwell",
+                 "bot", "first_ts")
 
     def __init__(self, vid):
         self.id = vid
@@ -68,6 +70,8 @@ class Visitor:
         self.days = set()
         self.sessions = set()
         self.events = collections.Counter()
+        self.bot = None      # 서버가 적어 준 크롤러 이름
+        self.first_ts = None  # 소급 판정용 — 언제 처음 나타났나
         self.variant = None
         self.dwell = 0
 
@@ -105,6 +109,11 @@ def load(src):
                 v = people[vid] = Visitor(vid)
             if e.get("dev") is True:
                 v.dev = True
+            if e.get("bot") and v.bot is None:
+                v.bot = e["bot"]
+            ts = e.get("ts") or ""
+            if ts and (v.first_ts is None or ts < v.first_ts):
+                v.first_ts = ts
             vp = e.get("viewport") or ""
             if "x" in vp:
                 try:
@@ -129,6 +138,7 @@ def load(src):
             rows.append((day, vid, e.get("event"), e.get("props") or {},
                          e.get("ts") or "", e.get("sessionId") or "",
                          e.get("path") or ""))
+    mark_crawler_bursts(people)
     return people, rows
 
 
@@ -207,8 +217,55 @@ def bucket(v, by):
     raise SystemExit("모르는 기준: %s" % by)
 
 
+# 크롤러가 몰려온 흔적. 서버가 `bot` 이름을 적기 시작한 2026-08-29 이전
+# 데이터에는 이름이 없어서, 남은 자국으로 되짚는 수밖에 없다.
+#
+# 자국은 뚜렷하다(2026-08-28 실측): 같은 뷰포트를 쓰는 방문자 31명이 10초
+# 안에 처음 나타나 한 페이지씩 보고 사라졌다. 봇은 localStorage가 매번
+# 비어 있어 요청마다 새 사람이 된다 — 사람은 이렇게 못 모인다.
+#
+# 사람을 봇으로 잘못 모는 쪽이 훨씬 나쁘므로(개발 트래픽 규칙이 안드로이드
+# 폰 368명을 잡아먹었던 그 사고) 문턱을 넉넉히 둔다. 진짜 사람 여럿이
+# 우연히 같은 초에 같은 폭으로 들어올 일은 이 규모에서 없다.
+BURST_MIN = 8          # 이만큼 몰려야 본다
+BURST_WINDOW_S = 120   # 이 시간 안에 처음 나타난 무리
+
+
+def mark_crawler_bursts(people):
+    """이름 없는 옛 봇을 되짚어 표시한다. 표시만 하고 지우지 않는다."""
+    by_width = collections.defaultdict(list)
+    for v in people.values():
+        if v.bot or not v.first_ts or len(v.widths) != 1:
+            continue
+        by_width[next(iter(v.widths))].append(v)
+
+    for _w, group in by_width.items():
+        group.sort(key=lambda v: v.first_ts)
+        i = 0
+        while i < len(group):
+            j = i
+            while j + 1 < len(group) and _gap(group[i].first_ts, group[j + 1].first_ts) <= BURST_WINDOW_S:
+                j += 1
+            if j - i + 1 >= BURST_MIN:
+                for v in group[i:j + 1]:
+                    v.bot = "burst"
+            i = j + 1
+
+
+def _gap(a, b):
+    try:
+        return abs((datetime.datetime.fromisoformat(b)
+                    - datetime.datetime.fromisoformat(a)).total_seconds())
+    except ValueError:
+        return float("inf")
+
+
 def keep(v, args):
     if v.looks_developer() and not args.include_dev:
+        return False
+    # 봇은 기본으로 뺀다. 지우지 않고 표시만 해 두므로
+    # --include-bots로 다시 볼 수 있다 — 판정을 되돌릴 수 있어야 한다.
+    if v.bot and not args.include_bots:
         return False
     if args.only == "returning" and not v.returning:
         return False
@@ -239,6 +296,17 @@ def cmd_audit(people, rows, args):
     print("전체 방문자 %d명" % len(people))
     for r, n in reasons.most_common():
         print("  %-10s %5d" % (r, n))
+    print()
+    bots = collections.Counter(v.bot for v in people.values() if v.bot)
+    if bots:
+        print()
+        print("크롤러 %d명 (위 수에 포함, 집계에서는 기본으로 뺀다 — --include-bots)"
+              % sum(bots.values()))
+        for name, n in bots.most_common():
+            # burst는 서버가 bot 이름을 적기 전(2026-08-29 이전) 데이터를
+            # 몰려온 흔적으로 되짚은 것이다. 그 뒤로는 이름이 찍힌다.
+            label = name + (" (소급 판정)" if name == "burst" else "")
+            print("  %-16s %5d" % (label, n))
     print()
     print("옛 규칙(desktop & 폭<400)이 걸렀을 사람 중 지금 사람으로 보는 수:")
     n = sum(1 for v in people.values()
@@ -629,6 +697,7 @@ def main(argv=None):
     p.add_argument("--since", help="이 날 이후에도 온 사람만")
     p.add_argument("--until", help="이 날 이전에 처음 온 사람만")
     p.add_argument("--include-dev", action="store_true", help="개발 트래픽도 센다")
+    p.add_argument("--include-bots", action="store_true", help="크롤러도 센다")
     p.add_argument("--steps", default="page_view,brand_expand,offer_link_click")
     p.add_argument("--scope", choices=("session", "visitor"), default="session",
                    help="흐름을 어디까지 한 덩어리로 볼지. 기본은 세션")

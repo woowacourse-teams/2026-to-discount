@@ -46,7 +46,7 @@ class PostHogEventMapperTest {
         VisitEvent noVisitor = new VisitEvent(
                 "2026-08-14T11:00:00+09:00", "brand_expand", null, "session-1", 1,
                 "/", "direct", "mobile", "390x844", null, Map.of(),
-                "2026-08-14T01:02:03Z", "private-ip-hash", false, "a", "event-2");
+                "2026-08-14T01:02:03Z", "private-ip-hash", false, "a", "event-2", null);
         assertTrue(mapper.map(noVisitor).isEmpty());
     }
 
@@ -55,7 +55,7 @@ class PostHogEventMapperTest {
         VisitEvent source = new VisitEvent(
                 "invalid-server-time", "offer_link_click", "visitor-1", "session-1", 1,
                 "/", "direct", "mobile", "390x844", null, Map.of(),
-                "2026-08-14T01:02:03Z", "private-ip-hash", false, "a", "event-3");
+                "2026-08-14T01:02:03Z", "private-ip-hash", false, "a", "event-3", null);
 
         assertEquals(NOW.toString(), mapper.map(source).orElseThrow().timestamp());
     }
@@ -74,13 +74,13 @@ class PostHogEventMapperTest {
         return new VisitEvent(
                 "2026-08-14T11:00:00+09:00", "brand_expand", "visitor-1", "session-1", 2,
                 "/", "external", device, viewport, null, Map.of(),
-                "2026-08-14T01:02:03Z", "private-ip-hash", false, "a", "event-9");
+                "2026-08-14T01:02:03Z", "private-ip-hash", false, "a", "event-9", null);
     }
 
     private VisitEvent event(String name, boolean dev, Map<String, String> props) {
         return new VisitEvent(
                 "2026-08-14T11:00:00+09:00", name, "visitor-1", "session-1", 2,
                 "/", "external", "mobile", "390x844", 1200L, props,
-                "2026-08-14T01:02:03Z", "private-ip-hash", dev, "a", "event-1");
+                "2026-08-14T01:02:03Z", "private-ip-hash", dev, "a", "event-1", null);
     }
 }

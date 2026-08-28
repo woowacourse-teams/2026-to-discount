@@ -106,6 +106,14 @@ public class EventController {
         }
 
         String now = OffsetDateTime.now().toString();
+        // 요청이 스스로 밝힌 크롤러 이름. UA 원문은 여전히 안 남긴다.
+        //
+        // 브랜드 페이지를 앱 안으로 들인 다음 날, 크롤러가 10초 안에 서로
+        // 다른 visitorId 31개로 한 장씩 훑고 갔다(2026-08-28 실측). 봇은
+        // localStorage가 매번 비어 방문할 때마다 새 사람으로 잡힌다 —
+        // 108장을 매일 훑으면 하루 방문자(60~250명)에 맞먹는 허수가 쌓여
+        // 전환율이 반토막으로 보인다.
+        String bot = CrawlerName.of(request.getHeader("User-Agent"));
         List<VisitEvent> accepted = new ArrayList<>();
         for (IncomingEvent in : capped) {
             if (in == null || !ALLOWED_EVENTS.contains(in.event())) continue;
@@ -125,7 +133,8 @@ public class EventController {
                     ipHash,
                     in.dev(),
                     variant(in.variant()),
-                    eventId(in.eventId())));
+                    eventId(in.eventId()),
+                    bot));
         }
         events.append(accepted);
         return ResponseEntity.ok(Map.of("accepted", accepted.size()));

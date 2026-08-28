@@ -22,6 +22,9 @@ import java.util.Map;
  *                   하는데 서버가 따로 정하면 두 판정이 어긋난다.
  * @param eventId    클라이언트가 부여한 이벤트 UUID. 없거나 잘못된 값이면 서버가 발급하며,
  *                   외부 분석 도구 재전송 시 중복 방지에 쓴다.
+ * @param bot        User-Agent가 스스로 밝힌 크롤러 이름({@code googlebot} 등). 사람이면
+ *                   {@code null}. UA 원문은 여전히 저장하지 않는다 — 이름만 남긴다
+ *                   ({@link CrawlerName} 참고). 빼고 셀지는 집계가 정한다.
  */
 public record VisitEvent(
         String ts,
@@ -39,6 +42,7 @@ public record VisitEvent(
         String ipHash,
         Boolean dev,
         String variant,
-        String eventId
+        String eventId,
+        String bot
 ) {
 }

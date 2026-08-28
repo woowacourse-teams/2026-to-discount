@@ -87,7 +87,7 @@ class AnalyticsEventServiceTest {
         return new VisitEvent("2026-08-14T11:00:00+09:00", "brand_expand",
                 "visitor-1", "session-1", 1, "/", "direct", "mobile", "390x844",
                 null, Map.of("brand", "BBQ"), "2026-08-14T02:00:00Z", "ip-hash",
-                dev, "a", "event-1");
+                dev, "a", "event-1", null);
     }
 
     private static PostHogEvent mapped() {
