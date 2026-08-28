@@ -28,6 +28,7 @@ hover:hover를 보고하기 때문이다. 지금 규칙은 세션 전체를 봐�
 import argparse
 import collections
 import json
+from urllib.parse import unquote
 import math
 import os
 import subprocess
@@ -86,7 +87,7 @@ class Visitor:
 def load(src):
     """원장을 방문자 단위로 접는다. 이벤트 원문은 들고 있지 않는다."""
     people = {}
-    rows = []  # (날짜, 방문자, 이벤트, props, 시각, 세션)
+    rows = []  # (날짜, 방문자, 이벤트, props, 시각, 세션, 경로)
     with open(src, encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
@@ -126,7 +127,8 @@ def load(src):
             v.days.add(day)
             v.events[e.get("event")] += 1
             rows.append((day, vid, e.get("event"), e.get("props") or {},
-                         e.get("ts") or "", e.get("sessionId") or ""))
+                         e.get("ts") or "", e.get("sessionId") or "",
+                         e.get("path") or ""))
     return people, rows
 
 
@@ -248,7 +250,7 @@ def cmd_audit(people, rows, args):
 def cmd_daily(people, rows, args):
     gs = goals(args)
     per = collections.defaultdict(lambda: [set(), set()])
-    for day, vid, ev, _p, _ts, _sid in rows:
+    for day, vid, ev, _p, _ts, _sid, _path in rows:
         v = people[vid]
         if not keep(v, args):
             continue
@@ -361,7 +363,7 @@ def cmd_events(people, rows, args):
 def sequences(rows, pop, scope):
     """(사람 또는 세션)마다 시각순 이벤트 목록. 연속 중복은 접는다."""
     bucket = collections.defaultdict(list)
-    for _day, vid, ev, _props, ts, sid in rows:
+    for _day, vid, ev, _props, ts, sid, _path in rows:
         if vid not in pop:
             continue
         bucket[vid if scope == "visitor" else (vid, sid)].append((ts, ev))
@@ -470,7 +472,7 @@ def cmd_features(people, rows, args):
     recent = collections.defaultdict(set)
     first, last = {}, {}
     recent_pop = set()
-    for day, vid, ev, _props, _ts, _sid in rows:
+    for day, vid, ev, _props, _ts, _sid, _path in rows:
         if vid not in pop:
             continue
         seen[ev].add(vid)
@@ -518,7 +520,7 @@ def cmd_features(people, rows, args):
 def cmd_top(people, rows, args):
     pop = {v.id for v in population(people, args)}
     seen = collections.defaultdict(set)
-    for _, vid, ev, props, _ts, _sid in rows:
+    for _, vid, ev, props, _ts, _sid, _path in rows:
         if ev != args.event or vid not in pop:
             continue
         val = props.get(args.prop)
@@ -537,11 +539,82 @@ def cmd_power(people, rows, args):
         print("  +%4.0f%%  →  %s명" % (lift * 100, "{:,}".format(n) if n else "불가"))
 
 
+def cmd_entry(people, rows, args):
+    """어느 주소로 들어와서 무엇을 했나.
+
+    브랜드 페이지(/brand/이름)를 앱 안으로 들인 뒤에 필요해진 명령이다.
+    그전에는 경로가 "/" 하나뿐이라 볼 것이 없었다.
+
+    새 이벤트를 만들지 않았다. 원장은 모든 이벤트에 path를 이미 싣고
+    있고 sessionId가 sessionStorage라 페이지를 옮겨도 이어진다 — 들어온
+    자리와 나간 자리가 같은 세션 안에 남는다. 계측을 늘리는 것보다
+    이미 있는 값을 읽는 편이 싸고, 늘린 계측은 계약 검사와 서버
+    화이트리스트를 같이 고쳐야 한다.
+
+    보는 법:
+      - "그 자리 전환"이 낮은데 세션이 많으면, 그 주소로 들어온 사람이
+        앱으로 못 나가고 있다는 뜻이다.
+      - "홈으로 이어감"은 브랜드 페이지가 막다른 곳이 아닌지를 본다.
+        검색으로 들어온 사람이 전체 목록까지 갔다는 신호다.
+    """
+    gs = goals(args)
+    pop = {v.id for v in population(people, args)}
+
+    # 세션마다: 처음 밟은 경로, 거쳐 간 경로들, 목표 달성 여부.
+    first, seen, hit = {}, collections.defaultdict(set), set()
+    for _day, vid, ev, _props, ts, sid, path in rows:
+        if vid not in pop:
+            continue
+        key = (vid, sid)
+        p = path or "(없음)"
+        if key not in first or ts < first[key][0]:
+            first[key] = (ts, p)
+        seen[key].add(p)
+        if ev in gs:
+            hit.add(key)
+
+    def bucket(p):
+        # 브랜드가 108개라 주소를 그대로 세면 표가 아니라 목록이 된다.
+        return "/brand/*" if p.startswith("/brand/") else p
+
+    stat = collections.defaultdict(lambda: [0, 0, 0])
+    for key, (_ts, p) in first.items():
+        b = stat[bucket(p)]
+        b[0] += 1
+        if key in hit:
+            b[1] += 1
+        # 브랜드 페이지로 들어와 홈까지 간 세션. 탈출구가 쓰이는지 본다.
+        if p.startswith("/brand/") and "/" in seen[key]:
+            b[2] += 1
+
+    total = len(first)
+    if total == 0:
+        print("세션이 없다")
+        return
+    print("들어온 자리   세션    비중   그 자리 전환   홈으로 이어감")
+    for b, (n, conv, home) in sorted(stat.items(), key=lambda kv: -kv[1][0]):
+        home_txt = "%5d" % home if b == "/brand/*" else "    -"
+        print("  %-12s %5d %5.1f%%  %5d %5.1f%%   %s"
+              % (b[:12], n, n / total * 100, conv, conv / n * 100, home_txt))
+
+    # 브랜드별로도 본다 — 어느 브랜드가 검색에서 걸리는지가 다음 판단의
+    # 근거다. 상위만 찍는다.
+    per = collections.Counter()
+    for _key, (_ts, p) in first.items():
+        if p.startswith("/brand/"):
+            per[unquote(p[len("/brand/"):])] += 1
+    if per:
+        print()
+        print("브랜드 페이지로 들어온 세션 상위")
+        for name, n in per.most_common(args.limit):
+            print("  %-24s %4d" % (name[:24], n))
+
+
 COMMANDS = {
     "audit": cmd_audit, "daily": cmd_daily, "compare": cmd_compare,
     "segments": cmd_segments, "events": cmd_events, "funnel": cmd_funnel,
     "top": cmd_top, "power": cmd_power, "paths": cmd_paths,
-    "features": cmd_features,
+    "features": cmd_features, "entry": cmd_entry,
 }
 
 
@@ -611,17 +684,17 @@ def selftest():
 
     # 퍼널은 순서를 지켜야 한다. 링크를 먼저 누른 사람은 통과하면 안 된다.
     rows = [
-        ("d", "정순", "brand_expand", {}, "1", "s"),
-        ("d", "정순", "offer_link_click", {}, "2", "s"),
-        ("d", "역순", "offer_link_click", {}, "1", "s"),
-        ("d", "역순", "brand_expand", {}, "2", "s"),
+        ("d", "정순", "brand_expand", {}, "1", "s", "/"),
+        ("d", "정순", "offer_link_click", {}, "2", "s", "/"),
+        ("d", "역순", "offer_link_click", {}, "1", "s", "/"),
+        ("d", "역순", "brand_expand", {}, "2", "s", "/"),
     ]
     seqs = sequences(rows, {"정순", "역순"}, "session")
     assert seqs[("정순", "s")] == ["brand_expand", "offer_link_click"]
     assert seqs[("역순", "s")] == ["offer_link_click", "brand_expand"]
 
     # 사이에 낀 이벤트를 걷어내도 같은 동작이 둘로 남지 않는다.
-    rows2 = [("d", "v", e, {}, str(i), "s") for i, e in enumerate(
+    rows2 = [("d", "v", e, {}, str(i), "s", "/") for i, e in enumerate(
         ["offer_link_click", "page_exit", "offer_link_click"])]
     seq = sequences(rows2, {"v"}, "session")[("v", "s")]
     trimmed = []
