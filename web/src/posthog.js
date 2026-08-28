@@ -10,6 +10,21 @@ function clean(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+/*
+ * 같은 오리진 경로("/ph")를 절대 주소로 편다.
+ *
+ * PostHog SDK의 api_host는 절대 주소를 요구한다. 그런데 프록시를 쓰려면
+ * 우리 도메인을 가리켜야 하고, 그 도메인은 배포마다 다르다(프리뷰 URL이
+ * 매번 바뀐다). 빌드 타임 환경변수에 한 주소를 박으면 프리뷰에서
+ * 어긋나므로, 경로만 적어 두고 여기서 실행 시점의 오리진을 붙인다.
+ */
+function resolveHost(host, origin) {
+  if (host.startsWith('/')) {
+    return origin ? origin.replace(/\/$/, '') + host : ''
+  }
+  return host
+}
+
 function put(target, key, value) {
   if (value !== undefined && value !== null) target[key] = value
 }
@@ -53,7 +68,8 @@ export function createPostHogAdapter({
 
       const environment = getEnvironment() ?? {}
       const key = clean(environment.VITE_POSTHOG_KEY)
-      const host = clean(environment.VITE_POSTHOG_HOST)
+      const host = resolveHost(clean(environment.VITE_POSTHOG_HOST),
+                               getLocation()?.origin)
       if (!key || !host) return false
 
       const context = getContext()

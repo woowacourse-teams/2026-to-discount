@@ -3,6 +3,18 @@
     {
       "source": "/api/:path*",
       "destination": "https://bebeggars.duckdns.org/api/:path*"
+    },
+    {
+      "source": "/ph/static/:path*",
+      "destination": "https://us-assets.i.posthog.com/static/:path*"
+    },
+    {
+      "source": "/ph/array/:path*",
+      "destination": "https://us-assets.i.posthog.com/array/:path*"
+    },
+    {
+      "source": "/ph/:path*",
+      "destination": "https://us.i.posthog.com/:path*"
     }
   ]
 }
