@@ -307,6 +307,12 @@ class BannerCatalogTest {
         assertEquals(18900, banner("18,900원 이상", null).effectiveMinOrder());
         assertEquals(20000, banner("최소주문 20,000원, 선착순 300명", null).effectiveMinOrder());
 
+        // "원"을 빼고 적기도 한다. 손으로 쓰는 칸이라 실제로 그랬고
+        // (2026-08-29 처갓집 "16,000↑"), 그때 카드 조건이 "최소주문 미확인"
+        // 으로 떴다. 최소주문금액이라는 신호는 뒤따르는 화살표지 "원"이 아니다.
+        assertEquals(16000, banner("16,000↑, 선착순 할인 · 사용선착순", null).effectiveMinOrder());
+        assertEquals(18900, banner("18,900 이상", null).effectiveMinOrder());
+
         // 뒤에 따라붙는 금액은 할인액이지 최소주문금액이 아니다.
         assertEquals(25000,
                 banner("25,000원↑, 고정 6,000+선착순 4,000", null).effectiveMinOrder());
