@@ -124,6 +124,13 @@ const BOOT_STYLE = `
       .seo dd { margin: 0 0 0 7.5rem; color: #333; }
       .seo footer, .seo.footer { font-size: .75rem; color: #999; }
       .seo a { color: #1f6c9f; }
+      /* 홈의 브랜드 이름만 링크 색을 뺀다.
+         이 자리는 하이드레이션 전 0.5초 동안 사람 눈에 스친다. 브랜드
+         108개가 전부 파란 밑줄로 깔리면 링크팜처럼 읽힌다. 크롤러는
+         색이 아니라 <a>가 있는지만 보므로 링크로서의 값은 그대로다.
+         브랜드 상세 페이지의 링크(형제 브랜드·홈 복귀)는 사람이 실제로
+         누르는 것이라 그대로 둔다 — 거기엔 h3 안에 링크가 없다. */
+      .seo h3 a { color: inherit; text-decoration: none; }
     </style>`
 
 function bodyHtml(brands, today) {
