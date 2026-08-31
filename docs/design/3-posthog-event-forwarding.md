@@ -56,7 +56,10 @@ Funnel이 구성되어 있다.
 - `page_view`를 PostHog의 `$pageview`로 변환한다.
 - `visitorId`를 `distinct_id`, `sessionId`를 `source_session_id`로 전달한다.
 - `clientTs`가 유효하면 PostHog 이벤트 발생 시각으로 사용한다.
-- 서버가 안정적인 `eventId`를 발급하고 `$insert_id`로 전달한다.
+- 클라이언트가 발급하고 서버가 검증하거나 보완한 `eventId`를 PostHog 이벤트의
+  최상위 `uuid`와 `properties.$insert_id`에 동일하게 전달한다.
+- 이벤트 식별자 세부 계약은
+  [PostHog 서버 릴레이 이벤트 UUID 설정](./20-posthog-server-event-uuid.md)을 따른다.
 - `ipHash`와 `dev=true` 이벤트는 PostHog에 전달하지 않는다.
 - PostHog 프로젝트 토큰을 코드, 문서 예시 값, outbox와 로그에 기록하지 않는다.
 
@@ -203,7 +206,8 @@ AnalyticsEventService
 ### Data Flow
 
 1. 컨트롤러가 기존 화이트리스트와 길이 제한으로 요청을 정제한다.
-2. 서버가 이벤트별 UUID `eventId`를 발급한다.
+2. 클라이언트가 이벤트별 UUID `eventId`를 생성하고, 서버는 유효한 값을 유지하며
+   누락되거나 잘못된 값만 새 UUID로 보완한다.
 3. `EventLog`가 정제된 이벤트를 `events.jsonl`에 기록한다.
 4. 기능이 활성화된 경우 mapper가 `dev=true` 이벤트를 제외하고 payload를 만든다.
 5. outbox가 이벤트별 pending 파일을 임시 파일 작성 후 원자적으로 이동한다.
@@ -275,9 +279,9 @@ AnalyticsEventService
 #### Modify
 
 - `api/src/main/java/com/discounttracker/analytics/VisitEvent.java`:
-  서버 발급 `eventId`를 원본 이벤트에 추가한다.
+  클라이언트가 발급하고 서버가 검증하거나 보완한 `eventId`를 원본 이벤트에 추가한다.
 - `api/src/main/java/com/discounttracker/analytics/EventController.java`:
-  이벤트 ID를 발급하고 `AnalyticsEventService`에 배치를 전달한다.
+  이벤트 ID를 검증하거나 보완하고 `AnalyticsEventService`에 배치를 전달한다.
 - `api/src/main/resources/application.yml`:
   활성화, host, token과 outbox 경로 환경변수를 추가한다.
 - `api/src/test/java/com/discounttracker/analytics/EventControllerTest.java`:
@@ -298,7 +302,8 @@ AnalyticsEventService
 #### 1. 이벤트 식별자와 PostHog 변환 모델 추가
 
 - 변경:
-  - `VisitEvent`에 서버 발급 `eventId`를 추가한다.
+  - `VisitEvent`에 클라이언트가 발급하고 서버가 검증하거나 보완한 `eventId`를 추가한다.
+  - `eventId`를 PostHog 최상위 `uuid`와 `properties.$insert_id`에 동일하게 전달한다.
   - 기존 수동 이전과 동일한 이름·속성·timestamp 변환 규칙을 구현한다.
   - 서버 소유 속성을 클라이언트 `props`가 덮어쓰지 못하게 한다.
   - `ipHash`와 `dev=true` 이벤트를 전달 대상에서 제외한다.
