@@ -36,6 +36,7 @@ class PostHogOutboxTest {
         assertEquals(1, claimed.size());
         assertEquals(1, claimed.get(0).attemptCount());
         assertEquals(event, claimed.get(0).payload());
+        assertEquals("event-1", claimed.get(0).payload().uuid());
         assertTrue(restarted.claimDue(20).isEmpty());
     }
 
@@ -64,6 +65,7 @@ class PostHogOutboxTest {
             List<PostHogDelivery> claimed = outbox.claimDue(20);
             assertEquals(1, claimed.size());
             assertEquals(expectedAttempt, claimed.get(0).attemptCount());
+            assertEquals("event-1", claimed.get(0).payload().uuid());
             outbox.markFailed(claimed, "HTTP 503");
             if (expectedAttempt < 5) {
                 clock.advance(Duration.ofMinutes(59));
@@ -77,6 +79,7 @@ class PostHogOutboxTest {
         assertTrue(Files.exists(deadLetter));
         PostHogDelivery failed = mapper.readValue(deadLetter.toFile(), PostHogDelivery.class);
         assertEquals(5, failed.attemptCount());
+        assertEquals("event-1", failed.payload().uuid());
         assertEquals("HTTP 503", failed.lastError());
         assertTrue(failed.failedAtEpochMs() != null);
         clock.advance(Duration.ofHours(10));
@@ -119,7 +122,7 @@ class PostHogOutboxTest {
     }
 
     private static PostHogEvent event(String eventId) {
-        return new PostHogEvent("brand_expand",
+        return new PostHogEvent(eventId, "brand_expand",
                 Map.of("distinct_id", "visitor-1", "$insert_id", eventId),
                 "2026-08-14T00:00:00Z");
     }
