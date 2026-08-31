@@ -297,7 +297,7 @@ brands:
     searchAliases: [피자 헛, 피자헛 코리아, pizza hut, pizzahut]
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?YVE9ZY9
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?EtdPoEx
       baemin: https://s.baemin.com/7o3.f2e5b
 
   노모어피자:
@@ -344,7 +344,7 @@ brands:
     searchAliases: [왓더 버거, 왓버거, what the burger, whattheburger]
     category: fastfood
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?5bKLeLT
+      ddangyo: https://fdofd.ddangyo.com/gateway4.html?LDPsVLZ
 
   # --- 카페 ---
   이디야커피:
@@ -393,7 +393,6 @@ brands:
     aliases: [뚜레쥬르, touslesjours, tlj]
     category: cafe
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?Ah1eLMD
       baemin: https://s.baemin.com/Vz000vNQLilUR
       yogiyo: yogiyolink://push.page/franchise?fr_id=606
   배스킨라빈스:
@@ -538,11 +537,16 @@ brands:
     category: korean
   계양산 전통시장:
     searchAliases: [계양산전통시장, 계양산 시장, gyeyangsan market, gyeyang traditional market]
+  # 육회바른연어와 다른 브랜드다. 이름이 비슷해 합치기 쉬운데, 합치면
+  # 한쪽 쿠폰이 다른 가게 카드에 붙는다.
   육회야문연어:
     searchAliases: [육회야 문연어, 육문, 육회연어, yukhoeya munyeoneo, beef salmon]
     category: korean
     links:
       baemin: https://s.baemin.com/5K000ycTVzrba
+  육회바른연어:
+    searchAliases: [육회 바른연어, 바른연어, 육회바른, yukhoe bareun yeoneo]
+    category: korean
   전통숙성황실김치찜&찌개:
     searchAliases: [황실김치찜, 전통숙성 김치찜, royal kimchi jjim, hwangsil kimchi]
     category: korean

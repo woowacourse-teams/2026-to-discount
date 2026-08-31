@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { fetchBanners, fetchBrands } from './api.js'
+import { fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
@@ -11,6 +11,9 @@ import TopBarA from './TopBarA.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { uiVariant } from './variant.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
+import SurveyCard from './SurveyCard.jsx'
+import { shouldShow as surveyShouldShow } from './surveyDismiss.js'
+import { getAnalyticsContext } from './analytics-context.js'
 
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
@@ -53,23 +56,20 @@ const PLATFORM_BRAND_SEARCH_LINKS = {
   yogiyo: (brandName) => `yogiyolink://search?keyword=${encodeURIComponent(brandName)}`,
 }
 
-// 브랜드별 링크(brandLinks)가 없고 PLATFORM_APP_LINKS도 앱만 여는 커스텀
-// 스킴뿐인 플랫폼은 앱을 열어도 그 브랜드 화면으로 안 간다 — 최소한
-// 검색이라도 되게 구글 검색으로 보낸다. 앱 안의 실제 브랜드 검색 딥링크
-// 스킴은 요기요만 확인됐다(PLATFORM_BRAND_SEARCH_LINKS). 나머지는 추측으로
-// 만들면 안 열리는 경로를 또 만드는 꼴이라 안 쓴다. 배민은 브랜드관 목록
-// 딥링크가 있어 검색 폴백이 필요 없다. 쿠팡이츠는 구글 검색으로 보내지
-// 않는다 — 최소한 자기 앱은 열리게 두는 쪽을 택함(PLATFORM_APP_LINKS의
-// 'coupangeats://'가 대신 적용된다).
-const PLATFORM_SEARCH_QUERY = {
-  ddangyo: '땡겨요',
-}
-
-function searchFallbackLink(platformKey, brandName) {
-  const prefix = PLATFORM_SEARCH_QUERY[platformKey]
-  if (!prefix) return null
-  return `https://www.google.com/search?q=${encodeURIComponent(`${prefix} ${brandName}`)}`
-}
+// 구글 검색 폴백은 뺐다(2026-08-31).
+//
+// 땡겨요만 이 폴백을 쓰고 있었는데, 배달 앱을 열러 온 사람을 브라우저
+// 검색 결과로 보내는 것은 이 서비스가 하겠다고 한 일이 아니다. 실제로
+// 땡겨요 피자헛 링크를 잠깐 뺐더니 그 칩이 구글로 떨어졌다.
+//
+// 쿠팡이츠는 같은 상황에서 이미 자기 앱을 여는 쪽을 택하고 있었다.
+// 땡겨요도 같은 규칙으로 맞춘다 — PLATFORM_APP_LINKS의 'ddangyo://'가
+// 적용돼 최소한 앱은 열린다.
+//
+// 앱 안 브랜드 검색 딥링크가 있으면 그게 제일 낫지만, 땡겨요에는 없다
+// (2026-08-31 dumpsys 확인: ddangyo·o2o 스킴에 검색 경로가 없고
+// /benefithub은 광고 SDK 딥링크다). 요기요만 확인돼 있고 그것은
+// PLATFORM_BRAND_SEARCH_LINKS에 있다.
 
 const CART_KEY = 'dk_cart'
 
@@ -142,7 +142,6 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   const link = offer.link
     ?? brandLinks?.[offer.platform]
     ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
-    ?? searchFallbackLink(offer.platform, brandName)
     ?? PLATFORM_APP_LINKS[offer.platform]
 
   const content = (
@@ -328,6 +327,39 @@ function BrandGridSkeleton() {
 // highlighted는 URL 해시(#brand-이름)로 이 카드를 콕 집어 공유했을 때만
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
+// 주소에서 브랜드 이름을 읽는다 — /brand/열정국밥.
+//
+// 이 주소는 크롤러용 정적 페이지가 이미 쓰고 있던 것이다. 예전에는 그
+// 정적 HTML이 앱과 아무 상관 없는 쌍둥이라, 검색으로 들어온 사람이
+// JavaScript도 없는 막다른 페이지에 떨어졌다. 브랜드마다 URL이 둘(앱은
+// /#이름, 크롤러는 /brand/이름.html)이었던 셈이고, 그 구조가 doorway
+// page로 읽힌다.
+//
+// 같은 주소에서 앱이 뜨게 해 하나로 합친다. 새 화면을 만들지 않고 검색
+// 필터를 그 브랜드로 채워 여는 것으로 충분하다 — 카드도 앱 링크도 계측도
+// 홈과 같은 코드를 쓰고, 검색어를 지우면 전체 목록으로 이어져 막다른
+// 길이 아니다.
+//
+// 라우터 라이브러리는 안 넣는다. 경로가 "/"와 "/brand/*" 둘뿐이라
+// pathname 한 줄이면 갈린다.
+export function brandFromPath(pathname) {
+  const m = /^\/brand\/([^/]+?)(?:\.html)?\/?$/.exec(pathname)
+  if (!m) return null
+  try {
+    return decodeURIComponent(m[1])
+  } catch {
+    // 인코딩이 깨진 주소는 브랜드가 아니라 오타다. 홈처럼 연다.
+    return null
+  }
+}
+
+function routeFilters() {
+  const brand = typeof window === 'undefined'
+    ? null
+    : brandFromPath(window.location.pathname)
+  return brand ? { ...defaultFilters(), search: brand } : defaultFilters()
+}
+
 function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
@@ -648,11 +680,37 @@ export default function App() {
   const [brands, setBrands] = useState(null)
   const [banners, setBanners] = useState([])
   const [error, setError] = useState(null)
+  // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
+  const [surveyOn, setSurveyOn] = useState(false)
+  // 발급된 기프티콘 번호. 카드가 아니라 여기에 둔다 — 카드는 필터가 바뀔 때마다
+  // 새로 마운트되는 상자(brand-grid) 안에 있어서, 카드가 들고 있으면 분류 한 번에
+  // 번호가 날아간다. 연락처를 안 받으므로 그러면 다시 줄 방법이 없다.
+  const [surveyCode, setSurveyCode] = useState(null)
+
+  useEffect(() => {
+    // 브라우저가 이미 답했거나 두 번 닫았으면 서버에 묻지도 않는다.
+    if (!surveyShouldShow()) return
+    let alive = true
+    const { visitorId } = getAnalyticsContext()
+    fetchSurveyStatus(visitorId)
+      .then((s) => { if (alive) setSurveyOn(Boolean(s.eligible)) })
+      // 못 물어보면 안 띄운다. 설문이 안 뜨는 것은 사용자에게 아무 손해가 없다.
+      .catch(() => {})
+    return () => { alive = false }
+  }, [])
   // 앱·분류·정렬·검색을 한 덩어리로 든다. 시트가 draft를 만들어 통째로
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
-  const [filters, setFilters] = useState(defaultFilters)
+  const [filters, setFilters] = useState(routeFilters)
   const [sheetOpen, setSheetOpen] = useState(false)
+  // /brand/<이름>으로 들어왔을 때만 값이 있다. 검색으로 들어온 사람에게
+  // 전체 목록으로 나가는 길을 눈에 보이게 두려는 것이다 — 검색어를 지우고
+  // 엔터까지 쳐야 전체가 나오는데(입력 초안과 확정 필터가 갈려 있다),
+  // 그걸 모르면 브랜드 하나만 보고 나간다. 크롤러에게도 이 페이지가
+  // 막다른 곳이 아니라는 표시가 된다.
+  const [routeBrand] = useState(() => (
+    typeof window === 'undefined' ? null : brandFromPath(window.location.pathname)
+  ))
 
   const { search } = filters
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
@@ -1101,14 +1159,32 @@ export default function App() {
         </div>
       )}
 
-      {visibleBrands && visibleBrands.length > 0 && (
+      {/* 그 브랜드만 보고 있는 동안에만 띄운다. 검색어를 바꿨거나 지웠으면
+          이미 목록을 보고 있으니 사라진다. 진짜 <a>라서 크롤러도 따라간다 —
+          이 페이지에서 나가는 길이 있다는 표시다. */}
+      {routeBrand && filters.search === routeBrand && (
+        <a className="route-back" href="/">← 전체 브랜드 보기</a>
+      )}
+
+      {(surveyOn || (visibleBrands && visibleBrands.length > 0)) && (
         // key를 필터 키로 걸어 분류를 바꿀 때마다 이 상자를 새로 마운트한다
         // — 안 그러면 카드들이 자리를 지킨 채 내용만 뚝 바뀌어(리스트
         // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className="brand-grid" key={gridKey}>
-          {visibleBrands.map((b, index) => (
+          {/* 첫 줄 한 칸. 진입 즉시 보인다 — 대상 판정이 이미 필터라
+              시점으로 또 거를 이유가 없고, 재방문 세션의 63.1%는 어차피
+              아무것도 안 하고 나간다. */}
+          {surveyOn && (
+            <SurveyCard
+              visitorId={getAnalyticsContext().visitorId}
+              code={surveyCode}
+              onCode={setSurveyCode}
+              onClose={() => setSurveyOn(false)}
+            />
+          )}
+          {visibleBrands?.map((b, index) => (
             <BrandCard
               key={b.name}
               brand={b}

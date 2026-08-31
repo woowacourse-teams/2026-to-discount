@@ -56,7 +56,7 @@ class PostHogForwardingWorkerTest {
     }
 
     private static PostHogEvent event() {
-        return new PostHogEvent("offer_link_click",
+        return new PostHogEvent("event-1", "offer_link_click",
                 Map.of("distinct_id", "visitor-1", "$insert_id", "event-1"),
                 "2026-08-14T00:00:00Z");
     }

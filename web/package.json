@@ -6,14 +6,16 @@
     "dev": "vite",
     "build": "vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "test": "npm run test:autocomplete && npm run test:brand-impression && npm run test:analytics && npm run test:posthog && npm run test:event-contract",
+    "test": "npm run test:autocomplete && npm run test:brand-impression && npm run test:survey-dismiss && npm run test:analytics && npm run test:posthog && npm run test:event-contract && npm run test:filters && npm run test:brand-route",
     "test:autocomplete": "node --test src/brandAutocomplete.test.js",
     "test:brand-impression": "node --test src/brandImpression.test.js",
+    "test:survey-dismiss": "node --test src/surveyDismiss.test.js",
     "test:analytics": "node scripts/verify-analytics-event-id.mjs",
     "test:posthog": "node scripts/verify-posthog-sdk.mjs",
     "test:event-contract": "node scripts/verify-analytics-event-contract.mjs",
     "prerender": "node scripts/prerender.mjs",
-    "test:filters": "node scripts/verify-search-filters.mjs"
+    "test:filters": "node scripts/verify-search-filters.mjs",
+    "test:brand-route": "node scripts/verify-brand-route.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

@@ -169,7 +169,7 @@ SDK 설정은 Vite 빌드 환경변수로 주입한다. Project API Key는 브�
 
 ```text
 VITE_POSTHOG_KEY=phc_...
-VITE_POSTHOG_HOST=https://us.i.posthog.com
+VITE_POSTHOG_HOST=/ph
 ```
 
 브라우저 직접 요청의 IP는 SDK의 `ip: false` 옵션으로 폐기할 수 없다. 운영 키를

@@ -5,3 +5,13 @@ __pycache__/
 
 # experiments.py가 받아 두는 원장 사본. 방문 데이터라 저장소에 안 넣는다.
 scripts/.events.jsonl
+
+# 격리 작업공간. main에 푸시하면 미러가 자동 배포하므로 실행 중인 작업은
+# 브랜치 worktree에서만 돈다. 경로는 다른 저장소와 같게 .claude/worktrees다.
+.claude/
+
+# SDD 진행 기록(계획 실행용 스크래치).
+.superpowers/
+
+# 기프티콘 코드는 값을 가진 문자열이다. 서버에 직접 올리고 저장소에는 안 둔다.
+gifticons.yml

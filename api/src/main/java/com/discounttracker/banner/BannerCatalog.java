@@ -104,6 +104,9 @@ public class BannerCatalog {
         return all.stream()
                 .filter(b -> b.activeOn(today))
                 .sorted(Comparator.comparingInt(Banner::priority).thenComparing(Banner::endsOn))
+                // 매진 여부를 여기서 오늘 기준으로 굳혀 내려보낸다 — 프론트가
+                // 날짜를 다시 따지면 시계가 두 곳이 되고, 자정을 넘길 때 갈린다.
+                .map(b -> b.resolvedFor(today))
                 .toList();
     }
 
@@ -182,7 +185,18 @@ public class BannerCatalog {
                 text(attrs.get("color")),
                 startsOn,
                 endsOn,
+                flag(attrs.get("soldOut")),
+                date(attrs.get("soldOutOn")),
                 priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY);
+    }
+
+    /** yes/true/1 무엇으로 적어도 참으로 읽는다. 손으로 고치는 파일이다. */
+    private static Boolean flag(Object value) {
+        if (value instanceof Boolean b) return b;
+        if (value == null) return null;
+        String t = String.valueOf(value).trim().toLowerCase(java.util.Locale.ROOT);
+        if (t.isEmpty()) return null;
+        return t.equals("true") || t.equals("yes") || t.equals("y") || t.equals("1");
     }
 
     /** 선택 필드라 못 읽으면 null이다 — 항목을 통째로 버리지 않는다. */

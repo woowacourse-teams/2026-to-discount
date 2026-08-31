@@ -14,6 +14,7 @@ api/settings.gradle
 api/src/main/java/com/discounttracker/DiscountApiApplication.java
 api/src/main/java/com/discounttracker/analytics/AnalyticsEventService.java
 api/src/main/java/com/discounttracker/analytics/ClientFingerprint.java
+api/src/main/java/com/discounttracker/analytics/CrawlerName.java
 api/src/main/java/com/discounttracker/analytics/EventController.java
 api/src/main/java/com/discounttracker/analytics/EventLog.java
 api/src/main/java/com/discounttracker/analytics/EventRateLimiter.java
@@ -60,6 +61,7 @@ api/src/test/http/reloadRemoteServer.http
 api/src/test/java/com/discounttracker/DiscountApiApplicationTests.java
 api/src/test/java/com/discounttracker/analytics/AnalyticsEventServiceTest.java
 api/src/test/java/com/discounttracker/analytics/ClientFingerprintTest.java
+api/src/test/java/com/discounttracker/analytics/CrawlerNameTest.java
 api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogClientTest.java
@@ -112,9 +114,11 @@ web/README.md
 web/index.html
 web/package-lock.json
 web/package.json
+web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
 web/scripts/verify-analytics-event-contract.mjs
 web/scripts/verify-analytics-event-id.mjs
+web/scripts/verify-brand-route.mjs
 web/scripts/verify-posthog-sdk.mjs
 web/scripts/verify-search-filters.mjs
 web/src/App.css
@@ -130,8 +134,6 @@ web/src/api.js
 web/src/brandAutocomplete.js
 web/src/brandAutocomplete.test.js
 web/src/brandColor.js
-web/src/brandImpression.js
-web/src/brandImpression.test.js
 web/src/filters.js
 web/src/ga4.js
 web/src/logos.jsx
@@ -187,7 +189,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 78 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 37 |
 
 ### Tracker
@@ -213,7 +215,7 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 17 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 18 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 2 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
@@ -248,8 +250,6 @@ HTTP 경계:
 | `brandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandAutocomplete.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandColor.js` | 배너 색 파생 |
-| `brandImpression.js` | 브랜드 헤더 노출 판정과 세션 중복 방지 |
-| `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `ga4.js` | 임시 GA4 측정 |
 | `logos.jsx` | 브랜드와 플랫폼 로고 |

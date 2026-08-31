@@ -373,8 +373,10 @@ h1 {
   box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
 }
 
+/* 배너가 갈아탈 때 옆에서 들어온다. 캐러셀은 가로로 넘어가는 물건인데
+   세로로 올라오면 "다음 장"이 아니라 "새 알림이 떴다"로 읽힌다. */
 @keyframes banner-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateX(14px); }
   to { opacity: 1; transform: none; }
 }
 
@@ -527,6 +529,29 @@ h1 {
 }
 /* 조건은 말줄임하지 않는다. 최소주문금액이나 선착순 여부가 잘리면
    눌러야 할지 말지를 판단할 수 없어, 있으나 마나 한 줄이 된다. */
+/* 다 나간 배너. 지우지 않고 눌러 둔다 — 금액에 취소선을 긋고 판 전체를
+   흐리게 해서, 눌러도 소용없다는 것이 누르기 전에 읽히게 한다. */
+.banner--soldout .banner__amount {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  opacity: .55;
+}
+.banner--soldout .banner__logo,
+.banner--soldout .banner__brand,
+.banner--soldout .banner__extra { opacity: .55; }
+.banner__soldout {
+  flex: none;
+  margin-left: .35rem;
+  padding: .1rem .4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+
 .banner__extra {
   font-size: .72rem;
   line-height: 1.4;
@@ -661,7 +686,10 @@ h1 {
   z-index: 14;
   visibility: hidden;
   opacity: 0;
-  transform: translateY(14px);
+  /* 옆에서 들어온다. 아래에서 올라오면 토스트나 알림처럼 읽히는데,
+     이건 위 슬롯에 있던 것과 같은 캐러셀이라 움직임도 같아야 한다
+     (@keyframes banner-in도 같은 방향). */
+  transform: translateX(14px);
   transition: opacity 200ms ease,
               transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
               visibility 200ms;
@@ -1026,6 +1054,17 @@ h1 {
   font-weight: 600;
 }
 .category-btn--active:hover { color: #fff; }
+
+/* /brand/<이름>으로 들어왔을 때만 뜨는 탈출구. 카드 위에 한 줄로 앉는다.
+   눈에 띄되 카드보다 앞서면 안 된다 — 보러 온 것은 그 브랜드다. */
+.route-back {
+  display: inline-block;
+  margin: 0 0 .7rem;
+  font-size: .85rem;
+  color: #787774;
+  text-decoration: none;
+}
+.route-back:hover { color: #171717; }
 
 /* 브랜드 카드 그리드 — 고정 컬럼 수 대신 minmax로 반응형이다.
    300px보다 좁아지면(=모바일) min(100%, 300px)이 100%가 되어 카드 하나가
@@ -2688,3 +2727,139 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* A는 바가 한 줄이라 배너가 바에 바로 닿는다 — 30px 띄워 갈라 놓는다.
    B는 메뉴바까지 두 줄이라 이 여백이 필요 없다. */
 [data-variant="a"] .banner-slot { margin-top: 30px; }
+
+/* 설문 카드. 크기와 모서리를 브랜드 카드와 같게 해서 그리드 첫 줄에
+   끼워도 이물감이 없게 한다 — 배너 슬롯에 안 넣은 이유가 이것이다.
+   배너는 4.3초마다 넘어가는데 설문은 머물러야 한다.
+
+   색은 전부 :root 토큰에서 가져온다. 이 페이지는 color-scheme이
+   light dark라 값을 박아 넣으면 다크에서 흰 카드에 검은 글자가 남는다. */
+.survey-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 14px;
+  padding: 1.15rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(0, 0, 0, .06);
+}
+
+.survey-q {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.survey-choices {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.survey-choice {
+  width: 100%;
+  padding: .65rem .75rem;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.survey-choice:hover { background: var(--save-soft); }
+.survey-choice:disabled { opacity: .5; cursor: default; }
+
+.survey-other { display: flex; flex-direction: column; gap: .4rem; }
+.survey-other-label { font-size: .82rem; color: var(--text-muted); }
+
+.survey-other-input {
+  width: 100%;
+  padding: .5rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  resize: vertical;
+}
+
+.survey-send, .survey-close-btn {
+  align-self: flex-start;
+  padding: .5rem .9rem;
+  font: inherit;
+  color: var(--surface);
+  background: var(--save);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.survey-send:hover, .survey-close-btn:hover { background: var(--save-hover); }
+.survey-send:disabled { opacity: .4; cursor: default; }
+
+.survey-x {
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  width: 44px;
+  height: 44px;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.survey-x:disabled { opacity: .4; cursor: default; }
+
+.survey-thanks { margin: 0; color: var(--text); }
+.survey-code-label { margin: 0; font-size: .82rem; color: var(--text-muted); }
+
+/* 사용자가 번호를 받아 가는 유일한 자리다. 연락처를 안 받기로 했으니
+   여기서 놓치면 다시 줄 방법이 없다 — 크게, 통째로 선택되게 둔다. */
+.survey-code {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  user-select: all;
+}
+
+.survey-failed { margin: 0; font-size: .85rem; color: var(--pending-text); }
+
+/* 긴 금액 문구가 화면을 옆으로 밀지 않게 접는다.
+   ────────────────────────────────────────────────
+   칩(.offer__chip)에 white-space: nowrap이 걸려 있다. 짧은 "3,000원 할인"을
+   한 줄에 두려던 것인데, 금액을 못 읽어 rawText를 그대로 띄우는 칩에서는
+   그 줄이 통째로 길어진다(실측: "24,000원 이상 11,000원(포장) / 22,000원
+   이상 7,000원(배달)"이 532px, 폰 폭 372px).
+
+   그리드 칸은 min-width가 auto라 내용보다 좁아지지 못한다. 그래서 칸이
+   벌어지고 문서 전체에 가로 스크롤이 생겼다 — 상단 바까지 같이 밀려
+   검색칸이 잘렸다.
+
+   min-width를 풀어 칸이 좁아질 수 있게 하고, 금액만 접히게 한다. 짧은
+   문구는 어차피 한 줄에 들어가므로 보이는 모양이 안 바뀐다.
+   끊는 자리는 한국어에 맞춰 띄어쓰기를 먼저 쓰고(keep-all), 한 낱말이
+   칸보다 길 때만 안에서 끊는다(anywhere). */
+.brand-grid > * { min-width: 0; }
+.offer__chip { min-width: 0; }
+.offer__amount {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}

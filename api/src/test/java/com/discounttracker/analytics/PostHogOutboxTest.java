@@ -36,7 +36,52 @@ class PostHogOutboxTest {
         assertEquals(1, claimed.size());
         assertEquals(1, claimed.get(0).attemptCount());
         assertEquals(event, claimed.get(0).payload());
+        assertEquals("event-1", claimed.get(0).payload().uuid());
         assertTrue(restarted.claimDue(20).isEmpty());
+    }
+
+    @Test
+    void restoresMissingUuidFromLegacyDeliveryEventId(@TempDir Path dir) throws Exception {
+        MutableClock clock = new MutableClock(Instant.parse("2026-08-14T00:00:00Z"));
+        ObjectMapper mapper = new ObjectMapper();
+        PostHogProperties properties = properties(dir);
+        PostHogOutbox outbox = new PostHogOutbox(properties, mapper, clock);
+        Path pending = dir.resolve("pending/event-1.json");
+        Files.writeString(pending, """
+                {
+                  "eventId": "event-1",
+                  "payload": {
+                    "event": "brand_expand",
+                    "properties": {
+                      "distinct_id": "visitor-1",
+                      "$insert_id": "event-1"
+                    },
+                    "timestamp": "2026-08-14T00:00:00Z"
+                  },
+                  "attemptCount": 0,
+                  "nextAttemptAtEpochMs": 0,
+                  "lastError": null,
+                  "failedAtEpochMs": null
+                }
+                """);
+
+        List<PostHogDelivery> claimed = outbox.claimDue(20);
+
+        assertEquals(1, claimed.size());
+        assertEquals("event-1", claimed.get(0).payload().uuid());
+        PostHogDelivery persisted = mapper.readValue(pending.toFile(), PostHogDelivery.class);
+        assertEquals("event-1", persisted.payload().uuid());
+    }
+
+    @Test
+    void quarantinesDeliveryWhoseUuidDiffersFromEventId(@TempDir Path dir) {
+        MutableClock clock = new MutableClock(Instant.parse("2026-08-14T00:00:00Z"));
+        PostHogOutbox outbox = new PostHogOutbox(properties(dir), new ObjectMapper(), clock);
+        outbox.enqueue("event-1", event("other-event"));
+
+        assertTrue(outbox.claimDue(20).isEmpty());
+        assertFalse(Files.exists(dir.resolve("pending/event-1.json")));
+        assertTrue(Files.exists(dir.resolve("dead-letter/event-1.json.corrupt")));
     }
 
     @Test
@@ -64,6 +109,7 @@ class PostHogOutboxTest {
             List<PostHogDelivery> claimed = outbox.claimDue(20);
             assertEquals(1, claimed.size());
             assertEquals(expectedAttempt, claimed.get(0).attemptCount());
+            assertEquals("event-1", claimed.get(0).payload().uuid());
             outbox.markFailed(claimed, "HTTP 503");
             if (expectedAttempt < 5) {
                 clock.advance(Duration.ofMinutes(59));
@@ -77,6 +123,7 @@ class PostHogOutboxTest {
         assertTrue(Files.exists(deadLetter));
         PostHogDelivery failed = mapper.readValue(deadLetter.toFile(), PostHogDelivery.class);
         assertEquals(5, failed.attemptCount());
+        assertEquals("event-1", failed.payload().uuid());
         assertEquals("HTTP 503", failed.lastError());
         assertTrue(failed.failedAtEpochMs() != null);
         clock.advance(Duration.ofHours(10));
@@ -119,7 +166,7 @@ class PostHogOutboxTest {
     }
 
     private static PostHogEvent event(String eventId) {
-        return new PostHogEvent("brand_expand",
+        return new PostHogEvent(eventId, "brand_expand",
                 Map.of("distinct_id", "visitor-1", "$insert_id", eventId),
                 "2026-08-14T00:00:00Z");
     }

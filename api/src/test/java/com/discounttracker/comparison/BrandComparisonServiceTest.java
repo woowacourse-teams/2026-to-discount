@@ -591,7 +591,41 @@ class BrandComparisonServiceTest {
                 period: 상시
                 startsOn: 2026-08-17
                 endsOn: 2026-08-23
+              - id: random-20260817
+                brand: 두찜
+                platform: coupangeats
+                url: https://example.test/d
+                amount: "최대 8,000원"
+                period: 이번주
+                extra: "랜덤쿠폰(3,000~8,000)"
+                startsOn: 2026-08-17
+                endsOn: 2026-08-23
             """;
+
+    @Test
+    void marksBannerWithAnUpperBoundAsMaxNotConfirmed() {
+        // 랜덤 쿠폰(3,000~8,000원)은 상한만 정해져 있다. 금액 추출이
+        // 정규식이라 "8,000원"과 "최대 8,000원"이 똑같이 8000이 되는데,
+        // 표식까지 "행사"로 굳으면 상한이 확정 금액으로 서서 카드 대표값과
+        // "최고 할인"이 8,000원을 약속한다 — 3,000원을 받을 수도 있는데.
+        String brands = """
+                brands:
+                  두찜:
+                    category: chicken
+                """;
+        BrandComparison card = serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("두찜"))
+                .findFirst().orElseThrow();
+
+        Offer offer = card.offers().get(0);
+        assertEquals(8000, offer.amount());
+        // 원장 오퍼와 같은 말을 쓴다 — 화면이 "불확정" 배지를 붙인다.
+        assertEquals("최대", offer.qualifier());
+        // "최대"는 정렬에 안 들어간다(confirmedSortingAmount). 이 브랜드에
+        // 다른 확정 오퍼가 없으니 대표값 자체가 비어야 한다.
+        assertNull(card.maxConfirmedAmount());
+    }
 
     @Test
     void putsTodaysBannerOnTheBrandCardAsAnOffer() {
@@ -667,6 +701,75 @@ class BrandComparisonServiceTest {
         Offer offer = card.offers().get(0);
         assertEquals(6500, offer.amount());
         assertEquals("https://example.test/a", offer.link());
+    }
+
+    @Test
+    void soldOutBannerStandsAsASoldOutOffer() {
+        // 다 나간 배너는 내리지 않고 품절로 남긴다 — 사라지면 "원래
+        // 없었나" 싶고, 남아 있으면 "오늘은 늦었다"가 읽힌다. 오퍼로도
+        // 품절이어야 카드에서 취소선이 그어지고 최고 할인 후보에서 빠진다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        String yaml = """
+                banners:
+                  - id: goobne-soldout
+                    brand: goobne
+                    platform: yogiyo
+                    url: https://example.test/a
+                    amount: "6,000원"
+                    period: 오전 11시 선착순
+                    soldOut: true
+                    startsOn: 2026-08-20
+                    endsOn: 2026-08-20
+                """;
+        Offer offer = serviceWith(List.of(), brands, on("2026-08-20"), yaml)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow()
+                .offers().get(0);
+
+        assertEquals(6000, offer.amount());
+        assertTrue(offer.soldOut());
+    }
+
+    @Test
+    void soldOutOnMarksOnlyThatDay() {
+        // 선착순은 매일 다시 풀린다. soldOut을 켜 두면 다음 날 아침에도
+        // 매진으로 떠서, 늦지 않았는데 늦었다고 말한다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        String yaml = """
+                banners:
+                  - id: goobne-daily
+                    brand: goobne
+                    platform: yogiyo
+                    url: https://example.test/a
+                    amount: "6,000원"
+                    period: 오전 11시 선착순
+                    soldOutOn: 2026-08-20
+                    startsOn: 2026-08-19
+                    endsOn: 2026-08-21
+                """;
+
+        assertTrue(offerOf(brands, yaml, "2026-08-20").soldOut(), "그날은 매진");
+        assertFalse(offerOf(brands, yaml, "2026-08-21").soldOut(), "다음 날은 다시 풀린다");
+        assertFalse(offerOf(brands, yaml, "2026-08-19").soldOut(), "전날도 멀집하다");
+    }
+
+    private Offer offerOf(String brands, String yaml, String day) {
+        return serviceWith(List.of(), brands, on(day), yaml)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow()
+                .offers().get(0);
     }
 
     @Test

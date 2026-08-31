@@ -27,7 +27,7 @@ class TrafficStatsServiceTest {
             ts = OffsetDateTime.parse(tsOffsetFromNow).toString();
         }
         return new VisitEvent(ts, event, visitorId, sessionId, 1, path, referrer, device,
-                null, dwellMs, props, null, "hash", dev, "a", "event-id");
+                null, dwellMs, props, null, "hash", dev, "a", "event-id", null);
     }
 
     private EventLog logWith(Path dir, List<VisitEvent> events) {

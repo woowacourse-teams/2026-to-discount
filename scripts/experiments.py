@@ -27,7 +27,9 @@ hover:hover를 보고하기 때문이다. 지금 규칙은 세션 전체를 봐�
 """
 import argparse
 import collections
+import datetime
 import json
+from urllib.parse import unquote
 import math
 import os
 import subprocess
@@ -38,7 +40,13 @@ REMOTE_KEY = os.environ.get("EVENTS_KEY", os.path.expanduser("~/key_turbom_v0.ke
 REMOTE_PATH = os.environ.get(
     "EVENTS_PATH", "/home/ubuntu/delivery-discount-api/data/events.jsonl")
 
-GOAL = "offer_link_click"
+# 전환 = 배달앱으로 나가는 모든 길. 오퍼 칩과 배너 둘 다다.
+#
+# 한동안 offer_link_click 하나로 셌는데, 2026-08-19에 배너를 도입하면서
+# 나가는 길이 하나 더 생겼다. banner_click은 그 전 구간에서 구조적으로 0이라
+# 옛 정의로 전후를 비교하면 개편 이후가 무조건 낮게 나온다 — "재방문
+# 반토막"으로 읽었던 것이 실은 이 착시였다(ANALYTICS-CAPABILITY.md §5.2).
+GOAL = "offer_link_click,banner_click"
 
 # 배포 확인이 넣는 붙박이 방문자. 사람이 아니다.
 SYNTHETIC = {"v_deploycheck"}
@@ -49,7 +57,8 @@ DESKTOP_WIDTH = 800
 
 class Visitor:
     __slots__ = ("id", "dev", "widths", "devices", "referrers", "visits",
-                 "days", "sessions", "events", "variant", "dwell")
+                 "days", "sessions", "events", "variant", "dwell",
+                 "bot", "first_ts")
 
     def __init__(self, vid):
         self.id = vid
@@ -61,6 +70,8 @@ class Visitor:
         self.days = set()
         self.sessions = set()
         self.events = collections.Counter()
+        self.bot = None      # 서버가 적어 준 크롤러 이름
+        self.first_ts = None  # 소급 판정용 — 언제 처음 나타났나
         self.variant = None
         self.dwell = 0
 
@@ -80,7 +91,7 @@ class Visitor:
 def load(src):
     """원장을 방문자 단위로 접는다. 이벤트 원문은 들고 있지 않는다."""
     people = {}
-    rows = []  # (날짜, 방문자, 이벤트, props, 시각, 세션)
+    rows = []  # (날짜, 방문자, 이벤트, props, 시각, 세션, 경로)
     with open(src, encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
@@ -98,6 +109,11 @@ def load(src):
                 v = people[vid] = Visitor(vid)
             if e.get("dev") is True:
                 v.dev = True
+            if e.get("bot") and v.bot is None:
+                v.bot = e["bot"]
+            ts = e.get("ts") or ""
+            if ts and (v.first_ts is None or ts < v.first_ts):
+                v.first_ts = ts
             vp = e.get("viewport") or ""
             if "x" in vp:
                 try:
@@ -120,7 +136,9 @@ def load(src):
             v.days.add(day)
             v.events[e.get("event")] += 1
             rows.append((day, vid, e.get("event"), e.get("props") or {},
-                         e.get("ts") or "", e.get("sessionId") or ""))
+                         e.get("ts") or "", e.get("sessionId") or "",
+                         e.get("path") or ""))
+    mark_crawler_bursts(people)
     return people, rows
 
 
@@ -199,8 +217,55 @@ def bucket(v, by):
     raise SystemExit("모르는 기준: %s" % by)
 
 
+# 크롤러가 몰려온 흔적. 서버가 `bot` 이름을 적기 시작한 2026-08-29 이전
+# 데이터에는 이름이 없어서, 남은 자국으로 되짚는 수밖에 없다.
+#
+# 자국은 뚜렷하다(2026-08-28 실측): 같은 뷰포트를 쓰는 방문자 31명이 10초
+# 안에 처음 나타나 한 페이지씩 보고 사라졌다. 봇은 localStorage가 매번
+# 비어 있어 요청마다 새 사람이 된다 — 사람은 이렇게 못 모인다.
+#
+# 사람을 봇으로 잘못 모는 쪽이 훨씬 나쁘므로(개발 트래픽 규칙이 안드로이드
+# 폰 368명을 잡아먹었던 그 사고) 문턱을 넉넉히 둔다. 진짜 사람 여럿이
+# 우연히 같은 초에 같은 폭으로 들어올 일은 이 규모에서 없다.
+BURST_MIN = 8          # 이만큼 몰려야 본다
+BURST_WINDOW_S = 120   # 이 시간 안에 처음 나타난 무리
+
+
+def mark_crawler_bursts(people):
+    """이름 없는 옛 봇을 되짚어 표시한다. 표시만 하고 지우지 않는다."""
+    by_width = collections.defaultdict(list)
+    for v in people.values():
+        if v.bot or not v.first_ts or len(v.widths) != 1:
+            continue
+        by_width[next(iter(v.widths))].append(v)
+
+    for _w, group in by_width.items():
+        group.sort(key=lambda v: v.first_ts)
+        i = 0
+        while i < len(group):
+            j = i
+            while j + 1 < len(group) and _gap(group[i].first_ts, group[j + 1].first_ts) <= BURST_WINDOW_S:
+                j += 1
+            if j - i + 1 >= BURST_MIN:
+                for v in group[i:j + 1]:
+                    v.bot = "burst"
+            i = j + 1
+
+
+def _gap(a, b):
+    try:
+        return abs((datetime.datetime.fromisoformat(b)
+                    - datetime.datetime.fromisoformat(a)).total_seconds())
+    except ValueError:
+        return float("inf")
+
+
 def keep(v, args):
     if v.looks_developer() and not args.include_dev:
+        return False
+    # 봇은 기본으로 뺀다. 지우지 않고 표시만 해 두므로
+    # --include-bots로 다시 볼 수 있다 — 판정을 되돌릴 수 있어야 한다.
+    if v.bot and not args.include_bots:
         return False
     if args.only == "returning" and not v.returning:
         return False
@@ -217,6 +282,11 @@ def population(people, args):
     return [v for v in people.values() if keep(v, args)]
 
 
+def goals(args):
+    """전환으로 볼 이벤트들. 쉼표로 여럿 받는다 — 합집합이다."""
+    return tuple(g.strip() for g in args.goal.split(",") if g.strip())
+
+
 # ---- 명령 -------------------------------------------------------------
 
 def cmd_audit(people, rows, args):
@@ -227,6 +297,17 @@ def cmd_audit(people, rows, args):
     for r, n in reasons.most_common():
         print("  %-10s %5d" % (r, n))
     print()
+    bots = collections.Counter(v.bot for v in people.values() if v.bot)
+    if bots:
+        print()
+        print("크롤러 %d명 (위 수에 포함, 집계에서는 기본으로 뺀다 — --include-bots)"
+              % sum(bots.values()))
+        for name, n in bots.most_common():
+            # burst는 서버가 bot 이름을 적기 전(2026-08-29 이전) 데이터를
+            # 몰려온 흔적으로 되짚은 것이다. 그 뒤로는 이름이 찍힌다.
+            label = name + (" (소급 판정)" if name == "burst" else "")
+            print("  %-16s %5d" % (label, n))
+    print()
     print("옛 규칙(desktop & 폭<400)이 걸렀을 사람 중 지금 사람으로 보는 수:")
     n = sum(1 for v in people.values()
             if "desktop" in v.devices and v.widths and min(v.widths) < 400
@@ -235,13 +316,14 @@ def cmd_audit(people, rows, args):
 
 
 def cmd_daily(people, rows, args):
+    gs = goals(args)
     per = collections.defaultdict(lambda: [set(), set()])
-    for day, vid, ev, _p, _ts, _sid in rows:
+    for day, vid, ev, _p, _ts, _sid, _path in rows:
         v = people[vid]
         if not keep(v, args):
             continue
         per[day][0].add(vid)
-        if ev == args.goal:
+        if ev in gs:
             per[day][1].add(vid)
     print("날짜         방문자   전환   전환율")
     for day in sorted(per):
@@ -304,13 +386,14 @@ def cmd_compare(people, rows, args):
     # 정하는 판단(그 자체로 편향이다)을 안 해도 된다.
     #
     # 횟수는 버리지 않고 따로 들고 있다가 분포 진단으로 낸다.
+    gs = goals(args)
     groups = collections.defaultdict(lambda: [0, 0, []])
     for v in population(people, args):
         name = bucket(v, args.by)
         if name is None:
             continue
         groups[name][0] += 1
-        hits = v.events[args.goal]
+        hits = sum(v.events[g] for g in gs)
         if hits:
             groups[name][1] += 1
             groups[name][2].append(hits)
@@ -348,7 +431,7 @@ def cmd_events(people, rows, args):
 def sequences(rows, pop, scope):
     """(사람 또는 세션)마다 시각순 이벤트 목록. 연속 중복은 접는다."""
     bucket = collections.defaultdict(list)
-    for _day, vid, ev, _props, ts, sid in rows:
+    for _day, vid, ev, _props, ts, sid, _path in rows:
         if vid not in pop:
             continue
         bucket[vid if scope == "visitor" else (vid, sid)].append((ts, ev))
@@ -414,6 +497,7 @@ def cmd_paths(people, rows, args):
     링크 앞보다 뒤에 오는 경우가 더 많았다 — 전 단계가 아니라 사후
     확인 행동이었다.
     """
+    gs = goals(args)
     pop = {v.id for v in population(people, args)}
     seqs = sequences(rows, pop, args.scope)
     skip = set(args.ignore.split(",")) if args.ignore else set()
@@ -429,7 +513,7 @@ def cmd_paths(people, rows, args):
             trimmed.append(e)
         key = " > ".join(trimmed[:args.depth]) if trimmed else "(아무것도 안 함)"
         paths[key] += 1
-        if args.goal in trimmed:
+        if any(g in trimmed for g in gs):
             conv[key] += 1
     unit = "방문자" if args.scope == "visitor" else "세션"
     total = len(seqs)
@@ -456,7 +540,7 @@ def cmd_features(people, rows, args):
     recent = collections.defaultdict(set)
     first, last = {}, {}
     recent_pop = set()
-    for day, vid, ev, _props, _ts, _sid in rows:
+    for day, vid, ev, _props, _ts, _sid, _path in rows:
         if vid not in pop:
             continue
         seen[ev].add(vid)
@@ -467,7 +551,8 @@ def cmd_features(people, rows, args):
             recent[ev].add(vid)
             recent_pop.add(vid)
 
-    goal_users = seen[args.goal]
+    gs = goals(args)
+    goal_users = set().union(*(seen[g] for g in gs))
     n = len(pop)
     print("모수 %d명 · 최근 %d일 %d명 (%s~%s)"
           % (n, args.window, len(recent_pop), days[-args.window], days[-1]))
@@ -489,7 +574,7 @@ def cmd_features(people, rows, args):
     print("**이건 인과가 아니다.** 무엇이든 조작하는 사람이 링크도 누른다.")
     print("기능                     쓴 사람  안 쓴 사람   차이")
     for ev, _c in count.most_common():
-        if ev in ("page_view", "page_exit", args.goal):
+        if ev in ("page_view", "page_exit") or ev in gs:
             continue
         users = seen[ev]
         others = pop - users
@@ -503,7 +588,7 @@ def cmd_features(people, rows, args):
 def cmd_top(people, rows, args):
     pop = {v.id for v in population(people, args)}
     seen = collections.defaultdict(set)
-    for _, vid, ev, props, _ts, _sid in rows:
+    for _, vid, ev, props, _ts, _sid, _path in rows:
         if ev != args.event or vid not in pop:
             continue
         val = props.get(args.prop)
@@ -522,11 +607,82 @@ def cmd_power(people, rows, args):
         print("  +%4.0f%%  →  %s명" % (lift * 100, "{:,}".format(n) if n else "불가"))
 
 
+def cmd_entry(people, rows, args):
+    """어느 주소로 들어와서 무엇을 했나.
+
+    브랜드 페이지(/brand/이름)를 앱 안으로 들인 뒤에 필요해진 명령이다.
+    그전에는 경로가 "/" 하나뿐이라 볼 것이 없었다.
+
+    새 이벤트를 만들지 않았다. 원장은 모든 이벤트에 path를 이미 싣고
+    있고 sessionId가 sessionStorage라 페이지를 옮겨도 이어진다 — 들어온
+    자리와 나간 자리가 같은 세션 안에 남는다. 계측을 늘리는 것보다
+    이미 있는 값을 읽는 편이 싸고, 늘린 계측은 계약 검사와 서버
+    화이트리스트를 같이 고쳐야 한다.
+
+    보는 법:
+      - "그 자리 전환"이 낮은데 세션이 많으면, 그 주소로 들어온 사람이
+        앱으로 못 나가고 있다는 뜻이다.
+      - "홈으로 이어감"은 브랜드 페이지가 막다른 곳이 아닌지를 본다.
+        검색으로 들어온 사람이 전체 목록까지 갔다는 신호다.
+    """
+    gs = goals(args)
+    pop = {v.id for v in population(people, args)}
+
+    # 세션마다: 처음 밟은 경로, 거쳐 간 경로들, 목표 달성 여부.
+    first, seen, hit = {}, collections.defaultdict(set), set()
+    for _day, vid, ev, _props, ts, sid, path in rows:
+        if vid not in pop:
+            continue
+        key = (vid, sid)
+        p = path or "(없음)"
+        if key not in first or ts < first[key][0]:
+            first[key] = (ts, p)
+        seen[key].add(p)
+        if ev in gs:
+            hit.add(key)
+
+    def bucket(p):
+        # 브랜드가 108개라 주소를 그대로 세면 표가 아니라 목록이 된다.
+        return "/brand/*" if p.startswith("/brand/") else p
+
+    stat = collections.defaultdict(lambda: [0, 0, 0])
+    for key, (_ts, p) in first.items():
+        b = stat[bucket(p)]
+        b[0] += 1
+        if key in hit:
+            b[1] += 1
+        # 브랜드 페이지로 들어와 홈까지 간 세션. 탈출구가 쓰이는지 본다.
+        if p.startswith("/brand/") and "/" in seen[key]:
+            b[2] += 1
+
+    total = len(first)
+    if total == 0:
+        print("세션이 없다")
+        return
+    print("들어온 자리   세션    비중   그 자리 전환   홈으로 이어감")
+    for b, (n, conv, home) in sorted(stat.items(), key=lambda kv: -kv[1][0]):
+        home_txt = "%5d" % home if b == "/brand/*" else "    -"
+        print("  %-12s %5d %5.1f%%  %5d %5.1f%%   %s"
+              % (b[:12], n, n / total * 100, conv, conv / n * 100, home_txt))
+
+    # 브랜드별로도 본다 — 어느 브랜드가 검색에서 걸리는지가 다음 판단의
+    # 근거다. 상위만 찍는다.
+    per = collections.Counter()
+    for _key, (_ts, p) in first.items():
+        if p.startswith("/brand/"):
+            per[unquote(p[len("/brand/"):])] += 1
+    if per:
+        print()
+        print("브랜드 페이지로 들어온 세션 상위")
+        for name, n in per.most_common(args.limit):
+            print("  %-24s %4d" % (name[:24], n))
+
+
 COMMANDS = {
     "audit": cmd_audit, "daily": cmd_daily, "compare": cmd_compare,
     "segments": cmd_segments, "events": cmd_events, "funnel": cmd_funnel,
     "top": cmd_top, "power": cmd_power, "paths": cmd_paths,
-    "features": cmd_features,
+    "features": cmd_features, "entry": cmd_entry,
 }
 
 
@@ -541,6 +697,7 @@ def main(argv=None):
     p.add_argument("--since", help="이 날 이후에도 온 사람만")
     p.add_argument("--until", help="이 날 이전에 처음 온 사람만")
     p.add_argument("--include-dev", action="store_true", help="개발 트래픽도 센다")
+    p.add_argument("--include-bots", action="store_true", help="크롤러도 센다")
     p.add_argument("--steps", default="page_view,brand_expand,offer_link_click")
     p.add_argument("--scope", choices=("session", "visitor"), default="session",
                    help="흐름을 어디까지 한 덩어리로 볼지. 기본은 세션")
@@ -553,11 +710,12 @@ def main(argv=None):
     p.add_argument("--window", type=int, default=7, help="features: 최근 며칠을 현재로 볼지")
     p.add_argument("--baseline", type=float, default=0.34)
     p.add_argument("--lift", type=float, default=0.15)
-    args = p.parse_args(argv)
-
-    # 윈도우 콘솔은 기본이 cp949라 한글 출력에서 죽는다.
+    # 윈도우 콘솔은 기본이 cp949라 한글 출력에서 죽는다. parse_args보다
+    # 먼저 해야 한다 — 도움말도 한글이라 --help가 그대로 죽었다.
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+    args = p.parse_args(argv)
 
     if args.command == "power":   # 원장이 필요 없다
         return cmd_power({}, [], args)
@@ -580,6 +738,11 @@ def selftest():
     assert 1300 < sample_size(0.34, 0.15) < 1500, sample_size(0.34, 0.15)
     assert sample_size(0.185, 0.15) > sample_size(0.34, 0.15)
 
+    # 전환은 이벤트 하나가 아니다 — 배너로 나간 사람도 전환이다.
+    ns = argparse.Namespace(goal=GOAL)
+    assert goals(ns) == ("offer_link_click", "banner_click"), goals(ns)
+    assert goals(argparse.Namespace(goal="a, b ,")) == ("a", "b")
+
     v = Visitor("x")
     v.widths = {384}
     assert v.looks_developer() is None       # 폰: 폭 하나
@@ -590,17 +753,17 @@ def selftest():
 
     # 퍼널은 순서를 지켜야 한다. 링크를 먼저 누른 사람은 통과하면 안 된다.
     rows = [
-        ("d", "정순", "brand_expand", {}, "1", "s"),
-        ("d", "정순", "offer_link_click", {}, "2", "s"),
-        ("d", "역순", "offer_link_click", {}, "1", "s"),
-        ("d", "역순", "brand_expand", {}, "2", "s"),
+        ("d", "정순", "brand_expand", {}, "1", "s", "/"),
+        ("d", "정순", "offer_link_click", {}, "2", "s", "/"),
+        ("d", "역순", "offer_link_click", {}, "1", "s", "/"),
+        ("d", "역순", "brand_expand", {}, "2", "s", "/"),
     ]
     seqs = sequences(rows, {"정순", "역순"}, "session")
     assert seqs[("정순", "s")] == ["brand_expand", "offer_link_click"]
     assert seqs[("역순", "s")] == ["offer_link_click", "brand_expand"]
 
     # 사이에 낀 이벤트를 걷어내도 같은 동작이 둘로 남지 않는다.
-    rows2 = [("d", "v", e, {}, str(i), "s") for i, e in enumerate(
+    rows2 = [("d", "v", e, {}, str(i), "s", "/") for i, e in enumerate(
         ["offer_link_click", "page_exit", "offer_link_click"])]
     seq = sequences(rows2, {"v"}, "session")[("v", "s")]
     trimmed = []

@@ -37,11 +37,11 @@ function adapter(overrides = {}) {
       client,
       getEnvironment: () => ({
         VITE_POSTHOG_KEY: 'phc_test_project_key',
-        VITE_POSTHOG_HOST: 'https://us.i.posthog.com',
+        VITE_POSTHOG_HOST: '/ph',
       }),
       isOptedOut: () => false,
       getContext: () => context,
-      getLocation: () => ({ search: '?dev=1&posthog_test=1' }),
+      getLocation: () => ({ search: '?dev=1&posthog_test=1', origin: 'https://beggars-five.vercel.app' }),
       getSessionStore: () => sessionStore,
       warn: () => {},
       ...overrides,
@@ -56,7 +56,11 @@ assert.equal(ready.client.calls.init.length, 1)
 
 const [projectKey, config] = ready.client.calls.init[0]
 assert.equal(projectKey, 'phc_test_project_key')
-assert.equal(config.api_host, 'https://us.i.posthog.com')
+// 같은 오리진 프록시로 보낸다(/ph). PostHog SDK는 절대 주소를 요구하고
+// 우리 도메인은 프리뷰마다 달라지므로, 경로만 적어 두고 실행 시점의
+// origin을 붙인다. 리전을 옮겨 푸는 문제가 아니다 — PostHog 클라우드는
+// US·EU뿐이라 한국에서는 EU가 더 멀다.
+assert.equal(config.api_host, 'https://beggars-five.vercel.app/ph')
 assert.deepEqual(config.bootstrap, {
   distinctID: context.visitorId,
   isIdentifiedID: false,
@@ -214,7 +218,7 @@ assert.equal(missingKey.client.calls.init.length, 0)
 
 const ordinaryVisit = adapter({
   getContext: () => ({ ...context, dev: true }),
-  getLocation: () => ({ search: '?dev=1' }),
+  getLocation: () => ({ search: '?dev=1', origin: 'https://beggars-five.vercel.app' }),
 })
 assert.equal(ordinaryVisit.instance.initPostHog(), true)
 const [, ordinaryConfig] = ordinaryVisit.client.calls.init[0]
