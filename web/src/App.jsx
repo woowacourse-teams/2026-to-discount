@@ -52,23 +52,20 @@ const PLATFORM_BRAND_SEARCH_LINKS = {
   yogiyo: (brandName) => `yogiyolink://search?keyword=${encodeURIComponent(brandName)}`,
 }
 
-// 브랜드별 링크(brandLinks)가 없고 PLATFORM_APP_LINKS도 앱만 여는 커스텀
-// 스킴뿐인 플랫폼은 앱을 열어도 그 브랜드 화면으로 안 간다 — 최소한
-// 검색이라도 되게 구글 검색으로 보낸다. 앱 안의 실제 브랜드 검색 딥링크
-// 스킴은 요기요만 확인됐다(PLATFORM_BRAND_SEARCH_LINKS). 나머지는 추측으로
-// 만들면 안 열리는 경로를 또 만드는 꼴이라 안 쓴다. 배민은 브랜드관 목록
-// 딥링크가 있어 검색 폴백이 필요 없다. 쿠팡이츠는 구글 검색으로 보내지
-// 않는다 — 최소한 자기 앱은 열리게 두는 쪽을 택함(PLATFORM_APP_LINKS의
-// 'coupangeats://'가 대신 적용된다).
-const PLATFORM_SEARCH_QUERY = {
-  ddangyo: '땡겨요',
-}
-
-function searchFallbackLink(platformKey, brandName) {
-  const prefix = PLATFORM_SEARCH_QUERY[platformKey]
-  if (!prefix) return null
-  return `https://www.google.com/search?q=${encodeURIComponent(`${prefix} ${brandName}`)}`
-}
+// 구글 검색 폴백은 뺐다(2026-08-31).
+//
+// 땡겨요만 이 폴백을 쓰고 있었는데, 배달 앱을 열러 온 사람을 브라우저
+// 검색 결과로 보내는 것은 이 서비스가 하겠다고 한 일이 아니다. 실제로
+// 땡겨요 피자헛 링크를 잠깐 뺐더니 그 칩이 구글로 떨어졌다.
+//
+// 쿠팡이츠는 같은 상황에서 이미 자기 앱을 여는 쪽을 택하고 있었다.
+// 땡겨요도 같은 규칙으로 맞춘다 — PLATFORM_APP_LINKS의 'ddangyo://'가
+// 적용돼 최소한 앱은 열린다.
+//
+// 앱 안 브랜드 검색 딥링크가 있으면 그게 제일 낫지만, 땡겨요에는 없다
+// (2026-08-31 dumpsys 확인: ddangyo·o2o 스킴에 검색 경로가 없고
+// /benefithub은 광고 SDK 딥링크다). 요기요만 확인돼 있고 그것은
+// PLATFORM_BRAND_SEARCH_LINKS에 있다.
 
 const CART_KEY = 'dk_cart'
 
@@ -137,7 +134,6 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   const link = offer.link
     ?? brandLinks?.[offer.platform]
     ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
-    ?? searchFallbackLink(offer.platform, brandName)
     ?? PLATFORM_APP_LINKS[offer.platform]
 
   const content = (
