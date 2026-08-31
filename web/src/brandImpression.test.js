@@ -32,7 +32,7 @@ function harness({ stored = null, storageFails = false } = {}) {
     capture: (props) => captured.push(props),
     createObserver(callback, options) {
       observerCallback = callback
-      assert.deepEqual(options, { threshold: [1] })
+      assert.deepEqual(options, { threshold: [0.99] })
       return {
         observe: (element) => observed.add(element),
         unobserve: (element) => observed.delete(element),
@@ -86,11 +86,11 @@ test('브랜드 노출 props를 화면 상태에서 정규화한다', () => {
   assert.equal(brandImpressionProps({ name: '미분류', category: null, offers: [] }, 1).category, 'none')
 })
 
-test('헤더 전체가 1초 유지된 브랜드를 한 번 기록한다', () => {
+test('헤더가 99% 이상 1초 유지된 브랜드를 한 번 기록한다', () => {
   const h = harness()
   const element = {}
   h.tracker.register(element, props)
-  h.intersect(element, 1)
+  h.intersect(element, 0.99)
   h.runTimers()
   h.intersect(element, 0)
   h.intersect(element, 1)
@@ -100,11 +100,11 @@ test('헤더 전체가 1초 유지된 브랜드를 한 번 기록한다', () => 
   assert.equal(h.stored(), '["교촌치킨"]')
 })
 
-test('일부만 보이거나 1초 전에 벗어나면 기록하지 않는다', () => {
+test('헤더가 99% 미만이거나 1초 전에 벗어나면 기록하지 않는다', () => {
   const h = harness()
   const element = {}
   h.tracker.register(element, props)
-  h.intersect(element, 0.99)
+  h.intersect(element, 0.989)
   h.runTimers()
   h.intersect(element, 1)
   h.intersect(element, 0.5)

@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'dk_brand_impressions'
 const IMPRESSION_MS = 1000
+const VISIBLE_RATIO = 0.99
 
 function readSeen(storage) {
   if (!storage) return new Set()
@@ -76,7 +77,7 @@ export function createBrandImpressionTracker({
   function onIntersection(entries) {
     for (const entry of entries) {
       if (!registrations.has(entry.target)) continue
-      if (entry.isIntersecting && entry.intersectionRatio >= 1) {
+      if (entry.isIntersecting && entry.intersectionRatio >= VISIBLE_RATIO) {
         fullyVisible.add(entry.target)
         start(entry.target)
       } else {
@@ -87,7 +88,7 @@ export function createBrandImpressionTracker({
   }
 
   function ensureObserver() {
-    if (!observer) observer = createObserver(onIntersection, { threshold: [1] })
+    if (!observer) observer = createObserver(onIntersection, { threshold: [VISIBLE_RATIO] })
     return observer
   }
 
