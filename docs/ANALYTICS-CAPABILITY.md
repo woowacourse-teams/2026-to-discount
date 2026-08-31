@@ -69,7 +69,7 @@ analytics.js  ──POST /api/events──▶  EventController ──▶ events.
 const staticCalls = [...contents.matchAll(/\btrack\s*\(\s*(['"])([^'"]+)\1/g)]
 ```
 
-속성 상한은 원인이 **순서**였다. 필터 맥락 6종(`fCategory` `fPlatforms` `fSearch` `fCart` `fSaved` `fSort`)이 이벤트 자기 값보다 앞에 붙어 상한을 먼저 먹었다. 순서를 뒤집고 상한을 8로 올렸다 — 넘치면 맥락이 먼저 떨어지도록.
+속성 상한은 원인이 **순서**였다. 필터 맥락 6종(`fCategory` `fPlatforms` `fSearch` `fCart` `fSaved` `fSort`)이 이벤트 자기 값보다 앞에 붙어 상한을 먼저 먹었다. 순서를 뒤집고 상한을 10으로 올렸다. 넘치면 맥락이 먼저 떨어지도록 했다.
 
 ```js
 // web/src/analytics.js — 이벤트 고유 값이 먼저다. 서버가 앞에서부터 세어 자른다
