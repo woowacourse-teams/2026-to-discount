@@ -11,7 +11,7 @@ import TopBarA from './TopBarA.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { uiVariant } from './variant.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
-import SurveyCard from './SurveyCard.jsx'
+import SurveyDock from './SurveyDock.jsx'
 import { shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
 
@@ -97,6 +97,9 @@ export function setHubLinks(banners) {
   }
   hubLinks = next
 }
+
+// 한 번에 그리는 브랜드 카드 수. 화면에 두 줄쯤 들어간다.
+const BRAND_PAGE = 12
 
 const CART_KEY = 'dk_cart'
 
@@ -956,6 +959,46 @@ export default function App() {
     [brands, filters, cart, cartOnly],
   )
 
+  // 카드를 나눠 그린다.
+  //
+  // 브랜드가 50개를 넘고 카드마다 오퍼 칩·로고·펼침 상태가 붙는다. 전부
+  // 한 번에 그리면 첫 화면에 안 보이는 것까지 만드느라 진입이 늦어진다.
+  // 화면에 두 줄쯤 들어가므로 열두 장이면 첫 화면이 채워진다.
+  const [shown, setShown] = useState(BRAND_PAGE)
+
+  // 분류를 바꾸면 처음부터 다시 센다 — 앞 목록에서 많이 펼쳐 놨다고
+  // 새 목록까지 그만큼 그릴 이유가 없다.
+  useEffect(() => { setShown(BRAND_PAGE) }, [gridKey])
+
+  // 딥링크(#brand-이름)로 들어온 브랜드가 아직 안 그려졌으면 스크롤이
+  // 갈 곳이 없다. 그 자리까지는 펼쳐 둔다.
+  useEffect(() => {
+    if (!linkedBrand || !visibleBrands) return
+    const at = visibleBrands.findIndex((b) => brandCardId(b.name) === linkedBrand)
+    if (at >= 0) setShown((n) => Math.max(n, at + 1))
+  }, [linkedBrand, visibleBrands])
+
+  // 첫 화면을 그린 뒤, 한가할 때 나머지를 묶음으로 채운다.
+  //
+  // 스크롤에 묶는 방식을 두 번 시도했다가 접었다. IntersectionObserver는
+  // 관찰 지점이 화면에 걸쳐 있는 동안 콜백이 되풀이돼 목록이 통째로
+  // 그려졌고, 스크롤 이벤트로 바꾸니 로드 중 앱이 스스로 부르는
+  // scrollTo에도 반응해 같은 일이 났다. 거리 잠금을 걸었더니 이번에는
+  // 렌더가 멈췄다(2026-09-01, 셋 다 실측).
+  //
+  // 지연의 목적은 첫 화면을 빨리 그리는 것이지 끝까지 안 그리는 것이
+  // 아니다. requestIdleCallback은 브라우저가 한가할 때만 부르므로 첫
+  // 화면과 상호작용을 안 막고, 스크롤과 얽히지 않아 되풀이가 없다.
+  // 다 채우면 스스로 멈춘다.
+  // requestIdleCallback을 쓰다 접었다. 한가한 틈이 안 오면 영영 안 불려
+  // 목록이 첫 묶음에서 멈춘다 — 실측에서 12장에 멈춘 채 끝났다. 타이머는
+  // 반드시 돈다. 한 묶음씩이라 한 번에 몰아 그리지 않는 목적은 그대로다.
+  useEffect(() => {
+    if (!visibleBrands || shown >= visibleBrands.length) return
+    const id = window.setTimeout(() => setShown((n) => n + BRAND_PAGE), 150)
+    return () => window.clearTimeout(id)
+  }, [visibleBrands, shown])
+
 
   // A안은 조건을 바에 전부 펼쳐 두고, B안은 바텀시트에 감춘다. 바 아래는
   // 두 안이 완전히 같다 — 카드도 배너도 계측도 하나의 코드를 쓴다. 갈라진
@@ -1198,25 +1241,14 @@ export default function App() {
         <a className="route-back" href="/">← 전체 브랜드 보기</a>
       )}
 
-      {(surveyOn || (visibleBrands && visibleBrands.length > 0)) && (
+      {visibleBrands && visibleBrands.length > 0 && (
         // key를 필터 키로 걸어 분류를 바꿀 때마다 이 상자를 새로 마운트한다
         // — 안 그러면 카드들이 자리를 지킨 채 내용만 뚝 바뀌어(리스트
         // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className="brand-grid" key={gridKey}>
-          {/* 첫 줄 한 칸. 진입 즉시 보인다 — 대상 판정이 이미 필터라
-              시점으로 또 거를 이유가 없고, 재방문 세션의 63.1%는 어차피
-              아무것도 안 하고 나간다. */}
-          {surveyOn && (
-            <SurveyCard
-              visitorId={getAnalyticsContext().visitorId}
-              code={surveyCode}
-              onCode={setSurveyCode}
-              onClose={() => setSurveyOn(false)}
-            />
-          )}
-          {visibleBrands?.map((b, index) => (
+          {visibleBrands.slice(0, shown).map((b, index) => (
             <BrandCard
               key={b.name}
               brand={b}
@@ -1228,6 +1260,19 @@ export default function App() {
             />
           ))}
         </div>
+      )}
+
+
+      {/* 설문은 그리드 밖에 둔다. 그리드는 필터가 바뀔 때마다 통째로 새로
+          마운트되는데, 그 안에 있으면 열어 둔 카드와 받은 번호가 분류 한
+          번에 날아간다. */}
+      {surveyOn && (
+        <SurveyDock
+          visitorId={getAnalyticsContext().visitorId}
+          code={surveyCode}
+          onCode={setSurveyCode}
+          onClose={() => setSurveyOn(false)}
+        />
       )}
 
       <SiteFooter />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { track } from './analytics.js'
 import { markAnswered, markDismissed } from './surveyDismiss.js'
 
@@ -12,21 +12,15 @@ const CHOICES = [
 
 const MAX_TEXT = 200
 
-// 카드는 필터가 바뀔 때마다 새로 마운트된다. 마운트마다 쏘면 노출 수가 부풀어
-// 응답률이 실제보다 낮게 보인다 — 한 번 본 것은 한 번으로 센다.
-let impressionSent = false
+// 노출(survey_impression)은 여기서 안 쏜다. 배너를 본 것이 노출이고 이
+// 카드는 그것을 연 뒤라, 여기서 쏘면 열어 본 사람만 노출로 세어진다
+// (SurveyDock이 쏜다).
 
 export default function SurveyCard({ visitorId, code, onCode, onClose }) {
   const [choice, setChoice] = useState(null)
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [failed, setFailed] = useState(false)
-
-  useEffect(() => {
-    if (impressionSent) return
-    track('survey_impression')
-    impressionSent = true
-  }, [])
 
   function close() {
     // 보내는 중에는 닫지 않는다. 여기서 언마운트되면 서버가 이미 발급한

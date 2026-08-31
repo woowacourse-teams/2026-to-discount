@@ -49,7 +49,7 @@ public class EventController {
             // 설문 노출·닫기는 프론트가 쏜다. 응답(survey_answer)은 SurveyService가
             // 직접 적는다 — 이 경로는 인증이 없어 위조하면 응답 수와 코드 발급
             // 수가 어긋난다.
-            "survey_impression", "survey_dismiss");
+            "survey_impression", "survey_open", "survey_dismiss");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
             "inputLength", "resultCount", "submitMethod",
             "fCategory", "fPlatforms", "fSearch", "fCart", "fSaved", "fSort");
