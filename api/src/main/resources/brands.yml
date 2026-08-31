@@ -297,7 +297,6 @@ brands:
     searchAliases: [피자 헛, 피자헛 코리아, pizza hut, pizzahut]
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?YVE9ZY9
       baemin: https://s.baemin.com/7o3.f2e5b
 
   노모어피자:
@@ -393,7 +392,6 @@ brands:
     aliases: [뚜레쥬르, touslesjours, tlj]
     category: cafe
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?Ah1eLMD
       baemin: https://s.baemin.com/Vz000vNQLilUR
       yogiyo: yogiyolink://push.page/franchise?fr_id=606
   배스킨라빈스:
