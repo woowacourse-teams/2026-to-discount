@@ -198,7 +198,11 @@ def api_endpoints(paths: list[PurePosixPath]) -> list[str]:
         and path.name.endswith("Controller.java")
     )
     endpoints: list[str] = []
-    mapping_pattern = re.compile(r'@(Get|Post|Put|Delete|Patch)Mapping\("([^"]+)"\)')
+    # 경로가 붙은 것과 안 붙은 것을 둘 다 읽는다. 클래스에
+    # @RequestMapping("/api/survey")를 걸고 메서드는 @GetMapping만 쓰는
+    # 컨트롤러가 있다(SurveyController) — 그때 주소는 클래스 쪽에 있다.
+    mapping_pattern = re.compile(
+        r'@(Get|Post|Put|Delete|Patch)Mapping(?:\("([^"]*)"\))?')
     base_pattern = re.compile(r'@RequestMapping\("([^"]+)"\)')
     declared_pattern = re.compile(
         r'^\s*@(?:Get|Post|Put|Delete|Patch|Request)Mapping\b', re.MULTILINE
@@ -208,7 +212,7 @@ def api_endpoints(paths: list[PurePosixPath]) -> list[str]:
         source = (ROOT / controller).read_text(encoding="utf-8")
         base_match = base_pattern.search(source)
         base = base_match.group(1) if base_match else ""
-        mappings = mapping_pattern.findall(source)
+        mappings = [(m, p or "") for m, p in mapping_pattern.findall(source)]
         declared = len(declared_pattern.findall(source))
         parsed = len(mappings) + (1 if base_match else 0)
         if declared != parsed:
@@ -221,7 +225,9 @@ def api_endpoints(paths: list[PurePosixPath]) -> list[str]:
             endpoints.append(f"{controller.name} 매핑은 코드 확인")
             continue
         for method, endpoint in mappings:
-            path = f"{base.rstrip('/')}/{endpoint.lstrip('/')}"
+            # 메서드에 경로가 없으면 클래스 경로가 곧 주소다.
+            path = (f"{base.rstrip('/')}/{endpoint.lstrip('/')}"
+                    if endpoint else (base or "/"))
             endpoints.append(f"{method.upper()} {path}")
     return sorted(endpoints)
 

@@ -14,9 +14,11 @@ api/settings.gradle
 api/src/main/java/com/discounttracker/DiscountApiApplication.java
 api/src/main/java/com/discounttracker/analytics/AnalyticsEventService.java
 api/src/main/java/com/discounttracker/analytics/ClientFingerprint.java
+api/src/main/java/com/discounttracker/analytics/CrawlerName.java
 api/src/main/java/com/discounttracker/analytics/EventController.java
 api/src/main/java/com/discounttracker/analytics/EventLog.java
 api/src/main/java/com/discounttracker/analytics/EventRateLimiter.java
+api/src/main/java/com/discounttracker/analytics/GifticonStore.java
 api/src/main/java/com/discounttracker/analytics/PostHogClient.java
 api/src/main/java/com/discounttracker/analytics/PostHogConfiguration.java
 api/src/main/java/com/discounttracker/analytics/PostHogDelivery.java
@@ -26,6 +28,10 @@ api/src/main/java/com/discounttracker/analytics/PostHogForwardingWorker.java
 api/src/main/java/com/discounttracker/analytics/PostHogOutbox.java
 api/src/main/java/com/discounttracker/analytics/PostHogProperties.java
 api/src/main/java/com/discounttracker/analytics/StatsController.java
+api/src/main/java/com/discounttracker/analytics/SurveyController.java
+api/src/main/java/com/discounttracker/analytics/SurveyEligibility.java
+api/src/main/java/com/discounttracker/analytics/SurveyService.java
+api/src/main/java/com/discounttracker/analytics/SurveyText.java
 api/src/main/java/com/discounttracker/analytics/TrafficStats.java
 api/src/main/java/com/discounttracker/analytics/TrafficStatsService.java
 api/src/main/java/com/discounttracker/analytics/VisitEvent.java
@@ -60,13 +66,18 @@ api/src/test/http/reloadRemoteServer.http
 api/src/test/java/com/discounttracker/DiscountApiApplicationTests.java
 api/src/test/java/com/discounttracker/analytics/AnalyticsEventServiceTest.java
 api/src/test/java/com/discounttracker/analytics/ClientFingerprintTest.java
+api/src/test/java/com/discounttracker/analytics/CrawlerNameTest.java
 api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogTest.java
+api/src/test/java/com/discounttracker/analytics/GifticonStoreTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogClientTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogForwardingWorkerTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogOutboxTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogPropertiesTest.java
+api/src/test/java/com/discounttracker/analytics/SurveyControllerTest.java
+api/src/test/java/com/discounttracker/analytics/SurveyEligibilityTest.java
+api/src/test/java/com/discounttracker/analytics/SurveyTextTest.java
 api/src/test/java/com/discounttracker/analytics/TrafficStatsServiceTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogTest.java
 api/src/test/java/com/discounttracker/brand/BrandCatalogTest.java
@@ -112,9 +123,11 @@ web/README.md
 web/index.html
 web/package-lock.json
 web/package.json
+web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
 web/scripts/verify-analytics-event-contract.mjs
 web/scripts/verify-analytics-event-id.mjs
+web/scripts/verify-brand-route.mjs
 web/scripts/verify-posthog-sdk.mjs
 web/scripts/verify-search-filters.mjs
 web/src/App.css
@@ -123,6 +136,7 @@ web/src/BrandSuggestions.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
 web/src/MenuBar.jsx
+web/src/SurveyCard.jsx
 web/src/TopBarA.jsx
 web/src/analytics-context.js
 web/src/analytics.js
@@ -136,6 +150,8 @@ web/src/logos.jsx
 web/src/main.jsx
 web/src/posthog.js
 web/src/privacy.js
+web/src/surveyDismiss.js
+web/src/surveyDismiss.test.js
 web/src/useBrandAutocomplete.js
 web/src/variant.js
 web/vercel.json
@@ -185,8 +201,8 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 76 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 35 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 87 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 40 |
 
 ### Tracker
 
@@ -211,7 +227,7 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 17 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 23 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 2 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
@@ -224,10 +240,12 @@ HTTP 경계:
 - `GET /api/banners`
 - `GET /api/brands`
 - `GET /api/stats/traffic`
+- `GET /api/survey`
 - `GET /api/test/brands`
 - `GET /api/test/faults`
 - `POST /api/events`
 - `POST /api/reload`
+- `POST /api/survey`
 
 ### Web
 
@@ -239,6 +257,7 @@ HTTP 경계:
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬을 고르는 바텀시트 |
 | `MenuBar.jsx` | 스크롤 중 따라오는 분류 바 |
+| `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `TopBarA.jsx` | A안 상단 바(앱 버튼·분류 캐러셀) |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
@@ -252,6 +271,8 @@ HTTP 경계:
 | `main.jsx` | React와 분석 도구 진입점 |
 | `posthog.js` | PostHog SDK 어댑터 |
 | `privacy.js` | DNT/GPC 추적 거부 판정 |
+| `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useBrandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `variant.js` | A/B 화면 갈래 배정 |
 
