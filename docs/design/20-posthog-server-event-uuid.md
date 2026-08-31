@@ -161,18 +161,18 @@ PostHogClient /batch/ 전송
 
 - PostHog 전송 실패: 기존 outbox 재시도 정책을 그대로 사용하며 저장된 payload의 UUID를 재사용한다.
 - `eventId` 누락 또는 잘못된 형식: 기존 `EventController`가 새 UUID를 발급한다.
-- 구형 outbox payload의 `uuid` 누락: 이번 변경의 구현 과정에서 역직렬화 동작을 확인하고 운영 배포에 영향을 주는 경우 후속 호환 방안을 제안한다.
+- 구형 outbox payload의 `uuid` 누락: 로딩 시 바깥 `PostHogDelivery.eventId`로 보완하고 첫 claim 저장부터 정규화된 payload를 사용한다.
+- payload의 기존 `uuid`와 바깥 `eventId` 불일치: 손상된 delivery로 판단해 dead-letter에 격리한다.
 
 ## 10. 테스트 전략
 
 - Unit: `PostHogEventMapperTest`에서 `uuid`, `$insert_id`, `VisitEvent.eventId`가 같은지 확인한다.
 - Integration: `PostHogClientTest`에서 `/batch/` 요청 JSON의 각 이벤트에 최상위 `uuid`가 포함되는지 확인한다.
-- Persistence: `PostHogOutboxTest`에서 저장 후 새 outbox 인스턴스로 복원한 payload의 UUID가 유지되는지 확인한다.
+- Persistence: `PostHogOutboxTest`에서 저장 후 복원한 UUID의 유지, 구형 payload의 UUID 보완, 불일치 payload의 격리를 확인한다.
 - Acceptance: 배포 후 같은 이벤트를 SDK와 서버 릴레이로 전송하고 PostHog에서 해당 `$insert_id`의 저장 행 수와 UUID를 확인한다.
 
 ## 11. 미해결 사항
 
-- 배포 전에 생성된 구형 outbox 파일에 `uuid`가 없을 때의 역직렬화 및 전송 동작을 구현 전에 확인한다.
 - 같은 UUID가 충돌할 때 SDK 이벤트의 속성이 우선 저장되는지는 이번 이슈에서 보장하지 않는다.
 
 ## Implementation Plan
@@ -187,9 +187,11 @@ PostHogClient /batch/ 전송
 
 - `api/src/main/java/com/discounttracker/analytics/PostHogEvent.java`: 최상위 `uuid` 필드 추가
 - `api/src/main/java/com/discounttracker/analytics/PostHogEventMapper.java`: `VisitEvent.eventId`를 최상위 `uuid`로 매핑
+- `api/src/main/java/com/discounttracker/analytics/PostHogDelivery.java`: 구형 payload 정규화 시 상태를 유지한 payload 교체 지원
+- `api/src/main/java/com/discounttracker/analytics/PostHogOutbox.java`: 구형 payload의 UUID 보완과 불일치 격리
 - `api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java`: UUID 매핑 검증 추가
 - `api/src/test/java/com/discounttracker/analytics/PostHogClientTest.java`: `/batch/` 요청의 최상위 UUID 직렬화 검증 추가
-- `api/src/test/java/com/discounttracker/analytics/PostHogOutboxTest.java`: 저장과 재로딩 후 UUID 유지 검증 추가
+- `api/src/test/java/com/discounttracker/analytics/PostHogOutboxTest.java`: 저장과 재로딩 후 UUID 유지, 구형 payload 호환, 불일치 격리 검증 추가
 - 기타 `PostHogEvent` 테스트 fixture: 새 생성자 인자 반영
 
 ## Tasks

@@ -66,6 +66,7 @@ public class PostHogOutbox {
             try {
                 delivery = mapper.readValue(path.toFile(), PostHogDelivery.class);
                 validatePersistedDelivery(path, delivery);
+                delivery = normalizePayloadUuid(delivery);
             } catch (IOException ex) {
                 quarantineCorrupt(path, ex);
                 continue;
@@ -188,6 +189,19 @@ public class PostHogOutbox {
         if (!path.getFileName().toString().equals(delivery.eventId() + ".json")) {
             throw new IllegalArgumentException("파일명과 eventId가 다른 PostHog delivery");
         }
+    }
+
+    private static PostHogDelivery normalizePayloadUuid(PostHogDelivery delivery) {
+        PostHogEvent payload = delivery.payload();
+        if (payload.uuid() == null || payload.uuid().isBlank()) {
+            PostHogEvent normalized = new PostHogEvent(
+                    delivery.eventId(), payload.event(), payload.properties(), payload.timestamp());
+            return delivery.withPayload(normalized);
+        }
+        if (!delivery.eventId().equals(payload.uuid())) {
+            throw new IllegalArgumentException("eventId와 uuid가 다른 PostHog delivery");
+        }
+        return delivery;
     }
 
     private static String abbreviate(String error) {
