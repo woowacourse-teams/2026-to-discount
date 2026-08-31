@@ -2838,3 +2838,28 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 }
 
 .survey-failed { margin: 0; font-size: .85rem; color: var(--pending-text); }
+
+/* 긴 금액 문구가 화면을 옆으로 밀지 않게 접는다.
+   ────────────────────────────────────────────────
+   칩(.offer__chip)에 white-space: nowrap이 걸려 있다. 짧은 "3,000원 할인"을
+   한 줄에 두려던 것인데, 금액을 못 읽어 rawText를 그대로 띄우는 칩에서는
+   그 줄이 통째로 길어진다(실측: "24,000원 이상 11,000원(포장) / 22,000원
+   이상 7,000원(배달)"이 532px, 폰 폭 372px).
+
+   그리드 칸은 min-width가 auto라 내용보다 좁아지지 못한다. 그래서 칸이
+   벌어지고 문서 전체에 가로 스크롤이 생겼다 — 상단 바까지 같이 밀려
+   검색칸이 잘렸다.
+
+   min-width를 풀어 칸이 좁아질 수 있게 하고, 금액만 접히게 한다. 짧은
+   문구는 어차피 한 줄에 들어가므로 보이는 모양이 안 바뀐다.
+   끊는 자리는 한국어에 맞춰 띄어쓰기를 먼저 쓰고(keep-all), 한 낱말이
+   칸보다 길 때만 안에서 끊는다(anywhere). */
+.brand-grid > * { min-width: 0; }
+.offer__chip { min-width: 0; }
+.offer__amount {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
