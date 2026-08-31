@@ -17,3 +17,11 @@ export async function fetchBanners() {
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json()
 }
+
+// 설문을 띄울지 서버에 묻는다. 판정이 서버에 있는 이유는 리워드다 —
+// 브라우저가 정하면 localStorage를 고쳐 아무나 기프티콘을 받아간다.
+export async function fetchSurveyStatus(visitorId) {
+  const res = await fetch(`${API_BASE}/api/survey?visitorId=${encodeURIComponent(visitorId)}`)
+  if (!res.ok) throw new Error(`API ${res.status}`)
+  return res.json()
+}

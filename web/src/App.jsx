@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { fetchBanners, fetchBrands } from './api.js'
+import { fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
@@ -10,6 +10,9 @@ import TopBarA from './TopBarA.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { uiVariant } from './variant.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
+import SurveyCard from './SurveyCard.jsx'
+import { shouldShow as surveyShouldShow } from './surveyDismiss.js'
+import { getAnalyticsContext } from './analytics-context.js'
 
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
@@ -669,6 +672,20 @@ export default function App() {
   const [brands, setBrands] = useState(null)
   const [banners, setBanners] = useState([])
   const [error, setError] = useState(null)
+  // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
+  const [surveyOn, setSurveyOn] = useState(false)
+
+  useEffect(() => {
+    // 브라우저가 이미 답했거나 두 번 닫았으면 서버에 묻지도 않는다.
+    if (!surveyShouldShow()) return
+    let alive = true
+    const { visitorId } = getAnalyticsContext()
+    fetchSurveyStatus(visitorId)
+      .then((s) => { if (alive) setSurveyOn(Boolean(s.eligible)) })
+      // 못 물어보면 안 띄운다. 설문이 안 뜨는 것은 사용자에게 아무 손해가 없다.
+      .catch(() => {})
+    return () => { alive = false }
+  }, [])
   // 앱·분류·정렬·검색을 한 덩어리로 든다. 시트가 draft를 만들어 통째로
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
@@ -1144,6 +1161,15 @@ export default function App() {
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className="brand-grid" key={gridKey}>
+          {/* 첫 줄 한 칸. 진입 즉시 보인다 — 대상 판정이 이미 필터라
+              시점으로 또 거를 이유가 없고, 재방문 세션의 63.1%는 어차피
+              아무것도 안 하고 나간다. */}
+          {surveyOn && (
+            <SurveyCard
+              visitorId={getAnalyticsContext().visitorId}
+              onClose={() => setSurveyOn(false)}
+            />
+          )}
           {visibleBrands.map((b) => (
             <BrandCard
               key={b.name}
