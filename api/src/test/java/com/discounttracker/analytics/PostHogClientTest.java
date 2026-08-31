@@ -53,6 +53,10 @@ class PostHogClientTest {
         assertEquals("project-token", body.get("api_key"));
         List<?> batch = (List<?>) body.get("batch");
         assertEquals(1, batch.size());
+        Map<?, ?> sentEvent = (Map<?, ?>) batch.get(0);
+        assertEquals("event-1", sentEvent.get("uuid"));
+        Map<?, ?> sentProperties = (Map<?, ?>) sentEvent.get("properties");
+        assertEquals(sentEvent.get("uuid"), sentProperties.get("$insert_id"));
         assertFalse(body.containsKey("historical_migration"));
     }
 
@@ -80,7 +84,7 @@ class PostHogClientTest {
     }
 
     private static PostHogEvent event() {
-        return new PostHogEvent("brand_expand",
+        return new PostHogEvent("event-1", "brand_expand",
                 Map.of("distinct_id", "visitor-1", "$insert_id", "event-1"),
                 "2026-08-14T00:00:00Z");
     }

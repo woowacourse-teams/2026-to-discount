@@ -27,6 +27,7 @@ class PostHogEventMapperTest {
 
         PostHogEvent mapped = mapper.map(source).orElseThrow();
 
+        assertEquals("event-1", mapped.uuid());
         assertEquals("$pageview", mapped.event());
         assertEquals("2026-08-14T02:00:00Z", mapped.timestamp());
         assertEquals("visitor-1", mapped.properties().get("distinct_id"));

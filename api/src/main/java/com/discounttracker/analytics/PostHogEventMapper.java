@@ -51,6 +51,7 @@ public class PostHogEventMapper {
         String eventName = "page_view".equals(source.event()) ? "$pageview" : source.event();
         String timestamp = timestamp(source.ts());
         return Optional.of(new PostHogEvent(
+                source.eventId(),
                 eventName,
                 Collections.unmodifiableMap(new LinkedHashMap<>(properties)),
                 timestamp));
