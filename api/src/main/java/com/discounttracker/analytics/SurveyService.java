@@ -86,9 +86,18 @@ public class SurveyService {
      *
      * <p>남은 코드도 같이 본다. 줄 것이 없는데 묻는 일이 없어야 한다 —
      * 리워드를 걸어 놓고 못 주면 안 묻느니만 못하다.
+     *
+     * <p>테스트 id만 그 규칙에서 뺀다. 화면을 확인하려는데 재고를 채워야
+     * 한다면, 확인하려고 진짜 코드를 하나 태우거나 가짜 코드를 넣었다가
+     * 지우는 일이 생긴다. 둘 다 실수가 나기 쉬운 자리다.
+     *
+     * <p>대신 재고가 없으면 응답은 실패한다({@code no_stock}) — 없는 코드를
+     * 지어내지 않는다. 그래서 이 우회로 확인할 수 있는 것은 카드가 뜨는
+     * 것과 보내기까지고, 발급은 재고가 있을 때만 확인된다.
      */
     public boolean eligible(String visitorId) {
-        if (gifticons.remaining() <= 0) return false;
+        boolean tester = testVisitors.contains(visitorId);
+        if (!tester && gifticons.remaining() <= 0) return false;
         return qualifies(visitorId);
     }
 

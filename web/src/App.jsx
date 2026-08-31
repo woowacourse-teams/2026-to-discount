@@ -71,6 +71,33 @@ const PLATFORM_BRAND_SEARCH_LINKS = {
 // /benefithub은 광고 SDK 딥링크다). 요기요만 확인돼 있고 그것은
 // PLATFORM_BRAND_SEARCH_LINKS에 있다.
 
+// 브랜드별 링크가 없는 앱을 그 앱의 오늘 행사 주소로 보낸다.
+//
+// 쿠팡이츠는 브랜드별 공유 링크가 하나도 없어(2026-08-31 기준 오퍼 25건
+// 전부) 앱 홈이 유일한 도착점이었다. 홈에서 슈퍼딜을 다시 찾아 들어가야
+// 하니, 그 화면으로 바로 보내는 편이 낫다.
+//
+// 주소를 코드에 박지 않는다. 허브 주소는 날짜를 달고 매일 바뀌는데
+// (V5_HUB_0831) 박아 두면 다음 날 "종료된 이벤트"로 떨어져 앱 홈만도
+// 못하다. 배너는 매일 갱신되므로 거기서 받아 쓴다.
+//
+// 아무 배너나 쓰면 안 된다. 배너 주소가 한 브랜드 전용 행사일 수 있고,
+// 그러면 파스쿠찌를 보러 온 사람이 두찜 행사로 간다. 여러 브랜드를 담은
+// 허브 주소만 고른다.
+const HUB_LINK_MARKERS = { coupangeats: 'V5_HUB_' }
+
+let hubLinks = {}
+
+export function setHubLinks(banners) {
+  const next = {}
+  for (const banner of banners ?? []) {
+    const marker = HUB_LINK_MARKERS[banner?.platform]
+    if (!marker || !banner.url || next[banner.platform]) continue
+    if (banner.url.includes(marker)) next[banner.platform] = banner.url
+  }
+  hubLinks = next
+}
+
 const CART_KEY = 'dk_cart'
 
 // 담기(모아보기)를 끔 스위치. 2026-08-25 비활성.
@@ -142,6 +169,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   const link = offer.link
     ?? brandLinks?.[offer.platform]
     ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
+    ?? hubLinks[offer.platform]
     ?? PLATFORM_APP_LINKS[offer.platform]
 
   const content = (
@@ -805,7 +833,11 @@ export default function App() {
   // 배너 실패는 삼킨다. 카드 그리드와 달리 배너는 부가 정보라, 못 불러왔다는
   // 사실을 화면에 띄울 이유가 없다 — 빈 목록과 같게 다룬다.
   useEffect(() => {
-    fetchBanners().then(setBanners).catch(() => setBanners([]))
+    // 배너를 받으면 허브 주소도 같이 갱신한다 — 브랜드별 링크가 없는
+    // 칩이 그 주소로 간다(setHubLinks 주석 참고).
+    fetchBanners()
+      .then((got) => { setHubLinks(got); setBanners(got) })
+      .catch(() => setBanners([]))
   }, [])
 
 
