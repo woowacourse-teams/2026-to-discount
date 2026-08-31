@@ -2820,6 +2820,8 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   cursor: pointer;
 }
 
+.survey-x:disabled { opacity: .4; cursor: default; }
+
 .survey-thanks { margin: 0; color: var(--text); }
 .survey-code-label { margin: 0; font-size: .82rem; color: var(--text-muted); }
 

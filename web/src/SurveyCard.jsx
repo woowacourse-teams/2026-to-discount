@@ -24,6 +24,9 @@ export default function SurveyCard({ visitorId, onClose }) {
   }, [])
 
   function close() {
+    // 보내는 중에는 닫지 않는다. 여기서 언마운트되면 서버가 이미 발급한
+    // 코드를 보여줄 자리가 사라진다 — 연락처를 안 받으므로 다시 줄 방법이 없다.
+    if (sending) return
     markDismissed()
     track('survey_dismiss')
     onClose()
@@ -36,7 +39,7 @@ export default function SurveyCard({ visitorId, onClose }) {
       const res = await fetch('/api/survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visitorId, choice: token, text: token === 'other' ? text : undefined }),
+        body: JSON.stringify({ visitorId, choice: token, text: token === 'other' ? text.trim() : undefined }),
       })
       const body = await res.json()
       if (body.ok) {
@@ -69,7 +72,8 @@ export default function SurveyCard({ visitorId, onClose }) {
 
   return (
     <div className="survey-card">
-      <button type="button" className="survey-x" onClick={close} aria-label="설문 닫기">×</button>
+      <button type="button" className="survey-x" onClick={close}
+              disabled={sending} aria-label="설문 닫기">×</button>
       <h3 className="survey-q">어떻게 쓰고 계신가요?</h3>
 
       <ul className="survey-choices">
