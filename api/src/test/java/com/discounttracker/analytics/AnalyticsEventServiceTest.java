@@ -91,7 +91,7 @@ class AnalyticsEventServiceTest {
     }
 
     private static PostHogEvent mapped() {
-        return new PostHogEvent("brand_expand",
+        return new PostHogEvent("event-1", "brand_expand",
                 Map.of("distinct_id", "visitor-1", "$insert_id", "event-1"),
                 "2026-08-14T02:00:00Z");
     }

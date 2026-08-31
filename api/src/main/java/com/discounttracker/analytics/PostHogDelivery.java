@@ -19,6 +19,11 @@ public record PostHogDelivery(
         return new PostHogDelivery(eventId, payload, 0, now.toEpochMilli(), null, null);
     }
 
+    PostHogDelivery withPayload(PostHogEvent nextPayload) {
+        return new PostHogDelivery(eventId, nextPayload, attemptCount,
+                nextAttemptAtEpochMs, lastError, failedAtEpochMs);
+    }
+
     boolean due(Instant now) {
         return nextAttemptAtEpochMs <= now.toEpochMilli();
     }
