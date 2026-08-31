@@ -105,8 +105,8 @@ export function createPostHogAdapter({
         // SDK 기본 기기·브라우저 속성과 Android 기기 모델 수집을 허용한다.
         disableDeviceModel: false,
         respect_dnt: true,
-        // 서버 릴레이와 클라이언트가 같은 이벤트를 둘 다 보낸다($insert_id가
-        // 같아 PostHog가 하나로 합친다). 둘 중 어느 쪽이 먼저 닿을지는
+        // 서버 릴레이와 클라이언트가 같은 이벤트를 둘 다 보낸다(같은 UUID를
+        // $insert_id로 설정해야 PostHog가 하나로 합친다). 둘 중 어느 쪽이 먼저 닿을지는
         // 정해져 있지 않으므로, person 처리 방침이 서로 달라선 안 된다.
         //
         // 'never'는 $process_person_profile: false를 실어 보낸다. 서버는

@@ -45,6 +45,39 @@ class EventControllerTest {
     }
 
     @Test
+    void acceptsBrandImpressionWithApprovedPropertiesAndContext() throws Exception {
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content(batch("""
+                            {"event":"brand_impression","visitorId":"v_impression",
+                             "sessionId":"s_impression","visitCount":2,"path":"/",
+                             "device":"mobile","viewport":"390x844","variant":"b",
+                             "props":{"brand":"교촌치킨","position":"4",
+                             "platforms":"baemin+ddangyo+yogiyo","category":"chicken",
+                             "fCategory":"all","fPlatforms":"4","fSearch":"false",
+                             "fCart":"false","fSaved":"true","fSort":"discount_desc"}}
+                            """)))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.accepted").value(1));
+
+        String loggedEvent = Files.readString(Path.of(logPath)).lines()
+                .filter(line -> line.contains("\"visitorId\":\"v_impression\""))
+                .reduce((first, second) -> second)
+                .orElseThrow();
+        assertTrue(loggedEvent.contains("\"event\":\"brand_impression\""));
+        assertTrue(loggedEvent.contains("\"brand\":\"교촌치킨\""));
+        assertTrue(loggedEvent.contains("\"position\":\"4\""));
+        assertTrue(loggedEvent.contains("\"platforms\":\"baemin+ddangyo+yogiyo\""));
+        assertTrue(loggedEvent.contains("\"category\":\"chicken\""));
+        assertTrue(loggedEvent.contains("\"fCategory\":\"all\""));
+        assertTrue(loggedEvent.contains("\"fPlatforms\":\"4\""));
+        assertTrue(loggedEvent.contains("\"fSearch\":\"false\""));
+        assertTrue(loggedEvent.contains("\"fCart\":\"false\""));
+        assertTrue(loggedEvent.contains("\"fSaved\":\"true\""));
+        assertTrue(loggedEvent.contains("\"fSort\":\"discount_desc\""));
+        assertTrue(loggedEvent.contains("\"variant\":\"b\""));
+    }
+
+    @Test
     void acceptsBrandSearchSubmittedWithoutRawQuery() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content(batch("""
