@@ -20,7 +20,11 @@ final class SurveyText {
 
     // 주민번호를 전화번호보다 먼저 지운다. 순서를 바꾸면 앞 6자리가 전화번호
     // 꼴에 안 걸려 뒷자리만 지워지고 생년월일이 남는다.
-    private static final Pattern RESIDENT = Pattern.compile("\\d{6}\\s*[-\\s]\\s*\\d{7}");
+    // 구분자를 선택으로 둔다. 필수로 두면 붙여 쓴 주민번호(9112253456789)가 통째로
+    // 빠져나간다 — 전화번호가 우연히 걸러 주는 경우가 있지만 그 13자리에 0이 없으면
+    // 아무것도 안 걸린다. 전화번호도 "하이픈 있든 없든" 둘 다 잡으므로 주민번호도
+    // 그렇게 해야 한다.
+    private static final Pattern RESIDENT = Pattern.compile("\\d{6}\\s*[-\\s]?\\s*\\d{7}");
     private static final Pattern EMAIL =
             Pattern.compile("[\\w.+-]+@[\\w-]+\\.[\\w.-]+");
     // 하이픈이 있든 없든, 국번이 3자리든 4자리든 잡는다.

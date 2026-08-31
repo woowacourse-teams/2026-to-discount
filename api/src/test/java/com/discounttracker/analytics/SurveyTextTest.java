@@ -46,4 +46,17 @@ class SurveyTextTest {
     void nullStaysNull() {
         assertNull(SurveyText.clean(null));
     }
+
+    /** 하이픈 없이 붙여 쓴 주민번호. 구분자를 필수로 두면 이게 통째로 빠져나간다. */
+    @Test
+    void stripsResidentNumbersWithoutSeparator() {
+        assertFalse(SurveyText.clean("9112253456789").contains("9112253456789"));
+    }
+
+    /** 금액이 섞인 정상 문장은 건드리지 않는다. 뭉개면 설문을 한 이유가 사라진다. */
+    @Test
+    void keepsAmountsInOrdinaryText() {
+        assertEquals("20,000원 이상 3,000원 할인",
+                SurveyText.clean("20,000원 이상 3,000원 할인"));
+    }
 }
