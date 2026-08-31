@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "discount.event-log-path=build/tmp/survey-events.jsonl",
         "discount.gifticons-path=build/tmp/survey-gifticons.yml",
+        "discount.survey.test-visitors=v_tester, v_spare",
 })
 class SurveyControllerTest {
 
@@ -158,5 +159,39 @@ class SurveyControllerTest {
 
         mvc.perform(get("/api/survey").param("visitorId", QUALIFIED))
            .andExpect(jsonPath("$.eligible").value(false));
+    }
+
+    /**
+     * 테스트 id는 접속일·전환수를 건너뛴다.
+     *
+     * <p>배포한 화면에서 개발자가 확인할 길이 없으면, 남의 visitorId를
+     * 빌려 쓰거나 원장에 가짜 방문을 심게 된다. 둘 다 되돌릴 수 없다.
+     */
+    @Test
+    void testVisitorSkipsThresholds() throws Exception {
+        mvc.perform(get("/api/survey").param("visitorId", "v_tester"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.eligible").value(true));
+    }
+
+    /** 목록에 없는 사람에게는 아무것도 안 열린다. */
+    @Test
+    void unlistedVisitorStaysBlocked() throws Exception {
+        mvc.perform(get("/api/survey").param("visitorId", "v_stranger"))
+           .andExpect(jsonPath("$.eligible").value(false));
+    }
+
+    /** 문턱만 건너뛴다. 1인 1회는 테스트 id에도 그대로 걸린다. */
+    @Test
+    void testVisitorStillAnswersOnlyOnce() throws Exception {
+        String body = """
+            {"visitorId":"v_tester","choice":"compare"}
+            """;
+        mvc.perform(post("/api/survey").contentType(MediaType.APPLICATION_JSON).content(body))
+           .andExpect(jsonPath("$.ok").value(true))
+           .andExpect(jsonPath("$.code").value("AAAA-1111"));
+        mvc.perform(post("/api/survey").contentType(MediaType.APPLICATION_JSON).content(body))
+           .andExpect(jsonPath("$.ok").value(false))
+           .andExpect(jsonPath("$.reason").value("not_eligible"));
     }
 }

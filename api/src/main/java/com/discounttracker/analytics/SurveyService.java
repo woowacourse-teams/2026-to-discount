@@ -2,15 +2,18 @@ package com.discounttracker.analytics;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 설문 대상 판정과 응답 처리. 순서만 정하고 실제 일은 셋에게 맡긴다.
@@ -32,11 +35,50 @@ public class SurveyService {
     private final GifticonStore gifticons;
     private final AnalyticsEventService events;
 
+    /**
+     * 접속일·전환수를 건너뛰고 대상으로 볼 visitorId.
+     *
+     * <p>배포한 화면에서 개발자가 설문을 열어 보려면 접속일 7일·전환 5회를
+     * 실제로 채운 사람이어야 한다. 그 조건을 채운 사람은 실사용자뿐이라,
+     * 확인하겠다고 남의 id를 쓰면 그 사람 몫의 기프티콘이 나가고 원장에
+     * 그 사람 이름으로 응답이 박힌다(1인 1회라 정작 본인은 못 받는다).
+     *
+     * <p>원장에 가짜 방문을 심는 방법도 있지만 원장은 append-only라 그
+     * 흔적이 영구히 남고 집계에 사람 한 명이 늘어난다.
+     *
+     * <p>그래서 서버 설정으로 목록을 둔다. 기본값이 비어 있어 아무에게도
+     * 안 열리고, 브라우저가 못 바꾼다 — 판정을 서버에 둔 이유가 그대로
+     * 지켜진다. 넘기는 것은 문턱 둘뿐이다: 1인 1회와 재고는 그대로 걸려서
+     * 실사용자와 같은 경로를 지난다.
+     */
+    private final Set<String> testVisitors;
+
     public SurveyService(SurveyEligibility eligibility, GifticonStore gifticons,
-                         AnalyticsEventService events) {
+                         AnalyticsEventService events,
+                         @Value("${discount.survey.test-visitors:}") String testVisitors) {
         this.eligibility = eligibility;
         this.gifticons = gifticons;
         this.events = events;
+        this.testVisitors = Arrays.stream(testVisitors.split(","))
+                .map(String::trim)
+                .filter(v -> !v.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
+        if (!this.testVisitors.isEmpty()) {
+            log.warn("설문 테스트 visitorId {}개가 열려 있다 — 확인이 끝나면 비운다",
+                    this.testVisitors.size());
+        }
+    }
+
+    /**
+     * 문턱을 넘었나. 테스트 id는 접속일·전환수만 건너뛴다.
+     *
+     * <p>1인 1회는 테스트 id에도 그대로 건다. 그래야 두 번째 응답이 막히는
+     * 것까지 실사용자와 같은 경로로 확인된다.
+     */
+    private boolean qualifies(String visitorId) {
+        SurveyEligibility.Counts counts = eligibility.count(visitorId);
+        if (testVisitors.contains(visitorId)) return !counts.answered();
+        return SurveyEligibility.qualifies(counts);
     }
 
     /**
@@ -47,7 +89,7 @@ public class SurveyService {
      */
     public boolean eligible(String visitorId) {
         if (gifticons.remaining() <= 0) return false;
-        return SurveyEligibility.qualifies(eligibility.count(visitorId));
+        return qualifies(visitorId);
     }
 
     /** 응답 결과. {@code code}는 성공했을 때만 채워진다. */
@@ -71,7 +113,7 @@ public class SurveyService {
         // 대상 여부와 재고는 서로 다른 이유다. 재고부터 보면 "이미 답해서
         // 대상이 아닌" 사람도 재고가 없을 때 no_stock으로 잘못 갈린다 —
         // 대상 판정(원장 기준)을 먼저, 재고는 그다음이다.
-        if (!SurveyEligibility.qualifies(eligibility.count(visitorId))) {
+        if (!qualifies(visitorId)) {
             return Answer.fail("not_eligible");
         }
         if (gifticons.remaining() <= 0) return Answer.fail("no_stock");
