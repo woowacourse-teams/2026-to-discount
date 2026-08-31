@@ -2727,3 +2727,114 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* A는 바가 한 줄이라 배너가 바에 바로 닿는다 — 30px 띄워 갈라 놓는다.
    B는 메뉴바까지 두 줄이라 이 여백이 필요 없다. */
 [data-variant="a"] .banner-slot { margin-top: 30px; }
+
+/* 설문 카드. 크기와 모서리를 브랜드 카드와 같게 해서 그리드 첫 줄에
+   끼워도 이물감이 없게 한다 — 배너 슬롯에 안 넣은 이유가 이것이다.
+   배너는 4.3초마다 넘어가는데 설문은 머물러야 한다.
+
+   색은 전부 :root 토큰에서 가져온다. 이 페이지는 color-scheme이
+   light dark라 값을 박아 넣으면 다크에서 흰 카드에 검은 글자가 남는다. */
+.survey-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 14px;
+  padding: 1.15rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(0, 0, 0, .06);
+}
+
+.survey-q {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.survey-choices {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.survey-choice {
+  width: 100%;
+  padding: .65rem .75rem;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.survey-choice:hover { background: var(--save-soft); }
+.survey-choice:disabled { opacity: .5; cursor: default; }
+
+.survey-other { display: flex; flex-direction: column; gap: .4rem; }
+.survey-other-label { font-size: .82rem; color: var(--text-muted); }
+
+.survey-other-input {
+  width: 100%;
+  padding: .5rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  resize: vertical;
+}
+
+.survey-send, .survey-close-btn {
+  align-self: flex-start;
+  padding: .5rem .9rem;
+  font: inherit;
+  color: var(--surface);
+  background: var(--save);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.survey-send:hover, .survey-close-btn:hover { background: var(--save-hover); }
+.survey-send:disabled { opacity: .4; cursor: default; }
+
+.survey-x {
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  width: 44px;
+  height: 44px;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.survey-x:disabled { opacity: .4; cursor: default; }
+
+.survey-thanks { margin: 0; color: var(--text); }
+.survey-code-label { margin: 0; font-size: .82rem; color: var(--text-muted); }
+
+/* 사용자가 번호를 받아 가는 유일한 자리다. 연락처를 안 받기로 했으니
+   여기서 놓치면 다시 줄 방법이 없다 — 크게, 통째로 선택되게 둔다. */
+.survey-code {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  user-select: all;
+}
+
+.survey-failed { margin: 0; font-size: .85rem; color: var(--pending-text); }

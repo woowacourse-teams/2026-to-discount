@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { fetchBanners, fetchBrands } from './api.js'
+import { fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
@@ -10,6 +10,9 @@ import TopBarA from './TopBarA.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { uiVariant } from './variant.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
+import SurveyCard from './SurveyCard.jsx'
+import { shouldShow as surveyShouldShow } from './surveyDismiss.js'
+import { getAnalyticsContext } from './analytics-context.js'
 
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
@@ -665,6 +668,24 @@ export default function App() {
   const [brands, setBrands] = useState(null)
   const [banners, setBanners] = useState([])
   const [error, setError] = useState(null)
+  // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
+  const [surveyOn, setSurveyOn] = useState(false)
+  // 발급된 기프티콘 번호. 카드가 아니라 여기에 둔다 — 카드는 필터가 바뀔 때마다
+  // 새로 마운트되는 상자(brand-grid) 안에 있어서, 카드가 들고 있으면 분류 한 번에
+  // 번호가 날아간다. 연락처를 안 받으므로 그러면 다시 줄 방법이 없다.
+  const [surveyCode, setSurveyCode] = useState(null)
+
+  useEffect(() => {
+    // 브라우저가 이미 답했거나 두 번 닫았으면 서버에 묻지도 않는다.
+    if (!surveyShouldShow()) return
+    let alive = true
+    const { visitorId } = getAnalyticsContext()
+    fetchSurveyStatus(visitorId)
+      .then((s) => { if (alive) setSurveyOn(Boolean(s.eligible)) })
+      // 못 물어보면 안 띄운다. 설문이 안 뜨는 것은 사용자에게 아무 손해가 없다.
+      .catch(() => {})
+    return () => { alive = false }
+  }, [])
   // 앱·분류·정렬·검색을 한 덩어리로 든다. 시트가 draft를 만들어 통째로
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
@@ -1133,14 +1154,25 @@ export default function App() {
         <a className="route-back" href="/">← 전체 브랜드 보기</a>
       )}
 
-      {visibleBrands && visibleBrands.length > 0 && (
+      {(surveyOn || (visibleBrands && visibleBrands.length > 0)) && (
         // key를 필터 키로 걸어 분류를 바꿀 때마다 이 상자를 새로 마운트한다
         // — 안 그러면 카드들이 자리를 지킨 채 내용만 뚝 바뀌어(리스트
         // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className="brand-grid" key={gridKey}>
-          {visibleBrands.map((b) => (
+          {/* 첫 줄 한 칸. 진입 즉시 보인다 — 대상 판정이 이미 필터라
+              시점으로 또 거를 이유가 없고, 재방문 세션의 63.1%는 어차피
+              아무것도 안 하고 나간다. */}
+          {surveyOn && (
+            <SurveyCard
+              visitorId={getAnalyticsContext().visitorId}
+              code={surveyCode}
+              onCode={setSurveyCode}
+              onClose={() => setSurveyOn(false)}
+            />
+          )}
+          {visibleBrands?.map((b) => (
             <BrandCard
               key={b.name}
               brand={b}

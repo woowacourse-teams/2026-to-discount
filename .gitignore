@@ -12,3 +12,6 @@ scripts/.events.jsonl
 
 # SDD 진행 기록(계획 실행용 스크래치).
 .superpowers/
+
+# 기프티콘 코드는 값을 가진 문자열이다. 서버에 직접 올리고 저장소에는 안 둔다.
+gifticons.yml
