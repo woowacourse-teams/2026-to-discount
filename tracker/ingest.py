@@ -66,6 +66,8 @@ def wins_after_ingest(fresh: list[dict], existing: list[dict]) -> dict:
 
 
 def main(argv: list[str]) -> int:
+    # 윈도우 기본 cp949로는 거절 사유의 한글·기호가 그대로 죽는다.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     args = [a for a in argv[1:] if not a.startswith("--")]
     dry_run = "--dry-run" in argv
     if not args:

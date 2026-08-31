@@ -9,6 +9,7 @@
 """
 import json
 from datetime import date, timedelta
+import re
 from pathlib import Path
 
 from store import read_records, latest_per_brand
@@ -269,12 +270,35 @@ def build_export(records: list[dict], today: str | None = None,
     """
     today = today or date.today().isoformat()
     sweeps = sweeps or {}
+    # 원장은 앱이 부르는 이름을 그대로 적는다. 같은 가게가 화면마다 다르게
+    # 불리면(열정국밥 / 열정충전해장국 — 쿠폰 제목을 브랜드명으로 잘못 읽어
+    # 생긴 이름이라 brands.yml이 별칭으로 합쳐 뒀다) 최신값 고르기가 둘을
+    # 별개로 봐서 양쪽이 다 살아남는다.
+    #
+    # 그러면 api가 별칭으로 합칠 때 오퍼는 하나로 접히는데 대표값
+    # (maxConfirmedAmount)은 둘을 다 세어, 화면 어디에도 없는 금액이 뜬다
+    # (실측 2026-08-31: 열정국밥 오퍼는 2,000원 하나인데 대표값 14,000원).
+    #
+    # 원장은 안 고친다 — 관측 기록이라 append-only다. 내보내는 것만 접는다.
+    canon = _canon_brand()
+    records = [{**r, "brand": canon.get(r.get("brand"), r.get("brand"))}
+               for r in records]
     latest = latest_per_brand(records)
+    # 최신 기록만 보면 "메뉴 한정"이 사라진다 — 화면마다 적는 말이 다르고
+    # 쿠폰함 목록에는 메뉴가 안 나온다. 원장 전체에서 한 번이라도 밝혀진
+    # 것을 이어받는다.
+    menu_keys = menu_limited_keys(records)
     out = []
     for record in latest.values():
         if not is_live(record, today) or is_stale_sweep(record, sweeps):
             continue
         item = {camel: record.get(snake) for snake, camel in FIELDS}
+        if (not item.get("qualifier")
+                and (canon.get(record.get("brand"), record.get("brand")),
+                     record.get("amount")) in menu_keys):
+            # 이미 붙어 있는 표식은 안 덮는다. "최적"·"최대"는 이 판정보다
+            # 구체적인 정보라 밀려나면 안 된다.
+            item["qualifier"] = "특정메뉴"
         item["tierMode"] = record.get("tier_mode") or "exclusive"
         item["tiers"] = camel_tiers(record.get("tiers"))
         # 추정 만료일은 원장에 없고 여기서 붙는다. 붙인 사실을 같이 실어
@@ -287,6 +311,68 @@ def build_export(records: list[dict], today: str | None = None,
             continue
         out.append(item)
     return out
+
+
+# 원문이 "메뉴 한정"이라고 밝히는 꼴. 앱마다 말이 다르다.
+#
+#   "4,000원 메뉴할인"                              배민·요기요가 대놓고 적는다
+#   "(순살) 참숯구이 1.5마리 (순살 반마리 증정)"     땡겨요는 메뉴를 나열한다
+MENU_LIMITED = re.compile(r"메뉴할인|메뉴 한정|\d+\s*마리|증정")
+
+
+def _canon_brand() -> dict:
+    """별칭 -> 대표명. brands.yml이 없으면 빈 표를 준다.
+
+    원장은 앱이 부르는 이름을 그대로 적는다 — 훌랄라는 땡겨요에서
+    "훌랄라참숯바베큐치킨", 배민 쿠폰함에서 "훌랄라참숯치킨"이다. 이름으로
+    맞추면 같은 쿠폰인데 다른 것으로 갈린다.
+    """
+    try:
+        from check_brands import BRANDS_YML
+        import yaml
+        data = yaml.safe_load(BRANDS_YML.read_text(encoding="utf-8"))["brands"]
+    except Exception as exc:                            # noqa: BLE001
+        # brands.yml을 못 찾아도 내보내기는 계속돼야 한다. 별칭을 못 접으면
+        # 판정이 덜 붙을 뿐이고, 그건 잘못 붙는 것보다 낫다.
+        #
+        # 다만 조용히 넘기지는 않는다. 처음 짤 때 io를 import 안 해서
+        # NameError가 났는데 except가 그걸 삼켰고, 별칭표가 빈 채로 돌아
+        # 훌랄라가 계속 안 잡혔다(2026-08-31). 이유를 안 보이면 못 고친다.
+        print(f"별칭표를 못 읽었다 — 대표명 합치기를 건너뛴다: {exc}")
+        return {}
+    out = {}
+    for name, body in data.items():
+        out[name] = name
+        for a in ((body or {}).get("aliases") or []):
+            out[a] = name
+    return out
+
+
+def menu_limited_keys(records: list[dict]) -> set[tuple]:
+    """메뉴 한정이라고 한 번이라도 적힌 (브랜드, 금액).
+
+    같은 쿠폰이 화면마다 다르게 적힌다. 훌랄라 12,100원은 땡겨요 브랜드관
+    에서 "(순살) 참숯구이 1.5마리 … 사용 가능"으로 잡혔는데, 배민 쿠폰함
+    에서는 "12,100원 배민클럽 훌랄라참숯치킨 할인"이 전부다 — 쿠폰함 목록
+    화면에 메뉴가 안 적히기 때문이다.
+
+    그래서 최신 기록만 보면 메뉴 한정이라는 사실이 사라진다. 실제로
+    2026-08-31 배포에서 훌랄라 12,100원이 아무 표식 없이 목록 최상단에
+    섰다 — 메뉴 하나에만 쓰는 쿠폰인데 브랜드 전체 할인처럼 보였다.
+
+    앱은 안 본다. 메뉴 한정은 브랜드가 정한 것이라 땡겨요에서 확인한
+    사실이 배민 쿠폰에도 그대로 적용된다. 브랜드명이 갈리는 경우
+    (훌랄라참숯바베큐치킨 / 훌랄라참숯치킨)는 원장이 이미 대표명으로
+    합쳐 준다.
+
+    금액까지 같아야 물려받는다. 같은 브랜드의 다른 금액 쿠폰은 메뉴
+    한정이 아닐 수 있어서다.
+    """
+    canon = _canon_brand()
+    return {(canon.get(r.get("brand"), r.get("brand")), r.get("amount"))
+            for r in records
+            if r.get("amount") is not None
+            and MENU_LIMITED.search(r.get("raw_text") or "")}
 
 
 def sorted_brand_names(records: list[dict]) -> list[str]:
