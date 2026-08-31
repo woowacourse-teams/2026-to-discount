@@ -12,15 +12,20 @@ const CHOICES = [
 
 const MAX_TEXT = 200
 
-export default function SurveyCard({ visitorId, onClose }) {
+// 카드는 필터가 바뀔 때마다 새로 마운트된다. 마운트마다 쏘면 노출 수가 부풀어
+// 응답률이 실제보다 낮게 보인다 — 한 번 본 것은 한 번으로 센다.
+let impressionSent = false
+
+export default function SurveyCard({ visitorId, code, onCode, onClose }) {
   const [choice, setChoice] = useState(null)
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
-  const [code, setCode] = useState(null)
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
+    if (impressionSent) return
     track('survey_impression')
+    impressionSent = true
   }, [])
 
   function close() {
@@ -46,7 +51,7 @@ export default function SurveyCard({ visitorId, onClose }) {
         // 답한 사람에게는 다시 안 묻는다. 서버도 원장으로 막지만, 여기서
         // 막아야 화면이 바로 조용해진다.
         markAnswered()
-        setCode(body.code)
+        onCode(body.code)
       } else {
         setFailed(true)
       }
@@ -59,7 +64,7 @@ export default function SurveyCard({ visitorId, onClose }) {
 
   if (code) {
     return (
-      <div className="survey-card survey-card--done">
+      <div className="survey-card">
         <p className="survey-thanks">답해주셔서 고맙습니다.</p>
         <p className="survey-code-label">기프티콘 번호</p>
         {/* 화면에 바로 보여준다 — 연락처를 안 받기로 했으니 이 자리가
@@ -100,7 +105,7 @@ export default function SurveyCard({ visitorId, onClose }) {
         </div>
       ) : (
         <button type="button" className="survey-choice survey-choice--other"
-                onClick={() => setChoice('other')}>
+                disabled={sending} onClick={() => setChoice('other')}>
           직접 입력
         </button>
       )}

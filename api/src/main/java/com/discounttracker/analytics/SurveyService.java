@@ -1,5 +1,7 @@
 package com.discounttracker.analytics;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -20,6 +22,8 @@ import java.util.UUID;
  */
 @Service
 public class SurveyService {
+
+    private static final Logger log = LoggerFactory.getLogger(SurveyService.class);
 
     /** 스펙이 정한 네 토큰. 자유 문자열을 받으면 세는 것이 안전하지 않다. */
     static final Set<String> CHOICES = Set.of("discount_info", "save_money", "compare", "other");
@@ -59,7 +63,11 @@ public class SurveyService {
      * <p>대상 판정을 여기서 다시 한다. {@code GET}에서 통과했다고 믿으면
      * 그 사이에 답한 사람이 한 번 더 받는다 — 판정은 쓰는 쪽에서 해야 한다.
      */
-    public Answer answer(String visitorId, String choice, String text, String ipHash) {
+    // synchronized: 판정(원장 조회)부터 기록(원장 기입)까지가 한 덩어리여야
+    // 동시 요청으로 같은 사람이 코드를 여러 개 받는 것을 막는다. 서버가
+    // 단일 인스턴스이고(스펙 전제) 설문 제출은 하루 몇 건이라 이 잠금이
+    // 병목이 되지 않는다.
+    public synchronized Answer answer(String visitorId, String choice, String text, String ipHash) {
         // 대상 여부와 재고는 서로 다른 이유다. 재고부터 보면 "이미 답해서
         // 대상이 아닌" 사람도 재고가 없을 때 no_stock으로 잘못 갈린다 —
         // 대상 판정(원장 기준)을 먼저, 재고는 그다음이다.
@@ -71,7 +79,15 @@ public class SurveyService {
         Optional<String> code = gifticons.issue(visitorId);
         if (code.isEmpty()) return Answer.fail("no_stock");
 
-        record(visitorId, choice, text, ipHash);
+        try {
+            record(visitorId, choice, text, ipHash);
+        } catch (RuntimeException ex) {
+            // 코드는 이미 발급 표시가 됐다. 여기서 실패했다고 안 주면 그 코드는
+            // 아무에게도 안 가고 사라진다 — 연락처를 안 받으므로 되찾을 방법이 없다.
+            // 사용자에게는 주고, 원장에 빠진 줄은 사람이 이 로그를 보고 맞춘다.
+            log.error("설문 응답을 원장에 남기지 못했다. 발급된 코드={} visitorId={}",
+                    code.get(), visitorId, ex);
+        }
         return new Answer(true, null, code.get());
     }
 

@@ -674,6 +674,10 @@ export default function App() {
   const [error, setError] = useState(null)
   // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
   const [surveyOn, setSurveyOn] = useState(false)
+  // 발급된 기프티콘 번호. 카드가 아니라 여기에 둔다 — 카드는 필터가 바뀔 때마다
+  // 새로 마운트되는 상자(brand-grid) 안에 있어서, 카드가 들고 있으면 분류 한 번에
+  // 번호가 날아간다. 연락처를 안 받으므로 그러면 다시 줄 방법이 없다.
+  const [surveyCode, setSurveyCode] = useState(null)
 
   useEffect(() => {
     // 브라우저가 이미 답했거나 두 번 닫았으면 서버에 묻지도 않는다.
@@ -1154,7 +1158,7 @@ export default function App() {
         <a className="route-back" href="/">← 전체 브랜드 보기</a>
       )}
 
-      {visibleBrands && visibleBrands.length > 0 && (
+      {(surveyOn || (visibleBrands && visibleBrands.length > 0)) && (
         // key를 필터 키로 걸어 분류를 바꿀 때마다 이 상자를 새로 마운트한다
         // — 안 그러면 카드들이 자리를 지킨 채 내용만 뚝 바뀌어(리스트
         // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
@@ -1167,10 +1171,12 @@ export default function App() {
           {surveyOn && (
             <SurveyCard
               visitorId={getAnalyticsContext().visitorId}
+              code={surveyCode}
+              onCode={setSurveyCode}
               onClose={() => setSurveyOn(false)}
             />
           )}
-          {visibleBrands.map((b) => (
+          {visibleBrands?.map((b) => (
             <BrandCard
               key={b.name}
               brand={b}
