@@ -2738,19 +2738,64 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: .8rem;
   background: var(--surface);
-  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  /* 카드가 배너 자리에서 떠 있어야 뒤 그리드와 안 섞인다 — 테두리를 브랜드
+     카드(14%)보다 진하게 준다. */
+  border: 1px solid color-mix(in srgb, var(--text) 26%, transparent);
   border-radius: 14px;
-  padding: 1.15rem;
+  /* 머리 띠가 모서리 밖으로 안 삐져나가게 자른다. */
+  overflow: hidden;
   box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(0, 0, 0, .06);
 }
 
+/* 지급 조건을 머리에 띠로 붙인다. 카드를 연 사람이 제일 먼저 보는 줄이
+   "왜 답해야 하는가"여야 한다.
+   배민 민트(#0bebd0) 원색에 흰 글씨는 대비가 2:1도 안 나온다. 색은
+   그대로 쓰되 22%만 어둡혀 흰 글씨가 읽히게 한다. */
+.survey-header {
+  margin: 0;
+  padding: .6rem 2.6rem .6rem .9rem;   /* 오른쪽은 × 자리 */
+  font-size: .9rem;
+  font-weight: 700;
+  color: #fff;
+  background: color-mix(in srgb, #0bebd0 78%, #000);
+}
+
+.survey-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.15rem;
+}
+
+.survey-section {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+/* 섹션 사이를 선으로 가른다 — 세 덩어리인 것이 스크롤 중에도 보여야 한다. */
+.survey-section + .survey-section {
+  padding-top: 1.1rem;
+  border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+}
+
 .survey-q {
+  display: flex;
+  align-items: baseline;
+  gap: .45rem;
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
   color: var(--text);
+}
+
+.survey-q__no {
+  flex: none;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .survey-choices {
@@ -2777,8 +2822,14 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .survey-choice:hover { background: var(--save-soft); }
 .survey-choice:disabled { opacity: .5; cursor: default; }
 
-.survey-other { display: flex; flex-direction: column; gap: .4rem; }
-.survey-other-label { font-size: .82rem; color: var(--text-muted); }
+/* 고른 것. 여러 섹션을 훑고 내려가므로 무엇을 골랐는지 남아 보여야 한다. */
+.survey-choice--on {
+  border-color: var(--text);
+  background: var(--save-soft);
+  color: var(--save-soft-ink);
+  font-weight: 600;
+}
+.survey-choice--on:hover { background: var(--save-soft); }
 
 .survey-other-input {
   width: 100%;
@@ -2805,15 +2856,16 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .survey-send:hover, .survey-close-btn:hover { background: var(--save-hover); }
 .survey-send:disabled { opacity: .4; cursor: default; }
 
+/* 머리 띠 위에 앉는다 — 띠가 색이라 글자색도 흰색이다. */
 .survey-x {
   position: absolute;
-  top: .5rem;
-  right: .5rem;
+  top: 0;
+  right: 0;
   width: 44px;
-  height: 44px;
+  height: 40px;
   font-size: 1.15rem;
   line-height: 1;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, .92);
   background: transparent;
   border: 0;
   border-radius: 8px;

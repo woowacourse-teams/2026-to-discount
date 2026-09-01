@@ -44,7 +44,8 @@ public class SurveyController {
             return ResponseEntity.badRequest().build();
         }
         SurveyService.Answer result = survey.answer(
-                body.visitorId(), body.choice(), body.text(), fingerprint.hash(request));
+                body.visitorId(), body.choice(), body.text(), body.answers(),
+                fingerprint.hash(request));
 
         // Map.of는 null 값을 못 담는다. 실패 응답에는 code가 없다.
         Map<String, Object> out = new LinkedHashMap<>();
@@ -54,7 +55,13 @@ public class SurveyController {
         return ResponseEntity.ok(out);
     }
 
-    /** 프론트가 보내는 모양. */
-    public record Submission(String visitorId, String choice, String text) {
+    /**
+     * 프론트가 보내는 모양.
+     *
+     * <p>{@code choice}는 첫 섹션, {@code answers}는 나머지 섹션이다. 문항이
+     * 늘어도 서버를 안 고치게 자유 맵으로 받는다 — 대신 값은 서버가 거른다.
+     */
+    public record Submission(String visitorId, String choice, String text,
+                             Map<String, String> answers) {
     }
 }

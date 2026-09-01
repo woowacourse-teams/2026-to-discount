@@ -1,24 +1,27 @@
 import { useState } from 'react'
 import { track } from './analytics.js'
 import { markAnswered, markDismissed } from './surveyDismiss.js'
-
-// 스펙이 정한 네 토큰과 화면 문구. 토큰은 원장에 그대로 들어가므로 바꾸면
-// 이전 응답과 못 합친다.
-const CHOICES = [
-  { token: 'discount_info', label: '할인 정보 보려고' },
-  { token: 'save_money', label: '배달비 아끼려고' },
-  { token: 'compare', label: '앱끼리 비교하려고' },
-]
+import { PRIMARY, REWARD_NOTICE, SECTIONS } from './surveyQuestions.js'
 
 const MAX_TEXT = 200
+const OTHER = 'other'
 
 // 노출(survey_impression)은 여기서 안 쏜다. 배너를 본 것이 노출이고 이
 // 카드는 그것을 연 뒤라, 여기서 쏘면 열어 본 사람만 노출로 세어진다
 // (SurveyDock이 쏜다).
 
+/**
+ * 문항은 surveyQuestions.js에 있다. 이 파일은 그리기와 보내기만 한다 —
+ * 물어볼 것을 바꾸는 사람과 화면을 고치는 사람이 같은 파일을 안 건드리게
+ * 갈라 둔 것이다.
+ *
+ * 서버 계약은 첫 섹션 하나만 필수다(choice). 나머지 섹션은 answers 맵으로
+ * 딸려 가고, 안 고른 섹션은 아예 안 보낸다 — 셋 다 필수로 만들면 세 번
+ * 답해야 기프티콘이 나오는 셈이라 중간에 나가는 사람이 늘어난다.
+ */
 export default function SurveyCard({ visitorId, code, onCode, onClose }) {
-  const [choice, setChoice] = useState(null)
-  const [text, setText] = useState('')
+  const [picked, setPicked] = useState({})   // 섹션 id -> token
+  const [texts, setTexts] = useState({})     // 섹션 id -> 직접 입력
   const [sending, setSending] = useState(false)
   const [failed, setFailed] = useState(false)
 
@@ -31,14 +34,38 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
     onClose()
   }
 
-  async function submit(token) {
-    if (sending) return
+  function pick(sectionId, token) {
+    setPicked((prev) => ({ ...prev, [sectionId]: token }))
+  }
+
+  async function submit() {
+    const primary = picked[PRIMARY.id]
+    if (sending || !primary) return
     setSending(true)
+
+    // 첫 섹션은 choice로, 나머지는 answers로 간다. 'other'를 고른 섹션은
+    // 적은 글을 같이 실어 보낸다(<id>_text). 서버가 지울 것 지우고 적는다.
+    const answers = {}
+    for (const s of SECTIONS) {
+      const token = picked[s.id]
+      if (!token) continue
+      if (s.id !== PRIMARY.id) answers[s.id] = token
+      if (token === OTHER) {
+        const body = (texts[s.id] || '').trim()
+        if (body) answers[`${s.id}_text`] = body
+      }
+    }
+
     try {
       const res = await fetch('/api/survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visitorId, choice: token, text: token === 'other' ? text.trim() : undefined }),
+        body: JSON.stringify({
+          visitorId,
+          choice: primary,
+          text: primary === OTHER ? (texts[PRIMARY.id] || '').trim() : undefined,
+          answers,
+        }),
       })
       const body = await res.json()
       if (body.ok) {
@@ -59,52 +86,72 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
   if (code) {
     return (
       <div className="survey-card">
-        <p className="survey-thanks">답해주셔서 고맙습니다.</p>
-        <p className="survey-code-label">기프티콘 번호</p>
-        {/* 화면에 바로 보여준다 — 연락처를 안 받기로 했으니 이 자리가
-            사용자가 번호를 받는 유일한 곳이다. */}
-        <p className="survey-code">{code}</p>
-        <button type="button" className="survey-close-btn" onClick={onClose}>닫기</button>
+        <p className="survey-header">{REWARD_NOTICE}</p>
+        <div className="survey-body">
+          <p className="survey-thanks">답해주셔서 고맙습니다.</p>
+          <p className="survey-code-label">기프티콘 번호</p>
+          {/* 화면에 바로 보여준다 — 연락처를 안 받기로 했으니 이 자리가
+              사용자가 번호를 받는 유일한 곳이다. */}
+          <p className="survey-code">{code}</p>
+          <button type="button" className="survey-close-btn" onClick={onClose}>닫기</button>
+        </div>
       </div>
     )
   }
 
   return (
     <div className="survey-card">
+      <p className="survey-header">{REWARD_NOTICE}</p>
       <button type="button" className="survey-x" onClick={close}
               disabled={sending} aria-label="설문 닫기">×</button>
-      <h3 className="survey-q">어떻게 쓰고 계신가요?</h3>
 
-      <ul className="survey-choices">
-        {CHOICES.map((c) => (
-          <li key={c.token}>
-            <button type="button" className="survey-choice" disabled={sending}
-                    onClick={() => submit(c.token)}>
-              {c.label}
-            </button>
-          </li>
+      <div className="survey-body">
+        {SECTIONS.map((s, i) => (
+          <section key={s.id} className="survey-section">
+            <h3 className="survey-q">
+              <span className="survey-q__no">{i + 1}</span>
+              {s.title}
+            </h3>
+
+            <ul className="survey-choices">
+              {s.options.map((o) => (
+                <li key={o.token}>
+                  <button type="button" disabled={sending}
+                          className={'survey-choice'
+                            + (picked[s.id] === o.token ? ' survey-choice--on' : '')}
+                          onClick={() => pick(s.id, o.token)}>
+                    {o.label}
+                  </button>
+                </li>
+              ))}
+              {s.other && (
+                <li>
+                  <button type="button" disabled={sending}
+                          className={'survey-choice'
+                            + (picked[s.id] === OTHER ? ' survey-choice--on' : '')}
+                          onClick={() => pick(s.id, OTHER)}>
+                    직접 입력
+                  </button>
+                </li>
+              )}
+            </ul>
+
+            {s.other && picked[s.id] === OTHER && (
+              <textarea className="survey-other-input" maxLength={MAX_TEXT} rows={3}
+                        aria-label={`${s.title} 직접 입력`}
+                        value={texts[s.id] || ''}
+                        onChange={(e) => setTexts((p) => ({ ...p, [s.id]: e.target.value }))} />
+            )}
+          </section>
         ))}
-      </ul>
 
-      {choice === 'other' ? (
-        <div className="survey-other">
-          <label className="survey-other-label" htmlFor="survey-other-input">직접 입력</label>
-          <textarea id="survey-other-input" className="survey-other-input"
-                    maxLength={MAX_TEXT} rows={3} value={text}
-                    onChange={(e) => setText(e.target.value)} />
-          <button type="button" className="survey-send" disabled={sending || !text.trim()}
-                  onClick={() => submit('other')}>
-            보내기
-          </button>
-        </div>
-      ) : (
-        <button type="button" className="survey-choice survey-choice--other"
-                disabled={sending} onClick={() => setChoice('other')}>
-          직접 입력
+        <button type="button" className="survey-send"
+                disabled={sending || !picked[PRIMARY.id]} onClick={submit}>
+          {sending ? '보내는 중…' : '보내고 쿠폰 받기'}
         </button>
-      )}
 
-      {failed && <p className="survey-failed">지금은 참여할 수 없습니다.</p>}
+        {failed && <p className="survey-failed">지금은 참여할 수 없습니다.</p>}
+      </div>
     </div>
   )
 }

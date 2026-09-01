@@ -31,6 +31,9 @@ public class SurveyService {
     /** 스펙이 정한 네 토큰. 자유 문자열을 받으면 세는 것이 안전하지 않다. */
     static final Set<String> CHOICES = Set.of("discount_info", "save_money", "compare", "other");
 
+    /** 첫 섹션 밖의 답을 몇 개까지 원장에 적을지. 문항이 늘어도 줄이 안 부푼다. */
+    static final int MAX_ANSWERS = 12;
+
     private final SurveyEligibility eligibility;
     private final GifticonStore gifticons;
     private final AnalyticsEventService events;
@@ -118,7 +121,8 @@ public class SurveyService {
     // 동시 요청으로 같은 사람이 코드를 여러 개 받는 것을 막는다. 서버가
     // 단일 인스턴스이고(스펙 전제) 설문 제출은 하루 몇 건이라 이 잠금이
     // 병목이 되지 않는다.
-    public synchronized Answer answer(String visitorId, String choice, String text, String ipHash) {
+    public synchronized Answer answer(String visitorId, String choice, String text,
+                                      Map<String, String> answers, String ipHash) {
         // 대상 여부와 재고는 서로 다른 이유다. 재고부터 보면 "이미 답해서
         // 대상이 아닌" 사람도 재고가 없을 때 no_stock으로 잘못 갈린다 —
         // 대상 판정(원장 기준)을 먼저, 재고는 그다음이다.
@@ -131,7 +135,7 @@ public class SurveyService {
         if (code.isEmpty()) return Answer.fail("no_stock");
 
         try {
-            record(visitorId, choice, text, ipHash);
+            record(visitorId, choice, text, answers, ipHash);
         } catch (RuntimeException ex) {
             // 코드는 이미 발급 표시가 됐다. 여기서 실패했다고 안 주면 그 코드는
             // 아무에게도 안 가고 사라진다 — 연락처를 안 받으므로 되찾을 방법이 없다.
@@ -149,12 +153,24 @@ public class SurveyService {
      * 경로는 인증이 없어 누구나 위조할 수 있고, 그러면 응답 수와 발급 수가
      * 어긋나 설문 결과를 못 믿게 된다.
      */
-    private void record(String visitorId, String choice, String text, String ipHash) {
+    private void record(String visitorId, String choice, String text,
+                        Map<String, String> answers, String ipHash) {
         Map<String, String> props = new LinkedHashMap<>();
         props.put("choice", choice);
         String cleaned = SurveyText.clean(text);
         if ("other".equals(choice) && cleaned != null && !cleaned.isBlank()) {
             props.put("text", cleaned);
+        }
+        // 둘째 섹션부터는 여기로 온다. 프론트가 문항을 늘려도 서버를 안 고치게
+        // 키를 검증하지 않고 받되, 원장 줄이 부풀지 않게 개수와 키 모양은 막는다.
+        // 값은 전부 SurveyText를 통과한다 — 어느 섹션에 자유 입력이 붙든
+        // 주민번호·전화번호가 원장에 닿지 않게 하려는 것이다.
+        if (answers != null) {
+            answers.entrySet().stream()
+                    .filter(e -> e.getKey() != null && e.getKey().matches("[a-z0-9_]{1,40}"))
+                    .filter(e -> e.getValue() != null && !e.getValue().isBlank())
+                    .limit(MAX_ANSWERS)
+                    .forEach(e -> props.put("q_" + e.getKey(), SurveyText.clean(e.getValue())));
         }
         events.append(List.of(new VisitEvent(
                 OffsetDateTime.now().toString(), "survey_answer", visitorId,

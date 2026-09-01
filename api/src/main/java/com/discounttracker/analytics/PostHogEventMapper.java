@@ -30,7 +30,10 @@ public class PostHogEventMapper {
             source.props().forEach((key, value) -> {
                 // 설문 자유 입력은 밖으로 안 보낸다. 원장에는 거른 뒤 남기지만,
                 // 제3자 도구로 넘기는 것은 스펙이 정한 개인정보 처리 범위 밖이다.
-                if ("survey_answer".equals(source.event()) && "text".equals(key)) return;
+                // 첫 섹션은 "text", 나머지 섹션은 SurveyService가 "q_<id>_text"로
+                // 적는다 — 문항이 늘어도 이 규칙 하나로 다 걸러진다.
+                if ("survey_answer".equals(source.event())
+                        && ("text".equals(key) || key.endsWith("_text"))) return;
                 if (!blank(key) && value != null) properties.put(key, value);
             });
         }
