@@ -719,6 +719,15 @@ export default function App() {
   const [surveyCode, setSurveyCode] = useState(null)
 
   useEffect(() => {
+    // 개발자 콘솔에서 이 브라우저만 강제로 띄우는 문. 서버 대상 판정도
+    // 안 묻는다 — 재고·조건과 무관하게 화면만 보고 싶을 때 쓴다.
+    //   localStorage.setItem('dk_survey_force', '1')
+    // 끌 때: localStorage.removeItem('dk_survey_force')
+    // 다른 사용자에겐 아무 영향 없다 — localStorage는 이 브라우저 안에만 있다.
+    if (localStorage.getItem('dk_survey_force') === '1') {
+      setSurveyOn(true)
+      return
+    }
     // 브라우저가 이미 답했거나 두 번 닫았으면 서버에 묻지도 않는다.
     if (!surveyShouldShow()) return
     let alive = true
