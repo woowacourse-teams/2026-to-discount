@@ -152,13 +152,16 @@ class SurveyControllerTest {
         assertFalse(all.contains("010-1234-5678"));
     }
 
-    /** 코드가 소진되면 설문 자체가 내려가야 한다. */
+    /**
+     * 코드가 소진돼도 설문은 그대로 뜬다 — 응답 자체는 재고와 무관하게
+     * 값이 있다. 예전엔 여기서 막아 다섯 문항 채운 사람 답조차 못 받았다.
+     */
     @Test
-    void noStockMakesSurveyIneligible() throws Exception {
+    void noStockStillLeavesSurveyEligible() throws Exception {
         Files.writeString(Path.of(gifticonPath), "gifticons: []\n", StandardCharsets.UTF_8);
 
         mvc.perform(get("/api/survey").param("visitorId", QUALIFIED))
-           .andExpect(jsonPath("$.eligible").value(false));
+           .andExpect(jsonPath("$.eligible").value(true));
     }
 
     /**
@@ -195,23 +198,19 @@ class SurveyControllerTest {
            .andExpect(jsonPath("$.reason").value("not_eligible"));
     }
 
-    /**
-     * 재고가 없어도 테스트 id에는 뜬다.
-     *
-     * <p>화면을 확인하려고 진짜 코드를 태우거나 가짜 코드를 넣었다 지우는
-     * 일이 없어야 한다.
-     */
+    /** 재고가 없어도 테스트 id에는 뜬다(실제 사람과 마찬가지로). */
     @Test
     void testVisitorSeesSurveyWithoutStock() throws Exception {
         Files.writeString(Path.of(gifticonPath), "gifticons: []\n", StandardCharsets.UTF_8);
 
         mvc.perform(get("/api/survey").param("visitorId", "v_tester"))
            .andExpect(jsonPath("$.eligible").value(true));
-        mvc.perform(get("/api/survey").param("visitorId", QUALIFIED))
-           .andExpect(jsonPath("$.eligible").value(false));
     }
 
-    /** 그래도 없는 코드를 지어내지는 않는다. */
+    /**
+     * 없는 코드를 지어내지는 않지만, 응답 자체는 받는다(ok=true) —
+     * 재고가 없다고 다섯 문항 채운 답을 버리지 않는다.
+     */
     @Test
     void testVisitorStillGetsNoCodeWithoutStock() throws Exception {
         Files.writeString(Path.of(gifticonPath), "gifticons: []\n", StandardCharsets.UTF_8);
@@ -220,7 +219,7 @@ class SurveyControllerTest {
                         .content("""
                             {"visitorId":"v_tester","choice":"compare"}
                             """))
-           .andExpect(jsonPath("$.ok").value(false))
+           .andExpect(jsonPath("$.ok").value(true))
            .andExpect(jsonPath("$.reason").value("no_stock"));
     }
 }

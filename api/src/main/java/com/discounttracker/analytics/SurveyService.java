@@ -87,20 +87,12 @@ public class SurveyService {
     /**
      * 지금 이 사람에게 설문을 띄울까.
      *
-     * <p>남은 코드도 같이 본다. 줄 것이 없는데 묻는 일이 없어야 한다 —
-     * 리워드를 걸어 놓고 못 주면 안 묻느니만 못하다.
-     *
-     * <p>테스트 id만 그 규칙에서 뺀다. 화면을 확인하려는데 재고를 채워야
-     * 한다면, 확인하려고 진짜 코드를 하나 태우거나 가짜 코드를 넣었다가
-     * 지우는 일이 생긴다. 둘 다 실수가 나기 쉬운 자리다.
-     *
-     * <p>대신 재고가 없으면 응답은 실패한다({@code no_stock}) — 없는 코드를
-     * 지어내지 않는다. 그래서 이 우회로 확인할 수 있는 것은 카드가 뜨는
-     * 것과 보내기까지고, 발급은 재고가 있을 때만 확인된다.
+     * <p>남은 코드는 안 본다. 예전엔 재고 0이면 아예 안 띄웠는데, 그러면
+     * 다섯 문항을 채운 사람 답조차 못 받는다 — 답 자체는 재고와 무관하게
+     * 값이 있고, 보상은 재고가 차면 나중에라도 줄 수 있다(answer() 참고,
+     * rewarded=false인 응답은 answered로 안 쳐 다시 시도할 수 있다).
      */
     public boolean eligible(String visitorId) {
-        boolean tester = testVisitors.contains(visitorId);
-        if (!tester && gifticons.remaining() <= 0) return false;
         return qualifies(visitorId);
     }
 
@@ -123,27 +115,33 @@ public class SurveyService {
     // 병목이 되지 않는다.
     public synchronized Answer answer(String visitorId, String choice, String text,
                                       Map<String, String> answers, String ipHash) {
-        // 대상 여부와 재고는 서로 다른 이유다. 재고부터 보면 "이미 답해서
-        // 대상이 아닌" 사람도 재고가 없을 때 no_stock으로 잘못 갈린다 —
-        // 대상 판정(원장 기준)을 먼저, 재고는 그다음이다.
         if (!qualifies(visitorId)) {
             return Answer.fail("not_eligible");
         }
-        if (gifticons.remaining() <= 0) return Answer.fail("no_stock");
 
+        // 재고가 없어도 응답은 받는다 — 예전엔 여기서 no_stock으로 막아
+        // 다섯 문항을 다 채운 사람 답을 그대로 버렸다(원장에 한 줄도
+        // 안 남았다). 응답은 항상 남기고, 보상만 있으면 준다.
+        //
+        // 보상을 못 준 응답은 "답했다"로 안 친다 — rewarded=false는
+        // SurveyEligibility가 세는 answered에서 빠진다(qualifies() 참고).
+        // 그래야 재고가 다시 차면 같은 사람이 다시 시도해 보상을 받을 수
+        // 있다. 응답 자체(선택·직접 입력)는 중복돼도 집계에서 걸러 내면
+        // 되고, 보상을 영영 놓치는 것보다 낫다.
         Optional<String> code = gifticons.issue(visitorId);
-        if (code.isEmpty()) return Answer.fail("no_stock");
 
         try {
-            record(visitorId, choice, text, answers, ipHash);
+            record(visitorId, choice, text, answers, code.isPresent(), ipHash);
         } catch (RuntimeException ex) {
-            // 코드는 이미 발급 표시가 됐다. 여기서 실패했다고 안 주면 그 코드는
-            // 아무에게도 안 가고 사라진다 — 연락처를 안 받으므로 되찾을 방법이 없다.
-            // 사용자에게는 주고, 원장에 빠진 줄은 사람이 이 로그를 보고 맞춘다.
+            // 코드는 이미 발급 표시가 됐는데 원장에 못 남았다. 여기서
+            // 실패로 돌리면 그 코드는 아무에게도 안 가고 사라진다 —
+            // 연락처를 안 받으므로 되찾을 방법이 없다. 사용자에게는 주고,
+            // 빠진 줄은 사람이 이 로그를 보고 맞춘다.
             log.error("설문 응답을 원장에 남기지 못했다. 발급된 코드={} visitorId={}",
-                    code.get(), visitorId, ex);
+                    code.orElse(null), visitorId, ex);
         }
-        return new Answer(true, null, code.get());
+        return code.map(c -> new Answer(true, null, c))
+                .orElseGet(() -> new Answer(true, "no_stock", null));
     }
 
     /**
@@ -154,9 +152,12 @@ public class SurveyService {
      * 어긋나 설문 결과를 못 믿게 된다.
      */
     private void record(String visitorId, String choice, String text,
-                        Map<String, String> answers, String ipHash) {
+                        Map<String, String> answers, boolean rewarded, String ipHash) {
         Map<String, String> props = new LinkedHashMap<>();
         props.put("choice", choice);
+        // SurveyEligibility가 이 값으로 "답했다"를 가린다 — 보상을 못 받은
+        // 응답은 여기 false로 남아 다음에 재고가 차면 다시 시도할 수 있다.
+        props.put("rewarded", String.valueOf(rewarded));
         String cleaned = SurveyText.clean(text);
         if ("other".equals(choice) && cleaned != null && !cleaned.isBlank()) {
             props.put("text", cleaned);

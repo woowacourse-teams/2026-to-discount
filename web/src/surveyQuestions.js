@@ -37,24 +37,28 @@ export const SECTIONS = [
     ],
   },
   {
+    // 목적(purpose)만으로는 안 잡히는 시점을 묻는다 — "왜 쓰는지"와
+    // "언제 켜는지"는 다른 신호다. 뭘 먹을지부터 못 정한 사람과, 이미
+    // 정하고 최고가만 찾는 사람은 화면에서 원하는 게 다르다.
     id: 'when',
     title: '주로 언제 쓰시나요?',
     other: true,
     options: [
-      { token: 'before_app', label: '배달 앱 켜기 전에 미리' },
-      { token: 'already_decided', label: '먹을 걸 정해두고 쿠폰만 확인' },
-      { token: 'comparing', label: '여러 앱 가격 비교하면서' },
+      { token: 'undecided', label: '뭐 먹을지 못 정했을 때' },
+      { token: 'best_deal', label: '가장 큰 할인을 찾을 때' },
+      { token: 'weekly', label: '매주 한 번씩 정기적으로' },
+      { token: 'daily', label: '거의 매일 습관처럼' },
     ],
   },
   {
     id: 'priority',
-    title: '카드에서 제일 먼저 보시는 건요?',
+    title: '가장 중요하다 생각하는 정보는?',
     other: true,
     options: [
       { token: 'amount', label: '할인 금액' },
-      { token: 'min_order', label: '최소주문금액' },
-      { token: 'expiry', label: '남은 기간' },
-      { token: 'cheapest_app', label: '어느 앱이 제일 싼지' },
+      { token: 'condition', label: '조건(최소주문금액 등)' },
+      { token: 'limited', label: '선착순·한정수량 여부' },
+      { token: 'platform', label: '어느 배달 앱인지' },
     ],
   },
   {
@@ -63,16 +67,18 @@ export const SECTIONS = [
     other: true,
     options: [
       { token: 'few_brands', label: '브랜드가 적다' },
-      { token: 'stale', label: '정보가 낡았다' },
+      { token: 'stale', label: '이미 끝난 할인이 그대로 남아있다' },
       { token: 'hard_to_find', label: '원하는 걸 찾기 어렵다' },
     ],
   },
   {
+    // 만들 수 있거나 이미 신호가 잡힌 것만 넣는다 — 답을 받아도 어차피
+    // 못 만들 것을 물으면 기대만 심고 못 지킨다.
     id: 'wish',
-    title: '다음에 생기면 좋겠는 기능은요?',
+    title: '앞으로 있었으면 하는 기능이 있다면?',
     other: true,
     options: [
-      { token: 'brand_alert', label: '관심 브랜드 알림' },
+      { token: 'brand_alert', label: '관심 브랜드 새 할인 알림' },
       { token: 'favorites', label: '즐겨찾기 저장' },
       { token: 'region_filter', label: '지역별 필터' },
       { token: 'expiry_alert', label: '할인 만료 임박 알림' },

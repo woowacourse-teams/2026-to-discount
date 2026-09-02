@@ -2869,9 +2869,12 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   border-radius: 10px;
   cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
 }
 
 .survey-choice:hover { background: var(--save-soft); }
+.survey-choice:active:not(:disabled) { transform: scale(.98); }
+.survey-choice:focus-visible { outline: 2px solid #00c2ff; outline-offset: 1px; }
 .survey-choice:disabled { opacity: .5; cursor: default; }
 
 /* 고른 것. 여러 섹션을 훑고 내려가므로 무엇을 골랐는지 남아 보여야 한다. */
@@ -2920,8 +2923,11 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   border: 0;
   border-radius: 8px;
   cursor: pointer;
+  transition: filter 150ms ease, transform 100ms ease;
 }
 .survey-send:hover:not(:disabled) { filter: brightness(1.08); }
+.survey-send:active:not(:disabled) { transform: scale(.97); }
+.survey-send:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
 .survey-send:disabled { opacity: .4; cursor: default; }
 
 .survey-nav {
@@ -2938,10 +2944,14 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   color: var(--text-muted);
   background: transparent;
   border: 0;
+  border-radius: 6px;
   cursor: pointer;
+  transition: color 150ms ease, transform 100ms ease;
 }
 .survey-nav__back:disabled { visibility: hidden; }
 .survey-nav__back:hover:not(:disabled) { color: var(--text); }
+.survey-nav__back:active:not(:disabled) { transform: scale(.96); }
+.survey-nav__back:focus-visible { outline: 2px solid #00c2ff; outline-offset: 1px; }
 
 /* 헤더·테두리와 같은 그라데이션 — 카드 안에서 색이 두 갈래로 안 갈리게. */
 .survey-nav__next {
@@ -2952,13 +2962,21 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   border: 0;
   border-radius: 8px;
   cursor: pointer;
+  transition: filter 150ms ease, transform 100ms ease;
 }
 .survey-nav__next:hover:not(:disabled) { filter: brightness(1.08); }
+.survey-nav__next:active:not(:disabled) { transform: scale(.97); }
+.survey-nav__next:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
 .survey-nav__next:disabled { opacity: .4; cursor: default; }
 
 .survey-nav .survey-send { align-self: auto; }
 
+.survey-close-btn {
+  transition: background-color 150ms ease, transform 100ms ease;
+}
 .survey-close-btn:hover { background: var(--save-hover); }
+.survey-close-btn:active { transform: scale(.97); }
+.survey-close-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* 머리 띠 위에 앉는다 — 띠가 색이라 글자색도 흰색이다. */
 .survey-x {
@@ -2974,12 +2992,17 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   border: 0;
   border-radius: 8px;
   cursor: pointer;
+  transition: background-color 150ms ease, transform 100ms ease;
 }
 
+.survey-x:hover:not(:disabled) { background: rgba(255, 255, 255, .16); }
+.survey-x:active:not(:disabled) { transform: scale(.9); }
+.survey-x:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
 .survey-x:disabled { opacity: .4; cursor: default; }
 
 .survey-thanks { margin: 0; color: var(--text); }
 .survey-code-label { margin: 0; font-size: .82rem; color: var(--text-muted); }
+.survey-nostock { margin: 0; font-size: .9rem; color: var(--text-muted); }
 
 /* 사용자가 번호를 받아 가는 유일한 자리다. 연락처를 안 받기로 했으니
    여기서 놓치면 다시 줄 방법이 없다 — 크게, 통째로 선택되게 둔다. */
@@ -3127,8 +3150,10 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   border: 0;
   border-radius: 0 14px 14px 0;
   cursor: pointer;
+  transition: background-color 150ms ease, transform 100ms ease;
 }
 .survey-dock__close:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+.survey-dock__close:active { transform: scale(.9); }
 .survey-dock__close:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
 
 @media (max-width: 24rem) {

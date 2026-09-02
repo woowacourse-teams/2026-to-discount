@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { markAnswered, markDismissed } from './surveyDismiss.js'
-import { PRIMARY, REWARD_NOTICE, SECTIONS } from './surveyQuestions.js'
+import { PRIMARY, SECTIONS } from './surveyQuestions.js'
 
 const MAX_TEXT = 200
 const OTHER = 'other'
@@ -10,6 +10,16 @@ const LAST_STEP = SECTIONS.length - 1
 // 노출(survey_impression)은 여기서 안 쏜다. 배너를 본 것이 노출이고 이
 // 카드는 그것을 연 뒤라, 여기서 쏘면 열어 본 사람만 노출로 세어진다
 // (SurveyDock이 쏜다).
+
+function HeaderIcon() {
+  return (
+    <svg className="survey-header__icon" aria-hidden="true" width="18" height="18"
+         viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+         strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  )
+}
 
 /**
  * 문항은 surveyQuestions.js에 있다. 이 파일은 그리기와 보내기만 한다 —
@@ -29,6 +39,20 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
   const [texts, setTexts] = useState({})     // 섹션 id -> 직접 입력
   const [sending, setSending] = useState(false)
   const [failed, setFailed] = useState(false)
+  // 재고가 없어 코드는 못 받았지만 응답은 갔을 때. code prop과 갈라 둔다 —
+  // code는 App이 들고 있어 필터가 바뀌어도 살아남아야 하지만(잃으면 다시
+  // 줄 방법이 없다), 이건 잃어도 그만이다(재고가 차면 다시 시도하면 된다).
+  const [noStockDone, setNoStockDone] = useState(false)
+  const cardRef = useRef(null)
+
+  // 배너를 눌러 이 카드가 그리드에 나타나는 순간 화면이 카드로 와야 한다 —
+  // 그리드 맨 앞칸이라 화면 밖(스크롤 위쪽)일 수 있고, 눌렀는데 아무
+  // 반응이 없어 보이는 것이 제일 나쁘다. focus까지 옮겨 키보드 사용자도
+  // 바로 문항에 닿게 한다.
+  useEffect(() => {
+    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    cardRef.current?.focus({ preventScroll: true })
+  }, [])
 
   function close() {
     // 보내는 중에는 닫지 않는다. 여기서 언마운트되면 서버가 이미 발급한
@@ -74,11 +98,16 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
         }),
       })
       const body = await res.json()
-      if (body.ok) {
+      if (body.ok && body.code) {
         // 답한 사람에게는 다시 안 묻는다. 서버도 원장으로 막지만, 여기서
         // 막아야 화면이 바로 조용해진다.
         markAnswered()
         onCode(body.code)
+      } else if (body.ok) {
+        // 재고가 없어 코드가 없다(reason: no_stock) — 서버는 이 경우
+        // "답했다"로 안 치므로(rewarded=false) 여기서도 markAnswered를
+        // 안 부른다. 재고가 차면 다시 열어 받을 수 있어야 한다.
+        setNoStockDone(true)
       } else {
         setFailed(true)
       }
@@ -91,8 +120,8 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
 
   if (code) {
     return (
-      <div className="survey-card">
-        <p className="survey-header">{REWARD_NOTICE}</p>
+      <div className="survey-card" ref={cardRef} tabIndex={-1}>
+        <p className="survey-header"><HeaderIcon />어떻게 쓰고 계신가요?</p>
         <div className="survey-body">
           <p className="survey-thanks">답해주셔서 고맙습니다.</p>
           {/* gifticons.yml에 넣는 값이 코드 문자열일 수도, 링크일 수도
@@ -118,23 +147,26 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
     )
   }
 
+  if (noStockDone) {
+    return (
+      <div className="survey-card" ref={cardRef} tabIndex={-1}>
+        <p className="survey-header"><HeaderIcon />어떻게 쓰고 계신가요?</p>
+        <div className="survey-body">
+          <p className="survey-thanks">답해주셔서 고맙습니다.</p>
+          <p className="survey-code-label">지금은 쿠폰이 소진됐어요</p>
+          <p className="survey-nostock">쿠폰이 채워지면 여기서 다시 받으실 수 있어요.</p>
+          <button type="button" className="survey-close-btn" onClick={onClose}>닫기</button>
+        </div>
+      </div>
+    )
+  }
+
   const atLast = step === LAST_STEP
   const canGoNext = SECTIONS[step].id !== PRIMARY.id || Boolean(picked[PRIMARY.id])
 
   return (
-    <div className="survey-card">
-      <p className="survey-header">
-        {/* 지급 안내 문구 대신 질문 자체를 헤더에 건다 — 배너(닫히기 전
-            알약)가 이미 "답하면 배민 쿠폰 지급"을 말하고 열었으니,
-            카드 안에서 또 반복할 필요가 없다. 아이콘은 "말 걸고 있다"는
-            신호다. */}
-        <svg className="survey-header__icon" aria-hidden="true" width="18" height="18"
-             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-             strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-        어떻게 쓰고 계신가요?
-      </p>
+    <div className="survey-card" ref={cardRef} tabIndex={-1}>
+      <p className="survey-header"><HeaderIcon />어떻게 쓰고 계신가요?</p>
       <button type="button" className="survey-x" onClick={close}
               disabled={sending} aria-label="설문 닫기">×</button>
 
@@ -168,9 +200,18 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
                 )}
               </ul>
 
-              {s.other && picked[s.id] === OTHER && (
+              {/* 자리를 늘 잡아 둔다 — 골랐다 뺐다 할 때마다 카드 높이가
+                  바뀌면 바로 아래 진행 막대·버튼이 같이 튀어 시선이
+                  흔들린다. display가 아니라 visibility로만 접어서 이
+                  섹션이 다른 섹션보다 얕아 보이는 것도 막는다(트랙 안
+                  섹션들은 같은 화면 폭을 나눠 쓸 뿐 서로 높이를 맞출
+                  이유가 없지만, 이 섹션 자체는 열렸다 닫혔다 해도 자기
+                  키를 지켜야 한다). */}
+              {s.other && (
                 <textarea className="survey-other-input" maxLength={MAX_TEXT} rows={3}
                           aria-label={`${s.title} 직접 입력`}
+                          aria-hidden={picked[s.id] !== OTHER}
+                          style={{ visibility: picked[s.id] === OTHER ? 'visible' : 'hidden' }}
                           value={texts[s.id] || ''}
                           onChange={(e) => setTexts((p) => ({ ...p, [s.id]: e.target.value }))} />
               )}

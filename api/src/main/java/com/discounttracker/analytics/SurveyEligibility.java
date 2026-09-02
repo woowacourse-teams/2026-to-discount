@@ -77,7 +77,15 @@ public class SurveyEligibility {
                 if (!node.path("bot").isNull() && node.hasNonNull("bot")) continue;
 
                 String event = text(node, "event");
-                if ("survey_answer".equals(event)) answered = true;
+                // 보상을 못 받은 응답(rewarded=false)은 답한 것으로 안 친다 —
+                // 재고가 없어 코드를 못 준 것뿐이라, 재고가 차면 같은 사람이
+                // 다시 시도해 보상을 받을 수 있어야 한다(SurveyService.answer
+                // 참고). 이 필드가 아예 없는 옛 줄(재고로 막던 시절에 쌓인
+                // 것)은 전부 보상이 있었으니 true로 본다.
+                if ("survey_answer".equals(event)
+                        && !"false".equals(text(node.path("props"), "rewarded"))) {
+                    answered = true;
+                }
 
                 String ts = text(node, "ts");
                 if (ts != null && ts.length() >= 10) days.add(ts.substring(0, 10));
