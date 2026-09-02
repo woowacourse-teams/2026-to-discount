@@ -2770,6 +2770,9 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 지급 조건을 머리에 띠로 붙인다. 카드를 연 사람이 제일 먼저 보는 줄이
    "왜 답해야 하는가"여야 한다. 테두리와 같은 그라데이션 계열로 묶는다. */
 .survey-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
   margin: 0;
   padding: 1rem 2.9rem 1rem 1.1rem;   /* 오른쪽은 × 자리 */
   font-size: 1.15rem;
@@ -2779,6 +2782,8 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   background: linear-gradient(100deg, #0bebd0, #00c2ff 55%, #7b5cff);
   text-shadow: 0 1px 8px rgba(0, 0, 0, .18);
 }
+
+.survey-header__icon { flex: none; opacity: .9; }
 
 .survey-body {
   display: flex;
@@ -2870,13 +2875,18 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .survey-choice:disabled { opacity: .5; cursor: default; }
 
 /* 고른 것. 여러 섹션을 훑고 내려가므로 무엇을 골랐는지 남아 보여야 한다. */
+/* 헤더·테두리와 같은 계열(민트→시안→바이올렛)을 옅게 깔아 고른 것임을
+   보여준다 — 진하게 칠하면 카드 안에서 또 다른 강조색이 하나 늘어난다. */
 .survey-choice--on {
-  border-color: var(--text);
-  background: var(--save-soft);
-  color: var(--save-soft-ink);
+  border-color: color-mix(in srgb, #00c2ff 55%, transparent);
+  background: linear-gradient(100deg,
+    color-mix(in srgb, #0bebd0 14%, var(--surface)),
+    color-mix(in srgb, #00c2ff 14%, var(--surface)) 55%,
+    color-mix(in srgb, #7b5cff 14%, var(--surface)));
+  color: var(--text);
   font-weight: 600;
 }
-.survey-choice--on:hover { background: var(--save-soft); }
+.survey-choice--on:hover { filter: brightness(.98); }
 
 .survey-other-input {
   width: 100%;
@@ -2889,7 +2899,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   resize: vertical;
 }
 
-.survey-send, .survey-close-btn {
+.survey-close-btn {
   align-self: flex-start;
   padding: .5rem .9rem;
   font: inherit;
@@ -2899,6 +2909,20 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   border-radius: 8px;
   cursor: pointer;
 }
+
+/* 마지막 화면의 제출 버튼 — 다음 버튼과 같은 자리, 같은 그라데이션. */
+.survey-send {
+  align-self: flex-start;
+  padding: .5rem .9rem;
+  font: inherit;
+  color: #fff;
+  background: linear-gradient(100deg, #0bebd0, #00c2ff 55%, #7b5cff);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.survey-send:hover:not(:disabled) { filter: brightness(1.08); }
+.survey-send:disabled { opacity: .4; cursor: default; }
 
 .survey-nav {
   display: flex;
@@ -2919,22 +2943,22 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .survey-nav__back:disabled { visibility: hidden; }
 .survey-nav__back:hover:not(:disabled) { color: var(--text); }
 
+/* 헤더·테두리와 같은 그라데이션 — 카드 안에서 색이 두 갈래로 안 갈리게. */
 .survey-nav__next {
   padding: .5rem 1.1rem;
   font: inherit;
   color: #fff;
-  background: color-mix(in srgb, #0bebd0 78%, #000);
+  background: linear-gradient(100deg, #0bebd0, #00c2ff 55%, #7b5cff);
   border: 0;
   border-radius: 8px;
   cursor: pointer;
 }
-.survey-nav__next:hover:not(:disabled) { background: color-mix(in srgb, #0bebd0 88%, #000); }
+.survey-nav__next:hover:not(:disabled) { filter: brightness(1.08); }
 .survey-nav__next:disabled { opacity: .4; cursor: default; }
 
 .survey-nav .survey-send { align-self: auto; }
 
-.survey-send:hover, .survey-close-btn:hover { background: var(--save-hover); }
-.survey-send:disabled { opacity: .4; cursor: default; }
+.survey-close-btn:hover { background: var(--save-hover); }
 
 /* 머리 띠 위에 앉는다 — 띠가 색이라 글자색도 흰색이다. */
 .survey-x {

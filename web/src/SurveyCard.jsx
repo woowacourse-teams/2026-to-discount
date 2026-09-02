@@ -123,19 +123,22 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
 
   return (
     <div className="survey-card">
-      <p className="survey-header">{REWARD_NOTICE}</p>
+      <p className="survey-header">
+        {/* 지급 안내 문구 대신 질문 자체를 헤더에 건다 — 배너(닫히기 전
+            알약)가 이미 "답하면 배민 쿠폰 지급"을 말하고 열었으니,
+            카드 안에서 또 반복할 필요가 없다. 아이콘은 "말 걸고 있다"는
+            신호다. */}
+        <svg className="survey-header__icon" aria-hidden="true" width="18" height="18"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+             strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        어떻게 쓰고 계신가요?
+      </p>
       <button type="button" className="survey-x" onClick={close}
               disabled={sending} aria-label="설문 닫기">×</button>
 
       <div className="survey-body">
-        <div className="survey-progress">
-          <span className="survey-progress__count">{step + 1} / {SECTIONS.length}</span>
-          <div className="survey-progress__bar">
-            <div className="survey-progress__fill"
-                 style={{ width: `${((step + 1) / SECTIONS.length) * 100}%` }} />
-          </div>
-        </div>
-
         <div className="survey-viewport">
         <div className="survey-track" style={{ transform: `translateX(-${step * 100}%)` }}>
           {SECTIONS.map((s) => (
@@ -174,6 +177,14 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
             </section>
           ))}
         </div>
+        </div>
+
+        <div className="survey-progress">
+          <span className="survey-progress__count">{step + 1} / {SECTIONS.length}</span>
+          <div className="survey-progress__bar">
+            <div className="survey-progress__fill"
+                 style={{ width: `${((step + 1) / SECTIONS.length) * 100}%` }} />
+          </div>
         </div>
 
         <div className="survey-nav">
