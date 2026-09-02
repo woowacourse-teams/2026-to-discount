@@ -235,7 +235,6 @@ export default function EventBanner({ banners }) {
   const [topVisible, setTopVisible] = useState(true)
   const [dismissed, setDismissed] = useState(readDismissed)
   const topRef = useRef(null)
-  const dockRef = useRef(null)
   // 같은 장을 한 번만 센다. 캐러셀은 앞뒤로 오갈 수 있고 하단 배너는
   // 스크롤을 오르내릴 때마다 다시 들어온다 — 그때마다 세면 노출이
   // 실제보다 몇 배로 부풀어 클릭률이 무의미해진다. 위/아래는 따로 센다.
@@ -318,19 +317,16 @@ export default function EventBanner({ banners }) {
     return () => io.disconnect()
   }, [count])
 
-  // 하단에 떠 있는 다른 것들(설문 배너 등)이 이 배너를 가리지 않으려면
-  // 실제 높이를 알아야 한다 — 내용(extra 유무, 두 줄로 접히는지)에 따라
-  // 달라져 고정값을 쓸 수 없다. :root 변수로 내놓고 안 떠 있을 때는
-  // 0으로 돌려 자리를 안 잡아먹게 한다.
+  // 이 배너가 하단에 떠 있는 동안은 설문 알약도 같이 하단에 뜨려 하면
+  // 둘이 같은 좁은 자리를 다툰다. 높이만큼 밀어 올리는 것으로 처음
+  // 고쳤더니, 배너가 두 줄로 접히는 좁은 화면(실측 375px)에서 밀린
+  // 거리가 카드 영역까지 들어가 브랜드 카드를 가렸다 — 값을 안 재고
+  // 넓은 창에서만 확인한 채 넘긴 결과다. 자리를 다투게 두는 대신 이
+  // 배너가 떠 있는 동안은 설문 알약을 그냥 숨긴다.
   useEffect(() => {
-    const el = dockRef.current
-    if (!el) return
-    const set = (h) => document.documentElement.style.setProperty('--banner-dock-h', `${h}px`)
-    if (topVisible || dismissed) { set(0); return }
-    if (typeof ResizeObserver === 'undefined') { set(el.offsetHeight); return }
-    const ro = new ResizeObserver(([entry]) => set(entry.contentRect.height))
-    ro.observe(el)
-    return () => ro.disconnect()
+    document.documentElement.classList.toggle(
+      'has-bottom-banner', !topVisible && !dismissed)
+    return () => document.documentElement.classList.remove('has-bottom-banner')
   }, [topVisible, dismissed])
 
   if (count === 0) return null
@@ -376,7 +372,6 @@ export default function EventBanner({ banners }) {
           되돌아올 때 내려가는 전환이 안 보인다. 안 보일 때는
           visibility:hidden이라 탭 순서에서도 빠진다(App.css). */}
       <div
-        ref={dockRef}
         className={`banner-dock ${!topVisible && !dismissed ? 'banner-dock--shown' : ''}`}
         {...hoverProps}
       >
