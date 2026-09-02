@@ -78,6 +78,29 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
   pointer-events: none;
 }
 
+/* ?dev=1 표시. 코너에 접힌 리본처럼 걸어 둔다 — 다른 조작 요소와
+   안 겹치는 유일하게 빈 자리라서다. 클릭할 일이 없으므로
+   pointer-events:none으로 밑에 있는 것(검색·필터 버튼 등)이 눌리게
+   둔다. title-bar(z-index 60)보다도 위에 둬 늘 보이게 한다. */
+.dev-badge {
+  position: fixed;
+  top: .35rem;
+  right: -1.6rem;
+  z-index: 70;
+  transform: rotate(45deg);
+  width: 6rem;
+  padding: .12rem 0;
+  text-align: center;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #e0454a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+  pointer-events: none;
+}
+
 /* 로고 줄과 분류/카테고리/검색을 한 통짜리 sticky 바로 묶는다(title-bar).
    main 바깥(문서 최상위)에 두므로 100vw·음수 margin 같은 full-bleed
    트릭이 필요 없다 — 그 트릭은 모바일 브라우저에서 sticky를 깨뜨리는
