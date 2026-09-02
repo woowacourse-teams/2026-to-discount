@@ -43,6 +43,12 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
   // code는 App이 들고 있어 필터가 바뀌어도 살아남아야 하지만(잃으면 다시
   // 줄 방법이 없다), 이건 잃어도 그만이다(재고가 차면 다시 시도하면 된다).
   const [noStockDone, setNoStockDone] = useState(false)
+  // 마지막 문항에 막 도착했을 때는 제출을 잠깐 잠근다. key를 갈라 DOM
+  // 노드는 새로 만들지만, 그것만으로는 "다음을 연타하다 마지막 탭이
+  // 제출로 들어가는" 것을 못 막는다 — 손가락이 이미 그 자리를 향해
+  // 내려오는 중이라 새 버튼이 그 탭을 받는다. 눈으로 문구가 바뀐 것을
+  // 볼 시간을 준다.
+  const [armed, setArmed] = useState(false)
   const cardRef = useRef(null)
 
   // 배너를 눌러 이 카드가 그리드에 나타나는 순간 화면이 카드로 와야 한다 —
@@ -77,6 +83,14 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
   function pick(sectionId, token) {
     setPicked((prev) => ({ ...prev, [sectionId]: token }))
   }
+
+  // 마지막 문항에 닿고 나서 잠깐 뒤에 제출을 연다. 그 전으로 돌아가면
+  // 다시 잠근다 — 되돌아왔다 다시 오는 경우에도 같은 유예를 준다.
+  useEffect(() => {
+    if (step !== LAST_STEP) { setArmed(false); return }
+    const id = window.setTimeout(() => setArmed(true), 600)
+    return () => window.clearTimeout(id)
+  }, [step])
 
   async function submit() {
     const primary = picked[PRIMARY.id]
@@ -244,13 +258,21 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
                   onClick={() => setStep((s) => s - 1)}>
             이전
           </button>
+          {/* key를 갈라 둔다. 둘 다 <button>이라 React가 같은 DOM 노드를
+              재사용하는데, 그러면 마지막 문항에 닿는 순간 "다음"이던 그
+              버튼이 자리도 모양도 그대로인 채 제출 버튼이 된다 — 연타하던
+              손가락의 마지막 탭이 그대로 제출로 들어간다(2026-09-02 실측:
+              누른 적 없다는 제출로 링크가 하나 나갔다). key가 다르면 노드를
+              새로 만들어 그 연속성이 끊긴다. */}
           {atLast ? (
-            <button type="button" className="survey-send"
-                    disabled={sending || !picked[PRIMARY.id]} onClick={submit}>
+            <button key="send" type="button" className="survey-send"
+                    disabled={sending || !armed || !picked[PRIMARY.id]}
+                    onClick={submit}>
               {sending ? '보내는 중…' : '보내고 쿠폰 받기'}
             </button>
           ) : (
-            <button type="button" className="survey-nav__next" disabled={!canGoNext || sending}
+            <button key="next" type="button" className="survey-nav__next"
+                    disabled={!canGoNext || sending}
                     onClick={() => setStep((s) => s + 1)}>
               다음
             </button>
