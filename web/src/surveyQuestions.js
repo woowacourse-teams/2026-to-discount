@@ -16,7 +16,7 @@
  */
 
 /** 카드 머리에 붙는 띠. 지급 조건이 바뀌면 이 줄만 고친다. */
-export const REWARD_NOTICE = '응답시 배민 1,000 쿠폰 지급!'
+export const REWARD_NOTICE = '응답해 주시면 배민 1,000원 쿠폰 지급'
 
 export const SECTIONS = [
   {
