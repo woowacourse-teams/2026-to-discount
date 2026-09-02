@@ -2969,6 +2969,20 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   user-select: all;
 }
 
+/* 코드 대신 사람마다 다른 1회용 링크를 줄 때 쓴다. 문자열로 복사하는
+   대신 바로 눌러 열게 — 링크는 외워 옮겨 적을 수 있는 값이 아니다. */
+.survey-code-link {
+  align-self: flex-start;
+  padding: .6rem 1.1rem;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: color-mix(in srgb, #0bebd0 78%, #000);
+  border-radius: 8px;
+  text-decoration: none;
+}
+.survey-code-link:hover { background: color-mix(in srgb, #0bebd0 88%, #000); }
+
 .survey-failed { margin: 0; font-size: .85rem; color: var(--pending-text); }
 
 /* 긴 금액 문구가 화면을 옆으로 밀지 않게 접는다.

@@ -158,7 +158,11 @@ React 18 + Vite 5, **정적 `dist/`**. 라우터·SSR·API 라우트 안 씀.
 - 판정과 발급은 전부 서버가 한다 — 리워드가 걸린 판정을 브라우저에 두면
   `localStorage`를 고쳐 누구나 받아간다.
 - `GET /api/survey?visitorId=` 로 띄울지 묻고, `POST /api/survey` 로 답한다.
-- 코드는 `gifticons.yml`(jar 밖, 저장소에 없음). 소진되면 설문이 저절로 내려간다.
+- 값은 `gifticons.yml`(jar 밖, 저장소에 없음). 소진되면 설문이 저절로 내려간다.
+  코드 문자열이든 사람마다 다른 1회용 링크든 그대로 담아 두면 된다 —
+  서버는 값을 보지 않고 그대로 내준다. 배민 기프티콘은 코드 발급이
+  까다로워 실제로는 링크 쪽을 쓴다. 프론트는 `http`로 시작하면 버튼으로,
+  아니면 문자열로 보여준다(`web/src/SurveyCard.jsx`).
 - 원장에 `survey_impression`·`survey_dismiss`(프론트)와 `survey_answer`(서버)가 쌓인다.
 - 자유 입력은 200자 상한에 전화·이메일·주민번호를 서버가 지운다.
 

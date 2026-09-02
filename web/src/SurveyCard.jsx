@@ -95,10 +95,23 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
         <p className="survey-header">{REWARD_NOTICE}</p>
         <div className="survey-body">
           <p className="survey-thanks">답해주셔서 고맙습니다.</p>
-          <p className="survey-code-label">기프티콘 번호</p>
-          {/* 화면에 바로 보여준다 — 연락처를 안 받기로 했으니 이 자리가
-              사용자가 번호를 받는 유일한 곳이다. */}
-          <p className="survey-code">{code}</p>
+          {/* gifticons.yml에 넣는 값이 코드 문자열일 수도, 링크일 수도
+              있다 — 배민 기프티콘은 코드 발급이 까다로워 사람마다 다른
+              1회용 링크 쪽이 현실적이다. 어느 쪽이든 이 화면 하나로
+              받는다(연락처를 안 받으므로 다시 줄 방법이 없다). */}
+          {code.startsWith('http') ? (
+            <>
+              <p className="survey-code-label">쿠폰 링크</p>
+              <a className="survey-code-link" href={code} target="_blank" rel="noreferrer">
+                쿠폰 받으러 가기
+              </a>
+            </>
+          ) : (
+            <>
+              <p className="survey-code-label">기프티콘 번호</p>
+              <p className="survey-code">{code}</p>
+            </>
+          )}
           <button type="button" className="survey-close-btn" onClick={onClose}>닫기</button>
         </div>
       </div>

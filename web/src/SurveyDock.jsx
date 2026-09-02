@@ -33,7 +33,7 @@ export default function SurveyDock({ open, onOpen, onDismiss }) {
         <span className="survey-dock__badge">쿠폰</span>
         <span className="survey-dock__text">
           <span className="survey-dock__label">어떻게 쓰고 계신가요?</span>
-          <span className="survey-dock__hint">답하면 배민 쿠폰 지급</span>
+          <span className="survey-dock__hint">응답시 배민 1,000원권</span>
         </span>
       </button>
       <button type="button" className="survey-dock__close" aria-label="설문 닫기"
