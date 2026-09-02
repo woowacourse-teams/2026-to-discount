@@ -40,7 +40,7 @@
 
 **끝까지 확인하는 순서 (매번 이 순서대로):**
 
-1. 브라우저 콘솔에서 내 visitorId 확인: `localStorage.getItem('dk_visitor_id')`
+1. 브라우저 콘솔에서 내 visitorId 확인: `localStorage.getItem('dk_visitor')`
 2. 서버에 그 id를 테스트 목록에 심는다(아래 명령). **서비스 이름은
    `delivery-discount-api`다** — `discount-api`처럼 줄여 쓰면 유닛을
    못 찾는다.
@@ -66,6 +66,30 @@
 7. **확인이 끝나면 4단계에서 채운 재고를 원래 값으로 되돌리고, 2단계의
    `survey.conf`에서 내 visitorId를 지운다.** 안 지우면 그 브라우저는
    영구히 조건 없이 통과하는 뒷문으로 남는다.
+
+### 원장·PostHog를 더럽히지 않고 테스트하기 — `?dev=1`
+
+위 절차는 다 "진짜 사람인 척" 테스트한다. 진짜 사람 행세를 하면 원장의
+접속일·전환수 집계, 설문 대상자 수, PostHog 방문자 수가 전부 개발자의
+클릭으로 부풀어 오른다. 2026-09-02에 이걸로 한 번 걸렸다(테스트용
+visitorId `v_dev1`이 그대로 브라우저에 남아 실제 방문처럼 잡혔다).
+
+**이미 만들어져 있는 개발 트래픽 표시가 있다 — 안 쓰고 있었을 뿐이다.**
+`?dev=1`을 붙여 한 번 방문하면(`https://beggars-five.vercel.app/?dev=1`)
+`localStorage`에 영구 저장되고, 이후 그 브라우저가 보내는 모든 이벤트에
+`dev:true`가 실린다. 서버는 이 값을 보고:
+
+- `SurveyEligibility.count()`가 건너뛴다(`SurveyEligibility.java:76`)
+  — 접속일·전환수·설문 대상자 집계에서 아예 빠진다.
+- `PostHogEventMapper.map()`이 건너뛴다 — PostHog로 안 나간다.
+
+**끄려면** `?dev=0`으로 한 번 더 방문한다.
+
+**앞으로 지킬 규칙**: 뭔가 눌러 보기 전에는(설문이든 배너든 오퍼
+링크든) 먼저 `?dev=1`로 한 번 들어간다. **로컬 개발 서버(`npm run dev`)
+도 예외가 아니다** — `web/vite.config.js`의 프록시가 `/api`를 그대로
+운영 서버(`bebeggars.duckdns.org`)로 넘기므로, `localhost:5173`에서
+누른 것도 진짜 원장에 그대로 쌓인다.
 
 ## 문항 고치는 파일
 
