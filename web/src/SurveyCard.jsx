@@ -35,7 +35,8 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
     // 코드를 보여줄 자리가 사라진다 — 연락처를 안 받으므로 다시 줄 방법이 없다.
     if (sending) return
     markDismissed()
-    track('survey_dismiss')
+    // 배너에서 열어 보지도 않고 닫은 것과 갈라서 센다(SurveyDock 참고).
+    track('survey_dismiss', { source: 'card' })
     onClose()
   }
 

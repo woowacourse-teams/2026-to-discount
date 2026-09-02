@@ -1294,7 +1294,8 @@ export default function App() {
       )}
 
       {surveyOn && (
-        <SurveyDock open={surveyOpen} onOpen={() => setSurveyOpen(true)} />
+        <SurveyDock open={surveyOpen} onOpen={() => setSurveyOpen(true)}
+                    onDismiss={() => setSurveyOn(false)} />
       )}
 
       <SiteFooter />
