@@ -2740,29 +2740,34 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    테두리 밖에 옅은 후광(box-shadow 스프레드)까지 얹었더니 카드가
    바닥에서 들뜬 것처럼 보였다 — 후광은 빼고 브랜드 카드와 같은
    그림자만 쓴다. 구분은 테두리 색과 굵기만으로 한다. */
+/* 테두리를 단색 대신 그라데이션으로 준다. border-image는 border-radius와
+   같이 못 써서, 표준 트릭(두 배경을 padding-box/border-box로 나눠 칠하기)
+   으로 만든다 — 안쪽은 카드 배경, 바깥쪽 띠만 그라데이션이 보인다. */
 .survey-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  background: var(--surface);
-  border: 2px solid color-mix(in srgb, #0bebd0 70%, transparent);
+  border: 3px solid transparent;
   border-radius: 14px;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(135deg, #0bebd0, #00c2ff, #7b5cff) border-box;
   /* 머리 띠가 모서리 밖으로 안 삐져나가게 자른다. */
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(0, 0, 0, .06);
 }
 
 /* 지급 조건을 머리에 띠로 붙인다. 카드를 연 사람이 제일 먼저 보는 줄이
-   "왜 답해야 하는가"여야 한다.
-   배민 민트(#0bebd0) 원색에 흰 글씨는 대비가 2:1도 안 나온다. 색은
-   그대로 쓰되 22%만 어둡혀 흰 글씨가 읽히게 한다. */
+   "왜 답해야 하는가"여야 한다. 테두리와 같은 그라데이션 계열로 묶는다. */
 .survey-header {
   margin: 0;
-  padding: .6rem 2.6rem .6rem .9rem;   /* 오른쪽은 × 자리 */
-  font-size: .9rem;
-  font-weight: 700;
+  padding: 1rem 2.9rem 1rem 1.1rem;   /* 오른쪽은 × 자리 */
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
   color: #fff;
-  background: color-mix(in srgb, #0bebd0 78%, #000);
+  background: linear-gradient(100deg, #0bebd0, #00c2ff 55%, #7b5cff);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .18);
 }
 
 .survey-body {
