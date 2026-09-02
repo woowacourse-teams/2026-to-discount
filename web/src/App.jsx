@@ -12,6 +12,7 @@ import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { uiVariant } from './variant.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
+import SurveyCard from './SurveyCard.jsx'
 import { shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
 
@@ -716,7 +717,16 @@ export default function App() {
   // 발급된 기프티콘 번호. 카드가 아니라 여기에 둔다 — 카드는 필터가 바뀔 때마다
   // 새로 마운트되는 상자(brand-grid) 안에 있어서, 카드가 들고 있으면 분류 한 번에
   // 번호가 날아간다. 연락처를 안 받으므로 그러면 다시 줄 방법이 없다.
+  // 진행 중이던 답까지 지켜주진 않는다(그리드 안이라 필터를 바꾸면 그것도
+  // 새로 마운트된다) — 다만 그건 다시 고르면 그만이라 코드만큼 무겁지 않다.
   const [surveyCode, setSurveyCode] = useState(null)
+  // 트리거 알약을 눌렀는지. 그리드 맨 앞칸에 카드를 놓을지를 이걸로 정한다.
+  const [surveyOpen, setSurveyOpen] = useState(false)
+
+  // 번호를 받으면 접지 않는다 — 접는 순간 번호를 다시 볼 길이 없다.
+  useEffect(() => {
+    if (surveyCode) setSurveyOpen(true)
+  }, [surveyCode])
 
   useEffect(() => {
     // 개발자 콘솔에서 이 브라우저만 강제로 띄우는 문. 서버 대상 판정도
@@ -1257,6 +1267,18 @@ export default function App() {
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className="brand-grid" key={gridKey}>
+          {/* 브랜드 카드와 같은 칸에 놓는다 — 요청대로 맨 앞칸. 필터를
+              바꾸면 그리드 전체가 새로 마운트되니 이 카드도 같이 날아가지만,
+              발급된 코드는 App이 들고 있어(surveyCode) 다시 열면 그대로
+              보인다 — 잃는 건 아직 안 고른 진행 중 선택뿐이다. */}
+          {surveyOn && surveyOpen && (
+            <SurveyCard
+              visitorId={getAnalyticsContext().visitorId}
+              code={surveyCode}
+              onCode={setSurveyCode}
+              onClose={() => { setSurveyOpen(false); setSurveyOn(false) }}
+            />
+          )}
           {visibleBrands.slice(0, shown).map((b, index) => (
             <BrandCard
               key={b.name}
@@ -1271,17 +1293,8 @@ export default function App() {
         </div>
       )}
 
-
-      {/* 설문은 그리드 밖에 둔다. 그리드는 필터가 바뀔 때마다 통째로 새로
-          마운트되는데, 그 안에 있으면 열어 둔 카드와 받은 번호가 분류 한
-          번에 날아간다. */}
       {surveyOn && (
-        <SurveyDock
-          visitorId={getAnalyticsContext().visitorId}
-          code={surveyCode}
-          onCode={setSurveyCode}
-          onClose={() => setSurveyOn(false)}
-        />
+        <SurveyDock open={surveyOpen} onOpen={() => setSurveyOpen(true)} />
       )}
 
       <SiteFooter />
