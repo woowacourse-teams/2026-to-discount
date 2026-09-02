@@ -21,25 +21,51 @@
 재고나 지급 여부는 이 과정과 무관하다 — 재고가 없어도 문항은 뜬다
 (재고 판정은 "보내기"를 눌렀을 때만 걸린다).
 
-### 로컬에서 강제로 띄우기 (개발자 테스트)
+### 개발자 테스트 — 두 겹을 헷갈리면 안 된다
 
-대상 판정을 건너뛰려면 서버 환경변수
-`DISCOUNT_SURVEY_TEST_VISITORS`에 자신의 visitorId를 넣는다
-(콤마로 여러 명). 이 목록에 있으면 접속일·전환수 조건 없이
-`eligible: true`가 나온다 — 재고가 0이어도 배너가 뜬다.
+**"참여할 수 없습니다"가 뜨는 사고가 이 둘을 섞어 써서 반복됐다.** 우회가
+두 겹인데 하나만 걸어 두고 화면이 뜨니 "다 됐다"고 착각하기 쉽다.
 
-```bash
-# 서버(systemd)에 임시로 심는다. 개발자 세션이 끝나면 지운다.
-ssh <REMOTE> "sudo systemctl edit discount-api"
-# [Service]
-# Environment=DISCOUNT_SURVEY_TEST_VISITORS=<내visitorId>
-ssh <REMOTE> "sudo systemctl restart discount-api"
-```
+| 우회 | 무엇을 건너뛰나 | 어디서 거나 | 못 건너뛰는 것 |
+|---|---|---|---|
+| `dk_survey_force` (localStorage) | 서버에 `GET /api/survey`를 묻지도 않고 화면부터 켠다 | 이 브라우저에서만 | **아무것도 안 건너뛴다** — `POST /api/survey`(진짜 제출)는 그대로 서버가 검사한다 |
+| `DISCOUNT_SURVEY_TEST_VISITORS` | 접속일 7일·전환 5회 조건과 1인 1회를 건너뛴다 | 서버 환경변수, visitorId별 | 재고(있으면 준다, 없으면 없다고 답한다 — 이건 실사용자와 같다) |
 
-브라우저 콘솔에서 `localStorage.getItem('dk_visitor_id')`로 자신의
-visitorId를 확인한다. 이미 한 번 응답했거나 두 번 닫았으면
-`localStorage.removeItem('dk_survey_dismissed')`,
-`localStorage.removeItem('dk_survey_answered')`로 초기화한다.
+**즉 `dk_survey_force`로 화면이 뜬 것은 "카드가 예쁘게 그려지는지"만
+확인한 것이다. "보내고 쿠폰 받기"까지 진짜로 눌러 링크가 나오는지
+보려면 반드시 `DISCOUNT_SURVEY_TEST_VISITORS`에 내 visitorId가 있어야
+한다.** 없으면 제출은 실제 사용자와 똑같이 `not_eligible`로 막히고
+카드는 "지금은 참여할 수 없습니다"를 보여준다 — 버그가 아니라 접근
+제어가 정상 작동한 것이다.
+
+**끝까지 확인하는 순서 (매번 이 순서대로):**
+
+1. 브라우저 콘솔에서 내 visitorId 확인: `localStorage.getItem('dk_visitor_id')`
+2. 서버에 그 id를 테스트 목록에 심는다(아래 명령). **서비스 이름은
+   `delivery-discount-api`다** — `discount-api`처럼 줄여 쓰면 유닛을
+   못 찾는다.
+   ```bash
+   ssh <REMOTE> "sudo tee /etc/systemd/system/delivery-discount-api.service.d/survey.conf > /dev/null << 'EOF'
+   [Service]
+   Environment=\"DISCOUNT_GIFTICONS_PATH=/home/ubuntu/delivery-discount-api/data/gifticons.yml\"
+   Environment=DISCOUNT_SURVEY_TEST_VISITORS=<내visitorId>
+   EOF
+   sudo systemctl daemon-reload && sudo systemctl restart delivery-discount-api"
+   ```
+3. **심었다고 믿지 말고 확인한다**: `curl "<서버>/api/survey?visitorId=<내visitorId>"`가
+   `{"eligible":true}`를 답하는지 본다. 여기서 `false`가 나오면 3~5단계로
+   넘어가 봐야 소용없다 — 목록에 안 걸렸거나 재시작이 안 된 것이다.
+4. `gifticons.yml`에 코드(또는 링크)가 최소 1개는 재고로 있는지 확인한다
+   (`cat data/gifticons.yml`). 없으면 제출까지는 되지만 코드는 안 나온다
+   — 그 자체는 정상 동작(재고 없음 안내)이니 "재고까지 보려는 것"이면
+   반드시 채워 둔다.
+5. 브라우저에서 `localStorage.removeItem('dk_survey_dismissed')`,
+   `localStorage.removeItem('dk_survey_answered')`로 이전 테스트 흔적을
+   지운다(닫았거나 답했던 기록이 남아 있으면 배너 자체가 안 뜬다).
+6. 그제서야 브라우저에서 배너 → 카드 → 제출까지 눌러 본다.
+7. **확인이 끝나면 4단계에서 채운 재고를 원래 값으로 되돌리고, 2단계의
+   `survey.conf`에서 내 visitorId를 지운다.** 안 지우면 그 브라우저는
+   영구히 조건 없이 통과하는 뒷문으로 남는다.
 
 ## 문항 고치는 파일
 

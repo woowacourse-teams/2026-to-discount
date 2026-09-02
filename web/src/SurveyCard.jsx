@@ -50,8 +50,18 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
   // 반응이 없어 보이는 것이 제일 나쁘다. focus까지 옮겨 키보드 사용자도
   // 바로 문항에 닿게 한다.
   useEffect(() => {
-    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    cardRef.current?.focus({ preventScroll: true })
+    const el = cardRef.current
+    if (!el) return
+    // scrollIntoView({block:'center'})는 화면 위 fixed 메뉴바(.title-bar,
+    // 60px 안팎)를 모른다 — 카드를 뷰포트 가운데로만 맞추면 카드 머리가
+    // 그 바 밑에 깔려 헤더가 안 보였다. 바 높이를 실측해 그만큼 아래에
+    // 카드 머리가 오도록 직접 스크롤 위치를 계산한다.
+    const bar = document.querySelector('.title-bar')
+    const barH = bar ? bar.getBoundingClientRect().height : 0
+    const rect = el.getBoundingClientRect()
+    const target = window.scrollY + rect.top - barH - 12
+    window.scrollTo({ top: Math.max(target, 0), behavior: 'smooth' })
+    el.focus({ preventScroll: true })
   }, [])
 
   function close() {

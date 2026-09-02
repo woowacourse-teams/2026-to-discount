@@ -2850,46 +2850,62 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   color: var(--text);
 }
 
+/* 항목마다 따로 테두리 박스를 두르던 것을 걷어냈다 — 낱개 카드처럼
+   보여 리스트 하나가 아니라 조각 여러 개로 읽혔다. 목록 전체를 한
+   테두리로 감싸고 항목 사이는 구분선 하나로만 가른다 — 흔한 설정
+   목록 패턴이다. */
 .survey-choices {
   display: flex;
   flex-direction: column;
-  gap: .4rem;
   margin: 0;
   padding: 0;
   list-style: none;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.survey-choices li + li {
+  border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
 }
 
 .survey-choice {
   width: 100%;
-  padding: .65rem .75rem;
+  padding: .7rem .85rem;
   text-align: left;
   font: inherit;
   color: var(--text);
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
-  border-radius: 10px;
+  border: 0;
   cursor: pointer;
-  transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
+  transition: background-color 150ms ease, transform 100ms ease;
 }
 
 .survey-choice:hover { background: var(--save-soft); }
-.survey-choice:active:not(:disabled) { transform: scale(.98); }
-.survey-choice:focus-visible { outline: 2px solid #00c2ff; outline-offset: 1px; }
+.survey-choice:active:not(:disabled) { transform: scale(.99); }
+.survey-choice:focus-visible { outline: 2px solid #00c2ff; outline-offset: -2px; }
 .survey-choice:disabled { opacity: .5; cursor: default; }
 
-/* 고른 것. 여러 섹션을 훑고 내려가므로 무엇을 골랐는지 남아 보여야 한다. */
-/* 헤더·테두리와 같은 계열(민트→시안→바이올렛)을 옅게 깔아 고른 것임을
-   보여준다 — 진하게 칠하면 카드 안에서 또 다른 강조색이 하나 늘어난다. */
+/* 고른 것. 여러 섹션을 훑고 내려가므로 무엇을 골랐는지 남아 보여야 한다.
+   테두리 색을 바꾸는 대신(이제 항목 개별 테두리가 없다) 왼쪽에 얇은
+   그라데이션 띠 하나와 옅은 배경 톤만 준다 — 목록 결은 유지하면서
+   골랐다는 신호만 튄다. */
 .survey-choice--on {
-  border-color: color-mix(in srgb, #00c2ff 55%, transparent);
-  background: linear-gradient(100deg,
-    color-mix(in srgb, #0bebd0 14%, var(--surface)),
-    color-mix(in srgb, #00c2ff 14%, var(--surface)) 55%,
-    color-mix(in srgb, #7b5cff 14%, var(--surface)));
+  position: relative;
+  background: color-mix(in srgb, #00c2ff 8%, var(--surface));
   color: var(--text);
   font-weight: 600;
 }
-.survey-choice--on:hover { filter: brightness(.98); }
+.survey-choice--on::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #0bebd0, #00c2ff 55%, #7b5cff);
+}
+.survey-choice--on:hover { background: color-mix(in srgb, #00c2ff 12%, var(--surface)); }
 
 .survey-other-input {
   width: 100%;
