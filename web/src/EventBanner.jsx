@@ -235,6 +235,7 @@ export default function EventBanner({ banners }) {
   const [topVisible, setTopVisible] = useState(true)
   const [dismissed, setDismissed] = useState(readDismissed)
   const topRef = useRef(null)
+  const dockRef = useRef(null)
   // 같은 장을 한 번만 센다. 캐러셀은 앞뒤로 오갈 수 있고 하단 배너는
   // 스크롤을 오르내릴 때마다 다시 들어온다 — 그때마다 세면 노출이
   // 실제보다 몇 배로 부풀어 클릭률이 무의미해진다. 위/아래는 따로 센다.
@@ -317,16 +318,27 @@ export default function EventBanner({ banners }) {
     return () => io.disconnect()
   }, [count])
 
-  // 이 배너가 하단에 떠 있는 동안은 설문 알약도 같이 하단에 뜨려 하면
-  // 둘이 같은 좁은 자리를 다툰다. 높이만큼 밀어 올리는 것으로 처음
-  // 고쳤더니, 배너가 두 줄로 접히는 좁은 화면(실측 375px)에서 밀린
-  // 거리가 카드 영역까지 들어가 브랜드 카드를 가렸다 — 값을 안 재고
-  // 넓은 창에서만 확인한 채 넘긴 결과다. 자리를 다투게 두는 대신 이
-  // 배너가 떠 있는 동안은 설문 알약을 그냥 숨긴다.
+  // 이 배너가 하단에 떠 있으면 설문 알약이 그 바로 위에 붙어야 한다.
+  // 처음엔 "맨 위로 버튼 위 여백 + 배너 높이"를 더해 띄웠다가, 배너가
+  // 떠 있을 때는 맨 위로 버튼 몫까지 같이 더해져 이중으로 밀렸다(실측
+  // 375px에서 카드 영역까지 들어감). 배너가 떠 있는 동안은 그 여백을
+  // 빼고 배너 높이 + 작은 틈만 더한다 — .has-bottom-banner가 이 갈림을
+  // CSS 쪽에 알린다. 높이는 실측한다(2줄로 접히는 등 내용에 따라
+  // 달라져 고정값을 못 쓴다).
   useEffect(() => {
-    document.documentElement.classList.toggle(
-      'has-bottom-banner', !topVisible && !dismissed)
-    return () => document.documentElement.classList.remove('has-bottom-banner')
+    const root = document.documentElement
+    const set = (h) => root.style.setProperty('--banner-dock-h', `${h}px`)
+    const shown = !topVisible && !dismissed
+    root.classList.toggle('has-bottom-banner', shown)
+
+    const el = dockRef.current
+    if (!shown || !el || typeof ResizeObserver === 'undefined') {
+      set(shown && el ? el.offsetHeight : 0)
+      return () => root.classList.remove('has-bottom-banner')
+    }
+    const ro = new ResizeObserver(([entry]) => set(entry.contentRect.height))
+    ro.observe(el)
+    return () => { ro.disconnect(); root.classList.remove('has-bottom-banner') }
   }, [topVisible, dismissed])
 
   if (count === 0) return null
@@ -372,6 +384,7 @@ export default function EventBanner({ banners }) {
           되돌아올 때 내려가는 전환이 안 보인다. 안 보일 때는
           visibility:hidden이라 탭 순서에서도 빠진다(App.css). */}
       <div
+        ref={dockRef}
         className={`banner-dock ${!topVisible && !dismissed ? 'banner-dock--shown' : ''}`}
         {...hoverProps}
       >
