@@ -47,24 +47,34 @@ public class SurveyEligibility {
      * @param days        서로 다른 접속 날짜 수(Asia/Seoul 기준 ts 앞 10글자)
      * @param conversions offer_link_click + banner_click 건수
      * @param answered    이미 설문에 답했나 — 1인 1회를 여기서 가른다
+     * @param dev         한 번이라도 개발 트래픽(?dev=1)을 보낸 브라우저인가
      */
-    public record Counts(int days, int conversions, boolean answered) {
+    public record Counts(int days, int conversions, boolean answered, boolean dev) {
     }
 
+    /**
+     * 자연 자격. 개발자 기기는 문턱을 넘었어도 대상이 아니다.
+     *
+     * <p>테스트 우회(SurveyService.testVisitors)는 이 판정을 안 지나므로,
+     * ?dev=1을 켠 개발자 기기로도 설문 화면을 끝까지 확인할 수 있다 —
+     * 확인은 되게 하고 집계·보상에서만 뺀다.
+     */
     public static boolean qualifies(Counts c) {
-        return c.days() >= MIN_DAYS && c.conversions() >= MIN_CONVERSIONS && !c.answered();
+        return c.days() >= MIN_DAYS && c.conversions() >= MIN_CONVERSIONS
+                && !c.answered() && !c.dev();
     }
 
     public Counts count(String visitorId) {
-        if (visitorId == null || visitorId.isBlank()) return new Counts(0, 0, false);
+        if (visitorId == null || visitorId.isBlank()) return new Counts(0, 0, false, false);
 
         Path path = eventLog.path();
         // 새로 띄운 서버에는 원장이 아직 없다. 없으면 "대상 아님"이지 오류가 아니다.
-        if (!Files.exists(path)) return new Counts(0, 0, false);
+        if (!Files.exists(path)) return new Counts(0, 0, false, false);
 
         Set<String> days = new HashSet<>();
         int conversions = 0;
         boolean answered = false;
+        boolean dev = false;
 
         try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
             for (String line : (Iterable<String>) lines::iterator) {
@@ -73,7 +83,18 @@ public class SurveyEligibility {
                 if (!visitorId.equals(text(node, "visitorId"))) continue;
                 // 개발 트래픽과 크롤러는 사람이 아니다. 집계에서 빼는 규칙은
                 // experiments.py와 같다.
-                if (node.path("dev").asBoolean(false)) continue;
+                //
+                // 다만 설문 대상 판정에서는 "이 줄만 빼고 나머지는 센다"로는
+                // 모자란다. ?dev=1은 브라우저에 영구 저장돼 그 뒤로 쭉 붙는데,
+                // 그 앞에 쌓인 줄에는 표시가 없다 — 개발자 폰이 표시를 켜기
+                // 전에 이미 문턱을 넘어 있으면 그대로 대상자로 남는다(실측
+                // 2026-09-02: 자격자 47명 중 5명이 개발자 기기였고, 그중
+                // 하나가 전환 322회로 1위였다). 한 번이라도 개발 트래픽을
+                // 보낸 브라우저는 사람이 아니라고 보고 통째로 뺀다.
+                if (node.path("dev").asBoolean(false)) {
+                    dev = true;
+                    continue;
+                }
                 if (!node.path("bot").isNull() && node.hasNonNull("bot")) continue;
 
                 String event = text(node, "event");
@@ -95,9 +116,9 @@ public class SurveyEligibility {
             // 원장을 못 읽으면 대상이 아니라고 본다. 설문이 안 뜨는 것은
             // 사용자에게 아무 손해가 없지만, 500을 던지면 화면 전체가 흔들린다.
             log.error("원장을 읽지 못해 설문 대상 판정을 건너뛴다: {}", path, e);
-            return new Counts(0, 0, false);
+            return new Counts(0, 0, false, false);
         }
-        return new Counts(days.size(), conversions, answered);
+        return new Counts(days.size(), conversions, answered, dev);
     }
 
     private JsonNode parse(String line) {

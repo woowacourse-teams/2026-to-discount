@@ -88,9 +88,39 @@ class SurveyEligibilityTest {
 
     @Test
     void qualifiesNeedsBothThresholds() {
-        assertTrue(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 5, false)));
-        assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(6, 5, false)));
-        assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 4, false)));
-        assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 5, true)));
+        assertTrue(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 5, false, false)));
+        assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(6, 5, false, false)));
+        assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 4, false, false)));
+        assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 5, true, false)));
     }
+
+    /**
+     * 개발자 기기는 문턱을 넘었어도 대상이 아니다.
+     *
+     * <p>?dev=1은 브라우저에 영구 저장되므로 그것을 켜기 전에 쌓인 줄에는
+     * 표시가 없다 — 그 앞줄만으로 문턱을 넘어 있으면 표시를 켜도 대상자로
+     * 남는다. 그래서 "이 줄만 빼기"가 아니라 "이 브라우저를 통째로 빼기"다
+     * (실측 2026-09-02: 자격자 47명 중 5명이 개발자 기기였다).
+     */
+    @Test
+    void oneDevLineDisqualifiesTheWholeVisitor() throws Exception {
+        SurveyEligibility e = on(List.of(
+                line("2026-08-01T10:00:00+09:00", "offer_link_click", "v_1"),
+                line("2026-08-02T10:00:00+09:00", "offer_link_click", "v_1"),
+                line("2026-08-03T10:00:00+09:00", "offer_link_click", "v_1"),
+                line("2026-08-04T10:00:00+09:00", "offer_link_click", "v_1"),
+                line("2026-08-05T10:00:00+09:00", "offer_link_click", "v_1"),
+                line("2026-08-06T10:00:00+09:00", "offer_link_click", "v_1"),
+                line("2026-08-07T10:00:00+09:00", "offer_link_click", "v_1"),
+                // 마지막 딱 한 줄만 개발 트래픽이다.
+                "{\"ts\":\"2026-08-08T10:00:00+09:00\",\"event\":\"page_view\","
+                        + "\"visitorId\":\"v_1\",\"dev\":true}"));
+
+        SurveyEligibility.Counts c = e.count("v_1");
+        assertTrue(c.dev(), "개발 트래픽 흔적이 잡혀야 한다");
+        assertTrue(c.days() >= MIN_DAYS_FOR_TEST, "문턱 자체는 넘었는데도");
+        assertFalse(SurveyEligibility.qualifies(c), "대상에서 빠진다");
+    }
+
+    private static final int MIN_DAYS_FOR_TEST = 7;
 }
