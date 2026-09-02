@@ -13,11 +13,15 @@ let impressionSent = false
  * 그리드가 관리한다(App.jsx). 이 컴포넌트는 "여기 설문 있다"를 알리는
  * 눈에 띄는 문일 뿐이다.
  *
+ * `answered`면 문구가 바뀐다 — 이미 코드를 받은 사람에게 또 "어떻게 쓰고
+ * 계신가요?"를 물으면 이상하다. 누르면 SurveyCard가 곧장 링크 화면을
+ * 보여준다(App이 code를 이미 쥐고 있어 질문 없이 바로 그 화면이 뜬다).
+ *
  * 닫기는 열어 보지 않고도 할 수 있어야 한다 — 카드를 펴야만 닫을 수 있으면
  * 관심 없는 사람도 매번 열었다 닫아야 한다. 규칙은 카드 안 닫기와 같다
  * (surveyDismiss: 두 번 닫으면 다시 안 뜬다, 그 전엔 3일 쉰다).
  */
-export default function SurveyDock({ open, onOpen, onDismiss }) {
+export default function SurveyDock({ open, answered, onOpen, onDismiss }) {
   useEffect(() => {
     if (impressionSent) return
     track('survey_impression')
@@ -30,10 +34,16 @@ export default function SurveyDock({ open, onOpen, onDismiss }) {
     <div className="survey-dock">
       <button type="button" className="survey-dock__body"
               onClick={() => { track('survey_open'); onOpen() }}>
-        <span className="survey-dock__badge">쿠폰</span>
+        <span className="survey-dock__badge">{answered ? '링크' : '쿠폰'}</span>
         <span className="survey-dock__text">
-          <span className="survey-dock__label">어떻게 쓰고 계신가요?</span>
-          <span className="survey-dock__hint">응답시 배민 1,000원권</span>
+          {answered ? (
+            <span className="survey-dock__label">링크 다시 확인하기</span>
+          ) : (
+            <>
+              <span className="survey-dock__label">어떻게 쓰고 계신가요?</span>
+              <span className="survey-dock__hint">응답시 배민 1,000원권</span>
+            </>
+          )}
         </span>
       </button>
       <button type="button" className="survey-dock__close" aria-label="설문 닫기"

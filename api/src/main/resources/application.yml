@@ -23,6 +23,11 @@ discount:
     # 배포한 화면에서 개발자가 눈으로 확인할 때만 쓴다. 비어 있으면
     # 아무에게도 안 열린다. 1인 1회와 재고는 그대로 걸린다.
     test-visitors: ${DISCOUNT_SURVEY_TEST_VISITORS:}
+    # 원장 조사에서 자동화·중복 응답으로 의심되는 visitorId(콤마로 구분).
+    # 응답은 그대로 받되(원장엔 남는다) 코드는 안 준다 — 재고 없음과
+    # 같은 화면을 본다. 2026-09-02: 하루 만에 322회 전환한 visitorId를
+    # 사람이 직접 판단해 여기 넣었다(자동 판정 아님).
+    blocked-visitors: ${DISCOUNT_SURVEY_BLOCKED_VISITORS:}
   posthog:
     enabled: ${DISCOUNT_POSTHOG_ENABLED:false}
     project-token: ${POSTHOG_PROJECT_TOKEN:}

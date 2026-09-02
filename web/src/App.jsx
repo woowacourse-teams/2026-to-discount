@@ -13,7 +13,7 @@ import { uiVariant } from './variant.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
 import SurveyCard from './SurveyCard.jsx'
-import { shouldShow as surveyShouldShow } from './surveyDismiss.js'
+import { getStoredCode, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
 
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
@@ -719,16 +719,24 @@ export default function App() {
   // 번호가 날아간다. 연락처를 안 받으므로 그러면 다시 줄 방법이 없다.
   // 진행 중이던 답까지 지켜주진 않는다(그리드 안이라 필터를 바꾸면 그것도
   // 새로 마운트된다) — 다만 그건 다시 고르면 그만이라 코드만큼 무겁지 않다.
-  const [surveyCode, setSurveyCode] = useState(null)
+  // 이미 받은 코드가 있으면 처음부터 채워 둔다 — 응답 화면으로 곧장
+  // 열리진 않는다(그건 아래 트리거 알약이 한다). 새로 발급된 코드는
+  // SurveyCard가 열려 있는 채로 onCode로 이 값을 바꾸므로, 그 경우는
+  // 이미 화면이 카드 위에 있다 — 여기서 따로 열 필요가 없다.
+  const [surveyCode, setSurveyCode] = useState(() => getStoredCode())
   // 트리거 알약을 눌렀는지. 그리드 맨 앞칸에 카드를 놓을지를 이걸로 정한다.
   const [surveyOpen, setSurveyOpen] = useState(false)
 
-  // 번호를 받으면 접지 않는다 — 접는 순간 번호를 다시 볼 길이 없다.
   useEffect(() => {
-    if (surveyCode) setSurveyOpen(true)
-  }, [surveyCode])
-
-  useEffect(() => {
+    // 이미 코드를 받은 사람에게는 알약이 계속 뜬다 — "링크 다시
+    // 확인하기"로 문구만 바뀐다(SurveyDock). 재고·자격을 다시 안
+    // 묻는다 — 이미 확정된 결과라 물어볼 이유가 없다. 예전엔 답하면
+    // 알약이 영구히 사라져서, 연락처를 안 받는 이 서비스에서 링크를
+    // 놓치면 다시 볼 길이 없었다.
+    if (getStoredCode()) {
+      setSurveyOn(true)
+      return
+    }
     // 개발자 콘솔에서 이 브라우저만 강제로 띄우는 문. 서버 대상 판정도
     // 안 묻는다 — 재고·조건과 무관하게 화면만 보고 싶을 때 쓴다.
     //   localStorage.setItem('dk_survey_force', '1')
@@ -738,7 +746,7 @@ export default function App() {
       setSurveyOn(true)
       return
     }
-    // 브라우저가 이미 답했거나 두 번 닫았으면 서버에 묻지도 않는다.
+    // 두 번 닫았거나 최근에 닫았으면 서버에 묻지도 않는다.
     if (!surveyShouldShow()) return
     let alive = true
     const { visitorId } = getAnalyticsContext()
@@ -1283,7 +1291,13 @@ export default function App() {
               visitorId={getAnalyticsContext().visitorId}
               code={surveyCode}
               onCode={setSurveyCode}
-              onClose={() => { setSurveyOpen(false); setSurveyOn(false) }}
+              onClose={() => {
+                setSurveyOpen(false)
+                // 이미 코드를 받은 사람은 알약으로 접힐 뿐이다 — "링크 다시
+                // 확인하기"가 계속 있어야 한다. 아직 못 받은 사람(질문 중,
+                // 또는 재고 없음 화면)만 세션에서 완전히 내린다.
+                if (!surveyCode) setSurveyOn(false)
+              }}
             />
           )}
           {visibleBrands.slice(0, shown).map((b, index) => (
@@ -1301,7 +1315,8 @@ export default function App() {
       )}
 
       {surveyOn && (
-        <SurveyDock open={surveyOpen} onOpen={() => setSurveyOpen(true)}
+        <SurveyDock open={surveyOpen} answered={Boolean(surveyCode)}
+                    onOpen={() => setSurveyOpen(true)}
                     onDismiss={() => setSurveyOn(false)} />
       )}
 

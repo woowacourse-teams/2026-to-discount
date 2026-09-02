@@ -28,8 +28,11 @@ public class SurveyService {
 
     private static final Logger log = LoggerFactory.getLogger(SurveyService.class);
 
-    /** 스펙이 정한 네 토큰. 자유 문자열을 받으면 세는 것이 안전하지 않다. */
-    static final Set<String> CHOICES = Set.of("discount_info", "save_money", "compare", "other");
+    /** 첫 섹션(surveyQuestions.js purpose) 토큰 + 'other'. 자유 문자열을
+     * 받으면 세는 것이 안전하지 않아 화이트리스트로 막는다 — 프론트
+     * 토큰을 바꾸면 여기도 같이 고쳐야 한다(안 그러면 제출이 전부 400). */
+    static final Set<String> CHOICES = Set.of(
+            "new+discount_info", "save_money", "compare", "function", "other");
 
     /** 첫 섹션 밖의 답을 몇 개까지 원장에 적을지. 문항이 늘어도 줄이 안 부푼다. */
     static final int MAX_ANSWERS = 12;
@@ -56,9 +59,22 @@ public class SurveyService {
      */
     private final Set<String> testVisitors;
 
+    /**
+     * 원장 조사에서 자동화·중복 응답으로 사람이 직접 판단해 걸러낸
+     * visitorId. 자동 판정이 아니다 — IP 해시로 "같은 날 같은 곳에서
+     * 여러 visitorId가 나왔는지"까지는 걸러낼 수 있어도, 하루 종일 한
+     * visitorId로 몰아친 것까지는 기계가 못 가른다(2026-09-02 조사 참고).
+     *
+     * <p>막는 지점은 코드 발급뿐이다 — 응답 자체는 그대로 받는다. 재고를
+     * 아예 안 주는 게 아니라 "이 사람에게는 없다"로 보여, 없는 재고를
+     * 지어내지 않는다는 원칙(GifticonStore)과 결이 같다.
+     */
+    private final Set<String> blockedVisitors;
+
     public SurveyService(SurveyEligibility eligibility, GifticonStore gifticons,
                          AnalyticsEventService events,
-                         @Value("${discount.survey.test-visitors:}") String testVisitors) {
+                         @Value("${discount.survey.test-visitors:}") String testVisitors,
+                         @Value("${discount.survey.blocked-visitors:}") String blockedVisitors) {
         this.eligibility = eligibility;
         this.gifticons = gifticons;
         this.events = events;
@@ -69,6 +85,14 @@ public class SurveyService {
         if (!this.testVisitors.isEmpty()) {
             log.warn("설문 테스트 visitorId {}개가 열려 있다 — 확인이 끝나면 비운다",
                     this.testVisitors.size());
+        }
+        this.blockedVisitors = Arrays.stream(blockedVisitors.split(","))
+                .map(String::trim)
+                .filter(v -> !v.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
+        if (!this.blockedVisitors.isEmpty()) {
+            log.warn("설문 코드 발급을 막은 visitorId {}개 — {}",
+                    this.blockedVisitors.size(), this.blockedVisitors);
         }
     }
 
@@ -128,7 +152,8 @@ public class SurveyService {
         // 그래야 재고가 다시 차면 같은 사람이 다시 시도해 보상을 받을 수
         // 있다. 응답 자체(선택·직접 입력)는 중복돼도 집계에서 걸러 내면
         // 되고, 보상을 영영 놓치는 것보다 낫다.
-        Optional<String> code = gifticons.issue(visitorId);
+        Optional<String> code = blockedVisitors.contains(visitorId)
+                ? Optional.empty() : gifticons.issue(visitorId);
 
         try {
             record(visitorId, choice, text, answers, code.isPresent(), ipHash);

@@ -28,12 +28,13 @@ export const SECTIONS = [
   {
     id: 'purpose',
     primary: true,
-    title: '이 서비스를 왜 쓰시나요?',
+    title: '이 서비스를 어디에 쓰시나요?',
     other: true,
     options: [
-      { token: 'discount_info', label: '할인 정보 보려고' },
-      { token: 'save_money', label: '배달비 아끼려고' },
-      { token: 'compare', label: '앱끼리 비교하려고' },
+      { token: 'new+discount_info', label: '새로운 할인 확인' },
+      { token: 'save_money', label: '제일 싼 할인 찾기' },
+      { token: 'compare', label: '배달앱 할인 비교' },
+      { token: 'function', label: '%할인 등 귀찮은 쿠폰 처리' },
     ],
   },
   {
@@ -46,8 +47,8 @@ export const SECTIONS = [
     options: [
       { token: 'undecided', label: '뭐 먹을지 못 정했을 때' },
       { token: 'best_deal', label: '가장 큰 할인을 찾을 때' },
-      { token: 'weekly', label: '매주 한 번씩 정기적으로' },
-      { token: 'daily', label: '거의 매일 습관처럼' },
+      { token: 'find_else', label: '할인이 마음에 안들 때' },
+      { token: 'weekly', label: '매주/매일 주기적으로' },
     ],
   },
   {
@@ -69,6 +70,7 @@ export const SECTIONS = [
       { token: 'few_brands', label: '브랜드가 적다' },
       { token: 'stale', label: '이미 끝난 할인이 그대로 남아있다' },
       { token: 'hard_to_find', label: '원하는 걸 찾기 어렵다' },
+      { token: 'bad_discount', label: '할인이 짜다, 마음에 안든다' },
     ],
   },
   {
@@ -78,10 +80,10 @@ export const SECTIONS = [
     title: '앞으로 있었으면 하는 기능이 있다면?',
     other: true,
     options: [
-      { token: 'brand_alert', label: '관심 브랜드 새 할인 알림' },
-      { token: 'favorites', label: '즐겨찾기 저장' },
-      { token: 'region_filter', label: '지역별 필터' },
-      { token: 'expiry_alert', label: '할인 만료 임박 알림' },
+      { token: 'discount_alert', label: '새 할인 알림' },
+      { token: 'membership', label: '멤버십 쿠폰 필터링' },
+      { token: 'region_filter', label: '주변 가게만 보기' },
+      { token: 'discount_history', label: '지난 할인 기록 보기' },
     ],
   },
 ]

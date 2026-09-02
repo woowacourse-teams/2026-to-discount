@@ -110,8 +110,9 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
       const body = await res.json()
       if (body.ok && body.code) {
         // 답한 사람에게는 다시 안 묻는다. 서버도 원장으로 막지만, 여기서
-        // 막아야 화면이 바로 조용해진다.
-        markAnswered()
+        // 막아야 화면이 바로 조용해진다. 코드도 같이 저장해 둔다 —
+        // 연락처를 안 받으므로 이 링크를 다시 볼 곳은 이 브라우저뿐이다.
+        markAnswered(body.code)
         onCode(body.code)
       } else if (body.ok) {
         // 재고가 없어 코드가 없다(reason: no_stock) — 서버는 이 경우

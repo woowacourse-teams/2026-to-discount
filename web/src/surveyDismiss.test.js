@@ -12,7 +12,7 @@ function fakeStorage() {
 
 globalThis.localStorage = fakeStorage()
 
-const { shouldShow, markDismissed, markAnswered } = await import('./surveyDismiss.js')
+const { shouldShow, markDismissed, markAnswered, getStoredCode } = await import('./surveyDismiss.js')
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -21,11 +21,17 @@ test('처음에는 띄운다', () => {
   assert.equal(shouldShow(), true)
 })
 
-test('답하면 영구히 안 띄운다', () => {
+test('답해도 알약은 계속 뜬다 — 링크를 다시 볼 곳이 없어지면 안 된다', () => {
   globalThis.localStorage = fakeStorage()
-  markAnswered()
-  assert.equal(shouldShow(), false)
-  assert.equal(shouldShow(Date.now() + 365 * DAY), false)
+  markAnswered('https://s.baemin.com/abc123')
+  assert.equal(shouldShow(), true)
+  assert.equal(shouldShow(Date.now() + 365 * DAY), true)
+  assert.equal(getStoredCode(), 'https://s.baemin.com/abc123')
+})
+
+test('아직 안 답했으면 저장된 코드가 없다', () => {
+  globalThis.localStorage = fakeStorage()
+  assert.equal(getStoredCode(), null)
 })
 
 test('한 번 닫으면 3일 뒤에 다시 띄운다', () => {
