@@ -5,6 +5,7 @@ import { PRIMARY, REWARD_NOTICE, SECTIONS } from './surveyQuestions.js'
 
 const MAX_TEXT = 200
 const OTHER = 'other'
+const LAST_STEP = SECTIONS.length - 1
 
 // 노출(survey_impression)은 여기서 안 쏜다. 배너를 본 것이 노출이고 이
 // 카드는 그것을 연 뒤라, 여기서 쏘면 열어 본 사람만 노출로 세어진다
@@ -15,11 +16,15 @@ const OTHER = 'other'
  * 물어볼 것을 바꾸는 사람과 화면을 고치는 사람이 같은 파일을 안 건드리게
  * 갈라 둔 것이다.
  *
+ * 한 화면에 한 질문. 세 개를 한 번에 늘어놓으면 스크롤이 길어져 몇 문항인지
+ * 한눈에 안 잡힌다 — 진행 막대와 넘기기로 하나씩 보여준다.
+ *
  * 서버 계약은 첫 섹션 하나만 필수다(choice). 나머지 섹션은 answers 맵으로
  * 딸려 가고, 안 고른 섹션은 아예 안 보낸다 — 셋 다 필수로 만들면 세 번
  * 답해야 기프티콘이 나오는 셈이라 중간에 나가는 사람이 늘어난다.
  */
 export default function SurveyCard({ visitorId, code, onCode, onClose }) {
+  const [step, setStep] = useState(0)
   const [picked, setPicked] = useState({})   // 섹션 id -> token
   const [texts, setTexts] = useState({})     // 섹션 id -> 직접 입력
   const [sending, setSending] = useState(false)
@@ -99,6 +104,9 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
     )
   }
 
+  const atLast = step === LAST_STEP
+  const canGoNext = SECTIONS[step].id !== PRIMARY.id || Boolean(picked[PRIMARY.id])
+
   return (
     <div className="survey-card">
       <p className="survey-header">{REWARD_NOTICE}</p>
@@ -106,49 +114,71 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
               disabled={sending} aria-label="설문 닫기">×</button>
 
       <div className="survey-body">
-        {SECTIONS.map((s, i) => (
-          <section key={s.id} className="survey-section">
-            <h3 className="survey-q">
-              <span className="survey-q__no">{i + 1}</span>
-              {s.title}
-            </h3>
+        <div className="survey-progress">
+          <span className="survey-progress__count">{step + 1} / {SECTIONS.length}</span>
+          <div className="survey-progress__bar">
+            <div className="survey-progress__fill"
+                 style={{ width: `${((step + 1) / SECTIONS.length) * 100}%` }} />
+          </div>
+        </div>
 
-            <ul className="survey-choices">
-              {s.options.map((o) => (
-                <li key={o.token}>
-                  <button type="button" disabled={sending}
-                          className={'survey-choice'
-                            + (picked[s.id] === o.token ? ' survey-choice--on' : '')}
-                          onClick={() => pick(s.id, o.token)}>
-                    {o.label}
-                  </button>
-                </li>
-              ))}
-              {s.other && (
-                <li>
-                  <button type="button" disabled={sending}
-                          className={'survey-choice'
-                            + (picked[s.id] === OTHER ? ' survey-choice--on' : '')}
-                          onClick={() => pick(s.id, OTHER)}>
-                    직접 입력
-                  </button>
-                </li>
+        <div className="survey-viewport">
+        <div className="survey-track" style={{ transform: `translateX(-${step * 100}%)` }}>
+          {SECTIONS.map((s) => (
+            <section key={s.id} className="survey-slide">
+              <h3 className="survey-q">{s.title}</h3>
+
+              <ul className="survey-choices">
+                {s.options.map((o) => (
+                  <li key={o.token}>
+                    <button type="button" disabled={sending}
+                            className={'survey-choice'
+                              + (picked[s.id] === o.token ? ' survey-choice--on' : '')}
+                            onClick={() => pick(s.id, o.token)}>
+                      {o.label}
+                    </button>
+                  </li>
+                ))}
+                {s.other && (
+                  <li>
+                    <button type="button" disabled={sending}
+                            className={'survey-choice'
+                              + (picked[s.id] === OTHER ? ' survey-choice--on' : '')}
+                            onClick={() => pick(s.id, OTHER)}>
+                      직접 입력
+                    </button>
+                  </li>
+                )}
+              </ul>
+
+              {s.other && picked[s.id] === OTHER && (
+                <textarea className="survey-other-input" maxLength={MAX_TEXT} rows={3}
+                          aria-label={`${s.title} 직접 입력`}
+                          value={texts[s.id] || ''}
+                          onChange={(e) => setTexts((p) => ({ ...p, [s.id]: e.target.value }))} />
               )}
-            </ul>
+            </section>
+          ))}
+        </div>
+        </div>
 
-            {s.other && picked[s.id] === OTHER && (
-              <textarea className="survey-other-input" maxLength={MAX_TEXT} rows={3}
-                        aria-label={`${s.title} 직접 입력`}
-                        value={texts[s.id] || ''}
-                        onChange={(e) => setTexts((p) => ({ ...p, [s.id]: e.target.value }))} />
-            )}
-          </section>
-        ))}
-
-        <button type="button" className="survey-send"
-                disabled={sending || !picked[PRIMARY.id]} onClick={submit}>
-          {sending ? '보내는 중…' : '보내고 쿠폰 받기'}
-        </button>
+        <div className="survey-nav">
+          <button type="button" className="survey-nav__back" disabled={step === 0 || sending}
+                  onClick={() => setStep((s) => s - 1)}>
+            이전
+          </button>
+          {atLast ? (
+            <button type="button" className="survey-send"
+                    disabled={sending || !picked[PRIMARY.id]} onClick={submit}>
+              {sending ? '보내는 중…' : '보내고 쿠폰 받기'}
+            </button>
+          ) : (
+            <button type="button" className="survey-nav__next" disabled={!canGoNext || sending}
+                    onClick={() => setStep((s) => s + 1)}>
+              다음
+            </button>
+          )}
+        </div>
 
         {failed && <p className="survey-failed">지금은 참여할 수 없습니다.</p>}
       </div>
