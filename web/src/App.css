@@ -1496,6 +1496,10 @@ h1 {
   background: color-mix(in srgb, var(--text) 8%, var(--bg));
   border-radius: 4px;
   padding: .05rem .3rem;
+  /* 좁은 화면에서 칩 폭이 줄면 "특정메뉴"(4글자)가 두 줄로 접혀
+     top:-9px 절대 위치와 겹쳤다. status-badge는 처음부터 nowrap이
+     있었는데 이쪽만 빠져 있었다. */
+  white-space: nowrap;
   z-index: 1;
 }
 
