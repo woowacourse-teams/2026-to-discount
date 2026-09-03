@@ -169,10 +169,13 @@ public record Banner(
      */
     public String displayConditions() {
         if (extra == null) return null;
-        String stripped = MIN_ORDER_TOKEN.matcher(extra).replaceAll("").trim();
-        // 토큰을 지우면 "+"만 덜렁 남거나 공백이 겹친다 — 정리한다.
+        String stripped = MIN_ORDER_TOKEN.matcher(extra).replaceAll("");
+        // 토큰이 빠지면 그 자리 구두점이 덜렁 남는다 — "16,000↑, 선착순
+        // 할인"에서 앞부분을 지우면 ", 선착순 할인"이 된다(2026-09-03
+        // 실측: 처갓집양념치킨 배민). 앞뒤 구두점과 겹친 공백을 정리한다.
         stripped = stripped.replaceAll("\\s{2,}", " ")
-                .replaceAll("^\\s*\\+\\s*|\\s*\\+\\s*$", "")
+                .replaceAll("^[\\s,·+]+|[\\s,·+]+$", "")
+                .replaceAll(",\\s*,", ",")
                 .replaceAll("\\+\\s*\\+", "+")
                 .trim();
         return stripped.isEmpty() ? null : stripped;
