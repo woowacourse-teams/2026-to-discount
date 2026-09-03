@@ -1715,7 +1715,10 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   color: var(--text-muted);
   white-space: nowrap;
 }
-.detail__rows dd { margin: 0; font-size: .9rem; }
+/* grid 트랙은 기본 min-width가 auto라 안의 텍스트가 길면 줄바꿈 대신
+   트랙 자체를 넓혀 화면을 밀어냈다(2026-09-03 실측: 네네치킨 요기요
+   조건 문구). 0으로 낮춰야 1fr 트랙 폭 안에서 접힌다. */
+.detail__rows dd { margin: 0; font-size: .9rem; min-width: 0; }
 .detail__unknown { color: var(--text-muted); }
 
 .detail__tiers {
@@ -1746,7 +1749,15 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 }
 .detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
 .detail__tier-amount--soldout { opacity: .5; }
-.detail__condition-note { margin: .35rem 0 0; font-size: .85rem; color: var(--text-muted); }
+.detail__condition-note {
+  margin: .35rem 0 0;
+  font-size: .85rem;
+  color: var(--text-muted);
+  /* 한글·숫자 토큰 단위로 먼저 줄바꿈하고, 그래도 한 토큰이 폭보다
+     길면(아주 긴 숫자 등) 그때만 단어 중간에서 끊는다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
 
 /* 맨 아래: 이 서비스가 무엇이고 정보를 어떻게 모았는지 밝히는 자리.
    읽히긴 해야 하므로 회색으로 죽이되 본문 너비 안에 그대로 둔다. */

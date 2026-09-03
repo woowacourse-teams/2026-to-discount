@@ -150,6 +150,34 @@ public record Banner(
         return digits(m.group(1) != null ? m.group(1) : m.group(2));
     }
 
+    /** "18,000원↑" / "18,000원 이상 주문 시" — 통째로 지울 토큰. */
+    private static final Pattern MIN_ORDER_TOKEN = Pattern.compile(
+            "[0-9][0-9,]*\\s*원?\\s*(?:↑|이상(?:\\s*주문\\s*시)?)");
+
+    /**
+     * 화면에 보여줄 조건 문구 — extra에서 최소주문금액 언급만 뺀다.
+     *
+     * <p>그 숫자는 이미 tiers의 minOrder로 따로 뜬다("18,000↑" 배지,
+     * App.jsx). extra 원문을 그대로 conditions에 실으면 같은 문턱이
+     * 두 번 보인다(2026-09-03, 사용자 지적: 네네치킨 요기요 실측 —
+     * "18,000원↑ 즉시 3,000원 + 25,000원↑ 매일 16시 선착순 5,000원"이
+     * 문장으로도, 그 위 티어 줄로도 뜬다).
+     *
+     * <p>extra 원문 자체는 안 건드린다 — compoundMinOrders() 등 금액
+     * 계산이 그 문구를 그대로 읽어야 한다. 이 메서드는 화면 표시용
+     * 파생값만 만든다.
+     */
+    public String displayConditions() {
+        if (extra == null) return null;
+        String stripped = MIN_ORDER_TOKEN.matcher(extra).replaceAll("").trim();
+        // 토큰을 지우면 "+"만 덜렁 남거나 공백이 겹친다 — 정리한다.
+        stripped = stripped.replaceAll("\\s{2,}", " ")
+                .replaceAll("^\\s*\\+\\s*|\\s*\\+\\s*$", "")
+                .replaceAll("\\+\\s*\\+", "+")
+                .trim();
+        return stripped.isEmpty() ? null : stripped;
+    }
+
     /** {@code amount}의 맨 앞 "n,nnn원". 정액이 아니면 null. */
     private static final Pattern HEADLINE = Pattern.compile("([0-9][0-9,]*)\\s*원");
 

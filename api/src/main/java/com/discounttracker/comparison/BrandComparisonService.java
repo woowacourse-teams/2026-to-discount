@@ -102,7 +102,11 @@ public class BrandComparisonService {
                     // null이라 지금까지와 같은 대표값 하나짜리다.
                     compound.isEmpty() ? null : "cumulative",
                     compound.isEmpty() ? null : compound,
-                    banner.extra(),
+                    // extra 원문이 아니라 최소주문금액 언급만 뺀 화면용
+                    // 파생값을 쓴다 — 그 숫자는 이미 tiers의 minOrder로
+                    // 따로 뜬다(사용자 지적, 2026-09-03: 네네치킨 요기요
+                    // 실측에서 문턱이 문장과 티어 줄 양쪽에 중복으로 보임).
+                    banner.displayConditions(),
                     banner.endsOn().toString(),
                     // 기간 문구를 배지로 올린다 — "오전 11시부터 선착순"이
                     // 안 보이면 아무 때나 받을 수 있는 할인으로 읽힌다.

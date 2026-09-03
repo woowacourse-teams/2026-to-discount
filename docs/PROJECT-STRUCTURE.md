@@ -137,6 +137,7 @@ web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
 web/src/MenuBar.jsx
 web/src/SurveyCard.jsx
+web/src/SurveyDock.jsx
 web/src/TopBarA.jsx
 web/src/analytics-context.js
 web/src/analytics.js
@@ -144,6 +145,8 @@ web/src/api.js
 web/src/brandAutocomplete.js
 web/src/brandAutocomplete.test.js
 web/src/brandColor.js
+web/src/brandImpression.js
+web/src/brandImpression.test.js
 web/src/filters.js
 web/src/ga4.js
 web/src/logos.jsx
@@ -152,6 +155,7 @@ web/src/posthog.js
 web/src/privacy.js
 web/src/surveyDismiss.js
 web/src/surveyDismiss.test.js
+web/src/surveyQuestions.js
 web/src/useBrandAutocomplete.js
 web/src/variant.js
 web/vercel.json
@@ -202,7 +206,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 87 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 40 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 44 |
 
 ### Tracker
 
@@ -258,6 +262,7 @@ HTTP 경계:
 | `FilterSheet.jsx` | 앱·분류·정렬을 고르는 바텀시트 |
 | `MenuBar.jsx` | 스크롤 중 따라오는 분류 바 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `TopBarA.jsx` | A안 상단 바(앱 버튼·분류 캐러셀) |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
@@ -265,6 +270,8 @@ HTTP 경계:
 | `brandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandAutocomplete.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandColor.js` | 배너 색 파생 |
+| `brandImpression.js` | 브랜드 헤더 노출 판정과 세션 중복 방지 |
+| `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `ga4.js` | 임시 GA4 측정 |
 | `logos.jsx` | 브랜드와 플랫폼 로고 |
@@ -273,6 +280,7 @@ HTTP 경계:
 | `privacy.js` | DNT/GPC 추적 거부 판정 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useBrandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `variant.js` | A/B 화면 갈래 배정 |
 

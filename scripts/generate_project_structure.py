@@ -203,8 +203,15 @@ def api_endpoints(paths: list[PurePosixPath]) -> list[str]:
     # 경로가 붙은 것과 안 붙은 것을 둘 다 읽는다. 클래스에
     # @RequestMapping("/api/survey")를 걸고 메서드는 @GetMapping만 쓰는
     # 컨트롤러가 있다(SurveyController) — 그때 주소는 클래스 쪽에 있다.
+    # 괄호가 단순 경로 하나("...")면 잡고, 괄호가 있는데 그 모양이
+    # 아니면(예: @PostMapping(value = "...", produces = "...")) 아예 안
+    # 잡는다 — 예전엔 뒤 괄호 내용을 무시하고 "@PostMapping"만 매칭돼
+    # 개수 가드(declared==parsed)를 속이고 경로가 빈 문자열로 조용히
+    # 깨졌다(실측: value= 폼이 매핑 1개를 빠뜨린 채로 통과함,
+    # 2026-09-03). 뒤에 "("가 오는데 단순 폼이 아니면 매칭 자체를
+    # 실패시켜 가드가 잡게 한다.
     mapping_pattern = re.compile(
-        r'@(Get|Post|Put|Delete|Patch)Mapping(?:\("([^"]*)"\))?')
+        r'@(Get|Post|Put|Delete|Patch)Mapping(?:\("([^"]*)"\)|(?!\())')
     base_pattern = re.compile(r'@RequestMapping\("([^"]+)"\)')
     declared_pattern = re.compile(
         r'^\s*@(?:Get|Post|Put|Delete|Patch|Request)Mapping\b', re.MULTILINE
