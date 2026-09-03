@@ -66,7 +66,12 @@ public class BrandComparisonService {
      * 안 넣고 배너로만 둔다 — 억지로 넣으면 정렬과 최고 할인이 흔들린다.
      */
     private List<OfferRecord> bannerRecords() {
-        String today = LocalDate.now(clock).toString();
+        // capturedAt은 날짜가 아니라 시각까지 있어야 한다. Offer.preferredOver가
+        // 문자열로 그냥 비교하는데("2026-09-03" vs "2026-09-03T12:00:00+09:00"),
+        // 날짜만 넣으면 같은 날 찍힌 원장 레코드보다 "더 이르다"고 읽혀
+        // 배너가 항상 진다 — 오늘 등록한 배너가 어제 원장 값에 안 이겨서
+        // 카드에 안 뜨는 사고가 났다(사용자 확인, 2026-09-03).
+        String today = java.time.OffsetDateTime.now(clock).toString();
         List<OfferRecord> records = new ArrayList<>();
         for (Banner banner : banners.active()) {
             if (banner.brand() == null) continue;
