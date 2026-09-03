@@ -113,6 +113,42 @@ public record Banner(
         }
     }
 
+    /**
+     * 겹쳐 쓴 쿠폰의 최소주문금액. 문구에 문턱이 여럿 섞여 있으면
+     * ("18,000원↑ 즉시 3,000원 + 25,000원↑ 선착순 5,000원") 제일 비싼
+     * 것을 쓴다.
+     *
+     * <p>두 쿠폰을 다 받으려면 결국 더 높은 문턱을 넘어야 한다 — 낮은
+     * 쪽({@link #effectiveMinOrder()}이 맨 앞 것만 보는 이유는 배너
+     * 하나에 문턱 하나뿐인 보통 경우를 위해서다)을 그대로 쓰면 실제로는
+     * 안 되는 금액에서 된다고 말하는 셈이다(2026-09-03, 사용자 지적:
+     * 네네치킨 요기요 콤파운드 티어 둘 다 18,000원으로 떴는데 5,000원
+     * 쪽은 25,000원부터다).
+     */
+    // EXTRA_MIN_ORDER와 같은 모양이지만 문장 맨 앞으로 안 묶는다 — 겹쳐
+    // 쓴 문구는 두 번째 문턱이 맨 앞이 아니라("18,000원↑ ... + 25,000원↑
+    // ...") ^ 앵커가 걸린 EXTRA_MIN_ORDER로는 첫 번째 것만 잡힌다.
+    // 이건 compoundMinOrder 전용이다 — 단일 문턱 배지(effectiveMinOrder)는
+    // 그대로 맨 앞 것만 본다.
+    private static final Pattern COMPOUND_MIN_ORDER_ALL = Pattern.compile(
+            "([0-9][0-9,]*)\\s*(?:원)?\\s*(?:↑|이상)|최소주문\\s*([0-9][0-9,]*)\\s*원?");
+
+    private Integer compoundMinOrder() {
+        if (extra == null) return effectiveMinOrder();
+        Matcher m = COMPOUND_MIN_ORDER_ALL.matcher(extra);
+        Integer max = null;
+        while (m.find()) {
+            String digits = m.group(1) != null ? m.group(1) : m.group(2);
+            try {
+                int value = Integer.parseInt(digits.replace(",", ""));
+                if (max == null || value > max) max = value;
+            } catch (NumberFormatException ignored) {
+                // 건너뛴다 — 다음 후보를 계속 본다.
+            }
+        }
+        return max != null ? max : minOrder;
+    }
+
     /** {@code amount}의 맨 앞 "n,nnn원". 정액이 아니면 null. */
     private static final Pattern HEADLINE = Pattern.compile("([0-9][0-9,]*)\\s*원");
 
@@ -152,7 +188,7 @@ public record Banner(
      */
     public List<com.discounttracker.offer.DiscountTier> compoundTiers() {
         Integer headline = headlineAmount();
-        Integer min = effectiveMinOrder();
+        Integer min = compoundMinOrder();
         if (headline == null || min == null) return List.of();
 
         Matcher rate = firstMatch(FIXED_PLUS_RATE);
