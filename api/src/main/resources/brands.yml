@@ -47,7 +47,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=18
   기영이숯불두마리치킨:
     searchAliases: [기영이치킨, 기영이 숯불치킨, giyeongi, giyeongi chicken]
-    aliases: [기영이숯불두마리치킨, 기영이치킨, 기영이 치킨, 기영이 숯불치킨]
+    aliases: [기영이숯불두마리치킨, 기영이치킨, 기영이 치킨, 기영이 숯불치킨, 기영이숯불치킨]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?oO9vVmT
