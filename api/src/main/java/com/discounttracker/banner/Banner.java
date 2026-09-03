@@ -113,40 +113,41 @@ public record Banner(
         }
     }
 
-    /**
-     * 겹쳐 쓴 쿠폰의 최소주문금액. 문구에 문턱이 여럿 섞여 있으면
-     * ("18,000원↑ 즉시 3,000원 + 25,000원↑ 선착순 5,000원") 제일 비싼
-     * 것을 쓴다.
-     *
-     * <p>두 쿠폰을 다 받으려면 결국 더 높은 문턱을 넘어야 한다 — 낮은
-     * 쪽({@link #effectiveMinOrder()}이 맨 앞 것만 보는 이유는 배너
-     * 하나에 문턱 하나뿐인 보통 경우를 위해서다)을 그대로 쓰면 실제로는
-     * 안 되는 금액에서 된다고 말하는 셈이다(2026-09-03, 사용자 지적:
-     * 네네치킨 요기요 콤파운드 티어 둘 다 18,000원으로 떴는데 5,000원
-     * 쪽은 25,000원부터다).
-     */
     // EXTRA_MIN_ORDER와 같은 모양이지만 문장 맨 앞으로 안 묶는다 — 겹쳐
     // 쓴 문구는 두 번째 문턱이 맨 앞이 아니라("18,000원↑ ... + 25,000원↑
-    // ...") ^ 앵커가 걸린 EXTRA_MIN_ORDER로는 첫 번째 것만 잡힌다.
-    // 이건 compoundMinOrder 전용이다 — 단일 문턱 배지(effectiveMinOrder)는
-    // 그대로 맨 앞 것만 본다.
-    private static final Pattern COMPOUND_MIN_ORDER_ALL = Pattern.compile(
+    // ...") ^ 앵커가 걸린 EXTRA_MIN_ORDER로는 안 잡힌다.
+    private static final Pattern MIN_ORDER_ANYWHERE = Pattern.compile(
             "([0-9][0-9,]*)\\s*(?:원)?\\s*(?:↑|이상)|최소주문\\s*([0-9][0-9,]*)\\s*원?");
 
-    private Integer compoundMinOrder() {
-        if (extra == null) return effectiveMinOrder();
-        Matcher m = COMPOUND_MIN_ORDER_ALL.matcher(extra);
-        Integer max = null;
-        while (m.find()) {
-            String digits = m.group(1) != null ? m.group(1) : m.group(2);
-            try {
-                int value = Integer.parseInt(digits.replace(",", ""));
-                if (max == null || value > max) max = value;
-            } catch (NumberFormatException ignored) {
-                // 건너뛴다 — 다음 후보를 계속 본다.
-            }
-        }
-        return max != null ? max : minOrder;
+    /**
+     * 겹쳐 쓴 쿠폰 둘의 최소주문금액을 각자 것으로 가른다.
+     *
+     * <p>"18,000원↑ 즉시 3,000원 + 25,000원↑ 선착순 5,000원"처럼 "+"로
+     * 나뉜 두 조각에 문턱이 하나씩 딸려 있다. 조각별로 따로 찾는다 —
+     * 하나로 뭉쳐 더 비싼 쪽을 양쪽에 다 씌우면, 3,000원 쪽도 실제보다
+     * 높은 문턱(25,000원)에서만 되는 것처럼 보인다(2026-09-03, 사용자
+     * 지적: 네네치킨 요기요 실측 — 3,000원은 18,000원↑, 5,000원은
+     * 25,000원↑로 서로 다르다).
+     *
+     * <p>뒤 조각에 문턱이 안 적혀 있으면(예: "고정 6,000+선착순 10%") 앞
+     * 조각 것을 그대로 물려받는다 — 보통 한 쿠폰의 조건 안에서 갈라 쓴
+     * 문구라 같은 문턱을 공유하는 경우다.
+     */
+    private Integer[] compoundMinOrders() {
+        Integer fallback = effectiveMinOrder();
+        if (extra == null) return new Integer[] {fallback, fallback};
+        String[] parts = extra.split("\\+", 2);
+        Integer first = minOrderIn(parts[0]);
+        Integer second = parts.length > 1 ? minOrderIn(parts[1]) : null;
+        if (first == null) first = fallback;
+        if (second == null) second = first;
+        return new Integer[] {first, second};
+    }
+
+    private static Integer minOrderIn(String text) {
+        Matcher m = MIN_ORDER_ANYWHERE.matcher(text);
+        if (!m.find()) return null;
+        return digits(m.group(1) != null ? m.group(1) : m.group(2));
     }
 
     /** {@code amount}의 맨 앞 "n,nnn원". 정액이 아니면 null. */
@@ -188,7 +189,7 @@ public record Banner(
      */
     public List<com.discounttracker.offer.DiscountTier> compoundTiers() {
         Integer headline = headlineAmount();
-        Integer min = compoundMinOrder();
+        Integer min = effectiveMinOrder();
         if (headline == null || min == null) return List.of();
 
         Matcher rate = firstMatch(FIXED_PLUS_RATE);
@@ -212,9 +213,12 @@ public record Banner(
             Integer b = digits(two.group(2));
             if (a == null || b == null) return List.of();
             if (a + b != headline) return List.of();
+            // 두 쿠폰의 문턱이 다를 수 있다 — 하나로 뭉치지 않고 조각별로
+            // 가른다(compoundMinOrders).
+            Integer[] mins = compoundMinOrders();
             return List.of(
-                    new com.discounttracker.offer.DiscountTier(min, a, null, null, null, null, null),
-                    new com.discounttracker.offer.DiscountTier(min, b, null, null, null, null, null));
+                    new com.discounttracker.offer.DiscountTier(mins[0], a, null, null, null, null, null),
+                    new com.discounttracker.offer.DiscountTier(mins[1], b, null, null, null, null, null));
         }
         return List.of();
     }
