@@ -47,6 +47,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=18
   기영이숯불두마리치킨:
     searchAliases: [기영이치킨, 기영이 숯불치킨, giyeongi, giyeongi chicken]
+    aliases: [기영이숯불두마리치킨, 기영이치킨, 기영이 치킨, 기영이 숯불치킨]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?oO9vVmT
@@ -178,7 +179,7 @@ brands:
     category: chicken
   푸라닭:
     searchAliases: [푸라닭치킨, 푸라닭 치킨, puradak, puradak chicken]
-    aliases: [푸라닭, 푸라닭치킨, puradak]
+    aliases: [푸라닭, 푸라닭치킨, 푸라닭 치킨, puradak]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway.html?QgXqFri
