@@ -3057,6 +3057,8 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .survey-thanks { margin: 0; color: var(--text); }
 .survey-code-label { margin: 0; font-size: .82rem; color: var(--text-muted); }
 .survey-nostock { margin: 0; font-size: .9rem; color: var(--text-muted); }
+.survey-help { margin: 0; font-size: .82rem; color: var(--text-muted); }
+.survey-help a { color: inherit; text-decoration: underline; }
 
 /* 사용자가 번호를 받아 가는 유일한 자리다. 연락처를 안 받기로 했으니
    여기서 놓치면 다시 줄 방법이 없다 — 크게, 통째로 선택되게 둔다. */

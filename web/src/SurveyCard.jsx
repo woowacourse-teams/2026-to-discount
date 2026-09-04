@@ -166,6 +166,14 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
               <p className="survey-code">{code}</p>
             </>
           )}
+          {/* 링크가 이미 쓰였거나(2026-09-02 중복 발급) 브라우저 데이터를
+              지워 이 화면까지 못 오는 경우가 있다. 연락처를 안 받으므로
+              사람이 원장을 대조하는 이 창구가 유일한 복구 경로다. */}
+          <p className="survey-help">
+            링크가 안 열리면{' '}
+            <a href="https://open.kakao.com/o/sb3kQ0Li"
+               target="_blank" rel="noreferrer">오픈채팅으로 알려주세요</a>.
+          </p>
           <button type="button" className="survey-close-btn" onClick={onClose}>닫기</button>
         </div>
       </div>
