@@ -108,6 +108,12 @@ public record Offer(String platform, Integer amount, String qualifier,
      * <p>2026-08-22 실측: 청년피자 땡겨요의 근거 없는 backfill 배지가
      * 08-17 자동 전수 캡처를 이기고 되살아났다.
      *
+     * <p>{@code expiresAt}도 목록에 찍히는 값이라 같은 이유로 병합하지
+     * 않는다. 2026-09-04 실측: 쿠팡이츠 명랑핫도그·뚜레쥬르가 그날 허브에
+     * 걸려 있는데도 사라졌다 — 전날 쿠폰함에서 읽은 발급 쿠폰의 "오늘까지"가
+     * 같은 브랜드의 허브 타일로 옮겨붙어, 오늘 본 오퍼가 어제 만료된 것으로
+     * 판정됐다. 쿠폰은 당일 만료돼도 프로모션은 계속 돈다.
+     *
      * <p>tracker의 {@code store.MERGEABLE_DETAIL}과 <b>글자까지 같아야
      * 한다</b>(ADR-016).
      */
@@ -119,10 +125,7 @@ public record Offer(String platform, Integer amount, String qualifier,
                 : sameCoupon ? other.tiers : null;
         String mergedConditions = conditions != null ? conditions
                 : sameCoupon ? other.conditions : null;
-        String mergedExpiresAt = expiresAt != null ? expiresAt
-                : sameCoupon ? other.expiresAt : null;
-        if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions
-                && mergedExpiresAt == expiresAt) {
+        if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions) {
             return this;
         }
         // soldOut은 병합하지 않는다 — 이긴 쪽 자신의 amount에 매인 상태라
@@ -131,7 +134,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         // link도 병합하지 않는다. 진 쪽 링크는 그쪽 금액으로 가는 길이라,
         // 이긴 금액에 붙이면 화면에 적힌 값과 눌러서 가는 곳이 어긋난다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                mergedMinOrder, tierMode, mergedTiers, mergedConditions, mergedExpiresAt, badge, soldOut,
+                mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, badge, soldOut,
                 link);
     }
 }
