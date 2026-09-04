@@ -245,6 +245,7 @@ HTTP 경계:
 - `GET /api/brands`
 - `GET /api/stats/traffic`
 - `GET /api/survey`
+- `GET /api/survey/code`
 - `GET /api/test/brands`
 - `GET /api/test/faults`
 - `POST /api/events`

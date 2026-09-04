@@ -13,7 +13,7 @@ import { uiVariant } from './variant.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
 import SurveyCard from './SurveyCard.jsx'
-import { getStoredCode, shouldShow as surveyShouldShow } from './surveyDismiss.js'
+import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
 
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
@@ -724,6 +724,24 @@ export default function App() {
   // SurveyCard가 열려 있는 채로 onCode로 이 값을 바꾸므로, 그 경우는
   // 이미 화면이 카드 위에 있다 — 여기서 따로 열 필요가 없다.
   const [surveyCode, setSurveyCode] = useState(() => getStoredCode())
+
+  // 서버에 적힌 내 코드를 가져와 화면과 저장본을 맞춘다. visitorId까지 지운
+  // 사람은 서버도 누군지 못 가린다 — 그 경우는 확인요청이 유일한 길이라
+  // 코드 화면에 안내를 같이 띄운다(SurveyCard).
+  async function syncCodeFromServer() {
+    const { visitorId } = getAnalyticsContext()
+    if (!visitorId) return
+    try {
+      const res = await fetch(`/api/survey/code?visitorId=${encodeURIComponent(visitorId)}`)
+      const body = await res.json()
+      if (body.code && body.code !== getStoredCode()) {
+        markAnswered(body.code)
+        setSurveyCode(body.code)
+      }
+    } catch {
+      // 못 가져오면 저장본을 그대로 쓴다 — 네트워크 때문에 화면이 빌 이유는 없다.
+    }
+  }
   // 트리거 알약을 눌렀는지. 그리드 맨 앞칸에 카드를 놓을지를 이걸로 정한다.
   const [surveyOpen, setSurveyOpen] = useState(false)
 
@@ -735,6 +753,11 @@ export default function App() {
     // 놓치면 다시 볼 길이 없었다.
     if (getStoredCode()) {
       setSurveyOn(true)
+      // 서버가 정본이다. localStorage 사본이 낡을 수 있다 — 2026-09-02에
+      // 서버가 발급 기록을 잃고 같은 링크를 다음 사람에게 다시 내준 적이
+      // 있어(중복 발급), 그때 먼저 받은 사람 브라우저에는 남의 것이 된
+      // 링크가 남아 있다. 서버 값이 다르면 그쪽으로 덮는다.
+      syncCodeFromServer()
       return
     }
     // 개발자 콘솔에서 이 브라우저만 강제로 띄우는 문. 서버 대상 판정도

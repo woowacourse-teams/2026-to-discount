@@ -41,6 +41,38 @@ class GifticonStoreTest {
     }
 
     @Test
+    void sameVisitorGetsTheSameCodeBackInsteadOfANewOne() throws Exception {
+        GifticonStore s = store("""
+            gifticons:
+              - code: "AAAA-1111"
+              - code: "BBBB-2222"
+            """);
+
+        assertEquals(Optional.of("AAAA-1111"), s.issue("v_1"));
+        assertEquals(Optional.of("AAAA-1111"), s.issue("v_1"),
+                "이미 받은 사람에게는 그때 그 코드를 준다");
+        assertEquals(1, s.remaining(), "재고를 두 번 먹으면 안 된다");
+        assertEquals(Optional.of("AAAA-1111"), s.issuedTo("v_1"));
+        assertEquals(Optional.empty(), s.issuedTo("v_2"));
+    }
+
+    @Test
+    void issuanceIsAlsoWrittenToAnAppendOnlyLedger() throws Exception {
+        // gifticons.yml은 제자리에서 다시 쓰이는 파일이라 통째로 갈리면
+        // 누가 무엇을 받았는지가 함께 사라진다 — 2026-09-02에 실제로 그렇게
+        // 날아가 같은 링크가 두 사람에게 나갔다.
+        GifticonStore s = store("""
+            gifticons:
+              - code: "AAAA-1111"
+            """);
+        s.issue("v_1");
+
+        String ledger = Files.readString(tmp.resolve("gifticon-issues.jsonl"));
+        assertTrue(ledger.contains("v_1"), ledger);
+        assertTrue(ledger.contains("AAAA-1111"), ledger);
+    }
+
+    @Test
     void neverIssuesTheSameCodeTwice() throws Exception {
         GifticonStore s = store("""
             gifticons:

@@ -120,6 +120,17 @@ public class SurveyService {
         return qualifies(visitorId);
     }
 
+    /**
+     * 이 사람 앞으로 이미 나간 코드.
+     *
+     * <p>브라우저 {@code localStorage}가 유일한 사본이면 지운 순간 되찾을
+     * 길이 없다(연락처를 안 받는다). 서버가 정본을 들고 화면이 그것을
+     * 따르게 한다.
+     */
+    public Optional<String> issuedCode(String visitorId) {
+        return gifticons.issuedTo(visitorId);
+    }
+
     /** 응답 결과. {@code code}는 성공했을 때만 채워진다. */
     public record Answer(boolean ok, String reason, String code) {
         static Answer fail(String reason) {

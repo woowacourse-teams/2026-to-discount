@@ -36,6 +36,20 @@ public class SurveyController {
         return Map.of("eligible", survey.eligible(visitorId));
     }
 
+    /**
+     * 이미 받은 코드 다시 보기. 화면의 "링크 다시 확인하기"가 이걸 믿는다.
+     *
+     * <p>{@code visitorId}는 브라우저가 들고 있는 값이라, 그것까지 지운
+     * 사람은 서버도 누군지 못 가린다 — 그 경우는 확인요청(사람이 원장
+     * 대조)이 유일한 길이다.
+     */
+    @GetMapping("/code")
+    public Map<String, Object> code(@RequestParam(required = false) String visitorId) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        survey.issuedCode(visitorId).ifPresent(c -> out.put("code", c));
+        return out;
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> answer(@RequestBody Submission body,
                                                       HttpServletRequest request) {

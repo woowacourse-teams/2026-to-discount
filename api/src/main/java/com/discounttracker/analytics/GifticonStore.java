@@ -36,10 +36,25 @@ public class GifticonStore {
 
     private static final Logger log = LoggerFactory.getLogger(GifticonStore.class);
 
+    /**
+     * 발급 원장. {@code gifticons.yml}은 제자리에서 다시 쓰이는 파일이라
+     * 통째로 갈리면 누가 무엇을 받았는지가 함께 사라진다 — 2026-09-02
+     * 21:12 이후 실제로 그렇게 날아가, 비어 보이게 된 자리가 다음 사람에게
+     * 재발급됐다(같은 링크가 두 사람에게 나갔다). 그래서 발급 사실만 따로
+     * append-only로 남긴다.
+     *
+     * <p>{@code events.jsonl}에 안 적는다. 그 원장의 props는 PostHog로
+     * 그대로 전달돼(PostHogEventMapper) 기프티콘 링크가 서드파티에 닿는다.
+     */
+    private static final String ISSUES_FILE = "gifticon-issues.jsonl";
+
     private final Path path;
+    private final Path issuesPath;
 
     public GifticonStore(@Value("${discount.gifticons-path:data/gifticons.yml}") String path) {
         this.path = Path.of(path);
+        Path dir = this.path.toAbsolutePath().getParent();
+        this.issuesPath = (dir == null ? Path.of("") : dir).resolve(ISSUES_FILE);
     }
 
     Path path() {
@@ -59,6 +74,11 @@ public class GifticonStore {
      * 돌려준다 — 먼저 돌려주고 쓰다 실패하면 같은 코드가 다음 사람에게도 간다.
      */
     public synchronized Optional<String> issue(String visitorId) {
+        // 이미 받은 사람에게는 그때 그 코드를 그대로 돌려준다. 재고를 또
+        // 먹지 않고, 한 사람이 코드를 둘 쥐는 일도 없다.
+        Optional<String> held = issuedTo(visitorId);
+        if (held.isPresent()) return held;
+
         List<Map<String, Object>> all = read();
         for (Map<String, Object> g : all) {
             if (g.get("issuedTo") != null) continue;
@@ -75,9 +95,40 @@ public class GifticonStore {
                 log.error("기프티콘 발급 기록에 실패했다 — 코드를 내주지 않는다: {}", path, e);
                 return Optional.empty();
             }
+            recordIssue(visitorId, String.valueOf(code));
             return Optional.of(String.valueOf(code));
         }
         return Optional.empty();
+    }
+
+    /** 이 사람 앞으로 이미 나간 코드. 없으면 비어 있다. */
+    public synchronized Optional<String> issuedTo(String visitorId) {
+        if (visitorId == null || visitorId.isBlank()) return Optional.empty();
+        for (Map<String, Object> g : read()) {
+            if (visitorId.equals(g.get("issuedTo")) && g.get("code") != null) {
+                return Optional.of(String.valueOf(g.get("code")));
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * 발급 한 줄을 append-only로 남긴다.
+     *
+     * <p>실패해도 발급을 되돌리지 않는다 — 코드는 이미 yml에 박혔고, 여기서
+     * 예외를 올리면 사용자가 코드를 못 받는다. 대신 로그로 사람이 맞춘다.
+     */
+    private void recordIssue(String visitorId, String code) {
+        String line = String.format("{\"ts\":\"%s\",\"visitorId\":\"%s\",\"code\":\"%s\"}%n",
+                OffsetDateTime.now(Clock.systemDefaultZone()), visitorId, code);
+        try {
+            Files.writeString(issuesPath, line, StandardCharsets.UTF_8,
+                    java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            log.error("발급 원장에 못 남겼다 — visitorId={} code={} 경로={}",
+                    visitorId, code, issuesPath, e);
+        }
     }
 
     @SuppressWarnings("unchecked")
