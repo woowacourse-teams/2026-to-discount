@@ -294,8 +294,13 @@ export default function EventBanner({ banners }) {
   function advance() {
     const el = trackRef.current
     if (!el) return
-    const next = (Math.round(el.scrollLeft / el.clientWidth) + 1) % count
-    el.scrollTo({ left: el.clientWidth * next, behavior: 'smooth' })
+    const cur = Math.round(el.scrollLeft / el.clientWidth)
+    const next = (cur + 1) % count
+    // 마지막 장에서 처음으로 돌아갈 때는 애니메이션 없이 건너뛴다. smooth로
+    // 두면 지나온 배너를 전부 역순으로 훑고 지나간다 — 여섯 장이면 한참
+    // 걸리고, 뒤로 가는 것처럼 보여 "방금 그거 뭐였지"가 된다.
+    const wrapping = next === 0 && cur !== 0
+    el.scrollTo({ left: el.clientWidth * next, behavior: wrapping ? 'auto' : 'smooth' })
   }
 
   // 하단 배너는 안 보일 때도 DOM에 남아 있다(visibility:hidden). 관찰자는
