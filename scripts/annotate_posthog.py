@@ -23,8 +23,12 @@ banner_click이 없다).
   spike     방문자가 평소의 몇 배로 뛴 날. 같은 날 release 표시가 같이
             서면 배포 탓이고, 혼자 서면 밖에서 온 것이다.
 
-인증은 Personal API Key다(annotation:write 스코프). 프로젝트 토큰(phc_)은
-쓰기 전용이라 안 된다. 브라우저에 넣는 값이 아니므로 환경변수로만 받는다.
+인증은 Personal API Key다. 발급 화면에서 Annotation 항목을 **Write**로
+두면 된다 — 같은 리소스의 읽기까지 덮는다. 못 읽는 키라면 --no-dedup으로
+넘길 수 있지만, 그러면 다시 돌릴 때마다 같은 주석이 쌓인다.
+
+프로젝트 토큰(phc_)은 쓰기 전용 수집 키라 여기에 못 쓴다. 브라우저에
+넣는 값이 아니므로 환경변수로만 받는다.
 """
 import argparse
 import collections
@@ -147,6 +151,8 @@ def main(argv=None):
     p.add_argument("--src", help="원장 파일. 없으면 서버에서 받는다")
     p.add_argument("--apply", action="store_true", help="실제로 올린다")
     p.add_argument("--since", default="2026-07-29", help="이 날 이후만")
+    p.add_argument("--no-dedup", action="store_true",
+                   help="기존 주석을 안 읽는다. 겹쳐 쌓일 수 있다")
     args = p.parse_args(argv)
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
@@ -174,12 +180,17 @@ def main(argv=None):
               % KEY_VAR, file=sys.stderr)
         return 2
 
-    try:
-        already = existing(key)
-    except urllib.error.HTTPError as err:
-        print("기존 주석을 못 읽었다 (%s). 스코프에 annotation:read가 있는지 "
-              "확인해라." % err, file=sys.stderr)
-        return 2
+    already = set()
+    if not args.no_dedup:
+        try:
+            already = existing(key)
+        except urllib.error.HTTPError as err:
+            # 읽기가 막힌 키로 그냥 올리면 돌릴 때마다 같은 주석이 쌓이고,
+            # 지우는 것은 손으로 해야 한다. 여기서 멈추는 편이 싸다.
+            print("기존 주석을 못 읽었다 (%s). "
+                  "발급 화면에서 Annotation을 Write로 두면 읽기까지 된다. "
+                  "그대로 올리려면 --no-dedup." % err, file=sys.stderr)
+            return 2
 
     added = skipped = 0
     for day, content in marks:
