@@ -4,6 +4,7 @@
   scripts/annotate_posthog.py                # 무엇을 찍을지 보여만 준다
   scripts/annotate_posthog.py --apply        # 실제로 올린다
   scripts/annotate_posthog.py --kind tracking
+  scripts/annotate_posthog.py --reset --apply  # 다 지우고 다시 찍는다
 
 PostHog 그래프에서 선이 꺾여도 지금은 원인을 못 찾는다.
 
@@ -18,17 +19,20 @@ banner_click이 없다).
 
   tracking  이벤트가 처음 나타난 날. 그 전 구간은 그 지표가 0이다 —
             비교하면 안 되는 구간이라는 표시다. 원장에서 뽑는다.
-  release   화면이 바뀐 날(web/src의 feat 커밋). 하루에 여러 건이면 한
-            줄로 묶는다 — 커밋마다 찍으면 눈금이 글자로 덮인다.
+  release   화면이 바뀐 날(web/src의 feat 커밋).
   spike     방문자가 평소의 몇 배로 뛴 날. 같은 날 release 표시가 같이
             서면 배포 탓이고, 혼자 서면 밖에서 온 것이다.
+
+주석 본문은 한 줄로 짧게 쓴다. PostHog는 눈금 옆에 그대로 펼쳐 그리므로
+긴 글을 넣으면 그래프를 덮는다 — 실제로 09-02 개편 9건을 이어 붙였더니
+한 줄이 화면을 가로질렀다. 자세한 내역은 docs/metrics/ANNOTATIONS.md에
+같은 날짜로 남긴다.
 
 인증은 Personal API Key다. 발급 화면에서 Annotation 항목을 **Write**로
 두면 된다 — 같은 리소스의 읽기까지 덮는다. 못 읽는 키라면 --no-dedup으로
 넘길 수 있지만, 그러면 다시 돌릴 때마다 같은 주석이 쌓인다.
 
-프로젝트 토큰(phc_)은 쓰기 전용 수집 키라 여기에 못 쓴다. 브라우저에
-넣는 값이 아니므로 환경변수로만 받는다.
+프로젝트 토큰(phc_)은 쓰기 전용 수집 키라 여기에 못 쓴다.
 """
 import argparse
 import collections
@@ -49,13 +53,41 @@ KEY_VAR = "POSTHOG_PERSONAL_API_KEY"
 KEY_FILE = os.environ.get("POSTHOG_KEY_FILE",
                           os.path.expanduser("~/.posthog_key"))
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+DOC = os.path.join(REPO, "docs", "metrics", "ANNOTATIONS.md")
 
 # 하루 중 언제로 찍을지. 자정으로 두면 전날 눈금에 붙어 보인다.
 MARKER_HOUR = "T12:00:00Z"
 
+# 눈금 옆 한 줄이 감당하는 길이. 넘으면 그래프를 덮는다.
+CONTENT_MAX = 45
+
+EMOJI = {"tracking": "📏", "release": "🛠", "spike": "📈"}
+
+
+class Mark:
+    """하루치 표시 하나. 짧은 본문과 긴 내역을 따로 들고 있다."""
+
+    __slots__ = ("day", "kind", "short", "detail")
+
+    def __init__(self, day, kind, short, detail=()):
+        self.day = day
+        self.kind = kind
+        self.short = short
+        self.detail = list(detail)
+
+    @property
+    def content(self):
+        """PostHog에 올릴 본문. 길면 자른다."""
+        if len(self.short) <= CONTENT_MAX:
+            return self.short
+        return self.short[:CONTENT_MAX - 1].rstrip() + "…"
+
+    def sort_key(self):
+        return (self.day, self.kind)
+
 
 def tracking_marks(src):
-    """이벤트가 처음 나타난 날. 같은 날 여러 개면 한 줄로 묶는다."""
+    """이벤트가 처음 나타난 날. 같은 날 여러 개면 개수만 앞에 세운다."""
     _people, rows = ex.load(ex.fetch(src))
     first = {}
     for day, _vid, event, *_rest in rows:
@@ -67,23 +99,41 @@ def tracking_marks(src):
     # 첫날은 전부 처음이라 찍을 값이 없다 — 계측이 생긴 날이 아니라
     # 원장이 시작된 날이다.
     start = min(by_day)
-    return [(day, "계측 추가: " + ", ".join(sorted(events)))
-            for day, events in sorted(by_day.items()) if day != start]
+    marks = []
+    for day, events in sorted(by_day.items()):
+        if day == start:
+            continue
+        events = sorted(events)
+        # 한 종이면 이름을 그대로 보여준다. 여럿이면 개수만 — 이름을
+        # 이어 붙이면 08-21처럼 네 개가 눈금을 덮는다.
+        short = ("계측 +%s" % events[0] if len(events) == 1
+                 else "계측 +%d종" % len(events))
+        marks.append(Mark(day, "tracking", short, events))
+    return marks
 
 
 def release_marks():
     """화면이 바뀐 날. web/src를 건드린 feat 커밋만 본다."""
     out = subprocess.run(
-        ["git", "-C", REPO, "log", "--pretty=%ad|%s", "--date=short",
+        ["git", "-C", REPO, "log", "--pretty=%ad|%h|%s", "--date=short",
          "--", "web/src"],
         capture_output=True, text=True, encoding="utf-8", check=True).stdout
     by_day = collections.defaultdict(list)
     for line in out.splitlines():
-        day, _, subject = line.partition("|")
+        day, _, rest = line.partition("|")
+        sha, _, subject = rest.partition("|")
         if subject.startswith("feat:"):
-            by_day[day].append(subject[len("feat:"):].strip())
-    return [(day, "개편: " + " / ".join(subjects))
-            for day, subjects in sorted(by_day.items())]
+            by_day[day].append((sha, subject[len("feat:"):].strip()))
+    marks = []
+    for day, commits in sorted(by_day.items()):
+        # 하루에 여럿이면 개수만 세운다. 제목을 이어 붙이면 09-02처럼
+        # 아홉 건이 한 줄로 늘어져 그래프를 가로지른다.
+        short = ("개편: %s" % commits[0][1] if len(commits) == 1
+                 else "개편 %d건" % len(commits))
+        marks.append(Mark(day, "release", short,
+                          ["%s  %s" % (sha, subject)
+                           for sha, subject in commits]))
+    return marks
 
 
 SPIKE_TIMES = 3          # 중앙값의 몇 배부터 급증으로 볼 것인가
@@ -119,9 +169,39 @@ def spike_marks(src):
         if len(who) < median * SPIKE_TIMES:
             continue
         new = sum(1 for v in who if first[v] == day) / len(who) * 100
-        marks.append((day, "트래픽 급증: %d명 (평소 %.1f배), 신규 %.0f%%"
-                      % (len(who), len(who) / median, new)))
+        marks.append(Mark(day, "spike", "급증 %.1f배" % (len(who) / median),
+                          ["방문자 %d명 (평소 중앙값 %d명의 %.1f배)"
+                           % (len(who), median, len(who) / median),
+                           "신규 방문자 %.0f%%" % new]))
     return marks
+
+
+KIND_TITLE = {"tracking": "계측 추가", "release": "개편", "spike": "트래픽 급증"}
+
+
+def write_doc(marks, path):
+    """주석 본문에 안 들어간 내역을 날짜별로 남긴다."""
+    lines = [
+        "# 주석 상세",
+        "",
+        "PostHog 그래프의 세로선 하나하나가 무엇인지 적어 둔다. 주석 본문은",
+        "눈금을 덮지 않게 한 줄로 줄이므로, 실제 내역은 여기서 본다.",
+        "",
+        "`scripts/annotate_posthog.py`가 만든다 — 손으로 고치지 말고 다시 돌려라.",
+    ]
+    for day in sorted({m.day for m in marks}, reverse=True):
+        lines += ["", "## %s" % day, ""]
+        for mark in sorted((m for m in marks if m.day == day),
+                           key=lambda m: m.kind):
+            lines.append("**%s %s** — `%s`"
+                         % (EMOJI[mark.kind], KIND_TITLE[mark.kind],
+                            mark.content))
+            lines.append("")
+            lines += ["- %s" % one for one in mark.detail]
+            lines.append("")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines).rstrip() + "\n")
 
 
 def read_key():
@@ -140,26 +220,30 @@ def read_key():
         return None
 
 
-def existing(key):
-    """이미 찍힌 것. 다시 돌려도 겹쳐 쌓이지 않게 날짜+내용으로 본다."""
-    url = "%s/api/projects/%s/annotations/?limit=500" % (HOST, PROJECT)
-    req = urllib.request.Request(url, headers={"Authorization": "Bearer " + key})
+def call(key, path, method="GET", payload=None):
+    url = "%s/api/projects/%s/%s" % (HOST, PROJECT, path)
+    headers = {"Authorization": "Bearer " + key}
+    body = None
+    if payload is not None:
+        body = json.dumps(payload).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=body, method=method,
+                                 headers=headers)
     with urllib.request.urlopen(req, timeout=20) as res:
-        data = json.loads(res.read().decode("utf-8"))
-    return {(a.get("date_marker", "")[:10], a.get("content"))
-            for a in data.get("results", [])}
+        raw = res.read().decode("utf-8")
+    return json.loads(raw) if raw else None
 
 
-def post(key, day, content):
-    url = "%s/api/projects/%s/annotations/" % (HOST, PROJECT)
-    body = json.dumps({"date_marker": day + MARKER_HOUR,
-                       "content": content,
-                       "scope": "project"}).encode("utf-8")
-    req = urllib.request.Request(url, data=body, method="POST", headers={
-        "Authorization": "Bearer " + key,
-        "Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=20) as res:
-        return json.loads(res.read().decode("utf-8"))["id"]
+def fetch_all(key):
+    return call(key, "annotations/?limit=500")["results"]
+
+
+def post(key, mark):
+    return call(key, "annotations/", "POST",
+                {"date_marker": mark.day + MARKER_HOUR,
+                 "content": mark.content,
+                 "emoji": EMOJI[mark.kind],
+                 "scope": "project"})["id"]
 
 
 def main(argv=None):
@@ -172,6 +256,9 @@ def main(argv=None):
     p.add_argument("--since", default="2026-07-29", help="이 날 이후만")
     p.add_argument("--no-dedup", action="store_true",
                    help="기존 주석을 안 읽는다. 겹쳐 쌓일 수 있다")
+    p.add_argument("--reset", action="store_true",
+                   help="기존 주석을 다 지우고 다시 찍는다")
+    p.add_argument("--doc", default=DOC, help="상세를 적을 파일")
     args = p.parse_args(argv)
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
@@ -182,13 +269,16 @@ def main(argv=None):
         marks += release_marks()
     if args.kind in ("spike", "all"):
         marks += spike_marks(args.src)
-    marks = sorted(m for m in marks if m[0] >= args.since)
+    marks = sorted((m for m in marks if m.day >= args.since),
+                   key=Mark.sort_key)
+
+    write_doc(marks, args.doc)
+    print("상세: %s" % os.path.relpath(args.doc, REPO))
 
     if not args.apply:
-        for day, content in marks:
-            print("%s  %s" % (day, content))
-        print("\n%d건. 올리려면 --apply (환경변수 %s 필요)."
-              % (len(marks), KEY_VAR))
+        for mark in marks:
+            print("%s  %s %s" % (mark.day, EMOJI[mark.kind], mark.content))
+        print("\n%d건. 올리려면 --apply." % len(marks))
         return 0
 
     key = read_key()
@@ -204,9 +294,9 @@ def main(argv=None):
         return 2
 
     already = set()
-    if not args.no_dedup:
+    if args.reset or not args.no_dedup:
         try:
-            already = existing(key)
+            current = fetch_all(key)
         except urllib.error.HTTPError as err:
             # 읽기가 막힌 키로 그냥 올리면 돌릴 때마다 같은 주석이 쌓이고,
             # 지우는 것은 손으로 해야 한다. 여기서 멈추는 편이 싸다.
@@ -214,16 +304,31 @@ def main(argv=None):
                   "발급 화면에서 Annotation을 Write로 두면 읽기까지 된다. "
                   "그대로 올리려면 --no-dedup." % err, file=sys.stderr)
             return 2
+        if args.reset:
+            # 이 스크립트가 만든 것만 지운다. 처음에는 전부 지웠다가
+            # 손으로 찍어 둔 주석 2건까지 같이 날렸다 — 소프트 삭제라
+            # 사라지기만 하고 되살릴 ID를 찾을 길이 없었다.
+            # 표식은 이모지다. 사람이 UI에서 찍을 때는 안 붙는다.
+            ours = [a for a in current if a.get("emoji") in set(EMOJI.values())]
+            kept = len(current) - len(ours)
+            # DELETE는 405를 준다. 지우는 것이 아니라 deleted 표시를 다는
+            # 것이고, 그래프에서는 똑같이 사라진다.
+            for one in ours:
+                call(key, "annotations/%s/" % one["id"], "PATCH",
+                     {"deleted": True})
+            print("지웠다: %d건 (내 것 아닌 %d건은 뒀다)" % (len(ours), kept))
+        else:
+            already = {(a.get("date_marker", "")[:10], a.get("content"))
+                       for a in current}
 
     added = skipped = 0
-    for day, content in marks:
-        if (day, content) in already:
+    for mark in marks:
+        if (mark.day, mark.content) in already:
             skipped += 1
             continue
-        post(key, day, content)
+        post(key, mark)
         added += 1
-        print("찍음 %s  %s" % (day, content))
-    print("\n새로 %d건, 이미 있어 건너뜀 %d건." % (added, skipped))
+    print("새로 %d건, 이미 있어 건너뜀 %d건." % (added, skipped))
     return 0
 
 
