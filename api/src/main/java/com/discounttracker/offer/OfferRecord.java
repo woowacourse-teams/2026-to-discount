@@ -37,6 +37,10 @@ public record OfferRecord(
         // 이 오퍼만 가리키는 곳. 원장(export.json)에는 없는 키다 — 배너에서
         // 세운 오퍼만 채운다. 브랜드 링크(brands.yml)를 대체하지 않는다.
         String link,
+        // tracker의 camelCase 원문("none"/"baeminClub"/"coupangEats"/"yogiPass").
+        // 필드 자체가 없는 옛 export.json 행도 있어 nullable — membership()이
+        // Membership.NONE으로 정규화한다.
+        String membership,
         // Boolean(nullable)이다 — primitive boolean이면 JSON에 "soldOut":null이
         // 들어올 때 MismatchedInputException으로 reload 전체가 깨진다(사람이
         // 직접 export.json을 편집하다 실측, 2026-08-04). null은 false로
@@ -57,6 +61,11 @@ public record OfferRecord(
     /** 쿠폰을 겹쳐 쓰는 오퍼인가. 모르면(null) 아니다 — 지금까지의 해석이 택일이다. */
     public boolean isCumulative() {
         return "cumulative".equals(tierMode);
+    }
+
+    /** {@link #membership}을 구조화된 값으로. 없으면(null) 제한 없음. */
+    public Membership membershipTier() {
+        return Membership.from(membership);
     }
 
     /**
