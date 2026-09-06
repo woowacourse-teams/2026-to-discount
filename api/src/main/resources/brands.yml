@@ -4,7 +4,7 @@
 # 전부 여기 모여 있고, API가 그대로 프론트에 내려준다(프론트 재배포 불필요).
 # 로고 이미지만 delivery-discount-web/public/logos/<대표명>.png 로 따로 넣는다.
 #
-# category: chicken | pizza | fastfood | snack | cafe | convenience | korean | chinese | (생략 = 미분류)
+# category: chicken | pizza | fastfood | snack | cafe | convenience | korean | chinese | western | (생략 = 미분류)
 # aliases:  원장에 다른 이름으로 찍히는 경우만 (생략 가능)
 # links:    앱별 브랜드 쿠폰 공유링크(앱 전용 딥링크, 생략 가능).
 #           키는 원장 platform 값과 맞춘다 — ddangyo, baemin, ...
@@ -523,6 +523,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?pQcogGG
   매드포갈릭:
     searchAliases: [매드 포 갈릭, 매포갈, mad for garlic, madforgarlic]
+    category: western
     links:
       baemin: https://s.baemin.com/7o3.fomtb
   본도시락:
@@ -531,6 +532,7 @@ brands:
   아웃백스테이크하우스:
     searchAliases: [아웃백, 아웃백 스테이크, outback steakhouse, outback]
     aliases: [아웃백스테이크하우스, 아웃백, 아웃백스테이크]
+    category: western
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?wDQg7yL
   원할머니보쌈족발:
@@ -538,6 +540,7 @@ brands:
     category: korean
   계양산 전통시장:
     searchAliases: [계양산전통시장, 계양산 시장, gyeyangsan market, gyeyang traditional market]
+    category: korean
   # 육회바른연어와 다른 브랜드다. 이름이 비슷해 합치기 쉬운데, 합치면
   # 한쪽 쿠폰이 다른 가게 카드에 붙는다.
   육회야문연어:
@@ -564,12 +567,14 @@ brands:
   포케올데이:
     searchAliases: [포케 올데이, 포케, poke all day, pokeallday]
     aliases: [포케올데이, poke all day]
+    category: cafe
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=20047
 
   # --- 미분류: 배민에서만 확인, 아직 캡처 데이터 없음 ---
   강다짐 삼각김밥:
     searchAliases: [강다짐, 강다짐삼각김밥, gangdajim, gangdajim samgakgimbap]
+    category: korean
     links:
       baemin: https://s.baemin.com/Fi000dRKUT3HK
   국민낙곱새:
@@ -580,6 +585,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=20072
   기떡찜:
     searchAliases: [기 떡찜, 기떡, gitteokjjim, gi tteok jjim]
+    category: korean
     links:
       baemin: https://s.baemin.com/7o3.gggxg
   나우카페:
