@@ -442,6 +442,20 @@ h1 {
   scrollbar-width: none;
 }
 .banner-track::-webkit-scrollbar { display: none; }
+
+/* 건너뛰어 갈아끼운 장은 짧게 떠오른다. 위치만 즉시 바뀌면 화면이 튄
+   것인지 넘어간 것인지 안 읽힌다 — 사이 배너를 훑지 않으면서 "바뀌었다"만
+   남긴다. 스크롤은 이미 끝나 있으므로 이 동안 조작을 막지 않는다. */
+.banner-track--cut {
+  animation: banner-cut 240ms ease-out;
+}
+@keyframes banner-cut {
+  from { opacity: .15; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .banner-track--cut { animation: none; }
+}
 .banner-track > .banner {
   flex: 0 0 100%;
   scroll-snap-align: start;

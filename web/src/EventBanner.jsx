@@ -13,6 +13,7 @@ import { jumpBehavior } from './bannerScroll.js'
 
 const ROTATE_MS = 4300
 const DISMISS_KEY = 'dk_banner_hidden'
+const CUT_CLASS = 'banner-track--cut'
 
 
 // 닫기는 배너별이 아니라 하루 통짜다. localStorage 기반이라 사이트 데이터를
@@ -286,7 +287,15 @@ export default function EventBanner({ banners }) {
     const el = trackRef.current
     if (!el) return
     const cur = Math.round(el.scrollLeft / el.clientWidth)
-    el.scrollTo({ left: el.clientWidth * i, behavior: jumpBehavior(cur, i) })
+    const behavior = jumpBehavior(cur, i)
+    el.scrollTo({ left: el.clientWidth * i, behavior })
+    // 갈아끼우는 자리에는 전환이 없다 — 그냥 딸깍 바뀌어서 넘어간 건지
+    // 화면이 튄 건지 안 읽힌다. 위치는 즉시 옮기고 새 장만 짧게 띄운다.
+    // 클래스를 뗐다 다시 붙여야 애니메이션이 처음부터 돈다(리플로 한 번).
+    if (behavior !== 'instant' || reduceMotion) return
+    el.classList.remove(CUT_CLASS)
+    void el.offsetWidth
+    el.classList.add(CUT_CLASS)
   }
 
   // 자동 전환. 한 건이면 돌릴 것이 없고, 손이 올라가 있거나 포커스가 안에
