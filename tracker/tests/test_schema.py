@@ -252,3 +252,22 @@ def test_validate_record_rejects_invalid_evidence_status():
     bad = dict(BASE, evidence_status="unverified")
     with pytest.raises(ValueError):
         validate_record(bad)
+
+
+def test_validate_record_membership_defaults_to_none():
+    record = validate_record(dict(BASE))
+    assert record["membership"] == "none"
+
+
+def test_validate_record_keeps_membership():
+    # 배짱할인 배민클럽 단독할인 실측: badge="배민클럽"은 화면 문구고,
+    # membership이 필터링 가능한 구조화된 값이다.
+    record = validate_record(dict(BASE, membership="baeminClub", badge="배민클럽"))
+    assert record["membership"] == "baeminClub"
+    assert record["badge"] == "배민클럽"
+
+
+def test_validate_record_rejects_invalid_membership():
+    bad = dict(BASE, membership="premium")
+    with pytest.raises(ValueError, match="membership"):
+        validate_record(bad)
