@@ -45,6 +45,9 @@ import experiments as ex  # noqa: E402
 HOST = os.environ.get("POSTHOG_HOST", "https://us.posthog.com")
 PROJECT = os.environ.get("POSTHOG_PROJECT_ID", "548055")
 KEY_VAR = "POSTHOG_PERSONAL_API_KEY"
+# 환경변수가 없을 때 볼 자리. 저장소 밖이라 실수로 커밋될 수 없다.
+KEY_FILE = os.environ.get("POSTHOG_KEY_FILE",
+                          os.path.expanduser("~/.posthog_key"))
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 
 # 하루 중 언제로 찍을지. 자정으로 두면 전날 눈금에 붙어 보인다.
@@ -121,6 +124,22 @@ def spike_marks(src):
     return marks
 
 
+def read_key():
+    """환경변수 우선, 없으면 키 파일.
+
+    키 파일은 저장소 밖에 둔다 — .gitignore에 기대면 그 줄이 지워지는
+    날 그대로 올라간다.
+    """
+    key = os.environ.get(KEY_VAR)
+    if key:
+        return key.strip()
+    try:
+        with open(KEY_FILE, encoding="utf-8") as fh:
+            return fh.read().strip()
+    except OSError:
+        return None
+
+
 def existing(key):
     """이미 찍힌 것. 다시 돌려도 겹쳐 쌓이지 않게 날짜+내용으로 본다."""
     url = "%s/api/projects/%s/annotations/?limit=500" % (HOST, PROJECT)
@@ -172,12 +191,16 @@ def main(argv=None):
               % (len(marks), KEY_VAR))
         return 0
 
-    key = os.environ.get(KEY_VAR)
+    key = read_key()
     if not key:
         # 여기서 멈춘다. 키 없이 올리면 401이 건건이 나면서 절반쯤
         # 올라간 상태가 된다.
-        print("%s 가 없다. Personal API Key(annotation:write)를 넣어라."
-              % KEY_VAR, file=sys.stderr)
+        print("\n".join((
+            "키가 없다. 둘 중 하나로 준다:",
+            "  환경변수 %s" % KEY_VAR,
+            "  파일 %s (한 줄로 키만)" % KEY_FILE,
+            "PostHog 발급 화면에서 Annotation을 Write로 둔다.")),
+            file=sys.stderr)
         return 2
 
     already = set()
