@@ -136,6 +136,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 |---|---|---|
 | `variant` | A/B 갈래 (`a`/`b`) | `visitorId` 해시로 정해져 재방문해도 안 바뀐다 |
 | `device` | `mobile` / `desktop` | UA가 아니라 `matchMedia('(hover: hover)')`. **일부 안드로이드 브라우저가 `hover:hover`를 보고해 폰이 desktop으로 잡힌다 — 이 값만으로 기기를 가르지 말 것** |
+| `form_factor` | `phone` / `desktop` / `tablet` | **서버가 `viewport` 폭으로 붙인다.** 기기를 가를 때는 `device`가 아니라 이 값을 쓴다 |
 | `viewport` | `"390x844"` | 개발 트래픽 판정의 핵심 단서 (아래 참고) |
 | `referrer` | `direct` / `internal` / `external` | 원본 URL은 안 받는다 |
 | `path` | 경로만 | 쿼리스트링 없음 |
@@ -225,6 +226,31 @@ await fetch('/api/projects/548055/query/', {
   body: JSON.stringify({ query: { kind: 'HogQLQuery', query: '<HogQL>' } }),
 })
 ```
+
+#### 폰과 데스크톱을 가른 트렌드
+
+`device`로 분해하면 안 된다 — 폰 절반이 desktop 칸에 들어간다(2026-09-06
+실측: desktop 1720명 중 854명이 폰). `form_factor`로 분해한다.
+
+UI에서: Product analytics → Trends → 이벤트 고르고 **Breakdown by →
+Event property → `form_factor`**. 전환을 보려면 이벤트를
+`offer_link_click`으로 두고 같은 분해를 건다.
+
+HogQL로 한 번에:
+
+```sql
+SELECT toStartOfWeek(timestamp) AS week,
+       properties.form_factor    AS ff,
+       uniq(properties.distinct_id) AS people
+FROM events
+WHERE properties.form_factor IS NOT NULL
+GROUP BY week, ff
+ORDER BY week, ff
+```
+
+`form_factor`는 2026-09-06부터 붙는다. 그 전 이벤트에는 없으므로 긴
+추세는 원장(`scripts/snapshot.py`)으로 본다 — 거기서는 지난 데이터도
+`viewport` 폭으로 소급해 가른다.
 
 PostHog에서는 `?dev=1` 트래픽이 애초에 안 넘어온다. 표시 없는 개발 트래픽은 PostHog 쪽에서 못 거른다 — 세션 전체를 봐야 갈리기 때문이다. 그 구분이 필요한 판정은 원장으로 낸다.
 

@@ -78,6 +78,41 @@ class PostHogEventMapperTest {
                 "2026-08-14T01:02:03Z", "private-ip-hash", false, "a", "event-9", null);
     }
 
+    @Test
+    void narrowDesktopIsAPhone() {
+        // hover:hover를 보고하는 안드로이드. device만 믿으면 데스크톱으로
+        // 집계돼 기기별 전환율 결론이 뒤집힌다(2026-09-06 실측).
+        PostHogEvent mapped = mapper.map(sized("desktop", "390x844")).orElseThrow();
+
+        assertEquals("phone", mapped.properties().get("form_factor"));
+    }
+
+    @Test
+    void wideDesktopStaysDesktopAndWideMobileIsTablet() {
+        assertEquals("desktop",
+                mapper.map(sized("desktop", "1440x900")).orElseThrow()
+                        .properties().get("form_factor"));
+        assertEquals("tablet",
+                mapper.map(sized("mobile", "1024x1366")).orElseThrow()
+                        .properties().get("form_factor"));
+    }
+
+    @Test
+    void unreadableViewportLeavesFormFactorOut() {
+        // 모르는 것을 desktop으로 채우면 그 칸이 조용히 오염된다.
+        assertFalse(mapper.map(sized("desktop", "")).orElseThrow()
+                .properties().containsKey("form_factor"));
+        assertFalse(mapper.map(sized("desktop", "wide x tall")).orElseThrow()
+                .properties().containsKey("form_factor"));
+    }
+
+    private VisitEvent sized(String device, String viewport) {
+        return new VisitEvent(
+                "2026-08-14T11:00:00+09:00", "brand_expand", "visitor-1", "session-1", 2,
+                "/", "external", device, viewport, 1200L, Map.of(),
+                "2026-08-14T01:02:03Z", "private-ip-hash", false, "a", "event-1", null);
+    }
+
     private VisitEvent event(String name, boolean dev, Map<String, String> props) {
         return new VisitEvent(
                 "2026-08-14T11:00:00+09:00", name, "visitor-1", "session-1", 2,

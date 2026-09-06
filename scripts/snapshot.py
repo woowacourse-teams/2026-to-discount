@@ -44,15 +44,19 @@ def week_of(day):
 
 # ---- 구획 -------------------------------------------------------------
 
-def sec_retention(people, rows, args):
+def sec_retention(people, rows, args, pick=None, note=None):
     """주 코호트별 복귀율.
 
     아직 오지 않은 주는 0%가 아니라 빈칸이다 — 0으로 적으면 "안 왔다"로
     읽혀 하락 폭이 실제보다 커 보인다.
+
+    pick을 주면 그 무리만 센다. 폰과 데스크톱은 성격이 다르니 한 표에
+    섞으면 둘 다 안 보인다 — 섞인 값이 떨어져도 어느 쪽이 빠지는지 모른다.
     """
     first, days = {}, collections.defaultdict(set)
     for day, vid, _ev, _p, _ts, _sid, _path in rows:
-        if not ex.keep(people[vid], args):
+        v = people[vid]
+        if not ex.keep(v, args) or (pick and not pick(v)):
             continue
         days[vid].add(day)
         if vid not in first or day < first[vid]:
@@ -80,6 +84,24 @@ def sec_retention(people, rows, args):
             cells.append("—" if fw + datetime.timedelta(weeks=k) > last_week
                          else "%d (%.1f%%)" % (c[k], c[k] / n * 100))
         out.append("| %s | %d | %s |" % (fw, n, " | ".join(cells)))
+    return ([note, ""] + out) if note else out
+
+
+def sec_retention_by_device(people, rows, args):
+    """폰과 데스크톱을 갈라 본 복귀율.
+
+    2026-09-06: 합쳐 보면 W+1이 36%에서 10%로 떨어지는데, 갈라 보면
+    양쪽이 같이 떨어진다 — 기기를 갈아타서 생긴 착시가 아니다.
+    """
+    out = []
+    for name in ("폰", "데스크톱"):
+        out += ["**%s**" % name, ""]
+        out += sec_retention(people, rows, args,
+                             pick=lambda v, n=name: real_device(v) == n)
+        out += [""]
+    out += ["visitorId는 브라우저마다 다른 난수라 기기를 갈아타면 새 사람이 "
+            "된다. ipHash로 이어붙여 재보면 재방문율이 16.7%에서 17.7%로 "
+            "1.0%p 오를 뿐이다(2026-09-06) — 하락을 설명할 크기가 아니다."]
     return out
 
 
@@ -351,6 +373,7 @@ def sec_features(people, rows, args):
 
 SECTIONS = (
     ("리텐션 — 주 코호트별 복귀율", sec_retention),
+    ("리텐션 — 기기별", sec_retention_by_device),
     ("신규 vs 재방문", sec_returning),
     ("전환 — 최근 %d일" % RECENT_DAYS, sec_daily),
     ("A/B", sec_variant),

@@ -47,6 +47,7 @@ public class PostHogEventMapper {
         put(properties, "device", source.device());
         put(properties, "variant", source.variant());
         put(properties, "viewport", source.viewport());
+        put(properties, "form_factor", formFactor(source));
         put(properties, "dwell_ms", source.dwellMs());
         put(properties, "server_timestamp", source.ts());
         properties.put("$insert_id", source.eventId());
@@ -92,6 +93,41 @@ public class PostHogEventMapper {
             } catch (DateTimeParseException alsoIgnored) {
                 return null;
             }
+        }
+    }
+
+    /*
+     * PostHog에서 폰과 데스크톱을 가를 수 있는 값.
+     *
+     * device 하나로는 못 가른다 — 일부 안드로이드 브라우저가 hover:hover를
+     * 보고해서 폰이 desktop으로 온다. 2026-09-06 원장 실측에서 desktop
+     * 1720명 중 854명(49.7%)이 폰이었고, 그대로 집계하니 "데스크톱이 전환
+     * 37.9%로 모바일 32.8%보다 높다"는 정반대 결론이 나왔다.
+     *
+     * viewport는 이미 보내고 있지만 "390x844" 같은 문자열이라 트렌드
+     * 분해에 못 쓴다. 여기서 폭만 뽑아 칸으로 만든다.
+     *
+     * 한계: 이벤트 하나의 폭만 본다. 창을 좁혀 놓은 데스크톱은 phone으로
+     * 잡힌다. 세션 전체를 봐야 갈리는 판단(개발 트래픽)은 여전히
+     * scripts/experiments.py 몫이다 — 여기서 흉내내지 않는다.
+     */
+    private static final int PHONE_WIDTH = 800;
+
+    private static String formFactor(VisitEvent source) {
+        Integer width = width(source.viewport());
+        if (width == null) return null;
+        if (width < PHONE_WIDTH) return "phone";
+        return "desktop".equals(source.device()) ? "desktop" : "tablet";
+    }
+
+    private static Integer width(String viewport) {
+        if (blank(viewport)) return null;
+        int x = viewport.indexOf('x');
+        if (x <= 0) return null;
+        try {
+            return Integer.parseInt(viewport.substring(0, x).trim());
+        } catch (NumberFormatException ignored) {
+            return null;
         }
     }
 
