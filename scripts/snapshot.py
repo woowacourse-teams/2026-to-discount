@@ -281,14 +281,55 @@ def sec_survey(people, rows, args):
     return out
 
 
+def sec_traffic(people, rows, args):
+    """어디서 들어와 무엇으로 보는가. 전환까지 같이 본다.
+
+    experiments.bucket()을 그대로 쓴다 — "referrer가 뭐였더라"를 여기서
+    다시 정의하면 두 도구가 다른 답을 낸다.
+    """
+    out = []
+    for by, title in (("referrer", "유입"), ("device", "기기")):
+        groups = _rate_rows(people, rows, args, lambda v, b=by: ex.bucket(v, b))
+        order = sorted(groups, key=lambda k: -groups[k][0])
+        out += ["**%s**" % title, ""] + _compare(title, groups, order) + [""]
+    return out
+
+
+def sec_features(people, rows, args):
+    """이벤트별 도달 인원. 어느 기능이 실제로 쓰이는가.
+
+    건수가 아니라 사람 수로 센다 — 한 사람이 스무 번 쓴 기능과 스무
+    명이 한 번씩 쓴 기능은 완전히 다른 얘기다.
+    """
+    reach = collections.defaultdict(set)
+    total = collections.Counter()
+    everyone = set()
+    for _day, vid, ev, _p, _ts, _sid, _path in rows:
+        if not ex.keep(people[vid], args):
+            continue
+        everyone.add(vid)
+        reach[ev].add(vid)
+        total[ev] += 1
+    n = len(everyone) or 1
+    out = ["모수 %d명." % n, "", "| 이벤트 | 도달 | 비율 | 1인당 |",
+           "|---|---|---|---|"]
+    for ev in sorted(reach, key=lambda e: -len(reach[e])):
+        who = len(reach[ev])
+        out.append("| %s | %d | %.1f%% | %.2f |"
+                   % (ev, who, who / n * 100, total[ev] / who))
+    return out
+
+
 SECTIONS = (
     ("리텐션 — 주 코호트별 복귀율", sec_retention),
     ("신규 vs 재방문", sec_returning),
     ("전환 — 최근 %d일" % RECENT_DAYS, sec_daily),
     ("A/B", sec_variant),
+    ("유입과 기기", sec_traffic),
     ("배너", sec_banner),
     ("금액대별 클릭", sec_amount),
     ("설문", sec_survey),
+    ("기능별 도달", sec_features),
 )
 
 
