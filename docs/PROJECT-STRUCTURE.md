@@ -142,6 +142,8 @@ web/src/TopBarA.jsx
 web/src/analytics-context.js
 web/src/analytics.js
 web/src/api.js
+web/src/bannerScroll.js
+web/src/bannerScroll.test.js
 web/src/brandAutocomplete.js
 web/src/brandAutocomplete.test.js
 web/src/brandColor.js
@@ -206,7 +208,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 87 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 44 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 46 |
 
 ### Tracker
 
@@ -268,6 +270,8 @@ HTTP 경계:
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
 | `api.js` | 브랜드와 배너 API 호출 |
+| `bannerScroll.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `bannerScroll.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandAutocomplete.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandColor.js` | 배너 색 파생 |
