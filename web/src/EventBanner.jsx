@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
+import { jumpBehavior } from './bannerScroll.js'
 
 const ROTATE_MS = 4300
 const DISMISS_KEY = 'dk_banner_hidden'
@@ -277,10 +278,15 @@ export default function EventBanner({ banners }) {
   }
 
   // 점을 누르거나 자동 전환이 돌 때 그 장으로 밀어준다.
-  function scrollTo(i, smooth = true) {
+  //
+  // 옆 장으로 갈 때만 미끄러진다. 건너뛸 때 smooth로 두면 사이에 낀 배너를
+  // 전부 훑고 지나간다 — 마지막에서 처음으로 도는 것도, 점으로 3번째에서
+  // 1번째를 누르는 것도 같은 문제다. 한 칸이 아니면 그냥 갈아끼운다.
+  function scrollTo(i) {
     const el = trackRef.current
     if (!el) return
-    el.scrollTo({ left: el.clientWidth * i, behavior: smooth ? 'smooth' : 'auto' })
+    const cur = Math.round(el.scrollLeft / el.clientWidth)
+    el.scrollTo({ left: el.clientWidth * i, behavior: jumpBehavior(cur, i) })
   }
 
   // 자동 전환. 한 건이면 돌릴 것이 없고, 손이 올라가 있거나 포커스가 안에
@@ -295,12 +301,7 @@ export default function EventBanner({ banners }) {
     const el = trackRef.current
     if (!el) return
     const cur = Math.round(el.scrollLeft / el.clientWidth)
-    const next = (cur + 1) % count
-    // 마지막 장에서 처음으로 돌아갈 때는 애니메이션 없이 건너뛴다. smooth로
-    // 두면 지나온 배너를 전부 역순으로 훑고 지나간다 — 여섯 장이면 한참
-    // 걸리고, 뒤로 가는 것처럼 보여 "방금 그거 뭐였지"가 된다.
-    const wrapping = next === 0 && cur !== 0
-    el.scrollTo({ left: el.clientWidth * next, behavior: wrapping ? 'auto' : 'smooth' })
+    scrollTo((cur + 1) % count)
   }
 
   // 하단 배너는 안 보일 때도 DOM에 남아 있다(visibility:hidden). 관찰자는
