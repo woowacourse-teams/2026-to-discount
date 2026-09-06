@@ -98,3 +98,30 @@ def test_click_without_banner_prop_is_kept_as_unknown():
     out = "\n".join(sn.sec_banner(people_for(rs), rs, ARGS))
 
     assert "미상(계측 전)" in out
+
+
+class WidePerson(FakePerson):
+    widths = frozenset({1440})
+    devices = frozenset({"desktop"})
+
+
+class NarrowPerson(FakePerson):
+    """hover:hover를 보고하는 안드로이드 — device는 desktop이라고 말한다."""
+    widths = frozenset({390})
+    devices = frozenset({"desktop"})
+
+
+class NoWidthPerson(FakePerson):
+    widths = frozenset()
+    devices = frozenset({"mobile"})
+
+
+def test_narrow_desktop_is_a_phone():
+    """이 오분류가 기기별 전환율 결론을 통째로 뒤집었다(2026-09-06)."""
+    assert sn.real_device(NarrowPerson()) == "폰"
+    assert sn.real_device(WidePerson()) == "데스크톱"
+
+
+def test_unknown_width_is_kept_apart():
+    """가를 근거가 없는 방문자를 한쪽에 몰면 그 집단이 오염된다."""
+    assert sn.real_device(NoWidthPerson()) == "폭 미상"

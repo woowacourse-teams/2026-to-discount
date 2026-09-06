@@ -281,17 +281,46 @@ def sec_survey(people, rows, args):
     return out
 
 
+# 폰인지 데스크톱인지 가르는 폭. 이보다 좁은 창은 데스크톱에 없다.
+PHONE_WIDTH = 800
+
+
+def real_device(v):
+    """device 속성만 믿으면 안 된다 — 폭까지 봐야 한다.
+
+    device는 matchMedia('(hover: hover)')로 정하는데 일부 안드로이드
+    브라우저가 hover:hover를 보고한다. 그래서 desktop 1720명 중 854명
+    (49.7%)이 세션 내내 폭 800px 미만이었다 — 폰이다.
+
+    그대로 두면 결론이 뒤집힌다. 오분류된 채로는 "데스크톱 37.9% >
+    모바일 32.8%"였는데, 폭으로 다시 가르면 "폰 37.4% > 데스크톱 32.7%"다
+    (z=-2.49, p=0.0128). 정반대다.
+
+    폭이 없는 방문자는 가를 근거가 없으므로 따로 둔다 — 한쪽에 몰아넣으면
+    그 집단이 조용히 오염된다.
+    """
+    if not v.widths:
+        return "폭 미상"
+    if max(v.widths) < PHONE_WIDTH:
+        return "폰"
+    return "데스크톱" if ex.bucket(v, "device") == "desktop" else "태블릿·큰 폰"
+
+
 def sec_traffic(people, rows, args):
     """어디서 들어와 무엇으로 보는가. 전환까지 같이 본다.
 
-    experiments.bucket()을 그대로 쓴다 — "referrer가 뭐였더라"를 여기서
-    다시 정의하면 두 도구가 다른 답을 낸다.
+    유입은 experiments.bucket()을 그대로 쓴다 — "referrer가 뭐였더라"를
+    여기서 다시 정의하면 두 도구가 다른 답을 낸다. 기기만 폭을 함께 본다
+    (real_device 참고).
     """
     out = []
-    for by, title in (("referrer", "유입"), ("device", "기기")):
-        groups = _rate_rows(people, rows, args, lambda v, b=by: ex.bucket(v, b))
+    for pick, title in ((lambda v: ex.bucket(v, "referrer"), "유입"),
+                        (real_device, "기기")):
+        groups = _rate_rows(people, rows, args, pick)
         order = sorted(groups, key=lambda k: -groups[k][0])
         out += ["**%s**" % title, ""] + _compare(title, groups, order) + [""]
+    out += ["기기는 device 속성이 아니라 창 폭으로 가른다 — 안드로이드 "
+            "일부가 hover:hover를 보고해 폰이 데스크톱으로 잡힌다.", ""]
     return out
 
 
