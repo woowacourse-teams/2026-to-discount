@@ -29,6 +29,14 @@ export function platformIconSrc(platformKey) {
   return assetSrc('/platform-icons', platformKey)
 }
 
+// 화면에 45px로 그리는 자리다(.brand-logo). 목록이 길어 대부분의 카드는
+// 스크롤 전까지 안 보이는데, 예전에는 전부 즉시 받아 왔다 — 카드가 늘수록
+// 첫 화면과 무관한 이미지가 그만큼 따라온다.
+//
+// width/height를 적어 두는 건 지연 로딩과 한 쌍이다. 크기를 모르면 브라우저가
+// 자리를 못 잡아, 이미지가 뜰 때마다 아래 내용이 밀린다.
+const LOGO_PX = 45
+
 // 폴백 글자(span)는 position:absolute라 static인 img보다 항상 위에 그려진다
 // (DOM 순서와 무관하게 positioned 요소가 위로 쌓임). onError로 깨진 이미지만
 // 숨기던 이전 방식은 "로드는 됐지만 저해상도라 흐릿한" 로고 위에 글자가 겹쳐
@@ -49,6 +57,10 @@ export function PlatformBadge({ platformKey, onClick, active }) {
       <img
         src={platformIconSrc(p.key)}
         alt=""
+        loading="lazy"
+        decoding="async"
+        width={LOGO_PX}
+        height={LOGO_PX}
         onLoad={hideSiblingFallback}
         onError={(e) => { e.currentTarget.style.display = 'none' }}
       />
@@ -77,6 +89,10 @@ export function BrandLogo({ name }) {
       <img
         src={brandLogoSrc(name)}
         alt={name}
+        loading="lazy"
+        decoding="async"
+        width={LOGO_PX}
+        height={LOGO_PX}
         onLoad={hideSiblingFallback}
         onError={(e) => { e.currentTarget.style.display = 'none' }}
       />
