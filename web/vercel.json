@@ -1,4 +1,27 @@
 {
+  "headers": [
+    {
+      "//": "Vercel은 public/ 파일에 기본으로 max-age=0, must-revalidate를 준다. 그러면 브라우저가 매 페이지 로드마다 조건부 요청을 보내고, 304로 끝나도 그건 Edge Request로 계산된다. 브랜드 페이지가 89장 프리렌더돼 있어 이동할 때마다 로고 12~16장이 통째로 재검증됐다 — DAU 50에 75만 요청이 나온 자리가 여기다(2026-09-07 한도 75% 경고).",
+      "source": "/logos/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000, immutable" }
+      ]
+    },
+    {
+      "//": "아이콘은 번들에 인라인했지만(platformIcons.js) 파일도 남겨 둔다 — 옛 캐시가 가리키는 동안 404를 내지 않게.",
+      "source": "/platform-icons/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000, immutable" }
+      ]
+    },
+    {
+      "//": "빌드 산출물은 파일명에 해시가 붙는다 — 내용이 바뀌면 이름이 바뀌므로 영구 캐시가 안전하다.",
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ],
   "redirects": [
     {
       "source": "/brand/:name.html",

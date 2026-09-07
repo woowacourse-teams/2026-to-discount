@@ -1,3 +1,5 @@
+import { PLATFORM_ICON_DATA } from './platformIcons.js'
+
 // 브랜드·플랫폼 로고 조각. App.jsx에서 끌어냈다.
 //
 // 배너(EventBanner.jsx)가 이 둘을 그대로 재사용하는데, EventBanner가
@@ -25,8 +27,12 @@ export function brandLogoSrc(name) {
   return assetSrc('/logos', fileName)
 }
 
+// 아이콘 넷은 카드마다 붙어 방문당 4번의 요청이 됐다. 번들에 박으면
+// 요청이 0이 된다 — Edge Requests는 바이트가 아니라 **요청 수**로 세기
+// 때문에, 작은 자산일수록 파일로 두는 값이 비싸다(2026-09-07 한도 경고).
+// 넷을 합쳐 13KB다(WebP+base64). 파일이 없으면 예전 경로로 떨어진다.
 export function platformIconSrc(platformKey) {
-  return assetSrc('/platform-icons', platformKey)
+  return PLATFORM_ICON_DATA[platformKey] || assetSrc('/platform-icons', platformKey)
 }
 
 // 화면에 45px로 그리는 자리다(.brand-logo). 목록이 길어 대부분의 카드는
