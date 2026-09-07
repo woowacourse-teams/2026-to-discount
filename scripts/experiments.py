@@ -49,7 +49,18 @@ REMOTE_PATH = os.environ.get(
 GOAL = "offer_link_click,banner_click"
 
 # 배포 확인이 넣는 붙박이 방문자. 사람이 아니다.
-SYNTHETIC = {"v_deploycheck"}
+#
+# 손으로 만든 검증용 id도 여기 합친다(v_dev*, v_verify1) — 실사용자 id는
+# 브라우저가 만든 난수(v_<hex16>)라 이런 이름이 나올 수 없다. 원장에는
+# dev 플래그가 안 찍혀(전부 null) `Visitor.looks_developer()`가 못 잡는다.
+#
+# 예전에는 survey_report.py만 이 목록을 따로 들고 있었다 — 그래서
+# snapshot.py의 설문 집계에는 이 답들이 그대로 섞여 들어갔다(2026-09-07
+# 실측: survey_answer 응답자가 survey_report.py 8명 vs snapshot.py 11명).
+# 이 파일 머리말이 "두 벌로 두면 숫자가 갈라진다"고 스스로 적어 뒀는데
+# 정작 이 목록이 그 꼴이 나 있었다. load()에서 한 번에 걸러 모든 집계가
+# 같은 사람 수를 보게 한다.
+SYNTHETIC = {"v_deploycheck", "v_dev1", "v_dev2", "v_dev3", "v_dev4", "v_verify1"}
 
 # 창을 조절한 흔적으로 보는 폭. 폰은 세션 내내 폭이 하나다.
 DESKTOP_WIDTH = 800
