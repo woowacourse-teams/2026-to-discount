@@ -10,17 +10,33 @@ function clean(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+// 프록시를 걷은 뒤 PostHog로 바로 가는 주소.
+//
+// 원래는 같은 오리진 경로("/ph")로 쏘고 vercel.json rewrite가 넘겼다.
+// 광고 차단기가 us.i.posthog.com을 막기 때문이다(2026-09-06에 그것 때문에
+// 프록시를 살렸다).
+//
+// 2026-09-07에 걷어냈다. Vercel Edge Requests 한도가 **30일 롤링 윈도우**로
+// 재는데 934,483/1,000,000까지 찼다 — 달이 바뀌어도 안 풀리고 오래된
+// 날짜가 빠져나가야 내려간다. 이 프록시를 타는 이벤트가 방문당 열 건쯤
+// 되고, 그게 전부 쿼터였다.
+//
+// 대가는 분명하다: 광고 차단기를 쓰는 방문자의 이벤트가 샌다. 자체 원장
+// (/api/events)은 그대로라 **핵심 지표는 그쪽에서 계속 나온다** — PostHog는
+// 그래프를 보는 보조 도구다. 한도가 안정권에 들면 되살릴 수 있다.
+const POSTHOG_DIRECT_HOST = 'https://us.i.posthog.com'
+
 /*
- * 같은 오리진 경로("/ph")를 절대 주소로 편다.
+ * 환경변수가 경로("/ph")를 들고 있어도 직결 주소로 편다.
  *
- * PostHog SDK의 api_host는 절대 주소를 요구한다. 그런데 프록시를 쓰려면
- * 우리 도메인을 가리켜야 하고, 그 도메인은 배포마다 다르다(프리뷰 URL이
- * 매번 바뀐다). 빌드 타임 환경변수에 한 주소를 박으면 프리뷰에서
- * 어긋나므로, 경로만 적어 두고 여기서 실행 시점의 오리진을 붙인다.
+ * VITE_POSTHOG_HOST는 Vercel 환경변수라 UI로 못 고친다 — 새 UI가 편집 시
+ * 타입을 Secret으로 강제하는데 Secret은 VITE_ 공개 접두사와 공존할 수
+ * 없다(MINIPC-HANDOVER 참고). CLI로만 되므로, 값이 바뀌기 전에도 코드가
+ * 맞게 동작하도록 여기서 편다.
  */
 function resolveHost(host, origin) {
   if (host.startsWith('/')) {
-    return origin ? origin.replace(/\/$/, '') + host : ''
+    return POSTHOG_DIRECT_HOST
   }
   return host
 }

@@ -56,11 +56,20 @@ assert.equal(ready.client.calls.init.length, 1)
 
 const [projectKey, config] = ready.client.calls.init[0]
 assert.equal(projectKey, 'phc_test_project_key')
-// 같은 오리진 프록시로 보낸다(/ph). PostHog SDK는 절대 주소를 요구하고
-// 우리 도메인은 프리뷰마다 달라지므로, 경로만 적어 두고 실행 시점의
-// origin을 붙인다. 리전을 옮겨 푸는 문제가 아니다 — PostHog 클라우드는
-// US·EU뿐이라 한국에서는 EU가 더 멀다.
-assert.equal(config.api_host, 'https://beggars-five.vercel.app/ph')
+// PostHog로 **직접** 보낸다.
+//
+// 한동안 같은 오리진 프록시(/ph)를 거쳤다. 광고 차단기가
+// us.i.posthog.com을 막기 때문이다. 2026-09-07에 걷어냈다 — Vercel Edge
+// Requests가 30일 롤링 윈도우로 934,483/1,000,000까지 찼고, 이 프록시를
+// 타는 이벤트가 방문당 열 건쯤 그대로 쿼터였다.
+//
+// 환경변수(VITE_POSTHOG_HOST)는 아직 '/ph'다. Vercel 새 UI가 편집 시
+// 타입을 Secret으로 강제해 VITE_ 접두사와 공존이 안 되므로 CLI로만
+// 고칠 수 있다 — 값이 바뀌기 전에도 맞게 돌도록 코드가 편다.
+//
+// 리전을 옮겨 푸는 문제가 아니다 — PostHog 클라우드는 US·EU뿐이라
+// 한국에서는 EU가 더 멀다.
+assert.equal(config.api_host, 'https://us.i.posthog.com')
 assert.deepEqual(config.bootstrap, {
   distinctID: context.visitorId,
   isIdentifiedID: false,
