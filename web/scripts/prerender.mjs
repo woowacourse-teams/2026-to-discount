@@ -345,8 +345,32 @@ async function main() {
   )
   await writeFile(indexPath, html)
 
-  await writeFile(new URL('robots.txt', `file://${DIST}`),
-    ['User-agent: *', 'Allow: /', '', `Sitemap: ${SITE}/sitemap.xml`, ''].join('\n'))
+  // 크롤러에게 오라고만 하고 속도는 안 정하고 있었다. sitemap으로 브랜드
+  // 페이지 89장을 알려주는데 페이지마다 로고와 번들이 딸려 나가므로,
+  // 크롤러 한 바퀴가 곧 수천 요청이다. 2026-09-07에 Vercel Edge Requests가
+  // 한도의 75%에 닿았는데 분석이 세는 방문자는 주 617명뿐이었다 — 그
+  // 격차가 여기다(분석은 JS를 실행하는 방문자만 센다).
+  //
+  // 색인은 막지 않는다. 자산 경로만 빼고, 검색 유입과 무관한 수집기를
+  // 거른다. public/robots.txt에도 같은 내용을 두지만 이 파일이 빌드 때
+  // 덮어쓰므로 **여기가 실제로 나가는 값이다**.
+  const CRAWL_DELAY_BOTS = ['bingbot', 'Yeti', 'Daumoa']
+  const BLOCKED_BOTS = ['GPTBot', 'ClaudeBot', 'CCBot', 'Bytespider',
+    'AhrefsBot', 'SemrushBot', 'MJ12bot', 'DotBot']
+  await writeFile(new URL('robots.txt', `file://${DIST}`), [
+    'User-agent: *',
+    'Allow: /',
+    '# 자산은 색인 대상이 아닌데 요청 수의 대부분이다.',
+    'Disallow: /logos/',
+    'Disallow: /platform-icons/',
+    'Disallow: /assets/',
+    'Disallow: /links/',
+    '',
+    ...CRAWL_DELAY_BOTS.flatMap((bot) => [`User-agent: ${bot}`, 'Crawl-delay: 10', '']),
+    ...BLOCKED_BOTS.flatMap((bot) => [`User-agent: ${bot}`, 'Disallow: /', '']),
+    `Sitemap: ${SITE}/sitemap.xml`,
+    '',
+  ].join('\n'))
 
   // 할인이 매일 바뀌는 것이 이 페이지의 값이다. lastmod를 실제 빌드일로
   // 채워 재크롤 빈도를 올린다.
