@@ -1,3 +1,4 @@
+import { API_BASE } from './api.js'
 import { useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { markAnswered, markDismissed } from './surveyDismiss.js'
@@ -111,7 +112,7 @@ export default function SurveyCard({ visitorId, code, onCode, onClose }) {
     }
 
     try {
-      const res = await fetch('/api/survey', {
+      const res = await fetch(`${API_BASE}/api/survey`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

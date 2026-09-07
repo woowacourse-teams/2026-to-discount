@@ -1,5 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
+import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
@@ -732,7 +732,7 @@ export default function App() {
     const { visitorId } = getAnalyticsContext()
     if (!visitorId) return
     try {
-      const res = await fetch(`/api/survey/code?visitorId=${encodeURIComponent(visitorId)}`)
+      const res = await fetch(`${API_BASE}/api/survey/code?visitorId=${encodeURIComponent(visitorId)}`)
       const body = await res.json()
       if (body.code && body.code !== getStoredCode()) {
         markAnswered(body.code)
