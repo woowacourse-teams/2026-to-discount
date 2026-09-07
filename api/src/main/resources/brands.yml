@@ -816,59 +816,78 @@ brands:
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?ENWjEwq
   유로코피자:
+    searchAliases: [유로코피자]
     links:
       baemin: https://s.baemin.com/Pg000LrP4iseh
   연돈튀김덮밥볼카츠:
+    searchAliases: [연돈튀김덮밥볼카츠]
     links:
       baemin: https://s.baemin.com/Ol000LpNo43IC
   롤링파스타:
+    searchAliases: [롤링파스타]
     links:
       baemin: https://s.baemin.com/FT000LrPnlXh5
   백종원의 미정국수&덮밥:
+    searchAliases: [백종원의 미정국수, 덮밥, 백종원의미정국수&덮밥]
     links:
       baemin: https://s.baemin.com/9Q000LBUygw3u
   백종원의 새마을식당:
+    searchAliases: [백종원의새마을식당]
     links:
       baemin: https://s.baemin.com/Uf000LBSGkO0e
   파스타헛:
+    searchAliases: [파스타헛]
     links:
       baemin: https://s.baemin.com/l8000LprOkwZ5
   미친피자:
+    searchAliases: [미친피자]
     links:
       baemin: https://s.baemin.com/DN000LpRIMwjE
   한식요리주점 막이오름:
+    searchAliases: [한식요리주점막이오름]
     links:
       baemin: https://s.baemin.com/5k000LBT5gcfl
   백종원의 백스비어:
+    searchAliases: [백종원의백스비어]
     links:
       baemin: https://s.baemin.com/Om000LrSzU9cK
   돌배기집:
+    searchAliases: [돌배기집]
     links:
       baemin: https://s.baemin.com/U4000LBU3qXDt
   본가:
+    searchAliases: [본가]
     links:
       baemin: https://s.baemin.com/h3000LBU4ubcO
   정담오리바베큐:
+    searchAliases: [정담오리바베큐]
     links:
       baemin: https://s.baemin.com/Mz000Lx2lnJx5
   갓튀긴후라이드:
+    searchAliases: [갓튀긴후라이드]
     links:
       baemin: https://s.baemin.com/Gr000Lq0FuXZ0
   고피자:
+    searchAliases: [고피자]
     links:
       baemin: https://s.baemin.com/Ee000LtinyGOA
   백종원의 한신포차 닭발&통닭:
+    searchAliases: [백종원의 한신포차 닭발, 통닭, 백종원의한신포차닭발&통닭]
     links:
       baemin: https://s.baemin.com/36000LscZX2wk
   백종원의 인생설렁탕&불고기:
+    searchAliases: [백종원의 인생설렁탕, 불고기, 백종원의인생설렁탕&불고기]
     links:
       baemin: https://s.baemin.com/BA000LrTvsNMg
   백종원의 리춘시장&마라탕:
+    searchAliases: [백종원의 리춘시장, 마라탕, 백종원의리춘시장&마라탕]
     links:
       baemin: https://s.baemin.com/Xv000LBSJuZkH
   백종원의원조쌈밥집 제육&삼겹:
+    searchAliases: [백종원의원조쌈밥집 제육, 삼겹, 백종원의원조쌈밥집제육&삼겹]
     links:
       baemin: https://s.baemin.com/TL000LtSAp1Dn
   역전우동&덮밥:
+    searchAliases: [역전우동, 덮밥]
     links:
       baemin: https://s.baemin.com/DO000LBSDxIHr
