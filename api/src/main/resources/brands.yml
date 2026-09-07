@@ -44,7 +44,7 @@ brands:
   굽네치킨:
     searchAliases: [굽네, 굽네 치킨, goobne, goobne chicken, gubne]
     category: chicken
-    aliases: [굽네, 굽네치킨, goobne, goobnechicken]
+    aliases: [굽네, 굽네치킨, goobne, goobnechicken, 굽네치킨&피자]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=18
   기영이숯불두마리치킨:
@@ -56,6 +56,7 @@ brands:
       baemin: https://s.baemin.com/7o3.fea3y
   꾸브라꼬숯불치킨:
     searchAliases: [꾸브라꼬, 꾸브라꼬 치킨, 꾸브라코, kkuburakko, kkuburakko chicken]
+    aliases: [꾸브라꼬숯불치킨, 꾸브라꼬 숯불치킨]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?FmPxvqc
@@ -138,6 +139,7 @@ brands:
       baemin: https://s.baemin.com/a2000Lps97R9G
   오븐마루치킨:
     searchAliases: [오븐마루, 오븐마루 치킨, ovenmaru, ovenmaru chicken]
+    aliases: [오븐마루치킨, 오븐마루]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?Hdnrhi4
@@ -799,6 +801,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?ao0bXqh
   스텔라떡볶이:
     searchAliases: [스텔라 떡볶이, 스텔라, stella tteokbokki, stellatteokbokki]
+    aliases: [스텔라떡볶이, 스텔라 떡볶이]
     category: snack
     links:
       baemin: https://s.baemin.com/ik000LpqKhWr1
