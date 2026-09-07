@@ -44,6 +44,7 @@ api/src/main/java/com/discounttracker/comparison/BrandComparison.java
 api/src/main/java/com/discounttracker/comparison/BrandComparisonService.java
 api/src/main/java/com/discounttracker/offer/DiscountLadder.java
 api/src/main/java/com/discounttracker/offer/DiscountTier.java
+api/src/main/java/com/discounttracker/offer/Membership.java
 api/src/main/java/com/discounttracker/offer/Offer.java
 api/src/main/java/com/discounttracker/offer/OfferRecord.java
 api/src/main/java/com/discounttracker/offer/OfferRepository.java
@@ -123,6 +124,7 @@ web/README.md
 web/index.html
 web/package-lock.json
 web/package.json
+web/scripts/build-platform-icons.py
 web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
 web/scripts/verify-analytics-event-contract.mjs
@@ -153,6 +155,7 @@ web/src/filters.js
 web/src/ga4.js
 web/src/logos.jsx
 web/src/main.jsx
+web/src/platformIcons.js
 web/src/posthog.js
 web/src/privacy.js
 web/src/surveyDismiss.js
@@ -207,8 +210,8 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 87 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 46 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 88 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 48 |
 
 ### Tracker
 
@@ -237,7 +240,7 @@ flowchart TB
 | `banner/` | 당일 행사 로드와 날짜 판정 | 2 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
-| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 7 |
+| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 8 |
 | `testdata/` | 검수용 더미 데이터, 오류를 일부러 섞는다 | 1 |
 | `web/` | HTTP 엔드포인트와 CORS | 5 |
 
@@ -281,6 +284,7 @@ HTTP 경계:
 | `ga4.js` | 임시 GA4 측정 |
 | `logos.jsx` | 브랜드와 플랫폼 로고 |
 | `main.jsx` | React와 분석 도구 진입점 |
+| `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |
 | `privacy.js` | DNT/GPC 추적 거부 판정 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
