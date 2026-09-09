@@ -72,6 +72,37 @@ PEOPLE = """toString(person_id) NOT IN (
 
 WINDOW = "timestamp >= now() - INTERVAL 60 DAY"
 
+# A/B는 갈래를 싣기 시작한 날부터만 본다. 그 전 구간은 갈래가 없어
+# 분모에 못 들어간다.
+AB_START = "2026-08-20"
+AB_WINDOW = "timestamp >= toDateTime('%s 00:00:00')" % AB_START
+
+# "옵션을 설정했다"로 보는 동작. 분류·플랫폼·필터·검색·멤버십 — 목록을
+# 좁히는 조작이면 전부 넣는다.
+#
+# `membership_open`은 뺀다. 2026-08-13에 사라진 이벤트라 A/B 구간
+# (08-20~)에 아예 없다 — 넣으면 0인 칸이 하나 늘 뿐이다.
+# `brand_expand`도 뺀다. 목록을 좁히는 게 아니라 고른 뒤에 확인하는
+# 행동이고, 실제로 링크 클릭 '뒤'에 오는 경우가 많아 앞 단계로 두면
+# 퍼널이 거꾸로 선다(ANALYTICS-CAPABILITY.md §5.1).
+SETTING = ("('category_change', 'platform_filter_toggle', 'filters_apply', "
+           "'filter_sheet_open', 'filters_reset', 'brand_search_submitted', "
+           "'membership_toggle')")
+
+# 갈래는 갈래를 실은 이벤트에서만 읽는다. 행동은 그 사람의 모든
+# 이벤트에서 본다 — 한 CTE에서 같이 뽑으면 variant를 안 싣는 이벤트가
+# 통째로 빠진다(실측: 전환율이 38.1%에서 32.9%로 내려앉았다).
+VARIANTS_CTE = """variants AS (
+    SELECT distinct_id, argMin(toString(properties.variant), timestamp) AS variant
+    FROM events
+    WHERE {ab} AND {people} AND toString(properties.variant) IN ('a', 'b')
+    GROUP BY distinct_id
+)"""
+
+
+def variants_cte():
+    return VARIANTS_CTE.format(ab=AB_WINDOW, people=PEOPLE)
+
 
 # PostHog가 받는 설명 길이. 넘기면 400 에러가 나는데, 인사이트를 절반쯤
 # 만든 뒤에 터져서 앞의 것만 올라간 상태로 멈춘다 — 올리기 전에 센다.
@@ -356,6 +387,292 @@ SELECT
 FROM per_variant v
 CROSS JOIN both b
 ORDER BY `갈래`
+"""),
+    },
+    # ---- A/B 행동 지표 (기존 A/B 대시보드에 붙는다) ----------------------
+    {
+        "dashboard": 2049188,
+        "name": "A/B — 옵션 설정과 그 뒤 (사람 단위)",
+        "description":
+            "갈래별로 목록을 좁히는 조작(분류·플랫폼·필터·검색·멤버십)을 한 "
+            "사람 비율과, 그 뒤에 실제로 나갔는지.\n\n"
+            "a안은 조건을 바에 펼쳐 두고 b안은 바텀시트에 감춘다"
+            "(App.jsx `variantA`). 그래서 **갈래마다 나오는 이벤트가 다르다** "
+            "— a엔 `filter_sheet_open`이 아예 없다. 종류별 비교는 옆 "
+            "'옵션 종류별 사용률'에서 그걸 감안해 읽어라. 이 표의 '설정률'은 "
+            "'무엇이든 만졌나'라서 그 차이에 안 흔들린다.\n\n"
+            "'설정 후 전환'은 **설정한 시각 이후**의 전환만 센다. 순서를 안 "
+            "보면 흐름이 아니라 교집합이 된다.\n\n"
+            "`z(설정률)`: |z| >= 1.96이면 p < 0.05.",
+        "query": q(f"""
+WITH {variants_cte()},
+per_person AS (
+    SELECT
+        distinct_id,
+        minIf(timestamp, event IN {SETTING}) AS first_set,
+        maxIf(timestamp, event IN {GOAL}) AS last_goal,
+        max(event IN {SETTING}) AS did_set,
+        max(event IN {GOAL}) AS converted
+    FROM events
+    WHERE {AB_WINDOW} AND {PEOPLE}
+    GROUP BY distinct_id
+),
+joined AS (
+    SELECT v.variant AS variant, p.*
+    FROM variants v JOIN per_person p ON p.distinct_id = v.distinct_id
+),
+totals AS (
+    SELECT
+        countIf(variant = 'a') AS na, countIf(variant = 'a' AND did_set = 1) AS sa,
+        countIf(variant = 'b') AS nb, countIf(variant = 'b' AND did_set = 1) AS sb
+    FROM joined
+)
+SELECT
+    j.variant AS `갈래`,
+    count() AS `방문자`,
+    countIf(j.did_set = 1) AS `옵션 설정`,
+    round(countIf(j.did_set = 1) / count() * 100, 1) AS `설정률`,
+    countIf(j.did_set = 1 AND j.converted = 1 AND j.last_goal > j.first_set) AS `설정 후 전환`,
+    round(countIf(j.did_set = 1 AND j.converted = 1 AND j.last_goal > j.first_set)
+          / nullIf(countIf(j.did_set = 1), 0) * 100, 1) AS `설정자 전환율`,
+    round(countIf(j.did_set = 0 AND j.converted = 1)
+          / nullIf(countIf(j.did_set = 0), 0) * 100, 1) AS `설정 안 한 쪽 전환율`,
+    round((t.sb / t.nb - t.sa / t.na) / sqrt(
+        ((t.sa + t.sb) / (t.na + t.nb)) * (1 - (t.sa + t.sb) / (t.na + t.nb))
+        * (1 / t.na + 1 / t.nb)), 2) AS `z(설정률)`
+FROM joined j CROSS JOIN totals t
+GROUP BY `갈래`, `z(설정률)`
+ORDER BY `갈래`
+"""),
+    },
+    {
+        "dashboard": 2049188,
+        "name": "A/B — 옵션을 설정한 세션은 어떻게 끝났나",
+        "description":
+            "세션 단위다. 옵션을 설정한 세션을 셋으로 가른다 — 설정한 뒤 "
+            "나갔나(전환), 더 만지기만 했나, 아무것도 안 하고 이탈했나.\n\n"
+            "사람 단위로 보면 '언젠가는 눌렀다'가 섞여 이탈이 안 보인다. "
+            "설정이 도움이 됐는지는 그 자리에서 갈리므로 세션으로 본다.\n\n"
+            "'설정 후 이탈'이 갈래별로 다르면 그 갈래의 옵션 UI가 사람을 "
+            "막고 있다는 뜻이다.",
+        "query": q(f"""
+WITH {variants_cte()},
+per_session AS (
+    SELECT
+        distinct_id,
+        toString(properties.source_session_id) AS session_id,
+        minIf(timestamp, event IN {SETTING}) AS first_set,
+        maxIf(timestamp, event IN {GOAL}) AS last_goal,
+        max(event IN {SETTING}) AS did_set,
+        countIf(event IN {SETTING}) AS set_count
+    FROM events
+    WHERE {AB_WINDOW} AND {PEOPLE}
+      AND notEmpty(toString(properties.source_session_id))
+    GROUP BY distinct_id, session_id
+)
+SELECT
+    v.variant AS `갈래`,
+    count() AS `설정한 세션`,
+    countIf(s.last_goal > s.first_set) AS `설정 후 전환`,
+    round(countIf(s.last_goal > s.first_set) / count() * 100, 1) AS `전환 비중`,
+    countIf(s.last_goal <= s.first_set AND s.last_goal > toDateTime(0)) AS `설정 전에만 전환`,
+    countIf(s.last_goal = toDateTime(0) AND s.set_count > 1) AS `계속 만지다 이탈`,
+    countIf(s.last_goal = toDateTime(0) AND s.set_count = 1) AS `한 번 만지고 이탈`,
+    round(countIf(s.last_goal = toDateTime(0)) / count() * 100, 1) AS `설정 후 이탈률`
+FROM per_session s JOIN variants v ON v.distinct_id = s.distinct_id
+WHERE s.did_set = 1
+GROUP BY `갈래`
+ORDER BY `갈래`
+"""),
+    },
+    {
+        "dashboard": 2049188,
+        "name": "A/B — 옵션 종류별 사용률",
+        "description":
+            "어떤 조작이 실제로 쓰이는가. 갈래별로 그 조작을 한 사람의 "
+            "비율이다.\n\n"
+            "건수가 아니라 사람 수로 센다 — 한 사람이 스무 번 쓴 기능과 스무 "
+            "명이 한 번씩 쓴 기능은 완전히 다른 얘기다.\n\n"
+            "**0인 칸은 버그가 아니라 설계다.** a안은 조건을 바에 펼쳐 두고 "
+            "b안은 바텀시트에 감춘다 — a엔 시트가 없으니 "
+            "`filter_sheet_open`·`filters_apply`가 0이고, b는 플랫폼 필터가 "
+            "시트 안으로 들어가 `platform_filter_toggle`이 얇다. 같은 의도가 "
+            "다른 이벤트로 나온다는 뜻이라, 줄끼리가 아니라 "
+            "**갈래별 합**으로 읽어야 한다.",
+        "query": q(f"""
+WITH {variants_cte()},
+counted AS (
+    SELECT v.variant AS variant, e.event AS event, e.distinct_id AS distinct_id
+    FROM events e JOIN variants v ON v.distinct_id = e.distinct_id
+    WHERE {AB_WINDOW.replace("timestamp", "e.timestamp")}
+      AND e.event IN {SETTING}
+),
+base AS (
+    SELECT variant, count() AS n FROM variants GROUP BY variant
+)
+SELECT
+    c.event AS `조작`,
+    count(DISTINCT if(c.variant = 'a', c.distinct_id, NULL)) AS `a 사람`,
+    round(count(DISTINCT if(c.variant = 'a', c.distinct_id, NULL))
+          / (SELECT n FROM base WHERE variant = 'a') * 100, 1) AS `a 사용률`,
+    count(DISTINCT if(c.variant = 'b', c.distinct_id, NULL)) AS `b 사람`,
+    round(count(DISTINCT if(c.variant = 'b', c.distinct_id, NULL))
+          / (SELECT n FROM base WHERE variant = 'b') * 100, 1) AS `b 사용률`,
+    round(count(DISTINCT if(c.variant = 'b', c.distinct_id, NULL))
+          / (SELECT n FROM base WHERE variant = 'b') * 100
+          - count(DISTINCT if(c.variant = 'a', c.distinct_id, NULL))
+          / (SELECT n FROM base WHERE variant = 'a') * 100, 1) AS `차이(b-a)`
+FROM counted c
+GROUP BY `조작`
+ORDER BY `a 사람` + `b 사람` DESC
+"""),
+    },
+    {
+        "dashboard": 2049188,
+        "name": "A/B — 설정 깊이별 전환율",
+        "description":
+            "옵션을 많이 만질수록 잘 나가는가, 헤매는가.\n\n"
+            "**인과가 아니다.** 무엇이든 조작하는 사람이 링크도 누른다. "
+            "이 표가 답하는 것은 '깊이에 따라 갈래가 다르게 굴러가는가' 하나다 "
+            "— 같은 깊이 칸에서 a와 b가 다르면 그건 그 갈래의 UI 때문이다.\n\n"
+            "깊이가 깊어질수록 전환율이 떨어지면 옵션이 사람을 헤매게 하고 "
+            "있다는 신호다.",
+        "query": q(f"""
+WITH {variants_cte()},
+per_person AS (
+    SELECT distinct_id, countIf(event IN {SETTING}) AS depth,
+           max(event IN {GOAL}) AS converted
+    FROM events
+    WHERE {AB_WINDOW} AND {PEOPLE}
+    GROUP BY distinct_id
+)
+SELECT
+    multiIf(p.depth = 0, '0 (설정 안 함)', p.depth = 1, '1회', p.depth <= 3, '2~3회',
+            p.depth <= 9, '4~9회', '10회 이상') AS `설정 횟수`,
+    countIf(v.variant = 'a') AS `a 사람`,
+    round(countIf(v.variant = 'a' AND p.converted = 1)
+          / nullIf(countIf(v.variant = 'a'), 0) * 100, 1) AS `a 전환율`,
+    countIf(v.variant = 'b') AS `b 사람`,
+    round(countIf(v.variant = 'b' AND p.converted = 1)
+          / nullIf(countIf(v.variant = 'b'), 0) * 100, 1) AS `b 전환율`
+FROM per_person p JOIN variants v ON v.distinct_id = p.distinct_id
+GROUP BY `설정 횟수`
+ORDER BY min(p.depth)
+"""),
+    },
+    {
+        "dashboard": 2049188,
+        "name": "A/B — 세션의 첫 동작",
+        "description":
+            "갈래별로 사람들이 화면에서 처음 하는 일. 노출·이탈 이벤트는 "
+            "동작으로 안 친다.\n\n"
+            "'(아무 동작 없음)'이 가장 큰 칸이고, 이게 갈래별로 다르면 첫 "
+            "화면이 다르게 작동한다는 뜻이다 — 전환율보다 먼저 움직이는 "
+            "지표라 표본이 모자란 A/B에서 특히 볼 값이 있다.",
+        "query": q(f"""
+WITH {variants_cte()},
+per_session AS (
+    SELECT
+        distinct_id,
+        toString(properties.source_session_id) AS session_id,
+        argMinIf(event, timestamp, event NOT IN ('$pageview', 'page_exit',
+                 'banner_impression', 'brand_impression')) AS first_action,
+        countIf(event NOT IN ('$pageview', 'page_exit', 'banner_impression',
+                              'brand_impression')) AS actions
+    FROM events
+    WHERE {AB_WINDOW} AND {PEOPLE}
+      AND notEmpty(toString(properties.source_session_id))
+    GROUP BY distinct_id, session_id
+)
+SELECT
+    if(s.actions = 0, '(아무 동작 없음)', s.first_action) AS `첫 동작`,
+    countIf(v.variant = 'a') AS `a 세션`,
+    round(countIf(v.variant = 'a') / sum(countIf(v.variant = 'a')) OVER () * 100, 1) AS `a 비중`,
+    countIf(v.variant = 'b') AS `b 세션`,
+    round(countIf(v.variant = 'b') / sum(countIf(v.variant = 'b')) OVER () * 100, 1) AS `b 비중`
+FROM per_session s JOIN variants v ON v.distinct_id = s.distinct_id
+GROUP BY `첫 동작`
+ORDER BY `a 세션` + `b 세션` DESC
+"""),
+    },
+    {
+        "dashboard": 2049188,
+        "name": "A/B — 세션당 동작 수와 체류시간",
+        "description":
+            "갈래별로 얼마나 오래, 얼마나 많이 만지는가.\n\n"
+            "평균이 아니라 **중앙값**을 본다. 한 사람이 43번 누르는 일이 "
+            "실제로 있어서 평균은 그 한 명을 따라간다.\n\n"
+            "체류시간은 `page_exit`이 싣는 `dwell_ms`다. 탭이 닫히는 순간 "
+            "보내는 값이라 못 받는 경우가 있다 — 그래서 `체류 잰 세션`을 "
+            "같이 적는다. 이 수가 세션 수보다 많이 적으면 중앙값을 믿지 마라.\n\n"
+            "`z(무동작률)`은 '동작 없이 끝난 세션' 비율의 갈래 간 z검정이다. "
+            "전환율보다 표본이 크고(세션 단위) 먼저 움직이는 지표라, 전환이 "
+            "판정 불가인 구간에서도 여기서는 갈릴 수 있다.",
+        "query": q(f"""
+WITH {variants_cte()},
+per_session AS (
+    SELECT
+        distinct_id,
+        toString(properties.source_session_id) AS session_id,
+        countIf(event NOT IN ('$pageview', 'page_exit', 'banner_impression',
+                              'brand_impression')) AS actions,
+        maxIf(toIntOrZero(toString(properties.dwell_ms)), event = 'page_exit') AS dwell
+    FROM events
+    WHERE {AB_WINDOW} AND {PEOPLE}
+      AND notEmpty(toString(properties.source_session_id))
+    GROUP BY distinct_id, session_id
+),
+labelled AS (
+    SELECT v.variant AS variant, s.actions AS actions, s.dwell AS dwell
+    FROM per_session s JOIN variants v ON v.distinct_id = s.distinct_id
+),
+totals AS (
+    SELECT
+        countIf(variant = 'a') AS na, countIf(variant = 'a' AND actions = 0) AS qa,
+        countIf(variant = 'b') AS nb, countIf(variant = 'b' AND actions = 0) AS qb
+    FROM labelled
+)
+SELECT
+    l.variant AS `갈래`,
+    count() AS `세션`,
+    round(median(l.actions), 1) AS `동작 수 중앙값`,
+    max(l.actions) AS `최다 동작`,
+    countIf(l.dwell > 0) AS `체류 잰 세션`,
+    round(medianIf(l.dwell, l.dwell > 0) / 1000, 1) AS `체류 중앙값(초)`,
+    round(countIf(l.actions = 0) / count() * 100, 1) AS `무동작 세션 비중`,
+    round((t.qb / t.nb - t.qa / t.na) / sqrt(
+        ((t.qa + t.qb) / (t.na + t.nb)) * (1 - (t.qa + t.qb) / (t.na + t.nb))
+        * (1 / t.na + 1 / t.nb)), 2) AS `z(무동작률)`
+FROM labelled l CROSS JOIN totals t
+GROUP BY `갈래`, `z(무동작률)`
+ORDER BY `갈래`
+"""),
+    },
+    {
+        "dashboard": 2049188,
+        "name": "A/B — 어떤 분류를 고르나",
+        "description":
+            "`category_change`가 싣는 분류 이름의 상위. 사람 수로 센다.\n\n"
+            "**`all`이 a에만 있는 것은 버그가 아니다.** a(TopBarA)는 '전체' "
+            "탭이 있는 배타 선택이고, b(FilterSheet)는 다중 선택 칩이라 전부 "
+            "끄는 것이 곧 전체다 — b에서는 `all`이라는 값이 나올 수 없다.\n\n"
+            "같은 이유로 이 이벤트는 갈래마다 뜻이 다르다. a는 '분류를 "
+            "갈아탔다', b는 '칩을 켜거나 껐다'. 횟수 비교는 하지 마라 — "
+            "비교할 수 있는 것은 '그 분류를 건드린 사람 수'까지다.",
+        "query": q(f"""
+WITH {variants_cte()}
+SELECT
+    toString(e.properties.category) AS `분류`,
+    count(DISTINCT if(v.variant = 'a', e.distinct_id, NULL)) AS `a 사람`,
+    count(DISTINCT if(v.variant = 'b', e.distinct_id, NULL)) AS `b 사람`,
+    count(DISTINCT e.distinct_id) AS `합`
+FROM events e JOIN variants v ON v.distinct_id = e.distinct_id
+WHERE {AB_WINDOW.replace("timestamp", "e.timestamp")}
+  AND e.event = 'category_change'
+  AND notEmpty(toString(e.properties.category))
+GROUP BY `분류`
+ORDER BY `합` DESC
+LIMIT 15
 """),
     },
     # ---- 6. 설문 --------------------------------------------------------
@@ -644,12 +961,20 @@ def upsert_dashboard(token, apply_):
 
 
 def upsert_insight(spec, dashboard_id, token, apply_):
+    """`dashboard` 키가 있으면 그 대시보드에 붙인다.
+
+    A/B 지표는 이미 있는 'A/B 테스트 - 옵션 설정' 대시보드로 보낸다 —
+    같은 실험을 두 화면에 나눠 두면 어느 쪽이 최신인지 아무도 모른다.
+    """
     found = find("insights", spec["name"], token)
+    target = spec.get("dashboard", dashboard_id)
     body = {"name": spec["name"], "description": spec["description"],
             "query": spec["query"], "saved": True, "tags": ["service-metrics"]}
-    if dashboard_id:
+    if target:
+        # 이미 붙어 있던 대시보드는 안 떼어낸다. 사람이 손으로 붙여 둔
+        # 것을 스크립트가 조용히 걷어내면 화면이 비어 버린다.
         body["dashboards"] = sorted(
-            set((found or {}).get("dashboards") or []) | {dashboard_id})
+            set((found or {}).get("dashboards") or []) | {target})
     if not apply_:
         return "있음(갱신 예정)" if found else "새로 만듦 예정"
     if found:
