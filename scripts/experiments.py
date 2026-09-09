@@ -69,11 +69,13 @@ DESKTOP_WIDTH = 800
 class Visitor:
     __slots__ = ("id", "dev", "widths", "devices", "referrers", "visits",
                  "days", "sessions", "events", "variant", "dwell",
-                 "bot", "first_ts")
+                 "bot", "first_ts", "ips")
 
     def __init__(self, vid):
         self.id = vid
         self.dev = False
+        # (날짜, ipHash). 솔트가 날마다 바뀌어 하루 안에서만 이어진다.
+        self.ips = set()
         self.widths = set()
         self.devices = set()
         self.referrers = set()
@@ -144,6 +146,8 @@ def load(src):
             if isinstance(e.get("dwellMs"), int):
                 v.dwell += e["dwellMs"]
             day = (e.get("ts") or "")[:10]
+            if e.get("ipHash"):
+                v.ips.add((day, e["ipHash"]))
             v.days.add(day)
             v.events[e.get("event")] += 1
             rows.append((day, vid, e.get("event"), e.get("props") or {},
@@ -324,6 +328,48 @@ def cmd_audit(people, rows, args):
             if "desktop" in v.devices and v.widths and min(v.widths) < 400
             and not v.looks_developer())
     print("  %d명 — 이들이 안드로이드 폰 사용자다" % n)
+    print()
+    blind_spots(people)
+
+
+def blind_spots(people):
+    """지금 규칙이 놓칠 수 있는 사람을 보여만 준다. 빼지는 않는다.
+
+    지금 규칙은 "한 세션 안에서 폭이 여러 개이고 최대가 800px 이상"이다.
+    그래서 **창을 한 번도 안 바꾼 개발자를 못 잡는다.** 구멍이 있다는
+    사실 자체를 안 보이게 두면 "걸렀다"가 검증 불가능한 주장이 된다.
+
+    그런데 자동으로 빼지는 않는다. 아래 둘 다 추정이고, 추정으로 사람을
+    걷어내다 106명을 잃은 것이 바로 dev_suspect 사고였다(§4.3). 게다가
+    실측 효과가 작다 — 부피 이상치를 빼면 전환율이 1.3%p 내려가고
+    ipHash로 이어 붙인 쪽은 0.03%p 움직인다. 지표를 뒤집을 크기가 아니다.
+
+    빼야 한다고 판단되면 그때 사람이 결정한다. 여기서는 세어서 보여준다.
+    """
+    devs = {v.id for v in people.values() if v.looks_developer()}
+    explicit = {v.id for v in people.values() if v.dev}
+    bots = {v.id for v in people.values() if v.bot}
+
+    # ① 명시 개발자와 같은 날 같은 망을 쓴 사람. ipHash는 날짜별 솔트라
+    #    하루 안에서만 이어진다 — "같은 기기"가 아니라 "같은 날 같은 망"
+    #    까지만 말할 수 있다. 공용 와이파이면 애먼 사람이 걸린다.
+    dev_ips = set()
+    for vid in explicit:
+        dev_ips |= people[vid].ips
+    linked = {v.id for v in people.values()
+              if v.id not in devs and v.id not in bots and (v.ips & dev_ips)}
+
+    # ② 개발자만큼 무겁게 쓰는데 개발자로 안 잡힌 사람. 진짜 헤비 유저일
+    #    수도 있어서 이름을 "개발자"라고 안 붙인다.
+    heavy = {v.id for v in people.values()
+             if v.id not in devs and v.id not in bots
+             and len(v.sessions) >= 5 and sum(v.events.values()) >= 100}
+
+    print("지금 규칙이 못 잡는 자리 (참고용 — 집계에서 빼지 않는다):")
+    print("  명시 개발자와 같은 날 같은 ipHash   %4d명" % len(linked))
+    print("  세션 5회+ 이면서 이벤트 100건+      %4d명" % len(heavy))
+    print("  둘 다 해당                        %4d명" % len(linked & heavy))
+    print("  창을 한 번도 안 바꾼 개발자는 규칙상 안 잡힌다.")
 
 
 def cmd_daily(people, rows, args):
