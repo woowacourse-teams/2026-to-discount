@@ -3,7 +3,7 @@
 - 상태: 채택
 - 날짜: 2026-07-29
 - 관련: [ADR-003](ADR-003-offer-detail-fields.md), tracker
-  [ADR-016](../../../delivery-discount-tracker/docs/decisions/ADR-016-confirmed-beats-recency-on-dedup.md)
+  ADR-016(tracker 저장소 `docs/decisions/ADR-016-confirmed-beats-recency-on-dedup.md`)
 
 ## 맥락
 

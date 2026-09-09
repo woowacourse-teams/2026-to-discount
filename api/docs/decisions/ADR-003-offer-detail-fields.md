@@ -59,7 +59,7 @@ API는 이 값을 해석하지 않는다. 원장에 있으면 그대로 흘려�
 ## 아직 안 한 것
 
 구간 데이터 수집. 앱에서 쿠폰 상세를 하나씩 열어 캡처해야 하고, 그건
-[tracker의 수집 계획](../../../delivery-discount-tracker/docs/plans/2026-07-29-offer-detail-collection.md)에서 다룬다.
+tracker의 수집 계획(tracker 저장소 `docs/plans/2026-07-29-offer-detail-collection.md`)에서 다룬다.
 
 ## 뒤집을 조건
 

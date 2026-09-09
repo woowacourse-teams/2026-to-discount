@@ -6,7 +6,7 @@
 ## 맥락
 
 delivery-discount-api의
-[ADR-005](../../../delivery-discount-api/docs/decisions/ADR-005-first-party-analytics.md)는
+[ADR-005](../../../api/docs/decisions/ADR-005-first-party-analytics.md)는
 외부 분석 도구(GA4 등)를 안 쓰기로 결정했다 — 제3자에게 데이터가 안
 넘어가야 고지도 단순해지고, 이 프로젝트의 "비영리·개인정보 안 다룸"
 성격과도 맞기 때문이다.

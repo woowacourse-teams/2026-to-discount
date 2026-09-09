@@ -2,12 +2,22 @@
 #
 # 브랜드를 추가하려면 여기에만 넣으면 된다 — 별칭·카테고리·땡겨요 링크가
 # 전부 여기 모여 있고, API가 그대로 프론트에 내려준다(프론트 재배포 불필요).
-# 로고 이미지만 delivery-discount-web/public/logos/<대표명>.png 로 따로 넣는다.
+# 로고 이미지만 web/public/logos/ 아래에 따로 넣는다. 파일명은 대표명을
+# 그대로 쓰지 않고 프론트의 치환을 거친 것이다(공백·& 등 -> _) —
+# web/public/logos/README.md 참고.
 #
+# searchAliases: **필수.** 비면 api의 BrandCatalogTest가 배포를 막는다.
+#           2026-09-07에 클립보드로 자동 생성한 19곳이 이 필드 없이
+#           들어가 Build and Deploy가 두 번 연달아 실패했다 — tracker의
+#           pytest는 이 규칙을 몰라 로컬에서는 전부 초록이었다.
+#           마땅한 별칭이 없으면 대표명을 그대로 한 줄 넣는다.
 # category: chicken | pizza | fastfood | snack | cafe | convenience | korean | chinese | western | (생략 = 미분류)
 # aliases:  원장에 다른 이름으로 찍히는 경우만 (생략 가능)
 # links:    앱별 브랜드 쿠폰 공유링크(앱 전용 딥링크, 생략 가능).
 #           키는 원장 platform 값과 맞춘다 — ddangyo, baemin, ...
+#
+# 지금 상태가 규칙을 지키는지 보려면 tracker 저장소에서:
+#   python check_brands.py
 
 brands:
   # --- 치킨 ---

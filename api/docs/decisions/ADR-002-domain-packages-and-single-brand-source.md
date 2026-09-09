@@ -3,7 +3,7 @@
 - 날짜: 2026-07-29
 - 상태: 확정
 - 관련: [ADR-001](ADR-001-external-export-path.md),
-  [tracker ADR-012](../../../delivery-discount-tracker/docs/decisions/ADR-012-three-repo-split-and-deployment.md)
+  tracker ADR-012(tracker 저장소 `docs/decisions/ADR-012-three-repo-split-and-deployment.md`)
 
 ## 맥락
 

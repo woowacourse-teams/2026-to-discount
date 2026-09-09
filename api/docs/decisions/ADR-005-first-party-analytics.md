@@ -2,7 +2,7 @@
 
 - 상태: 채택
 - 날짜: 2026-07-29
-- 관련: [tracker ADR-015](../../../delivery-discount-tracker/docs/decisions/ADR-015-open-access-only-and-disclosure.md)
+- 관련: tracker ADR-015(tracker 저장소 `docs/decisions/ADR-015-open-access-only-and-disclosure.md`)
 
 ## 맥락
 
@@ -103,7 +103,7 @@ jq -r 'select(.event=="offer_link_click") | "\(.props.platform)\t\(.props.brand)
 드러났다. 프론트(delivery-discount-web)에서 재방문 측정 정확도만을
 목적으로 GA4를 임시로 병행 도입했다 — 이 ADR의 "외부 도구 없이" 원칙에
 대한 한정적 예외이며, 배경·범위·제거 조건은
-[delivery-discount-web ADR-002](../../../delivery-discount-web/docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md)
+[delivery-discount-web ADR-002](../../../web/docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md)
 참고. 여기 문서화된 자체 수집 파이프라인(`/api/events`)은 그대로 유지되고
 바뀐 것이 없다.
 

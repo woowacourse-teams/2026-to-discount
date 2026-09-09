@@ -4,8 +4,8 @@
 - 상태: 확정
 - 관련: [ADR-003](ADR-003-offer-detail-fields.md), [ADR-006](ADR-006-dedup-merges-loser-detail.md),
   [ADR-008](ADR-008-drop-expired-offers-at-request-time.md),
-  tracker [ADR-019](../../../delivery-discount-tracker/docs/decisions/ADR-019-cumulative-tiers-and-domain-judged-amount.md),
-  tracker [ADR-014](../../../delivery-discount-tracker/docs/decisions/ADR-014-coupangeats-record-guaranteed-floor.md)
+  tracker ADR-019(tracker 저장소 `docs/decisions/ADR-019-cumulative-tiers-and-domain-judged-amount.md`),
+  tracker ADR-014(tracker 저장소 `docs/decisions/ADR-014-coupangeats-record-guaranteed-floor.md`)
 
 ## 맥락
 
@@ -19,7 +19,7 @@
 즉 "구간에 없는 정보를 사람이 알고 넣었으니 도메인은 손대지 말라"는
 규칙이었다. 타당했다 — 그 시점에는.
 
-그런데 tracker [ADR-019](../../../delivery-discount-tracker/docs/decisions/ADR-019-cumulative-tiers-and-domain-judged-amount.md)가
+그런데 tracker ADR-019(tracker 저장소 `docs/decisions/ADR-019-cumulative-tiers-and-domain-judged-amount.md`)가
 겹쳐 쓰는 쿠폰(`tier_mode: cumulative`)을 도입하면서 전제가 깨졌다.
 요기요 굽네치킨은 쿠폰 두 장이 문턱마다 다르게 겹친다.
 

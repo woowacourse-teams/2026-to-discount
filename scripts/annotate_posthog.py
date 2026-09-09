@@ -15,13 +15,17 @@ PostHog 그래프에서 선이 꺾여도 지금은 원인을 못 찾는다.
 banner_impression이 아직 없어 전환율이 20.6%로 낮게 찍혔다(분자에
 banner_click이 없다).
 
-세 가지를 찍는다.
+네 가지를 찍는다.
 
   tracking  이벤트가 처음 나타난 날. 그 전 구간은 그 지표가 0이다 —
             비교하면 안 되는 구간이라는 표시다. 원장에서 뽑는다.
   release   화면이 바뀐 날(web/src의 feat 커밋).
   spike     방문자가 평소의 몇 배로 뛴 날. 같은 날 release 표시가 같이
             서면 배포 탓이고, 혼자 서면 밖에서 온 것이다.
+  infra     화면은 안 바뀌었는데 그래프가 꺾인 날 — 계측 도구 도입,
+            robots·sitemap·IndexNow 같은 유입 경로 변경, 캐시·프록시
+            같은 전송 변경, 수집 자동화로 오퍼 수가 계단식으로 는 날.
+            자동으로 못 가리므로 INFRA_MARKS에 사람이 적는다.
 
 주석 본문은 한 줄로 짧게 쓴다. PostHog는 눈금 옆에 그대로 펼쳐 그리므로
 긴 글을 넣으면 그래프를 덮는다 — 실제로 09-02 개편 9건을 이어 붙였더니
@@ -61,7 +65,43 @@ MARKER_HOUR = "T12:00:00Z"
 # 눈금 옆 한 줄이 감당하는 길이. 넘으면 그래프를 덮는다.
 CONTENT_MAX = 45
 
-EMOJI = {"tracking": "📏", "release": "🛠", "spike": "📈"}
+EMOJI = {"tracking": "📏", "release": "🛠", "spike": "📈", "infra": "🧱"}
+
+# 화면(web/src)은 안 건드렸는데 그래프는 흔드는 것들.
+#
+# release_marks()는 web/src의 feat 커밋만 본다. 그래서 유입 경로를 바꾸는
+# 것(robots·sitemap·IndexNow), 계측 경로를 바꾸는 것(GA4·PostHog SDK·
+# 프록시), 데이터 양 자체를 바꾸는 것(수집 자동화)이 전부 안 찍힌다 —
+# 정작 그래프가 꺾이는 자리는 거기다.
+#
+# 자동으로 못 뽑는다. 커밋 메시지만으로는 "이게 유입을 바꾼 변경인가"를
+# 기계가 못 가른다(vercel.json 한 줄이 캐시 정책 전체를 바꾸기도 하고,
+# 아무것도 안 바꾸기도 한다). 사람이 판단해 여기 적는다.
+#
+# 저장소가 둘이라(tracker/mono) 한쪽 git 이력만으로는 반쪽이다. 수집
+# 자동화는 tracker 저장소에서 일어나고 그 결과가 이 사이트의 오퍼 수를
+# 바꾼다 — 같은 표에 놓아야 "그날 왜 늘었나"가 보인다.
+INFRA_MARKS = [
+    # 계측 — 이 앞뒤로는 같은 지표라도 분모·분자가 다르다
+    ("2026-07-29", "계측: Vercel Analytics 도입"),
+    ("2026-07-31", "계측: GA4 임시 병행(ADR-002)"),
+    ("2026-08-14", "계측: PostHog outbox 전달"),
+    ("2026-08-19", "계측: PostHog 프론트 SDK"),
+    ("2026-08-20", "계측: PostHog 직접 전송 + 원장 이중 기록"),
+    # 유입 — 크롤러와 검색이 사이트를 보는 방식이 바뀐 날
+    ("2026-08-28", "유입: IndexNow로 빙·네이버에 즉시 통보"),
+    ("2026-09-07", "유입: robots.txt 신설 + sitemap lastmod 실제 변경일로"),
+    # 비용·전송 — 요청 수가 꺾이는 자리
+    ("2026-09-07", "비용: 정적 자산 캐시 헤더 + 로고 축소"),
+    ("2026-09-07", "비용: PostHog 리버스 프록시 해제"),
+    # 데이터 — 화면에 뜨는 오퍼 수가 계단식으로 바뀐 날
+    ("2026-08-12", "데이터: 당일 행사 배너 도입"),
+    ("2026-08-24", "데이터: 네 앱 전수조사 시작"),
+    ("2026-08-31", "데이터: 리워드 설문 시작"),
+    ("2026-09-03", "데이터: 배짱할인 자동 수집 + 확인주기 도입"),
+    ("2026-09-07", "데이터: 브랜드 딥링크 76 -> 110곳"),
+    ("2026-09-08", "데이터: 브랜드 로고 51곳 미보유 -> 14곳"),
+]
 
 
 class Mark:
@@ -176,7 +216,20 @@ def spike_marks(src):
     return marks
 
 
-KIND_TITLE = {"tracking": "계측 추가", "release": "개편", "spike": "트래픽 급증"}
+KIND_TITLE = {"tracking": "계측 추가", "release": "개편", "spike": "트래픽 급증",
+              "infra": "기반 변경"}
+
+
+def infra_marks():
+    """화면 밖에서 그래프를 흔든 날. INFRA_MARKS 주석 참고."""
+    by_day = collections.defaultdict(list)
+    for day, text in INFRA_MARKS:
+        by_day[day].append(text)
+    marks = []
+    for day, items in sorted(by_day.items()):
+        short = items[0] if len(items) == 1 else "기반 변경 %d건" % len(items)
+        marks.append(Mark(day, "infra", short, items))
+    return marks
 
 
 def write_doc(marks, path):
@@ -249,7 +302,7 @@ def post(key, mark):
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--kind", choices=("tracking", "release", "spike", "all"),
+    p.add_argument("--kind", choices=("tracking", "release", "spike", "infra", "all"),
                    default="all")
     p.add_argument("--src", help="원장 파일. 없으면 서버에서 받는다")
     p.add_argument("--apply", action="store_true", help="실제로 올린다")
@@ -269,6 +322,8 @@ def main(argv=None):
         marks += release_marks()
     if args.kind in ("spike", "all"):
         marks += spike_marks(args.src)
+    if args.kind in ("infra", "all"):
+        marks += infra_marks()
     marks = sorted((m for m in marks if m.day >= args.since),
                    key=Mark.sort_key)
 
