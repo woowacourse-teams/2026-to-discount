@@ -7,13 +7,13 @@
 // 유입 URL 원본(direct/internal/external 구분만), 쿠키(localStorage만 씀).
 // visitorId는 이 브라우저가 만든 난수라 지우면 그대로 끊긴다.
 
+import { API_BASE } from './api.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
 import { uiVariant } from './variant.js'
 
 export { optedOut } from './privacy.js'
 
-const API_BASE = ''  // 같은 오리진 — api.js 주석 참고
 const MAX_PENDING_POSTHOG_EVENTS = 100
 
 // 이벤트마다 한 번만 발급하는 UUID다. 이 객체가 메모리 큐에 남아 있는 동안

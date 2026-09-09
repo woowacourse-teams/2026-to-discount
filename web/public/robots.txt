@@ -1,0 +1,60 @@
+# 크롤러에게 아무 말도 안 하고 있었다(이 파일이 없었다). 그러면서
+# sitemap.xml로는 브랜드 페이지 89장을 전부 알려주고 있었다 — 오라고만
+# 하고 속도는 안 정한 셈이다.
+#
+# 2026-09-07: Vercel Edge Requests가 한도의 75%에 닿았다. 그런데 우리
+# 분석이 세는 방문자는 주 617명뿐이다. 둘의 격차가 크롤러다 — 분석은
+# JS를 실행하는 방문자만 세는데, Edge Requests는 HTML만 받아가는
+# 크롤러까지 전부 센다. 브랜드 페이지 한 장을 열 때마다 로고와 번들이
+# 딸려 나가므로, 크롤러 한 바퀴가 곧 수천 요청이다.
+#
+# 색인 자체는 필요하다(검색으로 들어오는 사용자가 있다). 막는 대신
+# 속도를 정하고, 색인할 이유가 없는 것만 뺀다.
+
+User-agent: *
+Allow: /
+# 자산은 색인 대상이 아니다. 크롤러가 이미지를 훑을 이유가 없고,
+# 그게 요청 수의 대부분이다.
+Disallow: /logos/
+Disallow: /platform-icons/
+Disallow: /assets/
+Disallow: /links/
+
+# 검색 유입이 실제로 오는 곳은 천천히 돌게 한다. Google은 이 지시를
+# 무시하고 Search Console의 크롤링 속도를 따르므로 거기서 따로 낮춘다.
+User-agent: bingbot
+Crawl-delay: 10
+
+User-agent: Yeti
+Crawl-delay: 10
+
+User-agent: Daumoa
+Crawl-delay: 10
+
+# 검색 유입과 무관한 수집기는 받지 않는다. 브랜드 할인 목록은 매일
+# 바뀌는 데이터라 학습·아카이빙 대상으로서의 값도 크지 않다.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+Sitemap: https://beggars-five.vercel.app/sitemap.xml

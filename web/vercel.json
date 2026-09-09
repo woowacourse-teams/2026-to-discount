@@ -1,4 +1,24 @@
 {
+  "headers": [
+    {
+      "source": "/logos/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000, immutable" }
+      ]
+    },
+    {
+      "source": "/platform-icons/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000, immutable" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ],
   "redirects": [
     {
       "source": "/brand/:name.html",
@@ -10,18 +30,6 @@
     {
       "source": "/api/:path*",
       "destination": "https://bebeggars.duckdns.org/api/:path*"
-    },
-    {
-      "source": "/ph/static/:path*",
-      "destination": "https://us-assets.i.posthog.com/static/:path*"
-    },
-    {
-      "source": "/ph/array/:path*",
-      "destination": "https://us-assets.i.posthog.com/array/:path*"
-    },
-    {
-      "source": "/ph/:path*",
-      "destination": "https://us.i.posthog.com/:path*"
     }
   ]
 }

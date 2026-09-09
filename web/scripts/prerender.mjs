@@ -345,8 +345,32 @@ async function main() {
   )
   await writeFile(indexPath, html)
 
-  await writeFile(new URL('robots.txt', `file://${DIST}`),
-    ['User-agent: *', 'Allow: /', '', `Sitemap: ${SITE}/sitemap.xml`, ''].join('\n'))
+  // 크롤러에게 오라고만 하고 속도는 안 정하고 있었다. sitemap으로 브랜드
+  // 페이지 89장을 알려주는데 페이지마다 로고와 번들이 딸려 나가므로,
+  // 크롤러 한 바퀴가 곧 수천 요청이다. 2026-09-07에 Vercel Edge Requests가
+  // 한도의 75%에 닿았는데 분석이 세는 방문자는 주 617명뿐이었다 — 그
+  // 격차가 여기다(분석은 JS를 실행하는 방문자만 센다).
+  //
+  // 색인은 막지 않는다. 자산 경로만 빼고, 검색 유입과 무관한 수집기를
+  // 거른다. public/robots.txt에도 같은 내용을 두지만 이 파일이 빌드 때
+  // 덮어쓰므로 **여기가 실제로 나가는 값이다**.
+  const CRAWL_DELAY_BOTS = ['bingbot', 'Yeti', 'Daumoa']
+  const BLOCKED_BOTS = ['GPTBot', 'ClaudeBot', 'CCBot', 'Bytespider',
+    'AhrefsBot', 'SemrushBot', 'MJ12bot', 'DotBot']
+  await writeFile(new URL('robots.txt', `file://${DIST}`), [
+    'User-agent: *',
+    'Allow: /',
+    '# 자산은 색인 대상이 아닌데 요청 수의 대부분이다.',
+    'Disallow: /logos/',
+    'Disallow: /platform-icons/',
+    'Disallow: /assets/',
+    'Disallow: /links/',
+    '',
+    ...CRAWL_DELAY_BOTS.flatMap((bot) => [`User-agent: ${bot}`, 'Crawl-delay: 10', '']),
+    ...BLOCKED_BOTS.flatMap((bot) => [`User-agent: ${bot}`, 'Disallow: /', '']),
+    `Sitemap: ${SITE}/sitemap.xml`,
+    '',
+  ].join('\n'))
 
   // 할인이 매일 바뀌는 것이 이 페이지의 값이다. lastmod를 실제 빌드일로
   // 채워 재크롤 빈도를 올린다.
@@ -375,17 +399,38 @@ async function main() {
     await writeFile(new URL('index.html', dir), brandPage(b, siblings, today, appTags))
   }
 
+  // lastmod는 **그 페이지가 실제로 바뀐 날**이어야 한다.
+  //
+  // 예전에는 전부 빌드일(today)로 채웠다. "할인이 매일 바뀌니 재크롤
+  // 빈도를 올린다"는 뜻이었는데, 실제로는 데이터가 그대로인 브랜드까지
+  // 매일 "변경됨"으로 알리는 셈이었다. 사이트는 수집 때문에 매일
+  // 재빌드되므로 89장 전부가 매일 재크롤 대상이 됐다 — 2026-09-07에
+  // Vercel Edge Requests가 한도 75%에 닿은 원인 중 하나다(분석이 세는
+  // 방문자는 주 617명뿐이었다).
+  //
+  // 브랜드 페이지의 내용은 그 브랜드의 오퍼다. 오퍼가 마지막으로 관측된
+  // 날(capturedAt)이 곧 그 페이지가 바뀐 날이다. 실제로 바뀐 브랜드만
+  // 새 날짜를 받으므로 재크롤도 그만큼만 일어난다.
+  const brandLastmod = (b) => {
+    const days = (b.offers ?? [])
+      .map((o) => (o.capturedAt ?? '').slice(0, 10))
+      .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))
+    return days.length ? days.sort().at(-1) : today
+  }
   const urls = [
-    ['/', '1.0', 'daily'],
-    ...listed.map((b) => [`/brand/${encodeURIComponent(slugOf(b.name))}`, '0.7', 'daily']),
+    // 홈은 목록 전체라 어느 브랜드가 바뀌어도 바뀐다.
+    ['/', '1.0', 'daily', today],
+    ...listed.map((b) => [
+      `/brand/${encodeURIComponent(slugOf(b.name))}`, '0.7', 'weekly', brandLastmod(b),
+    ]),
   ]
   await writeFile(new URL('sitemap.xml', `file://${DIST}`), [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...urls.flatMap(([loc, pri, freq]) => [
+    ...urls.flatMap(([loc, pri, freq, mod]) => [
       '  <url>',
       `    <loc>${SITE}${loc}</loc>`,
-      `    <lastmod>${today}</lastmod>`,
+      `    <lastmod>${mod}</lastmod>`,
       `    <changefreq>${freq}</changefreq>`,
       `    <priority>${pri}</priority>`,
       '  </url>',
