@@ -149,6 +149,12 @@ function offerAmountText(offer) {
 // 지금 아는 값(최상단 금액 + 최소주문금액) 한 줄짜리 목록으로 취급한다 —
 // 렌더링 쪽에서 "구간이 있을 때만 리스트"와 "없을 때 단일 값" 두 갈래로
 // 안 갈라져도 된다.
+// qualifier -> 배지 색조. 값을 CSS 클래스로 그대로 쓰지 않는 이유는
+// 클래스 이름에 한글이 섞이는 걸 피하려는 것뿐이다. 여기 없는 값이
+// 새로 생기면 회색(plain)으로 떨어진다 — 모르는 표식을 초록으로
+// 띄우는 것보다 낫다.
+const QUALIFIER_TONE = { 최대: 'plain', 특정메뉴: 'menu', 최적: 'optimal' }
+
 function detailRows(offer) {
   if (offer.tiers?.length > 0) return [...offer.tiers].sort((a, b) => b.amount - a.amount)
   return [{ minOrder: offer.minOrderAmount, amount: offer.amount }]
@@ -167,6 +173,14 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   // "최대"는 최소주문금액을 채워야 나오는 상한액이다 — 액면대로 읽히지
   // 않도록 칩 전체를 흐리게 깔아 다른 확정값과 구분한다.
   const capped = offer.qualifier === '최대'
+  // 유료 멤버십이 있어야 받는 쿠폰인지는 구조화된 membership이 말한다.
+  // 예전엔 badge 문자열이 "…전용쿠폰"으로 끝나는지로 갈랐는데, 쿠폰함
+  // 순회에서 온 행은 badge가 그냥 "배민클럽"이라 그 검사에 안 걸려
+  // 일반 회색 배지로 떨어졌다(2026-09-09 실측 13건 전부). membership을
+  // 원장에 남긴 게 바로 이걸 문자열 뒤끝으로 안 물으려는 것이었다.
+  // 필드가 아예 없는 옛 행은 예전 규칙으로 받아 준다.
+  const memberOnly = (offer.membership && offer.membership !== 'none')
+    || offer.badge?.endsWith('전용쿠폰')
   // 오퍼 자신의 링크가 먼저다. 배너에서 세운 오퍼만 이걸 갖는다 —
   // 배너의 행사 딜링크가 브랜드 일반 링크에 먹힐서는 안 된다. 반대로
   // 배너와 무관한 칩은 offer.link가 없어 예전대로 브랜드 링크로 간다.
@@ -192,8 +206,12 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
         {/* 위 칸(qualifier 자리)은 금액의 성격을 말한다 — "최대 할인
             금액"이나 "n%할인"처럼 그 숫자가 어떻게 나온 값인지. 아래
             칸은 멤버십·조건 배지 몫이다. */}
+        {/* qualifier 셋은 성격이 서로 다르다 — 색으로 갈라 둔다.
+            불확정(최대)은 조건을 채워야 나오는 상한이라 회색으로 물러나고,
+            특정메뉴는 확정액이되 범위가 좁다는 단서라 흰 바탕에 테두리만,
+            최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
         {!best && showRangeBadge && (
-          <span className="offer__range-badge">
+          <span className={`offer__range-badge offer__range-badge--${QUALIFIER_TONE[offer.qualifier] ?? 'plain'}`}>
             {offer.qualifier === '최대' ? '불확정' : offer.qualifier}
           </span>
         )}
@@ -204,7 +222,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             그 앱 하나로 정해져 있으니 "전용쿠폰"은 군더더기다. 그 외
             배지("선착순" 등)는 원문 그대로 둔다. */}
         {offer.badge && (
-          offer.badge.endsWith('전용쿠폰') ? (
+          memberOnly ? (
             <span className="offer__status-badge offer__status-badge--membership" data-platform={offer.platform}>
               {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
             </span>

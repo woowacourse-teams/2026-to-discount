@@ -1517,6 +1517,44 @@ h1 {
   z-index: 1;
 }
 
+/* qualifier 세 종류를 색으로 가른다. 기본값(위)은 "불확정"(=최대) 몫으로
+   남겨 둔다 — 조건부 상한이라 회색으로 물러나 있는 게 맞다.
+   ────────────────────────────────────────────────
+   특정메뉴는 확정 금액이다. 회색으로 같이 묶으면 "못 받을 수도 있는 값"으로
+   읽혔다 — 흰 바탕으로 올려 세우되, 색은 안 준다. 좁은 메뉴에서만 되는
+   할인이라 앞세울 것도 아니다. 칩 배경(--bg)과 같은 흰색이라 테두리로
+   배지의 윤곽을 세운다. */
+.offer__range-badge.offer__range-badge--menu {
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  /* 테두리가 생기면서 회색 배지보다 1px씩 커진다 — 안쪽 여백에서 빼
+     같은 자리 같은 크기로 뜨게 한다. */
+  padding: calc(.05rem - 1px) calc(.3rem - 1px);
+}
+
+/* 최적은 "쿠폰을 다 겹쳤을 때" 실제로 받는 값이다(export_data.py의
+   stacked_amount). 셋 중 유일하게 좋은 소식이라 초록으로 앞에 세운다.
+   최고 할인(파랑, --best)과는 다른 뜻이다 — 최고는 그 브랜드 안에서
+   가장 큰 값, 최적은 이 값이 어떻게 나왔는지다. 색을 갈라 둔다.
+   하이라이트는 위쪽에서 흰빛이 얇게 도는 정도로만 준다. 배지가 14px
+   남짓이라 그 이상 넣으면 글자만 흐려진다. */
+.offer__range-badge.offer__range-badge--optimal {
+  color: #fff;
+  background: linear-gradient(135deg, #34c36a 0%, #1f9e4f 55%, #17853f 100%);
+  border: 1px solid #17853f;
+  padding: calc(.05rem - 1px) calc(.3rem - 1px);
+  overflow: hidden;
+}
+.offer__range-badge.offer__range-badge--optimal::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 55%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, .38), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
 /* 차순위 칩은 금액이 짧아서 로고를 흐름에 넣으면 칩 폭을 잡아먹는다 —
    모서리에 얹는다. 단독 줄로 서는 칩(최고 할인, 오퍼가 하나뿐인 경우)만
    아래에서 흐름 안으로 되돌린다. */
@@ -1615,7 +1653,14 @@ h1 {
 }
 
 .offer__status-badge--membership { color: #fff; }
-.offer__status-badge--membership[data-platform="baemin"] { background: #2ac1bc; }
+/* 배민클럽은 앱 색(#2ac1bc)이 아니라 배민클럽 자체 색을 쓴다 — 배민 앱
+   안에서 이 배지가 실제로 이 색이라, 같은 색을 봐 온 사람이 바로
+   알아본다. 다만 흰 글씨는 이 밝기 위에서 안 읽힌다(대비 1.5:1) —
+   이 앱만 글자를 짙은 청록으로 뒤집는다(8.9:1). */
+.offer__status-badge--membership[data-platform="baemin"] {
+  background: #0cefd3;
+  color: #06382f;
+}
 .offer__status-badge--membership[data-platform="coupangeats"] { background: #333; }
 .offer__status-badge--membership[data-platform="ddangyo"] { background: #f5a623; }
 .offer__status-badge--membership[data-platform="yogiyo"] { background: #fa0050; }
