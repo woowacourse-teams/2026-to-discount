@@ -38,10 +38,14 @@ FIELDS = [
     ("expires_at", "expiresAt"),
     ("badge", "badge"),
     ("sold_out", "soldOut"),
+    # 이 오퍼를 받는 데 필요한 유료 멤버십. "none"이면 제한 없음.
+    ("membership", "membership"),
 ]
 
-LOG_PATH = Path(__file__).parent / "data" / "log.jsonl"
-EXPORT_PATH = Path(__file__).parent / "data" / "export.json"
+from scripts._env_paths import export_path, log_path  # noqa: E402
+
+LOG_PATH = log_path()
+EXPORT_PATH = export_path()
 BRANDS_PATH = Path(__file__).parent / "data" / "brands-sorted.txt"
 
 # 이번 수집에 안 보이면 끝난 것으로 보는 앱.
@@ -287,7 +291,7 @@ def build_export(records: list[dict], today: str | None = None,
     # 최신 기록만 보면 "메뉴 한정"이 사라진다 — 화면마다 적는 말이 다르고
     # 쿠폰함 목록에는 메뉴가 안 나온다. 원장 전체에서 한 번이라도 밝혀진
     # 것을 이어받는다.
-    menu_keys = menu_limited_keys(records)
+    menu_keys = menu_limited_keys(records, as_of=today)
     out = []
     for record in latest.values():
         if not is_live(record, today) or is_stale_sweep(record, sweeps):
@@ -348,8 +352,9 @@ def _canon_brand() -> dict:
     return out
 
 
-def menu_limited_keys(records: list[dict]) -> set[tuple]:
-    """메뉴 한정이라고 한 번이라도 적힌 (브랜드, 금액).
+def menu_limited_keys(records: list[dict], as_of: str | None = None) -> set[tuple]:
+    """메뉴 한정이라고 적힌 (브랜드, 금액) — 단, **그 금액의 가장 최근
+    관측**이 메뉴 한정일 때만.
 
     같은 쿠폰이 화면마다 다르게 적힌다. 훌랄라 12,100원은 땡겨요 브랜드관
     에서 "(순살) 참숯구이 1.5마리 … 사용 가능"으로 잡혔는데, 배민 쿠폰함
@@ -367,12 +372,41 @@ def menu_limited_keys(records: list[dict]) -> set[tuple]:
 
     금액까지 같아야 물려받는다. 같은 브랜드의 다른 금액 쿠폰은 메뉴
     한정이 아닐 수 있어서다.
+
+    **그런데 브랜드가 같은 금액을 나중에 다른 쿠폰에 또 쓴다.** (브랜드,
+    금액)만 보고 기한 없이 물려받았더니, 몇 주 전 다른 채널에서 그
+    금액으로 한 번 메뉴 한정 쿠폰이 있었다는 이유만으로 지금의 평범한
+    최소주문 쿠폰까지 영영 "특정메뉴"로 잘못 찍혔다(2026-09-09 실기
+    확인: bhc·파리바게뜨·티바두마리치킨·국민낙곱새·큰맘할매순대국 —
+    배민 앱에 직접 들어가 쿠폰 시트를 열어 보니 다섯 곳 다 "OO원 이상
+    주문 시" 조건뿐, 메뉴 제한이 없었다).
+
+    날짜로 자르는 것으로는 못 고친다 — 파리바게뜨는 09-09에도 여전히
+    "특정메뉴"로 남았다. 근거였던 메뉴 한정 관측이 08-31이고, 그 사이
+    아무도 그 금액을 다시 안 봤다면 14일 창을 얼마로 잡든 언젠가는
+    두 관측 사이 며칠 차이 하나로 옳고 그름이 갈린다.
+
+    맞는 규칙은 날짜 폭이 아니라 **그 금액의 최신 관측이 무엇을 말하는가**
+    다. (브랜드, 금액) 쌍마다 가장 최근 관측을 보고, 그것이 메뉴 한정을
+    말하면 물려받고, 메뉴 한정 언급 없이 평범하게 찍혔으면(같은 금액을
+    최근에 다시 봤는데 메뉴 얘기가 없다면 지금은 아닌 것이다) 물려받지
+    않는다. `as_of`는 미래 관측을 안 끌어오게 막는 경계일 뿐이다.
     """
     canon = _canon_brand()
-    return {(canon.get(r.get("brand"), r.get("brand")), r.get("amount"))
-            for r in records
-            if r.get("amount") is not None
-            and MENU_LIMITED.search(r.get("raw_text") or "")}
+    cutoff = as_of[:10] if as_of else None
+    latest_by_key: dict[tuple, tuple[str, bool]] = {}   # key -> (captured, is_menu_limited)
+    for r in records:
+        if r.get("amount") is None:
+            continue
+        captured = (r.get("captured_at") or "")[:10]
+        if cutoff and captured and captured > cutoff:
+            continue
+        key = (canon.get(r.get("brand"), r.get("brand")), r.get("amount"))
+        is_menu_limited = bool(MENU_LIMITED.search(r.get("raw_text") or ""))
+        prev = latest_by_key.get(key)
+        if prev is None or captured > prev[0] or (captured == prev[0] and is_menu_limited):
+            latest_by_key[key] = (captured, is_menu_limited)
+    return {key for key, (_, is_menu_limited) in latest_by_key.items() if is_menu_limited}
 
 
 def sorted_brand_names(records: list[dict]) -> list[str]:

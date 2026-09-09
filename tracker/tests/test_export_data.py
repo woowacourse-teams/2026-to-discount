@@ -1,5 +1,5 @@
 from export_data import (build_export, camel_tiers, estimated_expiry,
-                         next_monday, sorted_brand_names)
+                         menu_limited_keys, next_monday, sorted_brand_names)
 
 RECORDS = [
     {
@@ -344,6 +344,68 @@ def test_build_export_defaults_tier_mode_to_exclusive():
     # 기존 원장 레코드는 이 필드가 없다 — 없으면 exclusive다.
     item = build_export(RECORDS)[0]
     assert item["tierMode"] == "exclusive"
+
+
+def test_menu_limited_tag_does_not_outlive_its_carry_window():
+    # 몇 주 전 다른 채널에서 같은 금액으로 메뉴 한정 쿠폰이 한 번 있었다는
+    # 이유만으로, 지금의 평범한 최소주문 쿠폰까지 영영 "특정메뉴"로 찍히면
+    # 안 된다(2026-09-09 실기 확인: bhc·파리바게뜨 등 다섯 곳이 이렇게
+    # 잘못 찍혀 있었다 — 배민 앱에서 직접 열어 보니 메뉴 제한이 없었다).
+    old_menu_limited = {
+        "platform": "ddangyo", "brand": "국민낙곱새", "amount": 2000,
+        "qualifier": None, "needs_review": False, "offer_type": "discount",
+        "section": None, "raw_text": "2,000원 메뉴할인, 25,000원 이상 구매 시",
+        "captured_at": "2026-08-01T12:00:00+09:00", "unit": "KRW", "scope": "brand",
+        "target_address": "x", "capture_mode": "auto",
+        "screenshot_path": "ref/x.jpg",
+    }
+    current_plain_coupon = {
+        "platform": "baemin", "brand": "국민낙곱새", "amount": 2000,
+        "qualifier": None, "needs_review": False, "offer_type": "discount",
+        "section": None, "raw_text": "20,000원 이상 2,000원",
+        "captured_at": "2026-09-09T12:00:00+09:00", "unit": "KRW", "scope": "brand",
+        "target_address": "x", "capture_mode": "auto",
+        "screenshot_path": "ref/y.jpg",
+    }
+    records = [old_menu_limited, current_plain_coupon]
+
+    # 같은 금액의 더 최근 관측이 메뉴 얘기 없이 평범하게 찍혔으므로
+    # 물려받지 않는다 — 옛 메뉴 한정 관측이 며칠 안이든 밖이든 상관없다.
+    assert ("국민낙곱새", 2000) not in menu_limited_keys(records, as_of="2026-09-09")
+    assert ("국민낙곱새", 2000) not in menu_limited_keys(records, as_of=None)
+
+    item = build_export(records, today="2026-09-09")[0]
+    assert item["qualifier"] != "특정메뉴"
+
+
+def test_menu_limited_tag_still_carries_within_the_window():
+    # 창 자체를 없애는 과교정은 아니다 — 최근 기록이면 여전히 물려받는다
+    # (훌랄라 사례, 이 함수의 원래 목적).
+    recent_menu_limited = {
+        "platform": "ddangyo", "brand": "훌랄라참숯바베큐치킨", "amount": 12100,
+        "qualifier": None, "needs_review": False, "offer_type": "discount",
+        "section": None, "raw_text": "(순살) 참숯구이 1.5마리 사용 가능",
+        "captured_at": "2026-09-01T12:00:00+09:00", "unit": "KRW", "scope": "brand",
+        "target_address": "x", "capture_mode": "auto",
+        "screenshot_path": "ref/x.jpg",
+    }
+    keys = menu_limited_keys([recent_menu_limited], as_of="2026-09-09")
+    assert ("훌랄라참숯바베큐치킨", 12100) in keys
+
+
+def test_menu_limited_tag_carries_when_nothing_newer_contradicts_it():
+    # 같은 금액을 아무도 다시 안 봤으면(날짜가 며칠 지났어도) 유일한
+    # 증거인 옛 메뉴 한정 관측을 그대로 믿는다 — 물려받지 않는 쪽으로
+    # 과교정하지 않는다.
+    only_observation = {
+        "platform": "baemin", "brand": "파리바게뜨", "amount": 4000,
+        "qualifier": None, "needs_review": False, "offer_type": "discount",
+        "section": None, "raw_text": "4,000원 메뉴할인",
+        "captured_at": "2026-08-31T01:23:15+09:00", "unit": "KRW", "scope": "brand",
+        "target_address": "x", "capture_mode": "manual",
+        "screenshot_path": "ref/x.jpg",
+    }
+    assert ("파리바게뜨", 4000) in menu_limited_keys([only_observation], as_of="2026-09-09")
 
 
 def test_camel_tiers_carries_cap():
