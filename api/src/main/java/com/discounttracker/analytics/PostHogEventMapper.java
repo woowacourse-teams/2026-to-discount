@@ -48,6 +48,14 @@ public class PostHogEventMapper {
         put(properties, "variant", source.variant());
         put(properties, "viewport", source.viewport());
         put(properties, "form_factor", formFactor(source));
+        // 스스로 밝힌 크롤러 이름. 원장에만 적고 PostHog로는 안 보내고
+        // 있었다 — 그래서 PostHog의 모든 숫자에 크롤러가 섞인 채였고,
+        // 인사이트 쪽에서는 뺄 방법조차 없었다(2026-09-09 실측: 원장
+        // 방문자 3,703명 중 48명이 크롤러, 08-28에는 하루 방문자의
+        // 10.4%). 사람이면 null이라 인사이트에서 "bot is not set"으로
+        // 거른다. 이름 자체는 공개 식별자라 누구도 가리키지 않는다
+        // (CrawlerName 주석 참고).
+        put(properties, "bot", source.bot());
         put(properties, "dwell_ms", source.dwellMs());
         put(properties, "server_timestamp", source.ts());
         properties.put("$insert_id", source.eventId());

@@ -173,6 +173,204 @@ def sec_returning(people, rows, args):
     return _compare("무리", groups, ["신규", "재방문"])
 
 
+def _active_days(people, rows, args):
+    """방문자 -> 활동한 날짜 집합. 아래 세 구획이 같은 것을 본다."""
+    days = collections.defaultdict(set)
+    for day, vid, _ev, _p, _ts, _sid, _path in rows:
+        if ex.keep(people[vid], args):
+            days[vid].add(day)
+    return days
+
+
+def sec_loyalty(people, rows, args):
+    """며칠에 걸쳐 다시 오는가.
+
+    "충성 사용자"를 방문 횟수로 세면 안 된다 — 한 번 와서 새로고침을
+    스무 번 한 사람과 스무 날에 걸쳐 한 번씩 온 사람이 같아진다. 서로
+    다른 날에 스스로 다시 찾아온 것만 재사용으로 본다.
+
+    로그인이 없는 서비스라 이 표의 바닥에는 구조적 한계가 깔려 있다.
+    visitorId는 localStorage 난수라 기기를 갈아타거나 데이터를 지우면
+    같은 사람이 새 사람으로 쪼개진다. 그러므로 이 숫자는 재사용의
+    **하한**이다 — 실제보다 낮게 나오지 높게 나오지 않는다.
+    """
+    days = _active_days(people, rows, args)
+    if not days:
+        return ["방문자가 없다."]
+    n = len(days)
+    dist = collections.Counter(len(d) for d in days.values())
+
+    out = ["| 활동일 | 사람 | 누적 | 누적 비중 |", "|---|---|---|---|"]
+    cum = 0
+    for k in sorted(dist, reverse=True):
+        cum += dist[k]
+        label = "%d일" % k
+        out.append("| %s | %d | %d | %.1f%% |" % (label, dist[k], cum, cum / n * 100))
+    out += ["", "모수 %d명. 하루만 온 사람이 %.1f%%다 — 이 서비스에서 재방문은 "
+            "다수 행동이 아니라 소수 행동이라는 뜻이고, 그래서 아래 주별 "
+            "추이를 비율로 본다(절대 수는 그날 홍보에 통째로 흔들린다)."
+            % (n, dist[1] / n * 100 if 1 in dist else 0), ""]
+
+    # 주별 추이. 그 주에 실제로 온 사람만 분모다 — 전체 누적을 분모로
+    # 두면 서비스가 오래될수록 비율이 저절로 떨어진다.
+    wk = collections.defaultdict(lambda: collections.defaultdict(set))
+    for vid, ds in days.items():
+        for d in ds:
+            wk[week_of(d)][vid].add(d)
+    out += ["| 주 | 그 주 방문자 | 2일+ | 비율 | 3일+ | 비율 |",
+            "|---|---|---|---|---|---|"]
+    for w in sorted(wk):
+        m = wk[w]
+        t = len(m)
+        d2 = sum(1 for v in m.values() if len(v) >= 2)
+        d3 = sum(1 for v in m.values() if len(v) >= 3)
+        out.append("| %s | %d | %d | %.1f%% | %d | %.1f%% |"
+                   % (w, t, d2, d2 / t * 100, d3, d3 / t * 100))
+    return out
+
+
+def sec_cadence(people, rows, args):
+    """띄엄띄엄이라도 다시 오는 사람이 있는가.
+
+    리텐션 코호트(W+1, W+2)는 "다음 주에 왔나"만 본다. 2주 쉬었다가
+    오는 사람은 그 표에서 이탈로 잡히는데, 이 서비스는 매일 쓰는 도구가
+    아니라 시켜 먹을 때 여는 도구라 그 사람이야말로 살아 있는 사용자다.
+
+    그래서 두 가지를 따로 센다 — 연달아 온 사람과 하루 이상 띄우고
+    돌아온 사람. 후자가 많다면 "붙잡아 두는" 지표(DAU)로 이 서비스를
+    재는 것 자체가 틀린 것이다.
+    """
+    days = _active_days(people, rows, args)
+    multi = {v: d for v, d in days.items() if len(d) >= 2}
+    if not multi:
+        return ["다시 온 사람이 없다."]
+
+    gaps = collections.Counter()
+    spread, dense = set(), set()
+    for vid, ds in multi.items():
+        s = sorted(datetime.date.fromisoformat(d) for d in ds)
+        g = [(b - a).days for a, b in zip(s, s[1:])]
+        gaps.update(g)
+        (spread if any(x >= 2 for x in g) else dense).add(vid)
+
+    n = len(days)
+    total_gaps = sum(gaps.values())
+    out = ["- 활동일 2일 이상 **%d명 (%.1f%%)**" % (len(multi), len(multi) / n * 100),
+           "  - 연달아 온 날만 있는 사람 %d명" % len(dense),
+           "  - 하루 이상 띄우고 돌아온 사람 **%d명** (다시 온 사람의 %.1f%%)"
+           % (len(spread), len(spread) / len(multi) * 100),
+           "", "| 다시 오기까지 | 횟수 | 비중 |", "|---|---|---|"]
+    buckets = (("다음 날", lambda g: g == 1),
+               ("2~3일", lambda g: 2 <= g <= 3),
+               ("4~7일", lambda g: 4 <= g <= 7),
+               ("8~14일", lambda g: 8 <= g <= 14),
+               ("15일 이상", lambda g: g >= 15))
+    for label, pick in buckets:
+        c = sum(v for g, v in gaps.items() if pick(g))
+        out.append("| %s | %d | %.1f%% |" % (label, c, c / total_gaps * 100))
+
+    # 주별 분해. PostHog 라이프사이클과 같은 갈래를 원장으로 낸다.
+    wk = collections.defaultdict(set)
+    for vid, ds in days.items():
+        for d in ds:
+            wk[week_of(d)].add(vid)
+    out += ["", "| 주 | 신규 | 지난주에도 옴 | 쉬었다 돌아옴 | 합 |",
+            "|---|---|---|---|---|"]
+    ever, prev = set(), set()
+    for w in sorted(wk):
+        cur = wk[w]
+        new = cur - ever
+        back = cur - prev - new
+        out.append("| %s | %d | %d | %d | %d |"
+                   % (w, len(new), len(cur & prev), len(back), len(cur)))
+        ever |= cur
+        prev = cur
+    out += ["", "\"쉬었다 돌아옴\"은 지난주에는 안 왔는데 이번 주에 온 "
+            "기존 사용자다. 코호트 표에서는 이탈로 잡히는 사람들이다."]
+    return out
+
+
+def sec_real_users(people, rows, args):
+    """하루에 몇 명이 오는가 — 크롤러와 개발 트래픽을 빼고.
+
+    다른 구획은 전부 사람만 세지만(ex.keep), 이 표만은 뺀 것을 나란히
+    보여준다. 무엇을 얼마나 빼고 있는지가 안 보이면 "실질 사용자"라는
+    말이 검증 불가능한 주장이 된다.
+
+    크롤러는 하루하루 균등하게 오지 않는다 — 몰려와서 한 바퀴 돌고
+    간다. 평균만 보면 안 보이고 그날치를 봐야 보인다.
+    """
+    bots = {v.id for v in people.values() if v.bot}
+    devs = {v.id for v in people.values() if v.looks_developer()}
+    per = collections.defaultdict(set)
+    for day, vid, _ev, _p, _ts, _sid, _path in rows:
+        per[day].add(vid)
+
+    days = sorted(per)
+    out = ["| 날짜 | 전체 | 크롤러 | 개발 | 실질 | 크롤러 비중 |",
+           "|---|---|---|---|---|---|"]
+    for d in days[-RECENT_DAYS:]:
+        seen = per[d]
+        b = len(seen & bots)
+        out.append("| %s | %d | %d | %d | **%d** | %.1f%% |"
+                   % (d, len(seen), b, len(seen & devs),
+                      len(seen - bots - devs), b / len(seen) * 100))
+
+    def avg(window):
+        pick = days[-window:]
+        return sum(len(per[d] - bots - devs) for d in pick) / len(pick)
+
+    out += ["", "- 일 평균 실질 사용자 — 최근 7일 **%.1f명**, 최근 30일 %.1f명, 전체 %.1f명"
+            % (avg(7), avg(min(30, len(days))), avg(len(days)))]
+    worst = max(days, key=lambda d: len(per[d] & bots) / len(per[d]))
+    out += ["- 크롤러 비중이 가장 컸던 날 %s (%.1f%%, %d명)"
+            % (worst, len(per[worst] & bots) / len(per[worst]) * 100,
+               len(per[worst] & bots)),
+            "", "크롤러는 스스로 밝힌 것만 잡는다(User-Agent). 이름을 안 "
+            "밝히고 사람인 척하는 수집기는 여기 안 들어 있으므로 이 열은 "
+            "크롤러의 **하한**이다. 2026-08-29 이전 구간은 서버가 이름을 "
+            "적기 전이라 몰려온 흔적으로 되짚은 값이다."]
+    return out
+
+
+def sec_success(people, rows, args):
+    """고유 사용자 기준 성공 신호의 주별 추이.
+
+    전환은 사람 단위로 센다 — 한 사람이 43번 눌러도 1이다(2026-08-24
+    실측에서 총합 기준이 갈래 하나의 결론을 뒤집었다).
+
+    오퍼 클릭과 배너 클릭을 나눠 적는 이유는 08-19에 배너가 생기면서
+    나가는 길이 하나 더 늘었기 때문이다. 합만 보면 그날의 계단이 제품
+    개선으로 읽힌다 — 실제로는 분자의 정의가 바뀐 것이었다
+    (ANALYTICS-CAPABILITY.md §5.2).
+    """
+    wk = collections.defaultdict(lambda: [set(), set(), set(), set()])
+    for day, vid, ev, _p, _ts, _sid, _path in rows:
+        if not ex.keep(people[vid], args):
+            continue
+        w = week_of(day)
+        wk[w][0].add(vid)
+        if ev in ex.goals(args):
+            wk[w][1].add(vid)
+        if ev == "offer_link_click":
+            wk[w][2].add(vid)
+        if ev == "banner_click":
+            wk[w][3].add(vid)
+
+    out = ["| 주 | 방문자 | 전환자 | 전환율 | 95% 구간 | 오퍼 클릭 | 배너 클릭 |",
+           "|---|---|---|---|---|---|---|"]
+    for w in sorted(wk):
+        seen, conv, offer, banner = wk[w]
+        n = len(seen)
+        lo, hi = ex.wilson(len(conv), n)
+        out.append("| %s | %d | %d | %.1f%% | %.1f~%.1f%% | %.1f%% | %.1f%% |"
+                   % (w, n, len(conv), len(conv) / n * 100, lo * 100, hi * 100,
+                      len(offer) / n * 100, len(banner) / n * 100))
+    out += ["", "전환 = `%s`. 신뢰구간이 겹치는 주끼리는 차이를 주장하지 "
+            "않는다." % args.goal]
+    return out
+
+
 def sec_banner(people, rows, args):
     """배너는 본 사람 대비 누른 사람으로 본다.
 
@@ -374,6 +572,10 @@ def sec_features(people, rows, args):
 SECTIONS = (
     ("리텐션 — 주 코호트별 복귀율", sec_retention),
     ("리텐션 — 기기별", sec_retention_by_device),
+    ("재사용 — 활동일수와 주별 충성도", sec_loyalty),
+    ("재사용 — 다시 오기까지의 간격", sec_cadence),
+    ("실질 사용자 — 크롤러·개발 트래픽을 뺀 하루치", sec_real_users),
+    ("성공 신호 — 고유 사용자 기준 주별 추이", sec_success),
     ("신규 vs 재방문", sec_returning),
     ("전환 — 최근 %d일" % RECENT_DAYS, sec_daily),
     ("A/B", sec_variant),

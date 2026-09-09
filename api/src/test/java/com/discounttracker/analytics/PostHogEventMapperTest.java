@@ -106,6 +106,29 @@ class PostHogEventMapperTest {
                 .properties().containsKey("form_factor"));
     }
 
+    @Test
+    void forwardsTheSelfDeclaredCrawlerNameSoInsightsCanExcludeIt() {
+        // 원장에만 적고 PostHog로는 안 보내고 있었다 — 그래서 PostHog의
+        // 모든 숫자에 크롤러가 섞인 채였고 인사이트에서 뺄 값이 없었다.
+        PostHogEvent mapped = mapper.map(crawler("googlebot")).orElseThrow();
+
+        assertEquals("googlebot", mapped.properties().get("bot"));
+    }
+
+    @Test
+    void leavesBotOutForPeople() {
+        // 사람 이벤트에 bot 칸이 생기면 "is not set"으로 못 거른다.
+        assertFalse(mapper.map(crawler(null)).orElseThrow()
+                .properties().containsKey("bot"));
+    }
+
+    private VisitEvent crawler(String bot) {
+        return new VisitEvent(
+                "2026-08-14T11:00:00+09:00", "page_view", "visitor-1", "session-1", 1,
+                "/", "direct", "mobile", "390x844", null, Map.of(),
+                "2026-08-14T01:02:03Z", "private-ip-hash", false, "a", "event-1", bot);
+    }
+
     private VisitEvent sized(String device, String viewport) {
         return new VisitEvent(
                 "2026-08-14T11:00:00+09:00", "brand_expand", "visitor-1", "session-1", 2,
