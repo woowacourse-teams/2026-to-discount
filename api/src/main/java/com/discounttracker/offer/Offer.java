@@ -24,7 +24,8 @@ public record Offer(String platform, Integer amount, String qualifier,
                     // 이 오퍼만 가리키는 곳. 배너에서 세운 오퍼가 그 행사
                     // 딥링크를 들고 온다. null이면 프론트가 브랜드 링크로
                     // 떨어진다 — 브랜드 링크를 대체하지는 않는다.
-                    String link) {
+                    String link,
+                    @JsonIgnore Membership membership) {
 
     /**
      * 원장 한 줄을 오늘 기준으로 화면에 내보낼 모습으로 바꾼다.
@@ -37,12 +38,17 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(r.platform(), r.amountAsOf(today), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
                 r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
-                Boolean.TRUE.equals(r.soldOut()), r.link());
+                Boolean.TRUE.equals(r.soldOut()), r.link(), r.membershipTier());
     }
 
     @JsonProperty("status")
     public String statusKey() {
         return status.key();
+    }
+
+    @JsonProperty("membership")
+    public String membershipKey() {
+        return membership.key();
     }
 
     int amountOrZero() {
@@ -133,8 +139,11 @@ public record Offer(String platform, Integer amount, String qualifier,
         //
         // link도 병합하지 않는다. 진 쪽 링크는 그쪽 금액으로 가는 길이라,
         // 이긴 금액에 붙이면 화면에 적힌 값과 눌러서 가는 곳이 어긋난다.
+        //
+        // membership도 badge와 같은 이유로 병합하지 않는다 — 목록 카드에
+        // 찍히는 값이라 최신 캡처에 없으면 "못 봤다"가 아니라 "없어졌다"다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, badge, soldOut,
-                link);
+                link, membership);
     }
 }

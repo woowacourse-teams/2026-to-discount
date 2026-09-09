@@ -27,6 +27,12 @@ CUMULATIVE_QUALIFIERS = {"최적", "최소"}
 # 표본 수준 검증 통과 군"을 뜻한다. 값은 셋: 파일이 디스크에 없음 /
 # 경로가 기록되지 않음 / 파일은 있으나 화면에 이 행의 브랜드가 없음.
 ALLOWED_EVIDENCE_STATUS = {None, "missing_file", "no_path", "not_in_capture"}
+# 이 오퍼를 받으려면 앱 유료 멤버십이 있어야 하는지. "none"이 기본값이고
+# 일반 사용자도 받을 수 있다는 뜻이다(needs_review·sold_out과 같은 관례 —
+# 필드 부재가 "제한 없음"이지 "확인 안 됨"이 아니다). 지금까지는 이 정보가
+# badge 자유 텍스트("배민클럽" 등)에만 있어 화면 표시용 문구와 필터링 가능한
+# 값이 섞여 있었다. 배지는 그대로 두고 이 필드로 구조화한다.
+ALLOWED_MEMBERSHIP = {"none", "baeminClub", "coupangEats", "yogiPass"}
 
 REQUIRED_FIELDS = (
     "platform", "brand", "raw_text", "captured_at",
@@ -71,6 +77,8 @@ DEFAULTS = {
     # (쿠팡이츠 메가MGC커피·왓더버거·던킨 실측, 2026-08-03). conditions처럼
     # 긴 설명은 아니고 칩에 얹을 한두 단어짜리 라벨만.
     "badge": None,
+    # 이 오퍼를 받으려면 필요한 유료 멤버십. "none"이면 제한 없음.
+    "membership": "none",
     # 목록 액면 금액(amount)이 통째로(구간 없이) 재고 소진이면 True.
     # tiers가 있는 경우엔 이 최상위 필드 대신 각 tier의 "sold_out"을
     # 쓴다 — amount/min_order_amount는 항상 지금 실제로 받을 수 있는
@@ -133,6 +141,8 @@ def validate_record(record: dict) -> dict:
         raise ValueError(f"invalid offer_type: {normalized['offer_type']!r}")
     if normalized["tier_mode"] not in ALLOWED_TIER_MODES:
         raise ValueError(f"invalid tier_mode: {normalized['tier_mode']!r}")
+    if normalized["membership"] not in ALLOWED_MEMBERSHIP:
+        raise ValueError(f"invalid membership: {normalized['membership']!r}")
     if normalized["tier_mode"] == "cumulative":
         if not normalized["tiers"] or len(normalized["tiers"]) < 2:
             raise ValueError(f"cumulative needs at least two tiers: {normalized['tiers']!r}")
@@ -145,6 +155,14 @@ def validate_record(record: dict) -> dict:
         if normalized["qualifier"] not in CUMULATIVE_QUALIFIERS:
             raise ValueError(
                 f"cumulative record must use qualifier '최적': {normalized['qualifier']!r}")
+    # 경로 구분자는 항상 "/"다. 수집은 윈도우에서 도는데 Path 객체를 그대로
+    # 넣으면 str()이 역슬래시로 직렬화하고, 그 행은 리눅스(CI)에서 파일명
+    # 하나로 읽혀 증거 링크 검사가 통째로 깨진다 — 실제로 요기요 85행이
+    # 그렇게 들어갔다(2026-09-04, CI 첫 실행에서 드러남).
+    path = normalized.get("screenshot_path")
+    if path is not None:
+        normalized["screenshot_path"] = str(path).replace("\\", "/")
+
     if normalized.get("evidence_status") not in ALLOWED_EVIDENCE_STATUS:
         raise ValueError(f"invalid evidence_status: {normalized['evidence_status']!r}")
     validate_tiers(normalized["tiers"])

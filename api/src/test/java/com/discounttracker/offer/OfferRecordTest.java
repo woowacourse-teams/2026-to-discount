@@ -16,7 +16,7 @@ class OfferRecordTest {
     private OfferRecord record(Integer amount, String tierMode, List<DiscountTier> tiers) {
         return new OfferRecord("yogiyo", "굽네치킨", amount, "최소", false,
                 "discount", null, "최소 4,000원", "2026-07-31T10:00:00+09:00",
-                "x.jpg", null, tierMode, tiers, null, null, null, null, false);
+                "x.jpg", null, tierMode, tiers, null, null, null, null, null, false);
     }
 
     private DiscountTier fixed(Integer minOrder, Integer amount) {
@@ -73,7 +73,7 @@ class OfferRecordTest {
                 "x.jpg", null, "cumulative", List.of(
                         new DiscountTier(17000, 4000, null, null, null, null, "2026-08-01"),
                         new DiscountTier(25000, 1250, 5, 3000, null, null, null)),
-                null, null, null, null, false);
+                null, null, null, null, null, false);
         assertEquals(1250, r.amountAsOf(TODAY));
     }
 
@@ -87,7 +87,7 @@ class OfferRecordTest {
                 "x.jpg", null, "cumulative", List.of(
                         new DiscountTier(17000, 4000, null, null, null, null, null),
                         new DiscountTier(17000, 9999, null, null, null, true, null)),
-                null, null, null, null, false);
+                null, null, null, null, null, false);
         assertEquals(4000, r.amountAsOf(TODAY));
     }
 
@@ -105,5 +105,29 @@ class OfferRecordTest {
         // 구간만 보고 올리면 일반 사용자가 못 받는 금액이 뜰 수 있다.
         OfferRecord r = record(4000, "exclusive", List.of(fixed(17000, 9000)));
         assertEquals(4000, r.amountAsOf(TODAY));
+    }
+
+    @Test
+    void missingMembershipNormalizesToNone() {
+        // tracker가 membership을 실어 보내기 전의 export.json 행은 이 필드
+        // 자체가 없다. 없으면 "확인 안 됨"이 아니라 "제한 없음"이다.
+        assertEquals(Membership.NONE, record(4000, null, null).membershipTier());
+    }
+
+    @Test
+    void keepsKnownMembership() {
+        OfferRecord r = new OfferRecord("baemin", "던킨", 4000, null, false,
+                "discount", null, "4,000원 메뉴할인", "2026-08-31T10:00:00+09:00",
+                "x.jpg", 18000, null, null, null, null, "배민클럽", null, "baeminClub", false);
+        assertEquals(Membership.BAEMIN_CLUB, r.membershipTier());
+    }
+
+    @Test
+    void unknownMembershipValueNormalizesToNone() {
+        // 판독 오류로 이상한 값이 들어와도 안 죽고 제한 없음으로 본다.
+        OfferRecord r = new OfferRecord("baemin", "던킨", 4000, null, false,
+                "discount", null, "4,000원", "2026-08-31T10:00:00+09:00",
+                "x.jpg", null, null, null, null, null, null, null, "premium", false);
+        assertEquals(Membership.NONE, r.membershipTier());
     }
 }

@@ -83,8 +83,11 @@ def test_build_export_detail_fields_are_null_when_unknown():
 
 
 def test_build_export_carries_expires_at():
+    # today를 고정해 넘긴다. 안 넘기면 build_export가 오늘 날짜로 만료를
+    # 걸러 실제 달력이 이 날짜를 지나는 순간 목록이 비고, 만료일이 안
+    # 실린 것처럼 보인다(2026-09-04에 실제로 그렇게 깨졌다).
     records = [dict(RECORDS[1], expires_at="2026-08-31")]
-    item = build_export(records)[0]
+    item = build_export(records, today="2026-08-20")[0]
     assert item["expiresAt"] == "2026-08-31"
 
 

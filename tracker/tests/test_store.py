@@ -185,6 +185,22 @@ def test_badge_is_not_pulled_from_an_older_record():
     assert _prefer(old, new).get("badge") is None
 
 
+def test_expiry_is_not_pulled_from_an_older_record():
+    """쿠폰의 만료일이 같은 브랜드의 다른 오퍼로 옮겨붙으면 안 된다.
+
+    2026-09-04 실측: 전날 쿠폰함에서 읽은 명랑핫도그 발급 쿠폰의
+    "오늘까지"(09-03)가 그날 허브에 멀쩡히 걸려 있던 브랜드 할인 타일로
+    옮겨붙어, 오늘 본 오퍼가 어제 만료된 것으로 판정돼 export에서 사라졌다.
+    쿠폰은 당일 만료돼도 프로모션은 계속 돈다.
+    """
+    old = dict(BASE, platform="coupangeats", brand="명랑핫도그", amount=8500,
+               captured_at="2026-09-03T18:00:08+09:00", expires_at="2026-09-03")
+    new = dict(BASE, platform="coupangeats", brand="명랑핫도그", amount=8500,
+               captured_at="2026-09-04T11:57:30+09:00")
+
+    assert _prefer(old, new).get("expires_at") is None
+
+
 def test_detail_behind_a_tap_is_still_pulled_from_an_older_record():
     """최소주문금액은 상세를 열어야 보인다 — 목록 캡처에 없는 게 정상이다."""
     old = dict(BASE, platform="ddangyo", brand="청년피자", amount=5000,

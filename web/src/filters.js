@@ -18,6 +18,7 @@ export const CATEGORIES = [
   { key: 'convenience', label: '편의점' },
   { key: 'korean', label: '한식' },
   { key: 'chinese', label: '중식' },
+  { key: 'western', label: '양식' },
 ]
 
 // 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
