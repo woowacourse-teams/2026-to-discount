@@ -374,8 +374,12 @@ def test_menu_limited_tag_does_not_outlive_its_carry_window():
     assert ("국민낙곱새", 2000) not in menu_limited_keys(records, as_of="2026-09-09")
     assert ("국민낙곱새", 2000) not in menu_limited_keys(records, as_of=None)
 
-    item = build_export(records, today="2026-09-09")[0]
-    assert item["qualifier"] != "특정메뉴"
+    # 플랫폼이 다르면 둘 다 살아남는다(최신값 고르기는 앱별로 센다).
+    # 옛 땡겨요 행은 자기 문구가 "메뉴할인"이라 붙는 게 맞고, 확인할 것은
+    # 새로 찍힌 배민 행이다.
+    out = build_export(records, today="2026-09-09")
+    baemin = next(x for x in out if x["platform"] == "baemin")
+    assert baemin["qualifier"] != "특정메뉴"
 
 
 def test_menu_limited_tag_still_carries_within_the_window():
@@ -391,6 +395,30 @@ def test_menu_limited_tag_still_carries_within_the_window():
     }
     keys = menu_limited_keys([recent_menu_limited], as_of="2026-09-09")
     assert ("훌랄라참숯바베큐치킨", 12100) in keys
+
+
+def test_menu_limited_tag_comes_from_the_record_itself_first():
+    """그 행이 스스로 메뉴 한정이라고 적고 있으면 이력을 안 뒤진다.
+
+    훌랄라 12,100원은 배민클럽 전용이면서 메뉴 한정인데, 쿠폰함에서 새로
+    관측되자 (브랜드, 금액) 이력 판정이 표식을 놓쳤다(2026-09-09).
+    쿠폰함 목록 화면은 메뉴 제한을 아예 안 적는다 — 안 적힌 것을 "없다"로
+    읽으면 안 된다.
+    """
+    record = {
+        "platform": "baemin", "brand": "훌랄라참숯바베큐치킨", "amount": 12100,
+        "qualifier": None, "needs_review": False, "offer_type": "discount",
+        "section": "쿠폰함 보유쿠폰",
+        "raw_text": "12,100원 배민클럽 훌랄라참숯치킨 할인",
+        "conditions": "특정 메뉴 한정 할인",
+        "membership": "baeminClub",
+        "captured_at": "2026-09-09T12:00:00+09:00", "unit": "KRW", "scope": "brand",
+        "target_address": "x", "capture_mode": "auto",
+        "screenshot_path": "ref/x.jpg",
+    }
+    item = build_export([record], today="2026-09-09")[0]
+    assert item["qualifier"] == "특정메뉴"
+    assert item["membership"] == "baeminClub"
 
 
 def test_menu_limited_tag_carries_when_nothing_newer_contradicts_it():

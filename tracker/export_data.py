@@ -297,6 +297,17 @@ def build_export(records: list[dict], today: str | None = None,
         if not is_live(record, today) or is_stale_sweep(record, sweeps):
             continue
         item = {camel: record.get(snake) for snake, camel in FIELDS}
+        # 그 행이 스스로 "메뉴 한정"이라고 적고 있으면 그게 1차 근거다.
+        # 이력을 뒤질 필요가 없다 — 훌랄라 12,100원은 병합으로 조건문
+        # ("특정 메뉴 한정 할인")을 들고 있는데도, (브랜드, 금액) 이력만
+        # 보다가 표식을 놓쳤다(2026-09-09). 쿠폰함 목록은 메뉴 제한을
+        # 아예 안 적는 화면이라, 거기서 새로 관측했다는 이유로 "이제
+        # 메뉴 한정이 아니다"로 읽으면 안 된다 — 안 적힌 것과 없는 것은
+        # 다르다.
+        own_text = " ".join(str(record.get(k) or "")
+                            for k in ("conditions", "raw_text"))
+        if not item.get("qualifier") and MENU_LIMITED.search(own_text):
+            item["qualifier"] = "특정메뉴"
         if (not item.get("qualifier")
                 and (canon.get(record.get("brand"), record.get("brand")),
                      record.get("amount")) in menu_keys):
