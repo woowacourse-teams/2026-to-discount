@@ -36,6 +36,7 @@ PostHog 화면에서 손으로 만들면 정의가 그 화면에만 남는다. �
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -799,6 +800,45 @@ ORDER BY `사람` DESC
 """),
     },
     {
+        "name": "수집 건강도 — 개발 트래픽 비중",
+        "description":
+            "날마다 개발 트래픽이 얼마나 섞이는가.\n\n"
+            "예전 질의는 `countIf(properties.dev_suspect)`였다. 그 속성은 "
+            "2026-08-28을 끝으로 서버가 안 보내므로 **그 뒤로는 영원히 0%로 "
+            "찍힌다** — 개발 트래픽이 없어서가 아니라 세는 값이 사라져서다.\n\n"
+            "지금 규칙으로 다시 센다: 한 사람의 뷰포트 폭이 여러 개이고 그중 "
+            "최대가 800px 이상이면 창을 조절해 가며 본 것이다. 폰은 세션 내내 "
+            "폭이 하나다. 판정은 사람 단위라 그 사람의 이벤트를 전부 모아야 "
+            "내릴 수 있다 — 이벤트 하나만 보는 옛 방식이 틀렸던 이유다.\n\n"
+            "명시 `?dev=1`은 서버와 SDK 양쪽에서 막혀 여기 아예 안 온다.",
+        "query": q(f"""
+WITH judged AS (
+    SELECT
+        distinct_id,
+        count(DISTINCT toString(properties.viewport)) AS widths,
+        max(toIntOrZero(splitByChar('x', toString(properties.viewport))[1])) AS max_width
+    FROM events
+    WHERE {WINDOW} AND {PEOPLE}
+    GROUP BY distinct_id
+),
+developers AS (
+    SELECT distinct_id FROM judged WHERE widths > 1 AND max_width >= 800
+)
+SELECT
+    toDate(timestamp) AS `날짜`,
+    count(DISTINCT distinct_id) AS `사람`,
+    count(DISTINCT if(distinct_id IN (SELECT distinct_id FROM developers),
+                      distinct_id, NULL)) AS `개발 트래픽`,
+    round(count(DISTINCT if(distinct_id IN (SELECT distinct_id FROM developers),
+                            distinct_id, NULL))
+          / count(DISTINCT distinct_id) * 100, 1) AS `비중`
+FROM events
+WHERE {WINDOW} AND {PEOPLE}
+GROUP BY `날짜`
+ORDER BY `날짜` DESC
+"""),
+    },
+    {
         "name": "계측 건강도 — dev_suspect 오탐 규모",
         "description":
             "**이 화면은 지표가 아니라 경고다.** 인사이트 55개 중 28개가 "
@@ -984,56 +1024,106 @@ def upsert_insight(spec, dashboard_id, token, apply_):
     return "생성"
 
 
-DEV_SUSPECT_FILTERS = (
-    "AND properties.dev_suspect IS NULL\n",
-    "AND properties.dev_suspect IS NULL",
-    "properties.dev_suspect IS NULL AND ",
-    "properties.dev_suspect IS NULL",
+# HogQL에 손으로 적힌 dev_suspect 필터의 모양들. 사람마다 다르게 썼다.
+DEV_SUSPECT_SQL = (
+    re.compile(r"\s*AND\s+properties\.dev_suspect\s+IS\s+NULL", re.I),
+    re.compile(r"\s*AND\s+isNull\(\s*properties\.dev_suspect\s*\)", re.I),
+    re.compile(r"\s*AND\s+coalesce\(\s*toString\(\s*properties\.dev_suspect\s*\)\s*,"
+               r"\s*''\s*\)\s+NOT\s+IN\s*\([^)]*\)", re.I),
+    # WHERE 바로 뒤에 온 경우. 앞에 AND가 없어 위 규칙이 못 잡는다.
+    re.compile(r"(?<=WHERE\s)\s*properties\.dev_suspect\s+IS\s+NULL\s+AND\s+", re.I),
 )
+
+
+def strip_dev_suspect_props(node):
+    """TrendsQuery 등의 속성 필터 트리에서 dev_suspect 항목만 덜어낸다.
+
+    `{"key": "dev_suspect", "type": "event", "operator": "is_not_set"}` 모양이라
+    키를 보고 고른다. 빈 리스트가 남는 것은 그대로 둔다 — PostHog가 받는다.
+    """
+    if isinstance(node, dict):
+        if node.get("key") == "dev_suspect":
+            return None
+        return {k: strip_dev_suspect_props(v) for k, v in node.items()}
+    if isinstance(node, list):
+        cleaned = [strip_dev_suspect_props(v) for v in node]
+        return [v for v in cleaned if v is not None]
+    return node
 
 
 def fix_dev_suspect(token, apply_):
     """손으로 만든 인사이트에서 틀린 필터를 걷는다.
 
-    `properties.dev_suspect IS NULL`은 2026-08-21~28에만 찍힌 표시를 거른다.
-    그 표시를 단 106명을 지금 규칙으로 다시 가르면 **전원이 폰**이다 —
-    개발자가 한 명도 없다. 옛 규칙이 'desktop이면서 폭 400px 미만'이었고,
-    일부 안드로이드 브라우저가 hover:hover를 보고해 폰이 desktop으로
-    잡혔기 때문이다(ANALYTICS-CAPABILITY.md §4.3).
+    ## 왜 걷는 게 맞나 — 실측
 
-    하필 08-24 하루가 1,778건(80명)이다. 그 주에서 방문자가 가장 많았던
-    날이라, 이 필터를 든 인사이트는 가장 큰 표본에서 폰 사용자를 덜어낸다.
+    `dev_suspect`는 2026-08-21~28에만 찍혔고 106명에게 붙었다. 그중 104명이
+    원장에 있는데, 원장 규칙(한 사람의 세션 전체를 보고 "폭이 여러 개이고
+    최대가 800px 이상"이면 개발자)으로 다시 가르면 **104명 전원이 사람**이다.
+    뷰포트 폭도 384(58명)·360(32명)처럼 전부 폰 폭이다.
 
-    명시 개발 트래픽(`?dev=1`)은 서버가 PostHog로 아예 안 보내므로, 이
-    필터를 걷어도 개발자가 섞여 들어오지 않는다.
+    반대로 **원장이 개발 트래픽으로 보는 123명 중 dev_suspect가 붙은 사람은
+    0명**이다. 이 필터는 개발자를 한 명도 못 잡으면서 사람만 걷어낸다.
 
-    문자열 치환이라 질의 모양을 안 건드린다. 걷어낸 뒤 실제로 도는지
-    확인하고, 안 돌면 그 인사이트는 그대로 둔다.
+    결정적인 것은 전환율이다. 이 106명은 **62.5%**로 전체(35.2%)의 두 배에
+    가깝다. 개발자가 실사용자보다 링크를 더 누를 이유가 없다 — 애초에 옛
+    규칙이 틀렸다는 것을 알아챈 단서가 이거였다(ANALYTICS-CAPABILITY §3.4).
+
+    ## 걷어도 개발자가 안 섞인다
+
+    명시 개발 트래픽(`?dev=1`)은 세 경로에서 모두 막힌다 — 서버 매퍼가
+    `dev:true`를 버리고(PostHogEventMapper 첫 줄), 브라우저 SDK도
+    `captureSignal`과 `captureAnalyticsEvent` 양쪽에서 막는다(posthog.js).
+    즉 이 필터를 걷어도 PostHog에 개발자가 들어오지 않는다.
+
+    ## 어떻게 걷나
+
+    HogQL은 정규식으로 절만 덜어내고, TrendsQuery 같은 속성 필터는 트리에서
+    그 항목만 뺀다. 걷어낸 뒤 실제로 돌려 보고, 안 돌면 그대로 둔다.
+
+    `dev_suspect`를 **재는** 인사이트(필터가 아니라 SELECT에 쓴 것)는 안
+    건드린다 — 걷으면 그 화면의 주제 자체가 사라진다. 따로 보고한다.
     """
     got = api("insights/?limit=200", token=token)
-    touched = 0
+    fixed_n = manual = 0
     for item in got.get("results", []):
         query = item.get("query") or {}
-        sql = (query.get("source") or {}).get("query")
-        if not sql or "dev_suspect" not in sql:
+        if "dev_suspect" not in json.dumps(query, ensure_ascii=False):
             continue
-        fixed = sql
-        for needle in DEV_SUSPECT_FILTERS:
-            fixed = fixed.replace(needle, "\n" if needle.endswith("\n") else "")
-        if "dev_suspect" in fixed:
-            print("  손으로 봐야 함 %-40s (모양이 달라 못 걷었다)" % item["name"][:40])
-            continue
-        try:
-            run_query(fixed, token)
-        except SystemExit:
-            print("  건너뜀 %-46s (걷어내니 질의가 안 돈다)" % item["name"][:46])
-            continue
-        touched += 1
-        print("  %-46s %s" % (item["name"][:46], "고침" if apply_ else "고칠 것"))
+        name = item["name"][:44]
+
+        source = query.get("source") or {}
+        sql = source.get("query")
+        if sql and "dev_suspect" in sql:
+            new_sql = sql
+            for pattern in DEV_SUSPECT_SQL:
+                new_sql = pattern.sub("", new_sql)
+            if "dev_suspect" in new_sql:
+                # 필터가 아니라 측정 대상으로 쓰고 있다.
+                print("  %-44s 손으로 — dev_suspect를 재는 화면이다" % name)
+                manual += 1
+                continue
+            try:
+                run_query(new_sql, token)
+            except SystemExit:
+                print("  %-44s 건너뜀 — 걷어내니 질의가 안 돈다" % name)
+                manual += 1
+                continue
+            query = json.loads(json.dumps(query))
+            query["source"]["query"] = new_sql
+        else:
+            query = strip_dev_suspect_props(json.loads(json.dumps(query)))
+            if "dev_suspect" in json.dumps(query, ensure_ascii=False):
+                print("  %-44s 손으로 — 못 알아본 모양이다" % name)
+                manual += 1
+                continue
+
+        fixed_n += 1
+        print("  %-44s %s" % (name, "고침" if apply_ else "고칠 것"))
         if apply_:
-            query["source"]["query"] = fixed
             api("insights/%d/" % item["id"], "PATCH", {"query": query}, token)
-    print("\n%d개 %s" % (touched, "고쳤다" if apply_ else "고칠 수 있다 (--apply)"))
+
+    print("\n%d개 %s, %d개는 사람이 봐야 한다."
+          % (fixed_n, "고쳤다" if apply_ else "고칠 수 있다 (--apply)", manual))
     return 0
 
 
