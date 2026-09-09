@@ -17,6 +17,8 @@ brands:
   치킨마루:
     searchAliases: [치킨 마루, 마루치킨, chicken maru, chikin maru]
     category: chicken
+    links:
+      baemin: https://s.baemin.com/k7000Lprasbb2
   BBQ:
     searchAliases: [비비큐, 비비큐치킨, bbq chicken, bbq치킨]
     category: chicken
@@ -30,7 +32,7 @@ brands:
     aliases: [bhc, bhc치킨, BHC, BHC치킨]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?WxH5HaA
-      baemin: https://s.baemin.com/7o3.f7e8q
+      baemin: https://s.baemin.com/Rw000Lpq6OXca
   감탄계숯불치킨:
     searchAliases: [감탄계, 감탄계 치킨, gamtangye, gamtangye chicken]
     category: chicken
@@ -57,7 +59,7 @@ brands:
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?FmPxvqc
-      baemin: https://s.baemin.com/arr.e9j1z
+      baemin: https://s.baemin.com/I6000Lps6Xkd2
       yogiyo: yogiyolink://push.page/franchise?fr_id=1692
   냠냠숯불두마리치킨:
     searchAliases: [냠냠치킨, 냠냠 숯불치킨, nyamnyam, nyamnyam chicken]
@@ -69,7 +71,7 @@ brands:
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?JULhdCt
-      baemin: https://s.baemin.com/7o3.izwes
+      baemin: https://s.baemin.com/gc000LpvkZkOk
       yogiyo: yogiyolink://push.page/franchise?fr_id=7
   노랑통닭:
     searchAliases: [노랑 통닭, 노랑치킨, norang tongdak, norang chicken]
@@ -79,33 +81,37 @@ brands:
     category: chicken
     aliases: [두찜, 두찜찜닭, 두찜 찜닭, 두찜_찜닭]
     links:
+      baemin: https://s.baemin.com/MF000LpqoX2uy
       ddangyo: https://fdofd.ddangyo.com/gateway.html?T0qTf0A
   디디치킨:
     searchAliases: [디디 치킨, 디디, dd chicken, didi chicken]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o3.kx2oa
+      baemin: https://s.baemin.com/Ra000Lptp5yYe
   땅땅치킨:
     searchAliases: [땅땅, 땅땅 치킨, ttangttang, ttangttang chicken]
     category: chicken
     links:
+      baemin: https://s.baemin.com/kT000LpLbpevS
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?JWhfyJV
   또래오래:
     searchAliases: [또래오래 치킨, 또래치킨, toreore, toreore chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?MqV1NOn
-      baemin: https://s.baemin.com/7o3.i75r7
+      baemin: https://s.baemin.com/q6000LpqkRtnC
   또봉이통닭:
     searchAliases: [또봉이, 또봉이 통닭, ttobongi, ttobongi chicken]
     category: chicken
     links:
+      baemin: https://s.baemin.com/75000LpPYOflv
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?AyNa0tH
   멕시카나:
     searchAliases: [멕시카나치킨, 멕시카나 치킨, mexicana, mexicana chicken]
     category: chicken
     aliases: [멕시카나, 멕시카나치킨]
     links:
+      baemin: https://s.baemin.com/VS000LpsdVs8M
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?cauwVmn
   바른치킨:
     searchAliases: [바른 치킨, 바른, bareun chicken, barun chicken]
@@ -117,7 +123,7 @@ brands:
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?T3hDLfi
-      baemin: https://s.baemin.com/vi000uzBO5p4o
+      baemin: https://s.baemin.com/BF000LpxF1Xnx
   부어치킨:
     searchAliases: [부어, 부어 치킨, boor chicken, bueo chicken]
     category: chicken
@@ -129,13 +135,13 @@ brands:
     category: chicken
     aliases: [아라치치킨, 아라치]
     links:
-      baemin: https://s.baemin.com/7o3.j7lu0
+      baemin: https://s.baemin.com/a2000Lps97R9G
   오븐마루치킨:
     searchAliases: [오븐마루, 오븐마루 치킨, ovenmaru, ovenmaru chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?Hdnrhi4
-      baemin: https://s.baemin.com/f3e.7acck
+      baemin: https://s.baemin.com/q8000LpsFyRcl
   오븐에빠진닭:
     searchAliases: [오빠닭, 오븐에 빠진 닭, oppadak, oven chicken]
     category: chicken
@@ -145,19 +151,20 @@ brands:
     searchAliases: [일미리, 일미리 찜닭, ilmilligeumgye, ilmilli jjimdak]
     category: chicken
     links:
+      baemin: https://s.baemin.com/My000LxaZ0vxd
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?AvcBo0q
   자담치킨:
     searchAliases: [자담, 자담 치킨, jadam, jadam chicken]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?2A200zC
-      baemin: https://s.baemin.com/7o3.ffp9z
+      baemin: https://s.baemin.com/cj000Lpq8RPiH
       yogiyo: yogiyolink://push.page/franchise?fr_id=418
   처갓집양념치킨:
     searchAliases: [처갓집, 처갓집 치킨, cheogatjip, cheogatjip chicken]
     category: chicken
     links:
-      baemin: https://s.baemin.com/f3e.679a4
+      baemin: https://s.baemin.com/jd000LpqbstBW
   치킨매니아:
     searchAliases: [치킨 매니아, 매니아치킨, chicken mania, chikin mania]
     category: chicken
@@ -167,13 +174,13 @@ brands:
     searchAliases: [치킨 인류, 인류치킨, chicken inryu, chikin inryu]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o3.gf02e
+      baemin: https://s.baemin.com/VQ000LpusVuS3
   치킨플러스:
     searchAliases: [치킨 플러스, 치플, chicken plus, chikin plus]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?QVfBCD2
-      baemin: https://s.baemin.com/7o3.gybb1
+      baemin: https://s.baemin.com/hk000Lps3ybDS
   페리카나:
     searchAliases: [페리카나치킨, 페리카나 치킨, pelicana, pelicana chicken]
     category: chicken
@@ -194,12 +201,13 @@ brands:
     aliases: [호식이, 호식이두마리치킨, hosigi]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?9MQ4XxR
-      baemin: https://s.baemin.com/7o3.fztoy
+      baemin: https://s.baemin.com/St000LpqF7sna
       yogiyo: yogiyolink://push.page/franchise?fr_id=21
   후라이드참잘하는집:
     searchAliases: [후참잘, 후라이드 잘하는집, hoo cham jal, fried chicken house]
     category: chicken
     links:
+      baemin: https://s.baemin.com/mf000LptcEz4y
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?8YuSHys
   훌랄라참숯바베큐치킨:
     searchAliases: [훌랄라, 훌랄라 치킨, hoolala, hoolala chicken]
@@ -207,7 +215,7 @@ brands:
     aliases: [훌랄라참숯바베큐치킨, 훌랄라참숯치킨]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?hk6PXvd
-      baemin: https://s.baemin.com/7o3.h24j5
+      baemin: https://s.baemin.com/BY000Lpq7nDLj
 
   60계치킨:
     searchAliases: [육십계, 육십계치킨, 60gye, 60gye chicken]
@@ -229,13 +237,13 @@ brands:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?DmbfouG
-      baemin: https://s.baemin.com/7o3.frwoi
+      baemin: https://s.baemin.com/J2000LpsYkPN5
   도미노피자:
     searchAliases: [도미노, 도미노 피자, domino's, dominos pizza]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?v5FFUA2
-      baemin: https://s.baemin.com/f3e.6uol0
+      baemin: https://s.baemin.com/ce000LpqcdhX3
       yogiyo: yogiyolink://push.page/franchise?fr_id=652
   맘스피자:
     searchAliases: [맘스 피자, 맘피, moms pizza, mom's pizza]
@@ -252,12 +260,12 @@ brands:
     searchAliases: [빽보이, 빽보이 피자, 백피자, 빽피자]
     category: pizza
     links:
-      baemin: https://s.baemin.com/7o3.f2zof
+      baemin: https://s.baemin.com/33000Lpqvmlnc
   빽보이피자 오구샌:
     searchAliases: [빽보이 오구샌, 오구샌, 빽보이, 빽보이 피자, 백피자, 빽피자, paekboy ogusaen, backboy ogusan]
     category: pizza
     links:
-      baemin: https://s.baemin.com/Pm000CBIkaUXb
+      baemin: https://s.baemin.com/6n000LpqP1XaE
   수피자:
     searchAliases: [수 피자, 수피자집, soo pizza, su pizza]
     category: pizza
@@ -275,7 +283,7 @@ brands:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?S5kWs2d
-      baemin: https://s.baemin.com/7o3.f3g7j
+      baemin: https://s.baemin.com/uQ000LpqrhP0F
       yogiyo: yogiyolink://push.page/franchise?fr_id=821
   파파존스:
     searchAliases: [파파 존스, 파존, papa johns, papa john's]
@@ -293,13 +301,13 @@ brands:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?J0Rf5Ug
-      baemin: https://s.baemin.com/7o3.g9xra
+      baemin: https://s.baemin.com/pj000LpI3ZTTN
   피자헛:
     searchAliases: [피자 헛, 피자헛 코리아, pizza hut, pizzahut]
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?EtdPoEx
-      baemin: https://s.baemin.com/7o3.f2e5b
+      baemin: https://s.baemin.com/RH000LprXiJ9e
 
   노모어피자:
     searchAliases: [노모어 피자, 노모어, no more pizza, nomore pizza]
@@ -321,10 +329,12 @@ brands:
     category: fastfood
     aliases: [맘스터치피자앤치킨, 맘스터치 피자앤치킨, 맘스터치앤피자]
     links:
-      baemin: https://s.baemin.com/7o3.fsacj
+      baemin: https://s.baemin.com/ND000LpqFoc7y
   맥도날드:
     searchAliases: [맥날, 맥도날드 코리아, mcdonald's, mcdonalds]
     category: fastfood
+    links:
+      baemin: https://s.baemin.com/UP000LqnwTZ3d
   버거킹:
     searchAliases: [버거 킹, 버킹, burger king, burgerking]
     category: fastfood
@@ -341,6 +351,8 @@ brands:
   움버거앤윙스:
     searchAliases: [움버거, 움버거 앤 윙스, um burger and wings, umburger]
     category: fastfood
+    links:
+      baemin: https://s.baemin.com/5z000LBSFKsfJ
   왓더버거:
     searchAliases: [왓더 버거, 왓버거, what the burger, whattheburger]
     category: fastfood
@@ -360,6 +372,8 @@ brands:
   카페인중독:
     searchAliases: [카페인 중독, 카중, caffeine addiction, caffeine jungdok]
     category: cafe
+    links:
+      baemin: https://s.baemin.com/tR000Lprb4tBV
   쏘쏘사라다:
     searchAliases: [쏘쏘 사라다, 쏘쏘샐러드, ssosso sarada, soso salad]
     # 샐러드 전문. 같은 성격의 샐러리아를 카페로 둔 것을 따른다 —
@@ -371,6 +385,8 @@ brands:
   오베이글하우스:
     searchAliases: [오베이글, 오 베이글 하우스, o bagel house, obagel]
     category: cafe
+    links:
+      baemin: https://s.baemin.com/fr000LEXAiSwX
   토스트카페마리:
     searchAliases: [토스트 카페 마리, 카페마리, toast cafe mari, cafe mari]
     category: cafe
@@ -378,6 +394,7 @@ brands:
     searchAliases: [파리바게트, 파바, paris baguette, parisbaguette]
     category: cafe
     links:
+      baemin: https://s.baemin.com/0N000LpqdgOM4
       ddangyo: https://fdofd.ddangyo.com/gateway.html?NBQPChf
   폴바셋:
     searchAliases: [폴 바셋, 폴바셋커피, 풀바셋, paul bassett, paulbassett]
@@ -389,16 +406,20 @@ brands:
     searchAliases: [던킨도너츠, 던킨 도너츠, dunkin, dunkin donuts]
     aliases: [던킨, 던킨도너츠, dunkin, dunkindonuts]
     category: cafe
+    links:
+      baemin: https://s.baemin.com/LR000LpqbHpqH
   뚜레쥬르:
     searchAliases: [뚜레주르, 뚜쥬, tous les jours, touslesjours]
     aliases: [뚜레쥬르, touslesjours, tlj]
     category: cafe
     links:
-      baemin: https://s.baemin.com/Vz000vNQLilUR
+      baemin: https://s.baemin.com/ba000LptIkKfH
       yogiyo: yogiyolink://push.page/franchise?fr_id=606
   배스킨라빈스:
     searchAliases: [베스킨라빈스, 배라, 베라, baskin robbins, baskinrobbins]
     category: cafe
+    links:
+      baemin: https://s.baemin.com/NO000LpqLSTKN
   설빙:
     searchAliases: [설빙 빙수, 설빙코리아, sulbing, sulbing korea]
     category: cafe
@@ -419,7 +440,7 @@ brands:
     searchAliases: [파스쿠치, 카페 파스쿠찌, caffe pascucci, pascucci]
     category: cafe
     links:
-      baemin: https://s.baemin.com/7o3.fjjn5
+      baemin: https://s.baemin.com/Nh000Lps2OYtI
       yogiyo: yogiyolink://push.page/franchise?fr_id=482
 
   메가MGC커피:
@@ -459,18 +480,24 @@ brands:
   밥풀릭스:
     searchAliases: [밥 풀릭스, 밥풀, bapflix, babflix]
     category: korean
+    links:
+      baemin: https://s.baemin.com/io000LpqL4sGl
   숙성고기 육칠이:
     searchAliases: [육칠이, 숙성고기육칠이, yukchili, 672 meat]
     category: korean
   광안천지식당:
     searchAliases: [광안 천지식당, 천지식당, gwangan cheonji, cheonji restaurant]
     category: korean
+    links:
+      baemin: https://s.baemin.com/eL000LwPZjeOJ
   동궁찜닭:
     searchAliases: [동궁 찜닭, 동궁, donggung jjimdak, donggung]
     category: korean
   마선생얼큰국밥:
     searchAliases: [마선생 국밥, 마선생, 얼큰국밥, master ma gukbap, maseonsaeng gukbap]
     category: korean
+    links:
+      baemin: https://s.baemin.com/NV000LpJB0TSg
   마왕족발:
     searchAliases: [마왕 족발, 마왕, mawang jokbal, mawang]
     category: korean
@@ -480,7 +507,7 @@ brands:
     category: korean
     aliases: [유가네닭갈비, 유가네찜닭]
     links:
-      baemin: https://s.baemin.com/7o3.fzi0x
+      baemin: https://s.baemin.com/a1000Lpr3N0RB
   지지고:
     searchAliases: [지지고컵밥, 지지고 컵밥, gggo, jijigo]
     category: korean
@@ -490,6 +517,8 @@ brands:
   최강곱도리:
     searchAliases: [최강 곱도리, 최강곱도리탕, 최곱, choegang gopdori, strongest gopdori]
     category: korean
+    links:
+      baemin: https://s.baemin.com/ui000LCpPIHAQ
   호세야:
     searchAliases: [호세야 오리바베큐, 호세야 오리바비큐, 호세아, hoseya, hoseya duck barbecue]
     category: korean
@@ -497,7 +526,12 @@ brands:
 
   양은이네동태:
     searchAliases: [양은이네, 양은이네 동태, yangeunine dongtae, yangeuni]
+    # 배민 브랜드관이 쓰는 정식 상호. 클립보드 수집이 이 이름으로 들어와
+    # 별도 항목이 생겼었다(2026-09-07). 원장에도 두 표기가 다 있다.
+    aliases: [양은이네동태, 양은이네 동태탕&보쌈]
     category: korean
+    links:
+      baemin: https://s.baemin.com/wM000LpsASxmG
   인생아구찜:
     searchAliases: [인생 아구찜, 인생아귀찜, insaeng agujjim, life agujjim]
     category: korean
@@ -506,7 +540,8 @@ brands:
   홍콩반점0410:
     searchAliases: [홍콩반점, 홍반, hong kong banjeom, hongkong banjeom 0410]
     category: chinese
-
+    links:
+      baemin: https://s.baemin.com/h9000LqV6OJ0c
   마라공방:
     searchAliases: [마라 공방, 마라탕공방, mala workshop, maragongbang]
     category: chinese
@@ -520,12 +555,13 @@ brands:
     aliases: [떡참, 떡볶이참잘하는집 떡참&치킨, 떡참 떡볶이&치킨]
     category: snack
     links:
+      baemin: https://s.baemin.com/qO000LpuSttRV
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?pQcogGG
   매드포갈릭:
     searchAliases: [매드 포 갈릭, 매포갈, mad for garlic, madforgarlic]
     category: western
     links:
-      baemin: https://s.baemin.com/7o3.fomtb
+      baemin: https://s.baemin.com/dQ000LptuZc7t
   본도시락:
     searchAliases: [본 도시락, 본도락, bon dosirak, bon lunchbox]
     category: korean
@@ -535,6 +571,7 @@ brands:
     category: western
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?wDQg7yL
+      baemin: https://s.baemin.com/bE000LtjefWDV
   원할머니보쌈족발:
     searchAliases: [원할머니, 원할머니 보쌈, won halmeoni, won grandma bossam]
     category: korean
@@ -558,12 +595,12 @@ brands:
     searchAliases: [큰맘할매, 큰맘 순대국, 큰맘, keunmam halmae, big mom sundae soup]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o3.lmyqr
+      baemin: https://s.baemin.com/8d000Lpt9o5wW
   하남돼지집:
     searchAliases: [하남 돼지집, 하남돼지, hanam pig house, hanam dwaejijip]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o8.5zae7
+      baemin: https://s.baemin.com/or000Lq09nEXd
   포케올데이:
     searchAliases: [포케 올데이, 포케, poke all day, pokeallday]
     aliases: [포케올데이, poke all day]
@@ -581,7 +618,7 @@ brands:
     searchAliases: [국민 낙곱새, 국민낙지, gukmin nakgopsae, national nakgopsae]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o6.doja2
+      baemin: https://s.baemin.com/x6000LrAsqnPW
       yogiyo: yogiyolink://push.page/franchise?fr_id=20072
   기떡찜:
     searchAliases: [기 떡찜, 기떡, gitteokjjim, gi tteok jjim]
@@ -612,7 +649,7 @@ brands:
     searchAliases: [미스터 보쌈, 미스터보쌈족발, mister bossam, mr bossam]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o4.6ll4j
+      baemin: https://s.baemin.com/kS000LqMaHIkQ
   미스터피자:
     searchAliases: [미스터 피자, 미피, 마스터피자, mr pizza, mister pizza]
     category: pizza
@@ -623,7 +660,7 @@ brands:
     searchAliases: [슈퍼키친, 반찬가게슈퍼키친, super kitchen, superkitchen]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o3.kujr7
+      baemin: https://s.baemin.com/s5000LptgRClm
       yogiyo: yogiyolink://push.page/franchise?fr_id=3225
   백억커피:
     searchAliases: [백억 커피, 백억, baekeok coffee, 10 billion coffee]
@@ -634,18 +671,18 @@ brands:
     searchAliases: [버거리버거, 버거리 버거, burgery, burgerlee]
     category: fastfood
     links:
-      baemin: https://s.baemin.com/a0000vO1Qcggk
+      baemin: https://s.baemin.com/HU000LptgWKmV
   본스치킨:
     searchAliases: [본스 치킨, 본스, bons chicken, bon's chicken]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o4.bp56j
+      baemin: https://s.baemin.com/5G000LpsyOlJt
       yogiyo: yogiyolink://push.page/franchise?fr_id=396
   순살몬스터:
     searchAliases: [순살 몬스터, 순몬, sunsal monster, boneless monster]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o8.6f0em
+      baemin: https://s.baemin.com/Tk000LpvDDjIT
   신밥도둑:
     searchAliases: [신 밥도둑, 밥도둑, sin bapdoduk, rice thief]
     category: korean
@@ -661,7 +698,7 @@ brands:
     aliases: [아구듬뿍&알곤마니, 아구듬뿍]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o4.9b9gz
+      baemin: https://s.baemin.com/jB000LprWIruF
   열정국밥:
     searchAliases: [열정 국밥, 열정, passion gukbap, yeoljeong gukbap]
     # 배민클럽 쿠폰함 판독(2026-08-17)이 쿠폰 제목("배민클럽 열정충전
@@ -675,7 +712,7 @@ brands:
     searchAliases: [영 커피, 영카페, young coffee, yeong coffee]
     category: cafe
     links:
-      baemin: https://s.baemin.com/7o6.xny4f
+      baemin: https://s.baemin.com/b9000Lps0Rb7v
   요아정:
     searchAliases: [요거트아이스크림의정석, 요아정 요거트, yoajung, yogurt ice cream standard]
     category: snack
@@ -686,7 +723,7 @@ brands:
     aliases: [이경규의 돈치킨, 돈치킨]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o3.g6b37
+      baemin: https://s.baemin.com/Ti000LpsOGECT
   장충동왕족발:
     searchAliases: [장충동 왕족발, 장충동족발, jangchungdong jokbal, king jokbal]
     category: korean
@@ -696,12 +733,12 @@ brands:
     searchAliases: [진교동 찜닭, 진교동, jingyodong jjimdak, jingyodong]
     category: korean
     links:
-      baemin: https://s.baemin.com/kj000zbp9mSmI
+      baemin: https://s.baemin.com/51000Lpqs7ecd
   칠봉통닭:
     searchAliases: [칠봉 통닭, 칠봉치킨, chilbong tongdak, chilbong chicken]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o6.xxvtl
+      baemin: https://s.baemin.com/VR000LpsVFPnn
   커피앳웍스:
     searchAliases: [커피 앳 웍스, 커피앳워크스, 커피앳윅스, coffee at works, coffeeatworks]
     category: cafe
@@ -711,17 +748,17 @@ brands:
     searchAliases: [트리플에이 커피, 쓰리에이커피, triple a coffee, aaa coffee]
     category: cafe
     links:
-      baemin: https://s.baemin.com/Iw000oO9msx4U
+      baemin: https://s.baemin.com/K7000LptW5LzE
   티바두마리치킨:
     searchAliases: [티바, 티바 두마리치킨, tiba chicken, tiba two chicken]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o5.f7vp0
+      baemin: https://s.baemin.com/BF000LpsYKrdA
   파파이스:
     searchAliases: [파파이스치킨, 파파이스 치킨, popeyes, popeyes chicken]
     category: fastfood
     links:
-      baemin: https://s.baemin.com/7o3.fuyop
+      baemin: https://s.baemin.com/XH000LpqBWXE1
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?zHO0nFF
   피나치공:
     searchAliases: [피자나라치킨공주, 피나치공 피자, pizza nara chicken gongju, pinachigong]
@@ -733,7 +770,7 @@ brands:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?UK70R9a
-      baemin: https://s.baemin.com/VJ000vO1G3l9C
+      baemin: https://s.baemin.com/D1000Lpsf91Gr
   할리스:
     searchAliases: [할리스커피, 할리스 커피, hollys, hollys coffee]
     category: cafe
@@ -743,7 +780,7 @@ brands:
     searchAliases: [호 치킨, 호치킨집, ho chicken, hochicken]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o3.g1ec2
+      baemin: https://s.baemin.com/8O000LprYd8WO
   힙둥이 곱도리탕:
     searchAliases: [힙둥이곱도리탕, 힙둥이, hipdungi gopdoritang, hip gopdori]
     category: korean
@@ -764,7 +801,7 @@ brands:
     searchAliases: [스텔라 떡볶이, 스텔라, stella tteokbokki, stellatteokbokki]
     category: snack
     links:
-      baemin: https://s.baemin.com/f3e.7ujt7
+      baemin: https://s.baemin.com/ik000LpqKhWr1
   프랭크버거:
     searchAliases: [프랭크 버거, 프랭크, frank burger, frankburger]
     category: fastfood
@@ -775,3 +812,60 @@ brands:
     category: cafe
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?ENWjEwq
+  유로코피자:
+    links:
+      baemin: https://s.baemin.com/Pg000LrP4iseh
+  연돈튀김덮밥볼카츠:
+    links:
+      baemin: https://s.baemin.com/Ol000LpNo43IC
+  롤링파스타:
+    links:
+      baemin: https://s.baemin.com/FT000LrPnlXh5
+  백종원의 미정국수&덮밥:
+    links:
+      baemin: https://s.baemin.com/9Q000LBUygw3u
+  백종원의 새마을식당:
+    links:
+      baemin: https://s.baemin.com/Uf000LBSGkO0e
+  파스타헛:
+    links:
+      baemin: https://s.baemin.com/l8000LprOkwZ5
+  미친피자:
+    links:
+      baemin: https://s.baemin.com/DN000LpRIMwjE
+  한식요리주점 막이오름:
+    links:
+      baemin: https://s.baemin.com/5k000LBT5gcfl
+  백종원의 백스비어:
+    links:
+      baemin: https://s.baemin.com/Om000LrSzU9cK
+  돌배기집:
+    links:
+      baemin: https://s.baemin.com/U4000LBU3qXDt
+  본가:
+    links:
+      baemin: https://s.baemin.com/h3000LBU4ubcO
+  정담오리바베큐:
+    links:
+      baemin: https://s.baemin.com/Mz000Lx2lnJx5
+  갓튀긴후라이드:
+    links:
+      baemin: https://s.baemin.com/Gr000Lq0FuXZ0
+  고피자:
+    links:
+      baemin: https://s.baemin.com/Ee000LtinyGOA
+  백종원의 한신포차 닭발&통닭:
+    links:
+      baemin: https://s.baemin.com/36000LscZX2wk
+  백종원의 인생설렁탕&불고기:
+    links:
+      baemin: https://s.baemin.com/BA000LrTvsNMg
+  백종원의 리춘시장&마라탕:
+    links:
+      baemin: https://s.baemin.com/Xv000LBSJuZkH
+  백종원의원조쌈밥집 제육&삼겹:
+    links:
+      baemin: https://s.baemin.com/TL000LtSAp1Dn
+  역전우동&덮밥:
+    links:
+      baemin: https://s.baemin.com/DO000LBSDxIHr
