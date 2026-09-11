@@ -10,9 +10,15 @@
 
 이 레포는 파이프라인의 **화면/display** 단계(React + Vite) — tracker가
 판독하고 api가 가공한 데이터를 최종 사용자에게 보여준다. 백엔드 주소는
-env var나 프록시가 아니라 **하드코딩**돼 있다: `src/api.js:3`과
-`src/analytics.js:9` 둘 다 `const API_BASE = 'https://bebeggars.duckdns.org'`
-(이유는 `docs/decisions/ADR-001-fixed-backend-origin.md`).
+env var나 프록시가 아니라 **하드코딩**돼 있다: `src/api.js`의
+`export const API_BASE = 'https://bebeggars.duckdns.org'` **한 군데뿐**이고
+`analytics.js`·`App.jsx`는 거기서 import한다(예전에는 네 군데가 제각각이라
+한 곳만 고치는 날 나머지가 조용히 어긋났다).
+이유는 `docs/decisions/ADR-001-fixed-backend-origin.md`.
+
+이 값이 `''`이면 프록시 시절로 되돌아간 것이다 — 2026-07-28부터
+2026-09-11까지 실제로 그 상태였고, 그동안 이 문단과 ADR-001은 둘 다
+코드와 다른 말을 하고 있었다. `npm run test:api-base`가 그걸 막는다.
 
 ## 2. 호출하는 API
 

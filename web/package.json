@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "node scripts/build-logo-manifest.mjs && vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "test": "npm run test:autocomplete && npm run test:brand-impression && npm run test:survey-dismiss && npm run test:banner-scroll && npm run test:analytics && npm run test:posthog && npm run test:event-contract && npm run test:filters && npm run test:brand-route && npm run test:logo-manifest",
+    "test": "npm run test:autocomplete && npm run test:brand-impression && npm run test:survey-dismiss && npm run test:banner-scroll && npm run test:analytics && npm run test:posthog && npm run test:event-contract && npm run test:filters && npm run test:brand-route && npm run test:logo-manifest && npm run test:api-base",
     "test:autocomplete": "node --test src/brandAutocomplete.test.js",
     "test:brand-impression": "node --test src/brandImpression.test.js",
     "test:survey-dismiss": "node --test src/surveyDismiss.test.js",
@@ -18,7 +18,8 @@
     "test:brand-route": "node scripts/verify-brand-route.mjs",
     "test:banner-scroll": "node --test src/bannerScroll.test.js",
     "logos": "node scripts/build-logo-manifest.mjs",
-    "test:logo-manifest": "node --test src/logoManifest.test.js"
+    "test:logo-manifest": "node --test src/logoManifest.test.js",
+    "test:api-base": "node scripts/verify-api-base.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

@@ -26,10 +26,5 @@
       "permanent": true
     }
   ],
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://bebeggars.duckdns.org/api/:path*"
-    }
-  ]
+  "rewrites": []
 }

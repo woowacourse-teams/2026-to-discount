@@ -1,7 +1,8 @@
 # ADR-001. 백엔드 주소를 고정값으로, 프록시·환경변수 없이
 
 - 날짜: 2026-07-28
-- 상태: 확정
+- 상태: 확정 (2026-09-11 복귀 — 그 사이 프록시로 돌아가 있었다. 아래
+  "2026-09-11: 한 바퀴 돌아 제자리" 참고)
 
 ## 맥락
 
@@ -58,3 +59,39 @@ const API_BASE = 'https://bebeggars.duckdns.org'
 브랜드별 링크는 지금 delivery-discount-api의 `brands.yml`에
 `links.ddangyo`로 이관돼 `brand.links`로 내려온다 —
 프론트는 `OfferChip`에서 `brandLinks?.[offer.platform]`으로 그대로 읽는다.
+
+## 2026-09-11: 한 바퀴 돌아 제자리
+
+이 결정은 한동안 **지켜지지 않았다.** 어느 시점에 `API_BASE`가 `''`로
+돌아가고 `vercel.json`에 rewrite가 생겨, 프론트는 다시 상대경로로 쏘고
+Vercel이 백엔드로 넘기는 구조가 됐다. 이 문서는 그대로 "확정"이었다.
+
+되돌린 계기는 성능이다. 그 rewrite를 타는 호출이 방문당 여섯 건쯤 Vercel
+Edge Requests로 계산된다. 한도를 **요청 수**로 세는 서비스라(2026-09-07
+75% 경고) 방문자가 늘수록 그대로 곱해진다.
+
+2026-09-07에도 같은 검토를 했고, 그때는 이렇게 적고 남겨 뒀다:
+
+> 서버 CORS가 **운영 오리진만** 허용해서 걷어내면 프리뷰 배포가 깨진다.
+
+**그 기록이 낡아 있었다.** `WebConfig`에 프리뷰 패턴이 이미 들어가 있었고,
+실측으로 확인했다:
+
+| Origin | 결과 |
+|---|---|
+| `https://beggars-five.vercel.app` | ACAO 반환 |
+| `https://beggars-git-<브랜치>-nn98s-projects.vercel.app` | ACAO 반환 |
+| `https://evil.example.com` | 헤더 없음(거부) |
+
+프리플라이트도 확인했다 — `POST /api/events`를 JSON으로 보내면 OPTIONS가
+한 번 붙지만 `Access-Control-Max-Age: 1800`으로 30분 캐시되고, 그 요청은
+Vercel이 아니라 API 서버로 간다. `sendBeacon` 경로는 text/plain이라 애초에
+단순 요청이고 프리플라이트가 없다.
+
+### 남길 교훈
+
+- **"확정"인 ADR과 코드가 갈라져도 아무도 안 알려준다.** 이 문서는 두 달
+  가까이 코드와 다른 말을 하고 있었다.
+- **"막혀 있다"는 기록에는 확인한 날짜가 필요하다.** 2026-09-07의 차단
+  사유는 그날 기준으로도 이미 사실이 아니었을 수 있다. 실제로 확인하는 데
+  든 비용은 curl 세 번이었다.

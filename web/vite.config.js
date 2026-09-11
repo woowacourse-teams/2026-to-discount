@@ -3,14 +3,14 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  // 배포의 vercel.json rewrites와 같은 규칙을 개발 서버에도 둔다 — 한쪽만
-  // 같은 오리진이면 개발에서 못 잡는 CORS 문제가 배포에서만 터진다.
+  // /api 프록시는 없다. 2026-09-11에 배포의 vercel.json rewrite를 걷어내면서
+  // (Edge Requests 절감, api.js 주석 참고) 프론트가 API를 절대주소로 직접
+  // 부르게 됐다. 개발 서버에도 프록시를 두면 **개발만 같은 오리진**이 되어
+  // CORS 문제를 개발에서 못 잡고 배포에서만 터뜨린다 — 원래 이 프록시를
+  // 뒀던 이유가 그것이었으니, 배포가 교차 출처가 된 지금은 개발도 그래야
+  // 한다. localhost:5173은 WebConfig의 허용 목록에 있다.
   server: {
     proxy: {
-      '/api': {
-        target: 'https://bebeggars.duckdns.org',
-        changeOrigin: true,
-      },
       // PostHog도 같은 오리진으로 받는다. 리전을 옮겨서 푸는 문제가 아니다 —
       // PostHog 클라우드는 US(버지니아)·EU(프랑크푸르트)뿐이라 한국에서는 EU가
       // 오히려 더 멀다. 프록시를 두면 TLS 핸드셰이크가 서울 엣지에서 끝나고
