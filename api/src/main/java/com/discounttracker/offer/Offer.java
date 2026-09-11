@@ -25,7 +25,17 @@ public record Offer(String platform, Integer amount, String qualifier,
                     // 딥링크를 들고 온다. null이면 프론트가 브랜드 링크로
                     // 떨어진다 — 브랜드 링크를 대체하지는 않는다.
                     String link,
-                    @JsonIgnore Membership membership) {
+                    @JsonIgnore Membership membership,
+                    // 배너에서 세운 오퍼인가. 원장 오퍼와 겹쳤을 때
+                    // 한쪽을 버리지 않고 사다리로 합치는 근거다
+                    // (preferredOver). link로 추정하지 않는다 —
+                    // 링크는 나중에 다른 오퍼에도 붙을 수 있다.
+                    @JsonIgnore boolean fromBanner) {
+
+    /** 배너에서 세운 오퍼의 offerType. BrandComparisonService가 적는 값과 같다. */
+    public static final String BANNER_OFFER_TYPE = "banner";
+    /** 쿠폰을 포개 쓴다는 뜻. OfferRecord.isCumulative와 같은 값이다. */
+    private static final String CUMULATIVE_TIER_MODE = "cumulative";
 
     /**
      * 원장 한 줄을 오늘 기준으로 화면에 내보낼 모습으로 바꾼다.
@@ -38,7 +48,8 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(r.platform(), r.amountAsOf(today), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
                 r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
-                Boolean.TRUE.equals(r.soldOut()), r.link(), r.membershipTier());
+                Boolean.TRUE.equals(r.soldOut()), r.link(), r.membershipTier(),
+                BANNER_OFFER_TYPE.equals(r.offerType()));
     }
 
     @JsonProperty("status")
@@ -100,7 +111,7 @@ public record Offer(String platform, Integer amount, String qualifier,
                 : status.isConfirmed();
         Offer winner = thisWins ? this : other;
         Offer loser = thisWins ? other : this;
-        return winner.withDetailFrom(loser);
+        return winner.withDetailFrom(loser).convergedWith(loser);
     }
 
     /**
@@ -144,6 +155,51 @@ public record Offer(String platform, Integer amount, String qualifier,
         // 찍히는 값이라 최신 캡처에 없으면 "못 봤다"가 아니라 "없어졌다"다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, badge, soldOut,
-                link, membership);
+                link, membership, fromBanner);
+    }
+
+    /**
+     * 배너 오퍼와 원장 오퍼가 같은 (브랜드, 앱)에 겹쳤을 때 <b>둘 다 남긴다</b>.
+     *
+     * <p>배너는 그날 확인한 행사고 원장은 상시 쿠폰이다. 한 브랜드에 둘이
+     * 동시에 있을 수 있는데, 지금까지는 {@link #preferredOver}가 승자만
+     * 남기고 진 쪽을 통째로 버렸다 — {@link #withDetailFrom}의 상세 병합은
+     * <b>금액이 같을 때만</b> 돈다.
+     *
+     * <p>2026-09-12 실측: 빽다방 배민 카드에 배짱할인 핫딜 7,000원만 남고,
+     * 원장의 상시 브랜드쿠폰 3,000원(15,000원↑)이 사라졌다. 둘 다 실제로
+     * 받을 수 있는 쿠폰인데 화면에는 하나만 있었다.
+     *
+     * <p>택일({@code exclusive})로 합친다 — 한 주문에 쿠폰 한 장이라
+     * 겹쳐 쓰는 값이 아니다. 대표 금액은 이긴 쪽 그대로다.
+     *
+     * <p>원장끼리 겹친 경우는 건드리지 않는다. 그건 같은 쿠폰을 두 번 잡은
+     * 중복이거나 정정이라, 사다리로 붙이면 없던 선택지를 지어내게 된다
+     * (ADR-016).
+     */
+    private Offer convergedWith(Offer loser) {
+        if (fromBanner == loser.fromBanner) return this;      // 둘 다 배너거나 둘 다 원장
+        if (amount == null || loser.amount == null) return this;
+        if (amount.equals(loser.amount)) return this;         // 같은 쿠폰이다
+        if (tiers != null) return this;                       // 이긴 쪽이 이미 사다리다
+
+        // 진 쪽이 **겹쳐 쓰는** 사다리면 섞지 않는다. cumulative는 쿠폰을
+        // 포개 쓴다는 뜻이라, 택일인 배너 쿠폰을 그 사다리에 끼워 넣으면
+        // 받을 수 없는 조합을 만든다(ADR-019).
+        if (CUMULATIVE_TIER_MODE.equals(loser.tierMode)) return this;
+
+        List<DiscountTier> ladder = new java.util.ArrayList<>();
+        ladder.add(new DiscountTier(minOrderAmount, amount, null, null, null, null, null));
+        if (loser.tiers != null) {
+            // 진 쪽이 이미 택일 사다리면 그 단을 다 살린다. 하나만 남기면
+            // 원래 문제(진 쪽이 사라진다)가 그대로다.
+            ladder.addAll(loser.tiers);
+        } else {
+            ladder.add(new DiscountTier(loser.minOrderAmount, loser.amount,
+                    null, null, null, null, null));
+        }
+        return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
+                minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
+                soldOut, link, membership, fromBanner);
     }
 }
