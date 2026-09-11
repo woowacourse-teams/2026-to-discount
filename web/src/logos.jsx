@@ -1,3 +1,4 @@
+import { assetSrc, brandLogoSrc } from './logoSrc.js'
 import { PLATFORM_ICON_DATA } from './platformIcons.js'
 
 // 브랜드·플랫폼 로고 조각. App.jsx에서 끌어냈다.
@@ -14,18 +15,10 @@ export const PLATFORMS = [
 ]
 export const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 
-function assetSrc(base, name) {
-  return `${base}/${encodeURIComponent(name)}.png`
-}
-
-// 로고 파일명 규칙. 색 추출(brandColor.js)도 같은 파일을 읽어야 하므로
-// 컴포넌트 안에 두지 않고 따로 뺀다.
-export function brandLogoSrc(name) {
-  const fileName = name
-    .replace(/[^a-zA-Z0-9가-힣]+/g, '_')
-    .replace(/^_|_$/g, '')
-  return assetSrc('/logos', fileName)
-}
+// 주소 계산은 logoSrc.js에 있다 — node --test가 .jsx를 못 읽어서
+// 순수 함수를 컴포넌트와 같은 파일에 두면 테스트를 못 붙인다.
+// 쓰던 쪽이 안 깨지게 여기서 그대로 다시 내보낸다.
+export { brandLogoSrc, logoFileName } from './logoSrc.js'
 
 // 아이콘 넷은 카드마다 붙어 방문당 4번의 요청이 됐다. 번들에 박으면
 // 요청이 0이 된다 — Edge Requests는 바이트가 아니라 **요청 수**로 세기
@@ -90,18 +83,24 @@ export function PlatformBadge({ platformKey, onClick, active }) {
 }
 
 export function BrandLogo({ name }) {
+  const src = brandLogoSrc(name)
   return (
     <span className="brand-logo">
-      <img
-        src={brandLogoSrc(name)}
-        alt={name}
-        loading="lazy"
-        decoding="async"
-        width={LOGO_PX}
-        height={LOGO_PX}
-        onLoad={hideSiblingFallback}
-        onError={(e) => { e.currentTarget.style.display = 'none' }}
-      />
+      {/* 파일이 없으면 img를 아예 그리지 않는다. src=null인 img를 두면
+          브라우저가 현재 주소를 다시 받아 오는 등 엉뚱한 요청이 나가고,
+          로고 없는 브랜드마다 그 요청이 붙는다. */}
+      {src && (
+        <img
+          src={src}
+          alt={name}
+          loading="lazy"
+          decoding="async"
+          width={LOGO_PX}
+          height={LOGO_PX}
+          onLoad={hideSiblingFallback}
+          onError={(e) => { e.currentTarget.style.display = 'none' }}
+        />
+      )}
       <span className="brand-logo__fallback" aria-hidden="true">{name.trim().charAt(0)}</span>
     </span>
   )

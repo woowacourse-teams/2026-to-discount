@@ -5,7 +5,7 @@
 // 색을 진짜 브랜드색인 양 입히게 되고, 나중에 로고를 확보하면 색이 통째로
 // 바뀌어 "어제 본 그 배너"가 아니게 된다.
 
-import { brandLogoSrc } from './logos.jsx'
+import { brandLogoSrc } from './logoSrc.js'
 
 // 플랫폼 폴백 색. public/platform-icons/*.png에서 가장 넓은 채도 있는
 // 색 구간을 실제로 추출한 값이다(아이콘이 바뀌면 다시 뽑아야 한다).
@@ -151,6 +151,10 @@ export function brandSeed(brandName) {
 }
 
 function extractSeed(src) {
+  // 로고 파일이 없으면 색을 뽑을 것도 없다. src=null로 Image를 만들면
+  // 엉뚱한 요청이 나가므로 바로 실패로 본다 — 부르는 쪽이 플랫폼 색으로
+  // 간다(로고 없는 브랜드는 원래 그 경로였다).
+  if (!src) return Promise.resolve(null)
   return new Promise((resolve) => {
     const img = new Image()
     img.onload = () => {
