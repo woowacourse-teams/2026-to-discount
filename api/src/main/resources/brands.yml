@@ -460,6 +460,12 @@ brands:
     category: cafe
     aliases: [메가MGC커피, 메가커피]
 
+  # 브랜드 딥링크는 아직 모른다. 배짱할인 행사 페이지를 여기 적으면
+  # 브랜드 카드가 행사 페이지로 나가므로 비워 둔다(ADR-016 취지).
+  빽다방:
+    searchAliases: [백다방, 빽다방 커피, 백종원 커피, paiks coffee, paik's coffee, ppaekdabang]
+    category: cafe
+
   # --- 편의점 ---
   CU:
     searchAliases: [씨유, 씨유 편의점, 시유, cu convenience, cu korea]
