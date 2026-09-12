@@ -218,6 +218,8 @@ brands:
   후라이드참잘하는집:
     searchAliases: [후참잘, 후라이드 잘하는집, hoo cham jal, fried chicken house]
     category: chicken
+    # 쿠팡이츠 쿠폰함은 띄어쓰기를 넣어 부른다(2026-09-12 실측).
+    aliases: [후라이드 참 잘하는집]
     links:
       baemin: https://s.baemin.com/mf000LptcEz4y
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?8YuSHys
