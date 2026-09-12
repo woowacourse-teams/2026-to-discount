@@ -83,7 +83,9 @@ api/src/test/java/com/discounttracker/analytics/TrafficStatsServiceTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogTest.java
 api/src/test/java/com/discounttracker/brand/BrandCatalogTest.java
 api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java
+api/src/test/java/com/discounttracker/comparison/TargetedBannerTest.java
 api/src/test/java/com/discounttracker/offer/DiscountLadderTest.java
+api/src/test/java/com/discounttracker/offer/OfferConvergenceTest.java
 api/src/test/java/com/discounttracker/offer/OfferRecordTest.java
 api/src/test/java/com/discounttracker/offer/OfferRepositoryTest.java
 api/src/test/java/com/discounttracker/testdata/TestDataCatalogTest.java
@@ -124,11 +126,13 @@ web/README.md
 web/index.html
 web/package-lock.json
 web/package.json
+web/scripts/build-logo-manifest.mjs
 web/scripts/build-platform-icons.py
 web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
 web/scripts/verify-analytics-event-contract.mjs
 web/scripts/verify-analytics-event-id.mjs
+web/scripts/verify-api-base.mjs
 web/scripts/verify-brand-route.mjs
 web/scripts/verify-posthog-sdk.mjs
 web/scripts/verify-search-filters.mjs
@@ -153,6 +157,9 @@ web/src/brandImpression.js
 web/src/brandImpression.test.js
 web/src/filters.js
 web/src/ga4.js
+web/src/logoManifest.js
+web/src/logoManifest.test.js
+web/src/logoSrc.js
 web/src/logos.jsx
 web/src/main.jsx
 web/src/platformIcons.js
@@ -210,8 +217,8 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 88 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 48 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 90 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 53 |
 
 ### Tracker
 
@@ -282,6 +289,9 @@ HTTP 경계:
 | `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `ga4.js` | 임시 GA4 측정 |
+| `logoManifest.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `logoManifest.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `logoSrc.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logos.jsx` | 브랜드와 플랫폼 로고 |
 | `main.jsx` | React와 분석 도구 진입점 |
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |

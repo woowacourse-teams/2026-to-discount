@@ -105,21 +105,28 @@ class OfferConvergenceTest {
     }
 
     @Test
-    void theBannerConditionRidesOnItsOwnTierNotTheWholeOffer() {
-        // 2026-09-12 실측: 피자헛 배민 카드에 10,000원(선착순 핫딜)·7,000·
-        // 6,000이 있는데 "사용(발급X) 선착순"이 사다리 맨 아래 한 줄로 붙어,
-        // 선착순이 아닌 두 구간까지 그렇게 읽혔다.
+    void bannerProseNeverBecomesATierNote() {
+        // 한때 배너 conditions를 그 구간 note로 내렸다가 되돌렸다
+        // (2026-09-12). Banner.displayConditions()는 "extra에서 최소주문
+        // 언급만 뺀 값"이라, 여러 브랜드를 나열한 배너에서는 브랜드 목록이
+        // 그대로 딸려 온다. 라이브에 이런 것들이 나갔다:
+        //
+        //     푸라닭 5,000원   note="푸라닭·던킨"
+        //     빽다방 1,900원   note="(배달 한정)/(픽업 한정)"
+        //
+        // 구간별 조건은 산문이 아니라 구조화된 값에서 와야 한다 — 쿠폰함이
+        // 쿠폰마다 주는 badge가 그것이다(build_couponbox_records).
         OfferRecord bannerRec = new OfferRecord("baemin", "피자헛", 10000, "행사", false,
                 Offer.BANNER_OFFER_TYPE, null, "10,000원", "2026-09-12T00:00:00+09:00", null,
-                24000, null, null, "사용(발급X) 선착순", null, null, "https://link", null, false);
+                24000, null, null, "푸라닭·던킨", null, null, "https://link", null, false);
         OfferRecord ledgerRec = new OfferRecord("baemin", "피자헛", 7000, null, false,
                 "discount", null, "7,000원", "2026-09-11T00:00:00+09:00", "x.jpg",
                 22000, null, null, null, null, null, null, null, false);
 
         Offer merged = Offer.from(bannerRec, TODAY).preferredOver(Offer.from(ledgerRec, TODAY));
 
-        assertNull(merged.conditions(), "오퍼 전체 조건으로 남으면 모든 구간에 걸린다");
-        assertEquals("사용(발급X) 선착순", merged.tiers().get(0).note());
-        assertNull(merged.tiers().get(1).note(), "선착순이 아닌 구간에는 안 붙는다");
+        for (DiscountTier tier : merged.tiers()) {
+            assertNull(tier.note(), "배너 산문은 구간 조건이 아니다");
+        }
     }
 }

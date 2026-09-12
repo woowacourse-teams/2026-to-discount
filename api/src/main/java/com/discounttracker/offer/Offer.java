@@ -188,14 +188,20 @@ public record Offer(String platform, Integer amount, String qualifier,
         // 받을 수 없는 조합을 만든다(ADR-019).
         if (CUMULATIVE_TIER_MODE.equals(loser.tierMode)) return this;
 
-        // 이긴 쪽(배너)의 조건은 **그 구간에만** 걸린다. 오퍼 전체에 두면
-        // 사다리 맨 아래 한 번 찍혀 모든 구간에 걸린 것처럼 보인다 —
-        // 2026-09-12 실측: 피자헛에 10,000원(선착순 핫딜)·7,000·6,000이
-        // 있는데 "사용(발급X) 선착순"이 맨 아래 한 줄로 붙었다.
-        String ownNote = conditions;
+        // **배너 conditions를 구간 note로 내리지 않는다.** 한때 그렇게 했다가
+        // 되돌렸다(2026-09-12). Banner.displayConditions()는 "extra에서
+        // 최소주문 언급만 뺀 값"이라, 단일 브랜드 핫딜에서는 조건이 맞지만
+        // 여러 브랜드를 나열한 배너에서는 **브랜드 목록**이다. 라이브에
+        // 이런 것들이 나갔다:
+        //
+        //     푸라닭 5,000원   note="푸라닭·던킨"
+        //     반올림피자 6,000 note="12시-반올림피자/17시-BBQ, 자담치킨"
+        //     빽다방 1,900원   note="(배달 한정)/(픽업 한정)"   <- 떼고 남은 찌꺼기
+        //
+        // 구간별 조건은 산문이 아니라 구조화된 값에서 와야 한다 — 쿠폰함이
+        // 쿠폰마다 badge를 주므로 그쪽에서 채운다(build_couponbox_records).
         List<DiscountTier> ladder = new java.util.ArrayList<>();
-        ladder.add(new DiscountTier(minOrderAmount, amount, null, null, null, null, null,
-                                    ownNote));
+        ladder.add(new DiscountTier(minOrderAmount, amount, null, null, null, null, null));
         if (loser.tiers != null) {
             // 진 쪽이 이미 택일 사다리면 그 단을 다 살린다. 하나만 남기면
             // 원래 문제(진 쪽이 사라진다)가 그대로다.
@@ -204,10 +210,8 @@ public record Offer(String platform, Integer amount, String qualifier,
             ladder.add(new DiscountTier(loser.minOrderAmount, loser.amount,
                     null, null, null, null, null));
         }
-        // 구간으로 내려간 조건은 오퍼 전체에서 뺀다. 두 자리에 같은 말이
-        // 있으면 읽는 사람이 "전체 조건인가 이 구간 조건인가"를 못 가른다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                minOrderAmount, "exclusive", List.copyOf(ladder), null, expiresAt, badge,
+                minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
                 soldOut, link, membership, fromBanner);
     }
 }

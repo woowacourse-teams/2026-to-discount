@@ -153,7 +153,15 @@ function offerAmountText(offer) {
 // 클래스 이름에 한글이 섞이는 걸 피하려는 것뿐이다. 여기 없는 값이
 // 새로 생기면 회색(plain)으로 떨어진다 — 모르는 표식을 초록으로
 // 띄우는 것보다 낫다.
-const QUALIFIER_TONE = { 최대: 'plain', 특정메뉴: 'menu', 최적: 'optimal' }
+// 배지로 띄우는 qualifier. 여기 없는 값은 안 그린다.
+//
+// "최적"과 "행사"는 뺐다(2026-09-12). 둘 다 **보는 사람에게 할 일을 주지
+// 않는다** — 최적은 쿠폰을 다 겹쳤을 때라는 내부 계산 라벨이고, 행사는
+// 그 브랜드가 배너에 떠 있으면 이미 보인다. 남기면 배지 줄만 길어져
+// 정작 조심해야 할 "불확정"이 묻힌다.
+//
+// 값 자체는 원장·정렬에서 계속 쓴다(filters.js) — 화면에만 안 그린다.
+const QUALIFIER_TONE = { 최대: 'plain', 특정메뉴: 'menu' }
 
 function detailRows(offer) {
   if (offer.tiers?.length > 0) return [...offer.tiers].sort((a, b) => b.amount - a.amount)
@@ -169,7 +177,7 @@ function detailRows(offer) {
 // 칩은 링크가 우선이라 카드 헤더로 펼친다).
 function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero }) {
   const held = offer.status === 'held'
-  const showRangeBadge = offer.qualifier !== null
+  const showRangeBadge = offer.qualifier in QUALIFIER_TONE
   // "최대"는 최소주문금액을 채워야 나오는 상한액이다 — 액면대로 읽히지
   // 않도록 칩 전체를 흐리게 깔아 다른 확정값과 구분한다.
   const capped = offer.qualifier === '최대'
