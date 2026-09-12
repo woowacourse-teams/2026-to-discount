@@ -106,7 +106,7 @@ public class BrandComparisonService {
                     // 파생값을 쓴다 — 그 숫자는 이미 tiers의 minOrder로
                     // 따로 뜬다(사용자 지적, 2026-09-03: 네네치킨 요기요
                     // 실측에서 문턱이 문장과 티어 줄 양쪽에 중복으로 보임).
-                    banner.displayConditions(),
+                    bannerConditions(banner),
                     banner.endsOn().toString(),
                     // 기간 문구를 배지로 올린다 — "오전 11시부터 선착순"이
                     // 안 보이면 아무 때나 받을 수 있는 할인으로 읽힌다.
@@ -148,7 +148,35 @@ public class BrandComparisonService {
         if (text != null && text.contains("최대")) {
             return MAX_QUALIFIER;
         }
+        // 타겟딜은 계정에 따라 뜨기도 하고 안 뜨기도 한다. "행사"로 굳히면
+        // 그 금액이 확정 최고액으로 서서, 보고 온 사람 절반은 화면과 다른
+        // 앱을 만난다 — 2026-09-12 실측: bhc/홍콩반점 8,000원이 번갈아 떴다.
+        // 상한과 같은 성질이라 같은 표식("최대", 화면 배지 "불확정")을 쓴다.
+        if (isTargeted(banner)) {
+            return MAX_QUALIFIER;
+        }
         return compound.isEmpty() ? BANNER_QUALIFIER : CUMULATIVE_QUALIFIER;
+    }
+
+    /** 고객마다 갈리는 딜인가. 배너 문구가 그렇게 적혀 있으면 그렇다. */
+    private static boolean isTargeted(Banner banner) {
+        return banner.extra() != null && banner.extra().contains(TARGETED_MARK);
+    }
+
+    /**
+     * 타겟딜에는 "한정"을 붙인다 — 아무나 받는 것이 아니라는 사실이
+     * 조건 줄에 남아야 한다. 일반 행사에는 안 붙인다(사용자 결정,
+     * 2026-09-12): 행사는 그 기간 누구나 받는 것이라 "한정"이 거짓이 된다.
+     */
+    private static String bannerConditions(Banner banner) {
+        String base = banner.displayConditions();
+        if (!isTargeted(banner)) {
+            return base;
+        }
+        if (base == null) {
+            return LIMITED_MARK;
+        }
+        return base.contains(LIMITED_MARK) ? base : base + " · " + LIMITED_MARK;
     }
 
     private static Integer amountOf(String text) {
@@ -247,6 +275,9 @@ public class BrandComparisonService {
 
     /** 상한액임을 알리는 표식. 원장과 같은 말을 쓴다 — 정렬에서 빠진다. */
     private static final String MAX_QUALIFIER = "최대";
+    /** 배너 문구에 이 말이 있으면 고객마다 갈리는 딜이다. */
+    private static final String TARGETED_MARK = "타겟딜";
+    private static final String LIMITED_MARK = "한정";
 
     /**
      * 확정 오퍼가 카드 정렬(maxConfirmedAmount)에 기여하는 금액.
