@@ -188,8 +188,14 @@ public record Offer(String platform, Integer amount, String qualifier,
         // 받을 수 없는 조합을 만든다(ADR-019).
         if (CUMULATIVE_TIER_MODE.equals(loser.tierMode)) return this;
 
+        // 이긴 쪽(배너)의 조건은 **그 구간에만** 걸린다. 오퍼 전체에 두면
+        // 사다리 맨 아래 한 번 찍혀 모든 구간에 걸린 것처럼 보인다 —
+        // 2026-09-12 실측: 피자헛에 10,000원(선착순 핫딜)·7,000·6,000이
+        // 있는데 "사용(발급X) 선착순"이 맨 아래 한 줄로 붙었다.
+        String ownNote = conditions;
         List<DiscountTier> ladder = new java.util.ArrayList<>();
-        ladder.add(new DiscountTier(minOrderAmount, amount, null, null, null, null, null));
+        ladder.add(new DiscountTier(minOrderAmount, amount, null, null, null, null, null,
+                                    ownNote));
         if (loser.tiers != null) {
             // 진 쪽이 이미 택일 사다리면 그 단을 다 살린다. 하나만 남기면
             // 원래 문제(진 쪽이 사라진다)가 그대로다.
@@ -198,8 +204,10 @@ public record Offer(String platform, Integer amount, String qualifier,
             ladder.add(new DiscountTier(loser.minOrderAmount, loser.amount,
                     null, null, null, null, null));
         }
+        // 구간으로 내려간 조건은 오퍼 전체에서 뺀다. 두 자리에 같은 말이
+        // 있으면 읽는 사람이 "전체 조건인가 이 구간 조건인가"를 못 가른다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
+                minOrderAmount, "exclusive", List.copyOf(ladder), null, expiresAt, badge,
                 soldOut, link, membership, fromBanner);
     }
 }

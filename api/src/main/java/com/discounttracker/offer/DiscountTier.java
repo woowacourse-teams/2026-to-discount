@@ -28,7 +28,28 @@ package com.discounttracker.offer;
  * 하루짜리 청피데이 9,000원이 한 레코드에 같이 있었고, 청피데이가 끝난
  * 2026-08-06에 레코드 단위 만료일만 보고 살아있는 5,000원까지 통째로 내려버렸다.
  * 비어 있으면 레코드의 {@link Offer#expiresAt()}를 따른다.
+ *
+ * <p>{@code note}는 <b>이 구간에만</b> 걸리는 짧은 조건이다("사용(발급X)
+ * 선착순"). 오퍼 전체의 {@link Offer#conditions()}에 적으면 사다리 맨 아래
+ * 한 번 찍혀 <b>모든 구간에 걸린 것처럼 보인다</b> — 2026-09-12 실측: 피자헛
+ * 배민 카드에 10,000원(선착순 핫딜)·7,000원·6,000원 셋이 있는데 "사용(발급X)
+ * 선착순"이 맨 아래 한 줄로 붙어, 선착순이 아닌 두 구간까지 그렇게 읽혔다.
+ *
+ * <p>채널과 같은 자리에 같은 결로 붙인다. 금액 옆에 있어야 어느 구간 얘기인지
+ * 헷갈리지 않는다.
  */
 public record DiscountTier(Integer minOrder, Integer amount, Integer percent, Integer cap,
-                           String channel, Boolean soldOut, String expiresAt) {
+                           String channel, Boolean soldOut, String expiresAt, String note) {
+
+    /** note 없는 구간. 원장에서 오는 대부분이 이쪽이다. */
+    public DiscountTier(Integer minOrder, Integer amount, Integer percent, Integer cap,
+                        String channel, Boolean soldOut, String expiresAt) {
+        this(minOrder, amount, percent, cap, channel, soldOut, expiresAt, null);
+    }
+
+    /** 이 구간에 note를 붙인 사본. */
+    public DiscountTier withNote(String value) {
+        return new DiscountTier(minOrder, amount, percent, cap, channel, soldOut,
+                                expiresAt, value);
+    }
 }

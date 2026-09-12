@@ -103,4 +103,23 @@ class OfferConvergenceTest {
 
         assertNull(merged.tiers(), "겹쳐 쓰는 사다리에는 섞지 않는다");
     }
+
+    @Test
+    void theBannerConditionRidesOnItsOwnTierNotTheWholeOffer() {
+        // 2026-09-12 실측: 피자헛 배민 카드에 10,000원(선착순 핫딜)·7,000·
+        // 6,000이 있는데 "사용(발급X) 선착순"이 사다리 맨 아래 한 줄로 붙어,
+        // 선착순이 아닌 두 구간까지 그렇게 읽혔다.
+        OfferRecord bannerRec = new OfferRecord("baemin", "피자헛", 10000, "행사", false,
+                Offer.BANNER_OFFER_TYPE, null, "10,000원", "2026-09-12T00:00:00+09:00", null,
+                24000, null, null, "사용(발급X) 선착순", null, null, "https://link", null, false);
+        OfferRecord ledgerRec = new OfferRecord("baemin", "피자헛", 7000, null, false,
+                "discount", null, "7,000원", "2026-09-11T00:00:00+09:00", "x.jpg",
+                22000, null, null, null, null, null, null, null, false);
+
+        Offer merged = Offer.from(bannerRec, TODAY).preferredOver(Offer.from(ledgerRec, TODAY));
+
+        assertNull(merged.conditions(), "오퍼 전체 조건으로 남으면 모든 구간에 걸린다");
+        assertEquals("사용(발급X) 선착순", merged.tiers().get(0).note());
+        assertNull(merged.tiers().get(1).note(), "선착순이 아닌 구간에는 안 붙는다");
+    }
 }

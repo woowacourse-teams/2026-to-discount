@@ -323,6 +323,12 @@ function OfferDetail({ offer }) {
                       한다(땡겨요 바른치킨). 어느 쪽에 쓰는 금액인지가
                       금액 바로 옆에 있어야 헷갈리지 않는다. */}
                   {t.channel && <span className="detail__channel">{t.channel}</span>}
+                  {/* 이 구간에만 걸리는 조건("사용(발급X) 선착순"). 오퍼
+                      전체 조건으로 두면 사다리 맨 아래 한 번 찍혀 모든
+                      구간에 걸린 것처럼 보인다 — 피자헛 배민 카드가
+                      그랬다(10,000원만 선착순인데 7,000·6,000까지 그렇게
+                      읽혔다). 채널과 같은 자리, 같은 결로 붙인다. */}
+                  {t.note && <span className="detail__channel">{t.note}</span>}
                 </span>
                 <span className="detail__tier-min">
                   {/* "18,000원 이상 주문 시"는 구간이 여럿이면 같은 문구가
