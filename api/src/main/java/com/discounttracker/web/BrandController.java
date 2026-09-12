@@ -48,13 +48,23 @@ public class BrandController {
         // 배너는 부가 정보다. 대신 깨졌다는 사실을 응답에 실어 보낸다.
         // 건수만 보고 판단하게 두면 "이전 목록 그대로"와 "새 배너가 마침
         // 한 건"이 구분되지 않는다.
-        boolean bannersOk = banners.reload();
+        boolean parsed = banners.reload();
+        // 카탈로그에 없는 브랜드는 로고를 못 찾고 기존 브랜드 카드와도 안
+        // 합쳐진다. 여태 이 목록을 응답에 싣기만 하고 bannersOk는 "YAML이
+        // 읽혔나"만 봤다 — **알리면서 통과시켰다.**
+        //
+        // 2026-09-11~12에 세 번 통과했다: 제목과 내용이 다른 행사, 이름에
+        // 낀 &amp;, 그리고 메뉴 행사가 브랜드로 등록된 것. 셋 다 화면에
+        // 나간 뒤에 사람이 눈으로 찾았다. 초록불이 확인을 멈추게 한다.
+        List<String> unknown = banners.unknownBrands();
+        boolean bannersOk = parsed && unknown.isEmpty();
         return Map.of(
                 "reloaded", offers.findAll().size(),
                 "banners", banners.active().size(),
                 "bannersOk", bannersOk,
-                // 비어 있어야 정상이다. 이름이 있으면 그 배너는 로고를 못 찾고
-                // 기존 브랜드 카드와도 안 합쳐진다 — brands.yml에 별칭 한 줄.
-                "unknownBrands", banners.unknownBrands());
+                // 파일이 깨진 것과 이름을 못 찾은 것은 고칠 자리가 다르다.
+                "bannersParsed", parsed,
+                // 비어 있어야 정상이다 — brands.yml에 별칭 한 줄.
+                "unknownBrands", unknown);
     }
 }

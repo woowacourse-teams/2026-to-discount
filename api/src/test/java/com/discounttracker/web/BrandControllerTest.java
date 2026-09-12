@@ -69,4 +69,20 @@ class BrandControllerTest {
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.reloaded").isNumber());
     }
+
+    /**
+     * 카탈로그에 없는 브랜드가 섞이면 bannersOk가 거짓이어야 한다.
+     *
+     * <p>여태 이 목록을 응답에 싣기만 하고 bannersOk는 "YAML이 읽혔나"만
+     * 봤다 — 알리면서 통과시켰다. 2026-09-11~12에 세 번 통과했고 셋 다
+     * 화면에 나간 뒤 사람이 눈으로 찾았다.
+     */
+    @Test
+    void reloadSeparatesParsedFromUnknownBrands() throws Exception {
+        mvc.perform(post("/api/reload"))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.bannersOk").isBoolean())
+           .andExpect(jsonPath("$.bannersParsed").isBoolean())
+           .andExpect(jsonPath("$.unknownBrands").isArray());
+    }
 }
