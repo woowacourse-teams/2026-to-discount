@@ -1,1 +1,5 @@
 {"date": "2026-09-12", "project": "delivery-discount-web", "quantity": 940638.0, "recorded_at": "2026-09-12", "service": "Edge Requests", "source": "manual", "unit": "requests"}
+{"date": "2026-09-11", "project": "delivery-discount-web", "quantity": 121122.0, "recorded_at": "2026-09-13", "service": "Edge Requests", "source": "manual", "unit": "requests"}
+{"date": "2026-09-13", "project": "delivery-discount-web", "quantity": 4639.0, "recorded_at": "2026-09-13", "service": "Edge Requests", "source": "manual", "unit": "requests"}
+{"date": "2026-09-12", "project": "delivery-discount-web", "quantity": 44965.0, "recorded_at": "2026-09-13", "service": "Edge Requests", "source": "manual", "unit": "requests"}
+{"date": "2026-09-13", "project": "delivery-discount-web", "quantity": 974695.0, "recorded_at": "2026-09-13", "service": "Edge Requests 30일롤링", "source": "manual", "unit": "requests"}

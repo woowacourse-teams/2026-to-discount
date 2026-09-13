@@ -120,16 +120,25 @@ def load_store():
 
 
 def append(rows, apply_):
-    """append-only. 같은 (날짜, 항목, 프로젝트, 출처)는 덮지 않고 건너뛴다.
+    """append-only. **똑같은 값**만 건너뛴다. 값이 다르면 정정으로 받는다.
 
     덮어쓰기를 안 하는 이유는 원장과 같다 — 나중에 값이 달라지면 그 사실
-    자체가 정보이고, 지워 버리면 왜 달랐는지 못 따진다. 대신 이미 있는
-    것은 다시 안 적는다.
+    자체가 정보이고, 지워 버리면 왜 달랐는지 못 따진다.
+
+    예전에는 값을 안 보고 (날짜·항목·프로젝트·출처)만 봐서 **정정을 영영
+    못 적었다.** 2026-09-12에 30일 롤링 합계(940,638)를 그날 하루치 자리에
+    잘못 적었는데, 다음 날 실제 하루치(44,965)를 적으려 하니 "이미 같은
+    값이 있다"며 조용히 버렸다 — 값은 전혀 같지 않았다.
+
+    원장의 규칙과 같게 맞춘다: 정정은 삭제가 아니라 더 늦은 시각의 새
+    관측이고, 읽을 때 늦은 쪽이 이긴다(`latest_rows`).
     """
-    seen = {(r.get("date"), r.get("service"), r.get("project"), r.get("source"))
+    seen = {(r.get("date"), r.get("service"), r.get("project"), r.get("source"),
+             r.get("quantity"))
             for r in load_store()}
     fresh = [r for r in rows
-             if (r["date"], r["service"], r["project"], r["source"]) not in seen]
+             if (r["date"], r["service"], r["project"], r["source"],
+                 r["quantity"]) not in seen]
     if apply_ and fresh:
         os.makedirs(os.path.dirname(STORE), exist_ok=True)
         with open(STORE, "a", encoding="utf-8") as fh:
@@ -201,9 +210,25 @@ def fmt(n):
     return "{:,.0f}".format(n) if n >= 1000 else "{:,.2f}".format(n).rstrip("0").rstrip(".")
 
 
+def latest_rows(rows):
+    """같은 (날짜, 항목, 프로젝트)에 여럿이면 **늦게 적은 것**만 남긴다.
+
+    정정을 받기 시작했으므로 읽는 쪽이 고를 줄 알아야 한다. 안 고르면
+    틀린 값과 고친 값이 둘 다 합계에 들어간다(2026-09-13에 실제로 합계가
+    1,066,399라는 없는 수로 나왔다).
+    """
+    best = {}
+    for r in rows:
+        key = (r.get("date"), r.get("service"), r.get("project"))
+        cur = best.get(key)
+        if cur is None or (r.get("recorded_at") or "") >= (cur.get("recorded_at") or ""):
+            best[key] = r
+    return list(best.values())
+
+
 def show(rows):
     by_service = collections.defaultdict(list)
-    for r in rows:
+    for r in latest_rows(rows):
         by_service[r["service"]].append(r)
     for service in sorted(by_service):
         items = sorted(by_service[service], key=lambda r: r["date"])
