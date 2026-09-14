@@ -344,12 +344,14 @@ class BannerCatalogTest {
     }
 
     @Test
-    void headlineTakesTheLargestOfSlashSeparatedAmounts() {
+    void headlineTakesTheFirstOfSlashSeparatedAmounts() {
         // "8,000/5,000/6,000원" — 시간대별 금액 나열. 원이 맨 뒤에만 붙어
         // "n원"만 찾으면 마지막 6,000이 대표가 됐다(2026-09-14 실측 7건).
+        // 사람이 적은 순서대로 맨 앞이 대표다.
         assertEquals(8000, banner("8,000/5,000/6,000원", null, null).headlineAmount());
         assertEquals(7000, banner("7,000/1,900원", null, null).headlineAmount());
         assertEquals(6000, banner("6,000 / 5,000원", null, null).headlineAmount());
+        assertEquals(5000, banner("5,000/8,000원", null, null).headlineAmount());
         // 나열이 아니면 그대로
         assertEquals(6500, banner("6,500원(4,000+10%)", null, null).headlineAmount());
         assertNull(banner("최대 30%", null, null).headlineAmount());
