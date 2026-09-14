@@ -60,7 +60,13 @@ GOAL = "offer_link_click,banner_click"
 # 이 파일 머리말이 "두 벌로 두면 숫자가 갈라진다"고 스스로 적어 뒀는데
 # 정작 이 목록이 그 꼴이 나 있었다. load()에서 한 번에 걸러 모든 집계가
 # 같은 사람 수를 보게 한다.
-SYNTHETIC = {"v_deploycheck", "v_dev1", "v_dev2", "v_dev3", "v_dev4", "v_verify1"}
+SYNTHETIC = {"v_deploycheck", "v_dev1", "v_dev2", "v_dev3", "v_dev4", "v_verify1",
+             # 이름은 실사용자 꼴이지만 개발 브라우저다(2026-09-14 PostHog 조회).
+             # 한 id가 Mac UA와 devtools의 "Android 15; Pixel 9" UA를 번갈아
+             # 내고 device_type/os가 엇갈린다(Mobile+Mac OS X, Desktop+Android)
+             # — 크롬 반응형 모드다. 09-02 20:14 설문 응답으로 mi000LmqFc0RW를
+             # 받은 것이 이 id라, 그날 "중복 발급 피해자"도 개발자였다.
+             "v_084cba657c823409"}
 
 # 창을 조절한 흔적으로 보는 폭. 폰은 세션 내내 폭이 하나다.
 DESKTOP_WIDTH = 800
