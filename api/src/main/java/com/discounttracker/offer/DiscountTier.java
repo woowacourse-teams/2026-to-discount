@@ -39,17 +39,33 @@ package com.discounttracker.offer;
  * 헷갈리지 않는다.
  */
 public record DiscountTier(Integer minOrder, Integer amount, Integer percent, Integer cap,
-                           String channel, Boolean soldOut, String expiresAt, String note) {
+                           String channel, Boolean soldOut, String expiresAt, String note,
+                           // 이 구간을 받는 데 필요한 멤버십(ADR-029). 채널처럼 같은
+                           // 브랜드의 별개 쿠폰을 가르는 차원이다 — "3,000원 누구나"와
+                           // "8,000원 배민클럽"이 한 오퍼 안에 구간 둘로 산다. tracker
+                           // camelCase 원문("none"/"baeminClub"/…), 없으면 null.
+                           String membership) {
 
-    /** note 없는 구간. 원장에서 오는 대부분이 이쪽이다. */
+    /** membership 없는 구간. 허브·배너에서 만드는 구간이 이쪽이다. */
+    public DiscountTier(Integer minOrder, Integer amount, Integer percent, Integer cap,
+                        String channel, Boolean soldOut, String expiresAt, String note) {
+        this(minOrder, amount, percent, cap, channel, soldOut, expiresAt, note, null);
+    }
+
+    /** note도 membership도 없는 구간. */
     public DiscountTier(Integer minOrder, Integer amount, Integer percent, Integer cap,
                         String channel, Boolean soldOut, String expiresAt) {
-        this(minOrder, amount, percent, cap, channel, soldOut, expiresAt, null);
+        this(minOrder, amount, percent, cap, channel, soldOut, expiresAt, null, null);
     }
 
     /** 이 구간에 note를 붙인 사본. */
     public DiscountTier withNote(String value) {
         return new DiscountTier(minOrder, amount, percent, cap, channel, soldOut,
-                                expiresAt, value);
+                                expiresAt, value, membership);
+    }
+
+    /** 구조화된 멤버십. 구간에 값이 없으면 UNKNOWN. */
+    public Membership membershipTier() {
+        return Membership.from(membership);
     }
 }

@@ -36,6 +36,21 @@ public enum Membership {
         };
     }
 
+    /**
+     * 덜 제한적인 순. 구간에서 오퍼 값을 유도할 때 가장 작은 것을 고른다
+     * (ADR-029). tracker {@code schema.MEMBERSHIP_ORDER}와 같은 순서다 —
+     * enum 선언 순서에 기대지 않는다.
+     */
+    public int restriction() {
+        return switch (this) {
+            case UNKNOWN -> -1;
+            case NONE -> 0;
+            case YOGI_PASS -> 1;
+            case BAEMIN_CLUB -> 2;
+            case COUPANG_EATS -> 3;
+        };
+    }
+
     /** JSON으로 나갈 때는 tracker와 같은 camelCase 키로. */
     public String key() {
         return switch (this) {

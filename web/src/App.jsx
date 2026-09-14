@@ -331,6 +331,16 @@ function OfferDetail({ offer }) {
                       한다(땡겨요 바른치킨). 어느 쪽에 쓰는 금액인지가
                       금액 바로 옆에 있어야 헷갈리지 않는다. */}
                   {t.channel && <span className="detail__channel">{t.channel}</span>}
+                  {/* 이 구간을 받는 데 필요한 멤버십(ADR-029). "3,000원 누구나"와
+                      "8,000원 배민클럽"이 한 오퍼에 구간 둘로 사는데, 카드 대표는
+                      누구나 받는 쪽이라 클럽 값은 여기서만 보인다. 카드 하단
+                      배지와 같은 표식·같은 색을 쓴다 — 새 표식을 만들지 않는다. */}
+                  {t.membership && t.membership !== 'none' && (
+                    <span className="offer__status-badge offer__status-badge--membership detail__tier-membership"
+                          data-platform={offer.platform}>
+                      {MEMBERSHIP_LABEL[offer.platform] ?? t.membership}
+                    </span>
+                  )}
                   {/* 이 구간에만 걸리는 조건("사용(발급X) 선착순"). 오퍼
                       전체 조건으로 두면 사다리 맨 아래 한 번 찍혀 모든
                       구간에 걸린 것처럼 보인다 — 피자헛 배민 카드가

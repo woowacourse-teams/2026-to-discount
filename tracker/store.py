@@ -75,7 +75,15 @@ def _same_coupon(winner: dict, loser: dict) -> bool:
 #
 # 이 목록은 API의 Offer.withDetailFrom과 **글자까지 같아야 한다**(ADR-016).
 # 두 레이어가 다르면 어느 쪽을 거치느냐에 따라 결과가 달라진다.
-MERGEABLE_DETAIL = ("min_order_amount", "tiers", "conditions")
+#   membership은 **화면에 따라** 찍히는 값이다. 쿠폰함엔 표시가 있고(쿠팡
+#   [와우회원전용] 대괄호, 배민 배민클럽 배지) 허브 카드·브랜드관 목록엔 없다.
+#   그래서 표시 없는 화면의 빌더는 이 값을 안 적고(None = 모름), 여기서
+#   쿠폰함 관측을 채운다 — 단 같은 쿠폰(_same_coupon, 금액 동일)일 때만.
+#   허브 확정액은 쿠폰함 값과 같고(2026-09-05 대조), 금액이 다르면 뽑기
+#   구간이라 다른 쿠폰이다. "none"은 관측이라 None이 아니므로 안 덮인다.
+#   2026-09-14: 허브가 기본값 "none"을 찍고 있어서 다음 허브 갱신 때
+#   와우 전용 12곳이 일반 쿠폰으로 설 판이었다.
+MERGEABLE_DETAIL = ("min_order_amount", "tiers", "conditions", "membership")
 
 
 def _prefer(current: dict, incoming: dict) -> dict:

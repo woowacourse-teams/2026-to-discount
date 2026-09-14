@@ -63,9 +63,21 @@ public record OfferRecord(
         return "cumulative".equals(tierMode);
     }
 
-    /** {@link #membership}을 구조화된 값으로. 없으면(null) 제한 없음. */
+    /**
+     * 오퍼의 멤버십. 구간에 값이 있으면 **가장 덜 제한적인 구간**의 값이고,
+     * 없으면 레코드 값이다(ADR-029). 카드 하단 배지와 정렬이 보는 값이라,
+     * 구간 하나라도 누구나 받으면 NONE — 클럽 8,000이 있어도 누구나 3,000을
+     * 받는다면 그 브랜드는 "멤버십 필요"가 아니다. 둘 다 없으면 UNKNOWN.
+     * tracker {@code schema.derive_membership}과 같은 규칙이다.
+     */
     public Membership membershipTier() {
-        return Membership.from(membership);
+        Membership least = null;
+        for (DiscountTier t : tiers == null ? List.<DiscountTier>of() : tiers) {
+            if (t.membership() == null) continue;
+            Membership m = t.membershipTier();
+            if (least == null || m.restriction() < least.restriction()) least = m;
+        }
+        return least != null ? least : Membership.from(membership);
     }
 
     /**

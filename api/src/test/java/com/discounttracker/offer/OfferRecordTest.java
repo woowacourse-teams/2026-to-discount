@@ -118,6 +118,31 @@ class OfferRecordTest {
     }
 
     @Test
+    void membershipIsDerivedFromTheLeastRestrictiveTier() {
+        // "8,000원 배민클럽"과 "3,000원 누구나"가 한 오퍼에 구간 둘로 산다.
+        // 카드 배지·정렬이 보는 오퍼 값은 누구나(NONE)다(ADR-029).
+        List<DiscountTier> tiers = List.of(
+                new DiscountTier(15000, 8000, null, null, null, null, null, null, "baeminClub"),
+                new DiscountTier(15000, 3000, null, null, null, null, null, null, "none"));
+        OfferRecord r = new OfferRecord("baemin", "던킨", 3000, null, false,
+                "discount", null, "3,000원", "2026-09-14T10:00:00+09:00",
+                "x.jpg", 15000, "exclusive", tiers, null, null, null, null, "baeminClub", false);
+        assertEquals(Membership.NONE, r.membershipTier());
+        // 구간이 전부 클럽이면 클럽.
+        OfferRecord club = new OfferRecord("baemin", "던킨", 8000, null, false,
+                "discount", null, "8,000원", "2026-09-14T10:00:00+09:00",
+                "x.jpg", 15000, "exclusive", List.of(tiers.get(0)), null, null, null, null, null, false);
+        assertEquals(Membership.BAEMIN_CLUB, club.membershipTier());
+        // 구간에 값이 없으면 레코드 값.
+        OfferRecord plain = new OfferRecord("baemin", "던킨", 8000, null, false,
+                "discount", null, "8,000원", "2026-09-14T10:00:00+09:00",
+                "x.jpg", 15000, "exclusive",
+                List.of(new DiscountTier(15000, 8000, null, null, null, null, null)),
+                null, null, null, null, "baeminClub", false);
+        assertEquals(Membership.BAEMIN_CLUB, plain.membershipTier());
+    }
+
+    @Test
     void unknownMembershipIsFilledFromTheLosingRecord() {
         // 허브 재캡처(최신, 표시 없음)가 이기고 쿠폰함(옛것, 와우 관측)이
         // 진다. 2026-09-14: 이 병합이 없으면 다음 허브 갱신 때 와우 전용

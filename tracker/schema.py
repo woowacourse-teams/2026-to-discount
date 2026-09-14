@@ -27,12 +27,18 @@ CUMULATIVE_QUALIFIERS = {"최적", "최소"}
 # 표본 수준 검증 통과 군"을 뜻한다. 값은 셋: 파일이 디스크에 없음 /
 # 경로가 기록되지 않음 / 파일은 있으나 화면에 이 행의 브랜드가 없음.
 ALLOWED_EVIDENCE_STATUS = {None, "missing_file", "no_path", "not_in_capture"}
-# 이 오퍼를 받으려면 앱 유료 멤버십이 있어야 하는지. "none"이 기본값이고
-# 일반 사용자도 받을 수 있다는 뜻이다(needs_review·sold_out과 같은 관례 —
-# 필드 부재가 "제한 없음"이지 "확인 안 됨"이 아니다). 지금까지는 이 정보가
-# badge 자유 텍스트("배민클럽" 등)에만 있어 화면 표시용 문구와 필터링 가능한
-# 값이 섞여 있었다. 배지는 그대로 두고 이 필드로 구조화한다.
-ALLOWED_MEMBERSHIP = {"none", "baeminClub", "coupangEats", "yogiPass"}
+# 이 오퍼를 받으려면 앱 유료 멤버십이 있어야 하는지. None이 기본값이고
+# **모른다**는 뜻이다. "none"은 봤는데 제한이 없더라는 관측이다.
+#
+# 한때 기본값이 "none"이었다(needs_review·sold_out처럼 부재 = 제한 없음).
+# 그런데 이 값을 볼 수 있는 화면과 없는 화면이 갈린다 — 쿠팡이츠 쿠폰함은
+# [와우회원전용] 대괄호가 전용 쿠폰에만 붙고, 배민 쿠폰함은 배민클럽 배지가
+# 붙는다. 허브 카드·브랜드관 목록엔 그 표시가 없다. 허브에서 기본값 "none"을
+# 찍으면 그 레코드가 최신이 되는 날 쿠폰함 관측을 덮어 와우 전용이 일반
+# 쿠폰으로 선다(2026-09-14 확인 — 만료일이 같은 경로로 덮이던 09-04 사고와
+# 같은 모양). 표시가 없는 화면은 값을 안 적고, 병합(store.MERGEABLE_DETAIL)이
+# 쿠폰함 관측을 채운다.
+ALLOWED_MEMBERSHIP = {None, "none", "baeminClub", "coupangEats", "yogiPass"}
 
 REQUIRED_FIELDS = (
     "platform", "brand", "raw_text", "captured_at",
@@ -77,8 +83,9 @@ DEFAULTS = {
     # (쿠팡이츠 메가MGC커피·왓더버거·던킨 실측, 2026-08-03). conditions처럼
     # 긴 설명은 아니고 칩에 얹을 한두 단어짜리 라벨만.
     "badge": None,
-    # 이 오퍼를 받으려면 필요한 유료 멤버십. "none"이면 제한 없음.
-    "membership": "none",
+    # 이 오퍼를 받으려면 필요한 유료 멤버십. None = 모름, "none" = 봤는데
+    # 제한 없음(ALLOWED_MEMBERSHIP 주석).
+    "membership": None,
     # 목록 액면 금액(amount)이 통째로(구간 없이) 재고 소진이면 True.
     # tiers가 있는 경우엔 이 최상위 필드 대신 각 tier의 "sold_out"을
     # 쓴다 — amount/min_order_amount는 항상 지금 실제로 받을 수 있는
@@ -87,6 +94,25 @@ DEFAULTS = {
     # 표시해 프론트가 문자열 매칭 없이 바로 취소선을 그릴 수 있게 한다.
     "sold_out": False,
 }
+
+
+# 덜 제한적인 순. 레코드 값은 구간 중 가장 앞의 것이다(ADR-029).
+MEMBERSHIP_ORDER = ("none", "yogiPass", "baeminClub", "coupangEats")
+
+
+def derive_membership(record: dict):
+    """레코드의 membership. 구간이 있으면 **가장 덜 제한적인 구간**의 값.
+
+    카드 하단 배지와 필터가 보는 값이라, 구간 하나라도 누구나 받으면
+    "none"이다 — 클럽 8,000이 있어도 누구나 3,000을 받는다면 그 브랜드는
+    "멤버십 필요"가 아니다. 구간에 membership이 하나도 없으면 빌더가 적은
+    레코드 값 그대로(None이면 모름).
+    """
+    tiers = record.get("tiers") or []
+    seen = [t["membership"] for t in tiers if "membership" in t]
+    if not seen:
+        return record.get("membership")
+    return min(seen, key=MEMBERSHIP_ORDER.index)
 
 
 def validate_tiers(tiers) -> None:
@@ -109,8 +135,18 @@ def validate_tiers(tiers) -> None:
             raise ValueError(f"tier amount must not exceed cap: {tier!r}")
         if "channel" in tier and tier["channel"] not in ALLOWED_CHANNELS:
             raise ValueError(f"invalid tier channel: {tier!r}")
+        # 이 구간을 받는 데 필요한 멤버십. 채널처럼 같은 브랜드의 별개
+        # 쿠폰을 가르는 차원이다(ADR-029). 구간에는 "모름"(None)이 없다 —
+        # 쿠폰함에서 읽은 쿠폰만 구간이 되고, 거기엔 표시가 있다.
+        if "membership" in tier and tier["membership"] not in ALLOWED_MEMBERSHIP - {None}:
+            raise ValueError(f"invalid tier membership: {tier!r}")
         if "sold_out" in tier and not isinstance(tier["sold_out"], bool):
             raise ValueError(f"tier sold_out must be bool: {tier!r}")
+        # 이 구간에만 걸리는 짧은 말("선착순"). 오퍼 전체 conditions에 적으면
+        # 사다리 맨 아래 한 번 찍혀 모든 구간에 걸린 것처럼 보인다
+        # (2026-09-12 피자헛 실측). 산문이 아니라 화면에서 읽은 배지만 넣는다.
+        if "note" in tier and not isinstance(tier["note"], str):
+            raise ValueError(f"tier note must be str: {tier!r}")
         # 구간별 만료일. 한 브랜드의 쿠폰들이 같은 날 끝난다는 보장이 없다 —
         # 청년피자 땡겨요는 상시 5,000원과 하루짜리 청피데이 9,000원이 한
         # 레코드에 같이 있었고, 레코드 만료일 하나만 보고 지웠다가 살아있는
@@ -166,5 +202,6 @@ def validate_record(record: dict) -> dict:
     if normalized.get("evidence_status") not in ALLOWED_EVIDENCE_STATUS:
         raise ValueError(f"invalid evidence_status: {normalized['evidence_status']!r}")
     validate_tiers(normalized["tiers"])
+    normalized["membership"] = derive_membership(normalized)
 
     return normalized

@@ -1672,6 +1672,13 @@ h1 {
 .offer__status-badge--membership[data-platform="coupangeats"] { background: #333; }
 .offer__status-badge--membership[data-platform="ddangyo"] { background: #f5a623; }
 .offer__status-badge--membership[data-platform="yogiyo"] { background: #fa0050; }
+/* 상세 구간 줄 안에서는 채널 표식과 같은 자리·같은 크기로 선다. */
+.detail__tier-membership {
+  margin-left: .3rem;
+  font-size: .68rem;
+  padding: .05rem .4rem;
+  vertical-align: middle;
+}
 
 .platform-badge {
   position: relative;

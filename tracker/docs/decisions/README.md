@@ -29,3 +29,8 @@
 | [ADR-022](ADR-022-no-ledger-only-incident-gate.md) | 사고일 검문을 원장-단독 규칙으로 확장하지 않는다 | 확정 |
 | [ADR-023](ADR-023-estimate-expiry-as-next-monday.md) | 종료일 없는 앱은 수집일 다음 월요일로 추정, 원장엔 안 적는다 | 확정 |
 | [ADR-024](ADR-024-intentional-detail-removal-bypasses-the-guard-by-hand.md) | 의도한 상세 삭제는 서버를 먼저 맞춰 손으로 통과시킨다 | 확정 |
+| [ADR-025](ADR-025-single-source-for-sweep-targets.md) | 순회 대상은 사본이 아니라 `brands.yml`에서 읽는다 | 확정 |
+| [ADR-026](ADR-026-screen-shapes-are-a-union-with-regression-cases.md) | 화면 판독은 모양의 합집합으로, 모양마다 회귀 사례를 남긴다 | 확정 |
+| [ADR-027](ADR-027-extract-logos-from-captured-screens-not-favicons.md) | 로고는 이미 찍어 둔 브랜드 화면에서 오려 쓴다 | 확정 |
+| [ADR-028](ADR-028-today-expiry-is-not-an-observed-end-date.md) | 쿠팡이츠 `오늘 만료`는 종료일 관측이 아니다 — 비워서 추정에 맡긴다 | 확정 |
+| [ADR-029](ADR-029-membership-is-a-tier-dimension.md) | 멤버십은 구간(tier)의 차원이다 — 같은 브랜드 쿠폰을 지우지 않고 구간으로 담고, 레코드 값은 가장 덜 제한적인 구간에서 유도한다 | 확정 |

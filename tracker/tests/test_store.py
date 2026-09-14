@@ -201,6 +201,21 @@ def test_expiry_is_not_pulled_from_an_older_record():
     assert _prefer(old, new).get("expires_at") is None
 
 
+def test_membership_seen_in_the_coupon_box_survives_a_hub_recapture():
+    """허브 카드엔 와우 표시가 없어 빌더가 membership을 안 적는다(None).
+    허브가 최신이 돼 이기더라도 쿠폰함에서 본 관측을 채운다. 관측된
+    "none"은 None이 아니라 안 덮인다. 2026-09-14: 이게 없으면 다음 허브
+    갱신 때 와우 전용 12곳이 일반 쿠폰으로 선다."""
+    box = dict(BASE, platform="coupangeats", brand="BBQ", amount=5000,
+               captured_at="2026-09-13T11:05:00+09:00", membership="coupangEats")
+    hub = dict(BASE, platform="coupangeats", brand="BBQ", amount=5000,
+               captured_at="2026-09-15T07:00:00+09:00", membership=None)
+    assert _prefer(box, hub)["membership"] == "coupangEats"
+
+    seen_none = dict(hub, membership="none")
+    assert _prefer(box, seen_none)["membership"] == "none"
+
+
 def test_detail_behind_a_tap_is_still_pulled_from_an_older_record():
     """최소주문금액은 상세를 열어야 보인다 — 목록 캡처에 없는 게 정상이다."""
     old = dict(BASE, platform="ddangyo", brand="청년피자", amount=5000,

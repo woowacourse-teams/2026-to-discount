@@ -85,7 +85,10 @@ def camel_tiers(tiers):
         item = {"minOrder": t["min_order"], "amount": t["amount"]}
         for snake, camel in (("percent", "percent"), ("channel", "channel"),
                              ("sold_out", "soldOut"), ("expires_at", "expiresAt"),
-                             ("cap", "cap")):
+                             ("cap", "cap"), ("note", "note"),
+                             # 구간을 받는 데 필요한 멤버십(ADR-029). 채널과
+                             # 같은 자리에서 배지로 그린다.
+                             ("membership", "membership")):
             if snake in t:
                 item[camel] = t[snake]
         out.append(item)
@@ -286,7 +289,8 @@ def build_export(records: list[dict], today: str | None = None,
     # 원장은 안 고친다 — 관측 기록이라 append-only다. 내보내는 것만 접는다.
     canon = _canon_brand()
     records = [{**r, "brand": canon.get(r.get("brand"), r.get("brand"))}
-               for r in records]
+               for r in records
+               if canon.get(r.get("brand"), r.get("brand")) not in NOT_BRANDS]
     latest = latest_per_brand(records)
     # 최신 기록만 보면 "메뉴 한정"이 사라진다 — 화면마다 적는 말이 다르고
     # 쿠폰함 목록에는 메뉴가 안 나온다. 원장 전체에서 한 번이라도 밝혀진
@@ -334,6 +338,45 @@ def build_export(records: list[dict], today: str | None = None,
 #   "(순살) 참숯구이 1.5마리 (순살 반마리 증정)"     땡겨요는 메뉴를 나열한다
 MENU_LIMITED = re.compile(r"메뉴할인|메뉴 한정|\d+\s*마리|증정")
 
+# 원장에는 있지만 오퍼로는 안 내보내는 이름.
+#
+# 이 서비스는 "같은 브랜드를 어느 앱에서 시키는 게 싼가"를 견주는 화면이다.
+# 그러려면 이름이 **여러 앱에 걸쳐 같은 것을 가리켜야** 한다. 땡겨요
+# "혜택 > 브랜드쿠폰" 판에는 프랜차이즈 사이에 지역 상권 쿠폰이 섞여
+# 들어오는데(계양산 전통시장 — 인천 계양구 전통시장 배달 쿠폰), 그건
+# 브랜드가 아니라 장소다. 다른 앱에 같은 것이 없으니 견줄 대상이 없고,
+# 그 지역 밖 사용자에게는 아예 못 쓰는 쿠폰이다.
+#
+# 원장에서 지우지 않는다 — 관측은 사실이고 append-only다. 내보내는
+# 자리에서만 뺀다. 나중에 "지역 쿠폰" 칸을 따로 만들면 여기서 풀면 된다.
+NOT_BRANDS = frozenset({"계양산 전통시장"})
+
+
+class _SpacingBlindMap(dict):
+    """정확히 없으면 띄어쓰기를 지우고 한 번 더 찾는 별칭표.
+
+    호출부는 전부 `canon.get(brand, brand)` 한 줄이라 조회 쪽에서 접는 것이
+    맞다 — 표에 변형을 미리 다 넣어 두는 방식은 **조회하는 이름**이 새로
+    띄어써서 오면 그대로 빗나간다.
+    """
+
+    def __init__(self, base: dict):
+        super().__init__(base)
+        # 대표명과 별칭을 띄어쓰기 지운 꼴로도 찾을 수 있게. 사람이 적은
+        # 이름이 항상 이기므로 이미 있는 키는 안 덮는다.
+        self._squashed = {}
+        for key, value in base.items():
+            self._squashed.setdefault("".join(key.split()), value)
+
+    def get(self, key, default=None):                      # type: ignore[override]
+        if key in self:
+            return self[key]
+        if isinstance(key, str):
+            hit = self._squashed.get("".join(key.split()))
+            if hit is not None:
+                return hit
+        return default
+
 
 def _canon_brand() -> dict:
     """별칭 -> 대표명. brands.yml이 없으면 빈 표를 준다.
@@ -360,7 +403,14 @@ def _canon_brand() -> dict:
         out[name] = name
         for a in ((body or {}).get("aliases") or []):
             out[a] = name
-    return out
+
+    # 띄어쓰기만 다른 이름은 별칭을 안 적어도 접는다. 앱마다 같은 브랜드를
+    # 다르게 띄운다 — 쿠팡이츠 쿠폰함은 "후라이드 참 잘하는집"·"스텔라
+    # 떡볶이", 배민은 "후라이드참잘하는집"·"스텔라떡볶이"다(2026-09-12 실측).
+    # 하나씩 별칭으로 적는 방법은 새 이름이 나올 때마다 다시 갈린다.
+    #
+    # 이미 있는 이름은 덮지 않는다 — 사람이 적은 별칭이 항상 이긴다.
+    return _SpacingBlindMap(out)
 
 
 def menu_limited_keys(records: list[dict], as_of: str | None = None) -> set[tuple]:

@@ -254,9 +254,11 @@ def test_validate_record_rejects_invalid_evidence_status():
         validate_record(bad)
 
 
-def test_validate_record_membership_defaults_to_none():
+def test_validate_record_membership_defaults_to_unknown():
+    # None = 그 화면에선 안 보였다. "none"은 쿠폰함에서 본 관측이라 따로 간다.
     record = validate_record(dict(BASE))
-    assert record["membership"] == "none"
+    assert record["membership"] is None
+    assert validate_record(dict(BASE, membership="none"))["membership"] == "none"
 
 
 def test_validate_record_keeps_membership():
