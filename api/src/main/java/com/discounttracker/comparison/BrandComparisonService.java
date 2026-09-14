@@ -15,8 +15,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 원장의 낱개 레코드를 브랜드 단위 비교 결과로 묶는다.
@@ -55,9 +53,6 @@ public class BrandComparisonService {
         return compare(withBanners);
     }
 
-    /** 배너 금액의 맨 앞 "n,nnn원". "최대 30%"처럼 정액이 아니면 안 걸린다. */
-    private static final Pattern BANNER_AMOUNT = Pattern.compile("([0-9][0-9,]*)\s*원");
-
     /**
      * 오늘 띄우는 배너 중 오퍼로 세울 수 있는 것.
      *
@@ -75,7 +70,9 @@ public class BrandComparisonService {
         List<OfferRecord> records = new ArrayList<>();
         for (Banner banner : banners.active()) {
             if (banner.brand() == null) continue;
-            Integer amount = amountOf(banner.amount());
+            // 파서는 Banner 한 곳이다. 여기 따로 두었을 때 "8,000/5,000/6,000원"
+            // 같은 나열에서 둘이 다른 값을 냈다(2026-09-14).
+            Integer amount = banner.headlineAmount();
             if (amount == null) continue;
             List<DiscountTier> compound = banner.compoundTiers();
 
@@ -177,17 +174,6 @@ public class BrandComparisonService {
             return LIMITED_MARK;
         }
         return base.contains(LIMITED_MARK) ? base : base + " · " + LIMITED_MARK;
-    }
-
-    private static Integer amountOf(String text) {
-        if (text == null) return null;
-        Matcher m = BANNER_AMOUNT.matcher(text);
-        if (!m.find()) return null;
-        try {
-            return Integer.valueOf(m.group(1).replace(",", ""));
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 
     /**

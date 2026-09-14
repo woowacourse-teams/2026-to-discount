@@ -181,8 +181,16 @@ public record Banner(
         return stripped.isEmpty() ? null : stripped;
     }
 
-    /** {@code amount}의 맨 앞 "n,nnn원". 정액이 아니면 null. */
-    private static final Pattern HEADLINE = Pattern.compile("([0-9][0-9,]*)\\s*원");
+    /**
+     * {@code amount}의 "n,nnn원". 정액이 아니면 null.
+     *
+     * <p>"8,000/5,000/6,000원"처럼 시간대·가게별 금액을 슬래시로 나열한
+     * 배너가 있다(쿠팡이츠 선착순, 배민 60계치킨). {@code 원}이 맨 뒤에만
+     * 붙어 "n원"만 찾으면 마지막 값이 대표가 된다 — 2026-09-14 실측 7건이
+     * 그렇게 낮은 값으로 서 있었다. 나열 전체를 읽어 가장 큰 값을 쓴다.
+     */
+    private static final Pattern HEADLINE =
+            Pattern.compile("([0-9][0-9,]*(?:\\s*/\\s*[0-9][0-9,]*)*)\\s*원");
 
     /**
      * "4,000+10%" — 정액 뒤에 정률이 붙는다.
@@ -264,11 +272,17 @@ public record Banner(
         return null;
     }
 
-    /** 대표값. "최대 30%"처럼 정액이 아니면 null. */
-    private Integer headlineAmount() {
+    /** 대표 정액. "최대 30%"처럼 정액이 아니면 null. 배너를 오퍼로 세울 때도 이 값이다. */
+    public Integer headlineAmount() {
         if (amount == null) return null;
         Matcher m = HEADLINE.matcher(amount);
-        return m.find() ? digits(m.group(1)) : null;
+        if (!m.find()) return null;
+        Integer best = null;
+        for (String part : m.group(1).split("/")) {
+            Integer v = digits(part.trim());
+            if (v != null && (best == null || v > best)) best = v;
+        }
+        return best;
     }
 
     private static Integer digits(String raw) {
