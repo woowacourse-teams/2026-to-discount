@@ -87,6 +87,109 @@ def sec_retention(people, rows, args, pick=None, note=None):
     return ([note, ""] + out) if note else out
 
 
+# 일 단위 복귀 창. (시작일 오프셋, 끝일 오프셋) — 첫 방문일이 0.
+WINDOWS = (("D1", 1, 1), ("D2–7", 2, 7), ("D8–14", 8, 14))
+
+
+def sec_retention_windows(people, rows, args):
+    """일 단위 창(D1 / D2–7 / D8–14)으로 본 복귀율. 주 코호트별 + 전체.
+
+    **창이 다 지나지 않은 사람은 분모에서도 뺀다.** 어제 처음 온 사람은
+    D8–14에 "안 왔다"가 아니라 "아직 모른다"다. 그런 사람을 분모에 넣으면
+    최근 코호트일수록 복귀율이 낮게 찍혀 하락처럼 읽힌다 — 2026-09-14
+    PostHog 리텐션 표가 그렇게 왜곡돼 보였다. 주 코호트 표(sec_retention)는
+    행 단위로 빈칸을 두는데, 여기서는 사람 단위로 관측 가능 여부를 가른다.
+    창의 끝날이 원장 마지막 날 이하일 때만 그 사람을 센다.
+
+    전체 행은 관측 가능한 사람만 모은 것이라 "지금까지의 진짜 평균"이다.
+    """
+    days = _active_days(people, rows, args)
+    if not days:
+        return ["코호트를 만들 방문자가 없다."]
+    last = max(datetime.date.fromisoformat(d) for ds in days.values() for d in ds)
+    first = {v: min(datetime.date.fromisoformat(d) for d in ds) for v, ds in days.items()}
+
+    # 코호트(첫 주) -> 창 -> [관측 가능 인원, 복귀 인원]
+    coh = collections.defaultdict(lambda: {w[0]: [0, 0] for w in WINDOWS})
+    total = {w[0]: [0, 0] for w in WINDOWS}
+    for vid, f in first.items():
+        ds = {datetime.date.fromisoformat(d) for d in days[vid]}
+        fw = f - datetime.timedelta(days=f.weekday())
+        for name, a, b in WINDOWS:
+            if f + datetime.timedelta(days=b) > last:
+                continue  # 창이 아직 안 닫혔다 — 모른다
+            back = any(f + datetime.timedelta(days=a) <= d <= f + datetime.timedelta(days=b)
+                       for d in ds)
+            for cell in (coh[fw][name], total[name]):
+                cell[0] += 1
+                cell[1] += back
+
+    def fmt(cell):
+        n, k = cell
+        return "—" if n == 0 else "%d/%d (%.1f%%)" % (k, n, k / n * 100)
+
+    out = ["| 첫 주 | 신규 | " + " | ".join(w[0] for w in WINDOWS) + " |",
+           "|---|---|" + "---|" * len(WINDOWS)]
+    new_by_week = collections.Counter(f - datetime.timedelta(days=f.weekday())
+                                      for f in first.values())
+    for fw in sorted(coh):
+        out.append("| %s | %d | %s |" % (
+            fw, new_by_week[fw], " | ".join(fmt(coh[fw][w[0]]) for w in WINDOWS)))
+    out.append("| **전체(관측 가능만)** | %d | %s |" % (
+        len(first), " | ".join(fmt(total[w[0]]) for w in WINDOWS)))
+    out += ["", "셀은 `복귀/관측가능 (비율)`. 창이 아직 안 닫힌 사람은 분모에 없다."]
+    return out
+
+
+WEEKDAYS = ("월", "화", "수", "목", "금", "토", "일")
+
+
+def sec_periodic_return(people, rows, args):
+    """일정 주기나 특정 요일에 돌아오는가.
+
+    이 서비스는 시켜 먹을 때 여는 도구라, 매일이 아니라 **금요일마다**
+    또는 **일주일마다** 오는 사람이 살아 있는 사용자다. 그런 사람은 W+1
+    리텐션이나 DAU에서는 안 보인다. 활동일 3일 이상인 사람만 본다 —
+    둘로는 주기를 말할 수 없다.
+
+    - 주간 주기: 활동일 간격의 중앙값이 6~8일
+    - 요일 집중: 활동일의 최빈 요일이 전체 활동일의 60% 이상
+    """
+    days = _active_days(people, rows, args)
+    multi = {v: sorted(datetime.date.fromisoformat(d) for d in ds)
+             for v, ds in days.items() if len(ds) >= 3}
+    if not multi:
+        return ["활동일 3일 이상인 사람이 없다."]
+
+    weekly, by_weekday = set(), {}
+    return_weekday = collections.Counter()
+    for vid, ds in multi.items():
+        gaps = sorted((b - a).days for a, b in zip(ds, ds[1:]))
+        med = gaps[len(gaps) // 2]
+        if 6 <= med <= 8:
+            weekly.add(vid)
+        wd = collections.Counter(d.weekday() for d in ds)
+        top, k = wd.most_common(1)[0]
+        if k / len(ds) >= 0.6:
+            by_weekday[vid] = top
+        for d in ds[1:]:
+            return_weekday[d.weekday()] += 1
+
+    n = len(multi)
+    out = ["- 활동일 3일 이상 **%d명**" % n,
+           "  - 주간 주기(간격 중앙값 6~8일) **%d명 (%.1f%%)**" % (len(weekly), len(weekly) / n * 100),
+           "  - 특정 요일 집중(최빈 요일 60%%↑) **%d명 (%.1f%%)**" % (len(by_weekday), len(by_weekday) / n * 100)]
+    if by_weekday:
+        c = collections.Counter(by_weekday.values())
+        out.append("    - 집중 요일: " + ", ".join("%s %d명" % (WEEKDAYS[w], k) for w, k in c.most_common()))
+    out += ["", "| 재방문 요일 | 활동일 수 | 비중 |", "|---|---|---|"]
+    tot = sum(return_weekday.values()) or 1
+    for w in range(7):
+        out.append("| %s | %d | %.1f%% |" % (WEEKDAYS[w], return_weekday[w], return_weekday[w] / tot * 100))
+    out += ["", "재방문 요일은 첫 방문일을 뺀 활동일이다 — 첫날은 유입 요일이지 복귀 요일이 아니다."]
+    return out
+
+
 def sec_retention_by_device(people, rows, args):
     """폰과 데스크톱을 갈라 본 복귀율.
 
@@ -572,6 +675,8 @@ def sec_features(people, rows, args):
 SECTIONS = (
     ("리텐션 — 주 코호트별 복귀율", sec_retention),
     ("리텐션 — 기기별", sec_retention_by_device),
+    ("리텐션 — 일 단위 창(D1 / D2–7 / D8–14), 관측 가능한 사람만", sec_retention_windows),
+    ("리텐션 — 주기·요일 복귀", sec_periodic_return),
     ("재사용 — 활동일수와 주별 충성도", sec_loyalty),
     ("재사용 — 다시 오기까지의 간격", sec_cadence),
     ("실질 사용자 — 크롤러·개발 트래픽을 뺀 하루치", sec_real_users),

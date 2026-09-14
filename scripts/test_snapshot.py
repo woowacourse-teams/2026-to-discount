@@ -57,6 +57,37 @@ def test_past_week_without_return_is_zero():
     assert "0 (0.0%)" in out  # 08-24 코호트의 W+1
 
 
+def test_unclosed_windows_are_left_out_of_the_denominator():
+    """어제 처음 온 사람은 D8–14에 "안 왔다"가 아니라 "모른다"다.
+
+    분모에 넣으면 최근 코호트일수록 낮게 찍혀 하락처럼 읽힌다
+    (2026-09-14, PostHog 리텐션 표). 원장 마지막 날이 09-10이면
+    09-01 첫 방문자는 D8–14(09-09~09-15)가 아직 안 닫혔다.
+    """
+    rs = rows(("2026-08-01", "v1", "page_view"),   # D1·D2–7·D8–14 전부 닫힘
+              ("2026-08-02", "v1", "page_view"),   # D1 복귀
+              ("2026-08-10", "v1", "page_view"),   # D8–14 복귀
+              ("2026-09-01", "v2", "page_view"),   # D8–14 안 닫힘
+              ("2026-09-10", "v3", "page_view"))   # 아무 창도 안 닫힘
+    out = "\n".join(sn.sec_retention_windows(people_for(rs), rs, ARGS))
+
+    # 전체 행: D1은 v1·v2만 관측 가능(v3는 09-11이 원장 밖), D8–14는 v1만.
+    assert "| **전체(관측 가능만)** | 3 | 1/2 (50.0%) | 0/2 (0.0%) | 1/1 (100.0%) |" in out
+
+
+def test_weekly_and_weekday_returners_are_counted():
+    """금요일마다 오는 사람은 W+1 표엔 없고 여기엔 있어야 한다."""
+    fridays = ["2026-08-07", "2026-08-14", "2026-08-21", "2026-08-28"]
+    rs = rows(*[(d, "v1", "page_view") for d in fridays],
+              ("2026-08-01", "v2", "page_view"), ("2026-08-02", "v2", "page_view"),
+              ("2026-08-03", "v2", "page_view"))
+    out = "\n".join(sn.sec_periodic_return(people_for(rs), rs, ARGS))
+
+    assert "주간 주기(간격 중앙값 6~8일) **1명" in out
+    assert "특정 요일 집중(최빈 요일 60%↑) **1명" in out
+    assert "집중 요일: 금 1명" in out
+
+
 def test_amount_band_edges():
     band = lambda w: next(n for lo, hi, n in sn.BANDS if lo <= w < hi)
 
