@@ -153,8 +153,8 @@ function BannerCard({ banner, position, onClose, onSeen }) {
             눈이 왼쪽 로고에서 오른쪽으로 한 번만 건너간다 — 금액과
             설명이 좌우로 갈라져 있으면 두 번 건너가야 했다. */}
         <span className="banner__text">
-          {/* 금액 / 브랜드·기간 / 조건 — 폭과 무관하게 세 줄(App.css
-              .banner__headline). 조건은 길이가 들쭉날쭉해 맨 아래다. */}
+          {/* 금액·브랜드 / 기간 / 조건 — 폭과 무관하게 세 줄(App.css
+              .banner__when). 조건은 길이가 들쭉날쭉해 맨 아래다. */}
           <span className="banner__headline">
             <span className="banner__amount">{banner.amount}</span>
             {/* 로고만으로는 어느 브랜드인지 안 읽힌다 — 로고 파일이 없으면
@@ -164,10 +164,13 @@ function BannerCard({ banner, position, onClose, onSeen }) {
             <span className="banner__brand">
               {banner.brand ?? platform?.label ?? banner.platform}
             </span>
-            <span className="banner__period">{banner.period}</span>
-            {/* 다 나갔어도 배너는 남긴다. 사라지면 "원래 없었나" 싶고,
-                남아 있으면 "오늘은 늦었다"가 읽혀 내일 일찍 오게 된다. */}
-            {banner.soldOut && <span className="banner__soldout">오늘 소진</span>}
+            {/* 기간은 둘째 줄을 통째로 쓴다(App.css .banner__when). */}
+            <span className="banner__when">
+              <span className="banner__period">{banner.period}</span>
+              {/* 다 나갔어도 배너는 남긴다. 사라지면 "원래 없었나" 싶고,
+                  남아 있으면 "오늘은 늦었다"가 읽혀 내일 일찍 오게 된다. */}
+              {banner.soldOut && <span className="banner__soldout">오늘 소진</span>}
+            </span>
           </span>
           {banner.extra && <span className="banner__extra">{banner.extra}</span>}
         </span>
