@@ -63,6 +63,30 @@ class BannerCatalogTest {
     }
 
     @Test
+    void aBannerCanCarrySeveralBrandsAndTheFirstIsTheRepresentative() {
+        // 2026-09-15: 쿠팡이츠 60계·처갓집·반올림이 같은 8,000원이라 한 장으로
+        // 띄우는데, brand 하나만 그리면 나머지 둘이 눈에 안 띈다.
+        String yaml = """
+            banners:
+              - id: ce-8000
+                platform: coupangeats
+                url: https://x
+                amount: "8,000원"
+                period: 이번 주
+                brands: [60계치킨, 처갓집양념치킨, 반올림피자]
+                startsOn: 2026-09-15
+                endsOn: 2026-09-20
+            """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-15");
+        Banner b = catalog.active().get(0);
+        assertEquals(List.of("60계치킨", "처갓집양념치킨", "반올림피자"), b.brands());
+        assertEquals("60계치킨", b.brand());
+        assertEquals(b.brands(), b.allBrands());
+        // brands 없는 배너는 brand 하나가 전부다.
+        assertEquals(List.of("교촌치킨"), banner("1원", null, null).allBrands());
+    }
+
+    @Test
     void keepsPreviousBannersWhenAReloadFails() {
         // 고치려다 더 깨뜨렸을 때, 멀쩡히 떠 있던 배너까지 사라지면 안 된다.
         BannerCatalog catalog = catalogOn(YAML, "2026-08-11");

@@ -37,6 +37,12 @@ import java.util.regex.Pattern;
  *                  것이 다른 소식이기 때문이다 — "오늘은 늦었다"를 알아야
  *                  내일 일찍 온다.
  * @param priority 낮을수록 먼저. 안 적으면 {@link #DEFAULT_PRIORITY}.
+ * @param brands   한 장에 묶인 브랜드들(선택). 같은 행사를 여러 브랜드가 같은
+ *                 금액으로 할 때 한 장으로 띄우려고 둔다(2026-09-15: 쿠팡이츠
+ *                 60계·처갓집·반올림 8,000원). 프론트가 로고를 여럿 그린다.
+ *                 비어 있으면 {@code brand} 하나다. {@code brand}는 비교 카드에
+ *                 얹을 때와 색을 뽑을 때 쓰는 대표 브랜드로 남는다 — 안 적으면
+ *                 첫 번째가 대표다.
  */
 public record Banner(
         String id,
@@ -52,9 +58,25 @@ public record Banner(
         LocalDate endsOn,
         Boolean soldOut,
         LocalDate soldOutOn,
-        int priority) {
+        int priority,
+        List<String> brands) {
 
     static final int DEFAULT_PRIORITY = 999;
+
+    /** 옛 호출부(brands 없음)를 위한 생성자. */
+    public Banner(String id, String brand, String platform, String url, String amount,
+                  String period, String extra, Integer minOrder, String color,
+                  LocalDate startsOn, LocalDate endsOn, Boolean soldOut,
+                  LocalDate soldOutOn, int priority) {
+        this(id, brand, platform, url, amount, period, extra, minOrder, color,
+                startsOn, endsOn, soldOut, soldOutOn, priority, null);
+    }
+
+    /** 이 배너가 덮는 브랜드 전부 — brands가 있으면 그것, 없으면 brand 하나. */
+    public List<String> allBrands() {
+        if (brands != null && !brands.isEmpty()) return brands;
+        return brand == null ? List.of() : List.of(brand);
+    }
 
     /** 그날 다 나갔나. 기간 전체를 덮는 soldOut과 그날치 soldOutOn 중 하나면 참. */
     public boolean soldOutOn(LocalDate today) {
@@ -67,7 +89,7 @@ public record Banner(
         return Boolean.valueOf(out).equals(soldOut) && soldOutOn == null
                 ? this
                 : new Banner(id, brand, platform, url, amount, period, extra, minOrder,
-                        color, startsOn, endsOn, out, null, priority);
+                        color, startsOn, endsOn, out, null, priority, brands);
     }
 
     /**

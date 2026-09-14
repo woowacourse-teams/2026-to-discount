@@ -135,7 +135,14 @@ function BannerCard({ banner, position, onClose, onSeen }) {
             "이 브랜드를 이 앱에서"가 한 눈에 읽힌다. 앱 전체 행사면
             로고 자리에 이미 같은 아이콘이 있으니 겹쳐 그리지 않는다. */}
         <span className="banner__logo">
-          {banner.brand
+          {banner.brands?.length > 1 ? (
+            /* 한 장에 묶인 브랜드. 로고를 나란히 그려 "누구누구가"를 한
+               번에 읽게 한다 — 대표 하나만 그리면 나머지가 안 보인다
+               (2026-09-15 쿠팡이츠 60계·처갓집·반올림 8,000원). 넷까지만. */
+            <span className="banner__logos">
+              {banner.brands.slice(0, 4).map((name) => <BrandLogo key={name} name={name} />)}
+            </span>
+          ) : banner.brand
             ? <BrandLogo name={banner.brand} />
             : (
               <span className="brand-logo brand-logo--platform">
@@ -162,7 +169,9 @@ function BannerCard({ banner, position, onClose, onSeen }) {
                 기간 왼쪽에 붙여 "누구를 언제까지"가 한 호흡에 읽히게 한다.
                 앱 전체 행사(brand 없음)면 앱 이름을 대신 쓴다. */}
             <span className="banner__brand">
-              {banner.brand ?? platform?.label ?? banner.platform}
+              {banner.brands?.length > 1
+                ? banner.brands.join(' · ')
+                : (banner.brand ?? platform?.label ?? banner.platform)}
             </span>
             {/* 기간은 둘째 줄을 통째로 쓴다(App.css .banner__when). */}
             <span className="banner__when">

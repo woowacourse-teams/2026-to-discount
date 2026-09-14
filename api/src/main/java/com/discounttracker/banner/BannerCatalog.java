@@ -82,7 +82,7 @@ public class BannerCatalog {
         try {
             all = read();
             unknownBrands = all.stream()
-                    .map(Banner::brand)
+                    .flatMap(b -> b.allBrands().stream())
                     .filter(b -> b != null && !brands.knows(b))
                     .distinct()
                     .toList();
@@ -173,6 +173,15 @@ public class BannerCatalog {
         // 대소문자만 다르면 여전히 못 잡는다. 그때는 brands.yml에 그 표기를
         // 별칭으로 한 줄 더 적는다.
         String brand = text(attrs.get("brand"));
+        // brands: [a, b, c] — 한 장에 묶인 브랜드. 대표(brand)를 안 적었으면
+        // 첫 번째가 대표다.
+        List<String> many = null;
+        if (attrs.get("brands") instanceof List<?> raw) {
+            many = raw.stream().map(BannerCatalog::text)
+                    .filter(s -> s != null).map(brands::canonical).toList();
+            if (many.isEmpty()) many = null;
+            if (brand == null && many != null) brand = many.get(0);
+        }
         return new Banner(
                 id,
                 brand == null ? null : brands.canonical(brand),
@@ -187,7 +196,8 @@ public class BannerCatalog {
                 endsOn,
                 flag(attrs.get("soldOut")),
                 date(attrs.get("soldOutOn")),
-                priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY);
+                priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY,
+                many);
     }
 
     /** yes/true/1 무엇으로 적어도 참으로 읽는다. 손으로 고치는 파일이다. */
