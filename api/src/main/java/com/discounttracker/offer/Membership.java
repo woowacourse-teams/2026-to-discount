@@ -7,33 +7,39 @@ package com.discounttracker.offer;
  * 에만 있었다 — 화면에 찍히는 문구와 필터링 가능한 값이 섞여 있었다는 뜻이다.
  * {@code badge}는 문구 그대로 유지하고, 이 값이 구조화된 쪽이다.
  *
- * <p>{@link #NONE}이 기본값이고 일반 사용자도 받을 수 있다는 뜻이다 —
- * {@code sold_out}·{@code needs_review}처럼 필드 부재가 "확인 안 됨"이 아니라
- * "제한 없음"이다({@code tracker/schema.py}의 {@code ALLOWED_MEMBERSHIP} 주석 참고).
+ * <p>{@link #UNKNOWN}이 기본값이고 "이 화면에선 안 보인다"는 뜻이다.
+ * {@link #NONE}은 봤는데 제한이 없더라는 관측이다. 쿠폰함엔 표시가 있고
+ * (쿠팡 [와우회원전용], 배민 배민클럽 배지) 허브 카드·브랜드관 목록엔 없다 —
+ * 표시 없는 화면이 "none"을 적으면 쿠폰함 관측을 덮는다
+ * ({@code tracker/schema.py}의 {@code ALLOWED_MEMBERSHIP} 주석 참고).
+ * JSON으로는 둘 다 "none"으로 나간다 — 화면은 배지를 안 그리면 그만이고,
+ * 구분이 필요한 곳은 아직 없다.
  */
 public enum Membership {
+    UNKNOWN,
     NONE,
     BAEMIN_CLUB,
     COUPANG_EATS,
     YOGI_PASS;
 
-    /** export.json의 camelCase 값을 enum으로. 모르는 값이거나 없으면 NONE. */
+    /** export.json의 camelCase 값을 enum으로. 없으면 UNKNOWN, "none"이면 NONE. */
     public static Membership from(String raw) {
         if (raw == null || raw.isBlank()) {
-            return NONE;
+            return UNKNOWN;
         }
         return switch (raw) {
+            case "none" -> NONE;
             case "baeminClub" -> BAEMIN_CLUB;
             case "coupangEats" -> COUPANG_EATS;
             case "yogiPass" -> YOGI_PASS;
-            default -> NONE;
+            default -> UNKNOWN;
         };
     }
 
     /** JSON으로 나갈 때는 tracker와 같은 camelCase 키로. */
     public String key() {
         return switch (this) {
-            case NONE -> "none";
+            case UNKNOWN, NONE -> "none";
             case BAEMIN_CLUB -> "baeminClub";
             case COUPANG_EATS -> "coupangEats";
             case YOGI_PASS -> "yogiPass";

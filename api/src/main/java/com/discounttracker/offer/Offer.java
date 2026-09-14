@@ -142,7 +142,13 @@ public record Offer(String platform, Integer amount, String qualifier,
                 : sameCoupon ? other.tiers : null;
         String mergedConditions = conditions != null ? conditions
                 : sameCoupon ? other.conditions : null;
-        if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions) {
+        // membership은 화면에 따라 찍힌다 — 쿠폰함엔 있고 허브 카드엔 없다.
+        // 허브가 이기면 UNKNOWN이라 쿠폰함 관측을 채운다. NONE은 관측이라
+        // 안 덮인다. tracker store.MERGEABLE_DETAIL과 같다(ADR-016).
+        Membership mergedMembership = membership != Membership.UNKNOWN ? membership
+                : sameCoupon && other.membership != null ? other.membership : membership;
+        if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions
+                && mergedMembership == membership) {
             return this;
         }
         // soldOut은 병합하지 않는다 — 이긴 쪽 자신의 amount에 매인 상태라
@@ -151,11 +157,9 @@ public record Offer(String platform, Integer amount, String qualifier,
         // link도 병합하지 않는다. 진 쪽 링크는 그쪽 금액으로 가는 길이라,
         // 이긴 금액에 붙이면 화면에 적힌 값과 눌러서 가는 곳이 어긋난다.
         //
-        // membership도 badge와 같은 이유로 병합하지 않는다 — 목록 카드에
-        // 찍히는 값이라 최신 캡처에 없으면 "못 봤다"가 아니라 "없어졌다"다.
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, badge, soldOut,
-                link, membership, fromBanner);
+                link, mergedMembership, fromBanner);
     }
 
     /**

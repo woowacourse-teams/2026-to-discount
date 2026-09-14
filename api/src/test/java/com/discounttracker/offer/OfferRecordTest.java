@@ -108,10 +108,32 @@ class OfferRecordTest {
     }
 
     @Test
-    void missingMembershipNormalizesToNone() {
-        // tracker가 membership을 실어 보내기 전의 export.json 행은 이 필드
-        // 자체가 없다. 없으면 "확인 안 됨"이 아니라 "제한 없음"이다.
-        assertEquals(Membership.NONE, record(4000, null, null).membershipTier());
+    void missingMembershipIsUnknownNotNone() {
+        // 필드가 없으면 "그 화면에선 안 보였다"다 — 허브 카드·브랜드관엔
+        // 멤버십 표시가 없다. "none"은 쿠폰함에서 본 관측이라 따로 간다.
+        // 둘 다 JSON으로는 "none"이라 화면은 배지를 안 그린다.
+        assertEquals(Membership.UNKNOWN, record(4000, null, null).membershipTier());
+        assertEquals("none", Membership.UNKNOWN.key());
+        assertEquals(Membership.NONE, Membership.from("none"));
+    }
+
+    @Test
+    void unknownMembershipIsFilledFromTheLosingRecord() {
+        // 허브 재캡처(최신, 표시 없음)가 이기고 쿠폰함(옛것, 와우 관측)이
+        // 진다. 2026-09-14: 이 병합이 없으면 다음 허브 갱신 때 와우 전용
+        // 12곳이 일반 쿠폰으로 선다.
+        Offer hub = Offer.from(new OfferRecord("coupangeats", "BBQ", 5000, null, false,
+                "discount", null, "5,000원할인", "2026-09-15T07:00:00+09:00",
+                "x.png", null, null, null, null, null, null, null, null, false), java.time.LocalDate.parse("2026-09-15"));
+        Offer box = Offer.from(new OfferRecord("coupangeats", "BBQ", 5000, null, false,
+                "discount", null, "5,000원할인", "2026-09-13T11:05:00+09:00",
+                "y.png", 15000, null, null, null, null, null, null, "coupangEats", false), java.time.LocalDate.parse("2026-09-15"));
+        assertEquals(Membership.COUPANG_EATS, hub.preferredOver(box).membership());
+        // 관측된 "none"은 안 덮인다 — 봤는데 없더라는 사실이다.
+        Offer boxNone = Offer.from(new OfferRecord("coupangeats", "BBQ", 5000, null, false,
+                "discount", null, "5,000원할인", "2026-09-15T11:05:00+09:00",
+                "z.png", 15000, null, null, null, null, null, null, "none", false), java.time.LocalDate.parse("2026-09-15"));
+        assertEquals(Membership.NONE, boxNone.preferredOver(box).membership());
     }
 
     @Test
@@ -123,11 +145,11 @@ class OfferRecordTest {
     }
 
     @Test
-    void unknownMembershipValueNormalizesToNone() {
-        // 판독 오류로 이상한 값이 들어와도 안 죽고 제한 없음으로 본다.
+    void unrecognizedMembershipValueNormalizesToUnknown() {
+        // 판독 오류로 이상한 값이 들어와도 안 죽고 "모름"으로 본다.
         OfferRecord r = new OfferRecord("baemin", "던킨", 4000, null, false,
                 "discount", null, "4,000원", "2026-08-31T10:00:00+09:00",
                 "x.jpg", null, null, null, null, null, null, null, "premium", false);
-        assertEquals(Membership.NONE, r.membershipTier());
+        assertEquals(Membership.UNKNOWN, r.membershipTier());
     }
 }
