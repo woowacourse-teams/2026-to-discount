@@ -1827,7 +1827,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 구간마다 끝나는 날이 다를 때만 붙는다(오퍼 만료일과 같으면 생략) —
    조건 문구 옆에 작게 얹어 어느 쿠폰이 먼저 끝나는지 보이게 한다. */
 .detail__tier-expiry {
-  margin-left: .35rem;
+  margin-right: .35rem;   /* 최소주문금액 앞에 선다 */
   font-size: .75em;
   color: var(--pending-text);
 }
