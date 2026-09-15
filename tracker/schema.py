@@ -39,6 +39,16 @@ ALLOWED_EVIDENCE_STATUS = {None, "missing_file", "no_path", "not_in_capture"}
 # 같은 모양). 표시가 없는 화면은 값을 안 적고, 병합(store.MERGEABLE_DETAIL)이
 # 쿠폰함 관측을 채운다.
 ALLOWED_MEMBERSHIP = {None, "none", "baeminClub", "coupangEats", "yogiPass"}
+# 사람의 "제외" 판단(ADR-030). 관측이 아니라 판단이라 필드를 따로 둔다 —
+# 만료일을 거짓으로 적거나 행을 지우지 않는다. 값은 dict:
+#   {"reason": <아래 중 하나>, "note": 자유문|None, "by": 누가, "at": 시각}
+#   misread   잘못 읽음. 다음 관측이 밀어낸다(지속 안 함)
+#   limited   메뉴·지역·시간 한정이라 비교 대상이 아님. 지속
+#   targeted  계정별 타겟딜. 다른 계정엔 없음. 지속
+#   duplicate 같은 쿠폰이 다른 표기로 또 들어옴. 지속
+# "지속"은 store._prefer에서 같은 쿠폰의 이후 자동 관측을 이긴다는 뜻.
+EXCLUSION_REASONS = {"misread", "limited", "targeted", "duplicate"}
+PERSISTENT_EXCLUSIONS = {"limited", "targeted", "duplicate"}
 
 REQUIRED_FIELDS = (
     "platform", "brand", "raw_text", "captured_at",
@@ -155,6 +165,16 @@ def validate_tiers(tiers) -> None:
             raise ValueError(f"tier expires_at must be YYYY-MM-DD: {tier!r}")
 
 
+def validate_exclusion(excluded) -> None:
+    """`excluded`는 없거나(None) reason이 든 dict다. 사람 판단이므로 manual에만 허용."""
+    if excluded is None:
+        return
+    if not isinstance(excluded, dict):
+        raise ValueError(f"excluded must be a dict: {excluded!r}")
+    if excluded.get("reason") not in EXCLUSION_REASONS:
+        raise ValueError(f"invalid excluded.reason: {excluded.get('reason')!r}")
+
+
 def validate_record(record: dict) -> dict:
     missing = [f for f in REQUIRED_FIELDS if f not in record]
     if missing:
@@ -165,6 +185,8 @@ def validate_record(record: dict) -> dict:
 
     if record["capture_mode"] not in ALLOWED_CAPTURE_MODES:
         raise ValueError(f"invalid capture_mode: {record['capture_mode']!r}")
+    if record.get("excluded") is not None and record["capture_mode"] != "manual":
+        raise ValueError("excluded is a human judgement: capture_mode must be 'manual'")
 
     normalized = dict(DEFAULTS)
     normalized.update(record)
@@ -201,6 +223,7 @@ def validate_record(record: dict) -> dict:
 
     if normalized.get("evidence_status") not in ALLOWED_EVIDENCE_STATUS:
         raise ValueError(f"invalid evidence_status: {normalized['evidence_status']!r}")
+    validate_exclusion(normalized.get("excluded"))
     validate_tiers(normalized["tiers"])
     normalized["membership"] = derive_membership(normalized)
 

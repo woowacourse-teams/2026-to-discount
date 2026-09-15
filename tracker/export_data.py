@@ -298,6 +298,10 @@ def build_export(records: list[dict], today: str | None = None,
     menu_keys = menu_limited_keys(records, as_of=today)
     out = []
     for record in latest.values():
+        # 사람이 제외한 것(ADR-030). 원장엔 남고 화면엔 안 나간다 — 승자가
+        # 제외 행이면 그 (앱, 브랜드)는 통째로 빠진다.
+        if record.get("excluded"):
+            continue
         if not is_live(record, today) or is_stale_sweep(record, sweeps):
             continue
         item = {camel: record.get(snake) for snake, camel in FIELDS}

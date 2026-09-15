@@ -2,7 +2,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from schema import validate_record
+from schema import PERSISTENT_EXCLUSIONS, validate_record
 
 
 def append_record(record: dict, log_path: Path) -> dict:
@@ -86,6 +86,23 @@ def _same_coupon(winner: dict, loser: dict) -> bool:
 MERGEABLE_DETAIL = ("min_order_amount", "tiers", "conditions", "membership")
 
 
+def _exclusion_holds(judged: dict, other: dict) -> bool:
+    """`judged`의 제외 판단이 `other`를 이기는가(ADR-030).
+
+    지속형 제외(limited·targeted·duplicate)는 같은 쿠폰(_same_coupon)의 **이후
+    자동 관측**을 이긴다 — 그렇지 않으면 다음 날 수집이 되살린다(2026-09-15
+    배너 사례 Z와 같은 꼴). 사람이 다시 넣은 manual 행은 이기지 못한다 —
+    그게 되살리기다. misread는 여기 안 든다: 다음 관측이 정정이다.
+    다른 금액이 오면 다른 쿠폰이라 판단이 안 미친다.
+    """
+    ex = judged.get("excluded")
+    if not ex or ex.get("reason") not in PERSISTENT_EXCLUSIONS:
+        return False
+    if other.get("excluded") or other.get("capture_mode") == "manual":
+        return False
+    return _same_coupon(judged, other)
+
+
 def _prefer(current: dict, incoming: dict) -> dict:
     """같은 (앱, 브랜드)에 레코드가 둘 이상이면 남길 쪽을 고른다.
 
@@ -106,6 +123,12 @@ def _prefer(current: dict, incoming: dict) -> dict:
     꾸브라꼬숯불치킨 실측(2026-07-31)에서 실제로 이렇게 막혀 원문이
     사라졌었다.
     """
+    # 제외 판단이 먼저다(ADR-030). 확정·최신 규칙보다 앞에 두는 이유는 그
+    # 규칙들이 "관측끼리"의 우열이고, 제외는 관측이 아니라 판단이기 때문이다.
+    if _exclusion_holds(current, incoming):
+        return dict(current)
+    if _exclusion_holds(incoming, current):
+        return dict(incoming)
     current_confirmed = _is_confirmed(current)
     incoming_confirmed = _is_confirmed(incoming)
     if current_confirmed != incoming_confirmed:
