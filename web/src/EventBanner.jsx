@@ -136,11 +136,13 @@ function BannerCard({ banner, position, onClose, onSeen }) {
             로고 자리에 이미 같은 아이콘이 있으니 겹쳐 그리지 않는다. */}
         <span className="banner__logo">
           {banner.brands?.length > 1 ? (
-            /* 한 장에 묶인 브랜드. 로고를 나란히 그려 "누구누구가"를 한
-               번에 읽게 한다 — 대표 하나만 그리면 나머지가 안 보인다
-               (2026-09-15 쿠팡이츠 60계·처갓집·반올림 8,000원). 넷까지만. */
+            /* 한 장에 묶인 브랜드. 2×2 격자로 그려 "누구누구가"를 한 번에
+               읽게 한다 — 대표 하나만 그리면 나머지가 안 보인다(2026-09-15
+               쿠팡이츠 60계·처갓집·반올림 8,000원). 넷째 칸은 플랫폼 배지가
+               차지하므로 브랜드는 셋까지만 — 넷을 넣으면 배지가 로고를 덮는다
+               (2026-09-16 모바일 360px 확인). */
             <span className="banner__logos">
-              {banner.brands.slice(0, 4).map((name) => <BrandLogo key={name} name={name} />)}
+              {banner.brands.slice(0, 3).map((name) => <BrandLogo key={name} name={name} />)}
             </span>
           ) : banner.brand
             ? <BrandLogo name={banner.brand} />
