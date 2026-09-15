@@ -448,7 +448,7 @@ h1 {
   flex: none;
   line-height: 0;
   /* 로고가 배너 모서리에 붙으면 띠가 아니라 잘린 그림처럼 보인다. */
-  padding: 12px;
+  padding: 10px 12px;
 }
 .banner__logo .brand-logo {
   width: var(--logo);
@@ -523,7 +523,11 @@ h1 {
   gap: .15rem;
   min-width: 0;
   flex: 1 1 auto;
-  padding: 12px 0;
+  /* 아래는 점(.banner__dots, 14px + 5px) 자리까지 포함한 값이다. 전엔 점이
+     텍스트 밖 빈 띠에 앉았는데, 그 띠는 사실 가장 키 큰 장(금액이 두 줄로
+     접힌 땡겨요)에 맞춰 늘어난 것이었다 — 접힘을 없애니 띠도 없다
+     (2026-09-16 모바일 360px 실측: 116px → 92px). */
+  padding: 10px 0 20px;
 }
 
 /* 금액이 배너의 주인공이다. 좁은 화면에서도 이 글씨는 줄이지 않는다. */
@@ -571,7 +575,14 @@ h1 {
   /* 제일 큰 글씨가 제일 높은 대비를 갖는다. 금액을 틴트색으로 두고
      기간을 흰색으로 뒀더니 눈이 기간부터 읽었다. */
   color: var(--banner-ink-c);
+  /* 글자 중간에서 안 끊는다("중복할|인"). 끊을 자리는 띄어쓰기뿐이다. */
+  word-break: keep-all;
 }
+/* 긴 금액 문구("1,000/2,000원 중복할인")는 한 단계 작게 — 두 줄로 접히면
+   그 장만 키가 커지고, 캐러셀은 가장 큰 장에 맞춰 나머지 장 아래에 빈 띠를
+   만든다. 폭이 아니라 글자 수로 정해 폰과 데스크톱이 같은 배너를 본다. */
+.banner__amount--long { font-size: 1.15rem; }
+.banner--bottom .banner__amount--long { font-size: 1rem; }
 .banner--bottom .banner__amount { font-size: 1.15rem; }
 
 .banner__period {
@@ -690,7 +701,7 @@ h1 {
 .banner__dots {
   position: absolute;
   /* 진행 막대(3px) 바로 위. 둘이 겹치면 점이 막대에 잘린다. */
-  bottom: 7px;
+  bottom: 5px;
   z-index: 2;
   left: 50%;
   transform: translateX(-50%);

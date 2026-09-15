@@ -166,7 +166,14 @@ function BannerCard({ banner, position, onClose, onSeen }) {
               .banner__when). 금액은 혼자 한 줄이라 어느 배너든 같은 자리에
               같은 크기로 선다. 조건은 길이가 들쭉날쭉해 맨 아래다. */}
           <span className="banner__headline">
-            <span className="banner__amount">{banner.amount}</span>
+            {/* 폭이 넓은 금액 문구는 작게(App.css .banner__amount--long).
+                "1,000/2,000원 중복할인"이 360px에서 두 줄로 접혀 그 장만
+                키가 커지고 다른 장 아래에 빈 띠를 남겼다(2026-09-16).
+                글자 수가 아니라 폭 추정으로 정한다 — "6,000/5,000/8,000원"은
+                15자지만 숫자라 한 줄에 들어간다. */}
+            <span className={`banner__amount${amountIsWide(banner.amount) ? ' banner__amount--long' : ''}`}>
+              {banner.amount}
+            </span>
             <span className="banner__when">
               {/* 로고만으로는 어느 브랜드인지 안 읽힌다 — 로고 파일이 없으면
                   첫 글자만 남고, 있어도 글자 없는 심볼이면 알아볼 수 없다.
@@ -216,6 +223,21 @@ function BannerCard({ banner, position, onClose, onSeen }) {
 // 막대는 상단·하단 두 곳에 뜨는데 넘기는 것은 하나만 한다. 둘 다
 // onAnimationEnd로 넘기면 한 번에 두 장이 지나간다. 같은 runId와 같은
 // 시간으로 같이 마운트되므로 둘은 저절로 같은 속도로 찬다.
+// 금액 문구가 360px 배너의 한 줄을 넘길지. 한글은 숫자·기호의 두 배쯤
+// 넓다(1.45rem에서 한글 ≈ 21px, 숫자 ≈ 13px). 한글 1.7, 띄어쓰기 .5, 그 외
+// .6으로 세어 14를 넘으면 넓은 것으로 본다.
+//   "최대 7,000원" 8.6 · "6,000/5,000/8,000원" 11.9 · "1,000/2,000원 중복할인" 15.6
+export function amountIsWide(text) {
+  if (!text) return false
+  let w = 0
+  for (const ch of text) {
+    if (/[가-힣]/.test(ch)) w += 1.7
+    else if (ch === ' ') w += .5
+    else w += .6
+  }
+  return w > 14
+}
+
 function Progress({ runId, paused, onDone }) {
   return (
     // 도는 시간은 ROTATE_MS 한 곳에서 정하고 CSS가 그 값을 읽어 채운다.
