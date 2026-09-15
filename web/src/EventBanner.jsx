@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
-import { jumpBehavior } from './bannerScroll.js'
+import { indexToSlot, jumpBehavior, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
 
 const ROTATE_MS = 4300
 const DISMISS_KEY = 'dk_banner_hidden'
@@ -308,25 +308,56 @@ export default function EventBanner({ banners }) {
   const currentSeed = useSeed(current ?? { platform: 'baemin' })
   const currentPalette = useMemo(() => bannerPalette(currentSeed), [currentSeed])
 
+  // 트랙은 실제 장 앞뒤에 사본 한 장씩을 둔다(bannerScroll.js) — 그래야
+  // 양 끝에서도 옆으로 밀린다. 처음엔 첫 실제 장(칸 1)에 세운다.
+  const slides = useMemo(() => withSentinels(banners ?? []), [banners])
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el || count < 2) return
+    el.scrollTo({ left: el.clientWidth * 1, behavior: 'instant' })
+  }, [count])
+
   // 어느 장을 보고 있는지는 스크롤 위치가 정한다. 상태를 먼저 바꾸고
   // 화면을 따라오게 하면, 손으로 넘기는 동안 둘이 계속 어긋난다.
+  //
+  // 사본 칸에 멈추면 같은 내용의 실제 칸으로 소리 없이 옮긴다. "멈췄다"는
+  // scrollend로 알고, 그 이벤트가 없는 브라우저(iOS 일부)는 스크롤이 120ms
+  // 조용하면 멈춘 것으로 본다.
+  const settleTimer = useRef(null)
+  function settle(el) {
+    const slot = Math.round(el.scrollLeft / el.clientWidth)
+    const real = settleSlot(slot, count)
+    if (real !== null) el.scrollTo({ left: el.clientWidth * real, behavior: 'instant' })
+  }
   function onTrackScroll(e) {
     const el = e.currentTarget
-    const next = Math.round(el.scrollLeft / el.clientWidth)
+    const next = slotToIndex(Math.round(el.scrollLeft / el.clientWidth), count)
     setIndex((i) => (next === i ? i : next))
+    if (!('onscrollend' in el)) {
+      clearTimeout(settleTimer.current)
+      settleTimer.current = setTimeout(() => settle(el), 120)
+    }
   }
+  // scrollend는 React 18이 합성 이벤트로 안 받는다 — 네이티브로 단다.
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el || count < 2) return
+    const onEnd = () => settle(el)
+    el.addEventListener('scrollend', onEnd)
+    return () => el.removeEventListener('scrollend', onEnd)
+  }, [count])
 
-  // 점을 누르거나 자동 전환이 돌 때 그 장으로 밀어준다.
+  // 점을 누르거나 자동 전환이 돌 때 그 칸으로 밀어준다(칸 = 트랙 위치).
   //
-  // 옆 장으로 갈 때만 미끄러진다. 건너뛸 때 smooth로 두면 사이에 낀 배너를
-  // 전부 훑고 지나간다 — 마지막에서 처음으로 도는 것도, 점으로 3번째에서
-  // 1번째를 누르는 것도 같은 문제다. 한 칸이 아니면 그냥 갈아끼운다.
-  function scrollTo(i) {
+  // 옆 칸으로 갈 때만 미끄러진다. 건너뛸 때 smooth로 두면 사이에 낀 배너를
+  // 전부 훑고 지나간다 — 점으로 3번째에서 1번째를 누르는 경우다. 마지막에서
+  // 처음으로 도는 것은 이제 옆 칸(첫 장의 사본)이라 자연스럽게 미끄러진다.
+  function scrollToSlot(slot) {
     const el = trackRef.current
     if (!el) return
     const cur = Math.round(el.scrollLeft / el.clientWidth)
-    const behavior = jumpBehavior(cur, i)
-    el.scrollTo({ left: el.clientWidth * i, behavior })
+    const behavior = jumpBehavior(cur, slot)
+    el.scrollTo({ left: el.clientWidth * slot, behavior })
     // 갈아끼우는 자리에는 전환이 없다 — 그냥 딸깍 바뀌어서 넘어간 건지
     // 화면이 튄 건지 안 읽힌다. 위치는 즉시 옮기고 새 장만 짧게 띄운다.
     // 클래스를 뗐다 다시 붙여야 애니메이션이 처음부터 돈다(리플로 한 번).
@@ -348,8 +379,10 @@ export default function EventBanner({ banners }) {
     const el = trackRef.current
     if (!el) return
     const cur = Math.round(el.scrollLeft / el.clientWidth)
-    scrollTo((cur + 1) % count)
+    // 마지막 칸의 다음은 첫 장 사본 — 거기 멈추면 settle이 실제 칸으로 옮긴다.
+    scrollToSlot(Math.min(cur + 1, indexToSlot(count - 1, count) + 1))
   }
+  const scrollTo = (i) => scrollToSlot(indexToSlot(i, count))
 
   // 하단 배너는 안 보일 때도 DOM에 남아 있다(visibility:hidden). 관찰자는
   // visibility를 보지 않아 그대로 달면 페이지를 열자마자 노출로 세어진다.
@@ -421,9 +454,10 @@ export default function EventBanner({ banners }) {
         {/* 전부 한 줄에 깔고 가로로 넘긴다. 자동 전환만 있으면 지나간
             배너를 다시 볼 길이 손가락에 없고, 점을 정확히 눌러야 했다. */}
         <div className="banner-track" ref={trackRef} onScroll={onTrackScroll}>
-          {banners.map((b) => (
+          {slides.map((b, i) => (
             <BannerCard
-              key={b.id}
+              /* 사본은 같은 id가 두 번 서므로 칸 번호로 가른다. */
+              key={`${b.id}:${i}`}
               banner={b}
               position="top"
               onSeen={() => markSeen(b, 'top')}

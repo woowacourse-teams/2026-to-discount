@@ -1,0 +1,12 @@
+import { spawn } from 'node:child_process'
+const edge = 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'; const port = 9334
+const p = spawn(edge, ['--headless=new','--disable-gpu','--disable-web-security',`--user-data-dir=${process.env.TMP}/edgeprof3`,`--remote-debugging-port=${port}`,'--window-size=360,600','about:blank'],{stdio:'ignore'})
+const sleep=(ms)=>new Promise(r=>setTimeout(r,ms)); let targets
+for(let i=0;i<30;i++){try{targets=await (await fetch(`http://127.0.0.1:${port}/json`)).json();break}catch{await sleep(300)}}
+const ws=new WebSocket(targets.find(t=>t.type==='page').webSocketDebuggerUrl); await new Promise(r=>ws.onopen=r)
+let id=0; const pend=new Map(); ws.onmessage=e=>{const m=JSON.parse(e.data); if(m.id&&pend.has(m.id)){pend.get(m.id)(m.result);pend.delete(m.id)}}
+const send=(method,params={})=>new Promise(r=>{ws.send(JSON.stringify({id:++id,method,params}));pend.set(id,r)})
+await send('Emulation.setDeviceMetricsOverride',{width:360,height:600,deviceScaleFactor:2,mobile:true})
+await send('Page.navigate',{url:'http://localhost:4179/?dev=1'}); await sleep(3500)
+const r=await send('Runtime.evaluate',{returnByValue:true,expression:`(()=>{const q=s=>document.querySelector(s);const b=s=>{const e=q(s);if(!e)return null;const r=e.getBoundingClientRect();const cs=getComputedStyle(e);return {top:r.top,bottom:r.bottom,h:r.height,pt:cs.paddingTop,pb:cs.paddingBottom,mb:cs.marginBottom}};const kids=[...q(".banner-track > .banner").children].map(e=>({cls:e.className,h:e.getBoundingClientRect().height,top:e.getBoundingClientRect().top,pos:getComputedStyle(e).position}));const cs=getComputedStyle(q(".banner-track > .banner"));const tr=getComputedStyle(q(".banner-track"));const links=[...document.querySelectorAll(".banner-track .banner__link")].map(e=>({id:e.closest(".banner")?.dataset?.id, h:e.getBoundingClientRect().height, extra:e.querySelector(".banner__extra")?.getBoundingClientRect().height, amount:e.querySelector(".banner__amount")?.textContent}));return JSON.stringify({links,bannerCS:{minH:cs.minHeight,pb:cs.paddingBottom,display:cs.display,alignItems:cs.alignItems},trackCS:{h:q(".banner-track").getBoundingClientRect().height,pb:tr.paddingBottom,alignItems:tr.alignItems},kids,slot:b('.banner-slot'),banner:b('.banner-track > .banner'),link:b('.banner__link'),logo:b('.banner__logo'),text:b('.banner__text'),extra:b('.banner__extra'),dots:b('.banner__dots'),progress:b('.banner__progress')},null,1)})()`})
+console.log(r.result.value); ws.close(); p.kill(); process.exit(0)
