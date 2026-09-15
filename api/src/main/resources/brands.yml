@@ -361,6 +361,12 @@ brands:
   써브웨이:
     searchAliases: [서브웨이, 섭웨, 써브 웨이, subway, subway korea]
     category: fastfood
+  KFC:
+    # 2026-09-16 쿠팡이츠 선착순(오전 11시 8,000원) 배너에 올리며 추가. 원장엔
+    # 08-17부터 11행이 있었는데 표에 없어 API가 모르는 브랜드로 봤다.
+    searchAliases: [케이에프씨, 케이 에프 씨, 켄터키, kfc, kentucky fried chicken]
+    category: fastfood
+    aliases: [KFC, 케이에프씨]
   쉐이크쉑:
     searchAliases: [쉑쉑, 쉐이크 쉑, shake shack, shakeshack]
     category: fastfood
