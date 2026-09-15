@@ -465,9 +465,19 @@ h1 {
 /* cover는 상자를 채우려고 잘라낸다 — 로고는 잘리면 안 되는 그림이다. */
 .banner__logo .brand-logo img { object-fit: contain; }
 
-/* 한 장에 묶인 브랜드 로고들. 겹쳐 쌓아 카드 높이를 안 늘린다. */
+/* 한 장에 묶인 브랜드 로고들. 겹쳐 쌓아 카드 높이를 안 늘린다.
+   34px에 안쪽 여백까지 있으니 그림이 너무 작아 무슨 브랜드인지 안 읽혔다
+   (사용자 지적 2026-09-16). 낱장 로고의 80%로 키우고 안쪽 여백은 거의
+   없앤다 — 겹침이 이미 상자를 나누고 있어 여백이 할 일이 없다. */
 .banner__logos { display: flex; align-items: center; }
-.banner__logos .brand-logo { width: 34px; height: 34px; margin-left: -10px; border: 2px solid var(--surface); border-radius: var(--logo-radius); }
+.banner__logos .brand-logo {
+  width: calc(var(--logo) * .8);
+  height: calc(var(--logo) * .8);
+  margin-left: calc(var(--logo) * -.22);
+  padding: 1px;
+  border: 2px solid var(--surface);
+  border-radius: calc(var(--logo-radius) * .8);
+}
 .banner__logos .brand-logo:first-child { margin-left: 0; }
 /* 브랜드가 없는 앱 전체 행사 — 로고 자리에 앱 아이콘이 들어간다. */
 .brand-logo--platform { background: var(--surface); }
@@ -480,9 +490,10 @@ h1 {
   position: absolute;
   right: 6px;
   bottom: 6px;
-  /* 25%로는 어느 앱인지 못 알아봤다. 로고 절반을 넘겨 잡는다. */
-  width: calc(var(--logo) * .6);
-  height: calc(var(--logo) * .6);
+  /* 25%로는 어느 앱인지 못 알아봤다. 60%는 브랜드 로고를 가렸다(사용자
+     지적 2026-09-16) — 그 85%인 51%로 둔다. */
+  width: calc(var(--logo) * .51);
+  height: calc(var(--logo) * .51);
   display: grid;
   place-items: center;
   /* 앱 아이콘은 그 자체로 모양과 색을 가진 그림이다. 판을 깔거나 테두리를
