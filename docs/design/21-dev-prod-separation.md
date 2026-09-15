@@ -122,7 +122,19 @@
 4. 도메인 추가는 자유 → `dev-api.bebeggars.duckdns.org`(nginx 서버 블록 하나 더,
    certbot). 경로 분기는 안 한다.
 
-## 5. 다음 단계 (결정 반영한 순서)
+### 4-1. 추가 답 (같은 날, 두 번째 회신)
+
+- 2 확정: dev에서는 **이벤트가 원장에 제대로 쌓이는지만** 본다. PostHog 전달은
+  안 건다.
+- 3 확장: dev 환경을 **검수 화면**으로 쓴다 — 자동 수집 결과가 dev API·dev 웹에
+  먼저 뜨고, 사람이 실제 화면에서 보고 브라우저에서 **오퍼를 바로 조작**(금액·
+  조건 수정, 빼기, 승인)한 뒤 운영에 반영한다. 구조는
+  **자동 수집 → 검수(dev 화면) → 반영 결정**. dev 화면이 최종 방어선이 된다.
+  이렇게 되면 질문 3의 답은 ②(운영 반영은 사람의 결정)로 바뀌는 것이 자연스럽다
+  — 단 "검수를 안 하면 언제 운영에 가는가"를 정해야 한다(아래 §5-4).
+- **즉시 도입 안 한다. 계획만 둔다.**
+
+## 5. 계획 (도입 시 순서 — 착수는 별도 지시)
 
 1. 서버: `delivery-discount-api-dev.service`(:8089, `data-dev/`, PostHog off,
    원장 `events-dev.jsonl`), nginx `dev-api.` 블록, 인증서.
@@ -133,10 +145,24 @@
    같은 이름 브랜치로 밀어 Vercel Preview가 뜨게. API 미러는 main만(dev API는
    운영 jar와 같은 빌드를 쓰고 데이터만 다르다 — 코드 프리뷰가 필요하면 그때
    dev 배포 워크플로를 따로).
-4. 트래커: `reflect_daily`·`deploy_export`가 dev에 먼저 올리고 `check_deploy`
-   통과 시 운영에 올린다(위 3-①).
-5. 문서: DEV-ENVIRONMENT.md "개발 환경과 운영 환경 분리" 절 갱신, ROUTINE-SPEC
-   §2 반영 단계에 dev 관문 추가.
+4. 트래커: `reflect_daily`가 **dev에만** 올린다. 운영 반영은 검수 화면의
+   "반영" 버튼(dev API `POST /api/review/publish` → 운영 export.json 갱신 +
+   reload) 또는 미니PC `deploy_export --apply`. 검수가 없을 때의 규칙은 둘 중
+   하나로 정한다 — (가) 정해진 시각까지 검수가 없으면 자동 반영(현 정책 유지,
+   검수는 선택), (나) 검수 전엔 운영에 안 감(정책 변경). 미정.
+5. 검수 화면(dev 웹에만 켜지는 모드, `import.meta.env.MODE !== 'production'`):
+   - 카드의 오퍼마다 금액·최소주문·기한·조건 **인라인 편집**, 빼기, 되살리기.
+   - 편집은 원장에 `capture_mode: manual` 행으로 append(ADR-016, 사람 수정으로
+     기록되어 같은 날 자동 반영이 안 덮는다 — ROUTINE-SPEC §3 정책과 맞물린다).
+   - 배너도 같은 화면에서 `banners.yml` 편집(지금 ssh로 손보는 것을 대체).
+   - 저장 대상은 dev 데이터. "반영"이 운영으로 복사한다.
+   - API: dev API에만 활성화되는 `review` 컨트롤러(프로필 대신 환경변수
+     `DISCOUNT_REVIEW_ENABLED=true`). 운영 jar에는 켜지지 않는다 — 인증이 없다.
+   - 인증: dev 도메인을 nginx basic auth 또는 IP 허용으로 막는다(사용자 1~2명).
+6. 문서: DEV-ENVIRONMENT.md "개발 환경과 운영 환경 분리" 절 갱신, ROUTINE-SPEC
+   §2·§3에 검수 단계와 반영 규칙 추가.
+
+대략 비용: 1~3 하루, 4 반나절, 5 이틀~사흘(편집 UI + review API + 테스트).
 
 ## 6. 하지 말 것
 
