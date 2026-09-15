@@ -416,7 +416,8 @@ export default function EventBanner({ banners }) {
         {...hoverProps}
       >
         <div className="banner-dock__inner">
-          {rotating && <Progress runId={index % count} paused={paused} />}
+          {/* 하단 도크에는 진행 막대를 안 그린다(사용자 결정 2026-09-15). 넘기는
+              타이머는 상단 막대(onDone)가 갖고 있어 동작은 그대로다. */}
           <BannerCard
             key={current.id}
             banner={current}
