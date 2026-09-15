@@ -243,6 +243,8 @@ brands:
   반올림피자:
     searchAliases: [반올림 피자, 반올림, banolim pizza, banollim pizza]
     category: pizza
+    # 쿠팡이츠 허브가 이렇게 부른다(2026-09-15 실측).
+    aliases: [반올림피자샵]
   클랩피자:
     searchAliases: [클랩 피자, 클랩, clap pizza, keullaep pizza]
     category: pizza
