@@ -20,8 +20,7 @@ function staticTrackEvents(path, contents) {
 
 const appSource = await source('web/src/App.jsx')
 const bannerSource = await source('web/src/EventBanner.jsx')
-const filterSheetSource = await source('web/src/FilterSheet.jsx')
-// A안 상단 바. 이 파일이 목록에서 빠져 있으면 A안에서만 쏘는 이벤트가
+// 상단 바(옛 A안 — 2026-09-15 B를 내리고 하나로 통일). 이 파일이 목록에서 빠져 있으면 A안에서만 쏘는 이벤트가
 // 허용 목록에 없어도 검사를 통과한다 — 정확히 그렇게 여섯 종이 서버에서
 // 버려지고 있었다.
 const topBarASource = await source('web/src/TopBarA.jsx')
@@ -40,7 +39,6 @@ const controllerSource = await source(
 const emittedEvents = new Set([
   ...staticTrackEvents('web/src/App.jsx', appSource),
   ...staticTrackEvents('web/src/EventBanner.jsx', bannerSource),
-  ...staticTrackEvents('web/src/FilterSheet.jsx', filterSheetSource),
   ...staticTrackEvents('web/src/TopBarA.jsx', topBarASource),
   ...staticTrackEvents('web/src/SurveyCard.jsx', surveyCardSource),
   ...staticTrackEvents('web/src/SurveyDock.jsx', surveyDockSource),

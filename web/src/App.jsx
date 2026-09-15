@@ -5,11 +5,8 @@ import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.jsx'
-import FilterSheet from './FilterSheet.jsx'
-import MenuBar from './MenuBar.jsx'
 import TopBarA from './TopBarA.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { uiVariant } from './variant.js'
 import { CATEGORIES, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
 import SurveyCard from './SurveyCard.jsx'
@@ -652,94 +649,6 @@ function SiteFooter() {
   )
 }
 
-// 브랜드 검색 — 버튼은 자리를 지키고, 입력창은 카테고리 목록처럼 바 아래로
-// 펼쳐진다. 줄 안에서 폭을 넓히면 옆 조작들이 밀려 배치가 매번 다시
-// 잡혔다. 열려 있는 동안 버튼은 색을 뒤집어 지금 무엇이 켜져 있는지
-// 알린다. 검색어는 접어도 App의 search 상태에 남아 필터링은 계속 걸린다.
-/**
- * 상시 노출 검색 입력. 예전에는 돋보기 버튼을 눌러야 패널이 열렸는데,
- * 로고 자리를 이 입력으로 바꾸면서 접을 이유가 없어졌다 — 바에서 가장
- * 넓은 자리를 차지하는 것이 곧 이 화면의 주된 조작이라는 뜻이다.
- *
- * 입력하는 동안에는 목록이 흔들리지 않는다. 엔터나 돋보기로 확정해야
- * 필터가 걸린다 — 글자마다 다시 거르면 지우는 중에도 결과가 요동친다.
- */
-function SearchControl({ value, onChange, onSubmit, chips, brands }) {
-  const [draft, setDraft] = useState(value)
-  const rootRef = useRef(null)
-  const listboxId = useId()
-  const autocomplete = useBrandAutocomplete({
-    brands,
-    input: draft,
-    onSelect: (brand) => {
-      setDraft(brand.name)
-      onSubmit(brand.name, 'autocomplete')
-    },
-  })
-
-  // 바깥에서 검색어를 지우면(칩의 X, 초기화) 입력창도 따라 비어야 한다.
-  useEffect(() => { setDraft(value) }, [value])
-
-  useEffect(() => {
-    const close = (event) => {
-      if (!rootRef.current?.contains(event.target)) autocomplete.close()
-    }
-    document.addEventListener('pointerdown', close)
-    return () => document.removeEventListener('pointerdown', close)
-  }, [autocomplete.close])
-
-  const submit = (method) => {
-    autocomplete.close()
-    onSubmit(draft, method)
-  }
-
-  return (
-    <div className="search-field" ref={rootRef}>
-      {/* 걸린 조건은 검색창 안에 토큰으로 앉는다. 바 아래 따로 줄을
-          두면 조건이 없을 때 빈 줄이 남고, 있을 때는 검색과 필터가
-          서로 다른 층에 있는 것처럼 보인다 — 둘 다 "지금 무엇을
-          보고 있는가"를 말하는 같은 정보다. */}
-      <div className="search-field__content">
-        {chips}
-        <input
-          type="search"
-          className="search-field__input"
-          placeholder="브랜드 검색"
-          aria-label="브랜드 검색"
-          role="combobox"
-          aria-autocomplete="list"
-          aria-expanded={autocomplete.isOpen}
-          aria-controls={autocomplete.isOpen ? listboxId : undefined}
-          aria-activedescendant={autocomplete.activeIndex >= 0 ? `${listboxId}-option-${autocomplete.activeIndex}` : undefined}
-          value={draft}
-          onFocus={autocomplete.open}
-          onChange={(e) => { setDraft(e.target.value); autocomplete.inputChanged() }}
-          onKeyDown={(e) => {
-            if (autocomplete.handleKeyDown(e)) return
-            if (e.key === 'Enter' && !e.repeat) submit('enter')
-            if (e.key === 'Escape') { setDraft(''); onChange('') }
-          }}
-        />
-      </div>
-      <button type="button" className="search-field__submit" aria-label="검색"
-        onClick={() => submit('button')}>
-        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-          <circle cx="11" cy="11" r="7" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-      </button>
-      {autocomplete.isOpen && (
-        <BrandSuggestions
-          suggestions={autocomplete.suggestions}
-          activeIndex={autocomplete.activeIndex}
-          listboxId={listboxId}
-          onSelect={autocomplete.select}
-        />
-      )}
-    </div>
-  )
-}
-
 
 export default function App() {
   const [brands, setBrands] = useState(null)
@@ -816,7 +725,6 @@ export default function App() {
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
   const [filters, setFilters] = useState(routeFilters)
-  const [sheetOpen, setSheetOpen] = useState(false)
   // /brand/<이름>으로 들어왔을 때만 값이 있다. 검색으로 들어온 사람에게
   // 전체 목록으로 나가는 길을 눈에 보이게 두려는 것이다 — 검색어를 지우고
   // 엔터까지 쳐야 전체가 나오는데(입력 초안과 확정 필터가 갈려 있다),
@@ -829,26 +737,6 @@ export default function App() {
   const { search } = filters
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
 
-  // 메뉴바에서 분류를 켜고 끈다 — 여기서는 바로 반영한다(시트와 달리
-  // 조건 하나만 빠르게 만지는 자리다).
-  const toggleCategory = (key) => {
-    setFilters((f) => {
-      const next = new Set(f.categories)
-      if (next.has(key)) next.delete(key); else next.add(key)
-      return { ...f, categories: next }
-    })
-    track('category_change', { category: key })
-  }
-
-  const applyFromSheet = (draft) => {
-    setFilters(draft)
-    setSheetOpen(false)
-    track('filters_apply', {
-      platforms: draft.platforms.size,
-      categories: draft.categories.size,
-      sort: `${draft.sortKey}_${draft.sortDir}`,
-    })
-  }
 
   // "맨 위로" 버튼은 한참 내려갔을 때만 — 조금 내려간 상태에선 방해다.
   const [scrolledFar, setScrolledFar] = useState(false)
@@ -1086,7 +974,6 @@ export default function App() {
   // A안은 조건을 바에 전부 펼쳐 두고, B안은 바텀시트에 감춘다. 바 아래는
   // 두 안이 완전히 같다 — 카드도 배너도 계측도 하나의 코드를 쓴다. 갈라진
   // 브랜치로 두면 공통 부분을 고칠 때마다 두 번 하고, 한쪽을 빠뜨린다.
-  const variantA = uiVariant === 'a'
 
   return (
     <>
@@ -1100,155 +987,26 @@ export default function App() {
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
-      {!variantA && (
-        <FilterSheet
-          open={sheetOpen}
-          filters={filters}
-          onApply={applyFromSheet}
-          onClose={() => setSheetOpen(false)}
-        />
-      )}
-
       {/* 고정된 바가 문서 흐름에서 빠진 만큼을 대신 차지하는 자리. 높이는
           바를 실측해서 넣는다(폰트 로딩·줄바꿈으로 바뀔 수 있다). */}
       <div className="title-bar-spacer" style={{ height: `${barHeight}px` }} aria-hidden="true" />
 
-      {variantA ? (
-        <TopBarA
-          barRef={titleBarRef}
-          filters={filters}
-          setFilters={setFilters}
-          search={search}
-          onSearchSubmit={submitSearch}
-          brands={brands}
-          cart={cart}
-          cartOnly={cartOnly}
-          setCartOnly={setCartOnly}
-          cartEnabled={CART_ENABLED}
-          isFiltered={isFiltered}
-          resetFilters={resetFilters}
-        />
-      ) : (
-      /* 상단 바: 선형 메뉴바 한 줄 + 그 아래 조작 한 줄. 플랫폼 배지는
-         시트로 옮겼다 — 앱·분류·정렬이 한 자리에 모여야 무엇이 걸려
-         있는지 한 번에 읽힌다. 바에 남는 건 자주 만지는 것뿐이다. */
-      <div className="title-bar" ref={titleBarRef}>
-        {/* 1행 — 이름과 상시 조작(검색·담아둔 것). 배달앱들이 쓰는 구조
-            그대로다: 위는 정체성과 도구, 아래는 분류. */}
-        <div className="title-bar__top">
-          <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
-
-          {/* 로고가 있던 자리를 검색 입력이 차지한다. 바에서 가장 넓은
-              자리를 쓰는 것이 곧 이 화면의 주된 조작이라는 뜻이다 —
-              이름은 스크린리더용으로만 남긴다. */}
-          <SearchControl
-            value={search}
-            onChange={setSearch}
-            onSubmit={submitSearch}
-            brands={brands}
-            chips={(
-              <>
-                {/* 모아보기가 켜지면 다른 조건이 안 먹는다 — 결과가 왜
-                    이런지 알려면 그 사실만 보여야 한다. */}
-                {/* 칩 전체가 해제 버튼이다. ×만 눌리게 두면 손가락으로는
-                    너무 작은 과녁이라, 칩을 눌렀는데 아무 일도 안 일어난다.
-                    ×는 무엇이 일어날지 알려주는 표시로만 남긴다. */}
-                {cartOnly && (
-                  <button type="button" className="search-chip search-chip--cart"
-                    aria-label="전체 보기" onClick={() => setCartOnly(false)}>
-                    담아둔 {cart.size}개
-                    <span className="search-chip__x" aria-hidden="true">×</span>
-                  </button>
-                )}
-                {!cartOnly && CATEGORIES.filter((c) => filters.categories.has(c.key)).map((c) => (
-                  <button type="button" className="search-chip" key={c.key}
-                    aria-label={`${c.label} 해제`} onClick={() => toggleCategory(c.key)}>
-                    {c.label}
-                    <span className="search-chip__x" aria-hidden="true">×</span>
-                  </button>
-                ))}
-                {!cartOnly && filters.platforms.size < PLATFORMS.length && (
-                  <button type="button" className="search-chip" aria-label="앱 선택 초기화"
-                    onClick={() => setFilters((f) => ({ ...f, platforms: new Set(PLATFORMS.map((x) => x.key)) }))}>
-                    앱 {filters.platforms.size}
-                    <span className="search-chip__x" aria-hidden="true">×</span>
-                  </button>
-                )}
-              </>
-            )}
-          />
-
-          <div className="title-bar__tools">
-            {/* 초기화 · 필터 · 담아둔 것 순. 왼쪽 검색에서 오른쪽으로
-                갈수록 범위가 넓은 조작이다. */}
-            <button
-              type="button"
-              className={`icon-btn${isFiltered ? ' icon-btn--active' : ''}`}
-              // 되돌릴 것이 없으면 누를 수 없다. 늘 눌리는 채로 두면 눌러본
-              // 뒤에야 아무 일도 안 일어난다는 걸 알게 된다.
-              disabled={!isFiltered}
-              onClick={resetFilters}
-              aria-label="필터 초기화"
-              title={isFiltered ? '필터 초기화' : '되돌릴 필터가 없습니다'}
-            >
-              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12a9 9 0 1 1-3-6.7" />
-                <polyline points="21 3 21 9 15 9" />
-              </svg>
-            </button>
-
-            <button
-              type="button"
-              // 열려 있으면 반전, 닫혀 있어도 조건이 걸려 있으면 드러낸다 —
-              // 시트를 닫고 나면 필터가 걸린 목록인지 알 길이 없었다.
-              className={`icon-btn${sheetOpen ? ' icon-btn--on' : isFiltered ? ' icon-btn--active' : ''}`}
-              aria-expanded={sheetOpen}
-              aria-label="필터 열기"
-              title="필터"
-              onClick={() => { setSheetOpen(true); track('filter_sheet_open') }}
-            >
-              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                <line x1="4" y1="7" x2="20" y2="7" />
-                <line x1="7" y1="12" x2="17" y2="12" />
-                <line x1="10" y1="17" x2="14" y2="17" />
-              </svg>
-            </button>
-
-            {/* 담아둔 브랜드만 모아 본다. 개수를 배지로 달아 몇 개
-                담았는지 열지 않고도 안다. */}
-            {CART_ENABLED && <button
-              type="button"
-              className={`cart-btn${cartOnly ? ' cart-btn--on' : ''}`}
-              aria-pressed={cartOnly}
-              disabled={cart.size === 0}
-              aria-label={cartOnly ? '전체 보기' : '담아둔 브랜드만 보기'}
-              title={cart.size === 0 ? '담아둔 브랜드가 없다' : (cartOnly ? '전체 보기' : '담아둔 것만 보기')}
-              onClick={() => {
-                setCartOnly((v) => {
-                  track('cart_view_toggle', { state: v ? 'off' : 'on', count: cart.size })
-                  return !v
-                })
-              }}
-            >
-              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="9" cy="20" r="1.4" />
-                <circle cx="18" cy="20" r="1.4" />
-                <path d="M2 3h3l2.4 12.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6" />
-              </svg>
-              {cart.size > 0 && <span className="cart-btn__count">{cart.size}</span>}
-            </button>}
-          </div>
-        </div>
-
-        <MenuBar
-          selected={filters.categories}
-          onToggle={toggleCategory}
-        />
-
-        {/* 걸린 필터·초기화·검색은 메뉴바 아래 한 줄로. 지금 뭐가 걸려
-            있는지(칩)와 그걸 푸는 수단(X·초기화)이 같은 줄에 있어야 한다. */}
-      </div>
-      )}
+      {/* A/B 실험 종료(2026-09-15): 한 줄 바 + 분류 캐러셀(a안)로 통일.
+          결론은 docs/HANDOFF-20260914.md §4 — b(시트)는 내렸다. */}
+      <TopBarA
+        barRef={titleBarRef}
+        filters={filters}
+        setFilters={setFilters}
+        search={search}
+        onSearchSubmit={submitSearch}
+        brands={brands}
+        cart={cart}
+        cartOnly={cartOnly}
+        setCartOnly={setCartOnly}
+        cartEnabled={CART_ENABLED}
+        isFiltered={isFiltered}
+        resetFilters={resetFilters}
+      />
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}

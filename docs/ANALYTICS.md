@@ -9,7 +9,7 @@
 | 무엇을 모으나 | 브라우저 행동 이벤트 19종 (`page_view`, `offer_link_click` 등) |
 | 어디에 쌓이나 | **자체 원장** `events.jsonl`(단일 진실) + **PostHog**(탐색용) |
 | 누구인지 아나 | 모른다. `visitorId`는 브라우저가 만든 난수, 지우면 끊긴다 |
-| A/B는 어떻게 가르나 | 모든 이벤트의 `variant` 속성 (`a` / `b`) |
+| A/B는 어떻게 가르나 | 모든 이벤트의 `variant` 속성. **실험은 2026-09-15에 `a`로 끝났다** — 이후 값은 항상 `a` |
 | 개발자 트래픽은 | `dev`(확실) 표시 + 원장 집계 때 세션 모양으로 추정. **지우지 않는다** |
 | 판정은 무엇으로 | **원장**. PostHog는 탐색용 (아래 "왜 둘인가") |
 
@@ -92,14 +92,12 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `brands_retry` | 목록 불러오기 실패 후 재시도 | — |
 | `scroll_to_top` | "맨 위로" | — |
 
-### 조건을 어떻게 고르나 (A/B의 핵심)
+### 조건을 어떻게 고르나 (옛 A/B의 핵심 — `from`은 이제 항상 `bar`)
 
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
 | `category_change` | 분류 선택 | `category`, `from`(`bar`/`sheet`) |
 | `platform_filter_toggle` | 배달앱 켜고 끔 | `platform`, `from`(`bar`/`sheet`) |
-| `filter_sheet_open` | 바텀시트 열기 (**B안에만 있음**) | — |
-| `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
 | `filters_reset` | 초기화 버튼 | — |
 | `membership_toggle` | 멤버십 라벨 (아직 미구현 기능) | `platform`, `state:'soon'`, `from` |
 | `brand_search_submitted` | 비어 있지 않은 검색어를 엔터·검색 버튼으로 확정 | `inputLength`, `resultCount`(목록 로드 전에는 생략), `submitMethod`(`enter`/`button`) |
@@ -134,7 +132,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 | 필드 | 뜻 | 주의 |
 |---|---|---|
-| `variant` | A/B 갈래 (`a`/`b`) | `visitorId` 해시로 정해져 재방문해도 안 바뀐다 |
+| `variant` | 화면 안. 2026-09-15까지 `a`/`b` 반반, 그 뒤 항상 `a` | 이름을 남기는 이유는 실험 전후를 한 축으로 보기 위해서다 |
 | `device` | `mobile` / `desktop` | UA가 아니라 `matchMedia('(hover: hover)')`. **일부 안드로이드 브라우저가 `hover:hover`를 보고해 폰이 desktop으로 잡힌다 — 이 값만으로 기기를 가르지 말 것** |
 | `form_factor` | `phone` / `desktop` / `tablet` | **서버가 `viewport` 폭으로 붙인다.** 기기를 가를 때는 `device`가 아니라 이 값을 쓴다 |
 | `viewport` | `"390x844"` | 개발 트래픽 판정의 핵심 단서 (아래 참고) |
@@ -329,33 +327,20 @@ ssh <서버> "cat /home/ubuntu/delivery-discount-api/data/coverage.jsonl"
 
 # 상세
 
-## A/B 갈래 배정
+## A/B 갈래 (종료)
 
-`visitorId`를 FNV-1a로 해시해 즉시 정한다.
-
-```js
-VARIANTS[hash(visitorId) % 2]   // src/variant.js
-```
-
-- **즉시 정해진다** — 서버나 SDK에 물으면 답이 올 때까지 무엇을 그릴지 모르고, 한쪽을 그렸다가 갈아끼우면 첫 화면이 눈앞에서 바뀐다. 그 깜빡임이 실험을 오염시킨다.
-- **재방문해도 같다** — `visitorId`가 localStorage에 남는다. 매번 다른 화면을 주면 "이 화면이 쓸 만한가"가 아니라 "화면이 바뀌면 헷갈리는가"를 재게 된다.
-- **비율은 원격에서 못 바꾼다** — 반반 고정. 다른 비율이 필요하면 PostHog 플래그로 옮겨야 한다(지금은 `advanced_disable_feature_flags`로 꺼둠).
-
-확인·강제:
+2026-09-09~14 상단 바 두 안을 반반으로 돌렸다(`visitorId` FNV-1a 해시, `src/variant.js`).
 
 ```
-?variant=a   ?variant=b     URL로 강제 (배포 안 건드림)
-VITE_UI_VARIANT=a           빌드 전체를 한쪽으로 고정 (사고 대응용)
+A  앱 버튼 + 분류 캐러셀을 전부 펼침        (TopBarA.jsx)          ← 확정
+B  검색 중심 바 + 분류 메뉴바 + 바텀시트     (MenuBar, FilterSheet)  ← 2026-09-15 삭제
 ```
 
-두 안의 차이는 **상단 바 하나뿐**이다. 카드·배너·계측은 같은 코드를 쓴다.
-
-```
-A  앱 버튼 + 분류 캐러셀을 전부 펼침        (TopBarA.jsx)
-B  검색 중심 바 + 분류 메뉴바 + 바텀시트     (App.jsx, MenuBar, FilterSheet)
-```
-
-CSS는 `[data-variant="a"]` 아래에 둔다. `variant.js`가 뿌리에 새기고, 첫 렌더 **전에** 새겨야 A안이 B 스타일로 한 프레임 그려지는 걸 막는다.
+결론은 `docs/HANDOFF-20260914.md` §4: 시트에 감추면 조건이 걸려 있다는 사실 자체를
+못 보고, 펼쳐두면 그 자리에서 푼다. `uiVariant`는 상수 `'a'`가 됐고 `?variant=`·
+`VITE_UI_VARIANT` 강제는 없어졌다. 이벤트의 `variant` 속성과 CSS의
+`[data-variant="a"]` 접두는 남긴다 — 실험 전후를 한 축으로 보고, 바 규칙의
+우선순위를 안 흔들기 위해서다. 새 실험을 열려면 그때 배정 규칙을 다시 쓴다.
 
 ## 수집 경로 상세
 
@@ -412,7 +397,6 @@ VITE_POSTHOG_KEY / VITE_POSTHOG_HOST 가 있어야 동작
 | 내 클릭이 실데이터에 섞임 | 그 창에 `?dev=1` 안 켬 | `localStorage.dk_dev` |
 | PostHog와 원장 숫자가 다름 | 개발 트래픽 제외 범위가 다르다 | 원장을 믿는다 |
 | 리텐션이 끊김 | `person_profiles` 방침이 두 경로에서 갈림 | `posthog.js` 설정 |
-| 갈래가 한쪽만 나옴 | `.env.production`에 `VITE_UI_VARIANT` 남아 있음 | 그 줄을 지운다 |
 | 갈래 차이가 두 배로 보임 | 1인당 총합을 봤다 — 소수가 많이 눌러 부푼다 | `experiments.py compare`의 전환율 |
 | 모바일 사용자가 통계에서 사라짐 | `device`만 보고 걸렀다 — 폰이 desktop으로 잡힌다 | `compare --by width` |
 
@@ -511,7 +495,7 @@ A/B 대신 퍼널의 어느 단계가 새는지로 판단한다.
 
 | `--by` | 나누는 기준 | 쓰는 곳 |
 |---|---|---|
-| `variant` | `a` / `b` | 계획된 A/B |
+| `variant` | `a` / `b` | 2026-09-15까지의 A/B. 그 뒤 데이터는 전부 `a` |
 | `returning` | 재방문 / 신규 | UI 개편의 영향 (재방문자만 흔들린다) |
 | `width` | 최소 뷰포트 폭 | 기기 구분. `device`보다 믿을 만하다 |
 | `referrer` | direct / external / internal | 유입 경로 |

@@ -140,8 +140,6 @@ web/src/App.css
 web/src/App.jsx
 web/src/BrandSuggestions.jsx
 web/src/EventBanner.jsx
-web/src/FilterSheet.jsx
-web/src/MenuBar.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
 web/src/TopBarA.jsx
@@ -218,7 +216,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 90 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 53 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 51 |
 
 ### Tracker
 
@@ -272,11 +270,9 @@ HTTP 경계:
 | `App.jsx` | 브랜드 비교, 분류, 검색, 상세 |
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
-| `FilterSheet.jsx` | 앱·분류·정렬을 고르는 바텀시트 |
-| `MenuBar.jsx` | 스크롤 중 따라오는 분류 바 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `TopBarA.jsx` | A안 상단 바(앱 버튼·분류 캐러셀) |
+| `TopBarA.jsx` | 상단 바(앱 버튼·분류 캐러셀). 옛 A안, 2026-09-15부터 유일 |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
 | `api.js` | 브랜드와 배너 API 호출 |
@@ -301,7 +297,7 @@ HTTP 경계:
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useBrandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `variant.js` | A/B 화면 갈래 배정 |
+| `variant.js` | 화면 안 상수(a 고정, A/B 종료 2026-09-15) |
 
 `public/`은 런타임 자산이지만 대형 로고 목록은 구조 문서에서 제외한다.
 
