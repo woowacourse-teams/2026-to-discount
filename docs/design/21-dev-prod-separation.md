@@ -96,17 +96,50 @@
 
 **추천: A + B를 먼저, C는 자동 반영 사고가 한 번 더 나면.** D는 안 한다.
 
-## 4. 열린 질문 (사용자 결정 필요)
+## 4. 사용자 답 (2026-09-15)
 
-1. 프리뷰가 운영 API를 **읽는** 건 허용하나? (허용하면 B가 반나절로 준다)
-2. dev PostHog 프로젝트를 새로 파나, 운영 프로젝트 안에서 `dev` 속성 필터로
-   끝내나? (후자는 지금 상태 — 대시보드마다 필터를 잊으면 오염)
-3. `reflect_daily`가 dev를 거치게 할 때 **자동으로 운영까지** 가는가(정책 유지),
-   아니면 dev까지만 자동이고 운영은 사람이 미나? — 이건 ROUTINE-SPEC §3 정책
-   자체를 바꾸는 일이라 여기서 정하지 않는다.
-4. 도메인: duckdns 서브도메인 추가가 되는지(안 되면 nginx 경로 분기).
+1. **투트랙으로 간다.** 프리뷰 웹이 운영 API를 읽는 것 자체는 상관없지만,
+   환경을 격리하려면 웹·API·데이터가 세트로 갈려야 한다 — 운영 웹 ↔ 운영 API,
+   프리뷰/로컬 웹 ↔ dev API(:8089, `data-dev/`). 실반영 때 운영에서 다시 확인하는
+   것은 그것대로 한다. → **B + C를 한 묶음으로.** `VITE_API_BASE`를 빌드 변수로
+   빼고 Vercel Production만 운영 주소, Preview/Development는 dev 주소.
+2. **개발 환경에는 PostHog를 아예 안 건다.** 별도 dev 프로젝트를 파지 않는다.
+   dev API는 `DISCOUNT_POSTHOG_ENABLED=false`, 프리뷰 빌드는 `VITE_POSTHOG_KEY`
+   비움. 수집 무결성 때문에 필요한가 — **아니다.** 판정의 단일 진실은 자체 원장
+   `events.jsonl`이고 PostHog는 탐색용(ANALYTICS.md). 브라우저→API→원장 경로는
+   dev API가 `events-dev.jsonl`을 쓰게 두면 그대로 검증되고, API→PostHog 전달
+   코드는 단위 테스트(`verify-posthog-sdk`, `PostHogForwarder` 테스트)와 운영
+   outbox 지표로 본다. 운영 원장의 `dev` 표시·사후 판정 로직은 프리뷰 트래픽이
+   운영 API로 안 오게 되면 **로컬에서 운영 API를 손으로 친 경우**만 남으므로
+   유지하되 의존하지 않는다.
+3. 질문 3을 맥락 없이 다시 쓰면: *지금은 미니PC의 예약 실행이 수집 결과를 검사한
+   뒤 사람 없이 운영 원장에 쓰고 운영 서버에 올린다. dev API가 생기면 그 예약
+   실행이 ① dev에 올려 검사하고 통과하면 곧바로 운영에도 올리는가(지금처럼 사람
+   없이 끝), ② dev까지만 올리고 운영 반영은 사람이 하는가* — 둘 중 하나를 정해야
+   한다. ①은 dev가 검사 단계 하나를 더 얻는 것이고, ②는 09-15에 정한 "검증 후
+   자동 반영, 같은 날 사람이 만진 것만 안 덮음" 정책을 되돌리는 것이다. 이
+   문서에서는 **①로 둔다** — 정책 변경은 별도 결정.
+4. 도메인 추가는 자유 → `dev-api.bebeggars.duckdns.org`(nginx 서버 블록 하나 더,
+   certbot). 경로 분기는 안 한다.
 
-## 5. 하지 말 것
+## 5. 다음 단계 (결정 반영한 순서)
+
+1. 서버: `delivery-discount-api-dev.service`(:8089, `data-dev/`, PostHog off,
+   원장 `events-dev.jsonl`), nginx `dev-api.` 블록, 인증서.
+2. 웹: `api.js`의 `API_BASE`를 `import.meta.env.VITE_API_BASE ?? 운영주소`로.
+   Vercel 환경변수 Production=운영, Preview·Development=dev. `.env.development`에
+   dev 주소. 프리뷰 빌드는 `VITE_POSTHOG_KEY` 없음.
+3. 미러: `mirror-deploy-repos.yml`이 main 외 브랜치도 `nn98/delivery-discount-web`
+   같은 이름 브랜치로 밀어 Vercel Preview가 뜨게. API 미러는 main만(dev API는
+   운영 jar와 같은 빌드를 쓰고 데이터만 다르다 — 코드 프리뷰가 필요하면 그때
+   dev 배포 워크플로를 따로).
+4. 트래커: `reflect_daily`·`deploy_export`가 dev에 먼저 올리고 `check_deploy`
+   통과 시 운영에 올린다(위 3-①).
+5. 문서: DEV-ENVIRONMENT.md "개발 환경과 운영 환경 분리" 절 갱신, ROUTINE-SPEC
+   §2 반영 단계에 dev 관문 추가.
+
+## 6. 하지 말 것
+
 
 - 브랜치 전략(`develop`/`release`)부터 세우기 — 1~2명에 main 하나가 맞다.
 - Spring 프로필 파일 분리 — 환경변수로 이미 갈린다(DEV-ENVIRONMENT.md).
