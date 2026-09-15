@@ -669,6 +669,10 @@ h1 {
    장이 넘어가도 자리를 지킨다. 다 차면 onAnimationEnd가 다음 장을 부른다 —
    보이는 시간과 실제로 넘어가는 시점이 하나다. */
 .banner__progress {
+  /* 막대는 안 보인다(사용자 결정 2026-09-15: "배너 하단 프로그래스바 없애라").
+     요소는 남긴다 - 넘기는 타이머가 이 애니메이션의 animationend라서,
+     display:none으로 지우면 배너가 안 돈다. 보이지 않는 3px로 시간만 잰다. */
+  opacity: 0;
   position: absolute;
   left: 0;
   right: 0;
@@ -1682,13 +1686,6 @@ h1 {
 .offer__status-badge--membership[data-platform="coupangeats"] { background: #333; }
 .offer__status-badge--membership[data-platform="ddangyo"] { background: #f5a623; }
 .offer__status-badge--membership[data-platform="yogiyo"] { background: #fa0050; }
-/* 상세 구간 줄 안에서는 채널 표식과 같은 자리·같은 크기로 선다. */
-.detail__tier-membership {
-  margin-left: .3rem;
-  font-size: .68rem;
-  padding: .05rem .4rem;
-  vertical-align: middle;
-}
 
 .platform-badge {
   position: relative;
