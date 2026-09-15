@@ -229,16 +229,12 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
         {/* "배민클럽 전용쿠폰" 같은 원문 대신 이름만 남긴다 — 칩이 이미
             그 앱 하나로 정해져 있으니 "전용쿠폰"은 군더더기다. 그 외
             배지("선착순" 등)는 원문 그대로 둔다. */}
-        {offer.badge && (
-          memberOnly ? (
-            <span className="offer__status-badge offer__status-badge--membership" data-platform={offer.platform}>
-              {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
-            </span>
-          ) : (
-            !/^\d+%할인$/.test(offer.badge) && (
-              <span className="offer__status-badge">{offer.badge}</span>
-            )
-          )
+        {/* 멤버십(배민클럽·와우) 배지는 카드에서 뺐다(사용자 결정 2026-09-15) —
+            ADR-029 뒤 쿠폰함에서 온 오퍼 대부분에 붙어 혼동만 줬다. 멤버십은
+            조건이지 카드의 정체성이 아니다. 펼친 상세의 구간 줄(detail__tier-
+            membership)에만 남는다. 그 외 배지("선착순" 등)는 그대로다. */}
+        {offer.badge && !memberOnly && !/^\d+%할인$/.test(offer.badge) && (
+          <span className="offer__status-badge">{offer.badge}</span>
         )}
         {offer.soldOut ? (
           <>
