@@ -33,10 +33,3 @@ export function settleSlot(slot, count) {
   if (slot === count + 1) return 1
   return null
 }
-
-// 다른 장으로 옮길 때 미끄러질지 갈아끼울지. 옆 칸만 미끄러진다 — 점으로
-// 멀리 있는 장을 누를 때 smooth면 사이 배너를 전부 훑고 지나간다. 마지막에서
-// 처음으로 도는 것은 이제 "옆 칸"(첫 장의 사본)이라 미끄러진다.
-export function jumpBehavior(cur, next) {
-  return Math.abs(next - cur) === 1 ? 'smooth' : 'instant'
-}

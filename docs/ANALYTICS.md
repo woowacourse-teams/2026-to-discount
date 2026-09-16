@@ -92,12 +92,14 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `brands_retry` | 목록 불러오기 실패 후 재시도 | — |
 | `scroll_to_top` | "맨 위로" | — |
 
-### 조건을 어떻게 고르나 (옛 A/B의 핵심 — `from`은 이제 항상 `bar`)
+### 조건을 어떻게 고르나 (`from`: `bar` = 펼친 바, `sheet` = 필터 시트)
 
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
 | `category_change` | 분류 선택 | `category`, `from`(`bar`/`sheet`) |
 | `platform_filter_toggle` | 배달앱 켜고 끔 | `platform`, `from`(`bar`/`sheet`) |
+| `filter_sheet_open` | 바의 필터 버튼으로 시트 열기(옛 B안 시트, 2026-09-16 A 바에 병합) | — |
+| `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
 | `filters_reset` | 초기화 버튼 | — |
 | `membership_toggle` | 멤버십 라벨 (아직 미구현 기능) | `platform`, `state:'soon'`, `from` |
 | `brand_search_submitted` | 비어 있지 않은 검색어를 엔터·검색 버튼으로 확정 | `inputLength`, `resultCount`(목록 로드 전에는 생략), `submitMethod`(`enter`/`button`) |

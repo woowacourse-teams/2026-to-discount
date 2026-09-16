@@ -137,6 +137,8 @@ export default function TopBarA({
   cartEnabled,
   isFiltered,
   resetFilters,
+  onOpenSheet,
+  sheetOpen,
 }) {
   const [membershipHint, setMembershipHint] = useState(null)
 
@@ -235,6 +237,25 @@ export default function TopBarA({
               </svg>
               {cart.size > 0 && <span className="cart-btn__count">{cart.size}</span>}
             </button>}
+
+            {/* 필터 시트(옛 B안). 바에 펼쳐진 앱·분류는 그대로 두고, 정렬과
+                여러 분류 동시 선택처럼 바에 안 실린 조건은 여기서 고른다
+                (사용자 결정 2026-09-16: 기능 병합). */}
+            <button
+              type="button"
+              className={`filter-reset-btn filter-sheet-btn${sheetOpen ? ' filter-reset-btn--active' : ''}`}
+              aria-expanded={sheetOpen}
+              aria-haspopup="dialog"
+              onClick={onOpenSheet}
+              aria-label="앱·분류·정렬 필터"
+              title="앱·분류·정렬 필터"
+            >
+              <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+                <line x1="10" y1="18" x2="14" y2="18" />
+              </svg>
+            </button>
 
             <button
               type="button"

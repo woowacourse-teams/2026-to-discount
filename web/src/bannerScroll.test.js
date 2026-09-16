@@ -1,19 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { indexToSlot, jumpBehavior, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
-
-test('옆 장은 미끄러진다', () => {
-  assert.equal(jumpBehavior(0, 1), 'smooth')
-  assert.equal(jumpBehavior(2, 1), 'smooth')
-})
-
-test('점으로 건너뛸 때는 갈아끼운다', () => {
-  assert.equal(jumpBehavior(1, 4), 'instant')
-})
-
-test('제자리는 애니메이션이 없다', () => {
-  assert.equal(jumpBehavior(1, 1), 'instant')
-})
+import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
 
 test('트랙은 마지막 장 사본으로 시작해 첫 장 사본으로 끝난다', () => {
   const b = [{ id: 'a' }, { id: 'b' }, { id: 'c' }]
@@ -38,9 +25,8 @@ test('사본에 멈추면 실제 칸으로 옮긴다, 실제 칸이면 그대로
   assert.equal(settleSlot(0, 1), null)
 })
 
-test('마지막에서 다음은 첫 장 사본이라 옆 칸이다 — 미끄러진다', () => {
+test('마지막 칸의 다음 칸은 첫 장 사본이다', () => {
   const count = 3
   const lastSlot = indexToSlot(2, count)
-  assert.equal(jumpBehavior(lastSlot, lastSlot + 1), 'smooth')
   assert.equal(slotToIndex(lastSlot + 1, count), 0)
 })

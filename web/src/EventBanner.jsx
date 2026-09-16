@@ -9,11 +9,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
-import { indexToSlot, jumpBehavior, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
+import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
 
 const ROTATE_MS = 4300
 const DISMISS_KEY = 'dk_banner_hidden'
-const CUT_CLASS = 'banner-track--cut'
 
 
 // 닫기는 배너별이 아니라 하루 통짜다. localStorage 기반이라 사이트 데이터를
@@ -361,16 +360,10 @@ export default function EventBanner({ banners }) {
   function scrollToSlot(slot) {
     const el = trackRef.current
     if (!el) return
-    const cur = Math.round(el.scrollLeft / el.clientWidth)
-    const behavior = jumpBehavior(cur, slot)
-    el.scrollTo({ left: slotLeft(el, slot), behavior })
-    // 갈아끼우는 자리에는 전환이 없다 — 그냥 딸깍 바뀌어서 넘어간 건지
-    // 화면이 튄 건지 안 읽힌다. 위치는 즉시 옮기고 새 장만 짧게 띄운다.
-    // 클래스를 뗐다 다시 붙여야 애니메이션이 처음부터 돈다(리플로 한 번).
-    if (behavior !== 'instant' || reduceMotion) return
-    el.classList.remove(CUT_CLASS)
-    void el.offsetWidth
-    el.classList.add(CUT_CLASS)
+    // 항상 미끄러진다. 멀리 있는 점을 눌렀을 때 "갈아끼우고 짧게 띄우기"
+    // (컷)를 했었는데 파이어폭스에서 화면이 사라졌다 나타나는 것으로 보였다
+    // (사용자 지적 2026-09-16). 사이 장을 훑고 지나가는 쪽이 캐러셀답다.
+    el.scrollTo({ left: slotLeft(el, slot), behavior: reduceMotion ? 'instant' : 'smooth' })
   }
 
   // 자동 전환. 한 건이면 돌릴 것이 없고, 손이 올라가 있거나 포커스가 안에

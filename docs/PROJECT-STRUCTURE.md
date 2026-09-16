@@ -128,6 +128,9 @@ web/package-lock.json
 web/package.json
 web/scripts/build-logo-manifest.mjs
 web/scripts/build-platform-icons.py
+web/scripts/dev/README.md
+web/scripts/dev/banner-measure.mjs
+web/scripts/dev/banner-shot.mjs
 web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
 web/scripts/verify-analytics-event-contract.mjs
@@ -140,6 +143,7 @@ web/src/App.css
 web/src/App.jsx
 web/src/BrandSuggestions.jsx
 web/src/EventBanner.jsx
+web/src/FilterSheet.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
 web/src/TopBarA.jsx
@@ -216,7 +220,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 90 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 51 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 55 |
 
 ### Tracker
 
@@ -270,6 +274,7 @@ HTTP 경계:
 | `App.jsx` | 브랜드 비교, 분류, 검색, 상세 |
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
+| `FilterSheet.jsx` | 앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합) |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `TopBarA.jsx` | 상단 바(앱 버튼·분류 캐러셀). 옛 A안, 2026-09-15부터 유일 |

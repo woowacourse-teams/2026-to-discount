@@ -100,6 +100,7 @@ WEB_RESPONSIBILITIES = {
     "brandImpression.test.js": "브랜드 헤더 노출 판정 검증",
     "main.jsx": "React와 분석 도구 진입점",
     "filters.js": "필터 상태와 적용·정렬 규칙",
+    "FilterSheet.jsx": "앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합)",
     "variant.js": "화면 안 상수(a 고정, A/B 종료 2026-09-15)",
     "TopBarA.jsx": "상단 바(앱 버튼·분류 캐러셀). 옛 A안, 2026-09-15부터 유일",
     "analytics-context.js": "익명 ID와 방문 회차",

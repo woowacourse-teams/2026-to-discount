@@ -42,11 +42,9 @@ public class EventController {
     private static final Set<String> ALLOWED_EVENTS = Set.of(
             "page_view", "page_exit", "category_change", "brand_expand",
             "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
-            "brands_retry", "scroll_to_top", "membership_toggle",
-            // filters_apply·filter_sheet_open(B안 바텀시트)은 2026-09-15 A로
-            // 통일하며 프론트에서 지웠다. 이 주석 안에 따옴표를 쓰지 말 것 —
-            // verify-analytics-event-contract가 블록 안 따옴표 문자열을 전부 읽는다.
-            "cart_toggle", "cart_view_toggle", "cart_clear",
+            "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
+            // 필터 시트는 옛 B안의 것인데 2026-09-16 A 바에 기능으로 병합했다.
+            "cart_toggle", "filter_sheet_open", "cart_view_toggle", "cart_clear",
             "banner_impression", "banner_dismiss", "brand_search_submitted",
             "brand_impression",
             // 설문 노출·닫기는 프론트가 쏜다. 응답(survey_answer)은 SurveyService가

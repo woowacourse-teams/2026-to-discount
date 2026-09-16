@@ -6,6 +6,7 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.jsx'
 import TopBarA from './TopBarA.jsx'
+import FilterSheet from './FilterSheet.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
@@ -734,6 +735,18 @@ export default function App() {
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
   const [filters, setFilters] = useState(routeFilters)
+  // 필터 시트(옛 B안을 A 바에 병합, 2026-09-16). 시트가 draft를 만들어
+  // 통째로 돌려주므로 "적용" 한 번에 setFilters 한 번이다.
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const applyFromSheet = (draft) => {
+    setFilters(draft)
+    setSheetOpen(false)
+    track('filters_apply', {
+      platforms: draft.platforms.size,
+      categories: draft.categories.size,
+      sort: `${draft.sortKey}_${draft.sortDir}`,
+    })
+  }
   // /brand/<이름>으로 들어왔을 때만 값이 있다. 검색으로 들어온 사람에게
   // 전체 목록으로 나가는 길을 눈에 보이게 두려는 것이다 — 검색어를 지우고
   // 엔터까지 쳐야 전체가 나오는데(입력 초안과 확정 필터가 갈려 있다),
@@ -996,6 +1009,13 @@ export default function App() {
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
+      <FilterSheet
+        open={sheetOpen}
+        filters={filters}
+        onApply={applyFromSheet}
+        onClose={() => setSheetOpen(false)}
+      />
+
       {/* 고정된 바가 문서 흐름에서 빠진 만큼을 대신 차지하는 자리. 높이는
           바를 실측해서 넣는다(폰트 로딩·줄바꿈으로 바뀔 수 있다). */}
       <div className="title-bar-spacer" style={{ height: `${barHeight}px` }} aria-hidden="true" />
@@ -1015,6 +1035,8 @@ export default function App() {
         cartEnabled={CART_ENABLED}
         isFiltered={isFiltered}
         resetFilters={resetFilters}
+        sheetOpen={sheetOpen}
+        onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
       />
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가

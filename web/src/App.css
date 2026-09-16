@@ -419,19 +419,8 @@ h1 {
 }
 .banner-track::-webkit-scrollbar { display: none; }
 
-/* 건너뛰어 갈아끼운 장은 짧게 떠오른다. 위치만 즉시 바뀌면 화면이 튄
-   것인지 넘어간 것인지 안 읽힌다 — 사이 배너를 훑지 않으면서 "바뀌었다"만
-   남긴다. 스크롤은 이미 끝나 있으므로 이 동안 조작을 막지 않는다. */
-.banner-track--cut {
-  animation: banner-cut 240ms ease-out;
-}
-@keyframes banner-cut {
-  from { opacity: .15; }
-  to { opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .banner-track--cut { animation: none; }
-}
+
+
 .banner-track > .banner {
   flex: 0 0 100%;
   scroll-snap-align: start;
@@ -2879,3 +2868,142 @@ html.has-bottom-banner .survey-dock {
 
 /* 다음 묶음을 부르는 자리. 보이지 않지만 높이가 0이면 관찰이 안 걸린다. */
 .brand-grid__more { height: 1px; }
+
+
+/* ══ 필터 바텀시트 ═══════════════════════════════════════════════════
+   옛 B안의 시트를 A 바에 붙였다(사용자 결정 2026-09-16: 기능 병합).
+   바의 필터 버튼이 연다. 앱·분류·정렬을 한 자리에서 고른다. */
+/* ── 필터 시트 ──────────────────────────────────────────────────── */
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, .32);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 18px 18px 0 0;
+  /* 아래에서 올라온다. 시트가 튀어나오지 않고 밀려 올라와야 어디서 왔는지
+     읽힌다. */
+  animation: sheet-rise .22s cubic-bezier(.22, .8, .3, 1);
+}
+@keyframes sheet-rise {
+  from { transform: translateY(12%); opacity: .6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.sheet__grip {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  margin: .6rem auto .2rem;
+  flex: none;
+}
+.sheet__body {
+  overflow-y: auto;
+  padding: .5rem 1.25rem 1rem;
+}
+.sheet__title {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: .02em;
+  margin: 1rem 0 .55rem;
+}
+.sheet__body > .sheet__title:first-child { margin-top: .3rem; }
+/* 앱 버튼 모양은 .page-head__apps 규칙이 정한다(A안 바와 같은 것). 여기서는
+   시트 안에서의 배치만 잡는다. 라벨 붙은 카드형 버튼(.sheet__app)을 쓰다가
+   걷었다 — 작은 회색 배지로는 어느 앱을 껐는지 한눈에 안 읽혔다. */
+.sheet__apps { display: flex; gap: .5rem; flex-wrap: wrap; }
+/* A 바의 앱 줄 규칙(멤버십 라벨 자리 21px, 회색 판, 위 여백)은 시트 안에선
+   군더더기다 — 체크 배지가 위로 삐져나오고 빈 판이 남았다(2026-09-16 360px). */
+.sheet__apps.page-head__apps { padding: 6px 0 0 6px; margin: 0; background: none; }
+.sheet__chips { display: flex; gap: .4rem; flex-wrap: wrap; }
+.sheet__chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: .38rem .8rem;
+  font-size: .85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease, border-color .16s ease;
+}
+.sheet__chip--on {
+  background: var(--text);
+  border-color: var(--text);
+  color: #fff;
+  font-weight: 600;
+}
+.sheet__chips + .sheet__chips { margin-top: .4rem; }
+.sheet__hint, .sheet__warn {
+  font-size: .76rem;
+  color: var(--text-muted);
+  margin: .45rem 0 0;
+}
+.sheet__warn { color: var(--pending-text); }
+.sheet__actions {
+  flex: none;
+  display: flex;
+  gap: .6rem;
+  padding: .75rem 1.25rem calc(.75rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+}
+/* 좁은 화면에서 글자가 두 줄로 접혔다. 손가락 높이(.7rem 상하 여백)는
+   지키고 글자와 좌우 여백만 줄여 한 줄에 넣는다. */
+.sheet__reset, .sheet__apply {
+  border-radius: 12px;
+  padding: .7rem .75rem;
+  font-size: .86rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sheet__reset {
+  flex: none;
+  min-width: 76px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+.sheet__reset:disabled { opacity: .45; cursor: default; }
+.sheet__apply {
+  flex: 1;
+  border: 0;
+  background: var(--text);
+  color: #fff;
+}
+/* 제목 옆에 붙는 "구현 예정". 누르기 전에 알려야 한다 — 눌러야 알려주면
+   눌러본 사람만 알게 되고 그 전까지는 고장으로 읽힌다. */
+.sheet__soon {
+  margin-left: .4rem;
+  padding: .1rem .4rem;
+  border-radius: 999px;
+  background: var(--pending-bg);
+  color: var(--pending-text);
+  font-size: .65rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+/* 아직 못 누르는 칩. 색과 커서로 드러내되 자리와 이름은 남긴다 —
+   수요를 재려고 둔 것이라 무엇을 누르려 했는지는 보여야 한다. */
+.sheet__chip--soon {
+  border-style: dashed;
+  opacity: .5;
+  cursor: default;
+}
+.sheet__chip--soon:hover { border-color: var(--border); color: var(--text-muted); }
+/* 손을 올렸을 때의 답. 시트 안 버튼들과 인디케이터가 통째로 빠져 있어,
+   마우스로는 누를 수 있는 것인지 올려봐도 알 수 없었다. */
+.sheet__chip:hover:not(.sheet__chip--on),
+.sheet__app:hover:not(.sheet__app--on) { border-color: var(--text-muted); color: var(--text); }
+.sheet__reset:hover { background: var(--save-soft); }
+.sheet__apply:hover { background: var(--save-hover); }
