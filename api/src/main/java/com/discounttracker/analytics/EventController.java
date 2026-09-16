@@ -45,6 +45,8 @@ public class EventController {
             "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
             // 필터 시트는 옛 B안의 것인데 2026-09-16 A 바에 기능으로 병합했다.
             "cart_toggle", "filter_sheet_open", "cart_view_toggle", "cart_clear",
+            // 홈 버튼(2026-09-16, 바의 필터 버튼 옆).
+            "home_click",
             "banner_impression", "banner_dismiss", "brand_search_submitted",
             "brand_impression",
             // 설문 노출·닫기는 프론트가 쏜다. 응답(survey_answer)은 SurveyService가

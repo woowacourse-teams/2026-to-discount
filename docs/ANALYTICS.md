@@ -101,6 +101,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `filter_sheet_open` | 바의 필터 버튼으로 시트 열기(옛 B안 시트, 2026-09-16 A 바에 병합) | — |
 | `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
 | `filters_reset` | 초기화 버튼 | — |
+| `home_click` | 바의 홈 버튼 — 필터·검색 풀고 맨 위로(브랜드 경로면 전체 목록으로) | — |
 | `membership_toggle` | 멤버십 라벨 (아직 미구현 기능) | `platform`, `state:'soon'`, `from` |
 | `brand_search_submitted` | 비어 있지 않은 검색어를 엔터·검색 버튼으로 확정 | `inputLength`, `resultCount`(목록 로드 전에는 생략), `submitMethod`(`enter`/`button`) |
 

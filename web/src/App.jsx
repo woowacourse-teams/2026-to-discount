@@ -315,8 +315,14 @@ function OfferDetail({ offer }) {
       </div>
 
       <dl className="detail__rows">
-        <dt>할인/조건</dt>
-        <dd>
+        {/* 네 칸 격자는 라벨 옆 칸에 안 들어간다(360px에서 배지가 기한을
+            덮었다) — 라벨과 격자를 각각 한 줄 통째로 쓴다. */}
+        <dt className="detail__rows-full">할인/조건</dt>
+        <dd className="detail__rows-full">
+          {/* 구간 한 줄 = 금액 | 채널·멤버십 | 기한 | 최소주문, 네 칸 격자
+              (사용자 결정 2026-09-16). 전엔 금액 덩어리에 채널·멤버십이 딸려
+              붙고 기한·최소주문이 오른쪽에 몰려, 줄마다 칸이 안 맞았다.
+              li는 display:contents라 칸이 줄을 넘어 정렬된다(App.css). */}
           <ul className="detail__tiers">
             {rows.map((t, i) => (
               <li key={i} className="detail__tier">
@@ -330,43 +336,33 @@ function OfferDetail({ offer }) {
                     </>
                   ) : won(t.amount)}
                   {/* percent가 있으면 이 금액이 정률 계산 결과다(요기요
-                      cumulative 실측 2026-08-19: "18,000원 이상 3,000원 +
-                      25,000원 이상 5%(최대 3,000원)"에서 두 번째 줄이
-                      percent 없이 "25,000원 이상 1,250원"으로만 보이면
-                      마치 별개 정액 쿠폰처럼 읽힌다 — 정률이라는 사실
-                      자체가 사라진다). 금액 옆에 %와 상한을 병기한다. */}
+                      cumulative 실측 2026-08-19). %와 상한을 병기한다. */}
                   {t.percent != null && (
                     <span className="detail__tier-percent">
                       ({t.percent}%{t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''})
                     </span>
                   )}
-                  {/* 같은 브랜드에 배달용과 포장용 쿠폰이 따로 걸리기도
-                      한다(땡겨요 바른치킨). 어느 쪽에 쓰는 금액인지가
-                      금액 바로 옆에 있어야 헷갈리지 않는다. */}
+                </span>
+                <span className="detail__tier-scope">
+                  {/* 채널(배달/포장, 땡겨요 바른치킨처럼 갈릴 때), 구간 멤버십
+                      (ADR-029), 이 구간에만 걸리는 조건("사용(발급X) 선착순" —
+                      오퍼 전체 조건으로 두면 모든 구간에 걸린 것처럼 읽힌다). */}
                   {t.channel && <span className="detail__channel">{t.channel}</span>}
-                  {/* 구간별 멤버십(ADR-029) 배지는 여기서도 뺐다(사용자 결정
-                      2026-09-15: 카드 하단 멤버십 배지 제거 — 접힌 줄에서 빼고도
-                      펼친 구간 줄에 남아 같은 자리에 계속 보였다). 값은
-                      t.membership에 그대로 있다. */}
-                  {/* 이 구간에만 걸리는 조건("사용(발급X) 선착순"). 오퍼
-                      전체 조건으로 두면 사다리 맨 아래 한 번 찍혀 모든
-                      구간에 걸린 것처럼 보인다 — 피자헛 배민 카드가
-                      그랬다(10,000원만 선착순인데 7,000·6,000까지 그렇게
-                      읽혔다). 채널과 같은 자리, 같은 결로 붙인다. */}
+                  {t.membership && t.membership !== 'none' && (
+                    <span className="offer__status-badge offer__status-badge--membership detail__tier-membership"
+                          data-platform={offer.platform}>
+                      {MEMBERSHIP_LABEL[offer.platform] ?? t.membership}
+                    </span>
+                  )}
                   {t.note && <span className="detail__channel">{t.note}</span>}
                 </span>
+                <span className="detail__tier-expiry">
+                  {/* 구간마다 끝나는 날이 다를 수 있다(배민 청년피자 일반
+                      08-30 / 클럽 08-31). 오퍼 만료일과 같으면 비운다. */}
+                  {t.expiresAt && t.expiresAt !== offer.expiresAt
+                    ? `~${t.expiresAt.slice(5).replace('-', '.')}` : ''}
+                </span>
                 <span className="detail__tier-min">
-                  {/* 구간마다 끝나는 날이 다를 수 있다 — 배민 청년피자는
-                      일반 08-30, 배민클럽 08-31로 하루 차이다. 오퍼 전체의
-                      만료일과 같으면 굳이 줄마다 반복하지 않는다.
-                      기한이 최소주문금액 **앞**에 온다(사용자 결정 2026-09-15). */}
-                  {t.expiresAt && t.expiresAt !== offer.expiresAt && (
-                    <span className="detail__tier-expiry">~{t.expiresAt.slice(5).replace('-', '.')}</span>
-                  )}
-                  {/* "18,000원 이상 주문 시"는 구간이 여럿이면 같은 문구가
-                      줄마다 반복돼 정작 다른 부분(금액)이 안 읽힌다. 배너
-                      부가정보가 이미 쓰던 표기로 맞춘다 — 화살표 하나면
-                      "이 금액을 넘겨야 한다"가 전달된다. */}
                   {t.minOrder != null
                     ? <span aria-label={`${won(t.minOrder)} 이상 주문 시`}>{won(t.minOrder)}↑</span>
                     : <span className="detail__unknown">최소주문 미확인</span>}
@@ -809,6 +805,19 @@ export default function App() {
     setFilters(defaultFilters())
     track('filters_reset')
   }
+  // 첫 화면: 브랜드 경로(/brand/<이름>)면 전체 목록으로 나가고, 아니면
+  // 필터·검색을 풀고 맨 위로. 시트가 열려 있으면 닫는다.
+  const goHome = () => {
+    track('home_click')
+    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+      window.location.assign('/')
+      return
+    }
+    setSheetOpen(false)
+    setFilters(defaultFilters())
+    setCartOnly(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   // URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유할 수 있게 한다.
   // 해시가 바뀌면(같은 페이지 안에서 다른 링크로 다시 들어와도) 다시
@@ -1047,6 +1056,7 @@ export default function App() {
         resetFilters={resetFilters}
         sheetOpen={sheetOpen}
         onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
+        onHome={goHome}
       />
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가

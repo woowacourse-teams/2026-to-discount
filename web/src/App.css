@@ -393,7 +393,7 @@ h1 {
      차지하지 않고 아래 여백(링크 9 + 글줄 8 = 17px) 위에 떠 있다
      (.banner__dots: 14px, bottom 3px). 전엔 아래에만 띠를 둬 내용이 위로
      쏠렸다(사용자 지적 2026-09-16). 오른쪽은 닫기 버튼 자리. */
-  padding: 9px 2.4rem 9px 0;
+  padding: 6px 2.4rem 6px 0;
   text-decoration: none;
   color: inherit;
 }
@@ -441,7 +441,7 @@ h1 {
   flex: none;
   line-height: 0;
   /* 로고가 배너 모서리에 붙으면 띠가 아니라 잘린 그림처럼 보인다. */
-  padding: 8px 12px;
+  padding: 6px 12px;
 }
 .banner__logo .brand-logo {
   width: var(--logo);
@@ -516,8 +516,8 @@ h1 {
   gap: .15rem;
   min-width: 0;
   flex: 1 1 auto;
-  /* 위아래 같은 값. 점이 뜰 자리는 이 여백과 링크 여백을 합친 17px이다. */
-  padding: 8px 0;
+  /* 위아래 같은 값. 점이 뜰 자리는 이 여백과 링크 여백을 합친 13px이다. */
+  padding: 7px 0;
 }
 
 /* 금액이 배너의 주인공이다. 좁은 화면에서도 이 글씨는 줄이지 않는다. */
@@ -529,7 +529,9 @@ h1 {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: .1rem .5rem;
+  /* 금액 줄과 브랜드·기간 줄 사이. 좁으면 한 덩어리로 뭉쳐 보였다
+     (사용자 지적 2026-09-16). */
+  gap: .3rem .5rem;
   min-width: 0;
 }
 .banner__when {
@@ -692,7 +694,7 @@ h1 {
   position: absolute;
   /* 내용 위에 떠 있다 — 띠를 차지하면 내용이 위로 쏠린다. 아래 여백 17px
      안(3~17px)에 앉아 조건 줄과 안 겹친다. */
-  bottom: 3px;
+  bottom: 1px;
   z-index: 2;
   left: 50%;
   transform: translateX(-50%);
@@ -703,8 +705,10 @@ h1 {
 }
 .banner__dot {
   position: relative;
-  width: 14px;
-  height: 14px;
+  /* 눌리는 판 12px, 보이는 점 8px. 아래 여백(13px) 안에 들어가야 조건 줄과
+     안 겹친다. */
+  width: 12px;
+  height: 12px;
   padding: 0;
   border: none;
   background: none;
@@ -715,9 +719,10 @@ h1 {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
+  /* 점을 키운다(6 → 8px, 사용자 지적 2026-09-16: 캐러셀 표시가 작다). */
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
   border-radius: 50%;
   /* 카드 밖 층이라 --banner-* 변수를 못 받는다. 판이 한 색(#17171a)으로
      고정됐으므로 흰색으로 못박는다 — 변수를 다시 끌어오면 카드가 흐르는
@@ -1785,23 +1790,39 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    트랙 자체를 넓혀 화면을 밀어냈다(2026-09-03 실측: 네네치킨 요기요
    조건 문구). 0으로 낮춰야 1fr 트랙 폭 안에서 접힌다. */
 .detail__rows dd { margin: 0; font-size: .9rem; min-width: 0; }
+.detail__rows .detail__rows-full { grid-column: 1 / -1; }
+.detail__rows dt.detail__rows-full { margin-bottom: -.05rem; }
 .detail__unknown { color: var(--text-muted); }
 
+/* 구간 목록 = 네 칸 격자(금액 | 채널·멤버십 | 기한 | 최소주문). li는
+   display:contents라 칸이 줄을 넘어 세로로 맞는다 — 줄마다 flex로 두면
+   금액 폭이 달라 칸이 어긋났다(사용자 지적 2026-09-16). */
 .detail__tiers {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: .18rem;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content max-content;
+  column-gap: .5rem;
+  row-gap: .22rem;
+  align-items: center;
+  max-width: 380px;
 }
-.detail__tiers li {
-  display: flex;
-  justify-content: space-between;
-  gap: .6rem;
-  max-width: 340px;
+.detail__tiers li { display: contents; }
+.detail__tier-scope { display: flex; flex-wrap: wrap; gap: .25rem; min-width: 0; }
+.detail__tier-scope .detail__channel { margin-left: 0; }
+/* 구간 줄의 멤버십 배지. .offer__status-badge는 칩 아래에 절대 위치로 붙는
+   배지라 그 위치 규칙을 끄고 칩 안 채널 라벨과 같은 자리에 선다 — 안 끄면
+   카드 맨 아래로 튀어나간다(2026-09-16 실측). 색은 앱별 규칙을 그대로 쓴다. */
+.detail__tier-scope .detail__tier-membership {
+  position: static;
+  transform: none;
+  margin: 0;
+  font-size: .68rem;
+  padding: .05rem .4rem;
+  border-radius: 5px;
 }
-.detail__tier-min { color: var(--text-muted); }
+.detail__tier-min { color: var(--text-muted); text-align: right; white-space: nowrap; }
 /* 금액 뒤에 이어 붙이면 "3,000원(5%, 최대 3,000원)"이 한 줄로 길어져
    좁은 화면에서 잘렸다. 조건은 금액을 설명하는 딸린 값이라 아래 줄로
    내린다 — 금액이 먼저 읽히고 조건이 뒤따른다. */
@@ -1809,9 +1830,10 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 구간마다 끝나는 날이 다를 때만 붙는다(오퍼 만료일과 같으면 생략) —
    조건 문구 옆에 작게 얹어 어느 쿠폰이 먼저 끝나는지 보이게 한다. */
 .detail__tier-expiry {
-  margin-right: .35rem;   /* 최소주문금액 앞에 선다 */
   font-size: .75em;
   color: var(--pending-text);
+  white-space: nowrap;
+  text-align: right;
 }
 .detail__tier-amount { font-weight: 600; font-variant-numeric: tabular-nums; }
 .detail__tier-amount--soldout { opacity: .5; }

@@ -139,6 +139,7 @@ export default function TopBarA({
   resetFilters,
   onOpenSheet,
   sheetOpen,
+  onHome,
 }) {
   const [membershipHint, setMembershipHint] = useState(null)
 
@@ -237,6 +238,21 @@ export default function TopBarA({
               </svg>
               {cart.size > 0 && <span className="cart-btn__count">{cart.size}</span>}
             </button>}
+
+            {/* 홈 — 첫 화면으로. 필터·검색을 풀고 맨 위로, /brand/<이름>에서
+                들어왔으면 전체 목록으로(사용자 결정 2026-09-16). */}
+            <button
+              type="button"
+              className="filter-reset-btn home-btn"
+              onClick={onHome}
+              aria-label="첫 화면으로"
+              title="첫 화면으로"
+            >
+              <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 11.5 12 4l9 7.5" />
+                <path d="M5.5 10.5V20h13v-9.5" />
+              </svg>
+            </button>
 
             {/* 필터 시트(옛 B안). 바에 펼쳐진 앱·분류는 그대로 두고, 정렬과
                 여러 분류 동시 선택처럼 바에 안 실린 조건은 여기서 고른다
