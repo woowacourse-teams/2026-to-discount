@@ -212,11 +212,12 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             후보에서 빠진다) — 같은 자리, 같은 배지를 색만 바꿔 쓴다. */}
         {/* 최고 할인은 칩 왼쪽에 라벨로 붙인다 — 금액 위에 떠 있던
             배지는 카드가 여럿 늘어서면 어느 칩 것인지 헷갈렸다. */}
+        {/* 칩 왼쪽 위 모서리 안쪽에 붙는 탭. 테두리 그라데이션과 같은
+            색·같은 각도라 테에서 이어져 나온 것처럼 읽힌다(사용자 결정
+            2026-09-16). 전엔 칩 밖 왼쪽 위에 "최고/할인" 두 줄 정사각이 떠
+            있었다. */}
         {best && (
-          <span className="offer__best-label" aria-label="최고 할인">
-            <span>최고</span>
-            <span>할인</span>
-          </span>
+          <span className="offer__best-tag" aria-label="최고 할인">최고</span>
         )}
         {/* 위 칸(qualifier 자리)은 금액의 성격을 말한다 — "최대 할인
             금액"이나 "n%할인"처럼 그 숫자가 어떻게 나온 값인지. 아래

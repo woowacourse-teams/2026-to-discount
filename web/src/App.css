@@ -1488,8 +1488,28 @@ h1 {
   /* 칩 위에 덮이는 층이라 누르는 것을 가로채면 안 된다. */
   pointer-events: none;
 }
-/* 최고 할인 라벨 — 금액 위 배지가 아니라 칩 왼쪽에 붙는 표식이다.
-   흰 글씨라 네온 배경 위에서 금액과 한 덩어리로 읽힌다. */
+/* 최고 할인 탭 — 칩 안쪽 왼쪽 위 모서리에 붙는다. 테(::after)와 같은
+   그라데이션·각도라 테에서 안으로 이어진 혀처럼 읽힌다. 테 두께(왼쪽·위
+   2px) 안쪽에 딱 붙고, 오른쪽 아래만 둥글다. z-index는 테(::after)보다 아래
+   — 테가 탭의 바깥 변을 덮어 이음새가 안 보인다. */
+.offer__best-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  padding: .12rem .5rem .16rem .48rem;
+  border-radius: 7px 0 9px 0;
+  background: linear-gradient(120deg, #00c8ff 0%, #4d6bff 45%, #ff3ec8 100%);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -.02em;
+  pointer-events: none;
+}
+.offer--best .offer__chip::after { z-index: 2; }
+/* (옛) 최고 할인 라벨 — 칩 밖 왼쪽 위 두 줄 정사각. 탭으로 바꾸며 안 쓴다.
+   .offer__best-label 규칙은 되돌릴 수 있게 남긴다. */
 /* 두 줄짜리 정사각 표식 — 칩 왼쪽 끄트머리에 로고처럼 앉는다. */
 .offer__best-label {
   flex: none;
