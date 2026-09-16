@@ -349,7 +349,8 @@ h1 {
    바뀌어, 무엇이 바뀐 건지(브랜드인지 배너인지)가 안 읽혔다. 색은 로고와
    플랫폼 배지가 이미 충분히 들고 있다. 판은 조용히 뒤에 있는 편이 낫다. */
 .banner {
-  --banner-plate: #17171a;
+  /* #17171a에서 한 단계 밝게(사용자 결정 2026-09-16). */
+  --banner-plate: #26262b;
   --banner-plate-line: rgba(255, 255, 255, .1);
   position: relative;
   border-radius: 14px;
@@ -387,9 +388,10 @@ h1 {
    12px이 실제로는 12 + 링크 패딩이 되어 값이 뜻대로 안 먹는다. 오른쪽만
    닫기 버튼 자리를 비운다. */
 .banner__link {
+  position: relative;   /* .banner__platform(앱 배지)의 기준 */
   display: flex;
   align-items: center;
-  gap: .9rem;
+  gap: 16px;
   /* 위아래 같은 값 — 로고와 글줄이 배너 판의 정가운데에 선다. 오른쪽은
      닫기 버튼 자리. 우측 하단 조작 묶음 자리는 조건 줄(.banner__extra)만
      비운다 — 링크 전체를 비우면 금액 줄이 접혀 배너가 커진다. */
@@ -406,19 +408,19 @@ h1 {
 
 /* 가로로 넘기는 배너 줄. 한 장이 화면 폭을 꽉 채우고 경계에서 멈춘다 —
    반쯤 걸친 채로 서면 어디까지가 한 배너인지 안 읽힌다. */
+/* 트랙은 스크롤 컨테이너가 아니다(2026-09-16). 장 전체를 한 줄로 깔고
+   EventBanner가 slot 하나를 transform으로 옮긴다 — 상단·도크가 같은 값을
+   본다. 끌기는 포인터 이벤트로 받는다(touch-action: pan-y — 세로 스크롤은
+   브라우저에, 가로는 우리가). 넘치는 장은 슬롯이 자른다. */
 .banner-track {
   display: flex;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  /* 이 줄 위의 터치는 가로 스크롤 전용으로 못 박는다 — 없으면 첫·마지막
-     장 근처에서 끄는 제스처를 브라우저가 뒤로가기 스와이프로 채가서
-     양 끝에서 드래그가 안 먹혔다(.title-bar__scroll과 같은 이유). */
-  touch-action: pan-x;
-  scroll-snap-type: x mandatory;
-  /* 스크롤 막대가 배너 위에 겹쳐 뜨면 글자를 가린다. */
-  scrollbar-width: none;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
 }
-.banner-track::-webkit-scrollbar { display: none; }
+.banner-slot, .banner-dock__inner { overflow: hidden; }
+.banner-slot .banner-track > .banner, .banner-dock__inner .banner-track > .banner { flex: 0 0 100%; }
 
 
 
@@ -440,8 +442,9 @@ h1 {
   display: flex;
   flex: none;
   line-height: 0;
-  /* 로고가 배너 모서리에 붙으면 띠가 아니라 잘린 그림처럼 보인다. */
-  padding: 6px 12px;
+  /* 왼쪽 여백과 로고-글줄 사이(.banner__link gap)를 같은 16px로(사용자
+     결정 2026-09-16). 오른쪽은 gap이 맡으니 0. */
+  padding: 6px 0 6px 16px;
 }
 .banner__logo .brand-logo {
   width: var(--logo);
@@ -486,14 +489,15 @@ h1 {
 /* 플랫폼 배지는 로고 우측 하단에 얹는다. 따로 떨어뜨려 두면 "이 브랜드"와
    "이 앱"이 각각 읽히는데, 겹쳐 두면 한 덩어리로 읽힌다 — 앱 아이콘에
    흔한 배치다. 로고 크기를 따라가므로 어느 자리에서든 비율이 같다. */
+/* 앱 배지는 로고 모서리가 아니라 **배너 판의 오른쪽 위**에 선다(사용자
+   결정 2026-09-16). 로고 위에 겹치면 묶음 2×2에서 한 칸을 먹고 낱장에서는
+   로고를 가렸다. 기준은 .banner(카드)다. */
 .banner__platform {
   position: absolute;
-  right: 6px;
-  bottom: 6px;
-  /* 25%로는 어느 앱인지 못 알아봤다. 60%는 브랜드 로고를 가렸다(사용자
-     지적 2026-09-16) — 그 85%인 51%로 둔다. */
-  width: calc(var(--logo) * .51);
-  height: calc(var(--logo) * .51);
+  right: 8px;
+  top: 7px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   /* 앱 아이콘은 그 자체로 모양과 색을 가진 그림이다. 판을 깔거나 테두리를
@@ -1919,9 +1923,9 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 좁은 화면(360px 이하)에서 줄이는 건 로고와 배지뿐이다. 금액은 배너의
    주인공이라 글씨를 줄이지 않는다. */
 @media (max-width: 400px) {
-  .banner__link { gap: .6rem; }
+  .banner__link { gap: 14px; }
   /* --logo 하나만 줄이면 배지도 같은 비율로 따라온다. */
-  .banner__logo { --logo: 48px; padding: 10px; }
+  .banner__logo { --logo: 48px; padding: 6px 0 6px 14px; }
   .banner--bottom .banner__logo { --logo: 40px; }
 }
 
@@ -2105,7 +2109,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 }
 
 /* 하단 플로팅은 카드 위에 겹쳐 뜨는 층이라 더 낮게 잡는다. */
-.banner--bottom .banner__logo { --logo: 44px; padding: 10px; }
+.banner--bottom .banner__logo { --logo: 44px; padding: 6px 0 6px 16px; }
 
 /* ── 카드 담기 줄 ──────────────────────────────────────────────────
    카드 위에 얹은 체크박스는 로고·이름과 자리를 다투고 무엇을 체크하는
@@ -2487,7 +2491,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 
 /* 바 아래 구분선이 생긴 뒤(2026-09-16)로는 큰 띄움이 필요 없다 — 30px은
    흐려지는 바에서 배너가 바에 닿아 보이던 시절 값이다. */
-[data-variant="a"] .banner-slot { margin-top: 10px; }
+[data-variant="a"] .banner-slot { margin-top: 0; }
 
 /* 설문 카드. 크기와 모서리를 브랜드 카드와 같게 해서 그리드 첫 줄에
    끼워도 이물감이 없게 한다 — 배너 슬롯에 안 넣은 이유가 이것이다.
