@@ -690,49 +690,50 @@ h1 {
   .banner__progress { display: none; }
 }
 
-/* 캐러셀 표시 — 점이 아니라 배너 바닥 외곽선에 붙는 얇은 선(사용자 결정
-   2026-09-16). 지금 장은 길고 나머지는 짧다. 흰색 40%에 흰 빛 번짐을 살짝
-   얹어 진한 판 위에서 가늘어도 보인다. 눌리는 판(버튼)은 선보다 훨씬
-   크다(폭 +8px, 높이 18px) — 보이는 것은 가늘게, 누르는 것은 넉넉하게. */
+/* 캐러셀 표시 — 배너 맨 아래에 딱 붙는 선(사용자 결정 2026-09-16). 지금 장은
+   길고 나머지는 짧다. 흰색 40%에 흰 빛 번짐을 얹어 진한 판 위에서 보인다.
+   눌리는 판은 선보다 훨씬 크다(폭 40/56px, 높이 30px) — 보이는 것은 선 하나,
+   누르는 것은 손가락 크기. 판은 투명이라 위 조건 줄과 겹쳐도 화면엔 안 보인다. */
 .banner__dots {
   position: absolute;
-  /* 외곽선(1px) 바로 위에 선다 — 0으로 두면 외곽선과 겹쳐 반쯤 묻힌다. */
-  bottom: 3px;
+  bottom: 0;
   z-index: 2;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: flex-end;
-  gap: 2px;
+  gap: 0;
 }
 .banner__dot {
   position: relative;
-  width: 20px;
-  height: 18px;
+  width: 40px;
+  height: 30px;
   padding: 0;
   border: none;
   background: none;
   cursor: pointer;
   transition: width 180ms ease;
+  /* 판끼리 붙어 있어도 눌리는 자리가 구분되게 — 선 사이 6px은 판의 안쪽
+     여백(left/right 3px)이 만든다. */
 }
-.banner__dot--on { width: 34px; }
+.banner__dot--on { width: 56px; }
 .banner__dot::after {
   content: '';
   position: absolute;
-  left: 4px;
-  right: 4px;
+  left: 3px;
+  right: 3px;
   bottom: 0;
-  height: 2px;
-  border-radius: 2px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
   /* 카드 밖 층이라 --banner-* 변수를 못 받는다. 판이 한 색(#17171a)으로
      고정됐으므로 흰색으로 못박는다. */
   background: rgba(255, 255, 255, .4);
-  box-shadow: 0 0 5px rgba(255, 255, 255, .45);
+  box-shadow: 0 0 6px rgba(255, 255, 255, .5);
   transition: background 150ms ease, box-shadow 150ms ease;
 }
 .banner__dot--on::after {
-  background: rgba(255, 255, 255, .85);
-  box-shadow: 0 0 7px rgba(255, 255, 255, .6);
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 0 8px rgba(255, 255, 255, .65);
 }
 .banner__dot:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: -2px; border-radius: 4px; }
 
@@ -763,7 +764,7 @@ h1 {
 }
 .banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
 /* 하단 도크에서는 배너 카드의 바닥선에 맞춘다(도크 패딩만큼 올린다). */
-.banner-dock__inner .banner__dots { bottom: calc(var(--dock-pad-bottom) + 3px); }
+.banner-dock__inner .banner__dots { bottom: var(--dock-pad-bottom); }
 /* 막대도 배너 아래 테두리 자리에 맞춘다 — 도크는 배너가 패딩만큼
    안쪽에 있어 슬롯과 자리가 다르다. */
 /* 하단 도크 진행 막대는 뺐다(2026-09-15). */
