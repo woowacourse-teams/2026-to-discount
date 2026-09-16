@@ -88,6 +88,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `banner_click` | 상단·하단 행사 배너 | `banner`(id), `brand`, `platform`, `position`(top/bottom) |
 | `banner_impression` | 그 배너가 화면에 절반 이상 들어옴 | `banner`(id), `brand`, `platform`, `position` |
 | `banner_dismiss` | 하단 배너 닫기(오늘 하루) | `banner`(id), `brand`, `platform` |
+| `banner_autoplay_toggle` | 배너 우측 하단 멈춤/재생 | `state`(`pause`/`play`) |
 | `brand_expand` | 브랜드 카드를 펼침 | `brand`, `category` |
 | `brands_retry` | 목록 불러오기 실패 후 재시도 | — |
 | `scroll_to_top` | "맨 위로" | — |

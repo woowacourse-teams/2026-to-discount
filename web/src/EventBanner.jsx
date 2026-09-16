@@ -250,26 +250,48 @@ function Progress({ runId, paused, onDone }) {
   )
 }
 
-function Indicators({ count, index, onSelect }) {
+// 캐러셀 조작(사용자 결정 2026-09-16). 점·선 대신:
+//   - 우측 하단 묶음: "n / N" 카운터 + 멈춤/재생 (모든 화면)
+//   - 배너 좌우 가장자리의 이전/다음 화살표 (손가락 화면에서는 숨긴다 —
+//     옆으로 미는 것이 곧 이동이라 화살표는 자리만 먹는다, App.css)
+function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold }) {
   return (
-    <div className="banner__dots">
-      {Array.from({ length: count }, (_, i) => (
-        <button
-          key={i}
-          type="button"
-          className={`banner__dot ${i === index ? 'banner__dot--on' : ''}`}
-          aria-label={`${i + 1}번째 배너 보기`}
-          aria-current={i === index}
-          onClick={() => onSelect(i)}
-        />
-      ))}
-    </div>
+    <>
+      <button type="button" className="banner__arrow banner__arrow--prev" aria-label="이전 배너" onClick={onPrev}>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
+      </button>
+      <button type="button" className="banner__arrow banner__arrow--next" aria-label="다음 배너" onClick={onNext}>
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5l7 7-7 7" /></svg>
+      </button>
+      <div className="banner__ctl">
+        <span className="banner__counter" aria-live="polite">
+          <b>{index + 1}</b> / {count}
+        </span>
+        {rotating && (
+          <button
+            type="button"
+            className="banner__ctl-btn"
+            aria-label={held ? '자동 넘김 재생' : '자동 넘김 멈춤'}
+            aria-pressed={held}
+            onClick={onToggleHold}
+          >
+            {held ? (
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z" /></svg>
+            ) : (
+              <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4.5" height="14" rx="1" /><rect x="13.5" y="5" width="4.5" height="14" rx="1" /></svg>
+            )}
+          </button>
+        )}
+      </div>
+    </>
   )
 }
 
 export default function EventBanner({ banners }) {
   const [index, setIndex] = useState(0)
   const [hovered, setHovered] = useState(false)
+  // 사용자가 멈춤 버튼으로 세운 상태. 손을 올린 것과 달리 다시 누를 때까지 간다.
+  const [held, setHeld] = useState(false)
   const [focused, setFocused] = useState(false)
   const [topVisible, setTopVisible] = useState(true)
   const [dismissed, setDismissed] = useState(readDismissed)
@@ -369,7 +391,7 @@ export default function EventBanner({ banners }) {
   // 자동 전환. 한 건이면 돌릴 것이 없고, 손이 올라가 있거나 포커스가 안에
   // 있거나 탭이 숨겨져 있으면 멈춘다. prefers-reduced-motion이면 아예 안 돈다
   // (DNT·GPC를 존중하는 이 레포 관례와 결이 맞는다).
-  const paused = hovered || focused || pageHidden
+  const paused = hovered || focused || pageHidden || held
   const rotating = count > 1 && !reduceMotion
 
   // 막대가 다 차면 다음 장. 어느 장에서 왔는지는 스크롤이 정하므로
@@ -385,6 +407,14 @@ export default function EventBanner({ banners }) {
     scrollToSlot(cur + 1)
   }
   const scrollTo = (i) => scrollToSlot(indexToSlot(i, count))
+  // 화살표. 사본 칸이 양 끝에 있어 어느 끝에서든 옆 칸으로 미끄러진다.
+  function step(dir) {
+    const el = trackRef.current
+    if (!el) return
+    settle(el)
+    const cur = Math.round(el.scrollLeft / el.clientWidth)
+    scrollToSlot(cur + dir)
+  }
 
   // 하단 배너는 안 보일 때도 DOM에 남아 있다(visibility:hidden). 관찰자는
   // visibility를 보지 않아 그대로 달면 페이지를 열자마자 노출로 세어진다.
@@ -445,7 +475,15 @@ export default function EventBanner({ banners }) {
         <Progress runId={index % count} paused={paused} onDone={advance} />
       )}
       {count > 1 && (
-        <Indicators count={count} index={index % count} onSelect={scrollTo} />
+        <Controls
+          count={count}
+          index={index % count}
+          onPrev={() => step(-1)}
+          onNext={() => step(1)}
+          rotating={rotating}
+          held={held}
+          onToggleHold={() => setHeld((h) => { track('banner_autoplay_toggle', { state: h ? 'play' : 'pause' }); return !h })}
+        />
       )}
     </>
   )
@@ -496,8 +534,17 @@ export default function EventBanner({ banners }) {
               })
             }}
           />
+          {/* 도크에도 같은 묶음. 화살표는 상단과 같은 규칙으로 손가락 화면에선 숨는다. */}
           {count > 1 && (
-            <Indicators count={count} index={index % count} onSelect={scrollTo} />
+            <Controls
+              count={count}
+              index={index % count}
+              onPrev={() => step(-1)}
+              onNext={() => step(1)}
+              rotating={rotating}
+              held={held}
+              onToggleHold={() => setHeld((h) => { track('banner_autoplay_toggle', { state: h ? 'play' : 'pause' }); return !h })}
+            />
           )}
         </div>
       </div>

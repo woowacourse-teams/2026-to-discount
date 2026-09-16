@@ -389,10 +389,9 @@ h1 {
   display: flex;
   align-items: center;
   gap: .9rem;
-  /* 위아래 같은 값 — 로고와 글줄이 배너 판의 정가운데에 선다. 점은 띠를
-     차지하지 않고 아래 여백(링크 9 + 글줄 8 = 17px) 위에 떠 있다
-     (.banner__dots: 14px, bottom 3px). 전엔 아래에만 띠를 둬 내용이 위로
-     쏠렸다(사용자 지적 2026-09-16). 오른쪽은 닫기 버튼 자리. */
+  /* 위아래 같은 값 — 로고와 글줄이 배너 판의 정가운데에 선다. 오른쪽은
+     닫기 버튼 자리. 우측 하단 조작 묶음 자리는 조건 줄(.banner__extra)만
+     비운다 — 링크 전체를 비우면 금액 줄이 접혀 배너가 커진다. */
   padding: 6px 2.4rem 6px 0;
   text-decoration: none;
   color: inherit;
@@ -595,7 +594,10 @@ h1 {
 }
 .banner--soldout .banner__logo,
 .banner--soldout .banner__brand,
-.banner--soldout .banner__extra { opacity: .55; }
+.banner--soldout .banner__extra { opacity: .55;
+  /* 우측 하단 조작 묶음("n / N" + 멈춤, 약 80px)이 이 줄 위에 뜬다. */
+  padding-right: 84px;
+}
 .banner__soldout {
   flex: none;
   margin-left: .35rem;
@@ -690,52 +692,81 @@ h1 {
   .banner__progress { display: none; }
 }
 
-/* 캐러셀 표시 — 배너 맨 아래에 딱 붙는 선(사용자 결정 2026-09-16). 지금 장은
-   길고 나머지는 짧다. 흰색 40%에 흰 빛 번짐을 얹어 진한 판 위에서 보인다.
-   눌리는 판은 선보다 훨씬 크다(폭 40/56px, 높이 30px) — 보이는 것은 선 하나,
-   누르는 것은 손가락 크기. 판은 투명이라 위 조건 줄과 겹쳐도 화면엔 안 보인다. */
-.banner__dots {
+/* 캐러셀 조작(사용자 결정 2026-09-16). 우측 하단에 "n / N" + 멈춤/재생
+   묶음, 좌우 가장자리에 이전/다음 화살표. 화살표는 손가락 화면(hover 없음)
+   에서 숨긴다 — 미는 것이 곧 이동이다. 판은 반투명 흰색 알약. */
+.banner__ctl {
   position: absolute;
-  bottom: 0;
+  right: 8px;
+  bottom: 6px;
   z-index: 2;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
-  align-items: flex-end;
-  gap: 0;
+  align-items: center;
+  gap: 3px;
 }
-.banner__dot {
-  position: relative;
-  width: 40px;
-  height: 30px;
+.banner__counter,
+.banner__ctl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.banner__counter {
+  padding: 0 7px;
+  font-size: .68rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+  opacity: .9;
+}
+.banner__counter b { font-weight: 800; margin-right: 1px; }
+.banner__ctl-btn {
+  width: 26px;
   padding: 0;
-  border: none;
-  background: none;
+  border: 0;
   cursor: pointer;
-  transition: width 180ms ease;
-  /* 판끼리 붙어 있어도 눌리는 자리가 구분되게 — 선 사이 6px은 판의 안쪽
-     여백(left/right 3px)이 만든다. */
+  transition: background .15s ease, transform .12s ease;
 }
-.banner__dot--on { width: 56px; }
-.banner__dot::after {
-  content: '';
+.banner__ctl-btn:hover { background: rgba(255, 255, 255, .28); }
+.banner__ctl-btn:active { transform: scale(.94); }
+.banner__ctl-btn:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: 2px; }
+
+.banner__arrow {
   position: absolute;
-  left: 3px;
-  right: 3px;
-  bottom: 0;
-  height: 3px;
-  border-radius: 3px 3px 0 0;
-  /* 카드 밖 층이라 --banner-* 변수를 못 받는다. 판이 한 색(#17171a)으로
-     고정됐으므로 흰색으로 못박는다. */
-  background: rgba(255, 255, 255, .4);
-  box-shadow: 0 0 6px rgba(255, 255, 255, .5);
-  transition: background 150ms ease, box-shadow 150ms ease;
+  top: 50%;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--banner-plate, #17171a);
+  border: 1px solid rgba(255, 255, 255, .18);
+  color: #fff;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, transform .12s ease;
 }
-.banner__dot--on::after {
-  background: rgba(255, 255, 255, .9);
-  box-shadow: 0 0 8px rgba(255, 255, 255, .65);
+/* 판 바깥쪽에 반쯤 걸친다 — 안쪽에 두면 왼쪽은 로고를, 오른쪽은 조작 묶음을
+   덮는다(2026-09-16 900px 실측). 그래서 판 좌우에 여유가 있는 폭에서만 켠다. */
+.banner__arrow--prev { left: -18px; }
+.banner__arrow--next { right: -18px; }
+.banner__arrow:hover { background: #2a2a2e; }
+.banner__arrow:active { transform: scale(.94); }
+.banner__arrow:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: 2px; }
+/* 넓은 화면에서만 화살표. hover/pointer 미디어쿼리는 안 쓴다 — 일부
+   안드로이드 브라우저가 hover:hover를 보고한다(experiments.py 개발 판정
+   사고와 같은 뿌리). 폭으로 가른다. */
+@media (min-width: 960px) {
+  .banner__arrow { display: inline-flex; }
 }
-.banner__dot:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: -2px; border-radius: 4px; }
 
 /* 상단 배너가 화면 밖으로 나가면 올라오는 층. 불투명하고, 떠 있는 층은
    뷰포트가 아니라 본문 폭을 따라간다는 이 레포 규칙을 그대로 따른다 —
@@ -764,7 +795,7 @@ h1 {
 }
 .banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
 /* 하단 도크에서는 배너 카드의 바닥선에 맞춘다(도크 패딩만큼 올린다). */
-.banner-dock__inner .banner__dots { bottom: var(--dock-pad-bottom); }
+.banner-dock__inner .banner__ctl { bottom: calc(var(--dock-pad-bottom) + 6px); right: calc(var(--dock-pad-x, 1rem) + 6px); }
 /* 막대도 배너 아래 테두리 자리에 맞춘다 — 도크는 배너가 패딩만큼
    안쪽에 있어 슬롯과 자리가 다르다. */
 /* 하단 도크 진행 막대는 뺐다(2026-09-15). */
@@ -2024,8 +2055,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .sheet__app,
 .sheet__reset,
 .sheet__apply,
-.banner__close,
-.banner__dot {
+.banner__close {
   transition: color .16s ease, background .16s ease, opacity .16s ease, transform .12s ease;
 }
 .menu-bar__item:active:not(:disabled),
@@ -2042,8 +2072,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .sheet__reset:focus-visible,
 .sheet__apply:focus-visible,
 .cart-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.banner__dot:hover::after { opacity: 1; }
-.banner__dot:active::after { transform: scale(.85); }
 /* 카드 담기(+)는 키보드로 짚었을 때 표시가 없었다 — 카드마다 하나씩
    있는 버튼이라, 지금 어느 카드에 서 있는지 안 보이면 순회가 불가능하다. */
 .brand-card__add:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
