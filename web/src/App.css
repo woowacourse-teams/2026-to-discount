@@ -752,8 +752,8 @@ h1 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* 카운터와 멈춤 원이 같은 높이 26px(사용자 결정 2026-09-16). */
-  height: 26px;
+  /* 카운터와 멈춤 원이 같은 높이 24px(사용자 결정 2026-09-16). */
+  height: 24px;
   border-radius: 999px;
   background: rgba(255, 255, 255, .16);
   color: #fff;
@@ -771,8 +771,8 @@ h1 {
 .banner__ctl-btn {
   /* 정확한 원(사용자 결정 2026-09-16). 링(.banner__ring)이 이 원을 감싼다. */
   position: relative;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   padding: 0;
   border: 0;
