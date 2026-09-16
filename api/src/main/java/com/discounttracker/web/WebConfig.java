@@ -25,6 +25,10 @@ public class WebConfig implements WebMvcConfigurer {
                         "https://beggars-five.vercel.app",
                         "https://beggars-five-*.vercel.app",
                         "https://beggars-git-*-nn98s-projects.vercel.app",
+                        // 배포 고유 주소(beggars-<해시>-nn98s-projects). 프리뷰를 이
+                        // 주소로 열면 브랜치 별칭과 달리 막혔다(2026-09-16 실측:
+                        // preflight 403 "Invalid CORS request").
+                        "https://beggars-*-nn98s-projects.vercel.app",
                         "https://delivery-discount-web-*.vercel.app")
                 .allowedMethods("GET", "POST");
     }
