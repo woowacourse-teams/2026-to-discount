@@ -241,15 +241,16 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             (detail__tier-membership) 얘기였는데 이쪽까지 뗐다가 되돌렸다
             (사용자 지적 2026-09-16). 라벨은 원문("배민클럽 전용쿠폰") 대신
             앱별 이름 하나다. */}
-        {offer.badge && (
-          memberOnly ? (
-            <span className="offer__status-badge offer__status-badge--membership" data-platform={offer.platform}>
-              {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
-            </span>
-          ) : (
-            !/^\d+%할인$/.test(offer.badge) && (
-              <span className="offer__status-badge">{offer.badge}</span>
-            )
+        {/* 멤버십은 badge 원문이 아니라 membership 필드(ADR-029)로 판단한다 —
+            허브 관측이 쿠폰함 관측을 이기면 badge는 비고 membership만 남는다
+            (2026-09-16 던킨 쿠팡이츠). badge가 있어야만 그리면 그때 사라진다. */}
+        {memberOnly ? (
+          <span className="offer__status-badge offer__status-badge--membership" data-platform={offer.platform}>
+            {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
+          </span>
+        ) : (
+          offer.badge && !/^\d+%할인$/.test(offer.badge) && (
+            <span className="offer__status-badge">{offer.badge}</span>
           )
         )}
         {offer.soldOut ? (
