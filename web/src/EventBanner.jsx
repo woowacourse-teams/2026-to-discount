@@ -319,6 +319,14 @@ export default function EventBanner({ banners }) {
   const pageHidden = usePageHidden()
 
   const trackRef = useRef(null)
+  // 하단 도크의 트랙. 상단과 같은 장들을 깔고 index를 따라 미끄러진다 —
+  // 전엔 카드 하나를 key로 갈아끼워 넘어갈 때마다 깜빡였다(사용자 지적
+  // 2026-09-16). 도크에서 밀면 상단 트랙을 옮기고, index는 상단이 정한다.
+  const dockTrackRef = useRef(null)
+  // 도크를 코드로 옮기는 동안은 도크의 scroll 이벤트를 무시한다 — 안 그러면
+  // 도크 스크롤 → 상단 이동 → index → 도크 스크롤이 서로 물려 출렁인다
+  // (2026-09-16 실측: 1077↔1225px 진동).
+  const dockSyncing = useRef(0)
 
   const count = banners?.length ?? 0
   const current = count > 0 ? banners[index % count] : null
@@ -407,6 +415,27 @@ export default function EventBanner({ banners }) {
     scrollToSlot(cur + 1)
   }
   const scrollTo = (i) => scrollToSlot(indexToSlot(i, count))
+  useEffect(() => {
+    const el = dockTrackRef.current
+    if (!el || count < 2) return
+    const want = indexToSlot(index % count, count)
+    const cur = Math.round(el.scrollLeft / el.clientWidth)
+    if (cur === want) return
+    // 옆 칸이면 미끄러지고, 멀면(사본 착지 뒤 되감기 등) 그냥 옮긴다.
+    const smooth = Math.abs(cur - want) === 1 && !reduceMotion
+    clearTimeout(dockSyncing.current)
+    dockSyncing.current = setTimeout(() => { dockSyncing.current = 0 }, smooth ? 700 : 150)
+    el.scrollTo({ left: slotLeft(el, want), behavior: smooth ? 'smooth' : 'instant' })
+  }, [index, count])
+  function onDockScroll(e) {
+    if (dockSyncing.current) return
+    const el = e.currentTarget
+    const slot = Math.round(el.scrollLeft / el.clientWidth)
+    const real = settleSlot(slot, count)
+    if (real !== null) { el.scrollLeft = slotLeft(el, real); return }
+    const next = slotToIndex(slot, count)
+    if (next !== index % count) scrollTo(next)
+  }
   // 화살표. 사본 칸이 양 끝에 있어 어느 끝에서든 옆 칸으로 미끄러진다.
   function step(dir) {
     const el = trackRef.current
@@ -518,22 +547,26 @@ export default function EventBanner({ banners }) {
         <div className="banner-dock__inner">
           {/* 하단 도크에는 진행 막대를 안 그린다(사용자 결정 2026-09-15). 넘기는
               타이머는 상단 막대(onDone)가 갖고 있어 동작은 그대로다. */}
-          <BannerCard
-            key={current.id}
-            banner={current}
-            position="bottom"
-            onClose={() => {
-              setDismissed(true)
-              writeDismissed()
-              // 닫기는 "봤고, 싫다"는 뜻이다 — 무시(노출만 있고 아무 것도
-              // 안 함)와 구분해야 배너가 방해가 되는지 알 수 있다.
-              track('banner_dismiss', {
-                banner: current.id,
-                brand: current.brand ?? 'none',
-                platform: current.platform,
-              })
-            }}
-          />
+          <div className="banner-track banner-track--dock" ref={dockTrackRef} onScroll={onDockScroll}>
+            {slides.map((b, i) => (
+              <BannerCard
+                key={`${b.id}:${i}`}
+                banner={b}
+                position="bottom"
+                onClose={() => {
+                  setDismissed(true)
+                  writeDismissed()
+                  // 닫기는 "봤고, 싫다"는 뜻이다 — 무시(노출만 있고 아무 것도
+                  // 안 함)와 구분해야 배너가 방해가 되는지 알 수 있다.
+                  track('banner_dismiss', {
+                    banner: b.id,
+                    brand: b.brand ?? 'none',
+                    platform: b.platform,
+                  })
+                }}
+              />
+            ))}
+          </div>
           {/* 도크에도 같은 묶음. 화살표는 상단과 같은 규칙으로 손가락 화면에선 숨는다. */}
           {count > 1 && (
             <Controls
