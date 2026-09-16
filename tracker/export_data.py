@@ -69,8 +69,15 @@ BRANDS_PATH = Path(__file__).parent / "data" / "brands-sorted.txt"
 SWEEP_SCOPED_PLATFORMS = {"baemin", "coupangeats", "ddangyo"}
 
 
-def camel_tiers(tiers):
+def camel_tiers(tiers, record=None):
     """구간 할인도 export에선 camelCase — 원장은 snake_case를 유지한다.
+
+    구간의 최소주문이 비었는데 레코드 대표값(`min_order_amount`)이 같은
+    금액의 쿠폰을 말하고 있으면 그 값을 채운다. 병합(store.MERGEABLE_DETAIL)이
+    레코드의 `min_order_amount`는 진 쪽에서 옮겨 오지만 `tiers` 안까지는 안
+    들어가서, 화면 구간 줄이 "최소주문 미확인"인데 정렬은 그 값으로 되는
+    어긋남이 있었다(2026-09-16 실측: 라이브 20건). 같은 금액일 때만 — 다른
+    금액의 구간에 대표 최소주문을 붙이면 다른 쿠폰의 조건을 지어내는 것이다.
 
     percent(정률+상한 할인, 예: 요기요 "25,000원 이상 5%, 최대 3,000원")
     가 있는 항목만 그 필드를 옮긴다 — 정액 tier는 그대로 amount만. channel
@@ -81,8 +88,13 @@ def camel_tiers(tiers):
     if not tiers:
         return None
     out = []
+    rec_min = (record or {}).get("min_order_amount")
+    rec_amt = (record or {}).get("amount")
     for t in tiers:
-        item = {"minOrder": t["min_order"], "amount": t["amount"]}
+        min_order = t["min_order"]
+        if min_order is None and rec_min is not None and t["amount"] == rec_amt:
+            min_order = rec_min
+        item = {"minOrder": min_order, "amount": t["amount"]}
         for snake, camel in (("percent", "percent"), ("channel", "channel"),
                              ("sold_out", "soldOut"), ("expires_at", "expiresAt"),
                              ("cap", "cap"), ("note", "note"),
@@ -323,7 +335,7 @@ def build_export(records: list[dict], today: str | None = None,
             # 구체적인 정보라 밀려나면 안 된다.
             item["qualifier"] = "특정메뉴"
         item["tierMode"] = record.get("tier_mode") or "exclusive"
-        item["tiers"] = camel_tiers(record.get("tiers"))
+        item["tiers"] = camel_tiers(record.get("tiers"), record)
         # 추정 만료일은 원장에 없고 여기서 붙는다. 붙인 사실을 같이 실어
         # 화면이 "예상"임을 말할 수 있게 한다.
         estimated = estimated_expiry(record)

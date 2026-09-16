@@ -162,7 +162,16 @@ function offerAmountText(offer) {
 const QUALIFIER_TONE = { 최대: 'plain', 특정메뉴: 'menu' }
 
 function detailRows(offer) {
-  if (offer.tiers?.length > 0) return [...offer.tiers].sort((a, b) => b.amount - a.amount)
+  if (offer.tiers?.length > 0) {
+    // 구간에 최소주문이 없는데 대표값이 같은 금액을 말하면 그 값을 쓴다.
+    // export가 이미 채워 주지만(export_data.camel_tiers) 옛 export나 다른
+    // 경로로 온 데이터도 같은 화면이어야 한다 — "최소주문 미확인"으로
+    // 뜨면서 정렬은 그 값으로 되던 어긋남(2026-09-16).
+    return [...offer.tiers]
+      .map((t) => (t.minOrder == null && t.amount === offer.amount && offer.minOrderAmount != null
+        ? { ...t, minOrder: offer.minOrderAmount } : t))
+      .sort((a, b) => b.amount - a.amount)
+  }
   return [{ minOrder: offer.minOrderAmount, amount: offer.amount }]
 }
 
