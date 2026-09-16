@@ -707,38 +707,30 @@ h1 {
 /* 아래 테두리 자리를 채우는 진행 막대. 트랙 밖(.banner-slot)에 있으므로
    장이 넘어가도 자리를 지킨다. 다 차면 onAnimationEnd가 다음 장을 부른다 —
    보이는 시간과 실제로 넘어가는 시점이 하나다. */
-.banner__progress {
-  /* 막대는 안 보인다(사용자 결정 2026-09-15: "배너 하단 프로그래스바 없애라").
-     요소는 남긴다 - 넘기는 타이머가 이 애니메이션의 animationend라서,
-     display:none으로 지우면 배너가 안 돈다. 보이지 않는 3px로 시간만 잰다. */
-  opacity: 0;
+/* 진행 링 — 멈춤/재생 버튼(정확한 원)을 감싼다. 테두리가 다 차면 다음 장.
+   stroke-dashoffset를 둘레(--c)에서 0으로 줄여 채운다. 시작점은 12시(-90°). */
+.banner__ring {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  /* 폭을 늘리는 대신 좌우로 눕힌다. 하단 배너는 좌우 패딩만큼 안쪽에
-     있어 width:100%가 배너 폭과 안 맞는데, left/right로 자리를 잡아 두면
-     두 자리에서 같은 규칙이 그대로 쓰인다. */
-  transform: scaleX(0);
-  transform-origin: left center;
-  border-bottom-left-radius: 14px;
-  /* 지금 장의 로고에서 뽑은 색. 밝은 쪽에서 진한 쪽으로 흘러 어디까지
-     찼는지가 길이뿐 아니라 색으로도 읽힌다. 값을 못 뽑으면 흰색으로
-     떨어진다(로고가 없거나 무채색인 브랜드). */
-  background: linear-gradient(
-    90deg,
-    var(--banner-deep-accent, rgba(255, 255, 255, .9)) 0%,
-    var(--banner-accent, rgba(255, 255, 255, .55)) 100%
-  );
-  animation: banner-progress var(--rotate, 5s) linear forwards;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
   pointer-events: none;
-  z-index: 2;
 }
-.banner__progress--paused { animation-play-state: paused; }
-@keyframes banner-progress { to { transform: scaleX(1); } }
+.banner__ring-track { fill: none; stroke: rgba(255, 255, 255, .18); stroke-width: 2.5; }
+.banner__ring-fill {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: var(--c);
+  stroke-dashoffset: var(--c);
+  animation: banner-ring var(--rotate, 5s) linear forwards;
+}
+.banner__ring-fill--paused { animation-play-state: paused; }
+@keyframes banner-ring { to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .banner__progress { display: none; }
+  .banner__ring { display: none; }
 }
 
 /* 캐러셀 조작(사용자 결정 2026-09-16). 우측 하단에 "n / N" + 멈춤/재생
@@ -776,7 +768,11 @@ h1 {
 }
 .banner__counter b { font-weight: 800; margin-right: 1px; }
 .banner__ctl-btn {
-  width: 26px;
+  /* 정확한 원(사용자 결정 2026-09-16). 링(.banner__ring)이 이 원을 감싼다. */
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   padding: 0;
   border: 0;
   cursor: pointer;

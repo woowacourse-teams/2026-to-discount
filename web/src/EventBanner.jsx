@@ -244,16 +244,24 @@ export function amountIsWide(text) {
   return w > 11
 }
 
-function Progress({ runId, paused, onDone }) {
+// 멈춤/재생 버튼을 감싸는 진행 링(사용자 결정 2026-09-16). 테두리가 다 차면
+// 다음 장 — 채우는 시간은 ROTATE_MS 한 곳에서 정하고 CSS가 읽는다. runId가
+// 바뀌면 요소가 새로 만들어져 처음부터 다시 돈다. 멈춤은 key가 아니라
+// animation-play-state가 한다(손을 올릴 때마다 처음부터 돌면 안 된다).
+// 상단 링만 onDone으로 넘기고, 도크 링은 같은 runId로 같이 도는 그림이다.
+const RING_R = 12
+const RING_C = 2 * Math.PI * RING_R
+function ProgressRing({ runId, paused, onDone }) {
   return (
-    // 도는 시간은 ROTATE_MS 한 곳에서 정하고 CSS가 그 값을 읽어 채운다.
-    <span
-      key={runId}
-      className={`banner__progress ${paused ? 'banner__progress--paused' : ''}`}
-      style={{ '--rotate': `${ROTATE_MS}ms` }}
-      onAnimationEnd={onDone}
-      aria-hidden="true"
-    />
+    <svg key={runId} className="banner__ring" viewBox="0 0 28 28" aria-hidden="true">
+      <circle className="banner__ring-track" cx="14" cy="14" r={RING_R} />
+      <circle
+        className={`banner__ring-fill ${paused ? 'banner__ring-fill--paused' : ''}`}
+        cx="14" cy="14" r={RING_R}
+        style={{ '--rotate': `${ROTATE_MS}ms`, '--c': RING_C }}
+        onAnimationEnd={onDone}
+      />
+    </svg>
   )
 }
 
@@ -261,7 +269,7 @@ function Progress({ runId, paused, onDone }) {
 //   - 우측 하단 묶음: "n / N" 카운터 + 멈춤/재생 (모든 화면)
 //   - 배너 좌우 가장자리의 이전/다음 화살표 (손가락 화면에서는 숨긴다 —
 //     옆으로 미는 것이 곧 이동이라 화살표는 자리만 먹는다, App.css)
-function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, arrows = true }) {
+function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, arrows = true, runId, paused, onDone }) {
   return (
     <>
       {/* 화살표는 상단에만. 도크는 맨 위로 버튼·카드 로고와 겹쳐 뺐다
@@ -288,6 +296,7 @@ function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, 
             aria-pressed={held}
             onClick={onToggleHold}
           >
+            <ProgressRing runId={runId} paused={paused} onDone={onDone} />
             {held ? (
               <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z" /></svg>
             ) : (
@@ -478,9 +487,6 @@ export default function EventBanner({ banners }) {
   // 안에 있으면 점도 막대도 같이 흘러가 가운데에서 벗어난다.
   const chrome = (
     <>
-      {rotating && (
-        <Progress runId={index % count} paused={paused} onDone={advance} />
-      )}
       {count > 1 && (
         <Controls
           count={count}
@@ -489,6 +495,9 @@ export default function EventBanner({ banners }) {
           onNext={() => step(1)}
           rotating={rotating}
           held={held}
+          runId={index % count}
+          paused={paused}
+          onDone={advance}
           onToggleHold={() => setHeld((h) => { track('banner_autoplay_toggle', { state: h ? 'play' : 'pause' }); return !h })}
         />
       )}
@@ -569,6 +578,8 @@ export default function EventBanner({ banners }) {
               onNext={() => step(1)}
               rotating={rotating}
               held={held}
+              runId={index % count}
+              paused={paused}
               onToggleHold={() => setHeld((h) => { track('banner_autoplay_toggle', { state: h ? 'play' : 'pause' }); return !h })}
             />
           )}
