@@ -427,11 +427,21 @@ export default function EventBanner({ banners }) {
     const want = indexToSlot(index % count, count)
     const cur = Math.round(el.scrollLeft / el.clientWidth)
     if (cur === want) return
-    // 옆 칸이면 미끄러지고, 멀면(사본 착지 뒤 되감기 등) 그냥 옮긴다.
-    const smooth = Math.abs(cur - want) === 1 && !reduceMotion
+    // 끝에서 끝으로 도는 것은 상단과 같이 **사본 칸으로 미끄러진 뒤** 같은
+    // 내용의 실제 칸으로 소리 없이 옮긴다 — 마지막→처음을 instant로 두면
+    // 여기서만 끊겼다(사용자 지적 2026-09-16). 그 외 멀리 가는 경우(점프)는
+    // 없다: index는 한 칸씩만 움직인다.
+    let target = want
+    if (cur === count && want === 1) target = count + 1
+    else if (cur === 1 && want === count) target = 0
+    const smooth = Math.abs(cur - target) === 1 && !reduceMotion
     clearTimeout(dockSyncing.current)
-    dockSyncing.current = setTimeout(() => { dockSyncing.current = 0 }, smooth ? 700 : 150)
-    el.scrollTo({ left: slotLeft(el, want), behavior: smooth ? 'smooth' : 'instant' })
+    el.scrollTo({ left: slotLeft(el, target), behavior: smooth ? 'smooth' : 'instant' })
+    dockSyncing.current = setTimeout(() => {
+      // 사본에 도착했으면 실제 칸으로. 같은 그림이라 화면은 안 움직인다.
+      if (target !== want) el.scrollLeft = slotLeft(el, want)
+      dockSyncing.current = 0
+    }, smooth ? 700 : 150)
   }, [index, count])
   function onDockScroll(e) {
     if (dockSyncing.current) return
