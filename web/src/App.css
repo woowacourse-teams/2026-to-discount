@@ -1494,20 +1494,21 @@ h1 {
    — 테가 탭의 바깥 변을 덮어 이음새가 안 보인다. */
 .offer__best-tag {
   position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 1;
-  padding: .12rem .5rem .16rem .48rem;
-  border-radius: 7px 0 9px 0;
+  /* 테(::after)의 왼쪽·위 두께가 2px — 그 안쪽에 딱 붙는다. 0에 두면 칩의
+     둥근 모서리 밖으로 삐져나온다(2026-09-16 실측). 왼쪽 위 반경은 칩
+     반경(8px) - 테 두께(2px) = 6px라 테 안쪽 곡선과 같은 곡선이다. */
+  left: 2px;
+  top: 2px;
+  padding: .26rem .7rem .3rem .62rem;
+  border-radius: 6px 0 10px 0;
   background: linear-gradient(120deg, #00c8ff 0%, #4d6bff 45%, #ff3ec8 100%);
   color: #fff;
-  font-size: .68rem;
+  font-size: .82rem;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -.02em;
   pointer-events: none;
 }
-.offer--best .offer__chip::after { z-index: 2; }
 /* (옛) 최고 할인 라벨 — 칩 밖 왼쪽 위 두 줄 정사각. 탭으로 바꾸며 안 쓴다.
    .offer__best-label 규칙은 되돌릴 수 있게 남긴다. */
 /* 두 줄짜리 정사각 표식 — 칩 왼쪽 끄트머리에 로고처럼 앉는다. */
