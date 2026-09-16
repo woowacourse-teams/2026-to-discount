@@ -354,8 +354,10 @@ h1 {
   --banner-plate-line: rgba(255, 255, 255, .1);
   position: relative;
   border-radius: 14px;
-  background: var(--banner-plate);
-  border: 1px solid var(--banner-plate-line);
+  /* 테두리 없이, 왼쪽 위 완전 검정에서 오른쪽 아래 판 색으로 길게·천천히
+     변하는 약한 그라데이션(사용자 결정 2026-09-16). */
+  background: linear-gradient(135deg, #000 0%, var(--banner-plate) 100%);
+  border: 0;
   /* overflow는 건드리지 않는다. 하단 배너의 닫기 버튼이 모서리 밖에
      걸쳐 있어 잘라내면 사라진다. 진행 막대는 .banner 안이 아니라
      .banner-slot에 있으므로 여기서 자를 것이 없다. */
@@ -391,7 +393,7 @@ h1 {
   position: relative;   /* .banner__platform(앱 배지)의 기준 */
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 22px;
   /* 위아래 같은 값 — 로고와 글줄이 배너 판의 정가운데에 선다. 오른쪽은
      닫기 버튼 자리. 우측 하단 조작 묶음 자리는 조건 줄(.banner__extra)만
      비운다 — 링크 전체를 비우면 금액 줄이 접혀 배너가 커진다. */
@@ -414,13 +416,22 @@ h1 {
    브라우저에, 가로는 우리가). 넘치는 장은 슬롯이 자른다. */
 .banner-track {
   display: flex;
+  /* 장 사이 12px — 넘어갈 때 옆 장이 딱 붙어 따라오지 않는다(2026-09-16).
+     transform도 이 값을 더해 옮긴다(EventBanner SLIDE_GAP). */
+  gap: var(--slide-gap, 12px);
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
   will-change: transform;
 }
-.banner-slot, .banner-dock__inner { overflow: hidden; }
-.banner-slot .banner-track > .banner, .banner-dock__inner .banner-track > .banner { flex: 0 0 100%; }
+.banner-viewport { overflow: hidden; border-radius: 14px; }
+.banner-slot .banner-track > .banner, .banner-dock__inner .banner-track > .banner {
+  flex: 0 0 100%;
+  /* flex 항목의 min-width:auto는 내용 폭(줄바꿈 안 되는 금액)만큼 카드를
+     키운다 — 360px에서 카드가 380px이 돼 배지가 잘렸다(2026-09-16 실측). */
+  min-width: 0;
+  width: 100%;
+}
 
 
 
@@ -436,7 +447,8 @@ h1 {
    두 값을 따로 적어두면 한쪽만 고쳐서 배지가 로고 밖으로 나간다.
    .brand-logo는 span이라 감싼 쪽이 flex여야 폭·높이가 먹는다. */
 .banner__logo {
-  --logo: 56px;
+  /* 56 → 64px(1.3배는 묶음 격자 쪽에서, 아래 --grid). */
+  --logo: 64px;
   --logo-radius: 14px;
   position: relative;
   display: flex;
@@ -444,7 +456,7 @@ h1 {
   line-height: 0;
   /* 왼쪽 여백과 로고-글줄 사이(.banner__link gap)를 같은 16px로(사용자
      결정 2026-09-16). 오른쪽은 gap이 맡으니 0. */
-  padding: 6px 0 6px 16px;
+  padding: 6px 0 6px 22px;
 }
 .banner__logo .brand-logo {
   width: var(--logo);
@@ -467,7 +479,8 @@ h1 {
    차지해 오른쪽 글줄 폭이 낱장 배너와 같다. 셋이면 한 칸이 빈다 — 그대로
    둔다. 칸 안 여백은 없다: 칸 자체가 이미 작다. */
 .banner__logos {
-  --grid: calc(var(--logo) * 1.12);
+  /* 낱장 로고의 1.3배 — 네 칸으로 나눠도 한 칸이 40px 넘게 남아 식별된다. */
+  --grid: calc(var(--logo) * 1.3);
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-auto-rows: 1fr;
@@ -496,8 +509,8 @@ h1 {
   position: absolute;
   right: 8px;
   top: 7px;
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
   /* 앱 아이콘은 그 자체로 모양과 색을 가진 그림이다. 판을 깔거나 테두리를
@@ -811,7 +824,7 @@ h1 {
 }
 .banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
 /* 하단 도크에서는 배너 카드의 바닥선에 맞춘다(도크 패딩만큼 올린다). */
-.banner-track--dock { border-radius: 14px; }
+
 .banner-dock__inner .banner__ctl { bottom: calc(var(--dock-pad-bottom) + 6px); right: calc(var(--dock-pad-x, 1rem) + 6px); }
 /* 막대도 배너 아래 테두리 자리에 맞춘다 — 도크는 배너가 패딩만큼
    안쪽에 있어 슬롯과 자리가 다르다. */
@@ -1923,9 +1936,9 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 좁은 화면(360px 이하)에서 줄이는 건 로고와 배지뿐이다. 금액은 배너의
    주인공이라 글씨를 줄이지 않는다. */
 @media (max-width: 400px) {
-  .banner__link { gap: 14px; }
+  .banner__link { gap: 18px; }
   /* --logo 하나만 줄이면 배지도 같은 비율로 따라온다. */
-  .banner__logo { --logo: 48px; padding: 6px 0 6px 14px; }
+  .banner__logo { --logo: 54px; padding: 6px 0 6px 18px; }
   .banner--bottom .banner__logo { --logo: 40px; }
 }
 
@@ -2109,7 +2122,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 }
 
 /* 하단 플로팅은 카드 위에 겹쳐 뜨는 층이라 더 낮게 잡는다. */
-.banner--bottom .banner__logo { --logo: 44px; padding: 6px 0 6px 16px; }
+.banner--bottom .banner__logo { --logo: 50px; padding: 6px 0 6px 20px; }
 
 /* ── 카드 담기 줄 ──────────────────────────────────────────────────
    카드 위에 얹은 체크박스는 로고·이름과 자리를 다투고 무엇을 체크하는

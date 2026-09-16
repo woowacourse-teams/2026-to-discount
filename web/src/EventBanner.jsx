@@ -15,6 +15,8 @@ import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScr
 const ROTATE_MS = 5300
 // 한 칸 미끄러지는 시간. 브라우저 smooth 스크롤(~300ms)보다 0.5초 느리게.
 const SLIDE_MS = 800
+// 장 사이 간격(App.css .banner-track gap과 같은 값).
+const SLIDE_GAP = 12
 const DISMISS_KEY = 'dk_banner_hidden'
 
 
@@ -229,6 +231,8 @@ function BannerCard({ banner, position, onClose, onSeen }) {
 // 넓다(1.45rem에서 한글 ≈ 21px, 숫자 ≈ 13px). 한글 1.7, 띄어쓰기 .5, 그 외
 // .6으로 세어 14를 넘으면 넓은 것으로 본다.
 //   "최대 7,000원" 8.6 · "6,000/5,000/8,000원" 11.9 · "1,000/2,000원 중복할인" 15.6
+// 문턱 14 → 11(2026-09-16): 로고 영역과 여백을 키워 글줄 폭이 195px로 줄자
+// 11.9짜리도 한 줄에 안 들어갔다.
 export function amountIsWide(text) {
   if (!text) return false
   let w = 0
@@ -237,7 +241,7 @@ export function amountIsWide(text) {
     else if (ch === ' ') w += .5
     else w += .6
   }
-  return w > 14
+  return w > 11
 }
 
 function Progress({ runId, paused, onDone }) {
@@ -409,7 +413,7 @@ export default function EventBanner({ banners }) {
     onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp, onClickCapture,
   }
   const trackStyle = {
-    transform: `translateX(calc(${-slot * 100}% + ${dragX}px))`,
+    transform: `translateX(calc(${-slot} * (100% + ${SLIDE_GAP}px) + ${dragX}px))`,
     transition: anim && dragX === 0 && !reduceMotion ? `transform ${SLIDE_MS}ms cubic-bezier(.22, .8, .3, 1)` : 'none',
   }
 
@@ -496,16 +500,20 @@ export default function EventBanner({ banners }) {
       <div className="banner-slot" ref={topRef} style={currentPalette} {...hoverProps}>
         {/* 전부 한 줄에 깔고 가로로 넘긴다. 자동 전환만 있으면 지나간
             배너를 다시 볼 길이 손가락에 없고, 점을 정확히 눌러야 했다. */}
-        <div className="banner-track" style={trackStyle} {...dragProps}>
-          {slides.map((b, i) => (
-            <BannerCard
-              /* 사본은 같은 id가 두 번 서므로 칸 번호로 가른다. */
-              key={`${b.id}:${i}`}
-              banner={b}
-              position="top"
-              onSeen={() => markSeen(b, 'top')}
-            />
-          ))}
+        {/* 뷰포트가 옆 장을 자른다. 슬롯은 좌우 화살표 여백까지 품고 있어
+            슬롯에서 자르면 여백 밑으로 옆 장이 비친다(2026-09-16 900px 실측). */}
+        <div className="banner-viewport">
+          <div className="banner-track" style={trackStyle} {...dragProps}>
+            {slides.map((b, i) => (
+              <BannerCard
+                /* 사본은 같은 id가 두 번 서므로 칸 번호로 가른다. */
+                key={`${b.id}:${i}`}
+                banner={b}
+                position="top"
+                onSeen={() => markSeen(b, 'top')}
+              />
+            ))}
+          </div>
         </div>
         {chrome}
       </div>
@@ -521,10 +529,12 @@ export default function EventBanner({ banners }) {
         <div className="banner-dock__inner">
           {/* 하단 도크에는 진행 막대를 안 그린다(사용자 결정 2026-09-15). 넘기는
               타이머는 상단 막대(onDone)가 갖고 있어 동작은 그대로다. */}
-          <div className="banner-track banner-track--dock" style={trackStyle} {...dragProps}>
-            {slides.map((b, i) => (
-              <BannerCard key={`${b.id}:${i}`} banner={b} position="bottom" />
-            ))}
+          <div className="banner-viewport">
+            <div className="banner-track banner-track--dock" style={trackStyle} {...dragProps}>
+              {slides.map((b, i) => (
+                <BannerCard key={`${b.id}:${i}`} banner={b} position="bottom" />
+              ))}
+            </div>
           </div>
           {/* 닫기는 도크에 하나다 — 장마다 달면 트랙과 같이 흘러가고 모서리
               밖 위치도 깨진다(2026-09-16). 자리는 전과 같은 도크 우상단 모서리. */}
