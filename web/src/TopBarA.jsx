@@ -176,12 +176,17 @@ export default function TopBarA({
 
   const tabs = [{ key: 'all', label: '전체' }, ...CATEGORIES]
 
+  // 멤버십 버튼(앱 로고 밑 "배민클럽" 등)은 계산 모델이 없어 눌러도 안내만
+  // 했다. 사용자 결정(2026-09-16): 숨긴다. 코드·이벤트·CSS는 그대로 두고
+  // 이 플래그 하나로 되살린다 — .page-head__apps의 아래 여백도 같이 걸린다.
+  const MEMBERSHIP_BUTTONS = false
+
   return (
     <div className="title-bar" ref={barRef}>
       <div className="title-bar__inner">
         <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
 
-        <div className="page-head__apps" aria-label="비교 대상 배달앱">
+        <div className={`page-head__apps${MEMBERSHIP_BUTTONS ? '' : ' page-head__apps--no-membership'}`} aria-label="비교 대상 배달앱">
           {PLATFORMS.map((p) => (
             <span key={p.key} className="platform-badge-wrap">
               <PlatformBadge
@@ -195,7 +200,7 @@ export default function TopBarA({
 
               {/* 고른 앱에만 멤버십 버튼이 로고 밑에 붙는다. 위치로 어느
                   앱 것인지 드러나므로 여러 앱을 한 줄로 묶지 않는다. */}
-              {filters.platforms.has(p.key) && (
+              {MEMBERSHIP_BUTTONS && filters.platforms.has(p.key) && (
                 <button
                   type="button"
                   className="membership-btn membership-btn--soon"

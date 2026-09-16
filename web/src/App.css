@@ -136,14 +136,12 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
     color-mix(in srgb, var(--bg) 55%, transparent) 80%,
     transparent 100%);
 }
-/* a안은 바가 두 줄(조작 + 분류)이라 불투명 구간을 더 내린다. 55%에서
-   페이드가 시작되면 분류 글자가 지나가는 카드 위에 반쯤 뜬다. */
+/* 바는 불투명한 판 + 아래 구분선이다(사용자 결정 2026-09-16). 전엔 아래로
+   흐려지는 그라데이션이었는데 분류 줄이 카드 위에 반쯤 뜬 것처럼 보여
+   메뉴바로 안 읽혔다. */
 [data-variant="a"] .title-bar {
-  background: linear-gradient(to bottom,
-    var(--bg) 0%,
-    var(--bg) 82%,
-    color-mix(in srgb, var(--bg) 55%, transparent) 94%,
-    transparent 100%);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
 }
 /* 배지와 카테고리를 한 줄에 둔다. 안쪽 여백은 0 — 배지가 화면
    왼쪽 위 끝에 그대로 붙는다. */
@@ -2279,6 +2277,8 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    반드시 겹친다. 라벨이 차지하는 만큼 자리를 비운다: 간격 2px + 라벨
    높이 19px = 21px(실측). 18px로 뒀더니 분류 줄을 3px 파고들었다. */
 [data-variant="a"] .page-head__apps { padding-bottom: 21px; }
+/* 멤버십 버튼을 숨긴 동안(TopBarA MEMBERSHIP_BUTTONS=false)은 그 자리도 없다. */
+[data-variant="a"] .page-head__apps--no-membership { padding-bottom: 6px; }
 
 /* 조작 셋(담기·초기화·검색)은 앱 줄 오른쪽에 붙는다. inner가
    flex-start라 위로 붙어 떠 보여서, 앱 줄 상자 한가운데에 맞춘다 —
@@ -2485,9 +2485,9 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   background: var(--text);
 }
 
-/* A는 바가 한 줄이라 배너가 바에 바로 닿는다 — 30px 띄워 갈라 놓는다.
-   B는 메뉴바까지 두 줄이라 이 여백이 필요 없다. */
-[data-variant="a"] .banner-slot { margin-top: 30px; }
+/* 바 아래 구분선이 생긴 뒤(2026-09-16)로는 큰 띄움이 필요 없다 — 30px은
+   흐려지는 바에서 배너가 바에 닿아 보이던 시절 값이다. */
+[data-variant="a"] .banner-slot { margin-top: 10px; }
 
 /* 설문 카드. 크기와 모서리를 브랜드 카드와 같게 해서 그리드 첫 줄에
    끼워도 이물감이 없게 한다 — 배너 슬롯에 안 넣은 이유가 이것이다.
