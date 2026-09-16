@@ -144,7 +144,7 @@ function BannerCard({ banner, position, onClose, onSeen }) {
                읽게 한다 — 대표 하나만 그리면 나머지가 안 보인다(2026-09-15
                쿠팡이츠 60계·처갓집·반올림 8,000원). 앱 배지가 판 오른쪽 위로
                빠져(2026-09-16) 네 칸을 다 브랜드에 쓴다. */
-            <span className="banner__logos">
+            <span className="banner__logos" data-count={Math.min(banner.brands.length, 4)}>
               {banner.brands.slice(0, 4).map((name) => <BrandLogo key={name} name={name} />)}
             </span>
           ) : banner.brand

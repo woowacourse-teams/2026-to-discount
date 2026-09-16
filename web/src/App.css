@@ -397,7 +397,7 @@ h1 {
   /* 위아래 같은 값 — 로고와 글줄이 배너 판의 정가운데에 선다. 오른쪽은
      닫기 버튼 자리. 우측 하단 조작 묶음 자리는 조건 줄(.banner__extra)만
      비운다 — 링크 전체를 비우면 금액 줄이 접혀 배너가 커진다. */
-  padding: 6px 2.4rem 6px 0;
+  padding: 9px 2.4rem 9px 0;   /* 위아래 +3px = 배너 +6px(2026-09-16) */
   text-decoration: none;
   color: inherit;
 }
@@ -424,7 +424,9 @@ h1 {
   -webkit-user-select: none;
   will-change: transform;
 }
-.banner-viewport { overflow: hidden; border-radius: 14px; }
+.banner-viewport { overflow: hidden; }
+/* 도크는 떠 있는 층이라 둥글고, 상단은 바 밑에 붙는 띠라 각지다(A안). */
+.banner-dock__inner .banner-viewport { border-radius: 14px; }
 .banner-slot .banner-track > .banner, .banner-dock__inner .banner-track > .banner {
   flex: 0 0 100%;
   /* flex 항목의 min-width:auto는 내용 폭(줄바꿈 안 되는 금액)만큼 카드를
@@ -481,6 +483,7 @@ h1 {
 .banner__logos {
   /* 낱장 로고의 1.3배 — 네 칸으로 나눠도 한 칸이 40px 넘게 남아 식별된다. */
   --grid: calc(var(--logo) * 1.3);
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-auto-rows: 1fr;
@@ -495,6 +498,20 @@ h1 {
   border: 0;
   border-radius: calc(var(--logo-radius) * .55);
 }
+/* 개수별 배치(2026-09-16). 순서대로 2×2에 넣으면 둘일 때 아래 반이, 셋일 때
+   한 칸이 빈다. 그룹 아바타(슬랙·팀즈·iOS 폴더)가 쓰는 배치를 따른다:
+     2 = 왼쪽 위·오른쪽 아래 대각선, 각 64%
+     3 = 위 두 칸 + 아래 가운데 한 칸(삼각)
+     4 = 2×2 */
+.banner__logos[data-count="2"] { display: block; }
+.banner__logos[data-count="2"] .brand-logo { position: absolute; width: 64%; height: 64%; }
+.banner__logos[data-count="2"] .brand-logo:nth-child(1) { left: 0; top: 0; }
+.banner__logos[data-count="2"] .brand-logo:nth-child(2) { right: 0; bottom: 0; }
+.banner__logos[data-count="3"] .brand-logo:nth-child(3) {
+  grid-column: 1 / -1;
+  width: calc(50% - 1px);
+  justify-self: center;
+}
 /* 브랜드가 없는 앱 전체 행사 — 로고 자리에 앱 아이콘이 들어간다. */
 .brand-logo--platform { background: var(--surface); }
 .brand-logo--platform img { object-fit: contain; padding: 4px; }
@@ -507,10 +524,11 @@ h1 {
    로고를 가렸다. 기준은 .banner(카드)다. */
 .banner__platform {
   position: absolute;
-  right: 8px;
-  top: 7px;
-  width: 34px;
-  height: 34px;
+  /* 34px의 0.9배, 오른쪽 위 모서리에서 안쪽으로 3px 더(사용자 결정 2026-09-16). */
+  right: 11px;
+  top: 10px;
+  width: 31px;
+  height: 31px;
   display: grid;
   place-items: center;
   /* 앱 아이콘은 그 자체로 모양과 색을 가진 그림이다. 판을 깔거나 테두리를
@@ -2504,7 +2522,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 
 /* 바 아래 구분선이 생긴 뒤(2026-09-16)로는 큰 띄움이 필요 없다 — 30px은
    흐려지는 바에서 배너가 바에 닿아 보이던 시절 값이다. */
-[data-variant="a"] .banner-slot { margin-top: 0; }
+[data-variant="a"] .banner-slot { margin-top: 2px; }
 
 /* 설문 카드. 크기와 모서리를 브랜드 카드와 같게 해서 그리드 첫 줄에
    끼워도 이물감이 없게 한다 — 배너 슬롯에 안 넣은 이유가 이것이다.
