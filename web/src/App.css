@@ -391,6 +391,7 @@ h1 {
    닫기 버튼 자리를 비운다. */
 .banner__link {
   position: relative;   /* .banner__platform(앱 배지)의 기준 */
+  flex: 1 1 auto;       /* 카드 높이를 다 차지한다 — 세로 가운데의 기준 */
   display: flex;
   align-items: center;
   gap: 22px;
@@ -429,6 +430,11 @@ h1 {
 .banner-dock__inner .banner-viewport { border-radius: 14px; }
 .banner-slot .banner-track > .banner, .banner-dock__inner .banner-track > .banner {
   flex: 0 0 100%;
+  /* 카드는 트랙의 가장 키 큰 장 높이로 늘어난다(묶음 로고 격자 83px). 링크가
+     그 높이를 다 채워야 낱장 로고·글줄이 카드 세로 가운데에 선다 — 안 채우면
+     내용이 위에 붙는다(사용자 지적 2026-09-16). */
+  display: flex;
+  flex-direction: column;
   /* flex 항목의 min-width:auto는 내용 폭(줄바꿈 안 되는 금액)만큼 카드를
      키운다 — 360px에서 카드가 380px이 돼 배지가 잘렸다(2026-09-16 실측). */
   min-width: 0;
