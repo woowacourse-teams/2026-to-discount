@@ -314,7 +314,7 @@ export default function EventBanner({ banners }) {
   useEffect(() => {
     const el = trackRef.current
     if (!el || count < 2) return
-    el.scrollTo({ left: el.clientWidth * 1, behavior: 'instant' })
+    el.scrollLeft = el.children[1]?.offsetLeft ?? el.clientWidth
   }, [count])
 
   // 어느 장을 보고 있는지는 스크롤 위치가 정한다. 상태를 먼저 바꾸고
@@ -324,19 +324,25 @@ export default function EventBanner({ banners }) {
   // scrollend로 알고, 그 이벤트가 없는 브라우저(iOS 일부)는 스크롤이 120ms
   // 조용하면 멈춘 것으로 본다.
   const settleTimer = useRef(null)
+  // 칸의 정확한 왼쪽 자리. clientWidth * n으로 계산하면 소수 픽셀이 남아
+  // 스냅 컨테이너가 그 어긋남을 **애니메이션으로 다시 맞춘다** — 사본에서
+  // 실제 칸으로 옮긴 직후 화면이 한 번 더 움찔해 "새 창이 뜨는" 것처럼
+  // 보였다(사용자 지적 2026-09-16). 자식의 offsetLeft가 스냅 지점 그 자체다.
+  const slotLeft = (el, slot) => el.children[slot]?.offsetLeft ?? el.clientWidth * slot
   function settle(el) {
     const slot = Math.round(el.scrollLeft / el.clientWidth)
     const real = settleSlot(slot, count)
-    if (real !== null) el.scrollTo({ left: el.clientWidth * real, behavior: 'instant' })
+    if (real === null) return
+    el.scrollLeft = slotLeft(el, real)
   }
   function onTrackScroll(e) {
     const el = e.currentTarget
     const next = slotToIndex(Math.round(el.scrollLeft / el.clientWidth), count)
     setIndex((i) => (next === i ? i : next))
-    if (!('onscrollend' in el)) {
-      clearTimeout(settleTimer.current)
-      settleTimer.current = setTimeout(() => settle(el), 120)
-    }
+    // scrollend가 있는 브라우저에서도 타이머를 같이 건다 — 둘 다 같은 settle을
+    // 부르고 두 번 불려도 해가 없다. 한쪽만 믿었다가 안 오면 사본에 머문다.
+    clearTimeout(settleTimer.current)
+    settleTimer.current = setTimeout(() => settle(el), 120)
   }
   // scrollend는 React 18이 합성 이벤트로 안 받는다 — 네이티브로 단다.
   useEffect(() => {
@@ -357,7 +363,7 @@ export default function EventBanner({ banners }) {
     if (!el) return
     const cur = Math.round(el.scrollLeft / el.clientWidth)
     const behavior = jumpBehavior(cur, slot)
-    el.scrollTo({ left: el.clientWidth * slot, behavior })
+    el.scrollTo({ left: slotLeft(el, slot), behavior })
     // 갈아끼우는 자리에는 전환이 없다 — 그냥 딸깍 바뀌어서 넘어간 건지
     // 화면이 튄 건지 안 읽힌다. 위치는 즉시 옮기고 새 장만 짧게 띄운다.
     // 클래스를 뗐다 다시 붙여야 애니메이션이 처음부터 돈다(리플로 한 번).
@@ -378,9 +384,12 @@ export default function EventBanner({ banners }) {
   function advance() {
     const el = trackRef.current
     if (!el) return
+    // 아직 사본에 서 있으면(settle이 못 돈 경우) 먼저 실제 칸으로 옮긴다 —
+    // 안 그러면 cur+1이 트랙 밖이라 제자리 = instant + 컷 애니메이션이 된다.
+    settle(el)
     const cur = Math.round(el.scrollLeft / el.clientWidth)
     // 마지막 칸의 다음은 첫 장 사본 — 거기 멈추면 settle이 실제 칸으로 옮긴다.
-    scrollToSlot(Math.min(cur + 1, indexToSlot(count - 1, count) + 1))
+    scrollToSlot(cur + 1)
   }
   const scrollTo = (i) => scrollToSlot(indexToSlot(i, count))
 
