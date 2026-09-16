@@ -11,7 +11,12 @@ import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
 import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
 
-const ROTATE_MS = 4300
+// 넘어가는 간격. 4.3초에서 1초 늘렸다(사용자 결정 2026-09-16).
+const ROTATE_MS = 5300
+// 한 칸 미끄러지는 시간. 브라우저 smooth 스크롤(~300ms)보다 0.5초 느리게.
+const SLIDE_MS = 800
+// 장 사이 간격(App.css .banner-track gap과 같은 값).
+const SLIDE_GAP = 12
 const DISMISS_KEY = 'dk_banner_hidden'
 
 
@@ -137,11 +142,10 @@ function BannerCard({ banner, position, onClose, onSeen }) {
           {banner.brands?.length > 1 ? (
             /* 한 장에 묶인 브랜드. 2×2 격자로 그려 "누구누구가"를 한 번에
                읽게 한다 — 대표 하나만 그리면 나머지가 안 보인다(2026-09-15
-               쿠팡이츠 60계·처갓집·반올림 8,000원). 넷째 칸은 플랫폼 배지가
-               차지하므로 브랜드는 셋까지만 — 넷을 넣으면 배지가 로고를 덮는다
-               (2026-09-16 모바일 360px 확인). */
-            <span className="banner__logos">
-              {banner.brands.slice(0, 3).map((name) => <BrandLogo key={name} name={name} />)}
+               쿠팡이츠 60계·처갓집·반올림 8,000원). 앱 배지가 판 오른쪽 위로
+               빠져(2026-09-16) 네 칸을 다 브랜드에 쓴다. */
+            <span className="banner__logos" data-count={Math.min(banner.brands.length, 4)}>
+              {banner.brands.slice(0, 4).map((name) => <BrandLogo key={name} name={name} />)}
             </span>
           ) : banner.brand
             ? <BrandLogo name={banner.brand} />
@@ -150,12 +154,13 @@ function BannerCard({ banner, position, onClose, onSeen }) {
                 <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
               </span>
             )}
-          {banner.brand && (
-            <span className="banner__platform">
-              <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
-            </span>
-          )}
         </span>
+        {/* 앱 배지는 로고 밖, 카드(.banner__link)의 오른쪽 위에 선다(2026-09-16). */}
+        {banner.brand && (
+          <span className="banner__platform">
+            <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
+          </span>
+        )}
 
         {/* 금액이 먼저, 기간과 조건이 그 아래. 셋을 한 세로줄로 두면
             눈이 왼쪽 로고에서 오른쪽으로 한 번만 건너간다 — 금액과
@@ -226,6 +231,8 @@ function BannerCard({ banner, position, onClose, onSeen }) {
 // 넓다(1.45rem에서 한글 ≈ 21px, 숫자 ≈ 13px). 한글 1.7, 띄어쓰기 .5, 그 외
 // .6으로 세어 14를 넘으면 넓은 것으로 본다.
 //   "최대 7,000원" 8.6 · "6,000/5,000/8,000원" 11.9 · "1,000/2,000원 중복할인" 15.6
+// 문턱 14 → 11(2026-09-16): 로고 영역과 여백을 키워 글줄 폭이 195px로 줄자
+// 11.9짜리도 한 줄에 안 들어갔다.
 export function amountIsWide(text) {
   if (!text) return false
   let w = 0
@@ -234,19 +241,27 @@ export function amountIsWide(text) {
     else if (ch === ' ') w += .5
     else w += .6
   }
-  return w > 14
+  return w > 11
 }
 
-function Progress({ runId, paused, onDone }) {
+// 멈춤/재생 버튼을 감싸는 진행 링(사용자 결정 2026-09-16). 테두리가 다 차면
+// 다음 장 — 채우는 시간은 ROTATE_MS 한 곳에서 정하고 CSS가 읽는다. runId가
+// 바뀌면 요소가 새로 만들어져 처음부터 다시 돈다. 멈춤은 key가 아니라
+// animation-play-state가 한다(손을 올릴 때마다 처음부터 돌면 안 된다).
+// 상단 링만 onDone으로 넘기고, 도크 링은 같은 runId로 같이 도는 그림이다.
+const RING_R = 12
+const RING_C = 2 * Math.PI * RING_R
+function ProgressRing({ runId, paused, onDone }) {
   return (
-    // 도는 시간은 ROTATE_MS 한 곳에서 정하고 CSS가 그 값을 읽어 채운다.
-    <span
-      key={runId}
-      className={`banner__progress ${paused ? 'banner__progress--paused' : ''}`}
-      style={{ '--rotate': `${ROTATE_MS}ms` }}
-      onAnimationEnd={onDone}
-      aria-hidden="true"
-    />
+    <svg key={runId} className="banner__ring" viewBox="0 0 28 28" aria-hidden="true">
+      <circle className="banner__ring-track" cx="14" cy="14" r={RING_R} />
+      <circle
+        className={`banner__ring-fill ${paused ? 'banner__ring-fill--paused' : ''}`}
+        cx="14" cy="14" r={RING_R}
+        style={{ '--rotate': `${ROTATE_MS}ms`, '--c': RING_C }}
+        onAnimationEnd={onDone}
+      />
+    </svg>
   )
 }
 
@@ -254,7 +269,7 @@ function Progress({ runId, paused, onDone }) {
 //   - 우측 하단 묶음: "n / N" 카운터 + 멈춤/재생 (모든 화면)
 //   - 배너 좌우 가장자리의 이전/다음 화살표 (손가락 화면에서는 숨긴다 —
 //     옆으로 미는 것이 곧 이동이라 화살표는 자리만 먹는다, App.css)
-function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, arrows = true }) {
+function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, arrows = true, runId, paused, onDone }) {
   return (
     <>
       {/* 화살표는 상단에만. 도크는 맨 위로 버튼·카드 로고와 겹쳐 뺐다
@@ -281,6 +296,7 @@ function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, 
             aria-pressed={held}
             onClick={onToggleHold}
           >
+            <ProgressRing runId={runId} paused={paused} onDone={onDone} />
             {held ? (
               <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z" /></svg>
             ) : (
@@ -323,16 +339,13 @@ export default function EventBanner({ banners }) {
 
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const pageHidden = usePageHidden()
-
-  const trackRef = useRef(null)
-  // 하단 도크의 트랙. 상단과 같은 장들을 깔고 index를 따라 미끄러진다 —
-  // 전엔 카드 하나를 key로 갈아끼워 넘어갈 때마다 깜빡였다(사용자 지적
-  // 2026-09-16). 도크에서 밀면 상단 트랙을 옮기고, index는 상단이 정한다.
-  const dockTrackRef = useRef(null)
-  // 도크를 코드로 옮기는 동안은 도크의 scroll 이벤트를 무시한다 — 안 그러면
-  // 도크 스크롤 → 상단 이동 → index → 도크 스크롤이 서로 물려 출렁인다
-  // (2026-09-16 실측: 1077↔1225px 진동).
-  const dockSyncing = useRef(0)
+  // 창 폭이 바뀌면 바 높이도 바뀐다 — 관찰자를 다시 세우는 트리거.
+  const [viewportW, setViewportW] = useState(() => (typeof window === 'undefined' ? 0 : window.innerWidth))
+  useEffect(() => {
+    const onResize = () => setViewportW(window.innerWidth)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const count = banners?.length ?? 0
   const current = count > 0 ? banners[index % count] : null
@@ -343,123 +356,88 @@ export default function EventBanner({ banners }) {
   const currentSeed = useSeed(current ?? { platform: 'baemin' })
   const currentPalette = useMemo(() => bannerPalette(currentSeed), [currentSeed])
 
-  // 트랙은 실제 장 앞뒤에 사본 한 장씩을 둔다(bannerScroll.js) — 그래야
-  // 양 끝에서도 옆으로 밀린다. 처음엔 첫 실제 장(칸 1)에 세운다.
+  // ── 슬라이더 ────────────────────────────────────────────────────────
+  // 컴포넌트를 스크롤로 넘기지 않는다. 장 전체(앞뒤 사본 포함)를 한 줄로
+  // 그려 놓고 **자리(slot) 하나만 상태로** 들고, 그 값을 transform으로
+  // 옮긴다(사용자 결정 2026-09-16). 스크롤 컨테이너 방식은 scrollend·스냅
+  // 재정렬·상단/도크 동기화가 브라우저마다 달라 이음새가 났다. 이 방식은
+  // 상단과 도크가 같은 slot을 같은 transition으로 보므로 둘이 어긋날 길이
+  // 없고, 사본 칸에 도착한 뒤 transition을 끈 채 실제 칸으로 옮기는 것도
+  // 우리가 정한 시점에 정확히 한다.
+  //
+  //   slot: 0 = 마지막 장 사본, 1..count = 실제 장, count+1 = 첫 장 사본
+  //   anim: transition을 켤지 — 사본→실제 칸 되감기는 끄고 옮긴다
   const slides = useMemo(() => withSentinels(banners ?? []), [banners])
-  useEffect(() => {
-    const el = trackRef.current
-    if (!el || count < 2) return
-    el.scrollLeft = el.children[1]?.offsetLeft ?? el.clientWidth
-  }, [count])
+  const [slot, setSlot] = useState(count > 1 ? 1 : 0)
+  const [anim, setAnim] = useState(true)
+  const busy = useRef(false)
+  useEffect(() => { setSlot(count > 1 ? 1 : 0) }, [count])
+  useEffect(() => { setIndex(slotToIndex(slot, count)) }, [slot, count])
 
-  // 어느 장을 보고 있는지는 스크롤 위치가 정한다. 상태를 먼저 바꾸고
-  // 화면을 따라오게 하면, 손으로 넘기는 동안 둘이 계속 어긋난다.
-  //
-  // 사본 칸에 멈추면 같은 내용의 실제 칸으로 소리 없이 옮긴다. "멈췄다"는
-  // scrollend로 알고, 그 이벤트가 없는 브라우저(iOS 일부)는 스크롤이 120ms
-  // 조용하면 멈춘 것으로 본다.
-  const settleTimer = useRef(null)
-  // 칸의 정확한 왼쪽 자리. clientWidth * n으로 계산하면 소수 픽셀이 남아
-  // 스냅 컨테이너가 그 어긋남을 **애니메이션으로 다시 맞춘다** — 사본에서
-  // 실제 칸으로 옮긴 직후 화면이 한 번 더 움찔해 "새 창이 뜨는" 것처럼
-  // 보였다(사용자 지적 2026-09-16). 자식의 offsetLeft가 스냅 지점 그 자체다.
-  const slotLeft = (el, slot) => el.children[slot]?.offsetLeft ?? el.clientWidth * slot
-  function settle(el) {
-    const slot = Math.round(el.scrollLeft / el.clientWidth)
-    const real = settleSlot(slot, count)
-    if (real === null) return
-    el.scrollLeft = slotLeft(el, real)
+  // 옆 칸으로. 사본에 도착하면 transition이 끝난 뒤 실제 칸으로 소리 없이.
+  function step(dir) {
+    if (count < 2 || busy.current) return
+    const next = slot + dir
+    if (next < 0 || next > count + 1) return
+    busy.current = true
+    setAnim(!reduceMotion)
+    setSlot(next)
+    const real = settleSlot(next, count)
+    const dur = reduceMotion ? 0 : SLIDE_MS
+    setTimeout(() => {
+      if (real !== null) {
+        setAnim(false)
+        setSlot(real)
+        // 한 프레임 뒤 transition을 다시 켠다 — 같이 켜면 되감기도 미끄러진다.
+        requestAnimationFrame(() => requestAnimationFrame(() => setAnim(true)))
+      }
+      busy.current = false
+    }, dur + 20)
   }
-  function onTrackScroll(e) {
-    const el = e.currentTarget
-    const next = slotToIndex(Math.round(el.scrollLeft / el.clientWidth), count)
-    setIndex((i) => (next === i ? i : next))
-    // scrollend가 있는 브라우저에서도 타이머를 같이 건다 — 둘 다 같은 settle을
-    // 부르고 두 번 불려도 해가 없다. 한쪽만 믿었다가 안 오면 사본에 머문다.
-    clearTimeout(settleTimer.current)
-    settleTimer.current = setTimeout(() => settle(el), 120)
-  }
-  // scrollend는 React 18이 합성 이벤트로 안 받는다 — 네이티브로 단다.
-  useEffect(() => {
-    const el = trackRef.current
-    if (!el || count < 2) return
-    const onEnd = () => settle(el)
-    el.addEventListener('scrollend', onEnd)
-    return () => el.removeEventListener('scrollend', onEnd)
-  }, [count])
+  // 특정 장으로(현재 안 쓰는 점 이동 경로 — 카운터에서 쓰일 수 있다).
+  const scrollTo = (i) => step(indexToSlot(i, count) - slot)
+  function advance() { step(1) }
 
-  // 점을 누르거나 자동 전환이 돌 때 그 칸으로 밀어준다(칸 = 트랙 위치).
-  //
-  // 옆 칸으로 갈 때만 미끄러진다. 건너뛸 때 smooth로 두면 사이에 낀 배너를
-  // 전부 훑고 지나간다 — 점으로 3번째에서 1번째를 누르는 경우다. 마지막에서
-  // 처음으로 도는 것은 이제 옆 칸(첫 장의 사본)이라 자연스럽게 미끄러진다.
-  function scrollToSlot(slot) {
-    const el = trackRef.current
-    if (!el) return
-    // 항상 미끄러진다. 멀리 있는 점을 눌렀을 때 "갈아끼우고 짧게 띄우기"
-    // (컷)를 했었는데 파이어폭스에서 화면이 사라졌다 나타나는 것으로 보였다
-    // (사용자 지적 2026-09-16). 사이 장을 훑고 지나가는 쪽이 캐러셀답다.
-    el.scrollTo({ left: slotLeft(el, slot), behavior: reduceMotion ? 'instant' : 'smooth' })
+  // 손가락·마우스로 끌기. 끄는 동안은 transition 없이 따라오고, 놓으면
+  // 40px 넘게 밀었을 때만 한 칸 넘긴다. 세로 스크롤이 더 크면 넘기지 않는다.
+  const drag = useRef(null)
+  const [dragX, setDragX] = useState(0)
+  function onPointerDown(e) {
+    if (count < 2 || e.pointerType === 'mouse' && e.button !== 0) return
+    drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, moved: false }
+  }
+  function onPointerMove(e) {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    const dx = e.clientX - d.x, dy = e.clientY - d.y
+    if (!d.moved && Math.abs(dx) < 6) return
+    if (!d.moved && Math.abs(dy) > Math.abs(dx)) { drag.current = null; return }
+    d.moved = true
+    setDragX(dx)
+  }
+  function onPointerUp(e) {
+    const d = drag.current
+    if (!d || d.id !== e.pointerId) return
+    drag.current = null
+    const dx = e.clientX - d.x
+    setDragX(0)
+    if (d.moved && Math.abs(dx) > 40) step(dx < 0 ? 1 : -1)
+  }
+  // 끌던 중 링크 클릭이 나가지 않게 — 놓는 순간 click이 한 번 더 온다.
+  function onClickCapture(e) { if (Math.abs(dragX) > 6) { e.preventDefault(); e.stopPropagation() } }
+  const dragProps = {
+    onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp, onClickCapture,
+  }
+  const trackStyle = {
+    transform: `translateX(calc(${-slot} * (100% + ${SLIDE_GAP}px) + ${dragX}px))`,
+    transition: anim && dragX === 0 && !reduceMotion ? `transform ${SLIDE_MS}ms cubic-bezier(.22, .8, .3, 1)` : 'none',
   }
 
   // 자동 전환. 한 건이면 돌릴 것이 없고, 손이 올라가 있거나 포커스가 안에
   // 있거나 탭이 숨겨져 있으면 멈춘다. prefers-reduced-motion이면 아예 안 돈다
   // (DNT·GPC를 존중하는 이 레포 관례와 결이 맞는다).
-  const paused = hovered || focused || pageHidden || held
+  const paused = hovered || focused || pageHidden || held || dragX !== 0
   const rotating = count > 1 && !reduceMotion
-
-  // 막대가 다 차면 다음 장. 어느 장에서 왔는지는 스크롤이 정하므로
-  // 여기서도 스크롤 위치를 다시 읽는다(점을 눌러 옮긴 직후에도 맞다).
-  function advance() {
-    const el = trackRef.current
-    if (!el) return
-    // 아직 사본에 서 있으면(settle이 못 돈 경우) 먼저 실제 칸으로 옮긴다 —
-    // 안 그러면 cur+1이 트랙 밖이라 제자리 = instant + 컷 애니메이션이 된다.
-    settle(el)
-    const cur = Math.round(el.scrollLeft / el.clientWidth)
-    // 마지막 칸의 다음은 첫 장 사본 — 거기 멈추면 settle이 실제 칸으로 옮긴다.
-    scrollToSlot(cur + 1)
-  }
-  const scrollTo = (i) => scrollToSlot(indexToSlot(i, count))
-  useEffect(() => {
-    const el = dockTrackRef.current
-    if (!el || count < 2) return
-    const want = indexToSlot(index % count, count)
-    const cur = Math.round(el.scrollLeft / el.clientWidth)
-    if (cur === want) return
-    // 끝에서 끝으로 도는 것은 상단과 같이 **사본 칸으로 미끄러진 뒤** 같은
-    // 내용의 실제 칸으로 소리 없이 옮긴다 — 마지막→처음을 instant로 두면
-    // 여기서만 끊겼다(사용자 지적 2026-09-16). 그 외 멀리 가는 경우(점프)는
-    // 없다: index는 한 칸씩만 움직인다.
-    let target = want
-    if (cur === count && want === 1) target = count + 1
-    else if (cur === 1 && want === count) target = 0
-    const smooth = Math.abs(cur - target) === 1 && !reduceMotion
-    clearTimeout(dockSyncing.current)
-    el.scrollTo({ left: slotLeft(el, target), behavior: smooth ? 'smooth' : 'instant' })
-    dockSyncing.current = setTimeout(() => {
-      // 사본에 도착했으면 실제 칸으로. 같은 그림이라 화면은 안 움직인다.
-      if (target !== want) el.scrollLeft = slotLeft(el, want)
-      dockSyncing.current = 0
-    }, smooth ? 700 : 150)
-  }, [index, count])
-  function onDockScroll(e) {
-    if (dockSyncing.current) return
-    const el = e.currentTarget
-    const slot = Math.round(el.scrollLeft / el.clientWidth)
-    const real = settleSlot(slot, count)
-    if (real !== null) { el.scrollLeft = slotLeft(el, real); return }
-    const next = slotToIndex(slot, count)
-    if (next !== index % count) scrollTo(next)
-  }
-  // 화살표. 사본 칸이 양 끝에 있어 어느 끝에서든 옆 칸으로 미끄러진다.
-  function step(dir) {
-    const el = trackRef.current
-    if (!el) return
-    settle(el)
-    const cur = Math.round(el.scrollLeft / el.clientWidth)
-    scrollToSlot(cur + dir)
-  }
 
   // 하단 배너는 안 보일 때도 DOM에 남아 있다(visibility:hidden). 관찰자는
   // visibility를 보지 않아 그대로 달면 페이지를 열자마자 노출로 세어진다.
@@ -476,10 +454,18 @@ export default function EventBanner({ banners }) {
   useEffect(() => {
     const el = topRef.current
     if (!el || typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver(([entry]) => setTopVisible(entry.isIntersecting))
+    // 고정된 바(.title-bar) 밑으로 들어간 부분은 "보이는 것"이 아니다 —
+    // rootMargin으로 그만큼 위를 잘라내지 않으면 배너가 바 뒤에 숨은 뒤에도
+    // 한참 있다가 도크가 떴다(사용자 지적 2026-09-16). 바 높이는 관찰을
+    // 세울 때 읽고, 창 크기가 바뀌면 다시 세운다.
+    const barH = document.querySelector('.title-bar')?.offsetHeight ?? 0
+    const io = new IntersectionObserver(
+      ([entry]) => setTopVisible(entry.isIntersecting),
+      { rootMargin: `-${barH}px 0px 0px 0px`, threshold: 0 },
+    )
     io.observe(el)
     return () => io.disconnect()
-  }, [count])
+  }, [count, viewportW])
 
   // 이 배너가 하단에 떠 있으면 설문 알약이 그 바로 위에 붙어야 한다.
   // 처음엔 "맨 위로 버튼 위 여백 + 배너 높이"를 더해 띄웠다가, 배너가
@@ -516,9 +502,6 @@ export default function EventBanner({ banners }) {
   // 안에 있으면 점도 막대도 같이 흘러가 가운데에서 벗어난다.
   const chrome = (
     <>
-      {rotating && (
-        <Progress runId={index % count} paused={paused} onDone={advance} />
-      )}
       {count > 1 && (
         <Controls
           count={count}
@@ -527,6 +510,9 @@ export default function EventBanner({ banners }) {
           onNext={() => step(1)}
           rotating={rotating}
           held={held}
+          runId={index % count}
+          paused={paused}
+          onDone={advance}
           onToggleHold={() => setHeld((h) => { track('banner_autoplay_toggle', { state: h ? 'play' : 'pause' }); return !h })}
         />
       )}
@@ -538,16 +524,20 @@ export default function EventBanner({ banners }) {
       <div className="banner-slot" ref={topRef} style={currentPalette} {...hoverProps}>
         {/* 전부 한 줄에 깔고 가로로 넘긴다. 자동 전환만 있으면 지나간
             배너를 다시 볼 길이 손가락에 없고, 점을 정확히 눌러야 했다. */}
-        <div className="banner-track" ref={trackRef} onScroll={onTrackScroll}>
-          {slides.map((b, i) => (
-            <BannerCard
-              /* 사본은 같은 id가 두 번 서므로 칸 번호로 가른다. */
-              key={`${b.id}:${i}`}
-              banner={b}
-              position="top"
-              onSeen={() => markSeen(b, 'top')}
-            />
-          ))}
+        {/* 뷰포트가 옆 장을 자른다. 슬롯은 좌우 화살표 여백까지 품고 있어
+            슬롯에서 자르면 여백 밑으로 옆 장이 비친다(2026-09-16 900px 실측). */}
+        <div className="banner-viewport">
+          <div className="banner-track" style={trackStyle} {...dragProps}>
+            {slides.map((b, i) => (
+              <BannerCard
+                /* 사본은 같은 id가 두 번 서므로 칸 번호로 가른다. */
+                key={`${b.id}:${i}`}
+                banner={b}
+                position="top"
+                onSeen={() => markSeen(b, 'top')}
+              />
+            ))}
+          </div>
         </div>
         {chrome}
       </div>
@@ -563,10 +553,12 @@ export default function EventBanner({ banners }) {
         <div className="banner-dock__inner">
           {/* 하단 도크에는 진행 막대를 안 그린다(사용자 결정 2026-09-15). 넘기는
               타이머는 상단 막대(onDone)가 갖고 있어 동작은 그대로다. */}
-          <div className="banner-track banner-track--dock" ref={dockTrackRef} onScroll={onDockScroll}>
-            {slides.map((b, i) => (
-              <BannerCard key={`${b.id}:${i}`} banner={b} position="bottom" />
-            ))}
+          <div className="banner-viewport">
+            <div className="banner-track banner-track--dock" style={trackStyle} {...dragProps}>
+              {slides.map((b, i) => (
+                <BannerCard key={`${b.id}:${i}`} banner={b} position="bottom" />
+              ))}
+            </div>
           </div>
           {/* 닫기는 도크에 하나다 — 장마다 달면 트랙과 같이 흘러가고 모서리
               밖 위치도 깨진다(2026-09-16). 자리는 전과 같은 도크 우상단 모서리. */}
@@ -601,6 +593,8 @@ export default function EventBanner({ banners }) {
               onNext={() => step(1)}
               rotating={rotating}
               held={held}
+              runId={index % count}
+              paused={paused}
               onToggleHold={() => setHeld((h) => { track('banner_autoplay_toggle', { state: h ? 'play' : 'pause' }); return !h })}
             />
           )}
