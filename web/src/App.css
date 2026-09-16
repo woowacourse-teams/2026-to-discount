@@ -646,14 +646,21 @@ h1 {
 .banner__close:hover { background: rgba(255, 255, 255, .3); }
 /* 플로팅 배너는 화면에 떠 있어 모서리 밖 여유가 있다. 밖으로 빼면
    금액·부가정보를 가리지 않고, 배너 자체와도 겹치지 않는다. */
-.banner--bottom .banner__close {
-  top: -9px;
-  right: -9px;
+.banner--bottom .banner__close,
+.banner-dock__close {
   background: var(--text);
   color: #fff;
   border: 2px solid var(--bg);
 }
-.banner--bottom .banner__close:hover { background: #333; }
+.banner--bottom .banner__close { top: -9px; right: -9px; }
+/* 도크의 닫기는 트랙 밖에 하나 — 배너 카드 우상단 모서리 밖(전과 같은 자리).
+   도크 안쪽 패딩(위 12px, 옆 --dock-pad-x) 기준으로 셈한다. */
+.banner-dock__close {
+  top: 3px;
+  right: calc(var(--dock-pad-x) - 9px);
+  z-index: 3;
+}
+.banner--bottom .banner__close:hover, .banner-dock__close:hover { background: #333; }
 .banner__close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 /* 하단 중앙 인디케이터. 점 자체는 6px이지만 버튼은 14px을 차지해
@@ -773,9 +780,6 @@ h1 {
 @media (min-width: 601px) {
   .banner-slot { --arrow-gutter: 40px; }
   .banner__arrow { display: inline-flex; }
-  /* 도크는 자기 패딩(--dock-pad-x) 안에 화살표를 둔다. */
-  .banner-dock__inner { --dock-pad-x: 44px; }
-  .banner-dock__inner .banner__arrow { top: calc(50% + 6px); }
 }
 
 /* 상단 배너가 화면 밖으로 나가면 올라오는 층. 불투명하고, 떠 있는 층은
@@ -2927,6 +2931,9 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 
 /* 하단 이벤트 배너가 떠 있으면 맨 위로 버튼 몫 여백은 빼고, 배너 실측
    높이 바로 위에 작은 틈(.5rem)만 두고 붙인다. */
+/* 맨 위로 버튼도 도크 위로 올린다 — 도크 우측 하단에 조작 묶음이 생긴 뒤
+   둘이 겹쳤다(2026-09-16 실측). */
+html.has-bottom-banner .to-top-btn { bottom: calc(var(--banner-dock-h) + .5rem); }
 html.has-bottom-banner .survey-dock {
   bottom: calc(var(--banner-dock-h) + .5rem);
 }

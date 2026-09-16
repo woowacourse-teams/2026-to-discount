@@ -254,15 +254,21 @@ function Progress({ runId, paused, onDone }) {
 //   - 우측 하단 묶음: "n / N" 카운터 + 멈춤/재생 (모든 화면)
 //   - 배너 좌우 가장자리의 이전/다음 화살표 (손가락 화면에서는 숨긴다 —
 //     옆으로 미는 것이 곧 이동이라 화살표는 자리만 먹는다, App.css)
-function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold }) {
+function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, arrows = true }) {
   return (
     <>
-      <button type="button" className="banner__arrow banner__arrow--prev" aria-label="이전 배너" onClick={onPrev}>
-        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
-      </button>
-      <button type="button" className="banner__arrow banner__arrow--next" aria-label="다음 배너" onClick={onNext}>
-        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5l7 7-7 7" /></svg>
-      </button>
+      {/* 화살표는 상단에만. 도크는 맨 위로 버튼·카드 로고와 겹쳐 뺐다
+          (사용자 지적 2026-09-16). */}
+      {arrows && (
+        <>
+          <button type="button" className="banner__arrow banner__arrow--prev" aria-label="이전 배너" onClick={onPrev}>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
+          </button>
+          <button type="button" className="banner__arrow banner__arrow--next" aria-label="다음 배너" onClick={onNext}>
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </>
+      )}
       <div className="banner__ctl">
         <span className="banner__counter" aria-live="polite">
           <b>{index + 1}</b> / {count}
@@ -549,27 +555,36 @@ export default function EventBanner({ banners }) {
               타이머는 상단 막대(onDone)가 갖고 있어 동작은 그대로다. */}
           <div className="banner-track banner-track--dock" ref={dockTrackRef} onScroll={onDockScroll}>
             {slides.map((b, i) => (
-              <BannerCard
-                key={`${b.id}:${i}`}
-                banner={b}
-                position="bottom"
-                onClose={() => {
-                  setDismissed(true)
-                  writeDismissed()
-                  // 닫기는 "봤고, 싫다"는 뜻이다 — 무시(노출만 있고 아무 것도
-                  // 안 함)와 구분해야 배너가 방해가 되는지 알 수 있다.
-                  track('banner_dismiss', {
-                    banner: b.id,
-                    brand: b.brand ?? 'none',
-                    platform: b.platform,
-                  })
-                }}
-              />
+              <BannerCard key={`${b.id}:${i}`} banner={b} position="bottom" />
             ))}
           </div>
-          {/* 도크에도 같은 묶음. 화살표는 상단과 같은 규칙으로 손가락 화면에선 숨는다. */}
+          {/* 닫기는 도크에 하나다 — 장마다 달면 트랙과 같이 흘러가고 모서리
+              밖 위치도 깨진다(2026-09-16). 자리는 전과 같은 도크 우상단 모서리. */}
+          <button
+            type="button"
+            className="banner__close banner-dock__close"
+            aria-label="배너 오늘 하루 닫기"
+            onClick={() => {
+              setDismissed(true)
+              writeDismissed()
+              // 닫기는 "봤고, 싫다"는 뜻이다 — 무시(노출만 있고 아무 것도
+              // 안 함)와 구분해야 배너가 방해가 되는지 알 수 있다.
+              track('banner_dismiss', {
+                banner: current.id,
+                brand: current.brand ?? 'none',
+                platform: current.platform,
+              })
+            }}
+          >
+            <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+              <line x1="5" y1="5" x2="19" y2="19" />
+              <line x1="19" y1="5" x2="5" y2="19" />
+            </svg>
+          </button>
+          {/* 도크에도 카운터·멈춤 묶음. 화살표는 없다. */}
           {count > 1 && (
             <Controls
+              arrows={false}
               count={count}
               index={index % count}
               onPrev={() => step(-1)}
