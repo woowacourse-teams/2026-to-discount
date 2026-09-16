@@ -350,13 +350,13 @@ h1 {
    플랫폼 배지가 이미 충분히 들고 있다. 판은 조용히 뒤에 있는 편이 낫다. */
 .banner {
   /* #17171a에서 한 단계 밝게(사용자 결정 2026-09-16). */
-  --banner-plate: #26262b;
+  --banner-plate: #2e2e34;
   --banner-plate-line: rgba(255, 255, 255, .1);
   position: relative;
   border-radius: 14px;
   /* 테두리 없이, 왼쪽 위 완전 검정에서 오른쪽 아래 판 색으로 길게·천천히
      변하는 약한 그라데이션(사용자 결정 2026-09-16). */
-  background: linear-gradient(135deg, #000 0%, var(--banner-plate) 100%);
+  background: linear-gradient(135deg, #121214 0%, var(--banner-plate) 100%);
   border: 0;
   /* overflow는 건드리지 않는다. 하단 배너의 닫기 버튼이 모서리 밖에
      걸쳐 있어 잘라내면 사라진다. 진행 막대는 .banner 안이 아니라
@@ -752,7 +752,8 @@ h1 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 22px;
+  /* 카운터와 멈춤 원이 같은 높이 26px(사용자 결정 2026-09-16). */
+  height: 26px;
   border-radius: 999px;
   background: rgba(255, 255, 255, .16);
   color: #fff;
@@ -760,8 +761,8 @@ h1 {
   -webkit-backdrop-filter: blur(4px);
 }
 .banner__counter {
-  padding: 0 7px;
-  font-size: .68rem;
+  padding: 0 9px;
+  font-size: .74rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: .02em;
   opacity: .9;
@@ -770,8 +771,8 @@ h1 {
 .banner__ctl-btn {
   /* 정확한 원(사용자 결정 2026-09-16). 링(.banner__ring)이 이 원을 감싼다. */
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   padding: 0;
   border: 0;

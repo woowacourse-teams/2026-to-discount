@@ -339,6 +339,13 @@ export default function EventBanner({ banners }) {
 
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const pageHidden = usePageHidden()
+  // 창 폭이 바뀌면 바 높이도 바뀐다 — 관찰자를 다시 세우는 트리거.
+  const [viewportW, setViewportW] = useState(() => (typeof window === 'undefined' ? 0 : window.innerWidth))
+  useEffect(() => {
+    const onResize = () => setViewportW(window.innerWidth)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const count = banners?.length ?? 0
   const current = count > 0 ? banners[index % count] : null
@@ -447,10 +454,18 @@ export default function EventBanner({ banners }) {
   useEffect(() => {
     const el = topRef.current
     if (!el || typeof IntersectionObserver === 'undefined') return
-    const io = new IntersectionObserver(([entry]) => setTopVisible(entry.isIntersecting))
+    // 고정된 바(.title-bar) 밑으로 들어간 부분은 "보이는 것"이 아니다 —
+    // rootMargin으로 그만큼 위를 잘라내지 않으면 배너가 바 뒤에 숨은 뒤에도
+    // 한참 있다가 도크가 떴다(사용자 지적 2026-09-16). 바 높이는 관찰을
+    // 세울 때 읽고, 창 크기가 바뀌면 다시 세운다.
+    const barH = document.querySelector('.title-bar')?.offsetHeight ?? 0
+    const io = new IntersectionObserver(
+      ([entry]) => setTopVisible(entry.isIntersecting),
+      { rootMargin: `-${barH}px 0px 0px 0px`, threshold: 0 },
+    )
     io.observe(el)
     return () => io.disconnect()
-  }, [count])
+  }, [count, viewportW])
 
   // 이 배너가 하단에 떠 있으면 설문 알약이 그 바로 위에 붙어야 한다.
   // 처음엔 "맨 위로 버튼 위 여백 + 배너 높이"를 더해 띄웠다가, 배너가
