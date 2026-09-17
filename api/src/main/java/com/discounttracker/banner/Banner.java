@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
  * {@code banners.yml}에 직접 적는다.
  *
  * @param brand    브랜드 대표명. 없으면(null) 앱 전체 행사다.
- * @param platform 원장 platform 값과 같은 키(baemin, coupangeats, ...).
+ * @param platform 원장 platform 값과 같은 키(baemin, coupangeats, ...). null이면
+ *                 브랜드 자체 앱이나 사이트의 행사다(2026-09-18).
  *                 배지와 색 폴백이 이 값을 쓴다.
  * @param amount   정수가 아니라 문자열이다 — "첫 주문 5,000원", "최대 30%"
  *                 같은 것을 담아야 하는데 정수로 두면 못 담고, 그러면 배너를

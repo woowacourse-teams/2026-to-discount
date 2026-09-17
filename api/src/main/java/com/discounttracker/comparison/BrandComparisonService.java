@@ -70,6 +70,9 @@ public class BrandComparisonService {
         List<OfferRecord> records = new ArrayList<>();
         for (Banner banner : banners.active()) {
             if (banner.brand() == null) continue;
+            // 배달앱 밖의 행사(platform 없음)는 오퍼 비교 대상이 아니다 —
+            // 같은 브랜드의 배달앱 쿠폰과 나란히 세울 수 없다. 배너로만 둔다.
+            if (banner.platform() == null) continue;
             // 파서는 Banner 한 곳이다. 여기 따로 두었을 때 "8,000/5,000/6,000원"
             // 같은 나열에서 둘이 다른 값을 냈다(2026-09-14).
             Integer amount = banner.headlineAmount();

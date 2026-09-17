@@ -131,7 +131,7 @@ public class BannerCatalog {
         return unknownBrands;
     }
 
-    /** 필수 필드(id, platform, url, amount, period, startsOn, endsOn)가 빠져 버린 항목의 id. */
+    /** 필수 필드(id, url, amount, period, startsOn, endsOn)가 빠져 버린 항목의 id. */
     public List<String> dropped() {
         return dropped;
     }
@@ -179,7 +179,10 @@ public class BannerCatalog {
         String period = text(attrs.get("period"));
         LocalDate startsOn = date(attrs.get("startsOn"));
         LocalDate endsOn = date(attrs.get("endsOn"));
-        if (id == null || platform == null || url == null
+        // platform은 선택이다(2026-09-18). 없으면 브랜드 자체 앱이나 사이트의
+        // 행사다 — 뚜레쥬르 네이버페이 적립처럼 배달앱 밖에서 여는 행사가
+        // 얼마든지 있다. 나중에 다른 플랫폼을 더할 때도 이 자리는 그대로다.
+        if (id == null || url == null
                 || amount == null || period == null || startsOn == null || endsOn == null) {
             return null;
         }

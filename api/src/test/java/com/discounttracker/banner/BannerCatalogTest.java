@@ -324,8 +324,9 @@ class BannerCatalogTest {
 
     @Test
     void reportsEntriesDroppedForMissingRequiredFields() {
-        // 2026-09-18: platform이 빠진 뚜레쥬르 배너가 조용히 빠졌고 reload는
+        // 2026-09-18: 필수 필드가 빠진 배너가 조용히 빠졌고 reload는
         // bannersOk: true였다. 빠진 항목의 id를 돌려줘 사람이 바로 알게 한다.
+        // platform은 같은 날 선택 필드가 됐다(자체 앱 행사) — url로 시험한다.
         String yaml = """
                 banners:
                   - id: ok-20260918
@@ -335,8 +336,8 @@ class BannerCatalogTest {
                     period: 상시
                     startsOn: 2026-09-18
                     endsOn: 2026-09-18
-                  - id: no-platform-20260918
-                    url: https://example.test/b
+                  - id: no-url-20260918
+                    platform: baemin
                     amount: "6,000원"
                     period: 상시
                     startsOn: 2026-09-18
@@ -344,7 +345,26 @@ class BannerCatalogTest {
                 """;
         BannerCatalog catalog = catalogOn(yaml, "2026-09-18");
         assertEquals(1, catalog.active().size());
-        assertEquals(List.of("no-platform-20260918"), catalog.dropped());
+        assertEquals(List.of("no-url-20260918"), catalog.dropped());
+    }
+
+    @Test
+    void keepsBannersWithoutPlatformAsOwnAppEvents() {
+        // 2026-09-18 뚜레쥬르 네이버페이 적립: 배달앱 밖 행사라 platform이 없다.
+        String yaml = """
+                banners:
+                  - id: 뚜레쥬르-20260918
+                    brand: 뚜레쥬르
+                    url: https://example.test/tlj
+                    amount: "최대 10,000원, 50% 적립"
+                    period: 9월 18일 하루
+                    startsOn: 2026-09-18
+                    endsOn: 2026-09-18
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-18");
+        assertEquals(1, catalog.active().size());
+        assertNull(catalog.active().get(0).platform());
+        assertEquals(List.of(), catalog.dropped());
     }
 
     @Test
