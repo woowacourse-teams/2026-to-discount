@@ -124,6 +124,7 @@ curl -s https://bebeggars.duckdns.org/api/banners | head -c 300
 | 알고 싶은 것 | 문서 |
 |---|---|
 | 처음 환경 구성·실행 | [`ONBOARDING.md`](../ONBOARDING.md) |
+| 지금 서비스가 어떤 상태인가 | 대시보드 `/ops/` (설계 [`design/26-ops-monitoring.md`](design/26-ops-monitoring.md)) |
 | 코드 구조·데이터 흐름·배포 경계(자동 생성) | [`PROJECT-STRUCTURE.md`](PROJECT-STRUCTURE.md) |
 | 층을 가로지를 때 지킬 계약과 사고 사례 | [`ORCHESTRATION.md`](ORCHESTRATION.md) |
 | 커밋·주석·문서·데이터 규칙 | [`CONVENTIONS.md`](CONVENTIONS.md) |
