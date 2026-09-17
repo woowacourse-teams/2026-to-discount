@@ -13,7 +13,7 @@
    cp data/export.json ../delivery-discount-api/src/main/resources/data/export.json
    ```
    `src/main/resources/data/export.json`은 테스트 픽스처 겸 기본값으로
-   운영 데이터 스냅샷이 커밋돼 있다([ADR-007](docs/decisions/ADR-007-commit-export-snapshot-for-tests.md)) —
+   운영 데이터 스냅샷이 커밋돼 있다([ADR-007](docs/decisions/ADR-007-commit-export-snapshot-for-tests.md)).
    이 단계를 생략해도 동작하지만, 최신 데이터로 보려면 여전히 갱신해야
    한다.
 2. API 기동: `./gradlew bootRun` (http://localhost:8080)
@@ -24,8 +24,8 @@
 ## 배포 (bebeggars.duckdns.org)
 
 OCI 인스턴스, systemd(`delivery-discount-api.service`) + nginx(TLS
-종료, `/`를 8088로 프록시). 데이터는 jar에 안 박고 외부 파일로 읽는다
-— 이유와 구조는 [docs/decisions/ADR-001-external-export-path.md](docs/decisions/ADR-001-external-export-path.md).
+종료, `/`를 8088로 프록시). 데이터는 jar에 안 박고 외부 파일로 읽는다.
+이유와 구조는 [docs/decisions/ADR-001-external-export-path.md](docs/decisions/ADR-001-external-export-path.md).
 
 데이터 갱신(재배포 불필요):
 
@@ -39,32 +39,32 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 패키지는 계층(model/service/dao)이 아니라 **도메인**으로 나눈다. 한 가지를
 고치려고 여러 패키지를 헤집지 않아도 되게 하는 게 목적이다.
 
-- `brand/` — 브랜드에 대해 우리가 아는 것
-  - `BrandCatalog` — `brands.yml`을 읽어 별칭·카테고리·바로가기를 제공
-  - `Brand`, `Category` — 브랜드 정보와 분류
-- `banner/` — 당일 행사 배너(원장에서 파생되지 않고 사람이 적는 것)
-  - `BannerCatalog` — `banners.yml`을 읽고, 오늘 띄울 것만 정렬해 돌려준다
-  - `Banner` — 배너 한 건
-- `offer/` — 원장에서 온 할인 데이터
-  - `OfferRepository` — export.json 읽기(리로드 가능)
+- `brand/`: 브랜드에 대해 우리가 아는 것
+  - `BrandCatalog`: `brands.yml`을 읽어 별칭, 카테고리, 바로가기를 제공
+  - `Brand`, `Category`: 브랜드 정보와 분류
+- `banner/`: 당일 행사 배너(원장에서 파생되지 않고 사람이 적는 것)
+  - `BannerCatalog`: `banners.yml`을 읽고, 오늘 띄울 것만 정렬해 돌려준다
+  - `Banner`: 배너 한 건
+- `offer/`: 원장에서 온 할인 데이터
+  - `OfferRepository`: export.json 읽기(리로드 가능)
   - `OfferRecord`(원장 한 줄), `Offer`(화면의 칩 하나), `OfferStatus`(확정/보류)
-- `comparison/` — 브랜드 단위로 묶어 비교
-  - `BrandComparisonService` — 별칭 묶기, 앱별 중복 정리, 정렬
-  - `BrandComparison` — 카드 하나. 정렬 규칙(`byBestDiscount`)도 여기 있다
-- `web/` — 바깥과 닿는 부분
-  - `BrandController` — GET /api/brands, POST /api/reload
-  - `BannerController` — GET /api/banners
-  - `WebConfig` — CORS 허용 오리진. 현재 `http://localhost:5173`(로컬 프론트)
+- `comparison/`: 브랜드 단위로 묶어 비교
+  - `BrandComparisonService`: 별칭 묶기, 앱별 중복 정리, 정렬
+  - `BrandComparison`: 카드 하나. 정렬 규칙(`byBestDiscount`)도 여기 있다
+- `web/`: 바깥과 닿는 부분
+  - `BrandController`: GET /api/brands, POST /api/reload
+  - `BannerController`: GET /api/banners
+  - `WebConfig`: CORS 허용 오리진. 현재 `http://localhost:5173`(로컬 프론트)
     + `https://beggars-five.vercel.app`(delivery-discount-web 배포).
     프론트를 다른 곳에 새로 배포하면 여기에 오리진을 추가해야 한다.
-- `analytics/` — 방문 이벤트 수집(아래 "방문 측정 (analytics)" 절 참고)
-  - `EventController` — POST /api/events
-  - `EventLog` — `data/events.jsonl`에 append
-  - `AnalyticsEventService` — 원본 기록과 PostHog outbox 등록 순서 조정
-  - `PostHogOutbox`, `PostHogForwardingWorker` — 영속 큐와 비동기 전달
-  - `ClientFingerprint` — IP를 날짜별 솔트로 해시(원본 미저장)
-  - `EventRateLimiter` — IP 해시별 분당 상한
-  - `StatsController`, `TrafficStatsService` — GET /api/stats/traffic 집계 조회,
+- `analytics/`: 방문 이벤트 수집(아래 "방문 측정 (analytics)" 절 참고)
+  - `EventController`: POST /api/events
+  - `EventLog`: `data/events.jsonl`에 append
+  - `AnalyticsEventService`: 원본 기록과 PostHog outbox 등록 순서 조정
+  - `PostHogOutbox`, `PostHogForwardingWorker`: 영속 큐와 비동기 전달
+  - `ClientFingerprint`: IP를 날짜별 솔트로 해시(원본 미저장)
+  - `EventRateLimiter`: IP 해시별 분당 상한
+  - `StatsController`, `TrafficStatsService`: GET /api/stats/traffic 집계 조회,
     `/stats.html` 대시보드. 자세한 내용은
     [docs/traffic-analytics.md](docs/traffic-analytics.md) 참고
 
@@ -75,15 +75,15 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 들고 있어도 응답까지 중첩되면 프론트가 도메인 구조 변경에 끌려다니므로,
 `BrandComparison`이 내보낼 것만 골라 노출한다. 이 모양은
 `BrandControllerTest.brandResponseKeepsFlatContract`가 지킨다.
-`links`는 플랫폼 키(`ddangyo`, `baemin`, ...) -> 링크 맵이다 — 앱이
+`links`는 플랫폼 키(`ddangyo`, `baemin`, ...) -> 링크 맵이다. 앱이
 하나뿐이라고 가정한 문자열 하나였다가 배민 링크가 추가되며 맵으로
 바뀌었다([ADR-004](docs/decisions/ADR-004-per-platform-brand-links.md)).
 
 ## 방문 측정 (analytics)
 
-경로·재방문·체류·행동은 자체 API가 수집하고 `events.jsonl`을 원본으로
+경로, 재방문, 체류, 행동은 자체 API가 수집하고 `events.jsonl`을 원본으로
 보존한다. **서버 outbox는 2026-08-21 13:18(KST)부터 켜져 있다**
-(`DISCOUNT_POSTHOG_ENABLED=true`) — 광고 차단기·DNT로 클라이언트가 막힌
+(`DISCOUNT_POSTHOG_ENABLED=true`). 광고 차단기, DNT로 클라이언트가 막힌
 방문자를 서버 경로로 회수한다(실측 10% 안팎, `scripts/coverage_snapshot.sh`).
 
 그 전에 잠시 꺼 뒀던 이유는 `$pageview`가 두 번 기록돼서였다. 우리가 만든
@@ -91,7 +91,7 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 쏘는 이벤트는 제 uuid를 달고 와서 그 규칙에 안 걸린다. 자동 발사를 끄면서
 (`capture_pageview: false`) 원인이 사라졌다. 자체 수집을 둔 배경은
 [ADR-005](docs/decisions/ADR-005-first-party-analytics.md), 전달 세부사항은
-[트래픽 수집·통계 문서](docs/traffic-analytics.md)를 참고한다.
+[트래픽 수집 및 통계 문서](docs/traffic-analytics.md)를 참고한다.
 
 ### 엔드포인트
 
@@ -102,14 +102,14 @@ POST /api/events
 브라우저가 이벤트를 배치(JSON 배열)로 보내면 서버는 검증 후
 `data/events.jsonl`에 한 줄씩 append한다. 인증 없는 공개 쓰기라 다음을
 건다: 이벤트명 화이트리스트(`EventController.ALLOWED_EVENTS`), 배치
-20건·문자열 120자·props 6개 상한, IP 해시별 분당 120건
+20건, 문자열 120자, props 6개 상한, IP 해시별 분당 120건
 (`EventRateLimiter`). 화이트리스트에 없는 이벤트명이나 레이트리밋을
 넘긴 요청은 조용히 버려진다(에러 아님, `accepted` 수만 줄어듦).
 
 **`application/json`과 `text/plain` 둘 다 받는다.** 프론트가 페이지 이탈
 시점(체류 시간)엔 `navigator.sendBeacon`을 쓰는데, 비콘은 CORS
 프리플라이트를 못 해서 `application/json`으로 보내면 요청이 조용히
-사라진다 — 그래서 그 경로만 `text/plain`으로 온다. 서버는 본문을 문자열로
+사라진다. 그래서 그 경로만 `text/plain`으로 온다. 서버는 본문을 문자열로
 받아 직접 파싱해 두 경우를 같은 코드로 처리한다.
 
 로컬에서 확인:
@@ -125,7 +125,7 @@ curl -X POST http://localhost:8080/api/events \
 
 | 항목 | 처리 |
 |---|---|
-| 원본 IP | 저장 안 함. 날짜별 솔트 + 프로세스 난수 솔트로 해시(`ClientFingerprint`) — 하루 지나거나 서버 재시작하면 연결 끊김 |
+| 원본 IP | 저장 안 함. 날짜별 솔트 + 프로세스 난수 솔트로 해시(`ClientFingerprint`). 하루 지나거나 서버 재시작하면 연결 끊김 |
 | UA 문자열 | 안 받음. 클라이언트가 `mobile`/`desktop`만 보냄 |
 | 유입 URL | 안 받음. `direct`/`internal`/`external` 구분만 |
 | DNT/GPC | 프론트가 감지해 켜져 있으면 아예 전송 안 함 |
@@ -166,13 +166,13 @@ DISCOUNT_POSTHOG_OUTBOX_PATH=/home/ubuntu/delivery-discount-api/data/posthog-out
 `posthog-outbox/dead-letter/`로 이동한다. pending과 dead-letter에는
 `ipHash`를 저장하지 않고 `dev=true` 이벤트는 등록하지 않는다.
 
-`DISCOUNT_POSTHOG_ENABLED=true`인데 토큰·명시적인 outbox 경로가 없거나
+`DISCOUNT_POSTHOG_ENABLED=true`인데 토큰이나 명시적인 outbox 경로가 없거나
 outbox 디렉터리를 준비할 수 없으면 애플리케이션 시작이 실패한다. 실행 중
 PostHog 장애는 `/api/events`의 JSONL 기록과 `accepted` 응답에 영향을 주지 않는다.
 
 ### 집계 예시
 
-DB가 없다 — 이 트래픽 규모에서는 `jq` 한 줄이면 충분하다.
+DB가 없다. 이 트래픽 규모에서는 `jq` 한 줄이면 충분하다.
 
 ```bash
 # 일별 방문 수
@@ -205,12 +205,12 @@ jq -r 'select(.event=="category_change") | .props.category' events.jsonl \
    조용히 버려서 아무리 프론트를 고쳐도 로그에 안 쌓인다).
 2. 프론트에서 `track('새이벤트명', { ...props })` 호출을 붙인다
    (delivery-discount-web `src/analytics.js`).
-3. 배치·문자열 길이 상한에 걸리지 않는지 확인한다(`EventController`의
+3. 배치, 문자열 길이 상한에 걸리지 않는지 확인한다(`EventController`의
    `MAX_TEXT`/`MAX_PROPS`).
 
-## 브랜드 추가·수정
+## 브랜드 추가와 수정
 
-`src/main/resources/brands.yml` **한 곳만** 고치면 된다 — 별칭, 카테고리,
+`src/main/resources/brands.yml` **한 곳만** 고치면 된다. 별칭, 카테고리,
 땡겨요 바로가기가 모두 여기 있고 API가 그대로 프론트에 내려주므로 프론트
 재배포가 필요 없다.
 
@@ -228,7 +228,7 @@ brands:
 넣는다. 전체 브랜드명은 delivery-discount-tracker의
 `data/brands-sorted.txt`(이름 오름차순)에서 확인한다.
 
-## 당일 행사 배너 추가·수정
+## 당일 행사 배너 추가와 수정
 
 운영 서버는 jar 밖 파일을 문다(`DISCOUNT_BANNERS_PATH`, 기본
 `/home/ubuntu/delivery-discount-api/data/banners.yml`). 그 파일을 고치고
@@ -245,7 +245,7 @@ brands:
 > 그대로면 아직 깨져 있는 것**이다. 응답의 `banners` 수를 꼭 본다.
 >
 > 항목 사이 콤마를 빠뜨리는 실수가 잦다. `extra` 값에 콤마가 들어가면
-> 따옴표로 감싸야 한다 — `{}` 안에서는 콤마가 항목 구분자로 먹힌다.
+> 따옴표로 감싸야 한다. `{}` 안에서는 콤마가 항목 구분자로 먹힌다.
 
 ```yaml
 banners:

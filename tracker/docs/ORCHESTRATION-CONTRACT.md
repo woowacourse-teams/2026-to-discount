@@ -1,20 +1,20 @@
-# 오케스트레이션 계약 — 내보내기/출력 (export contract)
+# 오케스트레이션 계약: 내보내기/출력 (export contract)
 
 > 이 문서는 이 레포(`delivery-discount-tracker`)가 **다른 레포에 내보내는
 > 산출물**의 계약을 다룬다. 스크린샷을 레코드로 읽어들이는 판독 계약은
-> `parse/CONTRACT.md`를 본다 — 여기서는 건드리지 않는다.
+> `parse/CONTRACT.md`를 본다. 여기서는 건드리지 않는다.
 >
 > 루트 오케스트레이터가 3레포를 교차 확인할 때 소스를 매번 grep하지
 > 않도록 만든 체크인 문서다. 코드가 바뀌면 이 문서도 같이 갱신한다.
 
 ## 1. 역할
 
-이 레포는 파이프라인의 첫 단계다 — 입력은 배달앱 화면(스크린샷 + 접근성
-트리 덤프), 출력은 `data/export.json`(+ `data/brands-sorted.txt`)이며,
-이를 읽는 곳은 `delivery-discount-api`(Spring Boot, 별칭 정규화·확정/보류
+이 레포는 파이프라인의 첫 단계다. 입력은 배달앱 화면(스크린샷 + 접근성
+트리 덤프), 출력은 `data/export.json`(+ `data/brands-sorted.txt`)이다.
+이를 읽는 곳은 `delivery-discount-api`(Spring Boot, 별칭 정규화와 확정/보류
 판정) 하나뿐이다.
 
-### 원장은 `data/log.jsonl`이다 — 그런데 한동안 아니었다
+### 원장은 `data/log.jsonl`이다. 그런데 한동안 아니었다
 
 설계상 흐름은 `log.jsonl` → `export_data.py` → `export.json`이다. 실제로는
 2026-07-29부터 원장이 멈춘 채 수집분이 `export.json` 직접 편집으로만
@@ -22,8 +22,8 @@
 적이 없었다**. `export_data.py`를 그대로 돌리면 그 110건이 사라지는
 상태였다.
 
-원인은 게으름이 아니라 구조였다 — 원장을 넣을 진입점이 없었고(`ingest.py`
-신설로 해소), 원장이 `.gitignore`에 있어 공유·배포되는 건 `export.json`
+원인은 게으름이 아니라 구조였다. 원장을 넣을 진입점이 없었고(`ingest.py`
+신설로 해소), 원장이 `.gitignore`에 있어 공유되고 배포되는 건 `export.json`
 뿐이었다(`!data/log.jsonl` 예외 추가로 해소). 되돌리는 방법과 그때 드러난
 문제는 `backfill_export.py` 독스트링에 적어뒀다.
 
@@ -41,7 +41,7 @@
 전수 수집" 날짜는 `data/sweeps.jsonl`에 사람이 직접 적은 기록에서만 온다.
 전에는 그날 원장 건수로 추정했고, 그 추정이 두 번 사고를 냈다
 ([ADR-020](decisions/ADR-020-sweep-is-recorded-not-inferred.md)). 목록을 다
-훑은 직후 `python record_sweep.py <platform>`으로 적는다 — 안 적으면 끝난
+훑은 직후 `python record_sweep.py <platform>`으로 적는다. 안 적으면 끝난
 프로모션이 남을 뿐이지만, 잘못 적으면 살아 있는 프로모션이 화면에서 사라진다.
 
 검증은 과거 커밋마다 그때의 원장과 코드로 `export.json`을 다시 만들어 실제
@@ -94,18 +94,18 @@ platform, brand, raw_text, captured_at, target_address, capture_mode, screenshot
 
 ### 허용값
 
-- `platform` — `{"baemin", "coupangeats", "yogiyo", "ddangyo", "specialdelivery"}`
-- `capture_mode` — `{"auto", "manual", "backfill"}`
+- `platform`: `{"baemin", "coupangeats", "yogiyo", "ddangyo", "specialdelivery"}`
+- `capture_mode`: `{"auto", "manual", "backfill"}`
   - `backfill`: 화면을 다시 본 게 아니라 `export.json`에서 되돌린 값.
     `config.py`에는 `{"auto", "manual"}`만 있다(캡처 설정용이라 backfill이
-    올 일이 없다) — 두 집합이 일부러 다르다.
-- `qualifier` — `{None, "최대", "최소"}`. **금액 수식어 전용이다**
+    올 일이 없다). 두 집합이 일부러 다르다.
+- `qualifier`: `{None, "최대", "최소"}`. **금액 수식어 전용이다**
   (ADR-004). 상한이냐 하한이냐가 `amount` 해석을 바꾸므로 자유 문자열로
-  쓰면 안 된다 — 조건 라벨은 `badge`에 넣는다.
-- `scope` — `{"brand", "store"}` (`store`는 현재 미사용)
-- `offer_type` — `{"discount", "gift", "coupon", "unknown"}`
-- `tiers` — `None` 또는 비어있지 않은 list. 각 원소는 `min_order`·`amount`
-  필수, 아래가 선택:
+  쓰면 안 된다. 조건 라벨은 `badge`에 넣는다.
+- `scope`: `{"brand", "store"}` (`store`는 현재 미사용)
+- `offer_type`: `{"discount", "gift", "coupon", "unknown"}`
+- `tiers`: `None` 또는 비어있지 않은 list. 각 원소는 `min_order`와 `amount`가
+  필수고, 아래가 선택이다.
 
 | tier 선택 키 | 값 | 뜻 |
 |---|---|---|
@@ -114,7 +114,7 @@ platform, brand, raw_text, captured_at, target_address, capture_mode, screenshot
 | `sold_out` | bool | 이 구간만 재고 소진 |
 | `expires_at` | `YYYY-MM-DD` | 이 구간만 따로 끝남. 비면 레코드 값을 따름 |
 
-  `tiers`는 "구간 누진"만 뜻하지 않는다 — 한 (앱, 브랜드)에 걸린 **여러
+  `tiers`는 "구간 누진"만 뜻하지 않는다. 한 (앱, 브랜드)에 걸린 **여러
   쿠폰**을 담는 자리이기도 하다. `latest_per_brand`가 (앱, 브랜드)당
   레코드를 하나만 남기므로, 쿠폰이 여럿이면 레코드를 늘리지 말고 tiers를
   늘려야 한다(레코드를 늘리면 한쪽이 조용히 사라진다).
@@ -127,10 +127,10 @@ platform, brand, raw_text, captured_at, target_address, capture_mode, screenshot
 
 정의: `export_data.py`.
 
-- **파일**: `data/export.json` — JSON 배열, (`platform`, `brand`) 키당
+- **파일**: `data/export.json`. JSON 배열, (`platform`, `brand`) 키당
   레코드 1건. `store.latest_per_brand()`로 중복 제거된 최신/확정 레코드만
   담긴다.
-- **부산물**: `data/brands-sorted.txt` — 정렬된 브랜드명 목록.
+- **부산물**: `data/brands-sorted.txt`. 정렬된 브랜드명 목록.
 
 ### export.json 항목의 전체 필드 (post-rename, **16개**)
 
@@ -161,21 +161,21 @@ expiresAt, badge, soldOut
 
 ## 4. 전달 방식
 
-HTTP push 없음 — **파일 드롭**이다. 사람이 복사하지 않는다.
+HTTP push 없음. **파일 드롭**이다. 사람이 복사하지 않는다.
 
 `.github/workflows/deploy.yml`이 main 푸시마다 self-hosted 러너에서:
 
-1. **가드** — 커밋된 `data/export.json`이 서버 파일보다 낡았으면 중단.
+1. **가드**: 커밋된 `data/export.json`이 서버 파일보다 낡았으면 중단.
    판정은 (a) 최신 `capturedAt` 비교, (b) 서버에 채워져 있던 상세
-   (`tiers`/`badge`/`minOrderAmount`/`conditions`/`expiresAt`)가 비는지.
-   건수로는 재지 않는다 — 프로모션이 끝나면 정당하게 줄고, 정상 만료마다
+   (`tiers`/`badge`/`minOrderAmount`/`conditions`/`expiresAt`)가 비는지다.
+   건수로는 재지 않는다. 프로모션이 끝나면 정당하게 줄고, 정상 만료마다
    오탐을 뱉는 가드는 결국 꺼진다.
 2. `cp data/export.json ~/delivery-discount-api/data/export.json`
-3. `POST /api/reload` (5회 재시도 — API 배포가 따라잡을 시간)
+3. `POST /api/reload` (5회 재시도. API 배포가 따라잡을 시간)
 
 가드를 넣은 이유: `cp`는 서버 파일을 통째로 갈아치운다. 2026-08-05에
 서버 138건 대 커밋 135건이었고, 그대로 밀어 실제로 데이터를 날렸다
-(청년피자 땡겨요의 tiers 2건과 badge — 라이브 스냅샷으로 복구). 같은
+(청년피자 땡겨요의 tiers 2건과 badge. 라이브 스냅샷으로 복구). 같은
 판정을 하는 `check_deploy.py`에 테스트가 붙어 있다(로컬 사전 확인용).
 
 **로컬 개발**: API 기본값은 `classpath:data/export.json`(레포에 커밋된
@@ -194,11 +194,11 @@ HTTP push 없음 — **파일 드롭**이다. 사람이 복사하지 않는다.
   `is_stale_sweep`이 수집 단위로 관리한다. 쿠팡이츠 0%는 정보가 없어서가 아니라 하단 유의사항
   문구를 판독 대상으로 삼은 적이 없어서다
   (`docs/research/2026-07-29-coupangeats-discount-anatomy.md`).
-- **`unit`** (기본값 `"KRW"`) — 스키마엔 있지만 export엔 없다. 전량
+- **`unit`** (기본값 `"KRW"`): 스키마엔 있지만 export엔 없다. 전량
   KRW라 영향은 없다.
-- **`scope`의 `"store"`** — 정의만 있고 미사용(`parse/CONTRACT.md` §1:
+- **`scope`의 `"store"`**: 정의만 있고 미사용(`parse/CONTRACT.md` §1:
   매장 카드는 1차 범위 제외).
-- **`needs_review`** — 원장 43건, 그중 브랜드-앱 대표로 뽑히는 14건, export에
+- **`needs_review`**: 원장 43건, 그중 브랜드-앱 대표로 뽑히는 14건, export에
   남는 것 0건(2026-08-16 기준). 나머지 25건은 대표 선정에서 확정 레코드에
   지고(ADR-016), 대표가 된 14건은 만료나 지난 수집분으로 걸러진다. 보류
   항목이 화면에 안 나가는 상태다.
@@ -208,5 +208,5 @@ HTTP push 없음 — **파일 드롭**이다. 사람이 복사하지 않는다.
 이 문서의 수치는 코드와 데이터에서 직접 뽑았다(`data/export.json` 160건 기준).
 2026-08-16 확인.
 
-다시 뽑으려면 `python contract_numbers.py`를 돌린다. 손으로 세면 §5·§6이
-조용히 낡는다 — 실제로 "137건 기준"이 남아 있는 동안 export는 170건이었다.
+다시 뽑으려면 `python contract_numbers.py`를 돌린다. 손으로 세면 §5, §6이
+조용히 낡는다. 실제로 "137건 기준"이 남아 있는 동안 export는 170건이었다.
