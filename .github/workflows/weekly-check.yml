@@ -51,3 +51,12 @@ jobs:
         run: |
           set -o pipefail
           python weekly_check.py | tee "$GITHUB_STEP_SUMMARY"
+      - name: 실패를 슬랙 채널로 (설계 26번, 오너 메일만으로는 팀이 못 본다)
+        if: failure()
+        env:
+          SLACK_OPS_TOKEN: ${{ secrets.SLACK_OPS_TOKEN }}
+          SLACK_OPS_CHANNEL: ${{ secrets.SLACK_OPS_CHANNEL }}
+        run: |
+          [ -n "$SLACK_OPS_TOKEN" ] || { echo "SLACK_OPS_TOKEN 없음 - 알림 생략"; exit 0; }
+          TEXT="❌ GitHub Actions 실패: ${{ github.workflow }} (${{ github.repository }}, ${GITHUB_SHA::7})"$'\n'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -s -X POST https://slack.com/api/chat.postMessage -H "Authorization: Bearer $SLACK_OPS_TOKEN" -H "Content-type: application/json; charset=utf-8" --data "$(jq -n --arg c "$SLACK_OPS_CHANNEL" --arg t "$TEXT" '{channel:$c,text:$t}')" | jq -r .ok
