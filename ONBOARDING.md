@@ -78,6 +78,7 @@ cd web     && npm run build         # ✓ built
 
 | 문서 | 내용 |
 |---|---|
+| [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | 어디서 무엇을 고치고 어떤 순서로 내보내나 — **작업 시작 전에** |
 | [`docs/ORCHESTRATION.md`](docs/ORCHESTRATION.md) | 층 간 계약, 실제 사고 사례 |
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | 커밋·주석·문서·데이터 규칙 |
 | [`docs/decisions/`](docs/decisions/) | 되돌리기 어려운 판단과 근거 |

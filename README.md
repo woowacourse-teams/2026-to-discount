@@ -72,6 +72,7 @@ tracker  →  export.json  →  api  →  /api/brands  →  web
 | 문서 | 내용 |
 |---|---|
 | [온보딩](ONBOARDING.md) | 개발 환경 구성과 실행 — **처음이면 여기부터** |
+| [작업 가이드](docs/WORKFLOW.md) | 저장소 넷의 역할, 진실이 있는 자리, 일의 종류별 길(수집·API·웹 프리뷰·데이터 반영·설계→계획→ADR) |
 | [기술 선택과 근거](docs/TECH-CHOICES.md) | 무엇을 골랐고, 무엇이 아쉽고, 플랜 B는 무엇인지 |
 | [오케스트레이션 계약](docs/ORCHESTRATION.md) | 층을 가로지를 때 지켜야 하는 것과 실제 사고 사례 |
 | [프로젝트 구조](docs/PROJECT-STRUCTURE.md) | 코드에서 자동 생성되는 구조, 데이터 흐름, 배포 경계 |
