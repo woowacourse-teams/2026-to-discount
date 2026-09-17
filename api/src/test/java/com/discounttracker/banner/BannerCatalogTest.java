@@ -323,6 +323,31 @@ class BannerCatalogTest {
     }
 
     @Test
+    void reportsEntriesDroppedForMissingRequiredFields() {
+        // 2026-09-18: platform이 빠진 뚜레쥬르 배너가 조용히 빠졌고 reload는
+        // bannersOk: true였다. 빠진 항목의 id를 돌려줘 사람이 바로 알게 한다.
+        String yaml = """
+                banners:
+                  - id: ok-20260918
+                    platform: yogiyo
+                    url: https://example.test/a
+                    amount: "6,500원"
+                    period: 상시
+                    startsOn: 2026-09-18
+                    endsOn: 2026-09-18
+                  - id: no-platform-20260918
+                    url: https://example.test/b
+                    amount: "6,000원"
+                    period: 상시
+                    startsOn: 2026-09-18
+                    endsOn: 2026-09-18
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-18");
+        assertEquals(1, catalog.active().size());
+        assertEquals(List.of("no-platform-20260918"), catalog.dropped());
+    }
+
+    @Test
     void readsMinOrderOutOfTheExtraLineWhenNobodyFilledTheField() {
         // 사람은 extra에 "16,000원↑"를 적고 끝낸다. 실측(2026-08-25)에서
         // 살아 있는 배너 셋 전부가 minOrder를 비워 둔 채였고, 그 배너가

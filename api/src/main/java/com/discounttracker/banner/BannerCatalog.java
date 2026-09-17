@@ -51,6 +51,15 @@ public class BannerCatalog {
     /** brands.yml이 모르는 배너 브랜드 표기. {@link #reload()}가 채운다. */
     private volatile List<String> unknownBrands = List.of();
 
+    /**
+     * 필수 필드가 빠져 버린 항목의 id. {@link #reload()}가 채운다.
+     *
+     * <p>2026-09-18 새벽에 {@code platform}이 없는 뚜레쥬르 배너가 조용히 빠졌고
+     * {@code POST /api/reload}는 {@code bannersOk: true}를 돌려줬다. 08-22와 같은
+     * 실수다: 걸러내면서 알리지 않았다.
+     */
+    private volatile List<String> dropped = List.of();
+
     public BannerCatalog(@Value("${discount.banners-path:classpath:banners.yml}") Resource source,
                          Clock clock, BrandCatalog brands) {
         this.source = source;
@@ -122,6 +131,11 @@ public class BannerCatalog {
         return unknownBrands;
     }
 
+    /** 필수 필드(id, platform, url, amount, period, startsOn, endsOn)가 빠져 버린 항목의 id. */
+    public List<String> dropped() {
+        return dropped;
+    }
+
     @SuppressWarnings("unchecked")
     private List<Banner> read() {
         if (!source.exists()) return List.of();
@@ -133,12 +147,15 @@ public class BannerCatalog {
             if (!(raw instanceof List<?> list)) return List.of();
 
             List<Banner> parsed = new ArrayList<>();
+            List<String> skipped = new ArrayList<>();
             for (Object item : list) {
                 if (item instanceof Map<?, ?> map) {
                     Banner banner = toBanner((Map<String, Object>) map, brands);
                     if (banner != null) parsed.add(banner);
+                    else skipped.add(map.get("id") == null ? "(id 없음)" : String.valueOf(map.get("id")));
                 }
             }
+            dropped = List.copyOf(skipped);
             return List.copyOf(parsed);
         } catch (IOException e) {
             // 파일이 사라졌거나 못 읽는 경우. 부르는 쪽(reload)이 이전 목록을

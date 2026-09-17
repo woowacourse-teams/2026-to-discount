@@ -57,7 +57,9 @@ public class BrandController {
         // 낀 &amp;, 그리고 메뉴 행사가 브랜드로 등록된 것. 셋 다 화면에
         // 나간 뒤에 사람이 눈으로 찾았다. 초록불이 확인을 멈추게 한다.
         List<String> unknown = banners.unknownBrands();
-        boolean bannersOk = parsed && unknown.isEmpty();
+        // 필수 필드가 빠진 항목도 같은 부류다 — 2026-09-18 platform 없는 배너.
+        List<String> dropped = banners.dropped();
+        boolean bannersOk = parsed && unknown.isEmpty() && dropped.isEmpty();
         return Map.of(
                 "reloaded", offers.findAll().size(),
                 "banners", banners.active().size(),
@@ -65,6 +67,8 @@ public class BrandController {
                 // 파일이 깨진 것과 이름을 못 찾은 것은 고칠 자리가 다르다.
                 "bannersParsed", parsed,
                 // 비어 있어야 정상이다 — brands.yml에 별칭 한 줄.
-                "unknownBrands", unknown);
+                "unknownBrands", unknown,
+                // 비어 있어야 정상이다 — 빠진 필드를 채운다.
+                "dropped", dropped);
     }
 }
