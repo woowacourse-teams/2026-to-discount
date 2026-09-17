@@ -1,6 +1,6 @@
 # 배너 난립을 막는다 — 여러 브랜드를 한 장에 묶기
 
-- 상태: 제안 (2026-09-09)
+- 상태: 완료 (2026-09-09 제안 → 09-15 `brands` 필드·배너 v3로 반영)
 - 관련: `web/src/EventBanner.jsx`, `api/src/main/resources/banners.yml`,
   `api/src/main/java/com/discounttracker/banner/`,
   tracker 저장소 `scripts/banner_routine.py`
