@@ -1,10 +1,6 @@
 # Design: PostHog 프론트엔드 SDK 연동
 
-> 관련 이슈: #8 `[WEB] feat: PostHog 프론트엔드 SDK 연동`
->
-> 작성일: 2026-08-19
->
-> 상태: 구현·자동 검증 완료 · 운영 Live Events 확인 전
+기존 이벤트는 `/api/events` 경유 전송을 유지하고, 신규 제품 신호만 `posthog-js` SDK로 직접 보내는 경계를 두기로 정했다(B안). GitHub 이슈 #8(`[WEB] feat: PostHog 프론트엔드 SDK 연동`)의 설계이고 2026-08-19에 썼다. 구현이 끝나 이슈는 닫혔다.
 
 ## 1. 문제
 
@@ -12,8 +8,8 @@
 
 현재 웹은 `src/analytics.js`에서 UI 이벤트를 자체 `/api/events`로 전송한다.
 백엔드는 이를 원본 JSONL에 기록하고 PostHog outbox를 통해 같은 이벤트를
-PostHog로 전달한다. 이 경로는 원본 로그·재시도·서버 검증을 보장하지만,
-검색·자동 완성·다중 카테고리·정렬·즐겨찾기처럼 새로 추가할 UI 신호를
+PostHog로 전달한다. 이 경로는 원본 로그, 재시도, 서버 검증을 보장하지만,
+검색, 자동 완성, 다중 카테고리, 정렬, 즐겨찾기처럼 새로 추가할 UI 신호를
 빠르게 계측하려면 프론트엔드에서 직접 사용할 PostHog SDK 진입점이 필요하다.
 
 ### 해결하려는 문제
@@ -26,7 +22,7 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 
 - `posthog-js`를 웹에 안전하게 초기화한다.
 - 신규 제품 신호를 SDK로 직접 capture할 공통 인터페이스를 제공한다.
-- 기존 API 이벤트와 SDK 이벤트가 같은 익명 방문자·세션으로 연결되게 한다.
+- 기존 API 이벤트와 SDK 이벤트가 같은 익명 방문자, 세션으로 연결되게 한다.
 - 기존 API 경유 이벤트와 직접 전송 이벤트의 중복을 방지한다.
 - GPC와 Do Not Track을 존중한다.
 - Project API Key와 호스트를 Vite 환경변수로 관리한다.
@@ -34,14 +30,12 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 
 ## 3. Non-goals
 
-이번 작업에서 하지 않는 것:
-
 - 기존 `page_view`, `page_exit`, `brand_expand`, `offer_link_click` 등의
   API 경유 전송을 SDK 전송으로 전환하는 일
 - 백엔드 outbox 또는 자체 JSONL 통계 제거
 - PostHog Personal API Key의 프론트 노출
 - 세션 리플레이, Feature Flag, Experiment 또는 사용자 로그인 식별 도입
-- 검색·정렬·즐겨찾기 기능과 이벤트 사전 자체의 구현
+- 검색, 정렬, 즐겨찾기 기능과 이벤트 사전 자체의 구현
 - 실제 신규 제품 신호 이벤트를 화면에 연결하고 운영 전송하는 일
 
 ## 4. 요구사항
@@ -55,7 +49,7 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 - SDK 자동 페이지뷰와 자동 캡처를 비활성화한다.
 - SDK persistence는 `localStorage`로 고정하고 세션 리플레이를 비활성화한다.
 - SDK의 익명 ID는 기존 `dk_visitor`, 세션 속성은 기존 `dk_session`과 일치시킨다.
-- 기존 API 경유 이벤트와 동일한 사용자 행동·이벤트 이름을 SDK로 capture하지 않는다.
+- 기존 API 경유 이벤트와 동일한 사용자 행동과 이벤트 이름을 SDK로 capture하지 않는다.
 - SDK 직접 이벤트에는 `dev: true`를 포함해 개발 세션을 식별한다.
 - 연결 검증용 `posthog_sdk_connection_test`는
   `?dev=1&posthog_test=1`에서 세션당 한 번 명시적으로 전송한다.
@@ -64,7 +58,7 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 
 ### 선택
 
-- SDK 초기화·capture 동작을 의존성 주입 가능한 adapter로 감싸 브라우저 API 없이
+- SDK 초기화와 capture 동작을 의존성 주입 가능한 adapter로 감싸 브라우저 API 없이
   단위 테스트한다.
 - 개발 모드에서 설정 누락을 console warning으로 알린다.
 
@@ -79,7 +73,7 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 - 개인정보 제약: 현재 쿠키 없는 자체 분석 고지와 일치하도록 PostHog도 쿠키를 사용하지 않는다.
 - 운영 제약: 운영 배포 환경에 두 Vite 환경변수를 별도로 설정해야 한다.
 - 운영 제약: 브라우저 직접 요청의 IP는 SDK에서 폐기할 수 없으므로 운영 키 설정 전에
-  PostHog 프로젝트의 `Discard IP data` 변환을 활성화·검증해야 한다.
+  PostHog 프로젝트의 `Discard IP data` 변환을 활성화하고 검증해야 한다.
 
 ## 6. 성공 조건
 
@@ -88,12 +82,12 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 - [x] 신규 직접 전송 이벤트가 기존 `/api/events` 요청을 만들지 않는다.
 - [x] 기존 API 경유 이벤트가 SDK로 중복 capture되지 않는다.
 - [x] SDK가 기존 `visitorId`, `source_session_id`, `visit_count`, `dev` 컨텍스트를 사용한다.
-- [x] SDK가 쿠키·자동 페이지뷰·자동 캡처·세션 리플레이를 사용하지 않는다.
+- [x] SDK가 쿠키, 자동 페이지뷰, 자동 캡처, 세션 리플레이를 사용하지 않는다.
 - [x] fake SDK 기반 검증에서 전달한 이벤트명과 props가 제한 없이 한 번 capture된다.
 - [ ] `posthog_sdk_connection_test`가 PostHog Live Events에서 `dev: true`와
-  기존 익명 방문자·세션 컨텍스트로 한 번 수신된다.
+  기존 익명 방문자, 세션 컨텍스트로 한 번 수신된다.
 - [ ] 운영 PostHog 프로젝트에서 IP 폐기 변환이 활성화되고 GeoIP 미생성을 확인한다.
-- [x] Project API Key 외의 비밀값이 프론트 번들·문서 예시에 없다.
+- [x] Project API Key 외의 비밀값이 프론트 번들, 문서 예시에 없다.
 - [x] 환경변수와 전송 경계가 README 및 사용자 고지에 반영된다.
 
 ## 7. 고려한 접근 방식
@@ -106,29 +100,29 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 장점:
 
 - 단일 PostHog 전송 경로가 된다.
-- SDK 페이지뷰·세션 기능을 일관되게 활용할 수 있다.
+- SDK 페이지뷰, 세션 기능을 일관되게 활용할 수 있다.
 
 단점:
 
 - 운영 환경의 백엔드 전달 설정을 함께 변경해야 한다.
-- 자체 통계·원본 로그와 전달 실패 복구 경계를 다시 검증해야 한다.
+- 자체 통계, 원본 로그와 전달 실패 복구 경계를 다시 검증해야 한다.
 - 이 이슈의 웹 범위를 넘는다.
 
 ### B. 신규 제품 신호만 SDK로 직접 전송
 
 설명: 기존 이벤트는 API 경유 전송을 유지하고, 이번 이슈에서는 이벤트명을
 제한하지 않는 SDK capture adapter와 호출 경계를 준비한다. 후속 #7에서
-정의·구현할 신규 제품 신호가 이 adapter를 사용한다.
+정의하고 구현할 신규 제품 신호가 이 adapter를 사용한다.
 
 장점:
 
 - 기존 데이터 흐름과 대시보드를 깨지 않는다.
 - 중복 집계 위험이 작다.
-- 검색·정렬·즐겨찾기 신호를 API 계약 변경과 분리해 준비할 수 있다.
+- 검색, 정렬, 즐겨찾기 신호를 API 계약 변경과 분리해 준비할 수 있다.
 
 단점:
 
-- 일정 기간 두 전송 경로를 이해·관리해야 한다.
+- 일정 기간 두 전송 경로를 이해하고 관리해야 한다.
 - 실제 제품 이벤트의 호출 지점과 props 계약은 후속 #7에서 추가된다.
 
 ### C. 기존 API와 SDK에 같은 이벤트를 이중 전송
@@ -148,9 +142,9 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 
 선택한 방법: B. 신규 제품 신호만 SDK로 직접 전송
 
-선택 이유: 기존 API → outbox → PostHog 경로를 유지해 원본 로그와 현재 Insight를
+선택 이유: 기존 API, outbox, PostHog로 이어지는 경로를 유지해 원본 로그와 현재 Insight를
 보호하면서, 후속 #7에서 정의한 신규 탐색 신호를 빠르게 도입할 수 있다.
-자동 페이지뷰·자동 캡처도 비활성화해 기존 `$pageview`와 UI 이벤트가 중복되지 않는다.
+자동 페이지뷰, 자동 캡처도 비활성화해 기존 `$pageview`와 UI 이벤트가 중복되지 않는다.
 
 ## 9. 설계
 
@@ -168,13 +162,13 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 
 #### `src/privacy.js`
 
-- 책임: GPC·Do Not Track 판정을 하나의 함수로 제공한다.
+- 책임: GPC와 Do Not Track 판정을 하나의 함수로 제공한다.
 - 의존성: 브라우저 `navigator`, `window`.
 - 외부 인터페이스: `optedOut()`.
 
 #### `src/analytics-context.js`
 
-- 책임: 기존 익명 방문자·세션·재방문·개발 세션 컨텍스트를 한 번 생성하고 공유한다.
+- 책임: 기존 익명 방문자, 세션, 재방문, 개발 세션 컨텍스트를 한 번 생성하고 공유한다.
 - 의존성: `localStorage`, `sessionStorage`, `location`, 브라우저 crypto.
 - 외부 인터페이스: `getAnalyticsContext()`.
 - 호환성: 기존 `dk_visitor`, `dk_session`, `dk_visits`, `dk_dev` 키와 생성 규칙을 유지한다.
@@ -222,16 +216,16 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 
 ### Error Handling
 
-- key 또는 host 누락 → SDK 초기화 생략, 앱 기능은 계속 제공.
-- opt-out → SDK 초기화·capture 생략.
-- SDK 초기화 예외 → 개발 모드에서 경고, 운영에서는 앱 기능을 중단하지 않음.
-- 미초기화 상태의 capture → no-op.
-- 기존 `track()`과 SDK adapter를 같은 행동에서 함께 호출 → 테스트·코드 리뷰에서 차단.
+- key 또는 host 누락: SDK 초기화를 생략하고 앱 기능은 계속 제공한다.
+- opt-out: SDK 초기화와 capture를 생략한다.
+- SDK 초기화 예외: 개발 모드에서 경고하고, 운영에서는 앱 기능을 중단하지 않는다.
+- 미초기화 상태의 capture: no-op.
+- 기존 `track()`과 SDK adapter를 같은 행동에서 함께 호출: 테스트와 코드 리뷰에서 차단한다.
 
 ## 10. 테스트 전략
 
-- Unit: key 누락, opt-out, 초기화 성공·실패, 기존 익명 ID bootstrap, 공통 세션 속성,
-  쿠키·자동수집 비활성화, no-op capture를 fake SDK로 검증한다.
+- Unit: key 누락, opt-out, 초기화 성공과 실패, 기존 익명 ID bootstrap, 공통 세션 속성,
+  쿠키와 자동수집 비활성화, no-op capture를 fake SDK로 검증한다.
 - Integration: SDK capture가 `/api/events`를 호출하지 않고, 기존 `track()`이 SDK를
   호출하지 않는 것을 mock으로 검증한다.
 - Build: `npm run build`로 Vite 환경변수 접근과 번들을 검증한다.
@@ -253,10 +247,10 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 
 #### Create
 
-- `web/src/privacy.js`: GPC·Do Not Track 판정을 공용으로 제공한다.
-- `web/src/analytics-context.js`: 기존 익명 방문자·세션·개발 컨텍스트를 공유한다.
+- `web/src/privacy.js`: GPC와 Do Not Track 판정을 공용으로 제공한다.
+- `web/src/analytics-context.js`: 기존 익명 방문자, 세션, 개발 컨텍스트를 공유한다.
 - `web/src/posthog.js`: SDK 초기화와 신규 제품 신호 capture adapter를 제공한다.
-- `web/scripts/verify-posthog-sdk.mjs`: SDK 초기화·opt-out·전송 경계 단위 검증을 추가한다.
+- `web/scripts/verify-posthog-sdk.mjs`: SDK 초기화, opt-out, 전송 경계 단위 검증을 추가한다.
 - `web/.env.example`: Project API Key와 host의 비밀값 없는 예시를 기록한다.
 
 #### Modify
@@ -276,12 +270,12 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 - 변경:
   - `posthog-js`를 설치하고 Vite 환경변수 예시를 추가한다.
   - 기존 `optedOut()` 판단을 공용 모듈로 추출하고 GA4도 이를 직접 사용한다.
-  - 익명 방문자·세션·재방문·개발 세션 계산을 공용 context 모듈로 추출한다.
-  - key 누락·opt-out·초기화 예외에서 안전하게 no-op 하는 SDK 초기화 모듈을 만든다.
+  - 익명 방문자, 세션, 재방문, 개발 세션 계산을 공용 context 모듈로 추출한다.
+  - key 누락, opt-out, 초기화 예외에서 안전하게 no-op 하는 SDK 초기화 모듈을 만든다.
 - 테스트:
   - key 누락과 opt-out에서 `init()`이 호출되지 않는지 검증한다.
   - key와 host가 있을 때 기존 익명 ID와 세션 속성이 사용되는지 검증한다.
-  - 쿠키, 자동 페이지뷰·자동 캡처·세션 리플레이를 끄는지 검증한다.
+  - 쿠키, 자동 페이지뷰, 자동 캡처, 세션 리플레이를 끄는지 검증한다.
   - 기존 analytics eventId 검증과 GA4 빌드가 회귀하지 않는지 확인한다.
 - 완료 조건:
   - 개인정보 설정과 SDK 설정 오류가 앱 동작을 막지 않는다.
@@ -301,12 +295,12 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 - 완료 조건:
   - 같은 사용자 행동이 두 전송 경로에서 PostHog로 중복 집계되지 않는다.
 
-#### 3. 앱 초기화·문서·운영 검증 정리
+#### 3. 앱 초기화, 문서, 운영 검증 정리
 
 - 변경:
   - `main.jsx`에서 SDK 초기화를 추가한다.
   - SiteFooter에 PostHog 외부 전송과 쿠키 없는 사용을 고지한다.
-  - README에 key 관리, Vercel 재빌드, 개발·운영 설정, 직접/간접 전송 경계와
+  - README에 key 관리, Vercel 재빌드, 개발, 운영 설정, 직접/간접 전송 경계와
     IP 폐기 선행 조건, #7의 Live Events 확인 책임을 기록한다.
 - 테스트:
   - `npm run test:analytics`, 새 SDK 검증 명령, `npm run build`를 실행한다.
@@ -317,9 +311,9 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 ### Scope Check
 
 - [x] 각 Task가 이슈 #8의 SDK 직접 전송 경계와 안전한 초기화를 직접 달성한다.
-- [x] 이벤트 사전·실제 제품 이벤트·신규 기능 구현·백엔드 outbox 변경은 후속 #7로 분리한다.
+- [x] 이벤트 사전, 실제 제품 이벤트, 신규 기능 구현, 백엔드 outbox 변경은 후속 #7로 분리한다.
 - [x] 웹 의존성, 초기화, 테스트, 문서가 하나의 PR에서 리뷰 가능한 범위다.
-- [x] 하나의 명확한 완료 조건: 후속 #7이 신규 제품 신호를 동일 방문자·세션으로
+- [x] 하나의 명확한 완료 조건: 후속 #7이 신규 제품 신호를 동일 방문자, 세션으로
   중복 없이 직접 전송할 SDK 기반을 제공한다.
 
 ## 검증
@@ -327,5 +321,5 @@ PostHog SDK를 기존 이벤트와 같은 이름으로 바로 추가하면 API �
 - `cd web && npm run test:analytics`
 - `cd web && npm run test:posthog`
 - `cd web && npm run build`
-- `posthog_sdk_connection_test`의 Live Events 단일 수신, `dev: true`, 익명 ID·세션 속성 확인
+- `posthog_sdk_connection_test`의 Live Events 단일 수신, `dev: true`, 익명 ID, 세션 속성 확인
 - 실제 제품 이벤트의 PostHog Live Events 검증은 후속 #7에서 실행

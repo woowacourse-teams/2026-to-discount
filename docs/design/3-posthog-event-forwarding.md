@@ -1,10 +1,6 @@
 # Design: PostHog 이벤트 자동 전달
 
-> 관련 이슈: #3 `events.jsonl 이벤트 로그 분석툴 구축`
->
-> 작성일: 2026-08-14
->
-> 상태: 구현·자동 검증 완료 — 운영 연동 및 PR 전
+백엔드가 받은 신규 이벤트를 디스크 outbox에 쌓아 별도 worker가 PostHog로 비동기 전달하기로 정했다(C안). 실패하면 1시간 간격으로 최대 5회 재시도하고, 그 뒤에는 dead-letter로 보존한다. GitHub 이슈 #3(`events.jsonl 이벤트 로그 분석툴 구축`)의 설계이고 2026-08-14에 썼다. 구현이 끝나 이슈는 닫혔다.
 
 ## 1. 문제
 
@@ -26,15 +22,13 @@ Funnel이 구성되어 있다.
 
 - 기존 `events.jsonl` 기록을 원본으로 유지한다.
 - 백엔드가 수용한 신규 이벤트를 PostHog로 자동 전달한다.
-- PostHog의 지연·장애를 공개 이벤트 수집 API와 분리한다.
+- PostHog의 지연과 장애를 공개 이벤트 수집 API와 분리한다.
 - 실패한 전송 상태를 재시작 후에도 복구한다.
 - 재시도 횟수를 최초 시도 포함 최대 5회로 제한한다.
 - 최종 실패 이벤트를 dead-letter로 보존한다.
 - 재시도로 인한 PostHog 중복 집계를 방지한다.
 
 ## 3. Non-goals
-
-이번 작업에서 하지 않는 것:
 
 - 기존 과거 로그의 재이전 도구를 제품 기능으로 만드는 일
 - PostHog 대시보드나 Funnel을 새로 구성하는 일
@@ -218,21 +212,21 @@ AnalyticsEventService
 
 ### Error Handling
 
-- PostHog HTTP 실패·타임아웃·네트워크 오류 → 1시간 뒤 재시도한다.
-- 다섯 번째 실패 → 자동 재시도를 중단하고 dead-letter로 이동한다.
-- 응답 유실 → 동일한 `$insert_id`로 재전송하여 중복 집계를 방지한다.
-- worker 실행 중 프로세스 종료 → pending과 시도 횟수를 다음 시작에서 복구한다.
-- outbox 등록 실패 → 원본 JSONL과 기존 API 응답은 유지하고 오류를 기록한다.
-- 토큰 누락 또는 outbox 초기화 실패 → 기능이 명시적으로 활성화된 경우 시작을
+- PostHog HTTP 실패, 타임아웃, 네트워크 오류: 1시간 뒤 재시도한다.
+- 다섯 번째 실패: 자동 재시도를 중단하고 dead-letter로 이동한다.
+- 응답 유실: 동일한 `$insert_id`로 재전송하여 중복 집계를 방지한다.
+- worker 실행 중 프로세스 종료: pending과 시도 횟수를 다음 시작에서 복구한다.
+- outbox 등록 실패: 원본 JSONL과 기존 API 응답은 유지하고 오류를 기록한다.
+- 토큰 누락 또는 outbox 초기화 실패: 기능이 명시적으로 활성화된 경우 시작을
   실패시켜 조용한 미전송을 막는다.
-- 깨진 pending 파일 → 전송을 반복하지 않고 corrupt dead-letter로 격리한다.
+- 깨진 pending 파일: 전송을 반복하지 않고 corrupt dead-letter로 격리한다.
 
 ## 10. 테스트 전략
 
 - Unit: 이벤트 변환, 개인정보 제외, 시도 횟수와 due 시각 계산.
 - Persistence: outbox 재생성 후 상태 복구, 성공 삭제와 dead-letter 이동.
 - Integration: 로컬 HTTP 서버를 사용한 PostHog batch request/response 검증.
-- Controller: 기존 JSON·text/plain·화이트리스트·응답 계약 회귀 테스트.
+- Controller: 기존 JSON, text/plain, 화이트리스트, 응답 계약 회귀 테스트.
 - Acceptance: 개발 이벤트 한 건으로 JSONL 기록, pending 제거와 PostHog 조회 확인.
 
 ## 11. 미해결 사항
@@ -256,7 +250,7 @@ AnalyticsEventService
 - `api/src/main/java/com/discounttracker/analytics/PostHogEvent.java`:
   PostHog ingestion payload 모델을 정의한다.
 - `api/src/main/java/com/discounttracker/analytics/PostHogDelivery.java`:
-  outbox payload와 시도 횟수·다음 시각·오류 상태를 정의한다.
+  outbox payload와 시도 횟수, 다음 시각, 오류 상태를 정의한다.
 - `api/src/main/java/com/discounttracker/analytics/PostHogOutbox.java`:
   pending과 dead-letter의 파일 상태 전이를 담당한다.
 - `api/src/main/java/com/discounttracker/analytics/PostHogClient.java`:
@@ -304,7 +298,7 @@ AnalyticsEventService
 - 변경:
   - `VisitEvent`에 클라이언트가 발급하고 서버가 검증하거나 보완한 `eventId`를 추가한다.
   - `eventId`를 PostHog 최상위 `uuid`와 `properties.$insert_id`에 동일하게 전달한다.
-  - 기존 수동 이전과 동일한 이름·속성·timestamp 변환 규칙을 구현한다.
+  - 기존 수동 이전과 동일한 이름, 속성, timestamp 변환 규칙을 구현한다.
   - 서버 소유 속성을 클라이언트 `props`가 덮어쓰지 못하게 한다.
   - `ipHash`와 `dev=true` 이벤트를 전달 대상에서 제외한다.
 - 테스트:
@@ -347,7 +341,7 @@ AnalyticsEventService
   - outbox 런타임 등록 실패가 기존 `accepted` 응답을 바꾸지 않게 한다.
   - 활성 상태 설정 누락은 시작 시 명시적으로 실패시킨다.
 - 테스트:
-  - 기존 JSON·text/plain·잘못된 이벤트·rate limit 계약을 회귀 검증한다.
+  - 기존 JSON, text/plain, 잘못된 이벤트, rate limit 계약을 회귀 검증한다.
   - PostHog 실패 중에도 JSONL과 `accepted`가 유지되는지 검증한다.
 - 완료 조건:
   - PostHog 상태가 공개 이벤트 수집 API의 가용성과 응답 계약을 바꾸지 않는다.

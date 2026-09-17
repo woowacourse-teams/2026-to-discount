@@ -1,10 +1,6 @@
 # Design: PostHog SDK 직접 전송과 이벤트 원장 이중 기록
 
-> 관련 이슈: #10 `[WEB][API] PostHog SDK 직접 전송과 이벤트 원장 이중 기록`
->
-> 작성일: 2026-08-20
->
-> 상태: 구현 진행
+브라우저가 이벤트를 한 번 만들어 PostHog SDK와 `/api/events` 원장에 각각 보내고, 운영 API의 PostHog outbox는 끄기로 정했다(A안). PostHog 전달 책임은 SDK 한 곳이다. GitHub 이슈 #10(`[WEB][API] PostHog SDK 직접 전송과 이벤트 원장 이중 기록`)의 설계이고 2026-08-20에 썼다. 구현이 끝나 이슈는 닫혔다.
 
 ## 1. 문제
 
@@ -16,7 +12,7 @@
 
 PR #9로 브라우저 PostHog SDK 초기화와 개발 연결 진단은 추가됐지만, 제품
 이벤트를 직접 capture하지는 않는다. 제품 분석 전송을 SDK로 옮기면서도
-검증·감사·백필을 위한 원본 JSONL 기록은 유지해야 한다.
+검증과 감사와 백필을 위한 원본 JSONL 기록은 유지해야 한다.
 
 ### 해결하려는 문제
 
@@ -33,19 +29,17 @@ opt-out의 처리 경계가 불명확해질 수 있다. 이벤트를 한 번 만
   SDK의 자동 `$pageview`를 단일 출처로 사용한다.
 - API는 `events.jsonl` 기록을 계속 담당하고, PostHog outbox는 운영에서
   비활성화한다.
-- 기존 API outbox가 만들던 PostHog 이벤트 이름·분석 속성·익명 방문자 연결을
+- 기존 API outbox가 만들던 PostHog 이벤트 이름, 분석 속성, 익명 방문자 연결을
   최대한 유지한다.
 - SDK 지연 로딩으로 최초 `page_view`나 초기 상호작용을 잃지 않는다.
 - DNT/GPC opt-out 시 두 전송 경로를 모두 막는다.
 
 ## 3. Non-goals
 
-이번 작업에서 하지 않는 것:
-
 - GA4 또는 Vercel Analytics의 자동 이벤트를 PostHog로 복제하는 일
 - 현재 프론트 호출처가 없는 `classify_change`, `membership_open`,
   `capture_note_seen`, `title_bar_hide_toggle`를 새로 발생시키는 일
-- PostHog outbox 구현·과거 outbox 파일·백필 도구를 삭제하는 일
+- PostHog outbox 구현, 과거 outbox 파일, 백필 도구를 삭제하는 일
 - 과거 `events.jsonl`의 PostHog 백필
 - 사용자 식별, 세션 리플레이, feature flag 또는 autocapture 도입
 
@@ -85,29 +79,29 @@ API 허용 목록에만 남은 `classify_change`, `membership_open`,
   지연 로딩 큐를 flush해도 실제 발생 시각이 바뀌지 않게 한다.
 - PostHog 환경변수가 모두 설정된 경우에만 SDK fan-out을 `buffering` 상태로 열고,
   준비 전 이벤트를 최대 100건의 메모리 큐에 넣는다. 초기화 성공 시 순서대로
-  flush하고, 설정 누락·import/초기화 실패 시 큐를 비우고 `disabled`로 전환한다.
+  flush하고, 설정 누락이나 import/초기화 실패 시 큐를 비우고 `disabled`로 전환한다.
 - API 전송 실패와 SDK 전송 실패는 서로의 시도를 막거나 UI 오류를 일으키지 않는다.
 - `page_exit`는 기존 API `sendBeacon` 기록을 유지한다. SDK가 준비된 경우에는
   `capture(..., { send_instantly: true, transport: 'sendBeacon', timestamp })`로
   즉시 전송한다. SDK가 아직 준비되지 않은 초단기 방문에서는 API 원장만 보장한다.
 - 기존 서버 mapper와 같은 기준을 유지하기 위해 `dev=true` 제품 이벤트는 SDK로
   보내지 않는다. `posthog_sdk_connection_test`만 개발 진단 이벤트로 직접 보낸다.
-- SDK는 자동 `$pageleave`, Web Vitals, 표준 기기·브라우저 속성을 수집한다.
+- SDK는 자동 `$pageleave`, Web Vitals, 표준 기기, 브라우저 속성을 수집한다.
   autocapture와 세션 리플레이는 명시적 도메인 이벤트와 개인정보 고지를 유지하기
   위해 계속 비활성화한다.
-- 운영 API의 `DISCOUNT_POSTHOG_ENABLED=false`로 outbox 등록·전달을 끈다.
+- 운영 API의 `DISCOUNT_POSTHOG_ENABLED=false`로 outbox 등록, 전달을 끈다.
 
 ### 선택
 
-- PostHog SDK 전송의 성공·실패를 개발 모드에서만 관측 가능한 경고로 남긴다.
+- PostHog SDK 전송의 성공과 실패를 개발 모드에서만 관측 가능한 경고로 남긴다.
 - API 원장 수와 PostHog Live Events 수의 일간 차이를 운영 점검 항목으로 문서화한다.
 
 ## 5. 제약사항
 
 - `posthog-js`는 초기 화면 비용을 줄이기 위해 동적 import한다.
 - `VITE_POSTHOG_*`는 빌드 시 브라우저 번들에 주입된다. Project API Key만 사용한다.
-- 브라우저 요청은 광고 차단·네트워크 종료로 누락될 수 있다. 원본 JSONL은
-  이를 보완하는 감사·백필 원장이지, SDK 전송의 동기 보장 장치가 아니다.
+- 브라우저 요청은 광고 차단이나 네트워크 종료로 누락될 수 있다. 원본 JSONL은
+  이를 보완하는 감사와 백필 원장이지, SDK 전송의 동기 보장 장치가 아니다.
 - 지연 로딩이 끝나기 전에 문서가 종료되면 메모리 큐는 전송할 수 없다. 따라서
   `page_exit`의 SDK 전달은 SDK 준비 이후에만 best effort이며 API beacon이 원장
   보존을 책임진다.
@@ -155,9 +149,9 @@ PostHog 전달은 하지 않는다.
 
 단점:
 
-- 동일 `$insert_id`에 의존한 중복 제거는 전송 시점·실패 재시도에 따라 운영
+- 동일 `$insert_id`에 의존한 중복 제거는 전송 시점과 실패 재시도에 따라 운영
   판단이 복잡하다.
-- 두 경로의 속성·이벤트명 차이가 대시보드와 퍼널을 왜곡할 수 있다.
+- 두 경로의 속성, 이벤트명 차이가 대시보드와 퍼널을 왜곡할 수 있다.
 
 ### C. 기존 API outbox만 유지
 
@@ -202,11 +196,11 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 
 #### `web/src/analytics.js`
 
-- 책임: 이벤트 envelope 생성, API 큐·`sendBeacon` 유지, SDK sink 등록 전까지의
+- 책임: 이벤트 envelope 생성, API 큐, `sendBeacon` 유지, SDK sink 등록 전까지의
   메모리 큐와 fan-out을 제공한다.
 - 외부 인터페이스:
-  - 기존 `track()`·`startAnalytics()` 계약은 유지한다.
-  - `enablePostHogFanout()`은 상태를 `disabled → buffering`으로 바꾼다.
+  - 기존 `track()`, `startAnalytics()` 계약은 유지한다.
+  - `enablePostHogFanout()`은 상태를 `disabled`에서 `buffering`으로 바꾼다.
   - `registerPostHogSink(sink)`는 대기 큐를 FIFO로 비운 뒤 `ready`로 전환한다.
   - `disablePostHogFanout()`은 대기 큐를 비우고 `disabled`로 전환한다.
 - 큐 정책: 최대 100건이며 초과 시 새 이벤트의 SDK fan-out만 버리고 개발 모드에서
@@ -214,10 +208,10 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 
 #### `web/src/posthog.js`
 
-- 책임: SDK 초기화, analytics envelope의 PostHog 이벤트명·속성 변환, capture를
+- 책임: SDK 초기화, analytics envelope의 PostHog 이벤트명, 속성 변환, capture를
   담당한다.
 - 외부 인터페이스: `captureAnalyticsEvent(envelope)`를 추가하고 기존
-  `captureProductSignal()`·연결 진단 인터페이스는 유지한다.
+  `captureProductSignal()`, 연결 진단 인터페이스는 유지한다.
 - 변환: `page_view`만 `$pageview`로 바꾸고, 모든 이벤트에 `$insert_id`를 넣는다.
   SDK capture options에도 `uuid: eventId`, `timestamp: new Date(clientTs)`를 전달한다.
 - 이탈 전송: `page_exit`에만 `send_instantly: true`, `transport: 'sendBeacon'`을 추가한다.
@@ -236,14 +230,14 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 
 - 책임: `/api/events`와 `events.jsonl` 계약은 유지한다.
 - 변경: systemd 환경 파일에서 `DISCOUNT_POSTHOG_ENABLED=false`를 명시한다.
-- 비범위: Java outbox 코드의 삭제·재작성은 하지 않는다.
+- 비범위: Java outbox 코드의 삭제와 재작성은 하지 않는다.
 
 ### Data Flow
 
-1. `main.jsx`는 key·host가 모두 있고 opt-out이 아닐 때만 fan-out을 `buffering`으로
+1. `main.jsx`는 key, host가 모두 있고 opt-out이 아닐 때만 fan-out을 `buffering`으로
    연다. 설정이 없으면 상태는 `disabled`라 SDK용 메모리를 사용하지 않는다.
-2. `track()` 또는 lifecycle handler가 eventId·컨텍스트·props를 가진 이벤트를 만든다.
-3. API 큐에는 기존과 동일한 이벤트를 넣고, 일정 시간·배치 크기·이탈 시점 규칙으로
+2. `track()` 또는 lifecycle handler가 eventId, 컨텍스트, props를 가진 이벤트를 만든다.
+3. API 큐에는 기존과 동일한 이벤트를 넣고, 일정 시간, 배치 크기, 이탈 시점 규칙으로
    `/api/events`에 보낸다.
 4. SDK sink가 준비됐으면 같은 이벤트를 capture하고, `buffering`이면 메모리 큐에
    보관한다.
@@ -254,27 +248,27 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 
 ### Error Handling
 
-- SDK key·host 누락 → fan-out을 열지 않고 API 원장 전송만 수행한다.
-- SDK import·초기화 실패 → 대기 큐를 비우고 fan-out을 비활성화한다. API 원장 전송은
+- SDK key 또는 host 누락: fan-out을 열지 않고 API 원장 전송만 수행한다.
+- SDK import 또는 초기화 실패: 대기 큐를 비우고 fan-out을 비활성화한다. API 원장 전송은
   계속 수행한다.
-- SDK capture 예외 → 해당 SDK 이벤트만 버리고 개발 모드에서 경고한다. API 원장과
+- SDK capture 예외: 해당 SDK 이벤트만 버리고 개발 모드에서 경고한다. API 원장과
   이후 SDK 이벤트는 계속 처리한다.
-- API 요청 실패 → 기존처럼 UI 오류 없이 실패를 무시한다; SDK capture는 계속 시도한다.
-- SDK 준비 후 `page_exit` → SDK의 `send_instantly + sendBeacon`과 기존 API beacon을
+- API 요청 실패: 기존처럼 UI 오류 없이 실패를 무시한다. SDK capture는 계속 시도한다.
+- SDK 준비 후 `page_exit`: SDK의 `send_instantly + sendBeacon`과 기존 API beacon을
   각각 호출한다.
-- SDK 준비 전 페이지 종료 → API beacon만 보장하고 SDK 메모리 큐는 문서 종료와 함께
+- SDK 준비 전 페이지 종료: API beacon만 보장하고 SDK 메모리 큐는 문서 종료와 함께
   사라진다.
-- DNT/GPC → 이벤트 생성·API 전송·SDK 초기화를 모두 하지 않는다.
-- `dev=true` → 제품 이벤트는 API JSONL에만 남기고 SDK 연결 진단만 허용한다.
+- DNT/GPC: 이벤트 생성, API 전송, SDK 초기화를 모두 하지 않는다.
+- `dev=true`: 제품 이벤트는 API JSONL에만 남기고 SDK 연결 진단만 허용한다.
 
 ## 10. 테스트 전략
 
-- Unit: adapter가 `$pageview`, `$insert_id`, capture `uuid`·`timestamp`, 공통 속성,
+- Unit: adapter가 `$pageview`, `$insert_id`, capture `uuid`, `timestamp`, 공통 속성,
   dev/opt-out과 SDK 예외를 올바르게 처리하는지 fake client로 검증한다.
 - Unit: analytics fan-out이 API 본문과 SDK sink에 같은 eventId를 전달하고, 준비 전
-  큐가 등록 뒤 정확히 한 번 FIFO flush되는지 검증한다. disabled·failed·100건 초과
+  큐가 등록 뒤 정확히 한 번 FIFO flush되는지 검증한다. disabled, failed, 100건 초과
   동작도 포함한다.
-- Unit: `page_exit` API beacon과 SDK capture의 이벤트명·`dwell_ms`·eventId 및
+- Unit: `page_exit` API beacon과 SDK capture의 이벤트명, `dwell_ms`, eventId 및
   `send_instantly + sendBeacon` 옵션을 검증한다.
 - Integration: 기존 `disabledForwardingOnlyWritesOriginal` 테스트로 API 비활성
   outbox 설정에서 JSONL 기록만 수행하는 계약을 검증한다.
@@ -289,7 +283,7 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 `send_instantly`, `transport: 'sendBeacon'`, `timestamp`, `uuid`를 지원함을 확인했다.
 
 운영 반영은 저장소 밖 작업이다. 실제 systemd 환경 파일은 사고 기록상
-`/etc/delivery-discount-api.env`이며, 변경·서비스 재시작·Vercel 배포에는 별도 운영
+`/etc/delivery-discount-api.env`이며, 변경, 서비스 재시작, Vercel 배포에는 별도 운영
 권한과 명시적 실행 승인이 필요하다. 이는 코드 구현의 선행 조건이 아니라 배포 단계의
 승인 조건으로 둔다.
 
@@ -312,12 +306,12 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
   capture options(`uuid`, `timestamp`, 이탈 transport), 기존 분석 컨텍스트 속성
   매핑과 dev 제외를 추가한다.
 - `web/src/main.jsx`: `startAnalytics()` 전에 설정된 fan-out을 buffering으로 열고,
-  SDK 초기화 성공·실패에 따라 sink 등록 또는 비활성화를 수행한다.
+  SDK 초기화 성공과 실패에 따라 sink 등록 또는 비활성화를 수행한다.
 - `web/src/App.jsx`: 사용자 고지를 서버 경유 PostHog 전달에서 SDK 직접 전송과
   API 원장 기록으로 변경한다.
 - `web/scripts/verify-analytics-event-id.mjs`: API와 SDK가 동일 eventId를 받는 fan-out,
-  준비 큐·최초 페이지뷰·페이지 이탈 회귀를 검증한다.
-- `web/scripts/verify-posthog-sdk.mjs`: 이벤트명·속성 변환, `$insert_id`, capture options,
+  준비 큐, 최초 페이지뷰, 페이지 이탈 회귀를 검증한다.
+- `web/scripts/verify-posthog-sdk.mjs`: 이벤트명, 속성 변환, `$insert_id`, capture options,
   dev/opt-out과 예외 처리를 검증한다.
 - `web/package.json`: 새 이벤트 계약 검증을 기존 `npm test` 체인에 포함한다.
 - `web/README.md`: 직접 SDK 전송과 JSONL 원장의 역할, 이벤트 범위, Vercel 설정과
@@ -331,7 +325,7 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 
 - 변경:
   - `page_view`를 포함한 `track()`과 `page_exit`가 `createAnalyticsEvent()`에서
-    eventId·컨텍스트·발생 시각을 한 번만 만들게 한다.
+    eventId, 컨텍스트, 발생 시각을 한 번만 만들게 한다.
   - `enablePostHogFanout()`, `registerPostHogSink(sink)`,
     `disablePostHogFanout()` 상태 전환을 구현한다.
   - `disabled`에서는 버퍼링하지 않고, `buffering`에서는 최대 100건을 FIFO로 보관하며,
@@ -351,7 +345,7 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 
 - 변경:
   - `page_view`를 `$pageview`로, 다른 이벤트는 원래 이름으로 capture한다.
-  - `$insert_id`, 세션·방문 회차·화면·유입·기기·체류 속성을 기존 mapper와 호환되는
+  - `$insert_id`, 세션, 방문 회차, 화면, 유입, 기기, 체류 속성을 기존 mapper와 호환되는
     이름으로 전달하고 익명 ID는 기존 SDK bootstrap에 맡긴다.
   - 모든 제품 이벤트에 `uuid`와 생성 시각 `timestamp` capture option을 전달한다.
   - `page_exit`에만 `send_instantly: true`, `transport: 'sendBeacon'`을 추가한다.
@@ -359,11 +353,11 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
   - `posthog_sdk_connection_test`는 개발 연결 진단으로 유지하되 제품 fan-out과
     별도로 취급한다.
 - 테스트:
-  - `$pageview`, `page_exit`, 클릭 이벤트의 이름·속성·`$insert_id`·capture options를
+  - `$pageview`, `page_exit`, 클릭 이벤트의 이름, 속성, `$insert_id`, capture options를
     검증한다.
   - dev, key 누락, opt-out, SDK 예외에서 제품 capture가 발생하지 않는지 검증한다.
 - 완료 조건:
-  - 기존 PostHog 대시보드에서 페이지뷰와 제품 이벤트가 새 이름·중복 없이 이어진다.
+  - 기존 PostHog 대시보드에서 페이지뷰와 제품 이벤트가 새 이름, 중복 없이 이어진다.
 
 #### 3. 자동 검증과 문서 갱신
 
@@ -372,20 +366,20 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
     추가한다.
   - 새 계약 검사로 현재 정적 `track('...')` 이름과 `page_exit`가 API
     `ALLOWED_EVENTS`에 포함되는지 확인하고 `npm test`에 연결한다.
-  - README와 API 운영 문서에서 “기존 이벤트는 서버 outbox, 신규 신호만 SDK”라는
+  - README와 API 운영 문서에서 "기존 이벤트는 서버 outbox, 신규 신호만 SDK"라는
     이전 경계를 제거하고 새 책임 분리를 기록한다.
 - 테스트:
   - `cd web && npm test`
   - `cd web && npm run build`
   - `cd api && ./gradlew test --tests '*AnalyticsEventServiceTest*' --tests '*PostHogPropertiesTest*'`
 - 완료 조건:
-  - CI가 SDK·API 원장 분리의 회귀를 잡고, 운영자가 필요한 Vite·systemd 설정과
+  - CI가 SDK, API 원장 분리의 회귀를 잡고, 운영자가 필요한 Vite, systemd 설정과
     Live Events 대조 방법을 문서만으로 수행할 수 있다.
 
 #### 4. 운영 전환과 수동 검증
 
 이 Task는 저장소 구현이 끝난 뒤 별도 승인을 받아 수행하는 rollout runbook이다.
-코드 작성·로컬 검증만 요청된 경우에는 실행하지 않는다.
+코드 작성과 로컬 검증만 요청된 경우에는 실행하지 않는다.
 
 - 변경:
   1. PostHog의 client IP 폐기 설정과 Vercel Production의 `VITE_POSTHOG_KEY`,
@@ -396,7 +390,7 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
      허용하되 이중 집계를 만들지 않는다.
 - 테스트:
   - 시크릿 창에서 `page_view`, `offer_link_click`, `page_exit`를 발생시킨다.
-  - PostHog Live Events와 `events.jsonl`에서 eventId·이벤트명·중복 여부를 대조한다.
+  - PostHog Live Events와 `events.jsonl`에서 eventId, 이벤트명, 중복 여부를 대조한다.
   - outbox pending 경로에 새 파일이 생성되지 않는지 확인한다.
 - 롤백:
   1. 이전 웹 배포로 먼저 되돌린다.
@@ -408,10 +402,10 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 
 ### Scope Check
 
-- [x] 모든 Task가 #10의 SDK 직접 전송·JSONL 원장 보존·outbox 비활성화를 직접 달성한다.
+- [x] 모든 Task가 #10의 SDK 직접 전송, JSONL 원장 보존, outbox 비활성화를 직접 달성한다.
 - [x] 구버전 클라이언트 이벤트와 과거 JSONL 백필은 현재 목표의 독립 산출물이 아니므로
   포함하지 않는다.
-- [x] 웹 코드, API 운영 전환, 테스트·문서는 단일 배포 단위로 검토해야 중복 집계를
+- [x] 웹 코드, API 운영 전환, 테스트, 문서는 단일 배포 단위로 검토해야 중복 집계를
   피할 수 있으므로 서브 이슈로 분리하지 않는다.
 - [x] 운영 전환은 코드 구현과 독립된 권한이 필요하지만 단독으로 제품 가치를 만들지
   않으므로 서브 이슈가 아니라 같은 이슈의 승인된 rollout 단계로 둔다.
@@ -424,4 +418,4 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 - `cd web && npm run build`
 - `cd api && ./gradlew test --tests '*AnalyticsEventServiceTest*' --tests '*PostHogPropertiesTest*'`
 - `git diff --check`
-- 배포 후 PostHog Live Events와 `events.jsonl`의 eventId·이벤트명·중복 여부 수동 대조
+- 배포 후 PostHog Live Events와 `events.jsonl`의 eventId, 이벤트명, 중복 여부 수동 대조
