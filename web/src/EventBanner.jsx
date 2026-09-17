@@ -156,11 +156,11 @@ function BannerCard({ banner, position, onClose, onSeen }) {
             </span>
           ) : banner.brand
             ? <BrandLogo name={banner.brand} />
-            : (
+            : banner.platform ? (
               <span className="brand-logo brand-logo--platform">
                 <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
               </span>
-            )}
+            ) : null}
         </span>
         {/* 앱 배지는 로고 밖, 카드(.banner__link)의 오른쪽 위에 선다(2026-09-16).
             platform이 없으면 브랜드 자체 앱이나 사이트의 행사라 배지도 없다(2026-09-18). */}
