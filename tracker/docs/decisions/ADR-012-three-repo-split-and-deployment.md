@@ -14,7 +14,7 @@ MVP 교차 비교 화면(2026-07-27)은 처음에 `delivery-discount-api` 레포
 
 ## 판단
 
-레포를 셋으로 나눈다. 역할은 그대로다 — 파이썬이 원본을 판독해
+레포를 셋으로 나눈다. 역할은 그대로다. 파이썬이 원본을 판독해
 `export.json`을 만들고, API가 그걸 읽어 가공하고, 웹이 그 결과를
 보여준다.
 
@@ -25,14 +25,14 @@ MVP 교차 비교 화면(2026-07-27)은 처음에 `delivery-discount-api` 레포
 | `delivery-discount-web` | React 교차 비교 화면 | Vercel, `beggars-five.vercel.app` |
 
 `delivery-discount-api`의 `web/`을 `git subtree split`으로 떼어
-`delivery-discount-web`으로 옮겼다 — 커밋 이력 보존.
+`delivery-discount-web`으로 옮겼다. 커밋 이력을 보존했다.
 
 ## 근거
 
-- 프론트·백엔드는 배포 주기·플랫폼이 다르다(Vercel 정적 빌드 vs OCI
+- 프론트, 백엔드는 배포 주기, 플랫폼이 다르다(Vercel 정적 빌드 vs OCI
   상시 프로세스). 한 레포에 있으면 한쪽만 바뀌어도 같이 릴리스 단위가
   묶인다.
-- `git subtree split`은 별도 툴 설치 없이 커밋 이력을 그대로 옮긴다 —
+- `git subtree split`은 별도 툴 설치 없이 커밋 이력을 그대로 옮긴다.
   `cp`로 새 레포를 만드는 것보다 손실이 없다.
 
 ## 배포 세부사항은 각 레포에
@@ -46,15 +46,15 @@ MVP 교차 비교 화면(2026-07-27)은 처음에 `delivery-discount-api` 레포
 ## 서버 보안 메모 (2026-07-28 점검)
 
 OCI 인스턴스는 공개 IP라 취약점 스캐너 트래픽(예: Jira RCE 경로 프로브)이
-상시 들어온다 — OCI 인스턴스 일반에 흔한 배경 노이즈이고, 이 스택엔
+상시 들어온다. OCI 인스턴스 일반에 흔한 배경 노이즈이고, 이 스택엔
 해당 경로가 없어 실질 위험은 아니다. 점검 결과:
 
 - SSH: 비밀번호 인증 이미 꺼져 있음(`PasswordAuthentication no`), 키만 허용.
 - 클라우드 방화벽(OCI 보안 목록)이 80/443/22 외 포트(8080, 8088 등)를
-  외부에서 막고 있음을 직접 확인(포트 스캔 결과 연결 자체가 안 됨) —
+  외부에서 막고 있음을 직접 확인했다(포트 스캔 결과 연결 자체가 안 됨).
   호스트가 0.0.0.0으로 바인딩돼 있어도 클라우드 단에서 이미 막혀 있다.
 - nginx가 `Server: nginx/1.24.0 (Ubuntu)`로 버전을 노출하고 있던 것은
   `server_tokens off`로 수정(사소한 정보 노출, 위험도 낮지만 공짜로
   막을 수 있어 반영).
-- fail2ban 미설치 — SSH가 이미 키 전용이라 brute-force 자체가 안 통하므로
+- fail2ban 미설치. SSH가 이미 키 전용이라 brute-force 자체가 안 통하므로
   급하지 않다고 보고 보류. 필요해지면(다른 서비스 확장 등) 재검토.
