@@ -1,6 +1,6 @@
 # 수집 데이터 명세
 
-분석하려는 사람이 먼저 알아야 할 것부터.
+분석하려는 사람이 먼저 알아야 할 것부터 적는다.
 
 ## 30초 요약
 
@@ -9,7 +9,7 @@
 | 무엇을 모으나 | 브라우저 행동 이벤트 19종 (`page_view`, `offer_link_click` 등) |
 | 어디에 쌓이나 | **자체 원장** `events.jsonl`(단일 진실) + **PostHog**(탐색용) |
 | 누구인지 아나 | 모른다. `visitorId`는 브라우저가 만든 난수, 지우면 끊긴다 |
-| A/B는 어떻게 가르나 | 모든 이벤트의 `variant` 속성. **실험은 2026-09-15에 `a`로 끝났다** — 이후 값은 항상 `a` |
+| A/B는 어떻게 가르나 | 모든 이벤트의 `variant` 속성. **실험은 2026-09-15에 `a`로 끝났다.** 이후 값은 항상 `a` |
 | 개발자 트래픽은 | `dev`(확실) 표시 + 원장 집계 때 세션 모양으로 추정. **지우지 않는다** |
 | 판정은 무엇으로 | **원장**. PostHog는 탐색용 (아래 "왜 둘인가") |
 
@@ -35,7 +35,7 @@ python scripts/experiments.py --help                      # 나머지 명령
   원장     방문자 a 13명 / b 22명
 ```
 
-원장은 원본을 그대로 갖고 있어 판정 규칙을 나중에 고쳐 다시 셀 수 있다. PostHog는 보낸 시점의 속성이 박혀 있어 그럴 수 없다 — 실제로 개발 트래픽 추정 규칙이 틀린 것으로 드러났을 때 원장만 되돌릴 수 있었다. 확정 수치는 원장으로 낸다.
+원장은 원본을 그대로 갖고 있어 판정 규칙을 나중에 고쳐 다시 셀 수 있다. PostHog는 보낸 시점의 속성이 박혀 있어 그럴 수 없다. 실제로 개발 트래픽 추정 규칙이 틀린 것으로 드러났을 때 원장만 되돌릴 수 있었다. 확정 수치는 원장으로 낸다.
 
 > **PostHog의 07-29~08-06 이벤트 건수는 두 배다.** 초기 historical
 > import가 그 구간에 두 번 들어갔다. 같은 이벤트를 나란히 세면 그대로
@@ -49,7 +49,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 > ```
 >
 > `$insert_id`가 그 구간 이벤트에는 없어서(eventId 역이식이 08-16) PostHog가
-> 중복을 못 걷었다. **방문자 수는 안 부푼다** — 같은 사람이 두 번 세지는 게
+> 중복을 못 걷었다. **방문자 수는 안 부푼다.** 같은 사람이 두 번 세지는 게
 > 아니라 이벤트가 두 벌이라서다. 건수를 쓰는 지표만 조심하면 된다.
 
 ### 2. 표본이 작을 때 "1인당"은 거짓말한다
@@ -65,7 +65,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 ### 3. 없는 이벤트는 안 쌓인 것이지 안 일어난 것이 아니다
 
-서버 허용 목록(`ALLOWED_EVENTS`)에 없는 이름은 **조용히 버려진다.** 실제로 2026-08-20까지 필터·담아보기 이벤트 6종이 그렇게 사라지고 있었다.
+서버 허용 목록(`ALLOWED_EVENTS`)에 없는 이름은 **조용히 버려진다.** 실제로 2026-08-20까지 필터와 담아보기 이벤트 6종이 그렇게 사라지고 있었다.
 
 새 이벤트를 붙이면 `EventController.ALLOWED_EVENTS`도 같이 고쳐야 한다. `npm run test:event-contract`가 이 짝을 검사한다.
 
@@ -73,11 +73,11 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 ## 이벤트 19종
 
-### 화면 진입·이탈
+### 화면 진입과 이탈
 
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
-| `page_view` | 페이지 로드 1회 | — |
+| `page_view` | 페이지 로드 1회 | 없음 |
 | `page_exit` | 탭을 떠날 때 | `dwellMs` (보고 있던 시간, 백그라운드 제외) |
 
 ### 무엇을 눌렀나
@@ -85,13 +85,13 @@ python scripts/experiments.py --help                      # 나머지 명령
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
 | `offer_link_click` | 할인 칩을 눌러 배달앱으로 나갈 때 | `brand`, `platform` + 어느 오퍼인지(09-17~): `amount`, `minOrder`, `qualifier`, `membership`, `tierMode`, `tiers`(구간 수), `best`, `held`, `soldOut`, `fromBanner` |
-| `banner_click` | 상단·하단 행사 배너 | `banner`(id), `brand`, `platform`, `position`(top/bottom) + `amount`, `brands`(묶음 `a/b/c`), `minOrder`, `soldOut`, `external`(09-17~) |
+| `banner_click` | 상단, 하단 행사 배너 | `banner`(id), `brand`, `platform`, `position`(top/bottom) + `amount`, `brands`(묶음 `a/b/c`), `minOrder`, `soldOut`, `external`(09-17~) |
 | `banner_impression` | 그 배너가 화면에 절반 이상 들어옴 | `banner`(id), `brand`, `platform`, `position` |
 | `banner_dismiss` | 하단 배너 닫기(오늘 하루) | `banner`(id), `brand`, `platform` |
 | `banner_autoplay_toggle` | 배너 우측 하단 멈춤/재생 | `state`(`pause`/`play`) |
 | `brand_expand` | 브랜드 카드를 펼침 | `brand`, `category` |
-| `brands_retry` | 목록 불러오기 실패 후 재시도 | — |
-| `scroll_to_top` | "맨 위로" | — |
+| `brands_retry` | 목록 불러오기 실패 후 재시도 | 없음 |
+| `scroll_to_top` | "맨 위로" | 없음 |
 
 ### 조건을 어떻게 고르나 (`from`: `bar` = 펼친 바, `sheet` = 필터 시트)
 
@@ -99,15 +99,15 @@ python scripts/experiments.py --help                      # 나머지 명령
 |---|---|---|
 | `category_change` | 분류 선택 | `category`, `from`(`bar`/`sheet`) |
 | `platform_filter_toggle` | 배달앱 켜고 끔 | `platform`, `from`(`bar`/`sheet`) |
-| `filter_sheet_open` | 바의 필터 버튼으로 시트 열기(옛 B안 시트, 2026-09-16 A 바에 병합) | — |
+| `filter_sheet_open` | 바의 필터 버튼으로 시트 열기(옛 B안 시트, 2026-09-16 A 바에 병합) | 없음 |
 | `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
-| `filters_reset` | 초기화 버튼 | — |
-| `home_click` | 바의 홈 버튼 — 필터·검색 풀고 맨 위로(브랜드 경로면 전체 목록으로) | — |
+| `filters_reset` | 초기화 버튼 | 없음 |
+| `home_click` | 바의 홈 버튼. 필터와 검색을 풀고 맨 위로(브랜드 경로면 전체 목록으로) | 없음 |
 | `membership_toggle` | 멤버십 라벨 (아직 미구현 기능) | `platform`, `state:'soon'`, `from` |
-| `brand_search_submitted` | 비어 있지 않은 검색어를 엔터·검색 버튼으로 확정 | `inputLength`, `resultCount`(목록 로드 전에는 생략), `submitMethod`(`enter`/`button`) |
+| `brand_search_submitted` | 비어 있지 않은 검색어를 엔터나 검색 버튼으로 확정 | `inputLength`, `resultCount`(목록 로드 전에는 생략), `submitMethod`(`enter`/`button`) |
 
 `brand_search_submitted`에는 사용자가 입력한 검색어 원문을 싣지 않는다. 자유 입력에
-포함될 수 있는 개인정보는 수집하지 않고, 검색 사용 여부와 결과 유무를 분석하는 데
+포함될 수 있는 개인정보는 수집하지 않는다. 검색 사용 여부와 결과 유무를 분석하는 데
 필요한 길이와 결과 수만 기록한다.
 
 ### 담아보기
@@ -130,19 +130,19 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `sessionId` | 한 번의 방문 (`s_` + 16자리) | sessionStorage. 탭 닫으면 끝 |
 | `visitCount` | 이 브라우저의 누적 방문 회차 | localStorage |
 
-`visitorId`가 PostHog `distinct_id`가 된다. 이름·연락처·계정은 받지 않는다.
+`visitorId`가 PostHog `distinct_id`가 된다. 이름, 연락처, 계정은 받지 않는다.
 
 ### 맥락
 
 | 필드 | 뜻 | 주의 |
 |---|---|---|
 | `variant` | 화면 안. 2026-09-15까지 `a`/`b` 반반, 그 뒤 항상 `a` | 이름을 남기는 이유는 실험 전후를 한 축으로 보기 위해서다 |
-| `device` | `mobile` / `desktop` | UA가 아니라 `matchMedia('(hover: hover)')`. **일부 안드로이드 브라우저가 `hover:hover`를 보고해 폰이 desktop으로 잡힌다 — 이 값만으로 기기를 가르지 말 것** |
+| `device` | `mobile` / `desktop` | UA가 아니라 `matchMedia('(hover: hover)')`. **일부 안드로이드 브라우저가 `hover:hover`를 보고해 폰이 desktop으로 잡힌다. 이 값만으로 기기를 가르지 말 것** |
 | `form_factor` | `phone` / `desktop` / `tablet` | **서버가 `viewport` 폭으로 붙인다.** 기기를 가를 때는 `device`가 아니라 이 값을 쓴다 |
 | `viewport` | `"390x844"` | 개발 트래픽 판정의 핵심 단서 (아래 참고) |
 | `referrer` | `direct` / `internal` / `external` | 원본 URL은 안 받는다 |
 | `path` | 경로만 | 쿼리스트링 없음 |
-| `eventId` | 이벤트마다 UUID 1개 | 재전송·이중 경로 중복 제거 키 |
+| `eventId` | 이벤트마다 UUID 1개 | 재전송과 이중 경로 중복 제거 키 |
 | `ipHash` | 날짜별 솔트로 해시한 IP | **서버가 붙인다.** 하루 지나면 연결 불가 |
 | `dev` | 개발 트래픽 표시 | 아래 참고 |
 
@@ -171,11 +171,11 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 ### `?dev=1`은 창마다 따로 켜야 한다
 
-`localStorage`라 **브라우저·프로필·시크릿창이 각각 별개다.** 폰에서 켰다고 데스크톱이 따라오지 않고, 크롬에서 켰다고 사파리가 따라오지 않는다. 브라우저 데이터를 지우거나 시크릿창을 닫으면 표시도 사라진다.
+`localStorage`라 **브라우저, 프로필, 시크릿창이 각각 별개다.** 폰에서 켰다고 데스크톱이 따라오지 않고, 크롬에서 켰다고 사파리가 따라오지 않는다. 브라우저 데이터를 지우거나 시크릿창을 닫으면 표시도 사라진다.
 
 > 2026-08-20 실측: 방문자 43명 중 **8명(19%)**이 표시 없는 개발 트래픽이었다. 표본이 수십 명일 때 이 비율은 결론을 뒤집는다.
 
-### 추정은 이벤트 하나로 못 한다 — 그렇게 하다 368명을 잃었다
+### 추정은 이벤트 하나로 못 한다. 그렇게 하다 368명을 잃었다
 
 예전 규칙은 `device == "desktop" AND 뷰포트 폭 < 400px`이었고, 이벤트 하나만 보고 판정해 수집 시점에 `dev_suspect`를 붙였다. **이 규칙이 안드로이드 폰 사용자 368명을 개발자로 몰아냈다.**
 
@@ -187,7 +187,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 진짜 개발자의 폭       [849, 1283]   [1309, 1554, 1745, 1862]   [390, 1280]
 ```
 
-원인은 `device`가 `matchMedia('(hover: hover)')`라는 것 — 일부 안드로이드 브라우저가 `hover:hover`를 보고한다.
+원인은 `device`가 `matchMedia('(hover: hover)')`라는 것이다. 일부 안드로이드 브라우저가 `hover:hover`를 보고한다.
 
 **지금 규칙**: 한 사람의 세션 전체에서 뷰포트 폭이 여러 개로 나오고 그중 최대가 800px 이상이면 개발자. 창을 조절해 가며 본 흔적이다. 폰은 세션 내내 폭이 하나다.
 
@@ -197,7 +197,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 ## 어디에 쌓이고 어떻게 보나
 
-### 자체 원장 — 단일 진실
+### 자체 원장: 단일 진실
 
 ```
 서버  /home/ubuntu/delivery-discount-api/data/events.jsonl
@@ -212,13 +212,13 @@ python scripts/experiments.py segments
 ssh <서버> "jq -c 'select(.dev != true)' /home/ubuntu/delivery-discount-api/data/events.jsonl"
 ```
 
-### PostHog — 탐색용
+### PostHog: 탐색용
 
 ```
 프로젝트  548055 (us.posthog.com)
 ```
 
-브라우저에서 조회 API를 부르면 표를 뽑을 수 있다(로그인 세션 사용):
+브라우저에서 조회 API를 부르면 표를 뽑을 수 있다(로그인 세션 사용).
 
 ```js
 const csrf = document.cookie.split('; ').find(c => c.startsWith('posthog_csrftoken='))?.split('=')[1]
@@ -231,7 +231,7 @@ await fetch('/api/projects/548055/query/', {
 
 #### 폰과 데스크톱을 가른 트렌드
 
-`device`로 분해하면 안 된다 — 폰 절반이 desktop 칸에 들어간다(2026-09-06
+`device`로 분해하면 안 된다. 폰 절반이 desktop 칸에 들어간다(2026-09-06
 실측: desktop 1720명 중 854명이 폰). `form_factor`로 분해한다.
 
 UI에서: Product analytics → Trends → 이벤트 고르고 **Breakdown by →
@@ -251,10 +251,10 @@ ORDER BY week, ff
 ```
 
 `form_factor`는 2026-09-06부터 붙는다. 그 전 이벤트에는 없으므로 긴
-추세는 원장(`scripts/snapshot.py`)으로 본다 — 거기서는 지난 데이터도
+추세는 원장(`scripts/snapshot.py`)으로 본다. 원장에서는 지난 데이터도
 `viewport` 폭으로 소급해 가른다.
 
-PostHog에서는 `?dev=1` 트래픽이 애초에 안 넘어온다. 표시 없는 개발 트래픽은 PostHog 쪽에서 못 거른다 — 세션 전체를 봐야 갈리기 때문이다. 그 구분이 필요한 판정은 원장으로 낸다.
+PostHog에서는 `?dev=1` 트래픽이 애초에 안 넘어온다. 표시 없는 개발 트래픽은 PostHog 쪽에서 못 거른다. 세션 전체를 봐야 갈리기 때문이다. 그 구분이 필요한 판정은 원장으로 낸다.
 
 ---
 
@@ -265,29 +265,29 @@ PostHog에서는 `?dev=1` 트래픽이 애초에 안 넘어온다. 표시 없는
 > **2026-08-21 13:18(KST)부터 서버 릴레이는 켜져 있다**
 > (`DISCOUNT_POSTHOG_ENABLED=true`).
 >
-> 그 전에 잠시 꺼 뒀던 이유는 같은 방문이 두 번 찍혀서였다 — SDK 자동
+> 그 전에 잠시 꺼 뒀던 이유는 같은 방문이 두 번 찍혀서였다. SDK 자동
 > pageview가 우리 `eventId`를 모르는 별개 id로 쏘고 있었다. 우리가 만든
 > 이벤트끼리는 같은 `eventId`를 `$insert_id`로 써서 합쳐지지만, SDK가
 > 스스로 쏘는 것은 그 규칙에 안 걸린다. 자동 발사를 끄면서
 > (`capture_pageview: false`) 원인이 사라져 다시 켰다.
 >
-> 켜 두는 값어치: 광고 차단기·DNT로 클라이언트가 막힌 방문자도 회수된다
+> 켜 두는 값어치: 광고 차단기와 DNT로 클라이언트가 막힌 방문자도 회수된다
 > (실측 10% 안팎, `scripts/coverage_snapshot.sh`).
 
 | 경로 | 얻는 것 | 못 보는 것 |
 |---|---|---|
-| 클라이언트 SDK | Web Vitals, 기기·브라우저 속성 | 광고 차단기를 쓰는 방문자 |
+| 클라이언트 SDK | Web Vitals, 기기와 브라우저 속성 | 광고 차단기를 쓰는 방문자 |
 | 서버 릴레이 | 차단기와 무관하게 도착 | 브라우저 정보 |
 
 차단기를 쓰면 클라이언트 경로가 통째로 막힌다. 서버가 살아 있으면 그 방문자 이벤트도 남는다.
 
-**자체 원장은 항상 전량을 받는다** — 같은 오리진이라 차단기에 안 막힌다. 그래서 판정을 원장으로 한다.
+**자체 원장은 항상 전량을 받는다.** 같은 오리진이라 차단기에 안 막힌다. 그래서 판정을 원장으로 한다.
 
 ---
 
 ## 우리가 못 보는 사람들
 
-**DNT/GPC를 켜면 네 경로 모두 아무것도 안 보낸다** — 자체 API·PostHog·GA4·Vercel Analytics. 광고 차단기도 `/api/events`를 막는다.
+**DNT/GPC를 켜면 네 경로 모두 아무것도 안 보낸다.** 자체 API, PostHog, GA4, Vercel Analytics 전부다. 광고 차단기도 `/api/events`를 막는다.
 
 그 규모는 잴 수 있다. 화면을 그리려면 `/api/brands`를 반드시 부르는데 거기엔 게이트가 없다.
 
@@ -321,11 +321,11 @@ ssh <서버> "cat /home/ubuntu/delivery-discount-api/data/coverage.jsonl"
 - User-Agent 문자열 (`device` 두 값으로 대체)
 - 유입 URL 원문 (`direct`/`internal`/`external`만)
 - 쿼리스트링, 검색어 원문 (`fSearch`는 있었나만)
-- 이름·이메일·계정 — 로그인 기능 자체가 없다
+- 이름, 이메일, 계정. 로그인 기능 자체가 없다
 - 세션 리플레이 (끔)
-- `autocapture` (끔 — 명시적 이벤트와 중복되므로)
+- `autocapture` (끔. 명시적 이벤트와 중복되므로)
 
-**DNT/GPC를 켜면 아무것도 안 보낸다.** 자체 API·PostHog·GA4·Vercel Analytics 전부.
+**DNT/GPC를 켜면 아무것도 안 보낸다.** 자체 API, PostHog, GA4, Vercel Analytics 전부.
 
 ---
 
@@ -340,10 +340,10 @@ A  앱 버튼 + 분류 캐러셀을 전부 펼침        (TopBarA.jsx)          
 B  검색 중심 바 + 분류 메뉴바 + 바텀시트     (MenuBar, FilterSheet)  ← 2026-09-15 삭제
 ```
 
-결론은 `docs/HANDOFF-20260914.md` §4: 시트에 감추면 조건이 걸려 있다는 사실 자체를
-못 보고, 펼쳐두면 그 자리에서 푼다. `uiVariant`는 상수 `'a'`가 됐고 `?variant=`·
+결론은 `docs/HANDOFF-20260914.md` §4에 있다. 시트에 감추면 조건이 걸려 있다는 사실 자체를
+못 보고, 펼쳐두면 그 자리에서 푼다. `uiVariant`는 상수 `'a'`가 됐고 `?variant=`와
 `VITE_UI_VARIANT` 강제는 없어졌다. 이벤트의 `variant` 속성과 CSS의
-`[data-variant="a"]` 접두는 남긴다 — 실험 전후를 한 축으로 보고, 바 규칙의
+`[data-variant="a"]` 접두는 남긴다. 실험 전후를 한 축으로 보고, 바 규칙의
 우선순위를 안 흔들기 위해서다. 새 실험을 열려면 그때 배정 규칙을 다시 쓴다.
 
 ## 수집 경로 상세
@@ -390,7 +390,7 @@ VITE_POSTHOG_KEY / VITE_POSTHOG_HOST 가 있어야 동작
 - DNT/GPC면 SDK를 **아예 안 부른다**
 - `?dev=1`이면 제품 이벤트를 안 보낸다 (연결 진단만 예외)
 - `autocapture` 끔, 세션 리플레이 끔, Web Vitals 켬
-- `person_profiles: 'always'` — 서버 릴레이와 방침을 맞춘 값. 한쪽만 `'never'`면 어느 쪽이 먼저 닿느냐에 따라 프로필이 생겼다 말았다 해서 리텐션이 들쭉날쭉해진다
+- `person_profiles: 'always'`. 서버 릴레이와 방침을 맞춘 값이다. 한쪽만 `'never'`면 어느 쪽이 먼저 닿느냐에 따라 프로필이 생겼다 말았다 해서 리텐션이 들쭉날쭉해진다
 
 ## 알려진 함정
 
@@ -401,8 +401,8 @@ VITE_POSTHOG_KEY / VITE_POSTHOG_HOST 가 있어야 동작
 | 내 클릭이 실데이터에 섞임 | 그 창에 `?dev=1` 안 켬 | `localStorage.dk_dev` |
 | PostHog와 원장 숫자가 다름 | 개발 트래픽 제외 범위가 다르다 | 원장을 믿는다 |
 | 리텐션이 끊김 | `person_profiles` 방침이 두 경로에서 갈림 | `posthog.js` 설정 |
-| 갈래 차이가 두 배로 보임 | 1인당 총합을 봤다 — 소수가 많이 눌러 부푼다 | `experiments.py compare`의 전환율 |
-| 모바일 사용자가 통계에서 사라짐 | `device`만 보고 걸렀다 — 폰이 desktop으로 잡힌다 | `compare --by width` |
+| 갈래 차이가 두 배로 보임 | 1인당 총합을 봤다. 소수가 많이 눌러 부푼다 | `experiments.py compare`의 전환율 |
+| 모바일 사용자가 통계에서 사라짐 | `device`만 보고 걸렀다. 폰이 desktop으로 잡힌다 | `compare --by width` |
 
 ## 지표를 볼 때 지켜야 할 것
 
@@ -418,7 +418,7 @@ VITE_POSTHOG_KEY / VITE_POSTHOG_HOST 가 있어야 동작
   최다 1명   a 15회   b 43회     ← b 총 클릭 115회 중 43회가 한 사람
 ```
 
-`experiments.py`는 방문자 단위로만 센다 — 한 사람이 몇 번 누르든 1이다.
+`experiments.py`는 방문자 단위로만 센다. 한 사람이 몇 번 누르든 1이다.
 신뢰구간(Wilson)과 z검정을 같이 내므로 "차이가 있어 보인다"와 "차이가
 있다"를 구분할 수 있다.
 
@@ -432,7 +432,7 @@ VITE_POSTHOG_KEY / VITE_POSTHOG_HOST 가 있어야 동작
 
 ### 신규와 재방문을 갈라 본다
 
-UI를 바꾸면 **재방문자만** 흔들린다. 그들은 이전 화면에 익숙해서
+UI를 바꾸면 **재방문자만** 흔들린다. 재방문자는 이전 화면에 익숙해서
 위치가 바뀌면 못 찾고, 신규는 비교 대상이 없어 영향이 없다. 그래서
 전후 비교는 항상 갈라서 낸다.
 
@@ -444,10 +444,10 @@ python scripts/experiments.py paths --only returning
 합쳐서 보면 "전환율이 떨어졌다"로만 보이고 어느 쪽이 무엇에 반응했는지가
 안 드러난다.
 
-### 전후 비교 전에 — 그 사이에 지표가 바뀌지 않았나
+### 전후 비교 전에 그 사이에 지표가 바뀌지 않았나 본다
 
 **갈라 보는 것만으로는 부족하다.** 2026-08-19 개편(배너 도입 + 상단
-바·필터 시트 재구성)을 이렇게 읽었다가 틀렸다.
+바와 필터 시트 재구성)을 이렇게 읽었다가 틀렸다.
 
 ```
 전환 = offer_link_click만
@@ -516,7 +516,7 @@ python scripts/experiments.py compare --by variant --goal banner_click
 python scripts/experiments.py compare --by variant --goal cart_toggle
 ```
 
-### 어디서 새는지 본다 — 퍼널보다 경로가 먼저다
+### 어디서 새는지 본다: 퍼널보다 경로가 먼저다
 
 **퍼널은 단계를 미리 정해야 한다. 그 단계가 실제 경로가 아니면 없는
 이탈이 만들어진다.** 먼저 사람들이 실제로 무엇을 하는지 본다.
@@ -538,7 +538,7 @@ python scripts/experiments.py paths
 
 여기서 읽히는 것: **세션의 58%가 아무 동작도 없이 나간다.** 그리고 전환한
 세션 대부분은 필터도 펼침도 안 거치고 곧장 링크로 간다. `brand_expand`는
-링크 앞보다 뒤에 오는 경우도 많아 — 전 단계가 아니라 사후 확인 행동이다.
+링크 앞보다 뒤에 오는 경우도 많다. 전 단계가 아니라 사후 확인 행동이다.
 
 경로를 확인한 다음에야 퍼널이 뜻을 갖는다.
 
@@ -553,7 +553,7 @@ python scripts/experiments.py funnel --steps brand_expand,offer_link_click
 > 마지막 단계가 **139명(순서 무시) / 81명(시각순) / 44명(같은 세션)**으로
 > 갈렸다. 링크를 먼저 누르고 나중에 분류를 바꾼 사람이 통과하고 있었다.
 
-### 어떤 브랜드·배너가 먹혔나
+### 어떤 브랜드, 배너가 먹혔나
 
 ```bash
 python scripts/experiments.py top --event offer_link_click --prop brand
@@ -576,8 +576,8 @@ python scripts/experiments.py top --event category_change --prop category
 
 ## 관련 문서
 
-- [api/docs/traffic-analytics.md](../api/docs/traffic-analytics.md) — 서버 수집·릴레이 계약
-- [web/README.md](../web/README.md) — 프론트 계측과 개인정보 고지
-- [api/docs/decisions/ADR-005](../api/docs/decisions/ADR-005-first-party-analytics.md) — 자체 수집을 둔 배경
+- [api/docs/traffic-analytics.md](../api/docs/traffic-analytics.md): 서버 수집과 릴레이 계약
+- [web/README.md](../web/README.md): 프론트 계측과 개인정보 고지
+- [api/docs/decisions/ADR-005](../api/docs/decisions/ADR-005-first-party-analytics.md): 자체 수집을 둔 배경
 
-**할인 원장(`log.jsonl`)은 별개 데이터다.** 브랜드·오퍼 수집 명세는 tracker 쪽 문서를 본다.
+**할인 원장(`log.jsonl`)은 별개 데이터다.** 브랜드와 오퍼 수집 명세는 tracker 쪽 문서를 본다.
