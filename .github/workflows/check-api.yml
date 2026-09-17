@@ -1,0 +1,36 @@
+name: Check API
+
+# 읽기 전용 검증만 한다. 배포 권한이 있는 self-hosted 러너에는
+# pull_request 트리거를 연결하지 않는다(check-web.yml과 같은 이유).
+
+on:
+  pull_request:
+    paths: ['api/**', '.github/workflows/check-api.yml']
+  push:
+    branches: [main]
+    paths: ['api/**', '.github/workflows/check-api.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Test
+        run: ./gradlew test
+      # 테스트는 앞 단계에서 통과했다. build가 같은 테스트를 다시 실행하지
+      # 않게 하고 컴파일과 패키징 실패를 별도 단계로 드러낸다.
+      - name: Build
+        run: ./gradlew build -x test
