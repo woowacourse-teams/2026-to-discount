@@ -277,7 +277,22 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
           // 같은 탭에서 열어야 앱으로 간다. http(s) 링크만 새 탭에 둔다.
           target={link.startsWith('http') ? '_blank' : undefined}
           rel={link.startsWith('http') ? 'noreferrer' : undefined}
-          onClick={() => track('offer_link_click', { brand: brandName, platform: offer.platform })}
+          // 어느 오퍼를 눌렀는지까지 남긴다 — brand·platform만으로는 "bhc 배민"에
+          // 여러 구간·멤버십 오퍼가 있을 때 무엇이 눌렸는지 못 본다(2026-09-17).
+          onClick={() => track('offer_link_click', {
+            brand: brandName,
+            platform: offer.platform,
+            amount: offer.amount ?? null,
+            minOrder: offer.minOrderAmount ?? null,
+            qualifier: offer.qualifier ?? 'none',
+            membership: offer.membership ?? 'none',
+            tierMode: offer.tierMode ?? 'none',
+            tiers: Array.isArray(offer.tiers) ? offer.tiers.length : 0,
+            best: !!best,
+            held,
+            soldOut: !!offer.soldOut,
+            fromBanner: !!offer.link,
+          })}
         >
           {content}
         </a>

@@ -62,9 +62,11 @@ public class EventController {
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;
     private static final Pattern VARIANT_TOKEN = Pattern.compile("[a-z0-9_-]{1,16}");
-    // 이벤트 고유 값 4개와 필터 맥락 6종을 함께 보존한다. 순서는 프론트가
+    // 이벤트 고유 값과 필터 맥락 6종을 함께 보존한다. 순서는 프론트가
     // 이벤트 값을 앞에 두므로, 그래도 넘치면 맥락이 먼저 떨어진다.
-    private static final int MAX_PROPS = 10;
+    // 2026-09-17: offer_link_click이 어느 오퍼인지(금액·구간·멤버십·최고·보류…)
+    // 12개를 싣게 되어 10이면 맥락이 통째로 떨어졌다 — 18로.
+    private static final int MAX_PROPS = 18;
 
     private final AnalyticsEventService events;
     private final ClientFingerprint fingerprint;

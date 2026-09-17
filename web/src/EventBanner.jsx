@@ -133,6 +133,13 @@ function BannerCard({ banner, position, onClose, onSeen }) {
           brand: banner.brand ?? 'none',
           platform: banner.platform,
           position,
+          // 무엇이 눌렸는지 id 밖에서도 읽히게 — 배너는 날마다 새 id라
+          // 금액·묶음·매진 상태가 있어야 종류별로 모아 볼 수 있다(2026-09-17).
+          amount: banner.amount ?? 'none',
+          brands: banner.brands?.length > 1 ? banner.brands.join('/') : (banner.brand ?? 'none'),
+          minOrder: banner.minOrder ?? null,
+          soldOut: !!banner.soldOut,
+          external,
         })}
       >
         {/* 로고와 플랫폼 배지는 한 덩어리다 — 배지가 로고 위에 얹혀야
