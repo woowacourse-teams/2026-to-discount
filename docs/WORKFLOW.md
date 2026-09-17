@@ -113,6 +113,7 @@ cd api && ./gradlew test
 cd web && npm test && npm run build
 node web/scripts/dev/banner-shot.mjs 0 out.png   # 360px 스크린샷(프리뷰 서버 필요)
 python3 scripts/generate_project_structure.py --check   # 구조 문서 최신인지
+git config core.hooksPath scripts/githooks               # 위 검사를 push 전에 자동으로(한 번만)
 
 # 운영
 curl -s https://bebeggars.duckdns.org/api/banners | head -c 300

@@ -131,6 +131,8 @@ web/scripts/build-platform-icons.py
 web/scripts/dev/README.md
 web/scripts/dev/banner-measure.mjs
 web/scripts/dev/banner-shot.mjs
+web/scripts/dev/build-ui-kit.py
+web/scripts/dev/capture-dom.mjs
 web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
 web/scripts/verify-analytics-event-contract.mjs
@@ -220,7 +222,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 90 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 55 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 57 |
 
 ### Tracker
 

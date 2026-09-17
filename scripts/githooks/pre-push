@@ -1,0 +1,9 @@
+#!/bin/sh
+# push 전에 구조 문서가 최신인지 본다. CI(check-project-structure.yml)가 같은 검사를
+# 하는데, 2026-09-16~17 일곱 번 연속 빨간불이었다 — 점검표에 적혀 있어도 사람이
+# 안 돌리면 소용없어 훅으로 건다. 켜기: git config core.hooksPath scripts/githooks
+py=python3; command -v python3 >/dev/null 2>&1 || py=python
+$py scripts/generate_project_structure.py --check || {
+  echo "docs/PROJECT-STRUCTURE.md가 낡았다. $py scripts/generate_project_structure.py 실행 뒤 커밋해서 다시 push." >&2
+  exit 1
+}
