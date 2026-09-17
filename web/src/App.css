@@ -682,7 +682,7 @@ h1 {
   color: #fff;
   cursor: pointer;
 }
-.banner__close:hover { background: rgba(255, 255, 255, .3); }
+@media (hover: hover) { .banner__close:hover { background: rgba(255, 255, 255, .3); } }
 /* 플로팅 배너는 화면에 떠 있어 모서리 밖 여유가 있다. 밖으로 빼면
    금액·부가정보를 가리지 않고, 배너 자체와도 겹치지 않는다. */
 .banner--bottom .banner__close,
@@ -699,7 +699,7 @@ h1 {
   right: calc(var(--dock-pad-x) - 9px);
   z-index: 3;
 }
-.banner--bottom .banner__close:hover, .banner-dock__close:hover { background: #333; }
+@media (hover: hover) { .banner--bottom .banner__close:hover, .banner-dock__close:hover { background: #333; } }
 .banner__close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 /* 하단 중앙 인디케이터. 점 자체는 6px이지만 버튼은 14px을 차지해
@@ -779,7 +779,7 @@ h1 {
   cursor: pointer;
   transition: background .15s ease, transform .12s ease;
 }
-.banner__ctl-btn:hover { background: rgba(255, 255, 255, .28); }
+@media (hover: hover) { .banner__ctl-btn:hover { background: rgba(255, 255, 255, .28); } }
 .banner__ctl-btn:active { transform: scale(.94); }
 .banner__ctl-btn:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: 2px; }
 
@@ -806,7 +806,7 @@ h1 {
    오른쪽은 조작 묶음을 덮는다(2026-09-16 900px 실측). */
 .banner__arrow--prev { left: 4px; }
 .banner__arrow--next { right: 4px; }
-.banner__arrow:hover { background: #2a2a2e; }
+@media (hover: hover) { .banner__arrow:hover { background: #2a2a2e; } }
 .banner__arrow:active { transform: scale(.94); }
 .banner__arrow:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: 2px; }
 /* 넓은 화면에서만 화살표. hover/pointer 미디어쿼리는 안 쓴다 — 일부

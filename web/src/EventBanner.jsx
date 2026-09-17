@@ -345,6 +345,7 @@ export default function EventBanner({ banners }) {
 
 
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+  const canHover = useMediaQuery('(hover: hover)')
   const pageHidden = usePageHidden()
   // 창 폭이 바뀌면 바 높이도 바뀐다 — 관찰자를 다시 세우는 트리거.
   const [viewportW, setViewportW] = useState(() => (typeof window === 'undefined' ? 0 : window.innerWidth))
@@ -499,10 +500,16 @@ export default function EventBanner({ banners }) {
 
   if (count === 0) return null
 
+  // 터치 기기에서는 탭이 mouseenter를 내고 mouseleave는 다른 곳을 누를 때까지
+  // 안 온다(브라우저의 sticky hover). 링크·버튼을 탭하면 포커스도 그대로 남는다.
+  // 그래서 한 번 누르면 다른 데를 누르기 전까지 자동 전환이 멈춰 있었다
+  // (2026-09-17 사용자 지적). 손이 올라간 것은 hover가 되는 기기에서만 세고,
+  // 포커스는 키보드로 옮긴 것(:focus-visible)만 센다 — 손가락으론 `held`(누르고
+  // 있는 동안)와 멈춤 버튼이 있다.
   const hoverProps = {
-    onMouseEnter: () => setHovered(true),
+    onMouseEnter: () => { if (canHover) setHovered(true) },
     onMouseLeave: () => setHovered(false),
-    onFocus: () => setFocused(true),
+    onFocus: (e) => { if (e.target.matches?.(':focus-visible')) setFocused(true) },
     onBlur: () => setFocused(false),
   }
   // 배너 위에 얹는 조작·표시는 카드 밖에 둔다. 카드는 가로로 흐르므로
