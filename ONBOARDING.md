@@ -8,7 +8,7 @@
 | Java | 17 |
 | Node / npm | 24 / 11 |
 
-Gradle·Spring Boot·React·Vite는 저장소에 고정돼 있다. 따로 설치하지 않는다.
+Gradle, Spring Boot, React, Vite는 저장소에 고정돼 있다. 따로 설치하지 않는다.
 
 ## 구조
 
@@ -19,8 +19,8 @@ tracker  →  export.json  →  api  →  /api/brands  →  web
 
 | 파트 | 역할 |
 |---|---|
-| [`tracker/`](tracker/) | 판독 계약·데이터 모델·원장 |
-| [`api/`](api/) | 별칭 정규화 · 확정/보류 · 만료 제외 · 정렬 |
+| [`tracker/`](tracker/) | 판독 계약, 데이터 모델, 원장 |
+| [`api/`](api/) | 별칭 정규화, 확정/보류 판정, 만료 제외, 정렬 |
 | [`web/`](web/) | 브랜드 카드 교차 비교 화면 |
 
 세 디렉터리는 따로 빌드된다.
@@ -36,7 +36,7 @@ cd api
 DISCOUNT_EXPORT_PATH=file:../tracker/data/export.json ./gradlew bootRun
 ```
 
-http://localhost:8080/api/brands — 브랜드 83개.
+http://localhost:8080/api/brands 에서 브랜드 83개가 나온다. 로컬 포트 8080은 `api/src/main/resources/application.yml`의 기본값이다. 운영 서버는 8088 포트로 띄우고 nginx가 앞에서 프록시한다.
 
 `DISCOUNT_EXPORT_PATH`를 빼면 스키마 예시 6건만 뜬다.
 
@@ -50,9 +50,7 @@ npm run dev
 
 http://localhost:5173
 
-**web은 로컬 api가 아니라 운영 서버를 부른다.** 로컬 api를 화면에서 보려면
-`src/api.js`의 `API_BASE`를 `http://localhost:8080`으로 바꾼다. 커밋하지
-않는다.
+**web은 로컬 api 대신 운영 서버(`https://bebeggars.duckdns.org`)를 부른다.** 로컬 api를 화면에서 보려면 `src/api.js`의 `API_BASE`를 `http://localhost:8080`으로 바꾼다. 이 변경은 커밋하지 않는다.
 
 ### 3. tracker
 
@@ -62,9 +60,7 @@ pip install pyyaml pytest
 python -m pytest -q
 ```
 
-새 데이터를 만드는 코드는 이 저장소에 없다. 원장에 관측을 추가할 때는
-`ingest.py`를 쓴다. **`export_data.py`는 돌리지 않는다** — 종료된 할인이
-되살아난다.
+앱 화면을 읽어 새 데이터를 만드는 코드는 이 저장소에 없다. 원장에 관측을 추가할 때는 `ingest.py`를 쓴다. **`export_data.py`는 돌리지 않는다.** 돌리면 종료된 할인이 되살아난다.
 
 ## 테스트
 
@@ -78,7 +74,7 @@ cd web     && npm run build         # ✓ built
 
 | 문서 | 내용 |
 |---|---|
-| [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | 어디서 무엇을 고치고 어떤 순서로 내보내나 — **작업 시작 전에** |
+| [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | 어디서 무엇을 고치고 어떤 순서로 내보내나. **작업 시작 전에** 읽는다 |
 | [`docs/ORCHESTRATION.md`](docs/ORCHESTRATION.md) | 층 간 계약, 실제 사고 사례 |
-| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | 커밋·주석·문서·데이터 규칙 |
+| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | 커밋, 주석, 문서, 데이터 규칙 |
 | [`docs/decisions/`](docs/decisions/) | 되돌리기 어려운 판단과 근거 |
