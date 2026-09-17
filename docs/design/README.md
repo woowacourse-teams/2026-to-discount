@@ -12,8 +12,16 @@
 옮기고(`writing-plans`), 계획은 체크박스로 진행을 적는다. 설계 문서 자체는 승인 뒤
 고치지 않는다 — 결과는 ADR과 계획에 남긴다.
 
-번호는 3~20이 GitHub 이슈 번호다. **21~25는 이슈 없이 순번만 이었다**(2026-09-15~17) —
-다음 이슈가 #21이면 번호가 겹친다. 이슈를 열어 맞추거나 문서를 옮겨야 한다(아래 결정).
+문서 번호 3부터 20은 GitHub 이슈 번호와 같다. 21부터 26은 이슈 없이 순번만 이었고 그 사이 PR 번호가 앞서 나가 이슈 번호와 맞출 수 없게 되었다. 대신 문서마다 추적 이슈를 열었다(2026-09-17). 상태 변화와 논의는 이슈에, 결정과 근거는 문서에 적는다.
+
+| 문서 | 추적 이슈 |
+|---|---|
+| 21 | [#27](https://github.com/woowacourse-teams/2026-to-discount/issues/27) |
+| 22 | [#28](https://github.com/woowacourse-teams/2026-to-discount/issues/28) |
+| 23 | [#29](https://github.com/woowacourse-teams/2026-to-discount/issues/29) |
+| 24 | [#30](https://github.com/woowacourse-teams/2026-to-discount/issues/30) |
+| 25 | [#31](https://github.com/woowacourse-teams/2026-to-discount/issues/31) |
+| 26 | [#32](https://github.com/woowacourse-teams/2026-to-discount/issues/32) |
 
 ## 상태
 
@@ -23,7 +31,7 @@
 | banner-grouping | 여러 브랜드를 한 장에 묶기 | **완료** (09-15 `brands` 필드, 배너 v3) | — | 상태 줄이 "제안"으로 남아 있음 → 갱신 |
 | 21 | 개발/운영 환경 분리 | 설계 완료, **도입 안 함** | — | 시점. "즉시 도입 안 함" (사용자, 09-15) |
 | 22 | 검수 화면 | 설계 완료, 도입 안 함 | 21 | 시점, 자동 반영 유예 시간 |
-| 23 | 피그마 왕복 | **보류** (사용자, 09-16) | — | UI kit는 `/design/ui-kit.html`에 있음. `best-tag` 브랜치 처리 |
+| 23 | 피그마 왕복 | **보류** (사용자, 09-16, 09-17 재확인) | — | UI kit는 `/design/ui-kit.html`에 있음. `best-tag` 브랜치(mono `1bf0e5f`, 미러 `preview/best-tag`)는 보류 상태로 유지 |
 | 24 | 검수 API·인증 | 설계 완료, 도입 안 함 | 21, 22 | 인증 3층 중 무엇부터 |
 | 25 | 배너 문구 구조화 | 설계 완료, 결정 대기 | (22와 묶음 추천) | 묶음 배열 vs 객체, 랜덤 범위 칸, 시점 |
 | 26 | 운영 관측을 한 화면과 한 알림 채널로(수집, API, 데이터, 웹, 서버, 배포 탭과 슬랙) | **1단계와 2단계 구현 완료** (2026-09-17) | 없음 | 다음 단계는 문서 10절: 스캐너 500 응답, 5xx 슬랙 알림, Vercel 연동 |
