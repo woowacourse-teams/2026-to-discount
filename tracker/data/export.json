@@ -1,68 +1,6 @@
 [
  {
   "platform": "yogiyo",
-  "brand": "푸라닭",
-  "amount": 6250,
-  "qualifier": "최적",
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "브랜드 할인",
-  "rawText": "18,000원 이상 5,000원 + 25,000원 이상 5%(최대 3,000원)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/yogiyo/yogiyo_2026-09-07_푸라닭.png",
-  "minOrderAmount": 25000,
-  "tierMode": "cumulative",
-  "tiers": [
-   {
-    "minOrder": 18000,
-    "amount": 5000
-   },
-   {
-    "minOrder": 25000,
-    "amount": 1250,
-    "percent": 5,
-    "cap": 3000
-   }
-  ],
-  "conditions": "25,000원 × 5% + 5,000원",
-  "expiresAt": "2026-09-13",
-  "badge": "5%할인",
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "yogiyo",
-  "brand": "bhc",
-  "amount": 4150,
-  "qualifier": "최적",
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "브랜드 할인",
-  "rawText": "18,000원 이상 3,000원 + 23,000원 이상 5%(최대 3,000원)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/yogiyo/yogiyo_2026-09-07_BHC치킨.png",
-  "minOrderAmount": 23000,
-  "tierMode": "cumulative",
-  "tiers": [
-   {
-    "minOrder": 18000,
-    "amount": 3000
-   },
-   {
-    "minOrder": 23000,
-    "amount": 1150,
-    "percent": 5,
-    "cap": 3000
-   }
-  ],
-  "conditions": "23,000원 × 5% + 3,000원",
-  "expiresAt": "2026-09-13",
-  "badge": "5%할인",
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "yogiyo",
   "brand": "호식이두마리치킨",
   "amount": 6000,
   "qualifier": "최대",
@@ -122,26 +60,6 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": null,
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "yogiyo",
-  "brand": "CU",
-  "amount": 4000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "coupon",
-  "section": "브랜드 할인",
-  "rawText": "16,000원 이상 4,000원(포장)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/yogiyo/yogiyo_2026-09-07_CU픽업.png",
-  "minOrderAmount": 16000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-13",
   "badge": null,
   "soldOut": false,
   "membership": "none"
@@ -289,56 +207,86 @@
   "membership": null
  },
  {
-  "platform": "yogiyo",
-  "brand": "뚜레쥬르",
-  "amount": 4900,
-  "qualifier": "최적",
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "브랜드 할인",
-  "rawText": "18,000원 이상 4,000원 + 18,000원 이상 5%(최대 3,000원)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/yogiyo/yogiyo_2026-09-07_뚜레쥬르.png",
-  "minOrderAmount": 18000,
-  "tierMode": "cumulative",
-  "tiers": [
-   {
-    "minOrder": 18000,
-    "amount": 4000
-   },
-   {
-    "minOrder": 18000,
-    "amount": 900,
-    "percent": 5,
-    "cap": 3000
-   }
-  ],
-  "conditions": "18,000원 × 5% + 4,000원",
-  "expiresAt": "2026-09-13",
-  "badge": "5%할인",
-  "soldOut": false,
-  "membership": "none"
- },
- {
   "platform": "coupangeats",
   "brand": "BBQ",
   "amount": 3000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "3,000원할인",
-  "capturedAt": "2026-09-07T13:58:21+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "3,000원 BBQ 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
   "minOrderAmount": 18000,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 18000,
+    "amount": 3000,
+    "channel": "배달",
+    "membership": "none"
+   }
+  ],
   "conditions": null,
-  "expiresAt": "2026-09-14",
+  "expiresAt": "2026-09-20",
   "badge": null,
   "soldOut": false,
-  "membership": "none",
+  "membership": "none"
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "던킨",
+  "amount": 5000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "위클리 슈퍼딜 > 브랜드 할인",
+  "rawText": "5,000원할인",
+  "capturedAt": "2026-09-17T16:05:02+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
+  "minOrderAmount": 18000,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": 18000,
+    "amount": 5000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": null,
+  "soldOut": false,
+  "membership": "coupangEats",
   "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "버거킹",
+  "amount": 2000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "2,000원 버거킹 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 21000,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": 21000,
+    "amount": 2000,
+    "channel": "배달",
+    "membership": "none"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-20",
+  "badge": null,
+  "soldOut": false,
+  "membership": "none"
  },
  {
   "platform": "coupangeats",
@@ -349,14 +297,42 @@
   "offerType": "discount",
   "section": "위클리 슈퍼딜 > 브랜드 할인",
   "rawText": "6,000원할인",
-  "capturedAt": "2026-09-07T13:58:28+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "capturedAt": "2026-09-17T16:04:59+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": "쿠팡와우 전용쿠폰",
+  "expiresAt": "2026-09-21",
+  "badge": null,
+  "soldOut": false,
+  "membership": null,
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "자담치킨",
+  "amount": 4000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 자담치킨 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 4000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": "",
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
   "soldOut": false,
   "membership": "coupangEats",
   "expiresAtEstimated": true
@@ -364,149 +340,106 @@
  {
   "platform": "coupangeats",
   "brand": "청년피자",
-  "amount": 7000,
+  "amount": 4000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "7,000원할인",
-  "capturedAt": "2026-09-07T13:58:38+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "rawText": "4,000원할인",
+  "capturedAt": "2026-09-17T16:04:53+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-09-14",
+  "expiresAt": "2026-09-21",
   "badge": null,
   "soldOut": false,
-  "membership": "none",
+  "membership": null,
   "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
   "brand": "멕시카나",
-  "amount": 5000,
+  "amount": 4500,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "5,000원할인",
-  "capturedAt": "2026-09-07T13:58:27+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "rawText": "4,500원할인",
+  "capturedAt": "2026-09-15T11:06:03+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-15.png",
   "minOrderAmount": 18000,
   "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": "",
-  "expiresAt": "2026-09-14",
-  "badge": "쿠팡와우 전용쿠폰",
+  "tiers": [
+   {
+    "minOrder": 18000,
+    "amount": 4500,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": null,
   "soldOut": false,
   "membership": "coupangEats",
   "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
-  "brand": "꾸브라꼬숯불치킨",
-  "amount": 4000,
+  "brand": "뚜레쥬르",
+  "amount": 5000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "4,000원할인",
-  "capturedAt": "2026-09-07T13:58:30+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "5,000원 뚜레쥬르 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 5000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
   "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
   "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
-  "platform": "coupangeats",
-  "brand": "스타벅스",
-  "amount": 4000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "4,000원할인",
-  "capturedAt": "2026-09-07T13:58:25+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": 20000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
-  "platform": "coupangeats",
-  "brand": "치킨인류",
-  "amount": 2500,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "2,500원할인",
-  "capturedAt": "2026-09-07T13:58:33+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
-  "platform": "coupangeats",
-  "brand": "디디치킨",
-  "amount": 2000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "2,000원할인",
-  "capturedAt": "2026-09-07T13:58:34+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
+  "membership": "coupangEats",
   "expiresAtEstimated": true
  },
  {
   "platform": "coupangeats",
   "brand": "도미노피자",
   "amount": 5000,
-  "qualifier": null,
+  "qualifier": "최대",
   "needsReview": false,
   "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "5,000원할인",
-  "capturedAt": "2026-09-07T13:58:24+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "5,000원 도미노피자 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
   "minOrderAmount": 25900,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 25900,
+    "amount": 5000,
+    "channel": "배달",
+    "membership": "none"
+   }
+  ],
   "conditions": null,
-  "expiresAt": "2026-09-14",
+  "expiresAt": "2026-09-30",
   "badge": null,
   "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
+  "membership": "none"
  },
  {
   "platform": "coupangeats",
@@ -517,13 +450,13 @@
   "offerType": "discount",
   "section": "위클리 슈퍼딜 > 브랜드 할인",
   "rawText": "4,000원할인",
-  "capturedAt": "2026-09-07T13:58:37+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "capturedAt": "2026-09-17T16:05:08+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-09-14",
+  "expiresAt": "2026-09-21",
   "badge": null,
   "soldOut": false,
   "membership": "none",
@@ -531,44 +464,51 @@
  },
  {
   "platform": "coupangeats",
-  "brand": "잠바주스",
-  "amount": 3000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "3,000원할인",
-  "capturedAt": "2026-09-07T13:58:42+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
-  "platform": "coupangeats",
-  "brand": "파스쿠찌",
+  "brand": "써브웨이",
   "amount": 2000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": "위클리 슈퍼딜 > 브랜드 할인",
   "rawText": "2,000원할인",
-  "capturedAt": "2026-09-07T13:58:43+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "capturedAt": "2026-09-17T16:05:03+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-09-14",
+  "expiresAt": "2026-09-21",
   "badge": null,
   "soldOut": false,
-  "membership": "none",
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "본도시락",
+  "amount": 3000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "위클리 슈퍼딜 > 브랜드 할인",
+  "rawText": "3,000원할인",
+  "capturedAt": "2026-09-17T16:05:04+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 3000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": null,
+  "soldOut": false,
+  "membership": "coupangEats",
   "expiresAtEstimated": true
  },
  {
@@ -784,26 +724,6 @@
  },
  {
   "platform": "ddangyo",
-  "brand": "뚜레쥬르",
-  "amount": 4000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "coupon",
-  "section": "혜택 > 브랜드쿠폰",
-  "rawText": "18,000원 이상 4,000원(배달/포장)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/ddangyo/ddangyo_2026-09-07_브랜드쿠폰_01.png",
-  "minOrderAmount": 18000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-16",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "ddangyo",
   "brand": "또봉이통닭",
   "amount": 3000,
   "qualifier": null,
@@ -818,26 +738,6 @@
   "tiers": null,
   "conditions": null,
   "expiresAt": "2026-09-30",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "ddangyo",
-  "brand": "오븐에빠진닭",
-  "amount": 4000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "coupon",
-  "section": "혜택 > 브랜드쿠폰",
-  "rawText": "20,000원 이상 4,000원(배달/포장)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/ddangyo/ddangyo_2026-09-07_브랜드쿠폰_01.png",
-  "minOrderAmount": 20000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-13",
   "badge": null,
   "soldOut": false,
   "membership": "none"
@@ -1053,26 +953,6 @@
  },
  {
   "platform": "ddangyo",
-  "brand": "설빙",
-  "amount": 3000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "coupon",
-  "section": "혜택 > 브랜드쿠폰",
-  "rawText": "15,000원 이상 3,000원(배달/포장)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/ddangyo/ddangyo_2026-09-07_브랜드쿠폰_01.png",
-  "minOrderAmount": 15000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-13",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "ddangyo",
   "brand": "떡참",
   "amount": 3000,
   "qualifier": null,
@@ -1107,26 +987,6 @@
   "tiers": null,
   "conditions": "",
   "expiresAt": "2026-09-30",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "ddangyo",
-  "brand": "왓더버거",
-  "amount": 3000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "coupon",
-  "section": "혜택 > 브랜드쿠폰",
-  "rawText": "18,000원 이상 3,000원(배달/포장)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/ddangyo/ddangyo_2026-09-07_브랜드쿠폰_01.png",
-  "minOrderAmount": 18000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-13",
   "badge": null,
   "soldOut": false,
   "membership": "none"
@@ -1200,8 +1060,8 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "12,100원 배민클럽 훌랄라참숯치킨 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
   "tiers": null,
@@ -1220,64 +1080,41 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "10,000원 피자헛 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
-  "minOrderAmount": 22000,
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 24000,
   "tierMode": "exclusive",
   "tiers": [
-   {
-    "minOrder": 22000,
-    "amount": 10000,
-    "channel": "배달",
-    "expiresAt": "2026-09-12"
-   },
    {
     "minOrder": 24000,
     "amount": 10000,
     "channel": "포장",
-    "expiresAt": "2026-09-27"
+    "expiresAt": "2026-09-27",
+    "membership": "none"
+   },
+   {
+    "minOrder": 22000,
+    "amount": 7000,
+    "expiresAt": "2026-09-30",
+    "membership": "baeminClub"
    },
    {
     "minOrder": 22000,
     "amount": 7000,
     "channel": "배달",
-    "expiresAt": "2026-09-12"
-   },
-   {
-    "minOrder": 22000,
-    "amount": 7000,
-    "channel": "배달",
-    "expiresAt": "2026-09-27"
+    "expiresAt": "2026-09-27",
+    "membership": "none"
    },
    {
     "minOrder": 22000,
     "amount": 6000,
     "channel": "배달",
-    "expiresAt": "2026-09-27"
+    "expiresAt": "2026-09-27",
+    "membership": "none"
    }
   ],
-  "conditions": "한정수량",
-  "expiresAt": "2026-09-12",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "baemin",
-  "brand": "빽보이피자",
-  "amount": 8000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "쿠폰함 보유쿠폰",
-  "rawText": "8,000원 빽보이피자 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
-  "minOrderAmount": 18900,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": "한정수량",
-  "expiresAt": "2026-09-12",
+  "conditions": null,
+  "expiresAt": "2026-09-27",
   "badge": null,
   "soldOut": false,
   "membership": "none"
@@ -1317,7 +1154,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 25000,
     "amount": 5000
    }
   ],
@@ -1336,18 +1173,17 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "9,000원 배민클럽 도미노피자 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 25900,
   "tierMode": "exclusive",
   "tiers": [
    {
     "minOrder": 25900,
-    "amount": 9000
-   },
-   {
-    "minOrder": 25900,
-    "amount": 5000
+    "amount": 9000,
+    "channel": "배달",
+    "expiresAt": "2026-09-30",
+    "membership": "baeminClub"
    }
   ],
   "conditions": "",
@@ -1359,19 +1195,27 @@
  {
   "platform": "baemin",
   "brand": "처갓집양념치킨",
-  "amount": 5000,
+  "amount": 4000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
-  "rawText": "5,000원 처갓집양념치킨 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "rawText": "4,000원 처갓집양념치킨 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 16000,
   "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": "한정수량",
-  "expiresAt": "2026-09-12",
+  "tiers": [
+   {
+    "minOrder": 16000,
+    "amount": 4000,
+    "channel": "배달",
+    "expiresAt": "2026-09-20",
+    "membership": "none"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-20",
   "badge": null,
   "soldOut": false,
   "membership": "none"
@@ -1436,31 +1280,6 @@
  },
  {
   "platform": "baemin",
-  "brand": "빽보이피자 오구샌",
-  "amount": 4000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "쿠폰함 보유쿠폰",
-  "rawText": "4,000원 빽보이피자 오구샌 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
-  "minOrderAmount": 15000,
-  "tierMode": "exclusive",
-  "tiers": [
-   {
-    "minOrder": null,
-    "amount": 4000
-   }
-  ],
-  "conditions": "",
-  "expiresAt": "2026-09-13",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "baemin",
   "brand": "하남돼지집",
   "amount": 3000,
   "qualifier": null,
@@ -1485,21 +1304,16 @@
   "amount": 4000,
   "qualifier": null,
   "needsReview": false,
-  "offerType": "coupon",
-  "section": "브랜드관 쿠폰",
-  "rawText": "18,000원 이상 4,000원",
-  "capturedAt": "2026-09-08T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-08/baemin/baemin_2026-09-08_뚜레쥬르.png",
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 뚜레쥬르 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 18000,
   "tierMode": "exclusive",
-  "tiers": [
-   {
-    "minOrder": null,
-    "amount": 4000
-   }
-  ],
-  "conditions": "",
-  "expiresAt": null,
+  "tiers": null,
+  "conditions": null,
+  "expiresAt": "2026-09-20",
   "badge": null,
   "soldOut": false,
   "membership": "none"
@@ -1539,41 +1353,16 @@
   "amount": 3500,
   "qualifier": null,
   "needsReview": false,
-  "offerType": "coupon",
-  "section": "브랜드관 쿠폰",
-  "rawText": "15,000원 이상 3,500원",
-  "capturedAt": "2026-09-08T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-08/baemin/baemin_2026-09-08_네네치킨.png",
-  "minOrderAmount": 15000,
-  "tierMode": "exclusive",
-  "tiers": [
-   {
-    "minOrder": null,
-    "amount": 3500
-   }
-  ],
-  "conditions": "",
-  "expiresAt": null,
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "baemin",
-  "brand": "bhc",
-  "amount": 8000,
-  "qualifier": null,
-  "needsReview": false,
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
-  "rawText": "8,000원 BHC 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
-  "minOrderAmount": 18000,
+  "rawText": "3,500원 네네치킨 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 15000,
   "tierMode": "exclusive",
   "tiers": null,
-  "conditions": "한정수량",
-  "expiresAt": "2026-09-12",
+  "conditions": null,
+  "expiresAt": "2026-09-20",
   "badge": null,
   "soldOut": false,
   "membership": "none"
@@ -1593,7 +1382,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 20000,
     "amount": 3500
    }
   ],
@@ -1654,43 +1443,6 @@
  },
  {
   "platform": "baemin",
-  "brand": "양은이네동태",
-  "amount": 5000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "쿠폰함 보유쿠폰",
-  "rawText": "5,000원 양은이네 동태탕&보쌈 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
-  "minOrderAmount": 25000,
-  "tierMode": "exclusive",
-  "tiers": [
-   {
-    "minOrder": 9900,
-    "amount": 1000
-   },
-   {
-    "minOrder": 15000,
-    "amount": 3000
-   },
-   {
-    "minOrder": 25000,
-    "amount": 5000
-   },
-   {
-    "minOrder": 25000,
-    "amount": 3000
-   }
-  ],
-  "conditions": "",
-  "expiresAt": "2026-09-13",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "baemin",
   "brand": "움버거앤윙스",
   "amount": 5000,
   "qualifier": null,
@@ -1737,7 +1489,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 30000,
     "amount": 3000
    }
   ],
@@ -1750,22 +1502,22 @@
  {
   "platform": "baemin",
   "brand": "60계치킨",
-  "amount": 4000,
+  "amount": 3000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
-  "section": "배짱할인 주말핫딜 이번주",
-  "rawText": "4,000원 (20,000원 이상 주문 시)",
-  "capturedAt": "2026-09-05T21:16:20+09:00",
-  "screenshotPath": "captures/baemin/baejjang-weekend-2026-09-05.png",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "3,000원 60계치킨 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 20000,
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": null,
+  "expiresAt": "2026-09-20",
   "badge": null,
   "soldOut": false,
-  "membership": null
+  "membership": "none"
  },
  {
   "platform": "baemin",
@@ -1782,7 +1534,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 18000,
     "amount": 3000
    }
   ],
@@ -1795,22 +1547,35 @@
  {
   "platform": "baemin",
   "brand": "배스킨라빈스",
-  "amount": 3500,
+  "amount": 3000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
-  "rawText": "3,500원 배민클럽 배스킨라빈스 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "rawText": "3,000원 배스킨라빈스 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 18500,
   "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": "",
-  "expiresAt": "2026-09-30",
-  "badge": "배민클럽",
+  "tiers": [
+   {
+    "minOrder": 18500,
+    "amount": 3500,
+    "expiresAt": "2026-09-30",
+    "membership": "baeminClub"
+   },
+   {
+    "minOrder": 18500,
+    "amount": 3000,
+    "expiresAt": "2026-09-20",
+    "membership": "none"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-20",
+  "badge": null,
   "soldOut": false,
-  "membership": "baeminClub"
+  "membership": "none"
  },
  {
   "platform": "baemin",
@@ -1933,22 +1698,35 @@
  {
   "platform": "baemin",
   "brand": "멕시카나",
-  "amount": 4500,
+  "amount": 4000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
-  "rawText": "4,500원 배민클럽 멕시카나 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "rawText": "4,000원 멕시카나 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 18000,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 18000,
+    "amount": 4500,
+    "expiresAt": "2026-09-30",
+    "membership": "baeminClub"
+   },
+   {
+    "minOrder": 18000,
+    "amount": 4000,
+    "expiresAt": "2026-09-20",
+    "membership": "none"
+   }
+  ],
   "conditions": null,
-  "expiresAt": "2026-09-30",
-  "badge": "배민클럽",
+  "expiresAt": "2026-09-20",
+  "badge": null,
   "soldOut": false,
-  "membership": "baeminClub"
+  "membership": "none"
  },
  {
   "platform": "baemin",
@@ -1965,7 +1743,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 17900,
     "amount": 4000
    }
   ],
@@ -1977,6 +1755,111 @@
  },
  {
   "platform": "coupangeats",
+  "brand": "노모어피자",
+  "amount": 5000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "위클리 슈퍼딜 > 브랜드 할인",
+  "rawText": "5,000원할인",
+  "capturedAt": "2026-09-17T16:04:43+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": null,
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": null,
+  "soldOut": false,
+  "membership": null,
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "요아정",
+  "amount": 3500,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "3,500원 요아정 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 3500,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
+  "soldOut": false,
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "네네치킨",
+  "amount": 4500,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,500원 네네치킨 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 4500,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
+  "soldOut": false,
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "왓더버거",
+  "amount": 4000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 왓더버거 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 4000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
+  "soldOut": false,
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
   "brand": "기영이숯불두마리치킨",
   "amount": 3000,
   "qualifier": null,
@@ -1984,16 +1867,23 @@
   "offerType": "discount",
   "section": "위클리 슈퍼딜 > 브랜드 할인",
   "rawText": "3,000원할인",
-  "capturedAt": "2026-09-07T13:58:29+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "capturedAt": "2026-09-17T16:04:57+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 3000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
   "conditions": null,
-  "expiresAt": "2026-09-14",
+  "expiresAt": "2026-09-21",
   "badge": null,
   "soldOut": false,
-  "membership": "none",
+  "membership": "coupangEats",
   "expiresAtEstimated": true
  },
  {
@@ -2005,111 +1895,17 @@
   "offerType": "discount",
   "section": "위클리 슈퍼딜 > 브랜드 할인",
   "rawText": "2,000원할인",
-  "capturedAt": "2026-09-07T13:58:35+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "capturedAt": "2026-09-17T16:05:07+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
   "tiers": null,
   "conditions": null,
-  "expiresAt": "2026-09-14",
+  "expiresAt": "2026-09-21",
   "badge": null,
   "soldOut": false,
   "membership": "none",
   "expiresAtEstimated": true
- },
- {
-  "platform": "coupangeats",
-  "brand": "이경규의 돈치킨",
-  "amount": 3000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "3,000원할인",
-  "capturedAt": "2026-09-07T13:58:32+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
-  "platform": "coupangeats",
-  "brand": "미스터피자",
-  "amount": 5000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "5,000원할인",
-  "capturedAt": "2026-09-07T13:58:36+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
-  "platform": "coupangeats",
-  "brand": "매드포갈릭",
-  "amount": 5000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "5,000원할인",
-  "capturedAt": "2026-09-07T13:58:41+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
-  "platform": "yogiyo",
-  "brand": "인생아구찜",
-  "amount": 4750,
-  "qualifier": "최적",
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "브랜드 할인",
-  "rawText": "20,000원 이상 3,500원 + 25,000원 이상 5%(최대 3,000원)",
-  "capturedAt": "2026-09-08T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-08/yogiyo/yogiyo_2026-09-08_인생아구찜.png",
-  "minOrderAmount": 25000,
-  "tierMode": "cumulative",
-  "tiers": [
-   {
-    "minOrder": 20000,
-    "amount": 3500
-   },
-   {
-    "minOrder": 25000,
-    "amount": 1250,
-    "percent": 5,
-    "cap": 3000
-   }
-  ],
-  "conditions": "25,000원 × 5% + 3,500원",
-  "expiresAt": "2026-09-13",
-  "badge": "5%할인",
-  "soldOut": false,
-  "membership": "none"
  },
  {
   "platform": "ddangyo",
@@ -2140,11 +1936,19 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "4,000원 배민클럽 호식이두마리치킨 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 21000,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 21000,
+    "amount": 4000,
+    "channel": "배달",
+    "expiresAt": "2026-09-30",
+    "membership": "baeminClub"
+   }
+  ],
   "conditions": "",
   "expiresAt": "2026-09-30",
   "badge": "배민클럽",
@@ -2160,8 +1964,8 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "7,500원 배민클럽 청년피자 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 18900,
   "tierMode": "exclusive",
   "tiers": [
@@ -2215,7 +2019,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 9800,
     "amount": 3000
    }
   ],
@@ -2260,7 +2064,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 18900,
     "amount": 3000
    }
   ],
@@ -2305,7 +2109,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 17000,
     "amount": 3000
    }
   ],
@@ -2330,7 +2134,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 27000,
     "amount": 3000
    }
   ],
@@ -2355,7 +2159,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 15000,
     "amount": 3000
    }
   ],
@@ -2380,7 +2184,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 17000,
     "amount": 3000
    }
   ],
@@ -2463,7 +2267,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 18900,
     "amount": 2500
    }
   ],
@@ -2508,7 +2312,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 13000,
     "amount": 2000
    }
   ],
@@ -2553,32 +2357,12 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 10000,
     "amount": 1000
    }
   ],
   "conditions": "",
   "expiresAt": null,
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "baemin",
-  "brand": "홍콩반점0410",
-  "amount": 4000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "쿠폰함 보유쿠폰",
-  "rawText": "4,000원 홍콩반점0410 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
-  "minOrderAmount": 18000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": "",
-  "expiresAt": "2026-09-13",
   "badge": null,
   "soldOut": false,
   "membership": "none"
@@ -2647,7 +2431,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 18900,
     "amount": 3000
    }
   ],
@@ -2672,7 +2456,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 50000,
     "amount": 3000
    }
   ],
@@ -2697,7 +2481,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 18900,
     "amount": 3000
    }
   ],
@@ -2755,7 +2539,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 20000,
     "amount": 2000
    }
   ],
@@ -2809,7 +2593,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 18000,
     "amount": 5000
    }
   ],
@@ -2834,7 +2618,7 @@
   "tierMode": "exclusive",
   "tiers": [
    {
-    "minOrder": null,
+    "minOrder": 19900,
     "amount": 5000
    }
   ],
@@ -2882,11 +2666,19 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "4,000원 배민클럽 자담치킨 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 22000,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 22000,
+    "amount": 4000,
+    "channel": "배달",
+    "expiresAt": "2026-09-30",
+    "membership": "baeminClub"
+   }
+  ],
   "conditions": "",
   "expiresAt": "2026-09-30",
   "badge": "배민클럽",
@@ -2902,8 +2694,8 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "4,000원 배민클럽 던킨 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 18000,
   "tierMode": "exclusive",
   "tiers": [
@@ -2925,85 +2717,63 @@
  {
   "platform": "baemin",
   "brand": "스텔라떡볶이",
-  "amount": 3000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "쿠폰함 보유쿠폰",
-  "rawText": "3,000원 스텔라떡볶이 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
-  "minOrderAmount": 17000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-13",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "coupangeats",
-  "brand": "반올림피자",
   "amount": 4000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "4,000원할인",
-  "capturedAt": "2026-09-07T13:58:26+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 배민클럽 스텔라떡볶이 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 19000,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 19000,
+    "amount": 4000,
+    "channel": "배달",
+    "expiresAt": "2026-09-30",
+    "membership": "baeminClub"
+   }
+  ],
   "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
+  "expiresAt": "2026-09-30",
+  "badge": "배민클럽",
   "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
+  "membership": "baeminClub"
  },
  {
   "platform": "coupangeats",
-  "brand": "맘스터치",
-  "amount": 3000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "3,000원할인",
-  "capturedAt": "2026-09-07T13:58:20+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
-  "platform": "coupangeats",
-  "brand": "두찜",
+  "brand": "설빙",
   "amount": 2000,
-  "qualifier": null,
+  "qualifier": "최대",
   "needsReview": false,
   "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "2,000원할인",
-  "capturedAt": "2026-09-07T13:58:22+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "2,000원 설빙 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 18000,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 18000,
+    "amount": 4000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   },
+   {
+    "minOrder": 18000,
+    "amount": 2000,
+    "channel": "배달",
+    "membership": "none"
+   }
+  ],
   "conditions": null,
-  "expiresAt": "2026-09-14",
+  "expiresAt": "2026-09-20",
   "badge": null,
   "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
+  "membership": "none"
  },
  {
   "platform": "yogiyo",
@@ -3066,57 +2836,6 @@
   "membership": "none"
  },
  {
-  "platform": "yogiyo",
-  "brand": "네네치킨",
-  "amount": 4250,
-  "qualifier": "최적",
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "브랜드 할인",
-  "rawText": "18,000원 이상 3,000원 + 25,000원 이상 5%(최대 3,000원)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/yogiyo/yogiyo_2026-09-07_네네치킨.png",
-  "minOrderAmount": 25000,
-  "tierMode": "cumulative",
-  "tiers": [
-   {
-    "minOrder": 18000,
-    "amount": 3000
-   },
-   {
-    "minOrder": 25000,
-    "amount": 1250,
-    "percent": 5,
-    "cap": 3000
-   }
-  ],
-  "conditions": "25,000원 × 5% + 3,000원",
-  "expiresAt": "2026-09-13",
-  "badge": "5%할인",
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "baemin",
-  "brand": "후라이드참잘하는집",
-  "amount": 4000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "쿠폰함 보유쿠폰",
-  "rawText": "4,000원 후라이드참잘하는집 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
-  "minOrderAmount": 18000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": "한정수량",
-  "expiresAt": "2026-09-12",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
   "platform": "baemin",
   "brand": "명랑핫도그",
   "amount": 5000,
@@ -3125,8 +2844,8 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "5,000원 배민클럽 명랑핫도그 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 21000,
   "tierMode": "exclusive",
   "tiers": null,
@@ -3135,6 +2854,26 @@
   "badge": "배민클럽",
   "soldOut": false,
   "membership": "baeminClub"
+ },
+ {
+  "platform": "baemin",
+  "brand": "반올림피자",
+  "amount": 4000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 반올림피자 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 16900,
+  "tierMode": "exclusive",
+  "tiers": null,
+  "conditions": null,
+  "expiresAt": "2026-09-20",
+  "badge": null,
+  "soldOut": false,
+  "membership": "none"
  },
  {
   "platform": "baemin",
@@ -3165,8 +2904,8 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "3,000원 배민클럽 파스타헛 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 15000,
   "tierMode": "exclusive",
   "tiers": null,
@@ -3185,8 +2924,8 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "4,000원 배민클럽 밥풀릭스 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 18000,
   "tierMode": "exclusive",
   "tiers": null,
@@ -3245,8 +2984,8 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "3,500원 배민클럽 카페인중독 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 9800,
   "tierMode": "exclusive",
   "tiers": null,
@@ -3265,8 +3004,8 @@
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
   "rawText": "3,000원 배민클럽 두찜 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 25000,
   "tierMode": "exclusive",
   "tiers": null,
@@ -3297,45 +3036,80 @@
   "membership": "none"
  },
  {
+  "platform": "baemin",
+  "brand": "왓더버거",
+  "amount": 3000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "3,000원 왓더버거 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 18000,
+  "tierMode": "exclusive",
+  "tiers": null,
+  "conditions": null,
+  "expiresAt": "2026-09-20",
+  "badge": null,
+  "soldOut": false,
+  "membership": "none"
+ },
+ {
   "platform": "coupangeats",
-  "brand": "큰맘할매순대국",
+  "brand": "파리바게뜨",
   "amount": 4000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "4,000원할인",
-  "capturedAt": "2026-09-07T13:58:40+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 파리바게뜨 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
   "minOrderAmount": null,
   "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 4000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": "",
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
   "soldOut": false,
-  "membership": "none",
+  "membership": "coupangEats",
   "expiresAtEstimated": true
  },
  {
-  "platform": "ddangyo",
-  "brand": "미스터피자",
-  "amount": 5000,
+  "platform": "coupangeats",
+  "brand": "노브랜드버거",
+  "amount": 4000,
   "qualifier": null,
   "needsReview": false,
-  "offerType": "coupon",
-  "section": "혜택 > 브랜드쿠폰",
-  "rawText": "19,900원 이상 5,000원(배달/포장)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/ddangyo/ddangyo_2026-09-07_브랜드쿠폰_01.png",
-  "minOrderAmount": 19900,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 노브랜드버거 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 16000,
   "tierMode": "exclusive",
-  "tiers": null,
+  "tiers": [
+   {
+    "minOrder": 16000,
+    "amount": 4000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
   "conditions": null,
-  "expiresAt": "2026-09-13",
-  "badge": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
   "soldOut": false,
-  "membership": "none"
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
  },
  {
   "platform": "yogiyo",
@@ -3418,6 +3192,34 @@
   "membership": null
  },
  {
+  "platform": "coupangeats",
+  "brand": "육회바른연어",
+  "amount": 4000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 육회바른연어 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 4000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
+  "soldOut": false,
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
   "platform": "yogiyo",
   "brand": "파스쿠찌",
   "amount": 3000,
@@ -3498,6 +3300,111 @@
   "membership": "none"
  },
  {
+  "platform": "coupangeats",
+  "brand": "롯데리아",
+  "amount": 3000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "3,000원 롯데리아 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 3000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
+  "soldOut": false,
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "명랑핫도그",
+  "amount": 5000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "5,000원 명랑핫도그 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 5000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
+  "soldOut": false,
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "호식이두마리치킨",
+  "amount": 6000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "위클리 슈퍼딜 > 브랜드 할인",
+  "rawText": "6,000원할인",
+  "capturedAt": "2026-09-17T16:05:06+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": null,
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": null,
+  "soldOut": false,
+  "membership": null,
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "스텔라떡볶이",
+  "amount": 4000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 스텔라떡볶이 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 4000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": "",
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
+  "soldOut": false,
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
   "platform": "baemin",
   "brand": "장충동왕족발",
   "amount": 3000,
@@ -3538,88 +3445,6 @@
   "membership": "none"
  },
  {
-  "platform": "ddangyo",
-  "brand": "반올림피자",
-  "amount": 4000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "coupon",
-  "section": "혜택 > 브랜드쿠폰",
-  "rawText": "16,900원 이상 4,000원(배달/포장)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/ddangyo/ddangyo_2026-09-07_브랜드쿠폰_01.png",
-  "minOrderAmount": 16900,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-13",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "ddangyo",
-  "brand": "노랑통닭",
-  "amount": 4000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "coupon",
-  "section": "혜택 > 브랜드쿠폰",
-  "rawText": "20,000원 이상 4,000원(배달/포장)",
-  "capturedAt": "2026-09-07T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-07/ddangyo/ddangyo_2026-09-07_브랜드쿠폰_01.png",
-  "minOrderAmount": 20000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-13",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "coupangeats",
-  "brand": "치킨플러스",
-  "amount": 3000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "3,000원할인",
-  "capturedAt": "2026-09-07T13:58:31+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
-  "platform": "coupangeats",
-  "brand": "마왕족발",
-  "amount": 5000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "위클리 슈퍼딜 > 브랜드 할인",
-  "rawText": "5,000원할인",
-  "capturedAt": "2026-09-07T13:58:39+09:00",
-  "screenshotPath": "captures/coupangeats/weekly-2026-09-07.png",
-  "minOrderAmount": null,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-14",
-  "badge": null,
-  "soldOut": false,
-  "membership": "none",
-  "expiresAtEstimated": true
- },
- {
   "platform": "baemin",
   "brand": "돌배기집",
   "amount": 4000,
@@ -3655,26 +3480,6 @@
   "tiers": null,
   "conditions": "",
   "expiresAt": null,
-  "badge": null,
-  "soldOut": false,
-  "membership": "none"
- },
- {
-  "platform": "baemin",
-  "brand": "맥도날드",
-  "amount": 2000,
-  "qualifier": null,
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "쿠폰함 보유쿠폰",
-  "rawText": "2,000원 맥도날드 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
-  "minOrderAmount": 16000,
-  "tierMode": "exclusive",
-  "tiers": null,
-  "conditions": null,
-  "expiresAt": "2026-09-13",
   "badge": null,
   "soldOut": false,
   "membership": "none"
@@ -4000,87 +3805,211 @@
   "membership": "none"
  },
  {
-  "platform": "yogiyo",
-  "brand": "바른치킨",
-  "amount": 4250,
-  "qualifier": "최적",
-  "needsReview": false,
-  "offerType": "discount",
-  "section": "브랜드 할인",
-  "rawText": "18,900원 이상 3,000원 + 25,000원 이상 5%(최대 3,000원)",
-  "capturedAt": "2026-09-08T12:00:00+09:00",
-  "screenshotPath": "captures/_audit_2026-09-08/yogiyo/yogiyo_2026-09-08_바른치킨.png",
-  "minOrderAmount": 25000,
-  "tierMode": "cumulative",
-  "tiers": [
-   {
-    "minOrder": 18900,
-    "amount": 3000
-   },
-   {
-    "minOrder": 25000,
-    "amount": 1250,
-    "percent": 5,
-    "cap": 3000
-   }
-  ],
-  "conditions": "25,000원 × 5% + 3,000원",
-  "expiresAt": "2026-09-13",
-  "badge": "5%할인",
-  "soldOut": false,
-  "membership": "none"
- },
- {
   "platform": "baemin",
-  "brand": "빽다방",
-  "amount": 7000,
+  "brand": "이삭토스트",
+  "amount": 3000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
-  "rawText": "7,000원 빽다방 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "rawText": "3,000원 이삭토스트 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 15000,
   "tierMode": "exclusive",
   "tiers": [
    {
     "minOrder": 15000,
-    "amount": 7000,
+    "amount": 3000,
     "channel": "배달",
-    "expiresAt": "2026-09-12"
-   },
-   {
-    "minOrder": 2000,
-    "amount": 1900,
-    "channel": "포장",
-    "expiresAt": "2026-09-12"
+    "expiresAt": "2026-09-20",
+    "membership": "none"
    }
   ],
-  "conditions": "한정수량",
-  "expiresAt": "2026-09-12",
+  "conditions": null,
+  "expiresAt": "2026-09-20",
   "badge": null,
   "soldOut": false,
   "membership": "none"
  },
  {
   "platform": "baemin",
-  "brand": "홍콩반점",
-  "amount": 8000,
+  "brand": "공차",
+  "amount": 3000,
   "qualifier": null,
   "needsReview": false,
   "offerType": "discount",
   "section": "쿠폰함 보유쿠폰",
-  "rawText": "8,000원 홍콩반점 할인",
-  "capturedAt": "2026-09-12T19:11:20+09:00",
-  "screenshotPath": "captures/baemin_couponbox_2026-09-12/01.png",
+  "rawText": "3,000원 공차 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
   "minOrderAmount": 18000,
   "tierMode": "exclusive",
   "tiers": null,
-  "conditions": "한정수량",
-  "expiresAt": "2026-09-12",
+  "conditions": null,
+  "expiresAt": "2026-09-20",
   "badge": null,
   "soldOut": false,
   "membership": "none"
+ },
+ {
+  "platform": "baemin",
+  "brand": "육회바른연어",
+  "amount": 3000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "3,000원 육회바른연어 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 24900,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": 24900,
+    "amount": 3000,
+    "expiresAt": "2026-09-20",
+    "membership": "none"
+   },
+   {
+    "minOrder": 2000,
+    "amount": 2000,
+    "channel": "배달",
+    "expiresAt": "2026-09-20",
+    "membership": "none"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-20",
+  "badge": null,
+  "soldOut": false,
+  "membership": "none"
+ },
+ {
+  "platform": "baemin",
+  "brand": "롯데리아",
+  "amount": 2000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "2,000원 롯데리아 할인",
+  "capturedAt": "2026-09-17T16:25:35+09:00",
+  "screenshotPath": "captures/baemin_couponbox_2026-09-17/01.png",
+  "minOrderAmount": 20000,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": 20000,
+    "amount": 2000,
+    "channel": "배달",
+    "expiresAt": "2026-09-20",
+    "membership": "none"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-20",
+  "badge": null,
+  "soldOut": false,
+  "membership": "none"
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "노랑통닭",
+  "amount": 5000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "위클리 슈퍼딜 > 브랜드 할인",
+  "rawText": "5,000원할인",
+  "capturedAt": "2026-09-17T16:05:05+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": null,
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": null,
+  "soldOut": false,
+  "membership": null,
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "공차",
+  "amount": 4000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 공차 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 4000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
+  "soldOut": false,
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "이삭토스트",
+  "amount": 4000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "쿠폰함 보유쿠폰",
+  "rawText": "4,000원 이삭토스트 배달할인쿠폰",
+  "capturedAt": "2026-09-17T16:12:44+09:00",
+  "screenshotPath": "captures/coupangeats_couponbox_2026-09-17/01.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": [
+   {
+    "minOrder": null,
+    "amount": 4000,
+    "channel": "배달",
+    "membership": "coupangEats"
+   }
+  ],
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": "와우회원전용",
+  "soldOut": false,
+  "membership": "coupangEats",
+  "expiresAtEstimated": true
+ },
+ {
+  "platform": "coupangeats",
+  "brand": "프랭크버거",
+  "amount": 4000,
+  "qualifier": null,
+  "needsReview": false,
+  "offerType": "discount",
+  "section": "위클리 슈퍼딜 > 브랜드 할인",
+  "rawText": "4,000원할인",
+  "capturedAt": "2026-09-17T16:05:00+09:00",
+  "screenshotPath": "captures/coupangeats/weekly-2026-09-17.png",
+  "minOrderAmount": null,
+  "tierMode": "exclusive",
+  "tiers": null,
+  "conditions": null,
+  "expiresAt": "2026-09-21",
+  "badge": null,
+  "soldOut": false,
+  "membership": null,
+  "expiresAtEstimated": true
  }
 ]
