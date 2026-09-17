@@ -131,7 +131,7 @@ function BannerCard({ banner, position, onClose, onSeen }) {
         onClick={() => track('banner_click', {
           banner: banner.id,
           brand: banner.brand ?? 'none',
-          platform: banner.platform,
+          platform: banner.platform ?? 'own',
           position,
           // 무엇이 눌렸는지 id 밖에서도 읽히게 — 배너는 날마다 새 id라
           // 금액·묶음·매진 상태가 있어야 종류별로 모아 볼 수 있다(2026-09-17).
@@ -162,8 +162,9 @@ function BannerCard({ banner, position, onClose, onSeen }) {
               </span>
             )}
         </span>
-        {/* 앱 배지는 로고 밖, 카드(.banner__link)의 오른쪽 위에 선다(2026-09-16). */}
-        {banner.brand && (
+        {/* 앱 배지는 로고 밖, 카드(.banner__link)의 오른쪽 위에 선다(2026-09-16).
+            platform이 없으면 브랜드 자체 앱이나 사이트의 행사라 배지도 없다(2026-09-18). */}
+        {banner.brand && banner.platform && (
           <span className="banner__platform">
             <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
           </span>
@@ -338,7 +339,7 @@ export default function EventBanner({ banners }) {
     track('banner_impression', {
       banner: banner.id,
       brand: banner.brand ?? 'none',
-      platform: banner.platform,
+      platform: banner.platform ?? 'own',
       position,
     })
   }
@@ -588,7 +589,7 @@ export default function EventBanner({ banners }) {
               track('banner_dismiss', {
                 banner: current.id,
                 brand: current.brand ?? 'none',
-                platform: current.platform,
+                platform: current.platform ?? 'own',
               })
             }}
           >
