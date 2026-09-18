@@ -62,10 +62,10 @@ class TargetedBannerTest {
     }
 
     @Test
-    void randomCouponBannerDoesNotBecomeAnOffer() {
-        // 2026-09-18: bhc "최대 7,000원 / 매일 랜덤쿠폰 뽑기" 배너가 오퍼로 섰다. 뽑기 상한은
-        // 그 브랜드에서 받는 값이 아니다 — 배너로만 보이고 카드에는 안 선다(사용자 결정).
-        assertThrows(IndexOutOfBoundsException.class, () -> offerWith("매일 랜덤쿠폰 뽑기"));
+    void randomCouponBannerIsMarkedRandomNotMax() {
+        // 2026-09-18: bhc "최대 7,000원 / 매일 랜덤쿠폰 뽑기" 배너. 뽑기 쿠폰은 "랜덤"이다 —
+        // 카드에 오르되 배지가 다르고 정렬 포함 여부는 사용자가 고른다.
+        assertEquals("랜덤", offerWith("매일 랜덤쿠폰 뽑기").qualifier());
     }
 
     @Test
