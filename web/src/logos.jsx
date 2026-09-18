@@ -7,13 +7,9 @@ import { PLATFORM_ICON_DATA } from './platformIcons.js'
 // App.jsx에서 import하면 App이 다시 EventBanner를 import해 순환이 된다.
 // 공용 모듈로 빼서 양쪽이 여기서 가져다 쓴다.
 
-export const PLATFORMS = [
-  { key: 'baemin', label: '배달의민족', initial: '배' },
-  { key: 'coupangeats', label: '쿠팡이츠', initial: '쿠' },
-  { key: 'ddangyo', label: '땡겨요', initial: '땡' },
-  { key: 'yogiyo', label: '요기요', initial: '요' },
-]
-export const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
+// 플랫폼 목록은 platforms.js(순수 모듈)에 있다 — filters.js의 node --test가 .jsx를 못 읽는다.
+import { PLATFORMS, PLATFORM_BY_KEY } from './platforms.js'
+export { PLATFORMS, PLATFORM_BY_KEY }
 
 // 주소 계산은 logoSrc.js에 있다 — node --test가 .jsx를 못 읽어서
 // 순수 함수를 컴포넌트와 같은 파일에 두면 테스트를 못 붙인다.

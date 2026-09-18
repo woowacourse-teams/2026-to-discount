@@ -117,6 +117,14 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             </button>
             <button
               type="button"
+              className={`sheet__chip${draft.includeMenu ? ' sheet__chip--on' : ''}`}
+              aria-pressed={draft.includeMenu}
+              onClick={() => setDraft((d) => ({ ...d, includeMenu: !d.includeMenu }))}
+            >
+              특정메뉴 쿠폰도 넣기
+            </button>
+            <button
+              type="button"
               className={`sheet__chip${draft.minAmount5k ? ' sheet__chip--on' : ''}`}
               aria-pressed={draft.minAmount5k}
               onClick={() => setDraft((d) => ({ ...d, minAmount5k: !d.minAmount5k }))}
@@ -127,8 +135,8 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
 
           <h2 className="sheet__title">정렬 <span className="sheet__hint">복수 선택 가능</span></h2>
           {/* 방향 있는 기준은 라벨 한 줄 + 높은순/낮은순 두 버튼. 같은 기준의 반대 방향을 누르면
-              방향만 바뀐다. 켜진 버튼을 다시 누르면 그 기준이 빠진다. 고른 순서가 우선순위라
-              칩 앞에 번호를 붙인다. */}
+              방향만 바뀐다. 켜진 버튼을 다시 누르면 그 기준이 빠진다. 우선순위는 없다 — 여럿을
+              고르면 할인금액 → 최소주문금액 → 그 외 순으로 견준다(filters.sortBrands). */}
           {SORT_KEYS.filter((k) => k.directional).map((k) => {
             const idx = draft.sorts.findIndex((x) => x.key === k.key)
             const chosen = idx >= 0 ? draft.sorts[idx] : null
@@ -140,7 +148,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             })
             return (
               <div key={k.key} className="sheet__sort-row">
-                <span className={`sheet__sort-label${chosen ? ' sheet__sort-label--on' : ''}`}>{idx >= 0 ? `${idx + 1}. ` : ''}{k.label}</span>
+                <span className={`sheet__sort-label${chosen ? ' sheet__sort-label--on' : ''}`}>{k.label}</span>
                 <span className="sheet__chips">
                   {[['desc', '높은순'], ['asc', '낮은순']].map(([dir, label]) => (
                     <button
@@ -171,7 +179,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
                     aria-pressed={on}
                     onClick={() => setDraft((d) => ({ ...d, sorts: on ? d.sorts.filter((x) => x.key !== k.key) : [...d.sorts.filter((x) => SORT_KEYS.find((s) => s.key === x.key)?.directional), { key: k.key, dir: 'desc' }] }))}
                   >
-                    {on ? `${idx + 1}. ` : ''}{k.label}
+                    {k.label}
                   </button>
                 )
               })}

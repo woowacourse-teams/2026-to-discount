@@ -2,7 +2,7 @@
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
 // "화면에 뜬 것"이 어긋난다. (B안 시트·메뉴바는 2026-09-15에 지웠다.)
 
-import { PLATFORMS } from './logos.jsx'
+import { PLATFORMS } from './platforms.js'
 
 // 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
 // (실제 브랜드별 분류는 API 쪽 brands.yml이 단일 출처다).
@@ -63,9 +63,12 @@ const DEFAULT_SCALARS = {
   // 목록에서 빼는 것이 아니다 — 카드에는 늘 보인다. 기본은 안 넣는다: 내가 뽑은
   // 값을 그 브랜드의 최고로 세우면 다른 사람에게는 거짓이다.
   includeRandom: false,
+  // 특정 메뉴 한정 쿠폰(qualifier "특정메뉴")을 "최고 할인" 산정과 정렬에 넣을지(2026-09-19).
+  includeMenu: false,
   // 5,000원 이상 할인만(2026-09-19). 그 아래 오퍼를 카드에서 빼고, 남는 오퍼가 없는 카드는 숨긴다.
   minAmount5k: false,
-  // 고른 순서가 우선순위다. 처음은 할인액 높은 순 하나.
+  // 여러 기준을 고를 수 있다. 우선순위는 고른 순서가 아니라 SORT_KEYS 순(할인금액 →
+  // 최소주문금액 → 그 외)으로 고정한다(2026-09-19, 사용자: 우선순위 개념 제거). 처음은 할인액 높은 순 하나.
   sorts: [{ key: 'amount', dir: 'desc' }],
   search: '',
 }
@@ -74,6 +77,7 @@ export function isDefaultFilters(f) {
   return f.platforms.size === PLATFORMS.length
     && f.categories.size === 0
     && f.includeRandom === DEFAULT_SCALARS.includeRandom
+    && f.includeMenu === DEFAULT_SCALARS.includeMenu
     && f.minAmount5k === DEFAULT_SCALARS.minAmount5k
     && sortSignature(f.sorts) === sortSignature(DEFAULT_SCALARS.sorts)
     && f.search.trim() === ''
@@ -99,8 +103,22 @@ export function isRandom(offer) {
   return offer.qualifier === RANDOM_QUALIFIER
 }
 
-export function comparable(offer, includeRandom = false) {
-  if (includeRandom && isRandom(offer)) return true
+export const MENU_QUALIFIER = '특정메뉴'
+export function isMenuOnly(offer) {
+  return offer.qualifier === MENU_QUALIFIER
+}
+
+/** 넣을 것. `true`는 예전 호출(랜덤만)과 같다. 객체면 {random, menu}. */
+function includesOf(include) {
+  if (include === true) return { random: true, menu: false }
+  if (!include) return { random: false, menu: false }
+  return { random: !!include.random, menu: !!include.menu }
+}
+
+export function comparable(offer, include = false) {
+  const inc = includesOf(include)
+  if (inc.random && isRandom(offer)) return true
+  if (inc.menu && isMenuOnly(offer)) return true
   return !INCOMPARABLE.has(offer.qualifier)
 }
 
@@ -109,8 +127,8 @@ export function comparable(offer, includeRandom = false) {
  * "최고 할인" 배지가 고르는 값과 같은 규칙이다 — App.jsx가 이 함수의
  * 판정(comparable)을 그대로 가져다 쓴다.
  */
-export function bestConfirmedAmount(offers, includeRandom = false) {
-  const plain = offers.filter((o) => comparable(o, includeRandom) && o.amount != null && !o.soldOut)
+export function bestConfirmedAmount(offers, include = false) {
+  const plain = offers.filter((o) => comparable(o, include) && o.amount != null && !o.soldOut)
   return plain.length === 0 ? null : Math.max(...plain.map((o) => o.amount))
 }
 
@@ -138,30 +156,39 @@ export function latestCaptured(offers) {
   return ts.length === 0 ? null : ts.reduce((a, b) => (a > b ? a : b))
 }
 
-function sortValue(brand, key, includeRandom) {
+function sortValue(brand, key, include) {
   if (key === 'minOrder') return lowestMinOrder(brand.offers)
   if (key === 'popularity') return brand.popularity ?? 0
   if (key === 'recent') return latestCaptured(brand.offers)
-  return bestConfirmedAmount(brand.offers, includeRandom)
+  return bestConfirmedAmount(brand.offers, include)
+}
+
+/** 필터 상태에서 "넣을 것"만 뽑는다. comparable/bestConfirmedAmount/sortBrands가 받는 꼴. */
+export function includesFrom(f) {
+  return { random: !!f.includeRandom, menu: !!f.includeMenu }
 }
 
 // 인기·최신은 방향 버튼이 없다. 항상 높은 순(많이 눌린 순, 최근 순).
 const FIXED_DIR = { popularity: 'desc', recent: 'desc' }
 
-export function sortBrands(brands, { sorts, includeRandom = false }) {
-  const keys = (sorts && sorts.length ? sorts : DEFAULT_SCALARS.sorts)
+export function sortBrands(brands, { sorts, includeRandom = false, include = null }) {
+  const inc = include ?? includeRandom
+  const order = (k) => SORT_KEYS.findIndex((s) => s.key === k)
+  // 우선순위는 고른 순서가 아니라 고정(할인금액 → 최소주문금액 → 그 외).
+  const keys = [...(sorts && sorts.length ? sorts : DEFAULT_SCALARS.sorts)]
+    .sort((a, b) => order(a.key) - order(b.key))
     .map((s) => ({ key: s.key, dir: FIXED_DIR[s.key] ?? s.dir }))
 
   return [...brands].sort((a, b) => {
     // 확정이 없는 브랜드는 어떤 기준으로도 뒤에 둔다(API와 같은 규칙).
-    const aConfirmed = bestConfirmedAmount(a.offers, includeRandom) != null
-    const bConfirmed = bestConfirmedAmount(b.offers, includeRandom) != null
+    const aConfirmed = bestConfirmedAmount(a.offers, inc) != null
+    const bConfirmed = bestConfirmedAmount(b.offers, inc) != null
     if (aConfirmed !== bConfirmed) return aConfirmed ? -1 : 1
 
-    // 고른 순서대로 견준다. 앞 기준이 같을 때만 다음 기준으로 넘어간다.
+    // 앞 기준이 같을 때만 다음 기준으로 넘어간다.
     for (const { key, dir } of keys) {
-      const av = sortValue(a, key, includeRandom)
-      const bv = sortValue(b, key, includeRandom)
+      const av = sortValue(a, key, inc)
+      const bv = sortValue(b, key, inc)
       if (av == null && bv == null) continue
       if (av == null) return 1
       if (bv == null) return -1
@@ -198,5 +225,5 @@ export function applyFilters(brands, filters, { cart, cartOnly } = {}) {
       if (filters.categories.size === 0) return true
       return filters.categories.has(b.category)
     })
-  return sortBrands(visible, filters)
+  return sortBrands(visible, { ...filters, include: includesFrom(filters) })
 }

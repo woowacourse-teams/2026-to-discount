@@ -8,7 +8,7 @@ import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.js
 import TopBarA from './TopBarA.jsx'
 import FilterSheet from './FilterSheet.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters, primarySort, sortSignature } from './filters.js'
+import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
@@ -455,7 +455,7 @@ function routeFilters() {
   return brand ? { ...defaultFilters(), search: brand } : defaultFilters()
 }
 
-function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck, includeRandom = false }) {
+function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck, include = null }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -465,10 +465,10 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
   // 만큼 전부 표시한다(하나만 고르면 거짓 우열이 생긴다). 하나뿐이어도
   // 그 값이 그 브랜드에서 받을 수 있는 최고다 — 그대로 표시한다.
   const bestAmount = useMemo(() => {
-    const plain = brand.offers.filter((o) => comparable(o, includeRandom) && o.amount != null && !o.soldOut)
+    const plain = brand.offers.filter((o) => comparable(o, include) && o.amount != null && !o.soldOut)
     if (plain.length === 0) return null
     return Math.max(...plain.map((o) => o.amount))
-  }, [brand.offers, includeRandom])
+  }, [brand.offers, include?.random, include?.menu])
 
   const sortedOffers = useMemo(
     () => [...brand.offers].sort((a, b) => {
@@ -480,7 +480,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
     [brand.offers],
   )
 
-  const isBest = (o) => bestAmount != null && comparable(o, includeRandom) && !o.soldOut && o.amount === bestAmount
+  const isBest = (o) => bestAmount != null && comparable(o, include) && !o.soldOut && o.amount === bestAmount
 
   // 최고 할인을 위로 올리고 나머지를 아래로 내린다. 동점이면 동점인 만큼
   // 전부 올린다 — 같은 금액인데 하나만 크게 놓으면 나머지가 열등해 보여
@@ -769,6 +769,7 @@ export default function App() {
       categories: draft.categories.size,
       sort: sortSignature(draft.sorts),
       random: draft.includeRandom,
+      menu: draft.includeMenu,
       min5k: draft.minAmount5k,
     })
   }
@@ -1107,16 +1108,17 @@ export default function App() {
               </button>
             )
           })}
+          {/* 빠른 줄에는 특정메뉴만(2026-09-19, 사용자: 랜덤 대신). 랜덤은 시트에 남는다. */}
           <button
             type="button"
-            className={`quick-bar__chip${filters.includeRandom ? ' quick-bar__chip--on' : ''}`}
-            aria-pressed={filters.includeRandom}
+            className={`quick-bar__chip${filters.includeMenu ? ' quick-bar__chip--on' : ''}`}
+            aria-pressed={filters.includeMenu}
             onClick={() => {
-              setFilters((f) => ({ ...f, includeRandom: !f.includeRandom }))
-              track('quick_filter', { key: 'random', on: !filters.includeRandom })
+              setFilters((f) => ({ ...f, includeMenu: !f.includeMenu }))
+              track('quick_filter', { key: 'menu', on: !filters.includeMenu })
             }}
           >
-            랜덤쿠폰도 넣기
+            특정메뉴 쿠폰도 넣기
           </button>
         </div>
       )}
@@ -1225,7 +1227,7 @@ export default function App() {
           {visibleBrands.slice(0, shown).map((b, index) => (
             <BrandCard
               key={b.name}
-              includeRandom={filters.includeRandom}
+              include={includesFrom(filters)}
               brand={b}
               position={index + 1}
               highlighted={linkedBrand === brandCardId(b.name)}
