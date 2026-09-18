@@ -32,10 +32,25 @@ export const MEMBERSHIP_OPTIONS = [
 ]
 export const MEMBERSHIP_LABEL = Object.fromEntries(MEMBERSHIP_OPTIONS.map((m) => [m.key, m.label]))
 
+// 정렬 기준(2026-09-19 개편). 방향이 있는 둘은 라벨 아래 높은순/낮은순 버튼, 나머지 둘은 칩 하나.
+// 복수 선택: 고른 순서대로 1차, 2차 … 기준이 된다.
 export const SORT_KEYS = [
-  { key: 'amount', label: '할인액' },
-  { key: 'minOrder', label: '최소주문금액' },
+  { key: 'amount', label: '할인액', directional: true },
+  { key: 'minOrder', label: '최소주문금액', directional: true },
+  { key: 'popularity', label: '인기순', directional: false },
+  { key: 'recent', label: '최신순', directional: false },
 ]
+export const SORT_LABEL = Object.fromEntries(SORT_KEYS.map((s) => [s.key, s.label]))
+
+/** 정렬 하나를 "amount_desc" 꼴로. 계측과 격자 키가 쓴다. */
+export function sortSignature(sorts) {
+  return (sorts || []).map((s) => `${s.key}_${s.dir}`).join('+') || 'none'
+}
+
+/** 첫 번째 정렬. 빠른 필터와 옛 호출부가 쓴다. */
+export function primarySort(f) {
+  return f.sorts?.[0] ?? { key: 'amount', dir: 'desc' }
+}
 
 // Set이 들어 있어 상수 하나를 돌려쓰면 한쪽에서 고친 게 다른 쪽에
 // 새어 나간다. 부를 때마다 새로 만든다.
@@ -48,11 +63,10 @@ const DEFAULT_SCALARS = {
   // 목록에서 빼는 것이 아니다 — 카드에는 늘 보인다. 기본은 안 넣는다: 내가 뽑은
   // 값을 그 브랜드의 최고로 세우면 다른 사람에게는 거짓이다.
   includeRandom: false,
-  sortKey: 'amount',
-  // 할인액은 큰 게 좋고 최소주문금액은 작은 게 좋다 — 방향의 기본값을
-  // 기준마다 다르게 두면 기준을 바꿀 때마다 순서가 뒤집혀 놀란다.
-  // 방향은 사용자가 정한 값을 그대로 유지하고, 처음만 내림차순으로 연다.
-  sortDir: 'desc',
+  // 5,000원 이상 할인만(2026-09-19). 그 아래 오퍼를 카드에서 빼고, 남는 오퍼가 없는 카드는 숨긴다.
+  minAmount5k: false,
+  // 고른 순서가 우선순위다. 처음은 할인액 높은 순 하나.
+  sorts: [{ key: 'amount', dir: 'desc' }],
   search: '',
 }
 
@@ -60,8 +74,8 @@ export function isDefaultFilters(f) {
   return f.platforms.size === PLATFORMS.length
     && f.categories.size === 0
     && f.includeRandom === DEFAULT_SCALARS.includeRandom
-    && f.sortKey === DEFAULT_SCALARS.sortKey
-    && f.sortDir === DEFAULT_SCALARS.sortDir
+    && f.minAmount5k === DEFAULT_SCALARS.minAmount5k
+    && sortSignature(f.sorts) === sortSignature(DEFAULT_SCALARS.sorts)
     && f.search.trim() === ''
 }
 
@@ -118,12 +132,25 @@ export function lowestMinOrder(offers) {
  * 뒤로 보낸다 — 방향과 무관하다. 모르는 값을 0이나 무한대로 치면 오름차순
  * 맨 앞이나 내림차순 맨 앞에 엉뚱하게 올라온다.
  */
-export function sortBrands(brands, { sortKey, sortDir, includeRandom = false }) {
-  const value = (b) => (sortKey === 'minOrder'
-    ? lowestMinOrder(b.offers)
-    : bestConfirmedAmount(b.offers, includeRandom))
+/** 가장 최근 관측 시각. 최신순이 쓴다. 없으면 null. */
+export function latestCaptured(offers) {
+  const ts = offers.map((o) => o.capturedAt).filter(Boolean)
+  return ts.length === 0 ? null : ts.reduce((a, b) => (a > b ? a : b))
+}
 
-  const dir = sortDir === 'asc' ? 1 : -1
+function sortValue(brand, key, includeRandom) {
+  if (key === 'minOrder') return lowestMinOrder(brand.offers)
+  if (key === 'popularity') return brand.popularity ?? 0
+  if (key === 'recent') return latestCaptured(brand.offers)
+  return bestConfirmedAmount(brand.offers, includeRandom)
+}
+
+// 인기·최신은 방향 버튼이 없다. 항상 높은 순(많이 눌린 순, 최근 순).
+const FIXED_DIR = { popularity: 'desc', recent: 'desc' }
+
+export function sortBrands(brands, { sorts, includeRandom = false }) {
+  const keys = (sorts && sorts.length ? sorts : DEFAULT_SCALARS.sorts)
+    .map((s) => ({ key: s.key, dir: FIXED_DIR[s.key] ?? s.dir }))
 
   return [...brands].sort((a, b) => {
     // 확정이 없는 브랜드는 어떤 기준으로도 뒤에 둔다(API와 같은 규칙).
@@ -131,12 +158,18 @@ export function sortBrands(brands, { sortKey, sortDir, includeRandom = false }) 
     const bConfirmed = bestConfirmedAmount(b.offers, includeRandom) != null
     if (aConfirmed !== bConfirmed) return aConfirmed ? -1 : 1
 
-    const av = value(a)
-    const bv = value(b)
-    if (av == null && bv == null) return 0
-    if (av == null) return 1
-    if (bv == null) return -1
-    if (av !== bv) return (av - bv) * dir
+    // 고른 순서대로 견준다. 앞 기준이 같을 때만 다음 기준으로 넘어간다.
+    for (const { key, dir } of keys) {
+      const av = sortValue(a, key, includeRandom)
+      const bv = sortValue(b, key, includeRandom)
+      if (av == null && bv == null) continue
+      if (av == null) return 1
+      if (bv == null) return -1
+      if (av !== bv) {
+        const d = dir === 'asc' ? 1 : -1
+        return (typeof av === 'string' ? av.localeCompare(bv) : av - bv) * d
+      }
+    }
     // 값이 같으면 이름으로 고정한다 — 안 그러면 같은 입력에 순서가 흔들린다.
     return a.name.localeCompare(b.name, 'ko')
   })
@@ -151,7 +184,8 @@ export function applyFilters(brands, filters, { cart, cartOnly } = {}) {
   const q = filters.search.trim()
   const visible = brands
     .map((b) => {
-      const offers = b.offers.filter((o) => filters.platforms.has(o.platform))
+      const offers = b.offers.filter((o) => filters.platforms.has(o.platform)
+        && (!filters.minAmount5k || (o.amount ?? 0) >= 5000))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
     .filter((b) => {

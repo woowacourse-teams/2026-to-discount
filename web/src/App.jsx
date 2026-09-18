@@ -8,7 +8,7 @@ import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.js
 import TopBarA from './TopBarA.jsx'
 import FilterSheet from './FilterSheet.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
+import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters, primarySort, sortSignature } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
@@ -120,7 +120,7 @@ function analyticsFilterContext(filters, cartOnly, cartSize) {
     fSearch: filters.search.trim() !== '' || undefined,
     fCart: cartOnly || undefined,
     fSaved: cartSize || undefined,
-    fSort: `${filters.sortKey}_${filters.sortDir}`,
+    fSort: sortSignature(filters.sorts),
   }
 }
 
@@ -767,7 +767,9 @@ export default function App() {
     track('filters_apply', {
       platforms: draft.platforms.size,
       categories: draft.categories.size,
-      sort: `${draft.sortKey}_${draft.sortDir}`,
+      sort: sortSignature(draft.sorts),
+      random: draft.includeRandom,
+      min5k: draft.minAmount5k,
     })
   }
   // /brand/<이름>으로 들어왔을 때만 값이 있다. 검색으로 들어온 사람에게
@@ -964,8 +966,7 @@ export default function App() {
   const gridKey = [
     [...filters.categories].sort().join('|'),
     [...filters.platforms].sort().join('|'),
-    filters.sortKey,
-    filters.sortDir,
+    sortSignature(filters.sorts),
     filters.search.trim(),
     cartOnly ? 'cart' : '',
   ].join('/')
@@ -1086,7 +1087,8 @@ export default function App() {
       {brands && (
         <div className="quick-bar" role="group" aria-label="빠른 필터">
           {[['asc', '최소주문 낮은순'], ['desc', '최소주문 높은순']].map(([dir, label]) => {
-            const on = filters.sortKey === 'minOrder' && filters.sortDir === dir
+            const first = primarySort(filters)
+            const on = first.key === 'minOrder' && first.dir === dir
             return (
               <button
                 key={dir}
@@ -1094,9 +1096,10 @@ export default function App() {
                 className={`quick-bar__chip${on ? ' quick-bar__chip--on' : ''}`}
                 aria-pressed={on}
                 onClick={() => {
-                  // 켜져 있는 것을 다시 누르면 기본 정렬(할인액 높은 순)로 돌아간다.
-                  const next = on ? { sortKey: 'amount', sortDir: 'desc' } : { sortKey: 'minOrder', sortDir: dir }
-                  setFilters((f) => ({ ...f, ...next }))
+                  // 1차 정렬만 바꾼다. 켜져 있는 것을 다시 누르면 기본(할인액 높은 순)으로.
+                  const rest = filters.sorts.filter((s) => s.key !== 'minOrder' && s.key !== 'amount')
+                  const next = on ? [{ key: 'amount', dir: 'desc' }, ...rest] : [{ key: 'minOrder', dir }, ...rest]
+                  setFilters((f) => ({ ...f, sorts: next }))
                   track('quick_filter', { key: 'minOrder', dir, on: !on })
                 }}
               >
@@ -1113,7 +1116,7 @@ export default function App() {
               track('quick_filter', { key: 'random', on: !filters.includeRandom })
             }}
           >
-            랜덤쿠폰도 최고할인에
+            랜덤쿠폰도 넣기
           </button>
         </div>
       )}
