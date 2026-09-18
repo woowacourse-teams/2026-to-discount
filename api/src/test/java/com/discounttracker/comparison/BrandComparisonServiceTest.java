@@ -613,19 +613,25 @@ class BrandComparisonServiceTest {
                   두찜:
                     category: chicken
                 """;
-        BrandComparison card = serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML)
+        // 2026-09-18: 랜덤 쿠폰 배너는 오퍼로 서지 않는다. 카드 자체가 안 생긴다.
+        assertTrue(serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML)
+                .compare().stream().noneMatch(c -> c.brand().name().equals("두찜")));
+    }
+
+    @Test
+    void randomBannerDoesNotBecomeAnOfferEvenWithLedgerData() {
+        String brands = """
+                brands:
+                  두찜:
+                    category: chicken
+                """;
+        BrandComparison card = serviceWith(List.of(rec("coupangeats", "두찜", 3000, null, false)), brands, on("2026-08-20"), BANNER_YAML)
                 .compare().stream()
                 .filter(c -> c.brand().name().equals("두찜"))
                 .findFirst().orElseThrow();
-
         Offer offer = card.offers().get(0);
-        assertEquals(8000, offer.amount());
-        // 원장 오퍼와 같은 말을 쓴다. 문구가 "랜덤쿠폰"이라 "랜덤"이다(2026-09-18) —
-        // 상한("최대")과 성격이 달라 화면 배지와 필터가 따로 다룬다.
-        assertEquals("랜덤", offer.qualifier());
-        // "랜덤"도 "최대"처럼 정렬에 안 들어간다(confirmedSortingAmount). 이 브랜드에
-        // 다른 확정 오퍼가 없으니 대표값 자체가 비어야 한다.
-        assertNull(card.maxConfirmedAmount());
+        assertEquals(3000, offer.amount());
+        assertNull(offer.qualifier());
     }
 
     @Test
