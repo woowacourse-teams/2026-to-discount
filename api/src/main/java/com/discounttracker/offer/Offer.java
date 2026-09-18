@@ -147,8 +147,15 @@ public record Offer(String platform, Integer amount, String qualifier,
         // 안 덮인다. tracker store.MERGEABLE_DETAIL과 같다(ADR-016).
         Membership mergedMembership = membership != Membership.UNKNOWN ? membership
                 : sameCoupon && other.membership != null ? other.membership : membership;
+        // badge는 원칙적으로 안 옮긴다(목록 카드에 찍히는 값). 예외 하나: 이긴 쪽이
+        // membership을 모른 채(UNKNOWN) 찍혔으면 badge도 못 본 것이다 — 쿠팡이츠 허브
+        // 카드엔 와우 표시가 없고 둘 다 쿠폰함에서 온다(2026-09-18 던킨). tracker
+        // store._prefer와 같다(ADR-016).
+        String mergedBadge = badge != null ? badge
+                : sameCoupon && membership == Membership.UNKNOWN && other.membership != null
+                        && other.membership != Membership.UNKNOWN ? other.badge : badge;
         if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions
-                && mergedMembership == membership) {
+                && mergedMembership == membership && mergedBadge == badge) {
             return this;
         }
         // soldOut은 병합하지 않는다 — 이긴 쪽 자신의 amount에 매인 상태라
@@ -158,7 +165,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         // 이긴 금액에 붙이면 화면에 적힌 값과 눌러서 가는 곳이 어긋난다.
         //
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
-                mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, badge, soldOut,
+                mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, mergedBadge, soldOut,
                 link, mergedMembership, fromBanner);
     }
 

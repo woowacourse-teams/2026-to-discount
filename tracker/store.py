@@ -147,6 +147,13 @@ def _prefer(current: dict, incoming: dict) -> dict:
         for field in MERGEABLE_DETAIL:
             if merged.get(field) is None and loser.get(field) is not None:
                 merged[field] = loser[field]
+        # badge는 원칙적으로 안 옮긴다(위 주석). 예외 하나: 이긴 쪽이 membership을
+        # 모른 채(None) 찍은 레코드면 badge도 못 본 것이다 — 쿠팡이츠 허브 카드에는
+        # 와우 표시가 없고 badge와 membership 둘 다 쿠폰함에서 온다. 2026-09-18 10:55
+        # 허브가 던킨을 쿠폰함 없이 읽어 badge None이 되자 배포 가드가 "상세가
+        # 사라진다"로 막았다. membership을 채운 것과 같은 근거로 badge도 채운다.
+        if winner.get("membership") is None and merged.get("badge") is None                 and loser.get("badge") is not None and loser.get("membership") is not None:
+            merged["badge"] = loser["badge"]
     return merged
 
 
