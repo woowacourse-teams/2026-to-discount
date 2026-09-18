@@ -1393,7 +1393,10 @@ h1 {
    크기가 비슷해져 "최고"라는 신호가 죽는다. */
 .offer-list--hero {
   flex-direction: column;
-  gap: .5rem;
+  /* 동점이 쌓일 때 위 칩의 멤버십 배지(아래로 7px)와 아래 칩의 "최고 할인"
+     표식(위로 10px)이 8px 간격 안에서 2~3px 겹쳤다(2026-09-18 실측, 360px).
+     둘의 돌출 합 17px보다 넉넉한 20px. 동점일 때만 늘어나는 간격이다. */
+  gap: 1.25rem;
   margin-bottom: .5rem;
 }
 .offer-list--hero .offer { flex: 1 1 100%; }
