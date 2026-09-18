@@ -61,9 +61,14 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
     >
       <section className="sheet" role="dialog" aria-modal="true" aria-label="필터">
         <div className="sheet__grip" aria-hidden="true" />
+        <button type="button" className="sheet__close" aria-label="닫기" onClick={onClose}>
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
 
         <div className="sheet__body">
-          <h2 className="sheet__title">플랫폼</h2>
+          <h2 className="sheet__title">플랫폼{draft.platforms.size === 0 && <span className="sheet__hint sheet__hint--warn">하나 이상 선택해 주세요</span>}</h2>
           {/* A안 바의 앱 버튼을 그대로 쓴다. 배지 자체가 버튼이어야
               aria-pressed가 붙고, 거기 걸린 A안 규칙(체크 배지·안 고른 앱
               흐리기)이 그대로 산다. */}
@@ -81,9 +86,6 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
               </span>
             ))}
           </div>
-          {draft.platforms.size === 0 && (
-            <p className="sheet__warn">플랫폼을 하나 이상 선택해 주세요.</p>
-          )}
 
           <h2 className="sheet__title">카테고리</h2>
           <div className="sheet__chips">
@@ -127,50 +129,54 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
           {/* 방향 있는 기준은 라벨 한 줄 + 높은순/낮은순 두 버튼. 같은 기준의 반대 방향을 누르면
               방향만 바뀐다. 켜진 버튼을 다시 누르면 그 기준이 빠진다. 고른 순서가 우선순위라
               칩 앞에 번호를 붙인다. */}
-          {SORT_KEYS.map((s) => {
-            const idx = draft.sorts.findIndex((x) => x.key === s.key)
+          {SORT_KEYS.filter((k) => k.directional).map((k) => {
+            const idx = draft.sorts.findIndex((x) => x.key === k.key)
             const chosen = idx >= 0 ? draft.sorts[idx] : null
             const set = (dir) => setDraft((d) => {
-              const rest = d.sorts.filter((x) => x.key !== s.key)
-              if (chosen && (!s.directional || chosen.dir === dir)) return { ...d, sorts: rest }        // 끄기
-              if (chosen) return { ...d, sorts: d.sorts.map((x) => (x.key === s.key ? { key: s.key, dir } : x)) } // 방향만
-              return { ...d, sorts: [...d.sorts, { key: s.key, dir }] }                                    // 추가
+              const rest = d.sorts.filter((x) => x.key !== k.key)
+              if (chosen && chosen.dir === dir) return { ...d, sorts: rest }                                     // 끄기
+              if (chosen) return { ...d, sorts: d.sorts.map((x) => (x.key === k.key ? { key: k.key, dir } : x)) } // 방향만
+              return { ...d, sorts: [...d.sorts, { key: k.key, dir }] }                                          // 추가
             })
-            const order = idx >= 0 ? `${idx + 1}. ` : ''
             return (
-              <div key={s.key} className="sheet__sort-row">
-                {s.directional && (
-                  <span className={`sheet__sort-label${chosen ? ' sheet__sort-label--on' : ''}`}>{order}{s.label}</span>
-                )}
-                {s.directional ? (
-                  <span className="sheet__chips">
-                    {[['desc', '높은순'], ['asc', '낮은순']].map(([dir, label]) => (
-                      <button
-                        key={dir}
-                        type="button"
-                        className={`sheet__chip${chosen?.dir === dir ? ' sheet__chip--on' : ''}`}
-                        aria-pressed={chosen?.dir === dir}
-                        onClick={() => set(dir)}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </span>
-                ) : (
-                  <span className="sheet__chips">
+              <div key={k.key} className="sheet__sort-row">
+                <span className={`sheet__sort-label${chosen ? ' sheet__sort-label--on' : ''}`}>{idx >= 0 ? `${idx + 1}. ` : ''}{k.label}</span>
+                <span className="sheet__chips">
+                  {[['desc', '높은순'], ['asc', '낮은순']].map(([dir, label]) => (
                     <button
+                      key={dir}
                       type="button"
-                      className={`sheet__chip${chosen ? ' sheet__chip--on' : ''}`}
-                      aria-pressed={!!chosen}
-                      onClick={() => set('desc')}
+                      className={`sheet__chip${chosen?.dir === dir ? ' sheet__chip--on' : ''}`}
+                      aria-pressed={chosen?.dir === dir}
+                      onClick={() => set(dir)}
                     >
-                      {order}{s.label}
+                      {label}
                     </button>
-                  </span>
-                )}
+                  ))}
+                </span>
               </div>
             )
           })}
+          <div className="sheet__sort-row">
+            <span className="sheet__sort-label">그 외</span>
+            <span className="sheet__chips">
+              {SORT_KEYS.filter((k) => !k.directional).map((k) => {
+                const idx = draft.sorts.findIndex((x) => x.key === k.key)
+                const on = idx >= 0
+                return (
+                  <button
+                    key={k.key}
+                    type="button"
+                    className={`sheet__chip${on ? ' sheet__chip--on' : ''}`}
+                    aria-pressed={on}
+                    onClick={() => setDraft((d) => ({ ...d, sorts: on ? d.sorts.filter((x) => x.key !== k.key) : [...d.sorts, { key: k.key, dir: 'desc' }] }))}
+                  >
+                    {on ? `${idx + 1}. ` : ''}{k.label}
+                  </button>
+                )
+              })}
+            </span>
+          </div>
 
           {/* 멤버십 반영 로직은 아직 없다. 자리와 이름만 두고 수요를 집계한다. 맨 아래(2026-09-19). */}
           <h2 className="sheet__title">

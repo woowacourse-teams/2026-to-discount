@@ -28,14 +28,14 @@ export const MEMBERSHIP_OPTIONS = [
   { key: 'baemin', label: '배민클럽' },
   { key: 'coupangeats', label: '쿠팡와우' },
   { key: 'yogiyo', label: '요기패스' },
-  { key: 'ddangyo', label: '지역화폐' },
+  // 지역화폐(땡겨요)는 일단 뺀다(2026-09-19). 멤버십과 결이 달라 자리를 따로 정한 뒤 넣는다.
 ]
 export const MEMBERSHIP_LABEL = Object.fromEntries(MEMBERSHIP_OPTIONS.map((m) => [m.key, m.label]))
 
 // 정렬 기준(2026-09-19 개편). 방향이 있는 둘은 라벨 아래 높은순/낮은순 버튼, 나머지 둘은 칩 하나.
 // 복수 선택: 고른 순서대로 1차, 2차 … 기준이 된다.
 export const SORT_KEYS = [
-  { key: 'amount', label: '할인액', directional: true },
+  { key: 'amount', label: '할인금액', directional: true },
   { key: 'minOrder', label: '최소주문금액', directional: true },
   { key: 'popularity', label: '인기순', directional: false },
   { key: 'recent', label: '최신순', directional: false },

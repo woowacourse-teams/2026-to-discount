@@ -3008,6 +3008,7 @@ html.has-bottom-banner .survey-dock {
   justify-content: center;
 }
 .sheet {
+  position: relative;
   width: 100%;
   max-width: 560px;
   max-height: 86vh;
@@ -3163,6 +3164,10 @@ html.has-bottom-banner .survey-dock {
 
 /* 정렬 섹션(2026-09-19): 기준 라벨 + 방향 버튼 한 줄. 고른 기준은 번호가 붙고 진하게. */
 .sheet__sort-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .4rem; }
-.sheet__sort-label { font-size: .9rem; color: var(--text-muted); }
+.sheet__sort-label { font-size: 1rem; color: var(--text-muted); }
 .sheet__sort-label--on { color: var(--text); font-weight: 700; }
 .sheet__hint { font-size: .72rem; font-weight: 400; color: var(--text-muted); margin-left: .4rem; }
+.sheet__hint--warn { color: #c0392b; }
+/* 오른쪽 위 닫기. 그립을 끌거나 배경을 누르는 길이 안 보이는 사람을 위한 것. */
+.sheet__close { position: absolute; top: .55rem; right: .8rem; width: 32px; height: 32px; border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.sheet__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
