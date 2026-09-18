@@ -23,6 +23,7 @@
 | 31 | [#31](https://github.com/woowacourse-teams/2026-to-discount/issues/31) |
 | 32 | [#32](https://github.com/woowacourse-teams/2026-to-discount/issues/32) |
 | 33 | [#33](https://github.com/woowacourse-teams/2026-to-discount/issues/33) |
+| 34 | [#34](https://github.com/woowacourse-teams/2026-to-discount/issues/34) |
 
 ## 상태
 
@@ -37,6 +38,7 @@
 | 31 | 배너 문구 구조화 | **승인** (09-18). items 객체 배열, amountRange(하한 선택), 지금 도입 | 없음 | 없음 |
 | 33 | 콘솔을 팀의 입구로 키운다(관례 조사, 구조 탭, 지금 할 일, 이력 탭) | **완료** (2026-09-18). 1~4와 별도 트랙 5(31의 1~2단계), 6(사람별 계정)까지 같은 날 끝 | 32 | 없음 |
 | 32 | 운영 관측을 한 화면과 한 알림 채널로(수집, API, 데이터, 웹, 서버, 배포 탭과 슬랙) | **1~3단계 구현 완료** (2026-09-17, 3단계 배너 제안 승인은 09-18) | 없음 | 다음 단계는 문서 10절: 스캐너 500 응답, 5xx 슬랙 알림, Vercel 연동 |
+| 34 | 라이브 오퍼 상시 확인 봇(링크 열어 유효한지, 없으면 내림) | 계획만 (2026-09-19) | 32 | 주기(폰 하나 3바퀴 vs 두 번째 폰 상시), 사라짐 자동 내림 여부, 4a 주기 스킵 대체 |
 
 트래커 쪽 설계·계획(수집 파이프라인)은 `delivery-discount-tracker/docs/superpowers/`에
 따로 있다 — `2026-09-17-audit-runtime-design.md`, `2026-09-17-multi-device-parallel-design.md`
