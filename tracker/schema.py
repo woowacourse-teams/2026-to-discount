@@ -2,7 +2,9 @@ import re
 
 ALLOWED_PLATFORMS = {"baemin", "coupangeats", "yogiyo", "ddangyo", "specialdelivery"}
 EXPIRES_AT_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-ALLOWED_QUALIFIERS = {None, "최대", "최소", "최적", "특정메뉴"}
+# "랜덤"(2026-09-18): 뽑기 쿠폰. 받은 사람마다 값이 다르고 다음 날 다시 뽑으면 바뀐다.
+# "최대"(상한. 최소주문을 채우면 그 값)와 성격이 달라 화면과 필터가 따로 다룬다.
+ALLOWED_QUALIFIERS = {None, "최대", "최소", "최적", "특정메뉴", "랜덤"}
 ALLOWED_SCOPES = {"brand", "store"}
 ALLOWED_OFFER_TYPES = {"discount", "gift", "coupon", "unknown"}
 # backfill: 원장이 아니라 export.json에 먼저 들어갔던 관측을 뒤늦게 원장으로
