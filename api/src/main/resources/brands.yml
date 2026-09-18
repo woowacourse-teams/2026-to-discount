@@ -573,6 +573,11 @@ brands:
   마라공방:
     searchAliases: [마라 공방, 마라탕공방, mala workshop, maragongbang]
     category: chinese
+  탕화쿵푸마라탕:
+    # 2026-09-19 배민 주말핫딜 선착순(오전 11시 6,500원) 배너에 올리며 추가.
+    searchAliases: [탕화쿵푸, 탕화 쿵푸 마라탕, 탕화마라탕, 쿵푸마라탕, tanghua, kungfu malatang]
+    aliases: [탕화쿵푸마라탕, 탕화쿵푸 마라탕]
+    category: chinese
 
   # --- 미분류 (전체에서만 노출) ---
   요아잇:
@@ -827,6 +832,11 @@ brands:
     aliases: [본죽, 본죽&비빔밥]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?ao0bXqh
+  신전떡볶이:
+    # 2026-09-19 배민 주말핫딜 선착순(오전 11시 5,500원) 배너에 올리며 추가.
+    searchAliases: [신전 떡볶이, 신전, sinjeon tteokbokki, sinjeon]
+    aliases: [신전떡볶이, 신전 떡볶이]
+    category: snack
   스텔라떡볶이:
     searchAliases: [스텔라 떡볶이, 스텔라, stella tteokbokki, stellatteokbokki]
     aliases: [스텔라떡볶이, 스텔라 떡볶이]
