@@ -73,6 +73,10 @@ public class BrandComparisonService {
             // 배달앱 밖의 행사(platform 없음)는 오퍼 비교 대상이 아니다 —
             // 같은 브랜드의 배달앱 쿠폰과 나란히 세울 수 없다. 배너로만 둔다.
             if (banner.isOwn()) continue;
+            // 랜덤 쿠폰 배너는 오퍼로 세우지 않는다(사용자 2026-09-18). 배너의 "최대 7,000원"은
+            // 뽑기 상한이지 그 브랜드에서 받는 값이 아니다 — 카드에 오퍼로 서면 비교표에
+            // 내 뽑기 운이 올라간다. 배너로만 보인다.
+            if (isRandom(banner)) continue;
             // 파서는 Banner 한 곳이다. 여기 따로 두었을 때 "8,000/5,000/6,000원"
             // 같은 나열에서 둘이 다른 값을 냈다(2026-09-14).
             Integer amount = banner.headlineAmount();
