@@ -158,7 +158,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             )
           })}
           <div className="sheet__sort-row">
-            <span className="sheet__sort-label">그 외</span>
+            <span className="sheet__sort-label">그 외</span>{/* 인기순·최신순은 하나만 — 둘을 겹쳐 봐야 뜻이 없다(2026-09-19). */}
             <span className="sheet__chips">
               {SORT_KEYS.filter((k) => !k.directional).map((k) => {
                 const idx = draft.sorts.findIndex((x) => x.key === k.key)
@@ -169,7 +169,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
                     type="button"
                     className={`sheet__chip${on ? ' sheet__chip--on' : ''}`}
                     aria-pressed={on}
-                    onClick={() => setDraft((d) => ({ ...d, sorts: on ? d.sorts.filter((x) => x.key !== k.key) : [...d.sorts, { key: k.key, dir: 'desc' }] }))}
+                    onClick={() => setDraft((d) => ({ ...d, sorts: on ? d.sorts.filter((x) => x.key !== k.key) : [...d.sorts.filter((x) => SORT_KEYS.find((s) => s.key === x.key)?.directional), { key: k.key, dir: 'desc' }] }))}
                   >
                     {on ? `${idx + 1}. ` : ''}{k.label}
                   </button>
