@@ -19,6 +19,7 @@ api/src/main/java/com/discounttracker/analytics/EventController.java
 api/src/main/java/com/discounttracker/analytics/EventLog.java
 api/src/main/java/com/discounttracker/analytics/EventRateLimiter.java
 api/src/main/java/com/discounttracker/analytics/GifticonStore.java
+api/src/main/java/com/discounttracker/analytics/PopularityIndex.java
 api/src/main/java/com/discounttracker/analytics/PostHogClient.java
 api/src/main/java/com/discounttracker/analytics/PostHogConfiguration.java
 api/src/main/java/com/discounttracker/analytics/PostHogDelivery.java
@@ -73,6 +74,7 @@ api/src/test/java/com/discounttracker/analytics/CrawlerNameTest.java
 api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogTest.java
 api/src/test/java/com/discounttracker/analytics/GifticonStoreTest.java
+api/src/test/java/com/discounttracker/analytics/PopularityIndexTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogClientTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogForwardingWorkerTest.java
@@ -224,7 +226,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 93 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 95 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 57 |
 
 ### Tracker
@@ -250,7 +252,7 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 23 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 24 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 4 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |

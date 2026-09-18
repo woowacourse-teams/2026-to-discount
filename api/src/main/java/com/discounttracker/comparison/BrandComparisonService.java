@@ -34,11 +34,22 @@ public class BrandComparisonService {
 
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
                                   BannerCatalog banners, Clock clock) {
+        this(offers, brands, banners, clock, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
+                                  BannerCatalog banners, Clock clock,
+                                  com.discounttracker.analytics.PopularityIndex popularity) {
         this.offers = offers;
         this.brands = brands;
         this.banners = banners;
         this.clock = clock;
+        this.popularity = popularity;
     }
+
+    /** 인기 점수(2026-09-19). 테스트처럼 없으면 전부 0. */
+    private final com.discounttracker.analytics.PopularityIndex popularity;
 
     public List<BrandComparison> compare() {
         // 배너는 사람이 그날 손으로 적는 행사다. 원장(캡처)에는 안 잡히지만
@@ -253,7 +264,8 @@ public class BrandComparisonService {
                 brands.find(name),
                 maxConfirmed.get(name),
                 maxHeld.get(name),
-                new ArrayList<>(offersByPlatform.values()))));
+                new ArrayList<>(offersByPlatform.values()),
+                popularity == null ? 0 : popularity.scoreOf(name))));
 
         result.sort(BrandComparison.byBestDiscount());
         return result;

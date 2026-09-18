@@ -26,16 +26,36 @@ from pathlib import Path
 from schema import validate_record
 from store import append_record, latest_per_brand, read_records
 
-LOG_PATH = Path(__file__).parent / "data" / "log.jsonl"
+from scripts._env_paths import log_path  # noqa: E402
 
-
+LOG_PATH = log_path()
 def _identity(record: dict) -> tuple:
-    """같은 관측인지 — 같은 앱·브랜드를 같은 시각에 본 기록은 하나면 된다.
+    """같은 관측인지 — 같은 앱·브랜드·**쿠폰**을 같은 시각에 본 기록.
 
     같은 파일을 두 번 넣어도 원장이 부풀지 않게 한다. 값을 고치려는
     정정은 시각이 다르므로 이 키에 걸리지 않는다.
+
+    **금액·최소주문까지 봐야 한다.** 예전에는 (앱, 브랜드, 시각)만 봤는데,
+    한 브랜드가 쿠폰을 여러 장 걸면 그게 한 번의 순회에서 같은 시각으로
+    찍힌다 — 그러면 두 번째부터 전부 "중복"으로 버려진다.
+
+    2026-09-10 실측: 배짱할인 14건을 넣었더니 8건만 들어가고 6건이
+    사라졌다. 그중 하나가 피자헛 10,000원(24,000원 이상)이었고, 남은
+    7,000원이 대표값이 돼 화면의 할인이 3,000원 작아졌다.
     """
-    return record.get("platform"), record.get("brand"), record.get("captured_at")
+    return (record.get("platform"), record.get("brand"),
+            record.get("captured_at"), record.get("amount"),
+            record.get("min_order_amount"))
+
+
+def _winner_key(record: dict) -> tuple:
+    """어느 관측이 대표값이 됐는지만 가리는 키.
+
+    `_identity`와 달리 병합되는 상세(min_order_amount)를 안 본다 —
+    그건 이긴 뒤에 진 쪽에서 받아 올 수 있는 값이라, 넣기 전후로 달라진다.
+    """
+    return (record.get("platform"), record.get("brand"),
+            record.get("captured_at"), record.get("amount"))
 
 
 def plan(candidates: list[dict], existing: list[dict]) -> tuple[list, list, list]:
@@ -44,7 +64,7 @@ def plan(candidates: list[dict], existing: list[dict]) -> tuple[list, list, list
     fresh, duplicate, invalid = [], [], []
     for record in candidates:
         try:
-            normalized = validate_record(record)
+            normalized = validate_record(record, user_facing_copy=True)
         except ValueError as exc:
             invalid.append((record, str(exc)))
             continue
@@ -96,7 +116,16 @@ def main(argv: list[str]) -> int:
             # 그대로 돌려주지 않고 진 쪽의 상세를 병합한 새 dict를 만든다.
             # 그래서 이겼는데도 늘 "졌다"고 나온다(2026-08-05에 실제로
             # 108건 중 60건을 틀리게 보고했다).
-            won = _identity(winners[key]) == _identity(record)
+            #
+            # 같은 이유로 `_identity`로도 비교하면 안 된다. 거기엔
+            # `min_order_amount`가 들어 있는데 그게 바로 병합되는 필드다 —
+            # 이긴 레코드가 진 쪽의 최소주문을 받아 오면 값이 달라져 또
+            # "졌다"가 된다(2026-09-12: 뚜레쥬르가 이겼는데 졌다고 나왔다.
+            # 우리 레코드에 최소주문이 없어 옛 레코드의 18,000원이 붙었다).
+            #
+            # 묻는 것은 "어느 **관측**이 대표값이 됐나"다. 그건 상세가
+            # 아니라 언제 찍었는지가 가른다.
+            won = _winner_key(winners[key]) == _winner_key(record)
             print(f"  {record['brand']} / {record['platform']} -> "
                   f"{'반영됨' if won else '기존 레코드에 짐'}")
         return 0
