@@ -136,7 +136,7 @@ def losing_detail(incoming: list[dict], server: list[dict]) -> list[str]:
     return out
 
 
-def staleness(incoming: list[dict], server: list[dict]) -> str | None:
+def staleness(incoming: list[dict], server: list[dict], accept_loss: set[str] | None = None) -> str | None:
     """배포를 막아야 할 사유. 안전하면 None."""
     new, old = latest_capture(incoming), latest_capture(server)
     if new < old:
@@ -144,6 +144,10 @@ def staleness(incoming: list[dict], server: list[dict]) -> str | None:
                 f"최신 캡처 {new or '없음'} < 서버 {old}. "
                 f"서버 쪽 갱신을 원장에 먼저 흡수할 것.")
     lost = losing_detail(incoming, server)
+    # 사람이 정정한 브랜드는 상세가 빠지는 것이 목적이다(예: 잘못 붙은 "랜덤" 표식과 조건).
+    # 어느 브랜드인지 명시해서 부를 때만 넘어간다 — 전체 끄기 스위치는 두지 않는다.
+    if accept_loss:
+        lost = [line for line in lost if line.split(" / ")[0].strip() not in accept_loss]
     if lost:
         return ("서버에 있는 상세가 사라진다:\n    " + "\n    ".join(lost))
     return None
