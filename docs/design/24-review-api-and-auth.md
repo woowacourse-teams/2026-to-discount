@@ -79,3 +79,8 @@
 6. nginx Basic Auth와 404 규칙, 문서(ROUTINE-SPEC §2 단계 0, §3).
 
 미결(22번 §9-2 그대로): 검수 없이 지난 수집분의 운영 반영 규칙.
+
+## 선제 구현 (2026-09-18): 인증 첫 층
+
+콘솔(`/ops/`)은 nginx Basic Auth(아이디와 비밀번호를 묻는 가장 단순한 웹 인증) 한 겹으로 열려 있다. 2026-09-18에 그 이름을 서버 프로세스(`ops_apply.py`)에 `X-Ops-User` 헤더로 넘겨, 배너 편집 이력(`edits/<날짜>.jsonl`)과 제안 승인 결과(`proposals/<날짜>.result.json`의 `decided_by`)에 "누가"를 남기게 했다. 사람마다 계정을 하나씩 만들면(`htpasswd`) 이력에 이름이 찍힌다. 계정 만들기는 tracker `docs/setup/MINIPC-HANDOVER.md`의 서버 표에 있다. 이 문서가 말한 3층(토큰, 권한, 감사) 가운데 감사의 절반이 이것이다. 권한 분리(보기와 편집)는 아직 없다.
+
