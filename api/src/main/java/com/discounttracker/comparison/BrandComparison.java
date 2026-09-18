@@ -24,7 +24,14 @@ public record BrandComparison(
         @JsonIgnore Brand brand,
         Integer maxConfirmedAmount,
         @JsonIgnore Integer maxHeldAmount,
-        List<Offer> offers) {
+        List<Offer> offers,
+        // 인기 점수(2026-09-19). 최근 14일 원장 이벤트의 클릭·펼침 가중합(PopularityIndex).
+        // 프론트 정렬 "인기순"이 쓴다. 0이면 기록 없음.
+        int popularity) {
+
+    public BrandComparison(Brand brand, Integer maxConfirmedAmount, Integer maxHeldAmount, List<Offer> offers) {
+        this(brand, maxConfirmedAmount, maxHeldAmount, offers, 0);
+    }
 
     /** 카드 제목·로고 파일명이 쓰는 대표명. */
     @JsonProperty("name")

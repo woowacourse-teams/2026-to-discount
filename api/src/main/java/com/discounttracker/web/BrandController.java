@@ -19,12 +19,14 @@ public class BrandController {
     private final BrandComparisonService service;
     private final OfferRepository offers;
     private final BannerCatalog banners;
+    private final com.discounttracker.analytics.PopularityIndex popularity;
 
     public BrandController(BrandComparisonService service, OfferRepository offers,
-                           BannerCatalog banners) {
+                           BannerCatalog banners, com.discounttracker.analytics.PopularityIndex popularity) {
         this.service = service;
         this.offers = offers;
         this.banners = banners;
+        this.popularity = popularity;
     }
 
     @GetMapping("/brands")
@@ -44,6 +46,7 @@ public class BrandController {
     @PostMapping("/reload")
     public Map<String, Object> reload() {
         offers.reload();
+        popularity.reload();
         // 배너 파일이 깨져도 200을 돌려준다 — 오퍼는 멀쩡히 다시 읽혔고,
         // 배너는 부가 정보다. 대신 깨졌다는 사실을 응답에 실어 보낸다.
         // 건수만 보고 판단하게 두면 "이전 목록 그대로"와 "새 배너가 마침
