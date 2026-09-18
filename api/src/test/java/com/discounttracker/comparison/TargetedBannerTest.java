@@ -62,6 +62,13 @@ class TargetedBannerTest {
     }
 
     @Test
+    void randomCouponBannerIsMarkedRandomNotMax() {
+        // 2026-09-18: bhc "최대 7,000원 / 매일 랜덤쿠폰 뽑기" 배너가 "최대"(불확정)로 섰다.
+        // 뽑기 쿠폰은 "랜덤"이다 — 화면 배지가 다르고 필터가 따로 다룬다.
+        assertEquals("랜덤", offerWith("매일 랜덤쿠폰 뽑기").qualifier());
+    }
+
+    @Test
     void targetedDealSaysItIsLimited() {
         Offer offer = offerWith("고객별 타겟딜, 앱에서 확인");
 

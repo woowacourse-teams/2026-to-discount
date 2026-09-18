@@ -144,6 +144,12 @@ public class BrandComparisonService {
      * 정렬에서 빠지고 화면에는 "불확정" 배지가 붙는다.
      */
     private static String bannerQualifier(Banner banner, List<DiscountTier> compound) {
+        // 뽑기 쿠폰은 "랜덤"이다(2026-09-18). 구조 필드 limit=random이거나 문구에
+        // "랜덤"이 있으면 그렇다. 상한("최대")보다 먼저 본다 — 랜덤 배너는 대개
+        // "최대 7,000원"이라고 적히기 때문이다(coupangeats-random-20260914 bhc).
+        if (isRandom(banner)) {
+            return RANDOM_QUALIFIER;
+        }
         String text = banner.amount();
         if (text != null && text.contains("최대")) {
             return MAX_QUALIFIER;
@@ -156,6 +162,13 @@ public class BrandComparisonService {
             return MAX_QUALIFIER;
         }
         return compound.isEmpty() ? BANNER_QUALIFIER : CUMULATIVE_QUALIFIER;
+    }
+
+    /** 뽑기 쿠폰인가. 구조 필드(limit=random) 또는 기간·부가 문구의 "랜덤". */
+    private static boolean isRandom(Banner banner) {
+        if (banner.spec() != null && "random".equals(banner.spec().limit())) return true;
+        String text = (banner.period() == null ? "" : banner.period()) + " " + (banner.extra() == null ? "" : banner.extra());
+        return text.contains("랜덤");
     }
 
     /** 고객마다 갈리는 딜인가. 배너 문구가 그렇게 적혀 있으면 그렇다. */
@@ -264,8 +277,6 @@ public class BrandComparisonService {
 
     /** 상한액임을 알리는 표식. 원장과 같은 말을 쓴다 — 정렬에서 빠진다. */
     private static final String MAX_QUALIFIER = "최대";
-    /** 뽑기 쿠폰임을 알리는 표식(2026-09-18). 상한처럼 정렬에서 빠진다. 원장과 같은 말. */
-    private static final String RANDOM_QUALIFIER = "랜덤";
     /** 배너 문구에 이 말이 있으면 고객마다 갈리는 딜이다. */
     private static final String TARGETED_MARK = "타겟딜";
     private static final String LIMITED_MARK = "한정";
@@ -291,7 +302,7 @@ public class BrandComparisonService {
         //
         // 프론트의 isBest(App.jsx)가 같은 규칙을 들고 있다. 한쪽만 고치면
         // 카드 정렬과 카드 안 "최고 할인" 표식이 서로 다른 답을 낸다(ADR-016).
-        if (MAX_QUALIFIER.equals(qualifier) || RANDOM_QUALIFIER.equals(qualifier)) {
+        if ("최대".equals(qualifier)) {
             return null;
         }
         return offer.amount();
