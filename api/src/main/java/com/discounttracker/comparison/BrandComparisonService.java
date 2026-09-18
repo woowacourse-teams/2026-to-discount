@@ -277,6 +277,8 @@ public class BrandComparisonService {
 
     /** 상한액임을 알리는 표식. 원장과 같은 말을 쓴다 — 정렬에서 빠진다. */
     private static final String MAX_QUALIFIER = "최대";
+    /** 뽑기 쿠폰임을 알리는 표식(2026-09-18). 상한처럼 정렬에서 빠진다. 원장과 같은 말. */
+    private static final String RANDOM_QUALIFIER = "랜덤";
     /** 배너 문구에 이 말이 있으면 고객마다 갈리는 딜이다. */
     private static final String TARGETED_MARK = "타겟딜";
     private static final String LIMITED_MARK = "한정";
@@ -302,7 +304,7 @@ public class BrandComparisonService {
         //
         // 프론트의 isBest(App.jsx)가 같은 규칙을 들고 있다. 한쪽만 고치면
         // 카드 정렬과 카드 안 "최고 할인" 표식이 서로 다른 답을 낸다(ADR-016).
-        if ("최대".equals(qualifier)) {
+        if (MAX_QUALIFIER.equals(qualifier) || RANDOM_QUALIFIER.equals(qualifier)) {
             return null;
         }
         return offer.amount();
