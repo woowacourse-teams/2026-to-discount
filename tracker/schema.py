@@ -177,7 +177,38 @@ def validate_exclusion(excluded) -> None:
         raise ValueError(f"invalid excluded.reason: {excluded.get('reason')!r}")
 
 
-def validate_record(record: dict) -> dict:
+# 사용자에게 그대로 보이는 칸(conditions, badge)에 수집기의 설명이나 근거가 들어간 일이 있다.
+# 2026-09-18 "뽑기 쿠폰. 받는 값이 사람마다 다르고 매일 다시 뽑는다(허브 랜덤 표기, 쿠폰함 대조)"가
+# 웹 카드에 그대로 나갔다. 화면 문구는 앱이 쓰는 짧은 말("1일 1회, 배달만", "매일 랜덤 뽑기")이어야
+# 한다. 서술형 문장, 괄호 안 근거, 수집기 용어는 여기서 막는다(HARNESS §13).
+USER_FACING_FIELDS = ("conditions", "badge")
+USER_FACING_MAX_LEN = 30
+USER_FACING_FORBIDDEN = ("확인", "대조", "표기", "파서", "미확인", "레이아웃", "관측", "수집", "판독", "추정", "실측", "정정")
+
+
+def user_facing_copy_problem(text: str, max_len: int = USER_FACING_MAX_LEN) -> str | None:
+    """mono/docs/COPY-STYLE.md 규칙에 어긋나면 이유, 맞으면 None. 배너 편집기와 배포 가드도 쓴다."""
+    if not text:
+        return None
+    if len(text) > max_len:
+        return f"{len(text)}자 > {max_len}자"
+    t = text.rstrip()
+    if t.endswith("다.") or t.endswith("다") or t.endswith("요.") or t.endswith("입니다"):
+        return "문장으로 끝난다"
+    bad = [w for w in USER_FACING_FORBIDDEN if w in text]
+    if bad:
+        return f"수집기 말 {bad}"
+    return None
+
+
+def _check_user_facing_copy(record: dict) -> None:
+    for field in USER_FACING_FIELDS:
+        why = user_facing_copy_problem(record.get(field))
+        if why:
+            raise ValueError(f"{field} is user-facing copy (COPY-STYLE): {why} ({record.get(field)!r})")
+
+
+def validate_record(record: dict, user_facing_copy: bool = False) -> dict:
     missing = [f for f in REQUIRED_FIELDS if f not in record]
     if missing:
         raise ValueError(f"record missing required fields: {missing}")
@@ -195,6 +226,10 @@ def validate_record(record: dict) -> dict:
 
     if normalized["qualifier"] not in ALLOWED_QUALIFIERS:
         raise ValueError(f"invalid qualifier: {normalized['qualifier']!r}")
+    # 새로 들어오는 관측에만 건다(ingest). 옛 원장 행에는 수집기 문장이 남아 있다 — 화면에
+    # 안 나가는 것들이고, 원장은 고치지 않는다.
+    if user_facing_copy:
+        _check_user_facing_copy(normalized)
     if normalized["scope"] not in ALLOWED_SCOPES:
         raise ValueError(f"invalid scope: {normalized['scope']!r}")
     if normalized["offer_type"] not in ALLOWED_OFFER_TYPES:

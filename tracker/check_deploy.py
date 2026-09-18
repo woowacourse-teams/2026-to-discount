@@ -34,6 +34,7 @@ import sys
 from pathlib import Path
 
 from config import use_utf8_stdout
+from schema import user_facing_copy_problem
 
 # 원장(log.jsonl)을 거치지 않고 서버 export.json에 사람이 바로 써넣은
 # 레코드의 표시(2026-08-18 실측: ddangyo 스타벅스 등 5건). 정식 경로가
@@ -58,6 +59,8 @@ def vanishing(incoming: list[dict], server: list[dict]) -> list[tuple[str, str]]
 # 채워져 있던 값이 비면 정보가 사라진 것이다. amount는 값이 바뀌는 게
 # 정상이라 뺀다 — 여기 있는 건 "있다가 없어지면 되돌릴 수 없는" 상세뿐이다.
 DETAIL_FIELDS = ("tiers", "badge", "minOrderAmount", "conditions", "expiresAt")
+# 멤버십을 말하는 배지 원문. 같은 사실이 membership 필드에 있으면 소실이 아니다.
+MEMBERSHIP_BADGES = {"와우회원전용", "배민클럽", "요기패스"}
 
 
 def _captured_day(record: dict) -> str:
@@ -105,6 +108,10 @@ def losing_detail(incoming: list[dict], server: list[dict]) -> list[str]:
             # ''를 채워진 것으로 잘못 세면, 다음 배포에서 그 자리가
             # None으로 정리될 때마다 실제 손실이 없는데도 막힌다
             # (2026-08-19 실측: 열정국밥 conditions '' -> None).
+            # 규칙(COPY-STYLE)에 어긋난 옛 conditions는 원래 화면에 있으면 안 되던 값이다.
+            # 그것이 비는 것은 손실이 아니라 정리다(2026-09-19).
+            if field == "conditions" and user_facing_copy_problem(record.get(field) or ""):
+                continue
             if not record.get(field):
                 continue
             # minOrderAmount는 tier_mode가 cumulative로 바뀌면 정당하게
@@ -114,6 +121,14 @@ def losing_detail(incoming: list[dict], server: list[dict]) -> list[str]:
             # 있으면 손실로 안 친다(2026-08-19 실측: 요기요 겹침 쿠폰
             # 14건 정정에서 minOrderAmount 손실로 오판돼 배포가 막혔다).
             if field == "minOrderAmount" and any(c.get("tiers") for c in candidates):
+                continue
+            # 멤버십 배지("와우회원전용"·"배민클럽")는 구조화된 membership으로
+            # 자리를 옮겼다(ADR-029). 허브 관측이 쿠폰함 관측을 이기면 badge는
+            # 안 옮겨 오지만(store.MERGEABLE_DETAIL) membership은 옮겨 온다 —
+            # 정보가 없어진 게 아니라 필드가 바뀐 것이다. 화면도 membership을
+            # 본다(2026-09-16 실측: 던킨 쿠팡이츠 badge 소실로 10:55 배포가 막힘).
+            if (field == "badge" and record.get("badge") in MEMBERSHIP_BADGES
+                    and any(c.get("membership") not in (None, "none") for c in candidates)):
                 continue
             if all(not c.get(field) for c in candidates):
                 out.append(f"{record.get('brand')} / {record.get('platform')}: "
