@@ -44,9 +44,10 @@ export function defaultFilters() {
 }
 
 const DEFAULT_SCALARS = {
-  // 뽑기 쿠폰(qualifier "랜덤")을 목록에 넣을지. 기본은 넣는다 — 값이 사람마다
-  // 다르지만 "오늘 그 브랜드에 뽑기가 있다"는 사실은 볼 만하다(2026-09-18).
-  includeRandom: true,
+  // 뽑기 쿠폰(qualifier "랜덤")을 "최고 할인" 산정과 정렬에 넣을지(2026-09-18).
+  // 목록에서 빼는 것이 아니다 — 카드에는 늘 보인다. 기본은 안 넣는다: 내가 뽑은
+  // 값을 그 브랜드의 최고로 세우면 다른 사람에게는 거짓이다.
+  includeRandom: false,
   sortKey: 'amount',
   // 할인액은 큰 게 좋고 최소주문금액은 작은 게 좋다 — 방향의 기본값을
   // 기준마다 다르게 두면 기준을 바꿀 때마다 순서가 뒤집혀 놀란다.
@@ -84,7 +85,8 @@ export function isRandom(offer) {
   return offer.qualifier === RANDOM_QUALIFIER
 }
 
-export function comparable(offer) {
+export function comparable(offer, includeRandom = false) {
+  if (includeRandom && isRandom(offer)) return true
   return !INCOMPARABLE.has(offer.qualifier)
 }
 
@@ -93,8 +95,8 @@ export function comparable(offer) {
  * "최고 할인" 배지가 고르는 값과 같은 규칙이다 — App.jsx가 이 함수의
  * 판정(comparable)을 그대로 가져다 쓴다.
  */
-export function bestConfirmedAmount(offers) {
-  const plain = offers.filter((o) => comparable(o) && o.amount != null && !o.soldOut)
+export function bestConfirmedAmount(offers, includeRandom = false) {
+  const plain = offers.filter((o) => comparable(o, includeRandom) && o.amount != null && !o.soldOut)
   return plain.length === 0 ? null : Math.max(...plain.map((o) => o.amount))
 }
 
@@ -116,17 +118,17 @@ export function lowestMinOrder(offers) {
  * 뒤로 보낸다 — 방향과 무관하다. 모르는 값을 0이나 무한대로 치면 오름차순
  * 맨 앞이나 내림차순 맨 앞에 엉뚱하게 올라온다.
  */
-export function sortBrands(brands, { sortKey, sortDir }) {
+export function sortBrands(brands, { sortKey, sortDir, includeRandom = false }) {
   const value = (b) => (sortKey === 'minOrder'
     ? lowestMinOrder(b.offers)
-    : bestConfirmedAmount(b.offers))
+    : bestConfirmedAmount(b.offers, includeRandom))
 
   const dir = sortDir === 'asc' ? 1 : -1
 
   return [...brands].sort((a, b) => {
     // 확정이 없는 브랜드는 어떤 기준으로도 뒤에 둔다(API와 같은 규칙).
-    const aConfirmed = bestConfirmedAmount(a.offers) != null
-    const bConfirmed = bestConfirmedAmount(b.offers) != null
+    const aConfirmed = bestConfirmedAmount(a.offers, includeRandom) != null
+    const bConfirmed = bestConfirmedAmount(b.offers, includeRandom) != null
     if (aConfirmed !== bConfirmed) return aConfirmed ? -1 : 1
 
     const av = value(a)
@@ -149,8 +151,7 @@ export function applyFilters(brands, filters, { cart, cartOnly } = {}) {
   const q = filters.search.trim()
   const visible = brands
     .map((b) => {
-      const offers = b.offers.filter((o) => filters.platforms.has(o.platform)
-        && (filters.includeRandom || !isRandom(o)))
+      const offers = b.offers.filter((o) => filters.platforms.has(o.platform))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
     .filter((b) => {

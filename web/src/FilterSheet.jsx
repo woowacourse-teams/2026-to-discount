@@ -144,7 +144,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
               aria-pressed={draft.includeRandom}
               onClick={() => setDraft((d) => ({ ...d, includeRandom: !d.includeRandom }))}
             >
-              랜덤쿠폰 포함
+              랜덤쿠폰도 최고할인에 넣기
             </button>
           </div>
 
