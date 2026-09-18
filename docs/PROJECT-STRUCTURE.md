@@ -37,6 +37,8 @@ api/src/main/java/com/discounttracker/analytics/TrafficStatsService.java
 api/src/main/java/com/discounttracker/analytics/VisitEvent.java
 api/src/main/java/com/discounttracker/banner/Banner.java
 api/src/main/java/com/discounttracker/banner/BannerCatalog.java
+api/src/main/java/com/discounttracker/banner/BannerSpec.java
+api/src/main/java/com/discounttracker/banner/BannerText.java
 api/src/main/java/com/discounttracker/brand/Brand.java
 api/src/main/java/com/discounttracker/brand/BrandCatalog.java
 api/src/main/java/com/discounttracker/brand/Category.java
@@ -81,6 +83,7 @@ api/src/test/java/com/discounttracker/analytics/SurveyEligibilityTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyTextTest.java
 api/src/test/java/com/discounttracker/analytics/TrafficStatsServiceTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogTest.java
+api/src/test/java/com/discounttracker/banner/BannerTextTest.java
 api/src/test/java/com/discounttracker/brand/BrandCatalogTest.java
 api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java
 api/src/test/java/com/discounttracker/comparison/TargetedBannerTest.java
@@ -221,7 +224,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 90 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 93 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 57 |
 
 ### Tracker
@@ -248,7 +251,7 @@ flowchart TB
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
 | `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 23 |
-| `banner/` | 당일 행사 로드와 날짜 판정 | 2 |
+| `banner/` | 당일 행사 로드와 날짜 판정 | 4 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 8 |
