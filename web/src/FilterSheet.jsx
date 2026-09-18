@@ -82,7 +82,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             ))}
           </div>
           {draft.platforms.size === 0 && (
-            <p className="sheet__warn">플랫폼을 하나도 안 고르면 결과가 비어 있다.</p>
+            <p className="sheet__warn">플랫폼을 하나 이상 선택해 주세요.</p>
           )}
 
           <h2 className="sheet__title">카테고리</h2>
@@ -123,7 +123,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             </button>
           </div>
 
-          <h2 className="sheet__title">정렬 <span className="sheet__hint">복수 선택. 고른 순서대로</span></h2>
+          <h2 className="sheet__title">정렬 <span className="sheet__hint">복수 선택 가능</span></h2>
           {/* 방향 있는 기준은 라벨 한 줄 + 높은순/낮은순 두 버튼. 같은 기준의 반대 방향을 누르면
               방향만 바뀐다. 켜진 버튼을 다시 누르면 그 기준이 빠진다. 고른 순서가 우선순위라
               칩 앞에 번호를 붙인다. */}
@@ -139,7 +139,9 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             const order = idx >= 0 ? `${idx + 1}. ` : ''
             return (
               <div key={s.key} className="sheet__sort-row">
-                <span className={`sheet__sort-label${chosen ? ' sheet__sort-label--on' : ''}`}>{order}{s.label}</span>
+                {s.directional && (
+                  <span className={`sheet__sort-label${chosen ? ' sheet__sort-label--on' : ''}`}>{order}{s.label}</span>
+                )}
                 {s.directional ? (
                   <span className="sheet__chips">
                     {[['desc', '높은순'], ['asc', '낮은순']].map(([dir, label]) => (
@@ -162,16 +164,13 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
                       aria-pressed={!!chosen}
                       onClick={() => set('desc')}
                     >
-                      {chosen ? '켜짐' : '켜기'}
+                      {order}{s.label}
                     </button>
                   </span>
                 )}
               </div>
             )
           })}
-          {draft.sorts.length === 0 && (
-            <p className="sheet__warn">정렬을 하나도 안 고르면 할인액 높은 순으로 보인다.</p>
-          )}
 
           {/* 멤버십 반영 로직은 아직 없다. 자리와 이름만 두고 수요를 집계한다. 맨 아래(2026-09-19). */}
           <h2 className="sheet__title">

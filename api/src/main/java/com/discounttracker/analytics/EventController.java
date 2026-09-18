@@ -44,7 +44,7 @@ public class EventController {
             "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
             "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
             // 필터 시트는 옛 B안의 것인데 2026-09-16 A 바에 기능으로 병합했다.
-            "cart_toggle", "filter_sheet_open", "cart_view_toggle", "cart_clear",
+            "cart_toggle", "filter_sheet_open", "quick_filter", "cart_view_toggle", "cart_clear",
             // 홈 버튼(2026-09-16, 바의 필터 버튼 옆).
             "home_click",
             // 배너 자동 넘김 멈춤/재생(2026-09-16, 캐러셀 조작 묶음).
