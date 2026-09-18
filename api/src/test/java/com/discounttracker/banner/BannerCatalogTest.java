@@ -369,6 +369,45 @@ class BannerCatalogTest {
     }
 
     @Test
+    void buildsTextFromStructuredFieldsWhenSentencesAreEmpty() {
+        // 설계 25: 문장 칸 없이 items, limit만 적어도 카드가 선다. 적힌 문장은 이긴다.
+        String yaml = """
+                banners:
+                  - id: coupangeats-open-20260918
+                    platform: coupangeats
+                    url: https://example.test/hub
+                    items:
+                      - {brand: 버거킹, amount: 4000, opensAt: "10:00"}
+                      - {brand: 호식이두마리치킨, amount: 6000, opensAt: "15:00"}
+                    limit: first_come
+                    startsOn: 2026-09-18
+                    endsOn: 2026-09-18
+                  - id: bhc-20260918
+                    brand: bhc
+                    platform: coupangeats
+                    url: https://example.test/bhc
+                    amountRange: [null, 7000]
+                    limit: random
+                    period: 일일 슈퍼딜
+                    startsOn: 2026-09-18
+                    endsOn: 2026-09-18
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-18");
+        assertEquals(2, catalog.active().size());
+        Banner open = catalog.active().get(0);
+        assertEquals("4/6천원", open.amount());
+        assertEquals("9월 18일 하루", open.period());
+        assertEquals("10시~ 버거킹 · 15시~ 호식이두마리치킨 / 선착순", open.extra());
+        assertEquals(List.of("버거킹", "호식이두마리치킨"), open.brands());
+        assertEquals("버거킹", open.brand());
+        Banner bhc = catalog.active().get(1);
+        assertEquals("최대 7,000원", bhc.amount());
+        assertEquals("일일 슈퍼딜", bhc.period());            // 적힌 문장이 이긴다
+        assertEquals("랜덤쿠폰", bhc.extra());
+        assertNotNull(bhc.spec());
+    }
+
+    @Test
     void readsMinOrderOutOfTheExtraLineWhenNobodyFilledTheField() {
         // 사람은 extra에 "16,000원↑"를 적고 끝낸다. 실측(2026-08-25)에서
         // 살아 있는 배너 셋 전부가 minOrder를 비워 둔 채였고, 그 배너가

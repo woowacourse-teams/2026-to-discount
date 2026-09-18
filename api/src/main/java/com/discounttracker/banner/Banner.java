@@ -60,7 +60,9 @@ public record Banner(
         Boolean soldOut,
         LocalDate soldOutOn,
         int priority,
-        List<String> brands) {
+        List<String> brands,
+        // 구조 필드(설계 25). 문장 칸이 비면 여기서 문구를 만든다. 응답에도 그대로 실린다.
+        BannerSpec spec) {
 
     static final int DEFAULT_PRIORITY = 999;
 
@@ -77,7 +79,16 @@ public record Banner(
                   LocalDate startsOn, LocalDate endsOn, Boolean soldOut,
                   LocalDate soldOutOn, int priority) {
         this(id, brand, platform, url, amount, period, extra, minOrder, color,
-                startsOn, endsOn, soldOut, soldOutOn, priority, null);
+                startsOn, endsOn, soldOut, soldOutOn, priority, null, null);
+    }
+
+    /** 옛 호출부(spec 없음)를 위한 생성자. */
+    public Banner(String id, String brand, String platform, String url, String amount,
+                  String period, String extra, Integer minOrder, String color,
+                  LocalDate startsOn, LocalDate endsOn, Boolean soldOut,
+                  LocalDate soldOutOn, int priority, List<String> brands) {
+        this(id, brand, platform, url, amount, period, extra, minOrder, color,
+                startsOn, endsOn, soldOut, soldOutOn, priority, brands, null);
     }
 
     /** 이 배너가 덮는 브랜드 전부 — brands가 있으면 그것, 없으면 brand 하나. */
@@ -97,7 +108,7 @@ public record Banner(
         return Boolean.valueOf(out).equals(soldOut) && soldOutOn == null
                 ? this
                 : new Banner(id, brand, platform, url, amount, period, extra, minOrder,
-                        color, startsOn, endsOn, out, null, priority, brands);
+                        color, startsOn, endsOn, out, null, priority, brands, spec);
     }
 
     /**

@@ -34,6 +34,19 @@
 #             그마저 실패하면 플랫폼 색을 쓴다
 #   priority  선택. 낮을수록 먼저. 기본 999
 #
+#   구조 필드(2026-09-18, 설계 25). amount·period·extra를 비우고 이것만 적으면 서버가
+#   문구를 만든다. 문장 칸이 적혀 있으면 그 문장이 이긴다.
+#   items       [{brand, amount, minOrder, opensAt: "HH:MM"}] 브랜드별 값. brands와
+#               amount, minOrder(전부 같을 때)는 여기서 나온다
+#   amountRange [최소, 최대] 랜덤 쿠폰. 최소는 모르면 null. "최대 8,000원"
+#   opensAt     "HH:MM" 매일 여는 시각(브랜드마다 다르면 items에)
+#   limit       first_come | random | targeted | none
+#   usage       use(사용 선착순) | issue(발급 선착순). limit이 first_come일 때
+#   channel     배달 | 포장
+#   membership  플랫폼 멤버십 키(coupangEats 등)
+#   event       짧은 행사 제목(뚜쥬데이, 위클리 슈퍼딜)
+#   note        위 칸에 안 담기는 한 줄
+#
 # 예시(그대로 두면 기간이 지나 안 뜬다):
 #
 #   - id: kyochon-20260811

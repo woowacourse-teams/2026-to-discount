@@ -177,10 +177,22 @@ public class BannerCatalog {
         String platform = text(attrs.get("platform"));
         if (platform == null) platform = Banner.OWN;
         String url = text(attrs.get("url"));
-        String amount = text(attrs.get("amount"));
-        String period = text(attrs.get("period"));
         LocalDate startsOn = date(attrs.get("startsOn"));
         LocalDate endsOn = date(attrs.get("endsOn"));
+        // 구조 필드(설계 25, 2026-09-18). 문장 칸(amount, period, extra)이 비어 있으면
+        // 여기서 만든다. 적혀 있으면 그 문장이 이긴다(이행 기간 규칙).
+        BannerSpec spec;
+        try {
+            spec = spec(attrs);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+        String amount = text(attrs.get("amount"));
+        String period = text(attrs.get("period"));
+        if (spec != null) {
+            if (amount == null) amount = BannerText.amount(spec);
+            if (period == null) period = BannerText.period(spec, startsOn, endsOn);
+        }
         // platform은 선택이다(2026-09-18). 없거나 "own"이면 브랜드 자체 앱이나
         // 사이트의 행사다 — 뚜레쥬르 네이버페이 적립처럼 배달앱 밖에서 여는 행사가
         // 얼마든지 있다. 나중에 다른 플랫폼을 더할 때도 이 자리는 그대로다.
@@ -202,8 +214,15 @@ public class BannerCatalog {
             many = raw.stream().map(BannerCatalog::text)
                     .filter(s -> s != null).map(brands::canonical).toList();
             if (many.isEmpty()) many = null;
-            if (brand == null && many != null) brand = many.get(0);
         }
+        if (many == null && spec != null && BannerText.brands(spec) != null) {
+            many = BannerText.brands(spec).stream().map(brands::canonical).toList();
+        }
+        if (brand == null && many != null) brand = many.get(0);
+        Integer minOrder = number(attrs.get("minOrder"));
+        if (minOrder == null && spec != null) minOrder = BannerText.minOrder(spec);
+        String extra = text(attrs.get("extra"));
+        if (extra == null && spec != null) extra = BannerText.extra(spec, minOrder);
         return new Banner(
                 id,
                 brand == null ? null : brands.canonical(brand),
@@ -211,15 +230,42 @@ public class BannerCatalog {
                 url,
                 amount,
                 period,
-                text(attrs.get("extra")),
-                number(attrs.get("minOrder")),
+                extra,
+                minOrder,
                 text(attrs.get("color")),
                 startsOn,
                 endsOn,
                 flag(attrs.get("soldOut")),
                 date(attrs.get("soldOutOn")),
                 priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY,
-                many);
+                many,
+                spec);
+    }
+
+    /** yml의 구조 필드를 읽는다. 하나도 없으면 null. 형이 틀리면 IllegalArgumentException. */
+    @SuppressWarnings("unchecked")
+    private static BannerSpec spec(Map<String, Object> attrs) {
+        List<BannerSpec.BannerItem> items = null;
+        if (attrs.get("items") instanceof List<?> raw) {
+            items = new ArrayList<>();
+            for (Object o : raw) {
+                if (o instanceof Map<?, ?> m) {
+                    Map<String, Object> it = (Map<String, Object>) m;
+                    items.add(new BannerSpec.BannerItem(text(it.get("brand")), number(it.get("amount")),
+                            number(it.get("minOrder")), text(it.get("opensAt"))));
+                }
+            }
+            if (items.isEmpty()) items = null;
+        }
+        List<Integer> range = null;
+        if (attrs.get("amountRange") instanceof List<?> raw) {
+            range = new ArrayList<>();
+            for (Object o : raw) range.add(number(o));
+        }
+        BannerSpec spec = new BannerSpec(items, range, text(attrs.get("opensAt")), text(attrs.get("limit")),
+                text(attrs.get("usage")), text(attrs.get("channel")), text(attrs.get("membership")),
+                text(attrs.get("event")), text(attrs.get("note")));
+        return spec.isEmpty() ? null : spec;
     }
 
     /** yes/true/1 무엇으로 적어도 참으로 읽는다. 손으로 고치는 파일이다. */
