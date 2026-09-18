@@ -12,17 +12,17 @@
 옮기고(`writing-plans`), 계획은 체크박스로 진행을 적는다. 설계 문서 자체는 승인 뒤
 고치지 않는다 — 결과는 ADR과 계획에 남긴다.
 
-문서 번호 3부터 20은 GitHub 이슈 번호와 같다. 21부터 27은 이슈 없이 순번만 이었고 그 사이 PR 번호가 앞서 나가 이슈 번호와 맞출 수 없게 되었다. 대신 문서마다 추적 이슈를 열었다(2026-09-17). 상태 변화와 논의는 이슈에, 결정과 근거는 문서에 적는다.
+문서 번호는 GitHub 이슈 번호와 같다. 설계 하나를 시작하면 이슈를 먼저 열고 그 번호로 파일을 만든다. 2026-09-17에 21~27로 매긴 문서 일곱 개는 이슈 번호와 어긋나 있었는데(그 사이 PR 번호가 앞서 나갔다), 2026-09-18에 이슈 번호 27~33으로 파일 이름과 제목을 바꿨다. 상태 변화와 논의는 이슈에, 결정과 근거는 문서에 적는다.
 
 | 문서 | 추적 이슈 |
 |---|---|
-| 21 | [#27](https://github.com/woowacourse-teams/2026-to-discount/issues/27) |
-| 22 | [#28](https://github.com/woowacourse-teams/2026-to-discount/issues/28) |
-| 23 | [#29](https://github.com/woowacourse-teams/2026-to-discount/issues/29) |
-| 24 | [#30](https://github.com/woowacourse-teams/2026-to-discount/issues/30) |
-| 25 | [#31](https://github.com/woowacourse-teams/2026-to-discount/issues/31) |
-| 26 | [#32](https://github.com/woowacourse-teams/2026-to-discount/issues/32) |
-| 27 | [#33](https://github.com/woowacourse-teams/2026-to-discount/issues/33) |
+| 27 | [#27](https://github.com/woowacourse-teams/2026-to-discount/issues/27) |
+| 28 | [#28](https://github.com/woowacourse-teams/2026-to-discount/issues/28) |
+| 29 | [#29](https://github.com/woowacourse-teams/2026-to-discount/issues/29) |
+| 30 | [#30](https://github.com/woowacourse-teams/2026-to-discount/issues/30) |
+| 31 | [#31](https://github.com/woowacourse-teams/2026-to-discount/issues/31) |
+| 32 | [#32](https://github.com/woowacourse-teams/2026-to-discount/issues/32) |
+| 33 | [#33](https://github.com/woowacourse-teams/2026-to-discount/issues/33) |
 
 ## 상태
 
@@ -30,13 +30,13 @@
 |---|---|---|---|---|
 | 3·8·10·14·16·18·20 | PostHog·검색·노출 계측 | 완료 (이슈 닫힘) | — | — |
 | banner-grouping | 여러 브랜드를 한 장에 묶기 | **완료** (09-15 `brands` 필드, 배너 v3) | — | 상태 줄이 "제안"으로 남아 있음 → 갱신 |
-| 21 | 개발/운영 환경 분리 | 설계 완료, **도입 안 함**. 7절 예외(배너 제안 승인 경로)는 09-18 구현 | — | 시점. "즉시 도입 안 함" (사용자, 09-15) |
-| 22 | 검수 화면 | 설계 완료, 도입 안 함 | 21 | 시점, 자동 반영 유예 시간 |
-| 23 | 피그마 왕복 | **보류** (사용자, 09-16, 09-17 재확인) | — | UI kit는 `/design/ui-kit.html`에 있음. `best-tag` 브랜치(mono `1bf0e5f`, 미러 `preview/best-tag`)는 보류 상태로 유지 |
-| 24 | 검수 API·인증 | 설계 완료. 첫 층(사람별 계정 → 이력에 누가)은 09-18 콘솔에 선제 구현 | 21, 22 | 권한 분리 시점 |
-| 25 | 배너 문구 구조화 | **승인** (09-18). items 객체 배열, amountRange(하한 선택), 지금 도입 | 없음 | 없음 |
-| 27 | 콘솔을 팀의 입구로 키운다(관례 조사, 구조 탭, 지금 할 일, 이력 탭, 25와 24로 이어짐) | **승인** (2026-09-18). 1~4 진행 중, 5와 6은 별도 트랙 | 26 | 없음 |
-| 26 | 운영 관측을 한 화면과 한 알림 채널로(수집, API, 데이터, 웹, 서버, 배포 탭과 슬랙) | **1~3단계 구현 완료** (2026-09-17, 3단계 배너 제안 승인은 09-18) | 없음 | 다음 단계는 문서 10절: 스캐너 500 응답, 5xx 슬랙 알림, Vercel 연동 |
+| 27 | 개발/운영 환경 분리 | 설계 완료, **도입 안 함**. 7절 예외(배너 제안 승인 경로)는 09-18 구현 | — | 시점. "즉시 도입 안 함" (사용자, 09-15) |
+| 28 | 검수 화면 | 설계 완료, 도입 안 함 | 21 | 시점, 자동 반영 유예 시간 |
+| 29 | 피그마 왕복 | **보류** (사용자, 09-16, 09-17 재확인) | — | UI kit는 `/design/ui-kit.html`에 있음. `best-tag` 브랜치(mono `1bf0e5f`, 미러 `preview/best-tag`)는 보류 상태로 유지 |
+| 30 | 검수 API·인증 | 설계 완료. 첫 층(사람별 계정 → 이력에 누가)은 09-18 콘솔에 선제 구현 | 27, 28 | 권한 분리 시점 |
+| 31 | 배너 문구 구조화 | **승인** (09-18). items 객체 배열, amountRange(하한 선택), 지금 도입 | 없음 | 없음 |
+| 33 | 콘솔을 팀의 입구로 키운다(관례 조사, 구조 탭, 지금 할 일, 이력 탭, 31와 24로 이어짐) | **승인** (2026-09-18). 1~4 진행 중, 5와 6은 별도 트랙 | 26 | 없음 |
+| 32 | 운영 관측을 한 화면과 한 알림 채널로(수집, API, 데이터, 웹, 서버, 배포 탭과 슬랙) | **1~3단계 구현 완료** (2026-09-17, 3단계 배너 제안 승인은 09-18) | 없음 | 다음 단계는 문서 10절: 스캐너 500 응답, 5xx 슬랙 알림, Vercel 연동 |
 
 트래커 쪽 설계·계획(수집 파이프라인)은 `delivery-discount-tracker/docs/superpowers/`에
 따로 있다 — `2026-09-17-audit-runtime-design.md`, `2026-09-17-multi-device-parallel-design.md`
@@ -44,5 +44,5 @@
 
 ## 다음 순서 (추천)
 
-21 → 22+25 → 24. 21 없이 22·24는 못 켠다(운영 API에 쓰기 경로를 열지 않는다는 전제).
+27 → 28+31 → 30. 27 없이 28·30는 못 켠다(운영 API에 쓰기 경로를 열지 않는다는 전제).
 25는 22의 배너 폼이 필드가 되는 것이라 같이 간다. 23은 사용자가 다시 꺼낼 때까지 그대로.

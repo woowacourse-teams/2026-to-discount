@@ -62,7 +62,7 @@ tracker  →  export.json  →  api  →  /api/brands  →  web
 - 웹과 API: `mirror-deploy-repos.yml`이 `web/`, `api/`를 배포 저장소(`nn98/delivery-discount-web`, `nn98/delivery-discount-api`)로 미러한다. 웹은 Vercel이, API는 OCI self-hosted runner가 그 저장소에서 배포한다.
 - 원본 세 저장소는 수동 폴백만 남아 있다. 같은 ADR-001의 "대가" 절 참고.
 
-운영 현황 대시보드는 https://bebeggars.duckdns.org/ops/ 에 있다. 설계는 [docs/design/26-ops-monitoring.md](docs/design/26-ops-monitoring.md).
+운영 현황 대시보드는 https://bebeggars.duckdns.org/ops/ 에 있다. 설계는 [docs/design/32-ops-monitoring.md](docs/design/32-ops-monitoring.md).
 
 ## 문서
 

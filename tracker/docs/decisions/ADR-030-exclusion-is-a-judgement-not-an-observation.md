@@ -5,7 +5,7 @@
 - 관련: [ADR-016](ADR-016-confirmed-beats-recency-on-dedup.md),
   [ADR-020](ADR-020-sweep-is-recorded-not-inferred.md),
   [ADR-028](ADR-028-today-expiry-is-not-an-observed-end-date.md),
-  mono `docs/design/22-review-screen.md` §9-3
+  mono `docs/design/28-review-screen.md` §9-3
 
 ## 맥락
 

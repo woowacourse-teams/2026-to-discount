@@ -37,7 +37,7 @@ tracker(작업 사본) --커밋--> tracker origin
 ### 3-1. 수집과 판독 (tracker)
 
 1. `capture/`와 `scripts/`를 고친다. `python -m pytest -q`(600건 넘음)를 돌리고 커밋한다.
-2. 검증은 다음 예약 실행이 한다. 00:01(전수조사 포함), 10:55, 15:55. 실행이 끝나면 `python scripts/check_routine.py <날짜>`로 단계별 PASS, SUSPECT, FAIL을 본다. 진행은 대시보드 `https://bebeggars.duckdns.org/ops/`에서 본다(설계 [`design/26-ops-monitoring.md`](design/26-ops-monitoring.md)).
+2. 검증은 다음 예약 실행이 한다. 00:01(전수조사 포함), 10:55, 15:55. 실행이 끝나면 `python scripts/check_routine.py <날짜>`로 단계별 PASS, SUSPECT, FAIL을 본다. 진행은 대시보드 `https://bebeggars.duckdns.org/ops/`에서 본다(설계 [`design/32-ops-monitoring.md`](design/32-ops-monitoring.md)).
 3. 실기 확인이 필요하면 예약 시각을 피해 폰을 쓴다. 한 바퀴는 25분(낮)에서 130분(전수조사 포함)이다.
 4. 실패, 원인, 조치는 tracker `docs/setup/COLLECTION-INCIDENTS.md`에 날짜별로 적는다. 규칙이 바뀌면 ADR을 쓴다. 실행 절차의 명세는 `docs/setup/ROUTINE-SPEC.md`, 소요 시간은 `ROUTINE-TIMING.md`에 있다.
 
@@ -111,7 +111,7 @@ curl -s https://bebeggars.duckdns.org/api/banners | head -c 300
 | 알고 싶은 것 | 문서 |
 |---|---|
 | 처음 환경 구성과 실행 | [`ONBOARDING.md`](../ONBOARDING.md) |
-| 지금 서비스가 어떤 상태인가 | 대시보드 `/ops/`. 설계는 [`design/26-ops-monitoring.md`](design/26-ops-monitoring.md) |
+| 지금 서비스가 어떤 상태인가 | 대시보드 `/ops/`. 설계는 [`design/32-ops-monitoring.md`](design/32-ops-monitoring.md) |
 | 코드 구조, 데이터 흐름, 배포 경계(자동 생성) | [`PROJECT-STRUCTURE.md`](PROJECT-STRUCTURE.md) |
 | 층을 가로지를 때 지킬 계약과 사고 사례 | [`ORCHESTRATION.md`](ORCHESTRATION.md) |
 | 커밋, 주석, 문서, 데이터 규칙 | [`CONVENTIONS.md`](CONVENTIONS.md) |

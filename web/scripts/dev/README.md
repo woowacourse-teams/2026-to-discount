@@ -19,4 +19,4 @@
 
 배포되면 `/design/ui-kit.html`. 피그마 플러그인 html.to.design으로 그 주소를
 가져오면 편집 가능한 레이어가 된다(코드 -> 피그마). 고친 프레임은 Figma MCP로
-읽어 CSS로 역반영한다(피그마 -> 코드). 흐름은 docs/design/23-figma-roundtrip.md.
+읽어 CSS로 역반영한다(피그마 -> 코드). 흐름은 docs/design/29-figma-roundtrip.md.

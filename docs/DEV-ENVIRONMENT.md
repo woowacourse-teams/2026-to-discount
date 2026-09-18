@@ -33,7 +33,7 @@
 
 ## 로깅, 모니터링, 알림
 
-**선택.** 로그는 Spring Boot 기본(Logback, stdout → systemd journal)만 쓴다. `GlobalExceptionHandler`(`api/src/main/java/.../web/GlobalExceptionHandler.java`)가 예상 못 한 예외만 `log.error`로 스택트레이스를 남긴다. Spring이 이미 의미를 아는 예외(404/405/400)는 그대로 상태코드만 내보낸다. 배포 헬스체크는 `deploy-api.yml`의 `curl -sf http://localhost:8088/api/brands`다. 운영 API는 서버에서 8088 포트로 돌고 nginx가 앞에서 프록시한다. 주간 모니터링은 `weekly-check.yml`(매주 월요일 09:00 KST 크론)이 "어느 플랫폼을 다시 훑어야 하는지"를 GitHub Actions Job Summary에 띄운다. 수집 PC와 서버 상태는 운영 현황 대시보드 https://bebeggars.duckdns.org/ops/ 에서 본다. 설계는 [design/26-ops-monitoring.md](design/26-ops-monitoring.md).
+**선택.** 로그는 Spring Boot 기본(Logback, stdout → systemd journal)만 쓴다. `GlobalExceptionHandler`(`api/src/main/java/.../web/GlobalExceptionHandler.java`)가 예상 못 한 예외만 `log.error`로 스택트레이스를 남긴다. Spring이 이미 의미를 아는 예외(404/405/400)는 그대로 상태코드만 내보낸다. 배포 헬스체크는 `deploy-api.yml`의 `curl -sf http://localhost:8088/api/brands`다. 운영 API는 서버에서 8088 포트로 돌고 nginx가 앞에서 프록시한다. 주간 모니터링은 `weekly-check.yml`(매주 월요일 09:00 KST 크론)이 "어느 플랫폼을 다시 훑어야 하는지"를 GitHub Actions Job Summary에 띄운다. 수집 PC와 서버 상태는 운영 현황 대시보드 https://bebeggars.duckdns.org/ops/ 에서 본다. 설계는 [design/32-ops-monitoring.md](design/32-ops-monitoring.md).
 
 **고려한 대안.** 처음에는 `Exception` 하나로 다 잡았다. 정적 리소스 없음 같은 정상 404까지 500으로 바뀌면서 봇 스캔(`/.env`, `/.git/config`) 로그가 30분 만에 쌓였다(2026-08-07 실측). 그래서 `ResponseEntityExceptionHandler` 상속으로 좁혔다. **서버 APM**(Sentry, Datadog 등)은 도입한 적 없다. 트래픽 규모(하루 방문 수백 명)와 단일 서버 구조에서 값어치가 로그 확인 비용보다 낮다고 판단했다.
 

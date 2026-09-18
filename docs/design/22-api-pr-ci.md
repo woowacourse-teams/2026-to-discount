@@ -184,7 +184,7 @@ GitHub-hosted ubuntu-latest
 
 #### Modify
 
-- `docs/design/22-api-pr-ci.md`: 구현 중 확인된 결정이나 검증 결과가 설계와
+- `docs/design/28-api-pr-ci.md`: 구현 중 확인된 결정이나 검증 결과가 설계와
   달라질 때 갱신
 
 ### Tasks
