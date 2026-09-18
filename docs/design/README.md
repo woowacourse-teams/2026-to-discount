@@ -22,7 +22,7 @@
 | 30 | [#30](https://github.com/woowacourse-teams/2026-to-discount/issues/30) |
 | 31 | [#31](https://github.com/woowacourse-teams/2026-to-discount/issues/31) |
 | 32 | [#32](https://github.com/woowacourse-teams/2026-to-discount/issues/32) |
-| 33 | [#33](https://github.com/woowacourse-teams/2026-to-discount/issues/33) |
+| 33 | 콘솔을 팀의 입구로 키운다(관례 조사, 구조 탭, 지금 할 일, 이력 탭) | **완료** (2026-09-18). 1~4와 별도 트랙 5(31의 1~2단계), 6(사람별 계정)까지 같은 날 끝 | 32 | 없음 |
 
 ## 상태
 
