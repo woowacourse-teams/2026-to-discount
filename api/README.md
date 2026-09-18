@@ -1,4 +1,4 @@
-# 배달앱 브랜드 할인 비교 API
+# 배거스 API
 
 배달앱별 브랜드 할인을 한 화면에서 비교하는 MVP의 백엔드(Spring Boot).
 데이터는 [delivery-discount-tracker](../delivery-discount-tracker) 파이썬
