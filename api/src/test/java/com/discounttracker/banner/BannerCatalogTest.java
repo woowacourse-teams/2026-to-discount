@@ -363,7 +363,8 @@ class BannerCatalogTest {
                 """;
         BannerCatalog catalog = catalogOn(yaml, "2026-09-18");
         assertEquals(1, catalog.active().size());
-        assertNull(catalog.active().get(0).platform());
+        assertEquals("own", catalog.active().get(0).platform());
+        assertTrue(catalog.active().get(0).isOwn());
         assertEquals(List.of(), catalog.dropped());
     }
 

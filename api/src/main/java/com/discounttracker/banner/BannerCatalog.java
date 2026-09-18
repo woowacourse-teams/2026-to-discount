@@ -173,14 +173,16 @@ public class BannerCatalog {
      */
     private static Banner toBanner(Map<String, Object> attrs, BrandCatalog brands) {
         String id = text(attrs.get("id"));
+        // 비우면 "own"으로 통일한다 — 응답에서 null과 값을 섞지 않는다(2026-09-18 사용자 결정).
         String platform = text(attrs.get("platform"));
+        if (platform == null) platform = Banner.OWN;
         String url = text(attrs.get("url"));
         String amount = text(attrs.get("amount"));
         String period = text(attrs.get("period"));
         LocalDate startsOn = date(attrs.get("startsOn"));
         LocalDate endsOn = date(attrs.get("endsOn"));
-        // platform은 선택이다(2026-09-18). 없으면 브랜드 자체 앱이나 사이트의
-        // 행사다 — 뚜레쥬르 네이버페이 적립처럼 배달앱 밖에서 여는 행사가
+        // platform은 선택이다(2026-09-18). 없거나 "own"이면 브랜드 자체 앱이나
+        // 사이트의 행사다 — 뚜레쥬르 네이버페이 적립처럼 배달앱 밖에서 여는 행사가
         // 얼마든지 있다. 나중에 다른 플랫폼을 더할 때도 이 자리는 그대로다.
         if (id == null || url == null
                 || amount == null || period == null || startsOn == null || endsOn == null) {
