@@ -100,6 +100,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `category_change` | 분류 선택 | `category`, `from`(`bar`/`sheet`) |
 | `platform_filter_toggle` | 배달앱 켜고 끔 | `platform`, `from`(`bar`/`sheet`) |
 | `filter_sheet_open` | 바의 필터 버튼으로 시트 열기(옛 B안 시트, 2026-09-16 A 바에 병합) | 없음 |
+| `quick_filter` | 배너 아래 빠른 필터 줄(09-19~) | `key`(`minOrder`/`random`), `dir`, `on` |
 | `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
 | `filters_reset` | 초기화 버튼 | 없음 |
 | `home_click` | 바의 홈 버튼. 필터와 검색을 풀고 맨 위로(브랜드 경로면 전체 목록으로) | 없음 |
