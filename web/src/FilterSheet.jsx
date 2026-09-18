@@ -24,14 +24,9 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
     if (open) setDraft(filters)
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 시트가 떠 있는 동안 뒤 목록이 같이 스크롤되면 시트를 닫았을 때
-  // 엉뚱한 위치에 있다.
-  useEffect(() => {
-    if (!open) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [open])
+  // 본문 스크롤은 잠그지 않는다(2026-09-18). 잠그면 스크롤바가 생겼다 사라지며
+  // 화면 폭이 바뀌어 목록이 좌우로 흔들렸다. 시트 자체가 스크롤을 먹고,
+  // 배경은 그대로 둔다 — 닫았을 때 위치가 바뀌는 것보다 그쪽이 덜 거슬린다.
 
   // ESC로 닫는다. 키보드만 쓰는 사용자에게 닫을 길이 배경 클릭뿐이면 안 된다.
   useEffect(() => {
@@ -139,6 +134,18 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
                 {c.label}
               </button>
             ))}
+          </div>
+
+          <h2 className="sheet__title">포함</h2>
+          <div className="sheet__chips">
+            <button
+              type="button"
+              className={`sheet__chip${draft.includeRandom ? ' sheet__chip--on' : ''}`}
+              aria-pressed={draft.includeRandom}
+              onClick={() => setDraft((d) => ({ ...d, includeRandom: !d.includeRandom }))}
+            >
+              랜덤쿠폰 포함
+            </button>
           </div>
 
           <h2 className="sheet__title">정렬</h2>

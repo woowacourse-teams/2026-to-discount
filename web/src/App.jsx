@@ -159,7 +159,9 @@ function offerAmountText(offer) {
 // 정작 조심해야 할 "불확정"이 묻힌다.
 //
 // 값 자체는 원장·정렬에서 계속 쓴다(filters.js) — 화면에만 안 그린다.
-const QUALIFIER_TONE = { 최대: 'plain', 특정메뉴: 'menu' }
+// "랜덤"(뽑기 쿠폰)은 불확정(상한)과 뜻이 다르다 — 값이 사람마다 다르고 내일
+// 바뀐다. 배지도 색도 갈라 둔다(2026-09-18).
+const QUALIFIER_TONE = { 최대: 'plain', 랜덤: 'random', 특정메뉴: 'menu' }
 
 function detailRows(offer) {
   if (offer.tiers?.length > 0) {
@@ -1078,6 +1080,43 @@ export default function App() {
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
       <EventBanner banners={banners} />
     <main>
+      {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 셋만 배너와 카드 사이에 둔다
+          (2026-09-18): 최소주문 낮은 순, 최소주문 높은 순, 랜덤쿠폰 포함. 시트의
+          같은 값과 한 상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
+      {brands && (
+        <div className="quick-bar" role="group" aria-label="빠른 필터">
+          {[['asc', '최소주문 낮은순'], ['desc', '최소주문 높은순']].map(([dir, label]) => {
+            const on = filters.sortKey === 'minOrder' && filters.sortDir === dir
+            return (
+              <button
+                key={dir}
+                type="button"
+                className={`quick-bar__chip${on ? ' quick-bar__chip--on' : ''}`}
+                aria-pressed={on}
+                onClick={() => {
+                  // 켜져 있는 것을 다시 누르면 기본 정렬(할인액 높은 순)로 돌아간다.
+                  const next = on ? { sortKey: 'amount', sortDir: 'desc' } : { sortKey: 'minOrder', sortDir: dir }
+                  setFilters((f) => ({ ...f, ...next }))
+                  track('quick_filter', { key: 'minOrder', dir, on: !on })
+                }}
+              >
+                {label}
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            className={`quick-bar__chip${filters.includeRandom ? ' quick-bar__chip--on' : ''}`}
+            aria-pressed={filters.includeRandom}
+            onClick={() => {
+              setFilters((f) => ({ ...f, includeRandom: !f.includeRandom }))
+              track('quick_filter', { key: 'random', on: !filters.includeRandom })
+            }}
+          >
+            랜덤쿠폰 포함
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="load-error" role="alert">

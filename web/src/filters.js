@@ -44,6 +44,9 @@ export function defaultFilters() {
 }
 
 const DEFAULT_SCALARS = {
+  // 뽑기 쿠폰(qualifier "랜덤")을 목록에 넣을지. 기본은 넣는다 — 값이 사람마다
+  // 다르지만 "오늘 그 브랜드에 뽑기가 있다"는 사실은 볼 만하다(2026-09-18).
+  includeRandom: true,
   sortKey: 'amount',
   // 할인액은 큰 게 좋고 최소주문금액은 작은 게 좋다 — 방향의 기본값을
   // 기준마다 다르게 두면 기준을 바꿀 때마다 순서가 뒤집혀 놀란다.
@@ -55,6 +58,7 @@ const DEFAULT_SCALARS = {
 export function isDefaultFilters(f) {
   return f.platforms.size === PLATFORMS.length
     && f.categories.size === 0
+    && f.includeRandom === DEFAULT_SCALARS.includeRandom
     && f.sortKey === DEFAULT_SCALARS.sortKey
     && f.sortDir === DEFAULT_SCALARS.sortDir
     && f.search.trim() === ''
@@ -64,6 +68,7 @@ export function isDefaultFilters(f) {
  * 다른 오퍼와 같은 선에서 견줄 수 있는 값인가.
  *
  * "최대"(화면 배지 "불확정")는 최소주문금액을 채워야 나오는 상한액이고
+ * "랜덤"(뽑기 쿠폰. 받는 사람마다 값이 다르다)은 오늘 내가 뽑은 값일 뿐이며
  * "특정메뉴"는 메뉴 하나에만 쓰는 값이라 액면 그대로 견주면 그 오퍼가
  * 실제보다 세 보인다. "최적"(쿠폰을 다 겹쳤을 때)과 "행사"(당일 배너)는
  * 조건이 붙을 뿐 액수 자체는 확정이라 넣는다.
@@ -72,7 +77,12 @@ export function isDefaultFilters(f) {
  * 있다(카드 정렬용). 한쪽만 고치면 API가 준 순서와 화면이 다시 세운 순서가
  * 어긋난다(ADR-016).
  */
-const INCOMPARABLE = new Set(['최대', '특정메뉴'])
+const INCOMPARABLE = new Set(['최대', '랜덤', '특정메뉴'])
+
+export const RANDOM_QUALIFIER = '랜덤'
+export function isRandom(offer) {
+  return offer.qualifier === RANDOM_QUALIFIER
+}
 
 export function comparable(offer) {
   return !INCOMPARABLE.has(offer.qualifier)
@@ -139,7 +149,8 @@ export function applyFilters(brands, filters, { cart, cartOnly } = {}) {
   const q = filters.search.trim()
   const visible = brands
     .map((b) => {
-      const offers = b.offers.filter((o) => filters.platforms.has(o.platform))
+      const offers = b.offers.filter((o) => filters.platforms.has(o.platform)
+        && (filters.includeRandom || !isRandom(o)))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
     .filter((b) => {
