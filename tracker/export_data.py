@@ -67,6 +67,8 @@ BRANDS_PATH = Path(__file__).parent / "data" / "brands-sorted.txt"
 # (2026-08-16). 한 주소에서 안 보인 것은 끝났다는 증거가 아니다. 요기요는
 # 여러 주소의 수집을 합쳐서 보고, 만료는 종료일(is_live)로만 판정한다.
 SWEEP_SCOPED_PLATFORMS = {"baemin", "coupangeats", "ddangyo"}
+# 요기요만 쓰는 유예. 마지막 요기요 수집일 기준 이 일수 넘게 안 보인 종료일 없는 오퍼는 내린다.
+YOGIYO_MAX_AGE_DAYS = 14
 
 
 def camel_tiers(tiers, record=None):
@@ -240,9 +242,18 @@ def is_stale_sweep(record: dict, sweeps: dict[str, str]) -> bool:
 
     지우지는 않는다. 그때 그랬다는 관측은 원장에 남고 여기서만 빠진다.
     """
-    if record["platform"] not in SWEEP_SCOPED_PLATFORMS:
-        return False
     if has_expiry(record):
+        return False
+    if record["platform"] == "yogiyo":
+        # 요기요는 주소마다 목록이 달라 "이번에 안 보임"으로 안 내리는데, 그러면 종료일 없는
+        # 옛 오퍼가 영원히 남는다(2026-09-19: 08-03 관측 "최대 6,000원"이 아직 화면에 있었다).
+        # 마지막 요기요 수집일에서 YOGIYO_MAX_AGE_DAYS 넘게 안 보인 것은 내린다(사용자 결정).
+        last = sweeps.get("yogiyo")
+        if not last:
+            return False
+        cutoff = (date.fromisoformat(last) - timedelta(days=YOGIYO_MAX_AGE_DAYS)).isoformat()
+        return record["captured_at"][:10] < cutoff
+    if record["platform"] not in SWEEP_SCOPED_PLATFORMS:
         return False
     return record["captured_at"][:10] < sweeps.get(record["platform"], "")
 
