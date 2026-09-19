@@ -185,14 +185,17 @@ function detailRows(offer) {
 // 배민). 네 플랫폼 모두 어느 한 칸이 차 있어서 실제로는 링크 없는 칩이
 // 없다. 상세를 여는 버튼 경로는 남겨두되 지금은 안 쓰인다(링크가 있는
 // 칩은 링크가 우선이라 카드 헤더로 펼친다).
-function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero }) {
+function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero, include = null }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier in QUALIFIER_TONE
   // "최대"는 최소주문금액을 채워야 나오는 상한액이고 "특정메뉴"는 메뉴 하나에만 쓰는
   // 값이다 — 둘 다 최고 할인·정렬에서 빠지는 값이라(filters.INCOMPARABLE) 액면대로 읽히지
   // 않도록 칩 전체를 같은 회색으로 깔아 다른 확정값과 구분한다(특정메뉴는 2026-09-19).
-  // 랜덤(뽑기)도 같다 — 기본 정렬에서 빠지는 값은 셋 다 같은 회색 칩(2026-09-19).
-  const capped = offer.qualifier === '최대' || offer.qualifier === '특정메뉴' || offer.qualifier === '랜덤'
+  // 랜덤(뽑기)도 같다 — 정렬에서 빠지는 값은 셋 다 같은 회색 칩(2026-09-19). "넣기"를 켜서
+  // 정렬에 들어가면 회색을 벗는다(사용자, 2026-09-19).
+  const capped = offer.qualifier === '최대'
+    || (offer.qualifier === '특정메뉴' && !include?.menu)
+    || (offer.qualifier === '랜덤' && !include?.random)
   // 유료 멤버십이 있어야 받는 쿠폰인지는 구조화된 membership이 말한다.
   // 예전엔 badge 문자열이 "…전용쿠폰"으로 끝나는지로 갈랐는데, 쿠폰함
   // 순회에서 온 행은 badge가 그냥 "배민클럽"이라 그 검사에 안 걸려
@@ -570,6 +573,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
         <ul className="offer-list offer-list--hero">
           {heroOffers.map((o) => (
             <OfferChip
+              include={include}
               key={o.platform}
               offer={o}
               brandLinks={brand.links}
@@ -588,6 +592,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
         <ul className="offer-list offer-list--rest">
           {restOffers.map((o) => (
             <OfferChip
+              include={include}
               key={o.platform}
               offer={o}
               brandLinks={brand.links}
@@ -1085,24 +1090,24 @@ export default function App() {
       <EventBanner banners={banners} />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 셋만 배너와 카드 사이에 둔다
-          (2026-09-18): 최소주문 낮은 순, 최소주문 높은 순, 랜덤쿠폰 포함. 시트의
+          (2026-09-19, 사용자): 할인금액 높은순, 최소주문 낮은순, 랜덤쿠폰도 넣기. 시트의
           같은 값과 한 상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
       {brands && (
         <div className="quick-bar" role="group" aria-label="빠른 필터">
-          {[['asc', '최소주문 낮은순'], ['desc', '최소주문 높은순']].map(([dir, label]) => {
+          {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문 낮은순']].map(([key, dir, label]) => {
             const first = primarySort(filters)
-            const on = first.key === 'minOrder' && first.dir === dir
+            const on = first.key === key && first.dir === dir
             return (
               <button
-                key={dir}
+                key={key}
                 type="button"
                 className={`quick-bar__chip${on ? ' quick-bar__chip--on' : ''}`}
                 aria-pressed={on}
                 onClick={() => {
                   // 정렬은 하나다. 켜져 있는 것을 다시 누르면 기본(할인액 높은 순)으로.
-                  const next = on ? [{ key: 'amount', dir: 'desc' }] : [{ key: 'minOrder', dir }]
+                  const next = on ? [{ key: 'amount', dir: 'desc' }] : [{ key, dir }]
                   setFilters((f) => ({ ...f, sorts: next }))
-                  track('quick_filter', { key: 'minOrder', dir, on: !on })
+                  track('quick_filter', { key, dir, on: !on })
                 }}
               >
                 {label}
@@ -1119,17 +1124,6 @@ export default function App() {
             }}
           >
             랜덤쿠폰도 넣기
-          </button>
-          <button
-            type="button"
-            className={`quick-bar__chip${filters.includeMenu ? ' quick-bar__chip--on' : ''}`}
-            aria-pressed={filters.includeMenu}
-            onClick={() => {
-              setFilters((f) => ({ ...f, includeMenu: !f.includeMenu }))
-              track('quick_filter', { key: 'menu', on: !filters.includeMenu })
-            }}
-          >
-            특정메뉴 쿠폰도 넣기
           </button>
         </div>
       )}
