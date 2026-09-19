@@ -322,6 +322,43 @@ public record Banner(
         return digits(m.group(1).split("/")[0].trim());
     }
 
+    /**
+     * 배너가 말하는 (브랜드, 금액) 쌍 전부. 오퍼는 브랜드마다 하나씩 선다(2026-09-19: 노모어·푸라닭
+     * 묶음 배너에서 푸라닭 오퍼가 안 떴다).
+     *
+     * <ul>
+     *   <li>구조 필드 {@code items}가 있으면 그것이다.</li>
+     *   <li>{@code brands}가 여럿이고 금액이 같은 개수로 나열("최대 10,000/8,000원")이면 순서대로 짝짓는다.</li>
+     *   <li>아니면 대표 브랜드에 대표 금액 하나.</li>
+     * </ul>
+     */
+    public List<java.util.Map.Entry<String, Integer>> brandAmounts() {
+        List<java.util.Map.Entry<String, Integer>> out = new java.util.ArrayList<>();
+        if (spec != null && spec.items() != null && !spec.items().isEmpty()) {
+            for (BannerSpec.BannerItem it : spec.items()) {
+                if (it.brand() != null && it.amount() != null) out.add(java.util.Map.entry(it.brand(), it.amount()));
+            }
+            if (!out.isEmpty()) return out;
+        }
+        if (brands != null && brands.size() > 1 && amount != null) {
+            Matcher m = HEADLINE.matcher(amount);
+            if (m.find()) {
+                String[] parts = m.group(1).split("/");
+                if (parts.length == brands.size()) {
+                    for (int i = 0; i < parts.length; i++) {
+                        Integer v = digits(parts[i].trim());
+                        if (brands.get(i) != null && v != null) out.add(java.util.Map.entry(brands.get(i), v));
+                    }
+                    if (out.size() == parts.length) return out;
+                    out.clear();
+                }
+            }
+        }
+        Integer head = headlineAmount();
+        if (brand != null && head != null) out.add(java.util.Map.entry(brand, head));
+        return out;
+    }
+
     private static Integer digits(String raw) {
         try {
             return Integer.valueOf(raw.replace(",", ""));

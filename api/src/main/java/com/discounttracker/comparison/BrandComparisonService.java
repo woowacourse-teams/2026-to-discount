@@ -88,13 +88,14 @@ public class BrandComparisonService {
             // 카드에 랜덤 배지로 보이고, 정렬과 "최고 할인"에는 사용자가 토글로 넣는다.
             // 파서는 Banner 한 곳이다. 여기 따로 두었을 때 "8,000/5,000/6,000원"
             // 같은 나열에서 둘이 다른 값을 냈다(2026-09-14).
-            Integer amount = banner.headlineAmount();
-            if (amount == null) continue;
             List<DiscountTier> compound = banner.compoundTiers();
+            // 묶음 배너는 브랜드마다 오퍼가 선다(Banner.brandAmounts, 2026-09-19).
+            for (java.util.Map.Entry<String, Integer> pair : banner.brandAmounts()) {
+            Integer amount = pair.getValue();
 
             records.add(new OfferRecord(
                     banner.platform(),
-                    banner.brand(),
+                    pair.getKey(),
                     amount,
                     // 쿠폰 두 장을 겹쳐 나온 값이면 "최적"이다(ADR-019) — 그래야
                     // 상세의 사다리와 칩의 배지가 같은 말을 한다. 둘 다 견줄 수 있는
@@ -136,6 +137,7 @@ public class BrandComparisonService {
                     // 취소선이 그어지고 최고 할인 후보에서도 빠진다
                     // (프론트 bestConfirmedAmount가 soldOut을 거른다).
                     banner.soldOut()));
+            }
         }
         return records;
     }

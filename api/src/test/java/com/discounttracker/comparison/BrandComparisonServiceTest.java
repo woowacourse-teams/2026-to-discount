@@ -627,6 +627,39 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void aBundleBannerPutsAnOfferOnEveryBrandWithItsOwnAmount() {
+        // 2026-09-19: 노모어·푸라닭 묶음("최대 10,000/8,000원", limit random)에서 푸라닭 오퍼가 안 섰고
+        // 노모어는 랜덤이 아니라 불확정으로 떴다. 브랜드마다 제 금액으로, 표식은 랜덤.
+        String brands = """
+                brands:
+                  노모어피자:
+                    category: pizza
+                  푸라닭:
+                    category: chicken
+                """;
+        String yaml = """
+                banners:
+                  - id: coupangeats-weekly-20260919
+                    brand: 노모어피자
+                    brands: [노모어피자, 푸라닭]
+                    platform: coupangeats
+                    url: https://example.test/hub
+                    amount: "최대 10,000/8,000원"
+                    period: 오늘
+                    limit: random
+                    startsOn: 2026-09-19
+                    endsOn: 2026-09-19
+                """;
+        List<BrandComparison> cards = serviceWith(List.of(), brands, on("2026-09-19"), yaml).compare();
+        Offer nomore = cards.stream().filter(c -> c.brand().name().equals("노모어피자")).findFirst().orElseThrow().offers().get(0);
+        Offer puradak = cards.stream().filter(c -> c.brand().name().equals("푸라닭")).findFirst().orElseThrow().offers().get(0);
+        assertEquals(10000, nomore.amount());
+        assertEquals(8000, puradak.amount());
+        assertEquals("랜덤", nomore.qualifier());
+        assertEquals("랜덤", puradak.qualifier());
+    }
+
+    @Test
     void putsTodaysBannerOnTheBrandCardAsAnOffer() {
         // 배너에 올린 순간 그 브랜드 카드에도 떠야 한다 — 실제로 받을 수
         // 있는 할인인데 원장(캡처)에는 안 잡힌다.
