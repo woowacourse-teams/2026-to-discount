@@ -151,6 +151,101 @@ HAVING `본 사람` >= 20
 ORDER BY `날짜` DESC, `본 사람` DESC
 """),
     },
+    # ---- 0-2. 재방문율 — 일별 31일 --------------------------------------
+    {
+        "name": "재사용 — 일별 재방문율 (31일)",
+        "description":
+            "그날 온 사람 중 그 전에도 온 적 있는 사람의 비율. 신규가 몰린 날(홍보)은 내려가고, "
+            "평일 조용한 날은 올라간다 — 서비스에 '다시 오는 사람'이 얼마나 쌓였는지의 일별 곡선.\n\n"
+            "처음 본 날은 90일 안에서 잡는다(그보다 오래된 첫 방문은 신규로 셀 수 있다 — 하한). "
+            "테스트 코호트·크롤러 제외, dev 제외(프리뷰·개발 기기).",
+        "query": q(f"""
+WITH first_seen AS (
+    SELECT distinct_id, min(toDate(timestamp)) AS first_day
+    FROM events
+    WHERE timestamp >= now() - INTERVAL 90 DAY AND {PEOPLE} AND properties.dev IS NULL
+    GROUP BY distinct_id
+)
+SELECT
+    toDate(e.timestamp) AS `날짜`,
+    count(DISTINCT e.distinct_id) AS `방문자`,
+    count(DISTINCT if(f.first_day < toDate(e.timestamp), e.distinct_id, NULL)) AS `재방문자`,
+    round(count(DISTINCT if(f.first_day < toDate(e.timestamp), e.distinct_id, NULL))
+          / greatest(count(DISTINCT e.distinct_id), 1) * 100, 1) AS `재방문율(퍼센트)`
+FROM events e
+JOIN first_seen f ON f.distinct_id = e.distinct_id
+WHERE e.timestamp >= now() - INTERVAL 31 DAY AND {PEOPLE} AND e.properties.dev IS NULL
+GROUP BY `날짜`
+ORDER BY `날짜`
+""", "ActionsLineGraph"),
+    },
+    # ---- 0-3. 배너 자리별 클릭률 -----------------------------------------
+    {
+        "name": "배너 — 자리(position)별 클릭률 (최근 14일)",
+        "description":
+            "배너 카드가 몇 번째 자리에 있었을 때 눌렸나. 내용과 자리를 가르는 첫 단서다 — "
+            "같은 배너가 다른 자리에 선 날이 있어야 완전히 갈린다(지금은 priority가 곧 자리).\n\n"
+            "사람 기준(누른 사람 / 본 사람). banner_click·banner_impression의 position 속성.",
+        "query": q(f"""
+SELECT
+    toString(properties.position) AS `자리`,
+    count(DISTINCT if(event = 'banner_impression', distinct_id, NULL)) AS `본 사람`,
+    count(DISTINCT if(event = 'banner_click', distinct_id, NULL)) AS `누른 사람`,
+    round(count(DISTINCT if(event = 'banner_click', distinct_id, NULL))
+          / greatest(count(DISTINCT if(event = 'banner_impression', distinct_id, NULL)), 1) * 100, 1) AS `클릭률(퍼센트)`
+FROM events
+WHERE timestamp >= now() - INTERVAL 14 DAY
+  AND event IN ('banner_impression', 'banner_click')
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `자리`
+ORDER BY `자리`
+"""),
+    },
+    # ---- 0-4. 정렬·필터 사용 ----------------------------------------------
+    {
+        "name": "기능 사용 — 정렬·필터 종류별 (주별, 사람 수)",
+        "description":
+            "시트 적용(filters_apply)의 sort 서명과 빠른 줄(quick_filter)의 key를 한 표에. "
+            "인기순·최신순·최소주문 낮은순·랜덤/특정메뉴 넣기가 실제로 쓰이는지 — 안 쓰이는 기능은 뺄 근거.\n\n"
+            "quick_filter는 2026-09-19부터, 정렬 단일 선택도 그날부터라 그 앞 주는 비어 있거나 다르다.",
+        "query": q(f"""
+SELECT
+    toStartOfWeek(timestamp) AS `주`,
+    if(event = 'quick_filter', concat('빠른줄:', toString(properties.key), if(properties.dir IS NULL, '', concat('_', toString(properties.dir)))),
+       concat('시트:', toString(properties.sort))) AS `기능`,
+    count(DISTINCT distinct_id) AS `쓴 사람`,
+    count() AS `횟수`
+FROM events
+WHERE timestamp >= now() - INTERVAL 8 WEEK
+  AND event IN ('filters_apply', 'quick_filter')
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `주`, `기능`
+ORDER BY `주` DESC, `쓴 사람` DESC
+"""),
+    },
+    # ---- 0-5. 오퍼 클릭 상위 브랜드 ---------------------------------------
+    {
+        "name": "브랜드 — 오퍼 링크 클릭 상위 (주별, 사람 수)",
+        "description":
+            "어느 브랜드의 오퍼가 실제로 눌리나. API 인기 지수(PopularityIndex: 링크 클릭 3, 배너 클릭 2, "
+            "펼침 1, 14일)와 같은 원천이라 '인기순' 정렬이 무엇을 올리는지 여기서 검산한다.\n\n"
+            "앱(platform)별로 갈라 보면 같은 브랜드가 어느 앱 쿠폰으로 나가는지도 보인다.",
+        "query": q(f"""
+SELECT
+    toStartOfWeek(timestamp) AS `주`,
+    toString(properties.brand) AS `브랜드`,
+    toString(properties.platform) AS `앱`,
+    count(DISTINCT distinct_id) AS `누른 사람`,
+    count() AS `클릭`
+FROM events
+WHERE timestamp >= now() - INTERVAL 4 WEEK
+  AND event = 'offer_link_click'
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `주`, `브랜드`, `앱`
+HAVING `누른 사람` >= 3
+ORDER BY `주` DESC, `누른 사람` DESC
+"""),
+    },
     # ---- 3. 일 평균 사용자와 실질 사용자 --------------------------------
     {
         "name": "실질 사용자 — 일별 (크롤러 제외)",
