@@ -185,7 +185,7 @@ function detailRows(offer) {
 // 배민). 네 플랫폼 모두 어느 한 칸이 차 있어서 실제로는 링크 없는 칩이
 // 없다. 상세를 여는 버튼 경로는 남겨두되 지금은 안 쓰인다(링크가 있는
 // 칩은 링크가 우선이라 카드 헤더로 펼친다).
-function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero, include = null }) {
+function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero, include = null, position = null }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier in QUALIFIER_TONE
   // "최대"는 최소주문금액을 채워야 나오는 상한액이고 "특정메뉴"는 메뉴 하나에만 쓰는
@@ -289,6 +289,8 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
           onClick={() => track('offer_link_click', {
             brand: brandName,
             platform: offer.platform,
+            // 카드 순번(1부터). 정렬을 바꾼 뒤 몇 번째 카드가 눌리는지 — 정렬 효과의 근거(2026-09-20).
+            position,
             amount: offer.amount ?? null,
             minOrder: offer.minOrderAmount ?? null,
             qualifier: offer.qualifier ?? 'none',
@@ -574,6 +576,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
           {heroOffers.map((o) => (
             <OfferChip
               include={include}
+              position={position}
               key={o.platform}
               offer={o}
               brandLinks={brand.links}
@@ -593,6 +596,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
           {restOffers.map((o) => (
             <OfferChip
               include={include}
+              position={position}
               key={o.platform}
               offer={o}
               brandLinks={brand.links}

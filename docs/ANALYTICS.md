@@ -84,7 +84,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
-| `offer_link_click` | 할인 칩을 눌러 배달앱으로 나갈 때 | `brand`, `platform` + 어느 오퍼인지(09-17~): `amount`, `minOrder`, `qualifier`, `membership`, `tierMode`, `tiers`(구간 수), `best`, `held`, `soldOut`, `fromBanner` |
+| `offer_link_click` | 할인 칩을 눌러 배달앱으로 나갈 때 | `brand`, `platform` + 어느 오퍼인지(09-17~): `amount`, `minOrder`, `qualifier`, `membership`, `tierMode`, `tiers`(구간 수), `best`, `held`, `soldOut`, `fromBanner`, `position`(카드 순번, 09-20~) |
 | `banner_click` | 상단, 하단 행사 배너 | `banner`(id), `brand`, `platform`(배달앱 밖 자체 행사는 API가 `own`으로 내려준다, 09-18~), `position`(top/bottom) + `amount`, `brands`(묶음 `a/b/c`), `minOrder`, `soldOut`, `external`(09-17~) |
 | `banner_impression` | 그 배너가 화면에 절반 이상 들어옴 | `banner`(id), `brand`, `platform`, `position` |
 | `banner_dismiss` | 하단 배너 닫기(오늘 하루) | `banner`(id), `brand`, `platform` |
