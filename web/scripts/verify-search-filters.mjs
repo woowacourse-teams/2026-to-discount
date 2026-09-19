@@ -13,20 +13,9 @@
 //      고른 경우는 좁히려는 뜻이므로 그대로 둔다.
 //   2) 분류를 비우면 검색어가 제 몫을 한다.
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
 
-// filters.js는 플랫폼 목록 하나 때문에 logos.jsx를 부른다. node는 .jsx를
-// 못 읽으므로 그 import만 같은 값의 인라인 선언으로 바꿔 불러온다 —
-// 규칙 자체(applyFilters)는 원본 그대로다.
-const source = await readFile(new URL('../src/filters.js', import.meta.url), 'utf8')
-const patched = source.replace(
-  /import \{ PLATFORMS \} from '\.\/logos\.jsx'/,
-  "const PLATFORMS = ['baemin', 'coupangeats', 'ddangyo', 'yogiyo'].map((key) => ({ key }))",
-)
-if (patched === source) throw new Error('logos.jsx import를 못 찾았다 — 이 스텁을 고쳐야 한다')
-const { applyFilters } = await import(
-  `data:text/javascript;base64,${Buffer.from(patched, 'utf8').toString('base64')}`
-)
+// 플랫폼 목록은 platforms.js(순수 모듈)에 있어 filters.js를 그대로 부른다(2026-09-19).
+import { applyFilters } from '../src/filters.js'
 
 const ALL = new Set(['baemin', 'coupangeats', 'ddangyo', 'yogiyo'])
 
