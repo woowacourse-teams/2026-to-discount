@@ -133,6 +133,7 @@ web/package-lock.json
 web/package.json
 web/scripts/build-logo-manifest.mjs
 web/scripts/build-platform-icons.py
+web/scripts/check-copy.mjs
 web/scripts/dev/README.md
 web/scripts/dev/banner-measure.mjs
 web/scripts/dev/banner-shot.mjs
@@ -165,6 +166,7 @@ web/src/brandColor.js
 web/src/brandImpression.js
 web/src/brandImpression.test.js
 web/src/filters.js
+web/src/filters.test.js
 web/src/ga4.js
 web/src/logoManifest.js
 web/src/logoManifest.test.js
@@ -172,6 +174,7 @@ web/src/logoSrc.js
 web/src/logos.jsx
 web/src/main.jsx
 web/src/platformIcons.js
+web/src/platforms.js
 web/src/posthog.js
 web/src/privacy.js
 web/src/surveyDismiss.js
@@ -227,7 +230,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 95 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 57 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 60 |
 
 ### Tracker
 
@@ -296,6 +299,7 @@ HTTP 경계:
 | `brandImpression.js` | 브랜드 헤더 노출 판정과 세션 중복 방지 |
 | `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
+| `filters.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `ga4.js` | 임시 GA4 측정 |
 | `logoManifest.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoManifest.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -303,6 +307,7 @@ HTTP 경계:
 | `logos.jsx` | 브랜드와 플랫폼 로고 |
 | `main.jsx` | React와 분석 도구 진입점 |
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |
 | `privacy.js` | DNT/GPC 추적 거부 판정 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
