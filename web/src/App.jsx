@@ -161,7 +161,8 @@ function offerAmountText(offer) {
 // 값 자체는 원장·정렬에서 계속 쓴다(filters.js) — 화면에만 안 그린다.
 // "랜덤"(뽑기 쿠폰)은 불확정(상한)과 뜻이 다르다 — 값이 사람마다 다르고 내일
 // 바뀐다. 배지도 색도 갈라 둔다(2026-09-18).
-const QUALIFIER_TONE = { 최대: 'plain', 랜덤: 'random', 특정메뉴: 'menu' }
+// 특정메뉴는 불확정(최대)과 같은 회색이다(2026-09-19, 사용자) — 둘 다 "액면 그대로 견주면 안 되는 값".
+const QUALIFIER_TONE = { 최대: 'plain', 랜덤: 'random', 특정메뉴: 'plain' }
 
 function detailRows(offer) {
   if (offer.tiers?.length > 0) {
@@ -224,9 +225,8 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             금액"이나 "n%할인"처럼 그 숫자가 어떻게 나온 값인지. 아래
             칸은 멤버십·조건 배지 몫이다. */}
         {/* qualifier 셋은 성격이 서로 다르다 — 색으로 갈라 둔다.
-            불확정(최대)은 조건을 채워야 나오는 상한이라 회색으로 물러나고,
-            특정메뉴는 확정액이되 범위가 좁다는 단서라 흰 바탕에 테두리만,
-            최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
+            불확정(최대)과 특정메뉴는 액면 그대로 견주면 안 되는 값이라 같은 회색으로 물러나고,
+            랜덤은 뽑기라 검은 배지, 최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
         {!best && showRangeBadge && (
           <span className={`offer__range-badge offer__range-badge--${QUALIFIER_TONE[offer.qualifier] ?? 'plain'}`}>
             {offer.qualifier === '최대' ? '불확정' : offer.qualifier}
@@ -1108,7 +1108,17 @@ export default function App() {
               </button>
             )
           })}
-          {/* 빠른 줄에는 특정메뉴만(2026-09-19, 사용자: 랜덤 대신). 랜덤은 시트에 남는다. */}
+          <button
+            type="button"
+            className={`quick-bar__chip${filters.includeRandom ? ' quick-bar__chip--on' : ''}`}
+            aria-pressed={filters.includeRandom}
+            onClick={() => {
+              setFilters((f) => ({ ...f, includeRandom: !f.includeRandom }))
+              track('quick_filter', { key: 'random', on: !filters.includeRandom })
+            }}
+          >
+            랜덤쿠폰도 넣기
+          </button>
           <button
             type="button"
             className={`quick-bar__chip${filters.includeMenu ? ' quick-bar__chip--on' : ''}`}
