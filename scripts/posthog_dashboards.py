@@ -1135,6 +1135,19 @@ def upsert_dashboard(token, apply_):
     return api("dashboards/", "POST", body, token)["id"]
 
 
+# 서비스 지표 대시보드에서 뗀 것(같은 질문의 다른 그림이거나 정리가 끝난 점검용). 정의는 남긴다.
+ARCHIVED = {
+    "재사용 — 주간 리텐션 (첫 방문 기준)",
+    "재사용 — 주간 라이프사이클",
+    "재사용 — 스티키니스 (30일 중 며칠 왔나)",
+    "계측 건강도 — dev_suspect 오탐 규모",
+    "첫 화면 이탈 — 세션의 첫 동작",
+    "성공 신호 — 1인당 클릭 분포",
+    "유입 갈래별 사람과 전환",
+    "설문 — 문항별 응답 누계",
+}
+
+
 def upsert_insight(spec, dashboard_id, token, apply_):
     """`dashboard` 키가 있으면 그 대시보드에 붙인다.
 
@@ -1145,7 +1158,12 @@ def upsert_insight(spec, dashboard_id, token, apply_):
     target = spec.get("dashboard", dashboard_id)
     body = {"name": spec["name"], "description": spec["description"],
             "query": spec["query"], "saved": True, "tags": ["service-metrics"]}
-    if target:
+    if spec["name"] in ARCHIVED:
+        # 핵심 12개만 대시보드에 둔다(2026-09-20, docs/setup/DATA-AND-METRICS-20260919.md §3).
+        # 인사이트는 지우지 않고 서비스 지표 대시보드에서만 뗀다 — 목록에서 여전히 열 수 있다.
+        body["dashboards"] = sorted(set((found or {}).get("dashboards") or []) - {dashboard_id})
+        body["tags"] = ["service-metrics", "archived"]
+    elif target:
         # 이미 붙어 있던 대시보드는 안 떼어낸다. 사람이 손으로 붙여 둔
         # 것을 스크립트가 조용히 걷어내면 화면이 비어 버린다.
         body["dashboards"] = sorted(
