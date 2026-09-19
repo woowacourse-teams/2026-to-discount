@@ -191,7 +191,8 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
   // "최대"는 최소주문금액을 채워야 나오는 상한액이고 "특정메뉴"는 메뉴 하나에만 쓰는
   // 값이다 — 둘 다 최고 할인·정렬에서 빠지는 값이라(filters.INCOMPARABLE) 액면대로 읽히지
   // 않도록 칩 전체를 같은 회색으로 깔아 다른 확정값과 구분한다(특정메뉴는 2026-09-19).
-  const capped = offer.qualifier === '최대' || offer.qualifier === '특정메뉴'
+  // 랜덤(뽑기)도 같다 — 기본 정렬에서 빠지는 값은 셋 다 같은 회색 칩(2026-09-19).
+  const capped = offer.qualifier === '최대' || offer.qualifier === '특정메뉴' || offer.qualifier === '랜덤'
   // 유료 멤버십이 있어야 받는 쿠폰인지는 구조화된 membership이 말한다.
   // 예전엔 badge 문자열이 "…전용쿠폰"으로 끝나는지로 갈랐는데, 쿠폰함
   // 순회에서 온 행은 badge가 그냥 "배민클럽"이라 그 검사에 안 걸려
