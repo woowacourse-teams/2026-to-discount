@@ -1393,7 +1393,10 @@ h1 {
    크기가 비슷해져 "최고"라는 신호가 죽는다. */
 .offer-list--hero {
   flex-direction: column;
-  gap: .5rem;
+  /* 동점이 쌓일 때 위 칩의 멤버십 배지(아래로 7px)와 아래 칩의 "최고 할인"
+     표식(위로 10px)이 8px 간격 안에서 2~3px 겹쳤다(2026-09-18 실측, 360px).
+     둘의 돌출 합 17px보다 넉넉한 20px. 동점일 때만 늘어나는 간격이다. */
+  gap: 1.25rem;
   margin-bottom: .5rem;
 }
 .offer-list--hero .offer { flex: 1 1 100%; }
@@ -1626,6 +1629,14 @@ h1 {
    읽혔다 — 흰 바탕으로 올려 세우되, 색은 안 준다. 좁은 메뉴에서만 되는
    할인이라 앞세울 것도 아니다. 칩 배경(--bg)과 같은 흰색이라 테두리로
    배지의 윤곽을 세운다. */
+/* 랜덤(뽑기 쿠폰)은 불확정과 다르다 — 값이 사람마다 다르고 내일 바뀐다.
+   쿠팡와우 멤버십 배지와 같은 검은 바탕 흰 글씨(사용자 2026-09-18). 불확정(회색)과
+   특정메뉴(흰 바탕 테두리)는 그대로. */
+.offer__range-badge.offer__range-badge--random {
+  color: #fff;
+  background: #333;
+}
+
 .offer__range-badge.offer__range-badge--menu {
   color: var(--text);
   background: var(--bg);
@@ -2997,6 +3008,7 @@ html.has-bottom-banner .survey-dock {
   justify-content: center;
 }
 .sheet {
+  position: relative;
   width: 100%;
   max-width: 560px;
   max-height: 86vh;
@@ -3120,3 +3132,42 @@ html.has-bottom-banner .survey-dock {
 .sheet__app:hover:not(.sheet__app--on) { border-color: var(--text-muted); color: var(--text); }
 .sheet__reset:hover { background: var(--save-soft); }
 .sheet__apply:hover { background: var(--save-hover); }
+
+/* 빠른 필터 줄 — 배너와 카드 사이. 시트의 칩(.sheet__chip)과 같은 생김새로,
+   같은 상태를 바꾼다. 가로로 넘치면 스크롤(360px에서 셋이 한 줄에 안 들어간다). */
+.quick-bar {
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.quick-bar::-webkit-scrollbar { display: none; }
+.quick-bar__chip {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: .82rem;
+  padding: .35rem .7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.quick-bar__chip--on {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+.quick-bar__chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 정렬 섹션(2026-09-19): 기준 라벨 + 방향 버튼 한 줄. 고른 기준은 번호가 붙고 진하게. */
+.sheet__sort-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .4rem; }
+.sheet__sort-label { font-size: 1rem; color: var(--text-muted); }
+.sheet__sort-label--on { color: var(--text); font-weight: 700; }
+.sheet__hint { font-size: .72rem; font-weight: 400; color: var(--text-muted); margin-left: .4rem; }
+.sheet__hint--warn { color: #c0392b; }
+/* 오른쪽 위 닫기. 그립을 끌거나 배경을 누르는 길이 안 보이는 사람을 위한 것. */
+.sheet__close { position: absolute; top: .55rem; right: .8rem; width: 32px; height: 32px; border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.sheet__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

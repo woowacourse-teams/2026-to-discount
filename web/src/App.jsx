@@ -8,7 +8,7 @@ import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.js
 import TopBarA from './TopBarA.jsx'
 import FilterSheet from './FilterSheet.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, isDefaultFilters } from './filters.js'
+import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
@@ -120,7 +120,7 @@ function analyticsFilterContext(filters, cartOnly, cartSize) {
     fSearch: filters.search.trim() !== '' || undefined,
     fCart: cartOnly || undefined,
     fSaved: cartSize || undefined,
-    fSort: `${filters.sortKey}_${filters.sortDir}`,
+    fSort: sortSignature(filters.sorts),
   }
 }
 
@@ -159,7 +159,10 @@ function offerAmountText(offer) {
 // 정작 조심해야 할 "불확정"이 묻힌다.
 //
 // 값 자체는 원장·정렬에서 계속 쓴다(filters.js) — 화면에만 안 그린다.
-const QUALIFIER_TONE = { 최대: 'plain', 특정메뉴: 'menu' }
+// "랜덤"(뽑기 쿠폰)은 불확정(상한)과 뜻이 다르다 — 값이 사람마다 다르고 내일
+// 바뀐다. 배지도 색도 갈라 둔다(2026-09-18).
+// 특정메뉴는 불확정(최대)과 같은 회색이다(2026-09-19, 사용자) — 둘 다 "액면 그대로 견주면 안 되는 값".
+const QUALIFIER_TONE = { 최대: 'plain', 랜덤: 'random', 특정메뉴: 'plain' }
 
 function detailRows(offer) {
   if (offer.tiers?.length > 0) {
@@ -185,9 +188,10 @@ function detailRows(offer) {
 function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero }) {
   const held = offer.status === 'held'
   const showRangeBadge = offer.qualifier in QUALIFIER_TONE
-  // "최대"는 최소주문금액을 채워야 나오는 상한액이다 — 액면대로 읽히지
-  // 않도록 칩 전체를 흐리게 깔아 다른 확정값과 구분한다.
-  const capped = offer.qualifier === '최대'
+  // "최대"는 최소주문금액을 채워야 나오는 상한액이고 "특정메뉴"는 메뉴 하나에만 쓰는
+  // 값이다 — 둘 다 최고 할인·정렬에서 빠지는 값이라(filters.INCOMPARABLE) 액면대로 읽히지
+  // 않도록 칩 전체를 같은 회색으로 깔아 다른 확정값과 구분한다(특정메뉴는 2026-09-19).
+  const capped = offer.qualifier === '최대' || offer.qualifier === '특정메뉴'
   // 유료 멤버십이 있어야 받는 쿠폰인지는 구조화된 membership이 말한다.
   // 예전엔 badge 문자열이 "…전용쿠폰"으로 끝나는지로 갈랐는데, 쿠폰함
   // 순회에서 온 행은 badge가 그냥 "배민클럽"이라 그 검사에 안 걸려
@@ -222,9 +226,8 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             금액"이나 "n%할인"처럼 그 숫자가 어떻게 나온 값인지. 아래
             칸은 멤버십·조건 배지 몫이다. */}
         {/* qualifier 셋은 성격이 서로 다르다 — 색으로 갈라 둔다.
-            불확정(최대)은 조건을 채워야 나오는 상한이라 회색으로 물러나고,
-            특정메뉴는 확정액이되 범위가 좁다는 단서라 흰 바탕에 테두리만,
-            최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
+            불확정(최대)과 특정메뉴는 액면 그대로 견주면 안 되는 값이라 같은 회색으로 물러나고,
+            랜덤은 뽑기라 검은 배지, 최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
         {!best && showRangeBadge && (
           <span className={`offer__range-badge offer__range-badge--${QUALIFIER_TONE[offer.qualifier] ?? 'plain'}`}>
             {offer.qualifier === '최대' ? '불확정' : offer.qualifier}
@@ -453,7 +456,7 @@ function routeFilters() {
   return brand ? { ...defaultFilters(), search: brand } : defaultFilters()
 }
 
-function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck }) {
+function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck, include = null }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -463,10 +466,10 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
   // 만큼 전부 표시한다(하나만 고르면 거짓 우열이 생긴다). 하나뿐이어도
   // 그 값이 그 브랜드에서 받을 수 있는 최고다 — 그대로 표시한다.
   const bestAmount = useMemo(() => {
-    const plain = brand.offers.filter((o) => comparable(o) && o.amount != null && !o.soldOut)
+    const plain = brand.offers.filter((o) => comparable(o, include) && o.amount != null && !o.soldOut)
     if (plain.length === 0) return null
     return Math.max(...plain.map((o) => o.amount))
-  }, [brand.offers])
+  }, [brand.offers, include?.random, include?.menu])
 
   const sortedOffers = useMemo(
     () => [...brand.offers].sort((a, b) => {
@@ -478,7 +481,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
     [brand.offers],
   )
 
-  const isBest = (o) => bestAmount != null && comparable(o) && !o.soldOut && o.amount === bestAmount
+  const isBest = (o) => bestAmount != null && comparable(o, include) && !o.soldOut && o.amount === bestAmount
 
   // 최고 할인을 위로 올리고 나머지를 아래로 내린다. 동점이면 동점인 만큼
   // 전부 올린다 — 같은 금액인데 하나만 크게 놓으면 나머지가 열등해 보여
@@ -765,7 +768,10 @@ export default function App() {
     track('filters_apply', {
       platforms: draft.platforms.size,
       categories: draft.categories.size,
-      sort: `${draft.sortKey}_${draft.sortDir}`,
+      sort: sortSignature(draft.sorts),
+      random: draft.includeRandom,
+      menu: draft.includeMenu,
+      min5k: draft.minAmount5k,
     })
   }
   // /brand/<이름>으로 들어왔을 때만 값이 있다. 검색으로 들어온 사람에게
@@ -962,8 +968,7 @@ export default function App() {
   const gridKey = [
     [...filters.categories].sort().join('|'),
     [...filters.platforms].sort().join('|'),
-    filters.sortKey,
-    filters.sortDir,
+    sortSignature(filters.sorts),
     filters.search.trim(),
     cartOnly ? 'cart' : '',
   ].join('/')
@@ -1078,6 +1083,56 @@ export default function App() {
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
       <EventBanner banners={banners} />
     <main>
+      {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 셋만 배너와 카드 사이에 둔다
+          (2026-09-18): 최소주문 낮은 순, 최소주문 높은 순, 랜덤쿠폰 포함. 시트의
+          같은 값과 한 상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
+      {brands && (
+        <div className="quick-bar" role="group" aria-label="빠른 필터">
+          {[['asc', '최소주문 낮은순'], ['desc', '최소주문 높은순']].map(([dir, label]) => {
+            const first = primarySort(filters)
+            const on = first.key === 'minOrder' && first.dir === dir
+            return (
+              <button
+                key={dir}
+                type="button"
+                className={`quick-bar__chip${on ? ' quick-bar__chip--on' : ''}`}
+                aria-pressed={on}
+                onClick={() => {
+                  // 1차 정렬만 바꾼다. 켜져 있는 것을 다시 누르면 기본(할인액 높은 순)으로.
+                  const rest = filters.sorts.filter((s) => s.key !== 'minOrder' && s.key !== 'amount')
+                  const next = on ? [{ key: 'amount', dir: 'desc' }, ...rest] : [{ key: 'minOrder', dir }, ...rest]
+                  setFilters((f) => ({ ...f, sorts: next }))
+                  track('quick_filter', { key: 'minOrder', dir, on: !on })
+                }}
+              >
+                {label}
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            className={`quick-bar__chip${filters.includeRandom ? ' quick-bar__chip--on' : ''}`}
+            aria-pressed={filters.includeRandom}
+            onClick={() => {
+              setFilters((f) => ({ ...f, includeRandom: !f.includeRandom }))
+              track('quick_filter', { key: 'random', on: !filters.includeRandom })
+            }}
+          >
+            랜덤쿠폰도 넣기
+          </button>
+          <button
+            type="button"
+            className={`quick-bar__chip${filters.includeMenu ? ' quick-bar__chip--on' : ''}`}
+            aria-pressed={filters.includeMenu}
+            onClick={() => {
+              setFilters((f) => ({ ...f, includeMenu: !f.includeMenu }))
+              track('quick_filter', { key: 'menu', on: !filters.includeMenu })
+            }}
+          >
+            특정메뉴 쿠폰도 넣기
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="load-error" role="alert">
@@ -1183,6 +1238,7 @@ export default function App() {
           {visibleBrands.slice(0, shown).map((b, index) => (
             <BrandCard
               key={b.name}
+              include={includesFrom(filters)}
               brand={b}
               position={index + 1}
               highlighted={linkedBrand === brandCardId(b.name)}

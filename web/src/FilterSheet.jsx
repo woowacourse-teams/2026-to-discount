@@ -24,14 +24,9 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
     if (open) setDraft(filters)
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 시트가 떠 있는 동안 뒤 목록이 같이 스크롤되면 시트를 닫았을 때
-  // 엉뚱한 위치에 있다.
-  useEffect(() => {
-    if (!open) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [open])
+  // 본문 스크롤은 잠그지 않는다(2026-09-18). 잠그면 스크롤바가 생겼다 사라지며
+  // 화면 폭이 바뀌어 목록이 좌우로 흔들렸다. 시트 자체가 스크롤을 먹고,
+  // 배경은 그대로 둔다 — 닫았을 때 위치가 바뀌는 것보다 그쪽이 덜 거슬린다.
 
   // ESC로 닫는다. 키보드만 쓰는 사용자에게 닫을 길이 배경 클릭뿐이면 안 된다.
   useEffect(() => {
@@ -66,16 +61,17 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
     >
       <section className="sheet" role="dialog" aria-modal="true" aria-label="필터">
         <div className="sheet__grip" aria-hidden="true" />
+        <button type="button" className="sheet__close" aria-label="닫기" onClick={onClose}>
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
 
         <div className="sheet__body">
-          <h2 className="sheet__title">배달앱</h2>
+          <h2 className="sheet__title">플랫폼{draft.platforms.size === 0 && <span className="sheet__hint sheet__hint--warn">하나 이상 선택해 주세요</span>}</h2>
           {/* A안 바의 앱 버튼을 그대로 쓴다. 배지 자체가 버튼이어야
               aria-pressed가 붙고, 거기 걸린 A안 규칙(체크 배지·안 고른 앱
-              흐리기)이 그대로 산다. 배지를 버튼 안에 넣으면 span으로
-              렌더돼 그 규칙이 하나도 안 걸렸다.
-
-              작은 회색 배지로는 어느 앱을 껐는지 한눈에 안 읽혔다 — 앱
-              아이콘은 사람들이 이미 아는 그림이라 크게 두는 편이 낫다. */}
+              흐리기)이 그대로 산다. */}
           <div className="sheet__apps page-head__apps">
             {PLATFORMS.map((p) => (
               <span key={p.key} className="platform-badge-wrap">
@@ -84,8 +80,6 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
                   active={draft.platforms.has(p.key)}
                   onClick={() => {
                     toggleIn('platforms', p.key)
-                    // 바의 플랫폼 배지가 여기로 옮겨왔다 — 조작 위치만
-                    // 바뀐 것이라 같은 이벤트 이름을 그대로 쓴다.
                     track('platform_filter_toggle', { platform: p.key, from: 'sheet' })
                   }}
                 />
@@ -93,16 +87,106 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             ))}
           </div>
 
-          {/* 앱을 전부 끄면 볼 게 없다. 막지 않고 알려만 준다 — 막으면
-              마지막 하나를 끄려다 안 꺼져서 고장으로 읽힌다. */}
-          {draft.platforms.size === 0 && (
-            <p className="sheet__warn">앱을 하나도 안 고르면 결과가 비어 있다.</p>
-          )}
+          <h2 className="sheet__title">카테고리</h2>
+          <div className="sheet__chips">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                className={`sheet__chip${draft.categories.has(c.key) ? ' sheet__chip--on' : ''}`}
+                aria-pressed={draft.categories.has(c.key)}
+                onClick={() => {
+                  toggleIn('categories', c.key)
+                  track('category_change', { category: c.key, from: 'sheet' })
+                }}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
 
-          {/* 멤버십 반영 로직은 아직 없다(api docs/specs의 의도적 보류).
-              "구현 예정"을 제목에 붙여 누르기 전에 알린다 — 눌러야 알려주면
-              눌러본 사람만 알게 되고, 그 전까지는 고장으로 읽힌다.
-              자리와 이름은 미리 두고 수요는 그대로 집계한다. */}
+          <h2 className="sheet__title">필터링</h2>
+          <div className="sheet__chips">
+            <button
+              type="button"
+              className={`sheet__chip${draft.includeRandom ? ' sheet__chip--on' : ''}`}
+              aria-pressed={draft.includeRandom}
+              onClick={() => setDraft((d) => ({ ...d, includeRandom: !d.includeRandom }))}
+            >
+              랜덤쿠폰도 넣기
+            </button>
+            <button
+              type="button"
+              className={`sheet__chip${draft.includeMenu ? ' sheet__chip--on' : ''}`}
+              aria-pressed={draft.includeMenu}
+              onClick={() => setDraft((d) => ({ ...d, includeMenu: !d.includeMenu }))}
+            >
+              특정메뉴 쿠폰도 넣기
+            </button>
+            <button
+              type="button"
+              className={`sheet__chip${draft.minAmount5k ? ' sheet__chip--on' : ''}`}
+              aria-pressed={draft.minAmount5k}
+              onClick={() => setDraft((d) => ({ ...d, minAmount5k: !d.minAmount5k }))}
+            >
+              5,000원 이상 할인만
+            </button>
+          </div>
+
+          <h2 className="sheet__title">정렬 <span className="sheet__hint">복수 선택 가능</span></h2>
+          {/* 방향 있는 기준은 라벨 한 줄 + 높은순/낮은순 두 버튼. 같은 기준의 반대 방향을 누르면
+              방향만 바뀐다. 켜진 버튼을 다시 누르면 그 기준이 빠진다. 우선순위는 없다 — 여럿을
+              고르면 할인금액 → 최소주문금액 → 그 외 순으로 견준다(filters.sortBrands). */}
+          {SORT_KEYS.filter((k) => k.directional).map((k) => {
+            const idx = draft.sorts.findIndex((x) => x.key === k.key)
+            const chosen = idx >= 0 ? draft.sorts[idx] : null
+            const set = (dir) => setDraft((d) => {
+              const rest = d.sorts.filter((x) => x.key !== k.key)
+              if (chosen && chosen.dir === dir) return { ...d, sorts: rest }                                     // 끄기
+              if (chosen) return { ...d, sorts: d.sorts.map((x) => (x.key === k.key ? { key: k.key, dir } : x)) } // 방향만
+              return { ...d, sorts: [...d.sorts, { key: k.key, dir }] }                                          // 추가
+            })
+            return (
+              <div key={k.key} className="sheet__sort-row">
+                <span className={`sheet__sort-label${chosen ? ' sheet__sort-label--on' : ''}`}>{k.label}</span>
+                <span className="sheet__chips">
+                  {[['desc', '높은순'], ['asc', '낮은순']].map(([dir, label]) => (
+                    <button
+                      key={dir}
+                      type="button"
+                      className={`sheet__chip${chosen?.dir === dir ? ' sheet__chip--on' : ''}`}
+                      aria-pressed={chosen?.dir === dir}
+                      onClick={() => set(dir)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </span>
+              </div>
+            )
+          })}
+          <div className="sheet__sort-row">
+            <span className="sheet__sort-label">그 외</span>{/* 인기순·최신순은 하나만 — 둘을 겹쳐 봐야 뜻이 없다(2026-09-19). */}
+            <span className="sheet__chips">
+              {SORT_KEYS.filter((k) => !k.directional).map((k) => {
+                const idx = draft.sorts.findIndex((x) => x.key === k.key)
+                const on = idx >= 0
+                return (
+                  <button
+                    key={k.key}
+                    type="button"
+                    className={`sheet__chip${on ? ' sheet__chip--on' : ''}`}
+                    aria-pressed={on}
+                    onClick={() => setDraft((d) => ({ ...d, sorts: on ? d.sorts.filter((x) => x.key !== k.key) : [...d.sorts.filter((x) => SORT_KEYS.find((s) => s.key === x.key)?.directional), { key: k.key, dir: 'desc' }] }))}
+                  >
+                    {k.label}
+                  </button>
+                )
+              })}
+            </span>
+          </div>
+
+          {/* 멤버십 반영 로직은 아직 없다. 자리와 이름만 두고 수요를 집계한다. 맨 아래(2026-09-19). */}
           <h2 className="sheet__title">
             멤버십 <span className="sheet__soon">구현 예정</span>
           </h2>
@@ -122,55 +206,6 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
               </button>
             ))}
           </div>
-
-          <h2 className="sheet__title">분류</h2>
-          <div className="sheet__chips">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                className={`sheet__chip${draft.categories.has(c.key) ? ' sheet__chip--on' : ''}`}
-                aria-pressed={draft.categories.has(c.key)}
-                onClick={() => {
-                  toggleIn('categories', c.key)
-                  track('category_change', { category: c.key, from: 'sheet' })
-                }}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-
-          <h2 className="sheet__title">정렬</h2>
-          <div className="sheet__chips">
-            {SORT_KEYS.map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                className={`sheet__chip${draft.sortKey === s.key ? ' sheet__chip--on' : ''}`}
-                aria-pressed={draft.sortKey === s.key}
-                onClick={() => setDraft((d) => ({ ...d, sortKey: s.key }))}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-          <div className="sheet__chips">
-            {[['desc', '높은 순'], ['asc', '낮은 순']].map(([dir, label]) => (
-              <button
-                key={dir}
-                type="button"
-                className={`sheet__chip${draft.sortDir === dir ? ' sheet__chip--on' : ''}`}
-                aria-pressed={draft.sortDir === dir}
-                onClick={() => setDraft((d) => ({ ...d, sortDir: dir }))}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          {/* 확정 없는 브랜드는 어느 기준에서도 뒤에 선다(filters.js
-             sortBrands). 화면에 문장으로 적어두진 않는다 — 규칙을 다
-             적으면 시트가 설명서가 되고, 정작 고르는 자리가 밀린다. */}
         </div>
 
         <div className="sheet__actions">
