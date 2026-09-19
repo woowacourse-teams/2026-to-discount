@@ -67,8 +67,8 @@ const DEFAULT_SCALARS = {
   includeMenu: false,
   // 5,000원 이상 할인만(2026-09-19). 그 아래 오퍼를 카드에서 빼고, 남는 오퍼가 없는 카드는 숨긴다.
   minAmount5k: false,
-  // 여러 기준을 고를 수 있다. 우선순위는 고른 순서가 아니라 SORT_KEYS 순(할인금액 →
-  // 최소주문금액 → 그 외)으로 고정한다(2026-09-19, 사용자: 우선순위 개념 제거). 처음은 할인액 높은 순 하나.
+  // 여러 기준을 고를 수 있다. 우선순위는 고른 순서가 아니라 고정(인기순·최신순 → 할인금액 →
+  // 최소주문금액)이다(2026-09-19, 사용자: 우선순위 개념 제거). 처음은 할인액 높은 순 하나.
   sorts: [{ key: 'amount', dir: 'desc' }],
   search: '',
 }
@@ -173,8 +173,11 @@ const FIXED_DIR = { popularity: 'desc', recent: 'desc' }
 
 export function sortBrands(brands, { sorts, includeRandom = false, include = null }) {
   const inc = include ?? includeRandom
-  const order = (k) => SORT_KEYS.findIndex((s) => s.key === k)
-  // 우선순위는 고른 순서가 아니라 고정(할인금액 → 최소주문금액 → 그 외).
+  // 인기순·최신순은 "무엇으로 줄 세우나"라 고르면 맨 앞이다. 할인금액이 기본으로 켜져 있어
+  // 뒤에 두면 인기순이 동점 처리에만 쓰여 눌러도 화면이 안 바뀐다(2026-09-19 실측).
+  const PRECEDENCE = ['popularity', 'recent', 'amount', 'minOrder']
+  const order = (k) => PRECEDENCE.indexOf(k)
+  // 우선순위는 고른 순서가 아니라 고정(그 외 → 할인금액 → 최소주문금액).
   const keys = [...(sorts && sorts.length ? sorts : DEFAULT_SCALARS.sorts)]
     .sort((a, b) => order(a.key) - order(b.key))
     .map((s) => ({ key: s.key, dir: FIXED_DIR[s.key] ?? s.dir }))

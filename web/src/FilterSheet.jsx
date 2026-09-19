@@ -136,7 +136,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
           <h2 className="sheet__title">정렬 <span className="sheet__hint">복수 선택 가능</span></h2>
           {/* 방향 있는 기준은 라벨 한 줄 + 높은순/낮은순 두 버튼. 같은 기준의 반대 방향을 누르면
               방향만 바뀐다. 켜진 버튼을 다시 누르면 그 기준이 빠진다. 우선순위는 없다 — 여럿을
-              고르면 할인금액 → 최소주문금액 → 그 외 순으로 견준다(filters.sortBrands). */}
+              고르면 그 외(인기순·최신순) → 할인금액 → 최소주문금액 순으로 견준다(filters.sortBrands). */}
           {SORT_KEYS.filter((k) => k.directional).map((k) => {
             const idx = draft.sorts.findIndex((x) => x.key === k.key)
             const chosen = idx >= 0 ? draft.sorts[idx] : null
