@@ -2,6 +2,8 @@ const VISITOR_KEY = 'dk_visitor'
 const VISITS_KEY = 'dk_visits'
 const SESSION_KEY = 'dk_session'
 const DEV_KEY = 'dk_dev'
+// 운영 호스트. 여기 없는 주소에서 난 이벤트는 dev로 찍힌다.
+const PROD_HOSTS = new Set(['beggars-five.vercel.app'])
 
 // localStorage가 막힌 환경(사파리 프라이빗 등)에서 앱까지 멈추지 않게 한다.
 function safeStore(store, key, value) {
@@ -41,6 +43,10 @@ function createContext() {
   } else {
     dev = safeStore(localStorage, DEV_KEY) === '1'
   }
+  // 운영 주소가 아니면(프리뷰 배포, localhost) 전부 개발 트래픽이다(2026-09-19). 프리뷰
+  // 이벤트가 같은 API·같은 원장으로 들어가는데 호스트 필드가 없어 실사용자와 섞였다.
+  // localStorage에 적지는 않는다 — 오리진별 저장소라 운영 주소에는 영향이 없다.
+  if (typeof location !== 'undefined' && !PROD_HOSTS.has(location.hostname)) dev = true
 
   return {
     visitorId,
