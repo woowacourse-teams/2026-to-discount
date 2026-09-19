@@ -1099,9 +1099,8 @@ export default function App() {
                 className={`quick-bar__chip${on ? ' quick-bar__chip--on' : ''}`}
                 aria-pressed={on}
                 onClick={() => {
-                  // 1차 정렬만 바꾼다. 켜져 있는 것을 다시 누르면 기본(할인액 높은 순)으로.
-                  const rest = filters.sorts.filter((s) => s.key !== 'minOrder' && s.key !== 'amount')
-                  const next = on ? [{ key: 'amount', dir: 'desc' }, ...rest] : [{ key: 'minOrder', dir }, ...rest]
+                  // 정렬은 하나다. 켜져 있는 것을 다시 누르면 기본(할인액 높은 순)으로.
+                  const next = on ? [{ key: 'amount', dir: 'desc' }] : [{ key: 'minOrder', dir }]
                   setFilters((f) => ({ ...f, sorts: next }))
                   track('quick_filter', { key: 'minOrder', dir, on: !on })
                 }}

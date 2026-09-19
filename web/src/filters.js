@@ -33,7 +33,7 @@ export const MEMBERSHIP_OPTIONS = [
 export const MEMBERSHIP_LABEL = Object.fromEntries(MEMBERSHIP_OPTIONS.map((m) => [m.key, m.label]))
 
 // 정렬 기준(2026-09-19 개편). 방향이 있는 둘은 라벨 아래 높은순/낮은순 버튼, 나머지 둘은 칩 하나.
-// 복수 선택: 고른 순서대로 1차, 2차 … 기준이 된다.
+// 정렬은 하나만 고른다(2026-09-19). sortBrands는 여럿도 받지만 화면은 하나만 넘긴다.
 export const SORT_KEYS = [
   { key: 'amount', label: '할인금액', directional: true },
   { key: 'minOrder', label: '최소주문금액', directional: true },
@@ -67,8 +67,7 @@ const DEFAULT_SCALARS = {
   includeMenu: false,
   // 5,000원 이상 할인만(2026-09-19). 그 아래 오퍼를 카드에서 빼고, 남는 오퍼가 없는 카드는 숨긴다.
   minAmount5k: false,
-  // 여러 기준을 고를 수 있다. 우선순위는 고른 순서가 아니라 고정(인기순·최신순 → 할인금액 →
-  // 최소주문금액)이다(2026-09-19, 사용자: 우선순위 개념 제거). 처음은 할인액 높은 순 하나.
+  // 정렬은 하나다(2026-09-19). 처음은 할인액 높은 순.(2026-09-19, 사용자: 우선순위 개념 제거). 처음은 할인액 높은 순 하나.
   sorts: [{ key: 'amount', dir: 'desc' }],
   search: '',
 }

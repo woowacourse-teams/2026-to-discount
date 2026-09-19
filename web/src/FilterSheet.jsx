@@ -133,19 +133,16 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             </button>
           </div>
 
-          <h2 className="sheet__title">정렬 <span className="sheet__hint">복수 선택 가능</span></h2>
-          {/* 방향 있는 기준은 라벨 한 줄 + 높은순/낮은순 두 버튼. 같은 기준의 반대 방향을 누르면
-              방향만 바뀐다. 켜진 버튼을 다시 누르면 그 기준이 빠진다. 우선순위는 없다 — 여럿을
-              고르면 그 외(인기순·최신순) → 할인금액 → 최소주문금액 순으로 견준다(filters.sortBrands). */}
+          <h2 className="sheet__title">정렬</h2>
+          {/* 정렬은 하나만(2026-09-19, 사용자). 고른 것이 곧 정렬이다. 방향 있는 기준은 라벨 한 줄 +
+              높은순/낮은순 두 버튼. 켜진 버튼을 다시 누르면 기본(할인액 높은 순)으로 돌아간다. */}
           {SORT_KEYS.filter((k) => k.directional).map((k) => {
             const idx = draft.sorts.findIndex((x) => x.key === k.key)
             const chosen = idx >= 0 ? draft.sorts[idx] : null
-            const set = (dir) => setDraft((d) => {
-              const rest = d.sorts.filter((x) => x.key !== k.key)
-              if (chosen && chosen.dir === dir) return { ...d, sorts: rest }                                     // 끄기
-              if (chosen) return { ...d, sorts: d.sorts.map((x) => (x.key === k.key ? { key: k.key, dir } : x)) } // 방향만
-              return { ...d, sorts: [...d.sorts, { key: k.key, dir }] }                                          // 추가
-            })
+            const set = (dir) => setDraft((d) => ({
+              ...d,
+              sorts: chosen && chosen.dir === dir ? [{ key: 'amount', dir: 'desc' }] : [{ key: k.key, dir }],
+            }))
             return (
               <div key={k.key} className="sheet__sort-row">
                 <span className={`sheet__sort-label${chosen ? ' sheet__sort-label--on' : ''}`}>{k.label}</span>
@@ -177,7 +174,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
                     type="button"
                     className={`sheet__chip${on ? ' sheet__chip--on' : ''}`}
                     aria-pressed={on}
-                    onClick={() => setDraft((d) => ({ ...d, sorts: on ? d.sorts.filter((x) => x.key !== k.key) : [...d.sorts.filter((x) => SORT_KEYS.find((s) => s.key === x.key)?.directional), { key: k.key, dir: 'desc' }] }))}
+                    onClick={() => setDraft((d) => ({ ...d, sorts: on ? [{ key: 'amount', dir: 'desc' }] : [{ key: k.key, dir: 'desc' }] }))}
                   >
                     {k.label}
                   </button>
