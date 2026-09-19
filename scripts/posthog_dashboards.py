@@ -124,6 +124,33 @@ def q(sql, display="ActionsTable"):
 
 
 INSIGHTS = [
+    # ---- 0. 배너 — 장별 클릭률 ------------------------------------------
+    {
+        "name": "배너 — 장별 노출·클릭·클릭률 (최근 14일, 일별)",
+        "description":
+            "배너 한 장이 얼마나 보였고(노출 사람 수) 얼마나 눌렸나(클릭 사람 수). "
+            "클릭률은 사람 기준(누른 사람 / 본 사람)이다 — 같은 사람이 여러 번 봐도 한 번.\n\n"
+            "2026-09-18 뚜레쥬르 네이버페이 환급(앱 밖 행사, 맨 위 자리) 2.2%(원장 기준 188명 중 8명) "
+            "— 같은 날 앱 쿠폰 배너 푸라닭 6.1%, 쿠팡 반짝핫딜 5.5%보다 낮고, 09-14 선착순 묶음 "
+            "0.6~0.9%보다는 높았다. 자리(priority 1)가 클릭을 보장하지 않는다.\n\n"
+            "banner 속성은 banners.yml의 id다. 발표용 숫자는 원장(events.jsonl)에서 다시 낸다.",
+        "query": q(f"""
+SELECT
+    toDate(timestamp) AS `날짜`,
+    toString(properties.banner) AS `배너`,
+    count(DISTINCT if(event = 'banner_impression', distinct_id, NULL)) AS `본 사람`,
+    count(DISTINCT if(event = 'banner_click', distinct_id, NULL)) AS `누른 사람`,
+    round(count(DISTINCT if(event = 'banner_click', distinct_id, NULL))
+          / greatest(count(DISTINCT if(event = 'banner_impression', distinct_id, NULL)), 1) * 100, 1) AS `클릭률(퍼센트)`
+FROM events
+WHERE timestamp >= now() - INTERVAL 14 DAY
+  AND event IN ('banner_impression', 'banner_click')
+  AND {PEOPLE}
+GROUP BY `날짜`, `배너`
+HAVING `본 사람` >= 20
+ORDER BY `날짜` DESC, `본 사람` DESC
+"""),
+    },
     # ---- 3. 일 평균 사용자와 실질 사용자 --------------------------------
     {
         "name": "실질 사용자 — 일별 (크롤러 제외)",
