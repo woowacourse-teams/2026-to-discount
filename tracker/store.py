@@ -157,10 +157,22 @@ def _prefer(current: dict, incoming: dict) -> dict:
     return merged
 
 
+RANDOM_QUALIFIER = "랜덤"
+
+
+def offer_key(record: dict) -> tuple:
+    """대표값을 가르는 자리. 뽑기 오퍼(qualifier 랜덤)는 같은 브랜드의 확정 오퍼와 **다른 자리**다 —
+    한 자리에 두면 확정액이 이겨 랜덤이 화면에서 사라진다(2026-09-20: 노모어·푸라닭 상한이 배너
+    만료와 함께 빠졌다). 랜덤은 상한이라 확정과 나란히 보여야 한다."""
+    if record.get("qualifier") == RANDOM_QUALIFIER:
+        return (record["platform"], record["brand"], RANDOM_QUALIFIER)
+    return (record["platform"], record["brand"])
+
+
 def latest_per_brand(records: list[dict]) -> dict:
     latest: dict = {}
     for record in records:
-        key = (record["platform"], record["brand"])
+        key = offer_key(record)
         current = latest.get(key)
         latest[key] = record if current is None else _prefer(current, record)
     return latest

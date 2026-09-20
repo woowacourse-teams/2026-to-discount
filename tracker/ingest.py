@@ -24,7 +24,7 @@ import sys
 from pathlib import Path
 
 from schema import validate_record
-from store import append_record, latest_per_brand, read_records
+from store import offer_key, append_record, latest_per_brand, read_records
 
 from scripts._env_paths import log_path  # noqa: E402
 
@@ -111,7 +111,7 @@ def main(argv: list[str]) -> int:
     if dry_run:
         winners = wins_after_ingest(fresh, existing)
         for record in fresh:
-            key = (record["platform"], record["brand"])
+            key = offer_key(record)
             # 객체 동일성(`is`)으로 비교하면 안 된다 — _prefer는 이긴 쪽을
             # 그대로 돌려주지 않고 진 쪽의 상세를 병합한 새 dict를 만든다.
             # 그래서 이겼는데도 늘 "졌다"고 나온다(2026-08-05에 실제로
