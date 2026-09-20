@@ -3249,7 +3249,7 @@ html.has-bottom-banner .survey-dock {
    "어느 앱인지"로 자리의 뜻을 고정한다. 작은 칩에선 탭도 한 단계 줄인다. */
 .offer:not(.offer--hero) .offer__icon-badge {
   top: auto;
-  bottom: -11px;
+  bottom: -15px;
   right: -5px;
 }
 .offer:not(.offer--hero) .chip-tags .offer__range-badge,
@@ -3264,7 +3264,7 @@ html.has-bottom-banner .survey-dock {
   left: -7px;
   right: auto;
   bottom: -9px;
-  transform: rotate(-5deg);
+  transform: rotate(5deg);
   transform-origin: left bottom;
   font-size: .72rem;
   font-weight: 800;
