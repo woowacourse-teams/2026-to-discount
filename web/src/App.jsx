@@ -373,8 +373,8 @@ function OfferDetail({ offer }) {
                       (ADR-029), 이 구간에만 걸리는 조건("사용(발급X) 선착순" —
                       오퍼 전체 조건으로 두면 모든 구간에 걸린 것처럼 읽힌다). */}
                   {t.channel && <span className="detail__channel">{t.channel}</span>}
+                  {/* 채널 배지(.detail__channel)와 같은 속성, 색만 앱별(사용자 2026-09-20). */}
                   {t.membership && t.membership !== 'none' && (
-                    {/* 채널 배지(.detail__channel)와 같은 속성, 색만 앱별(사용자 2026-09-20). */}
                     <span className="detail__channel detail__tier-membership" data-platform={offer.platform}>
                       {MEMBERSHIP_LABEL[offer.platform] ?? t.membership}
                     </span>
