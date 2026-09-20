@@ -146,6 +146,9 @@ function BannerCard({ banner, position, onClose, onSeen }) {
             "이 브랜드를 이 앱에서"가 한 눈에 읽힌다. 앱 전체 행사면
             로고 자리에 이미 같은 아이콘이 있으니 겹쳐 그리지 않는다. */}
         <span className="banner__logo">
+          {bannerTag(banner) && (
+            <span className={`banner__tag banner__tag--${bannerTag(banner).kind}`}>{bannerTag(banner).label}</span>
+          )}
           {banner.brands?.length > 1 ? (
             /* 한 장에 묶인 브랜드. 2×2 격자로 그려 "누구누구가"를 한 번에
                읽게 한다 — 대표 하나만 그리면 나머지가 안 보인다(2026-09-15
@@ -315,6 +318,17 @@ function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, 
       </div>
     </>
   )
+}
+
+
+// 배너 로고 오른쪽 위 스티키 탭. 구조 필드(limit)가 있으면 그것, 없으면 기간·조건 문구에서 짐작.
+function bannerTag(banner) {
+  const limit = banner.spec?.limit
+  const text = `${banner.period ?? ''} ${banner.extra ?? ''}`
+  if (limit === 'first_come' || /선착순|오픈/.test(text)) return { kind: 'first-come', label: '선착순' }
+  if (limit === 'random' || /랜덤/.test(text)) return { kind: 'random', label: '랜덤' }
+  if (limit === 'targeted' || /타겟/.test(text)) return { kind: 'targeted', label: '타겟' }
+  return null
 }
 
 export default function EventBanner({ banners }) {

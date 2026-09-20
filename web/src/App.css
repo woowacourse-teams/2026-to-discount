@@ -3171,3 +3171,61 @@ html.has-bottom-banner .survey-dock {
 /* 오른쪽 위 닫기. 그립을 끌거나 배경을 누르는 길이 안 보이는 사람을 위한 것. */
 .sheet__close { position: absolute; top: .55rem; right: .8rem; width: 32px; height: 32px; border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .sheet__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- 스티키 탭(2026-09-20 제안) ------------------------------------------------------
+   배지가 오퍼 칩엔 위 가운데, 멤버십은 아래 가운데, 배너엔 앱 아이콘만 — 종류마다 자리가
+   달라 눈이 매번 찾았다. 하나의 모양(살짝 기울인 포스트잇, 오른쪽 위 모서리에 걸침)으로
+   통일하고, 뜻은 색으로만 가른다: 회색 = 액면대로 못 견줌(불확정·특정메뉴), 검정 = 뽑기,
+   초록 = 최적, 앱색 = 멤버십, 빨강 = 선착순. 배너 로고에도 같은 탭을 단다. */
+.offer__range-badge,
+.offer__status-badge--membership,
+.banner__tag {
+  position: absolute;
+  top: -9px;
+  right: -7px;
+  left: auto;
+  bottom: auto;
+  transform: rotate(-5deg);
+  transform-origin: right top;
+  font-size: .68rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: .01em;
+  padding: .12rem .42rem .14rem;
+  border-radius: 3px 3px 3px 5px;
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28), 0 0 0 1px rgba(255, 255, 255, .55) inset;
+  white-space: nowrap;
+  z-index: 3;
+}
+/* 접힌 귀 — 포스트잇이라는 신호. 오른쪽 아래 모서리를 살짝 비스듬히 자른다. */
+.offer__range-badge::after,
+.offer__status-badge--membership::after,
+.banner__tag::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 6px;
+  height: 6px;
+  background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, .18) 50%);
+  border-bottom-right-radius: 3px;
+}
+/* 멤버십은 아래가 아니라 위 왼쪽 모서리 — 오른쪽 위는 금액 성격(qualifier)의 자리다. 둘이
+   같은 줄에 서면 "최대 · 배민클럽"처럼 붙어 읽힌다. */
+.offer__status-badge--membership {
+  right: auto;
+  left: -7px;
+  transform: rotate(5deg);
+  transform-origin: left top;
+}
+/* 배너: 로고 오른쪽 위. 로고 크기(--logo)에 맞춰 살짝 안쪽. */
+.banner__logo { overflow: visible; }
+.banner__tag {
+  top: -2px;
+  right: -10px;
+  font-size: .64rem;
+}
+.banner__tag--first-come { color: #fff; background: #e5322d; }
+.banner__tag--random { color: #fff; background: #333; }
+.banner__tag--targeted { color: var(--text); background: #ffe58a; }
+/* 최고 할인 칩은 qualifier가 없어 탭이 안 뜬다 — 최고 표식은 왼쪽 라벨 그대로. */
