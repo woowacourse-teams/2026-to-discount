@@ -3291,6 +3291,9 @@ html.has-bottom-banner .survey-dock {
                     rgba(0, 0, 0, .06) 58%, rgba(0, 0, 0, .16) 100%),
     linear-gradient(135deg, #00c8ff 0%, #4d6bff 55%, #ff3ec8 100%);
   text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
+  /* 왼쪽 위 — 옛 라벨 자리. 왼쪽으로 기울여 오른쪽 묶음과 대칭. */
+  right: auto;
+  left: -7px;
+  transform: rotate(-5deg);
+  transform-origin: left top;
 }
-/* 왼쪽 라벨이 사라졌으니 큰 칩의 좌우 여백을 같게 — 금액이 가운데에 선다. */
-.offer--hero .offer__chip { padding-left: 1rem; padding-right: 1rem; }

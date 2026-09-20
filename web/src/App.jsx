@@ -227,11 +227,11 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
         {/* qualifier 셋은 성격이 서로 다르다 — 색으로 갈라 둔다.
             불확정(최대)과 특정메뉴는 액면 그대로 견주면 안 되는 값이라 같은 회색으로 물러나고,
             랜덤은 뽑기라 검은 배지, 최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
-        <span className="chip-tags">
-        {/* 최고 할인도 같은 포스트잇 — 오른쪽 위 묶음의 첫 자리, 색(네온 그라디언트)은 그대로(2026-09-21). */}
+        {/* 최고 할인도 같은 포스트잇 — 자리는 원래대로 왼쪽 위, 색(네온 그라디언트)은 그대로(2026-09-21). */}
         {best && (
           <span className="offer__range-badge offer__range-badge--best-tab" aria-label="최고 할인">최고 할인</span>
         )}
+        <span className="chip-tags">
         {!best && showRangeBadge && (
           <span className={`offer__range-badge offer__range-badge--${QUALIFIER_TONE[offer.qualifier] ?? 'plain'}`}>
             {offer.qualifier === '최대' ? '불확정' : offer.qualifier}
