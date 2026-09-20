@@ -233,8 +233,13 @@ public class BrandComparisonService {
             String name = brands.canonical(record.brand());
             Offer offer = Offer.from(record, today);
 
+            // 앱마다 오퍼 하나가 대표다. 다만 뽑기 오퍼(랜덤)는 확정 오퍼와 **다른 자리**에 둔다 —
+            // 같은 자리에 두면 확정액이 이겨 상한이 사라진다(2026-09-20 노모어·푸라닭). 원장
+            // 쪽(store.offer_key)과 같은 규칙.
+            String slot = RANDOM_QUALIFIER.equals(offer.qualifier())
+                    ? record.platform() + "#" + RANDOM_QUALIFIER : record.platform();
             byBrand.computeIfAbsent(name, k -> new LinkedHashMap<>())
-                    .merge(record.platform(), offer, Offer::preferredOver);
+                    .merge(slot, offer, Offer::preferredOver);
 
             // 원장의 금액이 아니라 오늘 기준 금액을 쓴다 — 만료된 구간 때문에
             // 대표값이 내려갔으면 카드 대표 금액과 정렬도 같이 내려가야 한다.

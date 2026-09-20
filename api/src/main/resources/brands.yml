@@ -570,6 +570,11 @@ brands:
     category: chinese
     links:
       baemin: https://s.baemin.com/h9000LqV6OJ0c
+  토핑몬스터피자TMPPIZZA:
+    # 2026-09-20 요기요 창원 주소 순회에서 처음 잡힘(최적 9,250원).
+    searchAliases: [토핑몬스터피자, 토핑몬스터, 토핑 몬스터 피자, tmp pizza, tmppizza, topping monster pizza]
+    aliases: [토핑몬스터피자, 토핑몬스터]
+    category: pizza
   마라공방:
     searchAliases: [마라 공방, 마라탕공방, mala workshop, maragongbang]
     category: chinese

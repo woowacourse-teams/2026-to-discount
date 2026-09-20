@@ -660,6 +660,23 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void aRandomOfferStandsBesideTheFixedOfferOfTheSameApp() {
+        // 2026-09-20: 노모어피자 쿠팡이츠 확정 5,000과 랜덤 상한 10,000이 같은 자리를 다퉈 랜덤이 사라졌다.
+        String brands = """
+                brands:
+                  노모어피자:
+                    category: pizza
+                """;
+        List<OfferRecord> records = List.of(
+                rec("coupangeats", "노모어피자", 5000, null, false),
+                rec("coupangeats", "노모어피자", 10000, "랜덤", false));
+        BrandComparison card = serviceWith(records, brands)
+                .compare().stream().filter(c -> c.brand().name().equals("노모어피자")).findFirst().orElseThrow();
+        assertEquals(2, card.offers().size());
+        assertEquals(5000, card.maxConfirmedAmount());   // 랜덤은 정렬에 안 든다
+    }
+
+    @Test
     void putsTodaysBannerOnTheBrandCardAsAnOffer() {
         // 배너에 올린 순간 그 브랜드 카드에도 떠야 한다 — 실제로 받을 수
         // 있는 할인인데 원장(캡처)에는 안 잡힌다.
