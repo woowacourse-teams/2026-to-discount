@@ -488,12 +488,12 @@ h1 {
    둔다. 칸 안 여백은 없다: 칸 자체가 이미 작다. */
 .banner__logos {
   /* 낱장 로고의 1.3배 — 네 칸으로 나눠도 한 칸이 40px 넘게 남아 식별된다. */
-  --grid: calc(var(--logo) * 1.3);
+  --grid: calc(var(--logo) * 1.15);   /* 1.3 → 1.15: 낱장과 크기 차이를 줄인다(2026-09-20) */
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-auto-rows: 1fr;
-  gap: 2px;
+  gap: 1px;
   width: var(--grid);
   height: var(--grid);
 }
@@ -510,14 +510,19 @@ h1 {
      3 = 위 두 칸 + 아래 가운데 한 칸(삼각)
      4 = 2×2 */
 .banner__logos[data-count="2"] { display: block; }
-.banner__logos[data-count="2"] .brand-logo { position: absolute; width: 64%; height: 64%; }
-.banner__logos[data-count="2"] .brand-logo:nth-child(1) { left: 0; top: 0; }
-.banner__logos[data-count="2"] .brand-logo:nth-child(2) { right: 0; bottom: 0; }
-.banner__logos[data-count="3"] .brand-logo:nth-child(3) {
-  grid-column: 1 / -1;
-  width: calc(50% - 1px);
-  justify-self: center;
-}
+/* 둘이면 왼쪽 아래 + 오른쪽 위, 오른쪽 위가 덮는다(사용자 2026-09-20). 각 74% — 낱장(--logo)과
+   크기 차이가 심하지 않게, 그리고 겹치는 만큼 붙여 한 덩어리로. */
+.banner__logos[data-count="2"] .brand-logo { position: absolute; width: 66%; height: 66%; }
+/* 첫(대표) 브랜드가 오른쪽 위, 위에 덮인다. 둘째는 왼쪽 아래. */
+.banner__logos[data-count="2"] .brand-logo:nth-child(1) { right: 0; top: 0; z-index: 2; }
+.banner__logos[data-count="2"] .brand-logo:nth-child(2) { left: 0; bottom: 0; z-index: 1; }
+/* 셋은 삼각 배치에 살짝 겹침: 위 둘은 안쪽으로, 아래 하나는 위로 올라와 겹친다. */
+.banner__logos[data-count="3"] { display: block; }
+.banner__logos[data-count="3"] .brand-logo { position: absolute; width: 58%; height: 58%; }
+.banner__logos[data-count="3"] .brand-logo:nth-child(1) { left: 0; top: 0; z-index: 3; }
+.banner__logos[data-count="3"] .brand-logo:nth-child(2) { right: 0; top: 0; z-index: 2; }
+.banner__logos[data-count="3"] .brand-logo:nth-child(3) { left: 21%; bottom: 0; z-index: 1; }
+
 /* 브랜드가 없는 앱 전체 행사 — 로고 자리에 앱 아이콘이 들어간다. */
 .brand-logo--platform { background: var(--surface); }
 .brand-logo--platform img { object-fit: contain; padding: 4px; }
@@ -1640,7 +1645,7 @@ h1 {
 .offer__range-badge.offer__range-badge--menu {
   color: var(--text);
   background: var(--bg);
-  border: 1px solid var(--border);
+  border: 0;
   /* 테두리가 생기면서 회색 배지보다 1px씩 커진다 — 안쪽 여백에서 빼
      같은 자리 같은 크기로 뜨게 한다. */
   padding: calc(.05rem - 1px) calc(.3rem - 1px);
@@ -2983,6 +2988,26 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 맨 위로 버튼도 도크 위로 올린다 — 도크 우측 하단에 조작 묶음이 생긴 뒤
    둘이 겹쳤다(2026-09-16 실측). */
 html.has-bottom-banner .to-top-btn { bottom: calc(var(--banner-dock-h) + .5rem); }
+
+/* 새벽 안내(00~07시). 맨 위로 버튼 맞은편, 왼쪽 아래에 알림 모양으로 뜬다. 배너가 있으면
+   같은 규칙으로 배너 위로 올라간다. 누르는 것이 아니라 읽는 것이라 버튼이 아니다. */
+.night-notice {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  max-width: calc(100vw - 5rem);
+  padding: .5rem .75rem;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.3;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .18);
+  animation: to-top-in 160ms ease;
+}
+html.has-bottom-banner .night-notice { bottom: calc(var(--banner-dock-h) + .5rem); }
 html.has-bottom-banner .survey-dock {
   bottom: calc(var(--banner-dock-h) + .5rem);
 }
@@ -3168,3 +3193,136 @@ html.has-bottom-banner .survey-dock {
 /* 오른쪽 위 닫기. 그립을 끌거나 배경을 누르는 길이 안 보이는 사람을 위한 것. */
 .sheet__close { position: absolute; top: .55rem; right: .8rem; width: 32px; height: 32px; border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .sheet__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- 스티키 탭(2026-09-20 제안) ------------------------------------------------------
+   배지가 오퍼 칩엔 위 가운데, 멤버십은 아래 가운데, 배너엔 앱 아이콘만 — 종류마다 자리가
+   달라 눈이 매번 찾았다. 하나의 모양(살짝 기울인 포스트잇, 오른쪽 위 모서리에 걸침)으로
+   통일하고, 뜻은 색으로만 가른다: 회색 = 액면대로 못 견줌(불확정·특정메뉴), 검정 = 뽑기,
+   초록 = 최적, 앱색 = 멤버십, 빨강 = 선착순. 배너 로고에도 같은 탭을 단다. */
+.offer__range-badge,
+.offer__status-badge--membership,
+.banner__tag {
+  position: absolute;
+  top: -9px;
+  right: -7px;
+  left: auto;
+  bottom: auto;
+  transform: rotate(5deg);
+  transform-origin: right top;
+  font-size: .77rem;                   /* 배너 탭과 같은 값 — 높이 24px로 통일(2026-09-21 실측) */
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: .01em;
+  padding: .14rem .5rem .17rem;
+  border-radius: 3px 3px 5px 3px;
+  border: 0;
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28);
+  white-space: nowrap;
+  z-index: 3;
+}
+/* 접힌 귀 — 포스트잇이라는 신호. 오른쪽 아래 모서리를 살짝 비스듬히 자른다. */
+.offer__range-badge::after,
+.offer__status-badge--membership::after,
+.banner__tag::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 6px;
+  height: 6px;
+  background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, .18) 50%);
+  border-bottom-right-radius: 3px;
+}
+/* 오퍼 칩의 탭은 전부 오른쪽 위 한 묶음(.chip-tags)에 나란히 선다(사용자 2026-09-20). 묶음이
+   자리를 잡고 탭은 흐름 배치다. 최고 할인 라벨(왼쪽)과는 무관하다. */
+.chip-tags {
+  position: absolute;
+  top: -9px;
+  right: -7px;
+  display: flex;
+  gap: 4px;
+  z-index: 3;
+}
+.chip-tags .offer__range-badge,
+.chip-tags .offer__status-badge--membership {
+  position: static;
+  top: auto; right: auto; left: auto; bottom: auto;
+}
+/* 배너: 로고 오른쪽 위. 로고 크기(--logo)에 맞춰 살짝 안쪽. */
+.banner__logo { overflow: visible; }
+.banner__tag {
+  top: 4px;                            /* 조금 내려 로고를 덮는다(2026-09-20) */
+  right: -8px;
+  z-index: 10;                         /* 묶음 로고(z 1~3)보다 항상 위 */
+}
+.banner__tag--first-come { color: #fff; background: #e5322d; }
+.banner__tag--random { color: #fff; background: #333; }
+.banner__tag--targeted { color: var(--text); background: #ffe58a; }
+/* 최고 할인 칩은 qualifier가 없어 탭이 안 뜬다 — 최고 표식은 왼쪽 라벨 그대로. */
+
+/* 작은 오퍼 칩(차순위 격자): 앱 아이콘이 오른쪽 위에서 포스트잇과 부딪혔다(2026-09-20).
+   앱 아이콘은 오른쪽 아래로, 포스트잇은 오른쪽 위 그대로 — 위는 "무슨 값인지", 아래는
+   "어느 앱인지"로 자리의 뜻을 고정한다. 작은 칩에선 탭도 한 단계 줄인다. */
+.offer:not(.offer--hero) .offer__icon-badge {
+  top: auto;
+  bottom: -15px;
+  right: -5px;
+}
+
+/* 채널·조건 배지(배달/포장/선착순 등, .offer__status-badge)도 같은 포스트잇으로 — 아래 가운데 둥근
+   배지만 옛 모양이라 글줄과 어긋나 보였다(2026-09-20). 자리는 왼쪽 아래, 오른쪽 아래는 앱 아이콘. */
+.offer__status-badge:not(.offer__status-badge--membership) {
+  left: -7px;
+  right: auto;
+  bottom: -5px;                        /* -9 → -5: 4px 위로(2026-09-21) */
+  transform: rotate(5deg);
+  transform-origin: left bottom;
+  font-size: .77rem;
+  font-weight: 800;
+  line-height: 1.25;
+  padding: .14rem .5rem .17rem;
+  border-radius: 3px 3px 3px 5px;
+  border: 0;
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28);
+  z-index: 3;
+}
+
+/* 탭 높이 통일(2026-09-21 실측: 배너 24.4 / 큰 칩 24.2 / 작은 칩 25.3 / 조건 28.9). 크기·자리별
+   규칙(.offer--hero .offer__range-badge 등)이 글자 크기를 제각각 덮어써서 생긴 차이 — 한 값으로 못박는다. */
+.chip-tags > .offer__range-badge,
+.chip-tags > .offer__status-badge--membership,
+.offer__amount > .offer__status-badge,
+.offer__range-badge--best-tab,
+.banner__tag {
+  box-sizing: border-box;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  font-size: .77rem;
+  line-height: 1;
+  padding: 0 .5rem;
+}
+.offer--hero .offer__range-badge { font-size: .77rem; padding: 0 .5rem; top: -9px; }
+
+/* 최고 할인 포스트잇 — 왼쪽 네모 라벨 대신 오른쪽 위 묶음에. 색은 네온 그라디언트 그대로. */
+.offer__range-badge.offer__range-badge--best-tab {
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .45) 0%, rgba(255, 255, 255, .1) 42%,
+                    rgba(0, 0, 0, .06) 58%, rgba(0, 0, 0, .16) 100%),
+    linear-gradient(135deg, #00c8ff 0%, #4d6bff 55%, #ff3ec8 100%);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
+  /* 왼쪽 위 — 옛 라벨 자리. 왼쪽으로 기울여 오른쪽 묶음과 대칭. */
+  right: auto;
+  left: -7px;
+  transform: rotate(-5deg);
+  transform-origin: left top;
+}
+
+/* 멤버십 탭이 앱 아이콘(z 4)을 덮는다(2026-09-21). 묶음 전체를 아이콘 위로. */
+.chip-tags { z-index: 6; }
+
+/* 위쪽 탭들 4px 아래로 — 카드 헤더의 브랜드 로고와 안 겹치게(2026-09-21). */
+.chip-tags { top: -5px; }
+.offer__range-badge--best-tab { top: -5px; }
+.offer--hero .offer__range-badge { top: -5px; }

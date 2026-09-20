@@ -220,18 +220,18 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             후보에서 빠진다) — 같은 자리, 같은 배지를 색만 바꿔 쓴다. */}
         {/* 최고 할인은 칩 왼쪽에 라벨로 붙인다 — 금액 위에 떠 있던
             배지는 카드가 여럿 늘어서면 어느 칩 것인지 헷갈렸다. */}
-        {best && (
-          <span className="offer__best-label" aria-label="최고 할인">
-            <span>최고</span>
-            <span>할인</span>
-          </span>
-        )}
+
         {/* 위 칸(qualifier 자리)은 금액의 성격을 말한다 — "최대 할인
             금액"이나 "n%할인"처럼 그 숫자가 어떻게 나온 값인지. 아래
             칸은 멤버십·조건 배지 몫이다. */}
         {/* qualifier 셋은 성격이 서로 다르다 — 색으로 갈라 둔다.
             불확정(최대)과 특정메뉴는 액면 그대로 견주면 안 되는 값이라 같은 회색으로 물러나고,
             랜덤은 뽑기라 검은 배지, 최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
+        {/* 최고 할인도 같은 포스트잇 — 자리는 원래대로 왼쪽 위, 색(네온 그라디언트)은 그대로(2026-09-21). */}
+        {best && (
+          <span className="offer__range-badge offer__range-badge--best-tab" aria-label="최고 할인">최고</span>
+        )}
+        <span className="chip-tags">
         {!best && showRangeBadge && (
           <span className={`offer__range-badge offer__range-badge--${QUALIFIER_TONE[offer.qualifier] ?? 'plain'}`}>
             {offer.qualifier === '최대' ? '불확정' : offer.qualifier}
@@ -251,14 +251,14 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
         {/* 멤버십은 badge 원문이 아니라 membership 필드(ADR-029)로 판단한다 —
             허브 관측이 쿠폰함 관측을 이기면 badge는 비고 membership만 남는다
             (2026-09-16 던킨 쿠팡이츠). badge가 있어야만 그리면 그때 사라진다. */}
-        {memberOnly ? (
+        {memberOnly && (
           <span className="offer__status-badge offer__status-badge--membership" data-platform={offer.platform}>
             {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
           </span>
-        ) : (
-          offer.badge && !/^\d+%할인$/.test(offer.badge) && (
-            <span className="offer__status-badge">{offer.badge}</span>
-          )
+        )}
+        </span>
+        {!memberOnly && offer.badge && !/^\d+%할인$/.test(offer.badge) && (
+          <span className="offer__status-badge">{offer.badge}</span>
         )}
         {offer.soldOut ? (
           <>
@@ -797,6 +797,14 @@ export default function App() {
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
 
 
+  // 새벽(00~07시) 안내. 수집이 00:01에 돌아 그 사이 값이 지난주 것일 수 있다 — 화면에 그렇다고
+  // 말해 둔다. 시각은 1분마다 다시 본다(열어 둔 채 07시를 넘기면 사라져야 한다).
+  const [isNight, setIsNight] = useState(() => new Date().getHours() < 7)
+  useEffect(() => {
+    const id = setInterval(() => setIsNight(new Date().getHours() < 7), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   // "맨 위로" 버튼은 한참 내려갔을 때만 — 조금 내려간 상태에선 방해다.
   const [scrolledFar, setScrolledFar] = useState(false)
   useEffect(() => {
@@ -1255,6 +1263,11 @@ export default function App() {
       )}
 
       <SiteFooter />
+
+      {/* 새벽 안내 — 맨 위로 버튼 맞은편(왼쪽 아래), 하단 배너 위. */}
+      {isNight && (
+        <div className="night-notice" role="status">새벽엔 정보가 틀릴 수 있어요!</div>
+      )}
 
       {/* 한참 내려간 뒤 맨 위로 돌아가는 길. */}
       {scrolledFar && (
