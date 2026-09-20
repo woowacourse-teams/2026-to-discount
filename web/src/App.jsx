@@ -374,8 +374,8 @@ function OfferDetail({ offer }) {
                       오퍼 전체 조건으로 두면 모든 구간에 걸린 것처럼 읽힌다). */}
                   {t.channel && <span className="detail__channel">{t.channel}</span>}
                   {t.membership && t.membership !== 'none' && (
-                    <span className="offer__status-badge offer__status-badge--membership detail__tier-membership"
-                          data-platform={offer.platform}>
+                    {/* 채널 배지(.detail__channel)와 같은 속성, 색만 앱별(사용자 2026-09-20). */}
+                    <span className="detail__channel detail__tier-membership" data-platform={offer.platform}>
                       {MEMBERSHIP_LABEL[offer.platform] ?? t.membership}
                     </span>
                   )}

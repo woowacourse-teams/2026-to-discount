@@ -1919,14 +1919,11 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 구간 줄의 멤버십 배지. .offer__status-badge는 칩 아래에 절대 위치로 붙는
    배지라 그 위치 규칙을 끄고 칩 안 채널 라벨과 같은 자리에 선다 — 안 끄면
    카드 맨 아래로 튀어나간다(2026-09-16 실측). 색은 앱별 규칙을 그대로 쓴다. */
-.detail__tier-scope .detail__tier-membership {
-  position: static;
-  transform: none;
-  margin: 0;
-  font-size: .68rem;
-  padding: .05rem .4rem;
-  border-radius: 5px;
-}
+.detail__tier-membership { color: #fff; font-weight: 700; }
+.detail__tier-membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
+.detail__tier-membership[data-platform="coupangeats"] { background: #333; }
+.detail__tier-membership[data-platform="ddangyo"] { background: #f5a623; }
+.detail__tier-membership[data-platform="yogiyo"] { background: #fa0050; }
 .detail__tier-min { color: var(--text-muted); text-align: right; white-space: nowrap; }
 /* 금액 뒤에 이어 붙이면 "3,000원(5%, 최대 3,000원)"이 한 줄로 길어져
    좁은 화면에서 잘렸다. 조건은 금액을 설명하는 딸린 값이라 아래 줄로
