@@ -3243,3 +3243,17 @@ html.has-bottom-banner .survey-dock {
 .banner__tag--random { color: #fff; background: #333; }
 .banner__tag--targeted { color: var(--text); background: #ffe58a; }
 /* 최고 할인 칩은 qualifier가 없어 탭이 안 뜬다 — 최고 표식은 왼쪽 라벨 그대로. */
+
+/* 작은 오퍼 칩(차순위 격자): 앱 아이콘이 오른쪽 위에서 포스트잇과 부딪혔다(2026-09-20).
+   앱 아이콘은 오른쪽 아래로, 포스트잇은 오른쪽 위 그대로 — 위는 "무슨 값인지", 아래는
+   "어느 앱인지"로 자리의 뜻을 고정한다. 작은 칩에선 탭도 한 단계 줄인다. */
+.offer:not(.offer--hero) .offer__icon-badge {
+  top: auto;
+  bottom: -7px;
+  right: -5px;
+}
+.offer:not(.offer--hero) .chip-tags .offer__range-badge,
+.offer:not(.offer--hero) .chip-tags .offer__status-badge--membership {
+  font-size: .72rem;
+  padding: .1rem .4rem .12rem;
+}
