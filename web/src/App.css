@@ -3249,7 +3249,7 @@ html.has-bottom-banner .survey-dock {
    "어느 앱인지"로 자리의 뜻을 고정한다. 작은 칩에선 탭도 한 단계 줄인다. */
 .offer:not(.offer--hero) .offer__icon-badge {
   top: auto;
-  bottom: -7px;
+  bottom: -11px;
   right: -5px;
 }
 .offer:not(.offer--hero) .chip-tags .offer__range-badge,
@@ -3274,19 +3274,4 @@ html.has-bottom-banner .survey-dock {
   border: 0;
   box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28);
   z-index: 3;
-}
-/* 작은 칩에서 멤버십은 탭이 아니라 앱 아이콘에 붙는 색 점 — 탭 둘이 나란히 서면 칩 폭을 넘는다. */
-.offer:not(.offer--hero) .chip-tags .offer__status-badge--membership {
-  position: absolute;
-  bottom: -14px;
-  right: -12px;
-  top: auto;
-  width: 11px;
-  height: 11px;
-  padding: 0;
-  border-radius: 50%;
-  font-size: 0;
-  transform: none;
-  box-shadow: 0 0 0 2px var(--bg);
-  z-index: 5;
 }
