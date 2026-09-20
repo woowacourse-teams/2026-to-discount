@@ -3257,3 +3257,36 @@ html.has-bottom-banner .survey-dock {
   font-size: .72rem;
   padding: .1rem .4rem .12rem;
 }
+
+/* 채널·조건 배지(배달/포장/선착순 등, .offer__status-badge)도 같은 포스트잇으로 — 아래 가운데 둥근
+   배지만 옛 모양이라 글줄과 어긋나 보였다(2026-09-20). 자리는 왼쪽 아래, 오른쪽 아래는 앱 아이콘. */
+.offer__status-badge:not(.offer__status-badge--membership) {
+  left: -7px;
+  right: auto;
+  bottom: -9px;
+  transform: rotate(-5deg);
+  transform-origin: left bottom;
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1.25;
+  padding: .1rem .4rem .12rem;
+  border-radius: 3px 3px 3px 5px;
+  border: 0;
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28);
+  z-index: 3;
+}
+/* 작은 칩에서 멤버십은 탭이 아니라 앱 아이콘에 붙는 색 점 — 탭 둘이 나란히 서면 칩 폭을 넘는다. */
+.offer:not(.offer--hero) .chip-tags .offer__status-badge--membership {
+  position: absolute;
+  bottom: -14px;
+  right: -12px;
+  top: auto;
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0;
+  transform: none;
+  box-shadow: 0 0 0 2px var(--bg);
+  z-index: 5;
+}
