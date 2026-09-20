@@ -34,18 +34,27 @@ public class BrandComparisonService {
 
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
                                   BannerCatalog banners, Clock clock) {
-        this(offers, brands, banners, clock, null);
+        this(offers, brands, banners, clock, null, "");
+    }
+
+    public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
+                                  BannerCatalog banners, Clock clock, String hideUnlinkedPlatforms) {
+        this(offers, brands, banners, clock, null, hideUnlinkedPlatforms);
     }
 
     @org.springframework.beans.factory.annotation.Autowired
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
                                   BannerCatalog banners, Clock clock,
-                                  com.discounttracker.analytics.PopularityIndex popularity) {
+                                  com.discounttracker.analytics.PopularityIndex popularity,
+                                  @org.springframework.beans.factory.annotation.Value("${discount.hide-unlinked-platforms:yogiyo}")
+                                  String hideUnlinkedPlatforms) {
         this.offers = offers;
         this.brands = brands;
         this.banners = banners;
         this.clock = clock;
         this.popularity = popularity;
+        this.unlinkedHidden = java.util.Arrays.stream((hideUnlinkedPlatforms == null ? "" : hideUnlinkedPlatforms).split(","))
+                .map(String::trim).filter(x -> !x.isEmpty()).collect(java.util.stream.Collectors.toSet());
     }
 
     /** 인기 점수(2026-09-19). 테스트처럼 없으면 전부 0. */
@@ -231,6 +240,12 @@ public class BrandComparisonService {
             }
 
             String name = brands.canonical(record.brand());
+            // 요기요는 브랜드 링크(brands.yml links.yogiyo)가 없으면 칩을 눌러도 앱만 켜지고 그 브랜드로
+            // 못 간다(2026-09-21 토핑몬스터피자). 그런 오퍼는 화면에 안 낸다 — 배너 유래(자기 링크)는 예외.
+            if (unlinkedHidden.contains(record.platform()) && record.link() == null
+                    && brands.find(name).links().get(record.platform()) == null) {
+                continue;
+            }
             Offer offer = Offer.from(record, today);
 
             // 앱마다 오퍼 하나가 대표다. 다만 뽑기 오퍼(랜덤)는 확정 오퍼와 **다른 자리**에 둔다 —
@@ -300,6 +315,9 @@ public class BrandComparisonService {
     private static final String MAX_QUALIFIER = "최대";
     /** 뽑기 쿠폰임을 알리는 표식(2026-09-18). 상한처럼 정렬에서 빠진다. 원장과 같은 말. */
     private static final String RANDOM_QUALIFIER = "랜덤";
+    /** 브랜드 링크 없이는 그 브랜드에 못 가는 앱 — 링크 없는 오퍼는 숨긴다(application.yml
+     * discount.hide-unlinked-platforms, 기본 yogiyo). 테스트의 4인자 생성자는 비어 있다. */
+    private final java.util.Set<String> unlinkedHidden;
     /** 배너 문구에 이 말이 있으면 고객마다 갈리는 딜이다. */
     private static final String TARGETED_MARK = "타겟딜";
     private static final String LIMITED_MARK = "한정";

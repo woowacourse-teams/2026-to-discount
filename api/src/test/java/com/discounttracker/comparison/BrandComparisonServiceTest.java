@@ -677,6 +677,29 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void yogiyoOffersWithoutABrandLinkAreHidden() {
+        // 2026-09-21: 토핑몬스터피자 요기요 칩을 누르면 앱만 켜졌다 — brands.yml에 요기요 링크가 없어서.
+        String brands = """
+                brands:
+                  토핑몬스터피자TMPPIZZA:
+                    category: pizza
+                  푸라닭:
+                    category: chicken
+                    links:
+                      yogiyo: yogiyolink://push.page/franchise?fr_id=75
+                """;
+        List<OfferRecord> records = List.of(
+                rec("yogiyo", "토핑몬스터피자TMPPIZZA", 9250, null, false),
+                rec("yogiyo", "푸라닭", 5000, null, false));
+        BrandCatalog catalog = new BrandCatalog(new ByteArrayResource(brands.getBytes(StandardCharsets.UTF_8)));
+        BannerCatalog none = new BannerCatalog(new ByteArrayResource("banners: []".getBytes(StandardCharsets.UTF_8)),
+                Clock.systemDefaultZone(), catalog);
+        var svc = new BrandComparisonService(repositoryWith(records), catalog, none, Clock.systemDefaultZone(), "yogiyo");
+        List<String> names = svc.compare().stream().map(c -> c.brand().name()).toList();
+        assertEquals(List.of("푸라닭"), names);
+    }
+
+    @Test
     void putsTodaysBannerOnTheBrandCardAsAnOffer() {
         // 배너에 올린 순간 그 브랜드 카드에도 떠야 한다 — 실제로 받을 수
         // 있는 할인인데 원장(캡처)에는 안 잡힌다.
