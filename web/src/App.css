@@ -488,12 +488,12 @@ h1 {
    둔다. 칸 안 여백은 없다: 칸 자체가 이미 작다. */
 .banner__logos {
   /* 낱장 로고의 1.3배 — 네 칸으로 나눠도 한 칸이 40px 넘게 남아 식별된다. */
-  --grid: calc(var(--logo) * 1.3);
+  --grid: calc(var(--logo) * 1.15);   /* 1.3 → 1.15: 낱장과 크기 차이를 줄인다(2026-09-20) */
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-auto-rows: 1fr;
-  gap: 2px;
+  gap: 1px;
   width: var(--grid);
   height: var(--grid);
 }
@@ -510,9 +510,11 @@ h1 {
      3 = 위 두 칸 + 아래 가운데 한 칸(삼각)
      4 = 2×2 */
 .banner__logos[data-count="2"] { display: block; }
-.banner__logos[data-count="2"] .brand-logo { position: absolute; width: 64%; height: 64%; }
-.banner__logos[data-count="2"] .brand-logo:nth-child(1) { left: 0; top: 0; }
-.banner__logos[data-count="2"] .brand-logo:nth-child(2) { right: 0; bottom: 0; }
+/* 둘이면 왼쪽 아래 + 오른쪽 위, 오른쪽 위가 덮는다(사용자 2026-09-20). 각 74% — 낱장(--logo)과
+   크기 차이가 심하지 않게, 그리고 겹치는 만큼 붙여 한 덩어리로. */
+.banner__logos[data-count="2"] .brand-logo { position: absolute; width: 74%; height: 74%; box-shadow: 0 0 0 2px var(--banner-bg-c, var(--bg)); }
+.banner__logos[data-count="2"] .brand-logo:nth-child(1) { left: 0; bottom: 0; z-index: 1; }
+.banner__logos[data-count="2"] .brand-logo:nth-child(2) { right: 0; top: 0; z-index: 2; }
 .banner__logos[data-count="3"] .brand-logo:nth-child(3) {
   grid-column: 1 / -1;
   width: calc(50% - 1px);
@@ -3187,11 +3189,11 @@ html.has-bottom-banner .survey-dock {
   bottom: auto;
   transform: rotate(5deg);
   transform-origin: right top;
-  font-size: .68rem;
+  font-size: .82rem;                   /* .68 × 1.2 (2026-09-20) */
   font-weight: 800;
   line-height: 1.25;
   letter-spacing: .01em;
-  padding: .12rem .42rem .14rem;
+  padding: .14rem .5rem .17rem;
   border-radius: 3px 3px 5px 3px;
   border: 0;
   box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28);
@@ -3231,7 +3233,7 @@ html.has-bottom-banner .survey-dock {
 .banner__tag {
   top: -2px;
   right: -10px;
-  font-size: .64rem;
+  font-size: .77rem;                   /* .64 × 1.2 */
 }
 .banner__tag--first-come { color: #fff; background: #e5322d; }
 .banner__tag--random { color: #fff; background: #333; }
