@@ -3189,7 +3189,7 @@ html.has-bottom-banner .survey-dock {
   bottom: auto;
   transform: rotate(5deg);
   transform-origin: right top;
-  font-size: .82rem;                   /* .68 × 1.2 (2026-09-20) */
+  font-size: .77rem;                   /* 배너 탭과 같은 값 — 높이 24px로 통일(2026-09-21 실측) */
   font-weight: 800;
   line-height: 1.25;
   letter-spacing: .01em;
@@ -3233,7 +3233,6 @@ html.has-bottom-banner .survey-dock {
 .banner__tag {
   top: 4px;                            /* 조금 내려 로고를 덮는다(2026-09-20) */
   right: -8px;
-  font-size: .77rem;                   /* .64 × 1.2 */
   z-index: 10;                         /* 묶음 로고(z 1~3)보다 항상 위 */
 }
 .banner__tag--first-come { color: #fff; background: #e5322d; }
@@ -3249,26 +3248,37 @@ html.has-bottom-banner .survey-dock {
   bottom: -15px;
   right: -5px;
 }
-.offer:not(.offer--hero) .chip-tags .offer__range-badge,
-.offer:not(.offer--hero) .chip-tags .offer__status-badge--membership {
-  font-size: .72rem;
-  padding: .1rem .4rem .12rem;
-}
 
 /* 채널·조건 배지(배달/포장/선착순 등, .offer__status-badge)도 같은 포스트잇으로 — 아래 가운데 둥근
    배지만 옛 모양이라 글줄과 어긋나 보였다(2026-09-20). 자리는 왼쪽 아래, 오른쪽 아래는 앱 아이콘. */
 .offer__status-badge:not(.offer__status-badge--membership) {
   left: -7px;
   right: auto;
-  bottom: -9px;
+  bottom: -5px;                        /* -9 → -5: 4px 위로(2026-09-21) */
   transform: rotate(5deg);
   transform-origin: left bottom;
-  font-size: .72rem;
+  font-size: .77rem;
   font-weight: 800;
   line-height: 1.25;
-  padding: .1rem .4rem .12rem;
+  padding: .14rem .5rem .17rem;
   border-radius: 3px 3px 3px 5px;
   border: 0;
   box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28);
   z-index: 3;
 }
+
+/* 탭 높이 통일(2026-09-21 실측: 배너 24.4 / 큰 칩 24.2 / 작은 칩 25.3 / 조건 28.9). 크기·자리별
+   규칙(.offer--hero .offer__range-badge 등)이 글자 크기를 제각각 덮어써서 생긴 차이 — 한 값으로 못박는다. */
+.chip-tags > .offer__range-badge,
+.chip-tags > .offer__status-badge--membership,
+.offer__amount > .offer__status-badge,
+.banner__tag {
+  box-sizing: border-box;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  font-size: .77rem;
+  line-height: 1;
+  padding: 0 .5rem;
+}
+.offer--hero .offer__range-badge { font-size: .77rem; padding: 0 .5rem; top: -9px; }
