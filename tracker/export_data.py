@@ -66,9 +66,11 @@ BRANDS_PATH = Path(__file__).parent / "data" / "brands-sorted.txt"
 # 잡았던 브랜드 18개가 "이번에 안 보였다"로 밀려 화면에서 사라졌다
 # (2026-08-16). 한 주소에서 안 보인 것은 끝났다는 증거가 아니다. 요기요는
 # 여러 주소의 수집을 합쳐서 보고, 만료는 종료일(is_live)로만 판정한다.
-SWEEP_SCOPED_PLATFORMS = {"baemin", "coupangeats", "ddangyo"}
-# 요기요만 쓰는 유예. 마지막 요기요 수집일 기준 이 일수 넘게 안 보인 종료일 없는 오퍼는 내린다.
-YOGIYO_MAX_AGE_DAYS = 14
+#
+# 2026-09-20부터 요기요도 저장된 주소 전부를 돌며 훑는다(full_audit.audit_yogiyo). 한 주소만 본
+# 부분 수집은 sweeps.jsonl에 적지 않으므로(중단이면 full=False), 적힌 수집에 안 보였으면 끝난
+# 것이다 — 이제 요기요도 같은 규칙이다(사용자 결정 2026-09-21: 이번 관측에 없는 것은 전부 내린다).
+SWEEP_SCOPED_PLATFORMS = {"baemin", "coupangeats", "ddangyo", "yogiyo"}
 
 
 def camel_tiers(tiers, record=None):
@@ -244,15 +246,6 @@ def is_stale_sweep(record: dict, sweeps: dict[str, str]) -> bool:
     """
     if has_expiry(record):
         return False
-    if record["platform"] == "yogiyo":
-        # 요기요는 주소마다 목록이 달라 "이번에 안 보임"으로 안 내리는데, 그러면 종료일 없는
-        # 옛 오퍼가 영원히 남는다(2026-09-19: 08-03 관측 "최대 6,000원"이 아직 화면에 있었다).
-        # 마지막 요기요 수집일에서 YOGIYO_MAX_AGE_DAYS 넘게 안 보인 것은 내린다(사용자 결정).
-        last = sweeps.get("yogiyo")
-        if not last:
-            return False
-        cutoff = (date.fromisoformat(last) - timedelta(days=YOGIYO_MAX_AGE_DAYS)).isoformat()
-        return record["captured_at"][:10] < cutoff
     if record["platform"] not in SWEEP_SCOPED_PLATFORMS:
         return False
     return record["captured_at"][:10] < sweeps.get(record["platform"], "")
@@ -275,7 +268,7 @@ def next_monday(day: str) -> str:
 
 
 def estimated_expiry(record: dict) -> str | None:
-    """앱이 안 알려준 종료일을 수집일 다음 월요일로 추정한다.
+    """앱이 안 알려준 종료일을 수집일 다음 월요일 전날(일요일)로 추정한다.
 
     추정이 실제보다 이르면 살아 있는 할인이 하루 이틀 일찍 내려가고, 늦으면
     끝난 할인이 남는다. 월요일 교체가 관측된 규칙이므로 이 경계가 둘 다
@@ -285,7 +278,11 @@ def estimated_expiry(record: dict) -> str | None:
         return None
     if has_expiry(record):
         return None
-    return next_monday(record["captured_at"][:10])
+    # 교체는 월요일 00시다. 종료일은 "그날까지 쓸 수 있다"(_is_past)라 월요일을 적으면 월요일
+    # 하루 종일 지난주 쿠폰이 남는다 — 09-15 관측 60계·처갓집 8,000원이 09-21 새벽까지 떠 있었다.
+    # 마지막으로 쓸 수 있는 날, 일요일을 적는다.
+    monday = date.fromisoformat(next_monday(record["captured_at"][:10]))
+    return (monday - timedelta(days=1)).isoformat()
 
 
 def build_export(records: list[dict], today: str | None = None,
