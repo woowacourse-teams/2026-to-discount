@@ -3298,3 +3298,6 @@ html.has-bottom-banner .survey-dock {
   transform: rotate(-5deg);
   transform-origin: left top;
 }
+
+/* 멤버십 탭이 앱 아이콘(z 4)을 덮는다(2026-09-21). 묶음 전체를 아이콘 위로. */
+.chip-tags { z-index: 6; }
