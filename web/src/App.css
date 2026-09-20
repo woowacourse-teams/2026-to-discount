@@ -512,13 +512,13 @@ h1 {
 .banner__logos[data-count="2"] { display: block; }
 /* 둘이면 왼쪽 아래 + 오른쪽 위, 오른쪽 위가 덮는다(사용자 2026-09-20). 각 74% — 낱장(--logo)과
    크기 차이가 심하지 않게, 그리고 겹치는 만큼 붙여 한 덩어리로. */
-.banner__logos[data-count="2"] .brand-logo { position: absolute; width: 66%; height: 66%; box-shadow: 0 0 0 2px var(--banner-bg-c, var(--bg)); }
+.banner__logos[data-count="2"] .brand-logo { position: absolute; width: 66%; height: 66%; }
 /* 첫(대표) 브랜드가 오른쪽 위, 위에 덮인다. 둘째는 왼쪽 아래. */
 .banner__logos[data-count="2"] .brand-logo:nth-child(1) { right: 0; top: 0; z-index: 2; }
 .banner__logos[data-count="2"] .brand-logo:nth-child(2) { left: 0; bottom: 0; z-index: 1; }
 /* 셋은 삼각 배치에 살짝 겹침: 위 둘은 안쪽으로, 아래 하나는 위로 올라와 겹친다. */
 .banner__logos[data-count="3"] { display: block; }
-.banner__logos[data-count="3"] .brand-logo { position: absolute; width: 58%; height: 58%; box-shadow: 0 0 0 2px var(--banner-bg-c, var(--bg)); }
+.banner__logos[data-count="3"] .brand-logo { position: absolute; width: 58%; height: 58%; }
 .banner__logos[data-count="3"] .brand-logo:nth-child(1) { left: 0; top: 0; z-index: 3; }
 .banner__logos[data-count="3"] .brand-logo:nth-child(2) { right: 0; top: 0; z-index: 2; }
 .banner__logos[data-count="3"] .brand-logo:nth-child(3) { left: 21%; bottom: 0; z-index: 1; }
@@ -3234,9 +3234,10 @@ html.has-bottom-banner .survey-dock {
 /* 배너: 로고 오른쪽 위. 로고 크기(--logo)에 맞춰 살짝 안쪽. */
 .banner__logo { overflow: visible; }
 .banner__tag {
-  top: -2px;
-  right: -10px;
+  top: 4px;                            /* 조금 내려 로고를 덮는다(2026-09-20) */
+  right: -8px;
   font-size: .77rem;                   /* .64 × 1.2 */
+  z-index: 10;                         /* 묶음 로고(z 1~3)보다 항상 위 */
 }
 .banner__tag--first-come { color: #fff; background: #e5322d; }
 .banner__tag--random { color: #fff; background: #333; }
