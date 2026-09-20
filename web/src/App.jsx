@@ -797,6 +797,14 @@ export default function App() {
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
 
 
+  // 새벽(00~07시) 안내. 수집이 00:01에 돌아 그 사이 값이 지난주 것일 수 있다 — 화면에 그렇다고
+  // 말해 둔다. 시각은 1분마다 다시 본다(열어 둔 채 07시를 넘기면 사라져야 한다).
+  const [isNight, setIsNight] = useState(() => new Date().getHours() < 7)
+  useEffect(() => {
+    const id = setInterval(() => setIsNight(new Date().getHours() < 7), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   // "맨 위로" 버튼은 한참 내려갔을 때만 — 조금 내려간 상태에선 방해다.
   const [scrolledFar, setScrolledFar] = useState(false)
   useEffect(() => {
@@ -1255,6 +1263,11 @@ export default function App() {
       )}
 
       <SiteFooter />
+
+      {/* 새벽 안내 — 맨 위로 버튼 맞은편(왼쪽 아래), 하단 배너 위. */}
+      {isNight && (
+        <div className="night-notice" role="status">새벽엔 정보가 틀릴 수 있어요!</div>
+      )}
 
       {/* 한참 내려간 뒤 맨 위로 돌아가는 길. */}
       {scrolledFar && (
