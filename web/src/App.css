@@ -1640,7 +1640,7 @@ h1 {
 .offer__range-badge.offer__range-badge--menu {
   color: var(--text);
   background: var(--bg);
-  border: 1px solid var(--border);
+  border: 0;
   /* 테두리가 생기면서 회색 배지보다 1px씩 커진다 — 안쪽 여백에서 빼
      같은 자리 같은 크기로 뜨게 한다. */
   padding: calc(.05rem - 1px) calc(.3rem - 1px);
@@ -3185,15 +3185,16 @@ html.has-bottom-banner .survey-dock {
   right: -7px;
   left: auto;
   bottom: auto;
-  transform: rotate(-5deg);
+  transform: rotate(5deg);
   transform-origin: right top;
   font-size: .68rem;
   font-weight: 800;
   line-height: 1.25;
   letter-spacing: .01em;
   padding: .12rem .42rem .14rem;
-  border-radius: 3px 3px 3px 5px;
-  box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28), 0 0 0 1px rgba(255, 255, 255, .55) inset;
+  border-radius: 3px 3px 5px 3px;
+  border: 0;
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28);
   white-space: nowrap;
   z-index: 3;
 }
@@ -3210,13 +3211,20 @@ html.has-bottom-banner .survey-dock {
   background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, .18) 50%);
   border-bottom-right-radius: 3px;
 }
-/* 멤버십은 아래가 아니라 위 왼쪽 모서리 — 오른쪽 위는 금액 성격(qualifier)의 자리다. 둘이
-   같은 줄에 서면 "최대 · 배민클럽"처럼 붙어 읽힌다. */
-.offer__status-badge--membership {
-  right: auto;
-  left: -7px;
-  transform: rotate(5deg);
-  transform-origin: left top;
+/* 오퍼 칩의 탭은 전부 오른쪽 위 한 묶음(.chip-tags)에 나란히 선다(사용자 2026-09-20). 묶음이
+   자리를 잡고 탭은 흐름 배치다. 최고 할인 라벨(왼쪽)과는 무관하다. */
+.chip-tags {
+  position: absolute;
+  top: -9px;
+  right: -7px;
+  display: flex;
+  gap: 4px;
+  z-index: 3;
+}
+.chip-tags .offer__range-badge,
+.chip-tags .offer__status-badge--membership {
+  position: static;
+  top: auto; right: auto; left: auto; bottom: auto;
 }
 /* 배너: 로고 오른쪽 위. 로고 크기(--logo)에 맞춰 살짝 안쪽. */
 .banner__logo { overflow: visible; }

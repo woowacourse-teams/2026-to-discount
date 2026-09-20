@@ -232,6 +232,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
         {/* qualifier 셋은 성격이 서로 다르다 — 색으로 갈라 둔다.
             불확정(최대)과 특정메뉴는 액면 그대로 견주면 안 되는 값이라 같은 회색으로 물러나고,
             랜덤은 뽑기라 검은 배지, 최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
+        <span className="chip-tags">
         {!best && showRangeBadge && (
           <span className={`offer__range-badge offer__range-badge--${QUALIFIER_TONE[offer.qualifier] ?? 'plain'}`}>
             {offer.qualifier === '최대' ? '불확정' : offer.qualifier}
@@ -251,14 +252,14 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
         {/* 멤버십은 badge 원문이 아니라 membership 필드(ADR-029)로 판단한다 —
             허브 관측이 쿠폰함 관측을 이기면 badge는 비고 membership만 남는다
             (2026-09-16 던킨 쿠팡이츠). badge가 있어야만 그리면 그때 사라진다. */}
-        {memberOnly ? (
+        {memberOnly && (
           <span className="offer__status-badge offer__status-badge--membership" data-platform={offer.platform}>
             {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
           </span>
-        ) : (
-          offer.badge && !/^\d+%할인$/.test(offer.badge) && (
-            <span className="offer__status-badge">{offer.badge}</span>
-          )
+        )}
+        </span>
+        {!memberOnly && offer.badge && !/^\d+%할인$/.test(offer.badge) && (
+          <span className="offer__status-badge">{offer.badge}</span>
         )}
         {offer.soldOut ? (
           <>
