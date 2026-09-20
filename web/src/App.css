@@ -3272,6 +3272,7 @@ html.has-bottom-banner .survey-dock {
 .chip-tags > .offer__range-badge,
 .chip-tags > .offer__status-badge--membership,
 .offer__amount > .offer__status-badge,
+.offer__range-badge--best-tab,
 .banner__tag {
   box-sizing: border-box;
   height: 24px;
