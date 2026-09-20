@@ -3301,3 +3301,8 @@ html.has-bottom-banner .survey-dock {
 
 /* 멤버십 탭이 앱 아이콘(z 4)을 덮는다(2026-09-21). 묶음 전체를 아이콘 위로. */
 .chip-tags { z-index: 6; }
+
+/* 위쪽 탭들 4px 아래로 — 카드 헤더의 브랜드 로고와 안 겹치게(2026-09-21). */
+.chip-tags { top: -5px; }
+.offer__range-badge--best-tab { top: -5px; }
+.offer--hero .offer__range-badge { top: -5px; }
