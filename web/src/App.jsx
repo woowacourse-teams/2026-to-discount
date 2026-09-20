@@ -220,12 +220,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             후보에서 빠진다) — 같은 자리, 같은 배지를 색만 바꿔 쓴다. */}
         {/* 최고 할인은 칩 왼쪽에 라벨로 붙인다 — 금액 위에 떠 있던
             배지는 카드가 여럿 늘어서면 어느 칩 것인지 헷갈렸다. */}
-        {best && (
-          <span className="offer__best-label" aria-label="최고 할인">
-            <span>최고</span>
-            <span>할인</span>
-          </span>
-        )}
+
         {/* 위 칸(qualifier 자리)은 금액의 성격을 말한다 — "최대 할인
             금액"이나 "n%할인"처럼 그 숫자가 어떻게 나온 값인지. 아래
             칸은 멤버십·조건 배지 몫이다. */}
@@ -233,6 +228,10 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             불확정(최대)과 특정메뉴는 액면 그대로 견주면 안 되는 값이라 같은 회색으로 물러나고,
             랜덤은 뽑기라 검은 배지, 최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
         <span className="chip-tags">
+        {/* 최고 할인도 같은 포스트잇 — 오른쪽 위 묶음의 첫 자리, 색(네온 그라디언트)은 그대로(2026-09-21). */}
+        {best && (
+          <span className="offer__range-badge offer__range-badge--best-tab" aria-label="최고 할인">최고 할인</span>
+        )}
         {!best && showRangeBadge && (
           <span className={`offer__range-badge offer__range-badge--${QUALIFIER_TONE[offer.qualifier] ?? 'plain'}`}>
             {offer.qualifier === '최대' ? '불확정' : offer.qualifier}

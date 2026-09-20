@@ -3282,3 +3282,15 @@ html.has-bottom-banner .survey-dock {
   padding: 0 .5rem;
 }
 .offer--hero .offer__range-badge { font-size: .77rem; padding: 0 .5rem; top: -9px; }
+
+/* 최고 할인 포스트잇 — 왼쪽 네모 라벨 대신 오른쪽 위 묶음에. 색은 네온 그라디언트 그대로. */
+.offer__range-badge.offer__range-badge--best-tab {
+  color: #fff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .45) 0%, rgba(255, 255, 255, .1) 42%,
+                    rgba(0, 0, 0, .06) 58%, rgba(0, 0, 0, .16) 100%),
+    linear-gradient(135deg, #00c8ff 0%, #4d6bff 55%, #ff3ec8 100%);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
+}
+/* 왼쪽 라벨이 사라졌으니 큰 칩의 좌우 여백을 같게 — 금액이 가운데에 선다. */
+.offer--hero .offer__chip { padding-left: 1rem; padding-right: 1rem; }
