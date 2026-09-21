@@ -131,7 +131,7 @@
 
 - 기술적 제약: Web Push는 HTTPS와 Service Worker가 필요하다. iOS와 iPadOS에서는 16.4 이상과 홈 화면 설치가 필요하다.
 - 기술적 제약: 로그인하지 않으므로 사람 단위 중복 제거와 여러 기기 간 설정 동기화를 할 수 없다.
-- 운영 제약: 배너 승인과 편집은 `/var/www/ops/index.html`의 `/ops/#banner` 화면과 별도 `scripts/ops_apply.py`가 담당한다. 두 파일은 현재 저장소에 없고 서버에서 관리된다.
+- 운영 제약: 배너 승인과 편집을 담당하는 운영 콘솔 코드는 `nn98/beggars-ops` 저장소의 `main`에서 관리한다. `web/index.html`은 서버의 `/var/www/ops/index.html`로, `ops_apply.py`는 `/home/ubuntu/ops_apply.py`로 배포된다.
 - 운영 제약: `ops_apply.py`가 서버 외부 `banners.yml`을 수정한 뒤 `POST /api/reload`를 호출한다. Spring API에 배너 쓰기 경로를 추가하지 않는다.
 - 운영 제약: 브라우저 구독 정보와 알림 상태는 서버 재시작 후에도 유지돼야 한다.
 - 보안 제약: VAPID 비공개 키와 Push 구독 정보는 저장소에 커밋하지 않는다.
@@ -312,7 +312,7 @@ endpoint 원문은 로그에 남기지 않는다. 저장소와 발송 이력에�
 #### Ops 배너 화면
 
 - 책임: 배너 승인 또는 편집 시 알림 등록과 즉시 발송 여부 입력, 야간 선택 비활성화
-- 의존성: `/var/www/ops/index.html`, `/ops/apply`, `/ops/edit`
+- 의존성: `nn98/beggars-ops/web/index.html`, `/ops/apply`, `/ops/edit`
 - 외부 인터페이스: `notify`, `notifyImmediately`를 포함한 승인 또는 편집 요청
 
 #### ops_apply.py
@@ -458,8 +458,9 @@ endpoint 원문은 로그에 남기지 않는다. 저장소와 발송 이력에�
 
 #### Modify
 
-- 서버 `/var/www/ops/index.html`: 배너 승인과 편집 폼에 알림 등록 및 즉시 발송 선택 추가. 저장소 구현과 PR 병합이 모두 끝난 뒤 서버에서 변경
-- 서버 `/home/ubuntu/ops_apply.py`: 알림 필드 검증과 저장, 이력 기록, reload 결과 전달. 저장소 구현과 PR 병합이 모두 끝난 뒤 서버에서 변경
+- `nn98/beggars-ops/web/index.html`: 배너 승인과 편집 폼에 알림 등록 및 즉시 발송 선택 추가. API와 Web 구현 및 PR 병합이 모두 끝난 뒤 `beggars-ops`의 `main`에서 변경
+- `nn98/beggars-ops/ops_apply.py`: 알림 필드 검증과 저장, 이력 기록, reload 결과 전달. API와 Web 구현 및 PR 병합이 모두 끝난 뒤 `beggars-ops`의 `main`에서 변경
+- `nn98/beggars-ops/banner_ops.py`: 배너 파일 쓰기 로직에서 `notify`, `notifyImmediately` 필드를 보존하고 검증하도록 필요한 경우 변경
 - `api/build.gradle`: 선택한 Web Push 라이브러리 의존성 추가
 - `api/src/main/java/com/discounttracker/banner/Banner.java`: `notify`, `notifyImmediately` 필드와 기본값 추가
 - `api/src/main/java/com/discounttracker/banner/BannerCatalog.java`: 전체 배너 상태 제공과 reload 변경 감지 연결
@@ -535,15 +536,14 @@ endpoint 원문은 로그에 남기지 않는다. 저장소와 발송 이력에�
 - 테스트: 저장소 안에서 실행 가능한 테스트와 빌드를 모두 완료한다.
 - 완료 조건: 운영자가 문서만 보고 구독 설정, 배너 알림 선택, 발송 결과 확인과 만료 구독 처리를 수행할 수 있고 PR을 제출할 준비가 된다.
 
-#### 8. PR 병합 후 ops 서버 반영과 재시작
+#### 8. PR 병합 후 beggars-ops 반영과 배포
 
-- 선행 조건: 저장소 구현과 검증, 리뷰, PR 병합, API와 Web 배포가 모두 완료돼야 한다. 그전에는 운영 서버 파일을 변경하지 않는다.
-- 백업: 변경 직전에 `/home/ubuntu/ops_apply.py`, `/var/www/ops/index.html`, `/home/ubuntu/delivery-discount-api/data/banners.yml`을 각각 시각이 포함된 `.bak-<시각>` 파일로 복사한다.
-- 변경: `/var/www/ops/index.html`에 알림 선택 UI와 요청 payload를 추가하고, `/home/ubuntu/ops_apply.py`에 필드와 시간대 검증 및 이력 기록을 추가한다.
-- 적용: `ops-apply.service`와 `delivery-discount-api.service`를 재시작한다. nginx 설정은 바꾸지 않으므로 nginx는 재시작하지 않는다.
+- 선행 조건: API와 Web 구현의 검증, 리뷰, PR 병합과 배포가 모두 완료돼야 한다. 그전에는 운영 콘솔 코드를 변경하지 않는다.
+- 변경: `nn98/beggars-ops`의 `main`에서 `web/index.html`에 알림 선택 UI와 요청 payload를 추가하고, `ops_apply.py`와 필요한 경우 `banner_ops.py`에 필드와 시간대 검증 및 이력 기록을 추가한다. 서버 파일을 직접 수정하지 않는다.
+- 적용: `beggars-ops`의 배포 워크플로로 `main`의 코드를 서버에 반영한다. 정적 콘솔 변경에는 재시작이 필요 없고 Python 파일이 변경된 경우에만 `ops-apply.service`를 재시작한다. API와 nginx는 해당 코드나 설정을 변경하지 않으므로 재시작하지 않는다.
 - 테스트: 서비스 상태, `/ops/banners`, `/api/banners`, `/api/reload`를 확인한 뒤 테스트 배너로 요약과 즉시 알림 선택, 야간 제한을 점검한다.
 - 완료 조건: 운영 화면에서 알림 방식을 선택할 수 있고 배너 반영과 reload가 성공하며 기존 배너 승인과 편집도 정상 동작한다.
-- 롤백: 실패하면 세 백업 파일을 원래 경로로 복원하고 두 서비스를 다시 시작한 뒤 기존 배너 승인과 조회를 확인한다.
+- 롤백: 실패하면 `beggars-ops`에서 정상 동작하던 이전 커밋의 운영 콘솔 파일을 복원해 새 커밋으로 `main`에 반영하고 다시 배포한다. Python 파일이 복원된 경우 `ops-apply.service` 재시작과 기존 배너 승인 및 조회를 확인한다.
 
 ### Scope Check
 
@@ -555,7 +555,7 @@ endpoint 원문은 로그에 남기지 않는다. 저장소와 발송 이력에�
 채택한 분할:
 
 - `BLOCKING`: PR 1의 API 계약과 배포가 PR 2의 실제 HTTPS 연동 검증에 선행한다.
-- `BLOCKING`: PR 1과 PR 2의 병합 및 배포가 ops 서버 반영에 선행한다.
+- `BLOCKING`: PR 1과 PR 2의 병합 및 배포가 `beggars-ops`의 `main` 변경과 배포에 선행한다.
 
 후속 작업:
 
@@ -568,6 +568,6 @@ endpoint 원문은 로그에 남기지 않는다. 저장소와 발송 이력에�
 - `cd api && ./gradlew test`
 - `cd web && npm test`
 - `cd web && npm run build`
-- PR 병합과 배포 후 `systemctl status ops-apply.service delivery-discount-api.service`
+- `beggars-ops` 배포 후 `systemctl status ops-apply.service`
 - PR 병합과 배포 후 `/ops/banners`, `/api/banners`, `/api/reload` 점검
 - 실제 HTTPS 환경에서 데스크톱 Chrome, Android Chrome, iOS 16.4 이상 홈 화면 웹 앱의 구독, 수신, 알림 선택 확인
