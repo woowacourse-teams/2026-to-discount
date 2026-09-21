@@ -64,6 +64,19 @@ class PushStateStoreTest {
         assertThat(temp.resolve("push.json.corrupt-" + clock.instant().toEpochMilli())).exists();
     }
 
+    @Test
+    void keepsUndeliveredActivationPendingAfterMoreThanTwentyFourHours() {
+        Clock oldClock = Clock.fixed(clock.instant().minusSeconds(60L * 60 * 48),
+                ZoneId.of("Asia/Seoul"));
+        PushStateStore oldStore = new PushStateStore(properties(), mapper, oldClock);
+        oldStore.observe(Map.of("banner", true), Map.of("banner", false));
+
+        PushStateStore restored = new PushStateStore(properties(), mapper, clock);
+
+        assertThat(restored.pending()).singleElement()
+                .extracting(BannerNotificationState::bannerId).isEqualTo("banner");
+    }
+
     private PushProperties properties() {
         return new PushProperties(true, "public", "private", "mailto:test@example.com",
                 temp.resolve("push.json"), "https://front.example/", "https://api.example");

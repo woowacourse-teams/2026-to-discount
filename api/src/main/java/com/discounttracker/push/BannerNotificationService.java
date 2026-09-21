@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
-import java.time.Duration;
 import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,7 +55,7 @@ public class BannerNotificationService {
 
     @Scheduled(cron = "0 0 11 * * *", zone = "Asia/Seoul")
     public void sendDailyDigest() {
-        dispatch(store.pendingSince(clock.instant().minus(Duration.ofHours(24))), "digest");
+        dispatch(store.pending(), "digest");
     }
 
     int dispatch(List<BannerNotificationState> activations, String type) {

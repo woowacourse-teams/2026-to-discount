@@ -123,6 +123,14 @@ public class PushStateStore {
                 .toList();
     }
 
+    public synchronized List<BannerNotificationState> pending() {
+        return state.banners.values().stream()
+                .filter(BannerNotificationState::lastNotify)
+                .filter(value -> value.activatedAt() != null)
+                .filter(value -> value.immediateDispatchedAt() == null && value.digestDispatchedAt() == null)
+                .toList();
+    }
+
     public synchronized void markDispatched(List<String> activationIds, String type) {
         Instant now = clock.instant();
         state.banners.replaceAll((id, old) -> activationIds.contains(old.activationId())
