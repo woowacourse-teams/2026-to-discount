@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.nio.file.Files;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +51,17 @@ class PushStateStoreTest {
         assertThat(store.track(token.token(), "push_notification_displayed")).isEmpty();
         assertThat(store.track(token.token(), "push_notification_clicked")).isPresent();
         assertThat(store.track(token.token(), "push_notification_clicked")).isEmpty();
+    }
+
+    @Test
+    void isolatesDamagedStateAndStartsEmpty() throws Exception {
+        Files.writeString(properties().statePath(), "not-json");
+
+        PushStateStore store = new PushStateStore(properties(), mapper, clock);
+
+        assertThat(store.activeSubscriptions()).isEmpty();
+        assertThat(properties().statePath()).doesNotExist();
+        assertThat(temp.resolve("push.json.corrupt-" + clock.instant().toEpochMilli())).exists();
     }
 
     private PushProperties properties() {

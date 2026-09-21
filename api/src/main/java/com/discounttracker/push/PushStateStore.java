@@ -1,12 +1,15 @@
 package com.discounttracker.push;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
@@ -23,6 +26,7 @@ import java.util.LinkedHashSet;
 
 @Component
 public class PushStateStore {
+    private static final Logger log = LoggerFactory.getLogger(PushStateStore.class);
 
     private final PushProperties properties;
     private final ObjectMapper mapper;
@@ -162,7 +166,16 @@ public class PushStateStore {
         try {
             return mapper.readValue(properties.statePath().toFile(), State.class);
         } catch (IOException e) {
-            throw new UncheckedIOException("Push 상태 파일 읽기 실패: " + properties.statePath(), e);
+            Path damaged = properties.statePath().resolveSibling(
+                    properties.statePath().getFileName() + ".corrupt-" + clock.instant().toEpochMilli());
+            try {
+                Files.move(properties.statePath(), damaged, StandardCopyOption.REPLACE_EXISTING);
+                log.error("손상된 Push 상태 파일을 격리하고 빈 상태로 시작한다: backup={}", damaged, e);
+            } catch (IOException backupError) {
+                log.error("Push 상태 파일을 읽거나 격리하지 못해 빈 상태로 시작한다: path={}",
+                        properties.statePath(), backupError);
+            }
+            return new State();
         }
     }
 
