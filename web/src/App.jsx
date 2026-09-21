@@ -257,7 +257,10 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
           </span>
         )}
         </span>
-        {!memberOnly && offer.badge && !/^\d+%할인$/.test(offer.badge) && (
+        {/* 멤버십과 별개로 기간·시각 배지("오늘 17시 선착순")는 늘 그린다 — 배너 오퍼가
+            와우 전용이 되면서 시각 배지가 사라졌다(2026-09-21). 배지 원문이 멤버십 문구
+            그 자체("쿠팡와우 전용쿠폰", "배민클럽")일 때만 위의 멤버십 탭이 대신한다. */}
+        {offer.badge && !/^\d+%할인$/.test(offer.badge) && !/전용|클럽|패스/.test(offer.badge) && (
           <span className="offer__status-badge">{offer.badge}</span>
         )}
         {offer.soldOut ? (
