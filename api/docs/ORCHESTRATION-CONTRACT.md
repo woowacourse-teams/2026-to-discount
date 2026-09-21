@@ -86,6 +86,18 @@ priority:  int               프론트는 안 읽는다(서버가 이미 정렬�
 - 배너가 없으면 빈 배열. 프론트는 이 경우 아무것도 그리지 않는다.
 - `/api/brands`에 얹지 않고 따로 뒀다. 응답 타입을 객체로 감싸는 파괴적 변경을 피하고, 배너 없는 날에 빈 필드가 따라다니지 않게 한다.
 
+### Web Push API
+
+Web Push 기능은 `DISCOUNT_PUSH_ENABLED=true`와 VAPID 키, 상태 파일 경로가 모두 설정된 경우에만 활성화된다.
+
+- `GET /api/push/public-key`: 브라우저 구독에 사용할 VAPID 공개 키를 반환한다. 기능이 비활성화된 경우 404를 반환한다.
+- `POST /api/push/subscriptions`: 브라우저의 `endpoint`, `keys.p256dh`, `keys.auth`와 `visitorId`, `analyticsEnabled`를 저장한다. 잘못된 구독 정보는 400을 반환한다.
+- `DELETE /api/push/subscriptions`: `endpoint`에 해당하는 구독을 비활성화한다.
+- `POST /api/push/displayed/{token}`: 서비스 워커가 알림 표시 후 호출한다. 분석에 동의한 구독이면 `push_notification_displayed` 이벤트를 기록한다.
+- `GET /api/push/click/{token}`: 알림 클릭을 기록하고 서비스 루트로 이동시킨다. 분석에 동의한 구독이면 `push_notification_clicked` 이벤트를 기록한다.
+
+구독 요청의 `visitorId`는 프론트에서 사용하는 기존 방문자 식별자를 그대로 전달한다. 표시와 클릭 이벤트는 이 값을 사용하므로 기존 방문, 탐색, 외부 이동 이벤트와 같은 퍼널에서 분석할 수 있다.
+
 ### POST /api/reload
 
 - 컨트롤러: `BrandController.java`

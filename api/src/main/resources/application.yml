@@ -33,5 +33,13 @@ discount:
     project-token: ${POSTHOG_PROJECT_TOKEN:}
     host: ${POSTHOG_HOST:https://us.i.posthog.com}
     outbox-path: ${DISCOUNT_POSTHOG_OUTBOX_PATH:}
+  push:
+    enabled: ${DISCOUNT_PUSH_ENABLED:false}
+    public-key: ${WEB_PUSH_PUBLIC_KEY:}
+    private-key: ${WEB_PUSH_PRIVATE_KEY:}
+    subject: ${WEB_PUSH_SUBJECT:mailto:admin@bebeggars.duckdns.org}
+    state-path: ${DISCOUNT_PUSH_STATE_PATH:}
+    frontend-root: ${DISCOUNT_FRONTEND_ROOT:https://beggars-five.vercel.app/}
+    api-root: ${DISCOUNT_API_ROOT:https://bebeggars.duckdns.org}
 server:
   port: 8080

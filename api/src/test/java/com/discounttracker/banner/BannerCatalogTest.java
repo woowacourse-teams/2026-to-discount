@@ -216,6 +216,37 @@ class BannerCatalogTest {
     }
 
     @Test
+    void readsNotificationOptionsAndDefaultsMissingValuesToFalse() {
+        String yaml = """
+                banners:
+                  - id: notification-enabled
+                    brand: 교촌치킨
+                    platform: baemin
+                    url: https://example.test/notify
+                    amount: "5,000원"
+                    period: 오늘
+                    startsOn: 2026-08-11
+                    endsOn: 2026-08-11
+                    notify: true
+                    notifyImmediately: true
+                  - id: notification-disabled
+                    brand: bhc
+                    platform: baemin
+                    url: https://example.test/default
+                    amount: "4,000원"
+                    period: 오늘
+                    startsOn: 2026-08-11
+                    endsOn: 2026-08-11
+                """;
+
+        List<Banner> active = catalogOn(yaml, "2026-08-11").active();
+        assertTrue(active.get(0).notificationEnabled());
+        assertTrue(active.get(0).immediateNotificationRequested());
+        assertFalse(active.get(1).notificationEnabled());
+        assertFalse(active.get(1).immediateNotificationRequested());
+    }
+
+    @Test
     void requiredFieldsPresentAreKept() {
         Banner b = catalogOn(YAML, "2026-08-11").active().get(0);
         assertEquals("교촌치킨", b.brand());

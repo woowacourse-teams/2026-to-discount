@@ -119,6 +119,11 @@ public class BannerCatalog {
                 .toList();
     }
 
+    /** 기간 필터 전 전체 배너. reload 전후 알림 대상 판정에 사용한다. */
+    public List<Banner> all() {
+        return List.copyOf(all);
+    }
+
     /**
      * brands.yml이 모르는 배너 브랜드 표기.
      *
@@ -239,7 +244,9 @@ public class BannerCatalog {
                 date(attrs.get("soldOutOn")),
                 priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY,
                 many,
-                spec);
+                spec,
+                flag(attrs.get("notify")),
+                flag(attrs.get("notifyImmediately")));
     }
 
     /** yml의 구조 필드를 읽는다. 하나도 없으면 null. 형이 틀리면 IllegalArgumentException. */

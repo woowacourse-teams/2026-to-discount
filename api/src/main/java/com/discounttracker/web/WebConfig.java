@@ -30,6 +30,6 @@ public class WebConfig implements WebMvcConfigurer {
                         // preflight 403 "Invalid CORS request").
                         "https://beggars-*-nn98s-projects.vercel.app",
                         "https://delivery-discount-web-*.vercel.app")
-                .allowedMethods("GET", "POST");
+                .allowedMethods("GET", "POST", "DELETE");
     }
 }
