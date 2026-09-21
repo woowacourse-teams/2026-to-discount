@@ -70,11 +70,13 @@ public class BannerNotificationService {
         String activationKey = activations.stream().map(BannerNotificationState::activationId)
                 .sorted(Comparator.naturalOrder()).reduce((left, right) -> left + "," + right).orElse("");
         int success = 0;
+        int completed = 0;
         List<PushSubscription> subscriptions = store.activeSubscriptions();
         for (PushSubscription subscription : subscriptions) {
-            String deliveryKey = type + ":" + activationKey + ":" + subscription.id();
+            String deliveryKey = activationKey + ":" + subscription.id();
             if (store.wasDelivered(deliveryKey)) {
                 success++;
+                completed++;
                 continue;
             }
             PushTrackingToken token = store.createToken(notificationId, subscription.id(),
@@ -88,15 +90,19 @@ public class BannerNotificationService {
                 if (status >= 200 && status < 300) {
                     store.markDelivered(deliveryKey);
                     success++;
+                    completed++;
                 }
-                else if (status == 404 || status == 410) store.deactivate(subscription.id());
+                else if (status == 404 || status == 410) {
+                    store.deactivate(subscription.id());
+                    completed++;
+                }
                 else log.warn("Web Push 전송 실패: subscription={} status={}",
                         subscription.id(), status);
             } catch (RuntimeException e) {
                 log.warn("Web Push 전송 예외: subscription={}", subscription.id(), e);
             }
         }
-        if (success > 0) {
+        if (!subscriptions.isEmpty() && completed == subscriptions.size()) {
             store.markDispatched(activations.stream().map(BannerNotificationState::activationId).toList(), type);
         }
         log.info("Web Push 발송: type={} banners={} subscriptions={} success={}", type,
