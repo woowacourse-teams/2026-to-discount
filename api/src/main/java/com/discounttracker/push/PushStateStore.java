@@ -62,6 +62,17 @@ public class PushStateStore {
     }
 
     public synchronized List<PushSubscription> activeSubscriptions() {
+        boolean changed = false;
+        for (PushSubscription subscription : List.copyOf(state.subscriptions.values())) {
+            if (subscription.active() && !PushEndpointPolicy.isAllowed(subscription.endpoint())) {
+                state.subscriptions.put(subscription.id(), new PushSubscription(subscription.id(),
+                        subscription.endpoint(), subscription.p256dh(), subscription.auth(),
+                        subscription.visitorId(), subscription.analyticsEnabled(),
+                        subscription.createdAt(), clock.instant(), false));
+                changed = true;
+            }
+        }
+        if (changed) save();
         return state.subscriptions.values().stream().filter(PushSubscription::active).toList();
     }
 

@@ -26,8 +26,8 @@ class PushStateStoreTest {
         PushProperties properties = properties();
         PushStateStore store = new PushStateStore(properties, mapper, clock);
 
-        store.upsert("https://push.example/sub", "key", "auth", "v_old", true);
-        store.upsert("https://push.example/sub", "key", "auth", "v_new", true);
+        store.upsert("https://fcm.googleapis.com/sub", "key", "auth", "v_old", true);
+        store.upsert("https://fcm.googleapis.com/sub", "key", "auth", "v_new", true);
         assertThat(store.activeSubscriptions()).singleElement()
                 .extracting(PushSubscription::visitorId).isEqualTo("v_new");
 
@@ -42,7 +42,7 @@ class PushStateStoreTest {
     @Test
     void trackingTokenCanRecordEachEventOnlyOnce() {
         PushStateStore store = new PushStateStore(properties(), mapper, clock);
-        PushSubscription subscription = store.upsert("https://push.example/sub", "key", "auth",
+        PushSubscription subscription = store.upsert("https://fcm.googleapis.com/sub", "key", "auth",
                 "v_123", true);
         PushTrackingToken token = store.createToken("notification", subscription.id(),
                 java.util.List.of("banner"), "digest");

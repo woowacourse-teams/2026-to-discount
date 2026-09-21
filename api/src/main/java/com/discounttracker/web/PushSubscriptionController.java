@@ -1,6 +1,7 @@
 package com.discounttracker.web;
 
 import com.discounttracker.push.PushProperties;
+import com.discounttracker.push.PushEndpointPolicy;
 import com.discounttracker.push.PushStateStore;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,6 +34,9 @@ public class PushSubscriptionController {
     public ResponseEntity<?> subscribe(@RequestBody SubscriptionRequest request) {
         if (!properties.configured()) return ResponseEntity.status(503).body(Map.of("enabled", false));
         if (request == null || request.keys() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "invalid_subscription"));
+        }
+        if (!PushEndpointPolicy.isAllowed(request.endpoint())) {
             return ResponseEntity.badRequest().body(Map.of("error", "invalid_subscription"));
         }
         try {
