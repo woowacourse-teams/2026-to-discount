@@ -230,8 +230,10 @@ public record Banner(
      * 붙어 "n원"만 찾으면 마지막 값이 대표가 된다 — 2026-09-14 실측 7건이
      * 그렇게 뒤 값으로 서 있었다. 나열을 통째로 잡아 맨 앞 값을 쓴다.
      */
+    // "7/6/6/5천원"처럼 천 단위로 줄여 적은 묶음도 읽는다(2026-09-21: 선착순 묶음 배너의 브랜드 오퍼가
+    // 하나도 안 섰다 — banner_routine.group_first_come이 이 꼴로 적는다). group(2)가 "천"이면 ×1000.
     private static final Pattern HEADLINE =
-            Pattern.compile("([0-9][0-9,]*(?:\\s*/\\s*[0-9][0-9,]*)*)\\s*원");
+            Pattern.compile("([0-9][0-9,]*(?:\\s*/\\s*[0-9][0-9,]*)*)\\s*(천)?원");
 
     /**
      * "4,000+10%" — 정액 뒤에 정률이 붙는다.
@@ -319,7 +321,7 @@ public record Banner(
         Matcher m = HEADLINE.matcher(amount);
         if (!m.find()) return null;
         // 나열이면 맨 앞 값이 대표다 — 사람이 그 순서로 적었다.
-        return digits(m.group(1).split("/")[0].trim());
+        return scaled(digits(m.group(1).split("/")[0].trim()), m.group(2));
     }
 
     /**
@@ -346,7 +348,7 @@ public record Banner(
                 String[] parts = m.group(1).split("/");
                 if (parts.length == brands.size()) {
                     for (int i = 0; i < parts.length; i++) {
-                        Integer v = digits(parts[i].trim());
+                        Integer v = scaled(digits(parts[i].trim()), m.group(2));
                         if (brands.get(i) != null && v != null) out.add(java.util.Map.entry(brands.get(i), v));
                     }
                     if (out.size() == parts.length) return out;
@@ -357,6 +359,10 @@ public record Banner(
         Integer head = headlineAmount();
         if (brand != null && head != null) out.add(java.util.Map.entry(brand, head));
         return out;
+    }
+
+    private static Integer scaled(Integer v, String unit) {
+        return v == null || unit == null ? v : v * 1000;
     }
 
     private static Integer digits(String raw) {

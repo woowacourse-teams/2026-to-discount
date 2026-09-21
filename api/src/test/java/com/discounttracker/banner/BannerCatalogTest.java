@@ -467,6 +467,22 @@ class BannerCatalogTest {
     }
 
     @Test
+    void thousandShorthandPairsEveryBrandOfABundle() {
+        // banner_routine.group_first_come이 "7/6/6/5천원"으로 적는다. 2026-09-21까지 이 꼴은
+        // HEADLINE에 안 걸려 묶음 배너의 브랜드 오퍼가 하나도 안 섰다.
+        Banner bundle = new Banner("id", null, "coupangeats", "https://example.test",
+                "7/6/6/5천원", "오늘 17시 선착순", null, null, null,
+                java.time.LocalDate.parse("2026-09-21"), java.time.LocalDate.parse("2026-09-21"),
+                null, null, 1, java.util.List.of("두찜", "자담치킨", "후라이드참잘하는집", "꾸브라꼬숯불치킨"));
+        assertEquals(7000, bundle.headlineAmount());
+        assertEquals(java.util.List.of(
+                java.util.Map.entry("두찜", 7000), java.util.Map.entry("자담치킨", 6000),
+                java.util.Map.entry("후라이드참잘하는집", 6000), java.util.Map.entry("꾸브라꼬숯불치킨", 5000)),
+                bundle.brandAmounts());
+        assertEquals(5000, banner("5천원", null, null).headlineAmount());
+    }
+
+    @Test
     void splitsYogiyoCompoundCouponsIntoTiers() {
         // 요기요 배너는 한 칸에 쿠폰 두 장을 적어 보낸다. 대표값
         // 하나로만 두면 선착순가 끝나 고정분만 남았을 때 그걸 알 길이 없다.
