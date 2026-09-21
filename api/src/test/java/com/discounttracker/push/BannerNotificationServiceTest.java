@@ -15,6 +15,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
 
 class BannerNotificationServiceTest {
 
@@ -74,6 +75,37 @@ class BannerNotificationServiceTest {
         service.dispatch(List.of(activation), "digest");
 
         verify(sender, times(1)).send(any(), any());
+    }
+
+    @Test
+    void reusesNotificationIdWhenAnUnrecordedDeliveryIsRetried() {
+        PushStateStore store = mock(PushStateStore.class);
+        WebPushSender sender = mock(WebPushSender.class);
+        PushMessageFactory messages = mock(PushMessageFactory.class);
+        BannerCatalog catalog = mock(BannerCatalog.class);
+        Banner banner = mock(Banner.class);
+        BannerNotificationState activation = new BannerNotificationState(
+                "banner", true, "activation", Clock.systemUTC().instant(), true, null, null);
+
+        when(banner.id()).thenReturn("banner");
+        when(banner.notificationEnabled()).thenReturn(true);
+        when(catalog.all()).thenReturn(List.of(banner));
+        when(store.activeSubscriptions()).thenReturn(List.of(subscription("first")));
+        when(store.createToken(any(), any(), any(), any())).thenReturn(
+                new PushTrackingToken("token", "notification", "first", List.of("banner"),
+                        "immediate", Clock.systemUTC().instant().plusSeconds(60), false, false));
+        when(messages.payload(any(), any(), any(), any(), any())).thenReturn("payload");
+        when(sender.send(any(), any())).thenReturn(201);
+        BannerNotificationService service = new BannerNotificationService(properties(), store,
+                sender, messages, catalog, Clock.systemUTC());
+
+        service.dispatch(List.of(activation), "immediate");
+        service.dispatch(List.of(activation), "immediate");
+
+        ArgumentCaptor<String> ids = ArgumentCaptor.forClass(String.class);
+        verify(messages, org.mockito.Mockito.times(2))
+                .payload(any(), any(), any(), ids.capture(), any());
+        assertThat(ids.getAllValues()).containsExactly(ids.getAllValues().get(0), ids.getAllValues().get(0));
     }
 
     private PushSubscription subscription(String id) {

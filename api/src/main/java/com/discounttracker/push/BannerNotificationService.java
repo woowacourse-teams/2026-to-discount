@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Comparator;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class BannerNotificationService {
@@ -66,9 +67,10 @@ public class BannerNotificationService {
                 .filter(value -> value != null && value.notificationEnabled()).toList();
         if (targets.isEmpty()) return 0;
 
-        String notificationId = UUID.randomUUID().toString();
         String activationKey = activations.stream().map(BannerNotificationState::activationId)
                 .sorted(Comparator.naturalOrder()).reduce((left, right) -> left + "," + right).orElse("");
+        String notificationId = UUID.nameUUIDFromBytes(
+                (type + ":" + activationKey).getBytes(StandardCharsets.UTF_8)).toString();
         int success = 0;
         int completed = 0;
         List<PushSubscription> subscriptions = store.activeSubscriptions();
