@@ -1104,9 +1104,10 @@ export default function App() {
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
       <EventBanner banners={banners} />
     <main>
-      {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 셋만 배너와 카드 사이에 둔다
-          (2026-09-19, 사용자): 할인금액 높은순, 최소주문 낮은순, 랜덤쿠폰도 넣기. 시트의
-          같은 값과 한 상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
+      {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
+          높은순, 최소주문 낮은순. 랜덤쿠폰 토글은 2026-09-21에 여기서 뺐다(사용자) — 뽑기
+          값은 사람마다 달라 자주 켤 것이 아니다. 시트에는 그대로 있다. 시트의 같은 값과 한
+          상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
       {brands && (
         <div className="quick-bar" role="group" aria-label="빠른 필터">
           {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문 낮은순']].map(([key, dir, label]) => {
@@ -1129,17 +1130,6 @@ export default function App() {
               </button>
             )
           })}
-          <button
-            type="button"
-            className={`quick-bar__chip${filters.includeRandom ? ' quick-bar__chip--on' : ''}`}
-            aria-pressed={filters.includeRandom}
-            onClick={() => {
-              setFilters((f) => ({ ...f, includeRandom: !f.includeRandom }))
-              track('quick_filter', { key: 'random', on: !filters.includeRandom })
-            }}
-          >
-            랜덤쿠폰도 넣기
-          </button>
         </div>
       )}
 
