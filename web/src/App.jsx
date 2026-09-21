@@ -13,6 +13,7 @@ import SurveyDock from './SurveyDock.jsx'
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
+import PushNotificationSetting from './PushNotificationSetting.jsx'
 
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
@@ -1265,6 +1266,7 @@ export default function App() {
                     onDismiss={() => setSurveyOn(false)} />
       )}
 
+      <PushNotificationSetting />
       <SiteFooter />
 
       {/* 새벽 안내 — 맨 위로 버튼 맞은편(왼쪽 아래), 하단 배너 위. */}

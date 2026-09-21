@@ -1964,6 +1964,39 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .site-footer strong { color: var(--text); font-weight: 600; }
 .site-footer__fine { font-size: .7rem; opacity: .85; }
 
+.push-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.push-setting h2 { margin: 0 0 .3rem; font-size: 1rem; }
+.push-setting p { margin: 0; color: var(--text-muted); font-size: .82rem; line-height: 1.5; }
+.push-setting button {
+  flex: none;
+  min-height: 40px;
+  padding: 0 .9rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--text);
+  color: var(--surface);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.push-setting button:disabled { opacity: .55; cursor: wait; }
+.push-setting__error { margin-top: .35rem !important; color: #b42318 !important; }
+
+@media (max-width: 560px) {
+  .push-setting { align-items: flex-start; }
+}
+
 @media (max-width: 560px) {
   main { padding: 0 1rem 3rem; }
   /* .brand-grid는 이제 auto-fit/minmax라 이 폭에서 이미 1열이 된다. */
