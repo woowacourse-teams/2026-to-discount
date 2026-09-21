@@ -62,6 +62,7 @@ brands:
     aliases: [기영이숯불두마리치킨, 기영이치킨, 기영이 치킨, 기영이 숯불치킨, 기영이숯불치킨]
     category: chicken
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=1650
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?oO9vVmT
       baemin: https://s.baemin.com/7o3.fea3y
   꾸브라꼬숯불치킨:
@@ -122,6 +123,7 @@ brands:
     category: chicken
     aliases: [멕시카나, 멕시카나치킨]
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=10
       baemin: https://s.baemin.com/VS000LpsdVs8M
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?cauwVmn
   바른치킨:
@@ -163,6 +165,7 @@ brands:
     searchAliases: [일미리, 일미리 찜닭, ilmilligeumgye, ilmilli jjimdak]
     category: chicken
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=447
       baemin: https://s.baemin.com/My000LxaZ0vxd
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?AvcBo0q
   자담치킨:
@@ -191,6 +194,7 @@ brands:
     searchAliases: [치킨 플러스, 치플, chicken plus, chikin plus]
     category: chicken
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=256
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?QVfBCD2
       baemin: https://s.baemin.com/hk000Lps3ybDS
   페리카나:
@@ -201,6 +205,7 @@ brands:
     aliases: [푸라닭, 푸라닭치킨, 푸라닭 치킨, puradak]
     category: chicken
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=357
       ddangyo: https://fdofd.ddangyo.com/gateway.html?QgXqFri
   해두리치킨:
     searchAliases: [해두리, 해두리 치킨, haeduri, haeduri chicken]
@@ -370,6 +375,8 @@ brands:
   쉐이크쉑:
     searchAliases: [쉑쉑, 쉐이크 쉑, shake shack, shakeshack]
     category: fastfood
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=1004
   움버거앤윙스:
     searchAliases: [움버거, 움버거 앤 윙스, um burger and wings, umburger]
     category: fastfood
@@ -379,6 +386,7 @@ brands:
     searchAliases: [왓더 버거, 왓버거, what the burger, whattheburger]
     category: fastfood
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=4657
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?LDPsVLZ
 
   # --- 카페 ---
@@ -429,6 +437,7 @@ brands:
     aliases: [던킨, 던킨도너츠, dunkin, dunkindonuts]
     category: cafe
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=361
       baemin: https://s.baemin.com/LR000LpqbHpqH
   뚜레쥬르:
     searchAliases: [뚜레주르, 뚜쥬, tous les jours, touslesjours]
@@ -599,6 +608,7 @@ brands:
     searchAliases: [매드 포 갈릭, 매포갈, mad for garlic, madforgarlic]
     category: western
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=20089
       baemin: https://s.baemin.com/dQ000LptuZc7t
   본도시락:
     searchAliases: [본 도시락, 본도락, bon dosirak, bon lunchbox]
@@ -793,6 +803,7 @@ brands:
     searchAliases: [티바, 티바 두마리치킨, tiba chicken, tiba two chicken]
     category: chicken
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=133
       baemin: https://s.baemin.com/BF000LpsYKrdA
   파파이스:
     searchAliases: [파파이스치킨, 파파이스 치킨, popeyes, popeyes chicken]
