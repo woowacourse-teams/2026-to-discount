@@ -25,6 +25,6 @@ class PushMessageFactoryTest {
     private Banner banner(String id, String brand) {
         return new Banner(id, brand, "baemin", "https://example.com", "5,000원", "오늘",
                 null, null, null, LocalDate.parse("2026-09-21"), LocalDate.parse("2026-09-22"),
-                false, null, 1, null, null, true, false);
+                false, null, 1, null, null, true, false, null);
     }
 }
