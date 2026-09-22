@@ -243,10 +243,14 @@ public class BrandComparisonService {
             // 품절도 같은 문). 규칙은 {@link OfferComparison#comparisonAmount} 한 곳에만
             // 적는다 — 호출 한 번으로 maxConfirmed·maxHeld 둘 다 같은 값을 쓴다, 나눠
             // 물으면 한쪽만 고쳐도 안 터진다.
-            Integer forSorting = OfferComparison.comparisonAmount(
-                    offer.certainty(), offer.kind(), offer.soldOut(), record.platform(), offer.amount());
+            //
+            // 보류(maxHeld) 쪽은 "최대"(CAPPED)도 금액을 낸다 - 확정 오퍼가 없는
+            // 브랜드끼리만 줄 세우는 값이라 견주는 값이 다 미확정이고, 빼면 상한
+            // 보류 브랜드가 전부 0으로 묶여 흩어진다(2026-09-23 fix round 4).
+            boolean confirmed = record.status().isConfirmed();
+            Integer forSorting = OfferComparison.comparisonAmount(offer.certainty(), offer.kind(),
+                    offer.soldOut(), record.platform(), offer.amount(), confirmed);
             if (forSorting != null) {
-                boolean confirmed = record.status().isConfirmed();
                 Map<String, Integer> target = confirmed ? maxConfirmed : maxHeld;
                 target.merge(name, forSorting, Math::max);
             }

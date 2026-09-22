@@ -312,3 +312,52 @@ place per the brief's instruction to report rather than delete.
 - Modify: `api/src/main/java/com/discounttracker/comparison/BrandComparisonService.java`
 - Modify: `api/src/test/java/com/discounttracker/comparison/BannerOfferCertaintyTest.java`
 - Modify: `api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java`
+
+## Fix round 4 (2026-09-23)
+
+### 1. Held offers keep CAPPED as an ordering amount
+
+`OfferComparison.comparisonAmount(...)` took a sixth parameter `boolean confirmed`. The confirmed
+path is unchanged; when `confirmed` is false, `CAPPED` returns the raw amount. `RANDOM`/`PERCENT`
+stay excluded on both paths, and own/non-`DISCOUNT`/sold-out stay excluded on both. Still one entry
+point, still one call site (`BrandComparisonService` line ~251, which now computes `confirmed`
+before the call instead of after).
+
+`BrandComparisonServiceTest.confirmedlessBrandsSortByHeldAmountDescending` is back on qualifier
+`"최대"` for both held records and passes. Added `heldRandomOfferGivesNoCeilingUnlikeHeldCapped`,
+which pins a held `"랜덤"` brand to a null `maxHeldAmount` while a held `"최대"` brand keeps 3,000 —
+so the two behaviours are told apart, and the held branch of the unified call is covered (inverting
+`!confirmed` fails both tests).
+
+### 2. isBestCandidate / sortingAmount are now the implementation
+
+`comparisonAmount` is three lines and calls both:
+
+```java
+if (!isBestCandidate(Certainty.EXACT, kind, soldOut, platform)) return null;
+if (!confirmed && certainty == Certainty.CAPPED) return amount;
+return sortingAmount(certainty, amount);
+```
+
+The `EXACT` argument in the first line asks only the certainty-independent axes (own, kind,
+soldOut), which is exactly the exclusion set. Neither signature changed, so
+`OfferComparisonTest` and `docs/contracts/certainty-cases.json` are untouched, and the contract
+table now tests code the live path actually runs.
+
+### 3. MENU_ONLY ordering bug fixed
+
+The exclusion check now runs before the certainty arms, so `platform: own` + `특정메뉴` +
+`soldOut: true` no longer sets a 4,999 ceiling. Pinned by
+`BrandComparisonServiceTest.ownSoldOutMenuOnlyRowSetsNoCeiling` (an `OfferRecord` built directly,
+the shape `/api/test` hands in).
+
+### Tests
+
+- `cd api && ./gradlew test --tests "com.discounttracker.comparison.*" --tests "com.discounttracker.offer.*"` — BUILD SUCCESSFUL.
+- `cd api && ./gradlew test` — BUILD SUCCESSFUL.
+
+### Files touched this round
+
+- Modify: `api/src/main/java/com/discounttracker/offer/OfferComparison.java`
+- Modify: `api/src/main/java/com/discounttracker/comparison/BrandComparisonService.java`
+- Modify: `api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java`

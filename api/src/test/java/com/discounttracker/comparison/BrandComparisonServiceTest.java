@@ -192,16 +192,45 @@ class BrandComparisonServiceTest {
     @Test
     void confirmedlessBrandsSortByHeldAmountDescending() {
         // held 작은 쪽을 먼저 넣어, 삽입 순서가 아니라 금액으로 정렬되는지 본다.
-        // qualifier는 비워 EXACT로 둔다 - "최대"(CAPPED)는 fix round 3부터
-        // comparisonAmount가 확정·보류 어느 쪽에도 null을 줘 이 정렬 검증과 안 맞는다.
+        // "최대"(CAPPED)를 그대로 쓴다 - 보류끼리는 다 미확정이라 액면으로 줄 세워도
+        // 뜻이 어긋나지 않고, 빼면 이 세 줄이 전부 0으로 묶인다(2026-09-23 fix round 4).
         var result = serviceWith(
                 List.of(rec("baemin", "확정브랜드", 5000, null, false),
-                        rec("yogiyo", "held3000", 3000, null, true),
-                        rec("yogiyo", "held8000", 8000, null, true)),
+                        rec("yogiyo", "held3000", 3000, "최대", true),
+                        rec("yogiyo", "held8000", 8000, "최대", true)),
                 "brands: {}").compare();
         assertEquals("확정브랜드", result.get(0).name());
         assertEquals("held8000", result.get(1).name());
         assertEquals("held3000", result.get(2).name());
+    }
+
+    @Test
+    void heldRandomOfferGivesNoCeilingUnlikeHeldCapped() {
+        // 뽑기는 금액이 아니다. 보류 천장이 "최대"를 받아들인다고 해서 "랜덤"까지
+        // 받아들이면 안 된다 - 둘을 갈라 못박는다(2026-09-23 fix round 4).
+        var result = serviceWith(
+                List.of(rec("yogiyo", "랜덤보류", 9000, "랜덤", true),
+                        rec("yogiyo", "상한보류", 3000, "최대", true)),
+                "brands: {}").compare();
+        assertNull(result.stream().filter(c -> c.name().equals("랜덤보류")).findFirst()
+                .orElseThrow().maxHeldAmount());
+        assertEquals(3000, result.stream().filter(c -> c.name().equals("상한보류")).findFirst()
+                .orElseThrow().maxHeldAmount());
+        assertEquals("상한보류", result.get(0).name());
+    }
+
+    @Test
+    void ownSoldOutMenuOnlyRowSetsNoCeiling() {
+        // own에 품절인 특정메뉴 행이 4,999원 천장을 세우던 구멍. 제외 축을 확실성보다
+        // 먼저 묻는다(2026-09-23 fix round 4). /api/test 픽스처로 실제로 들어온다.
+        var result = serviceWith(
+                List.of(new OfferRecord("own", "자사브랜드", 14000, "특정메뉴", false,
+                        "discount", null, "14000원", "2026-07-27T14:20:00+09:00", "path.jpg",
+                        null, null, null, null, null, null, null, null, true)),
+                "brands: {}").compare();
+        assertEquals(1, result.size());
+        assertNull(result.get(0).maxConfirmedAmount());
+        assertNull(result.get(0).maxHeldAmount());
     }
 
     @Test

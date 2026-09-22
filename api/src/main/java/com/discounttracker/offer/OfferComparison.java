@@ -56,21 +56,28 @@ public final class OfferComparison {
     }
 
     /**
-     * 천장(maxConfirmed·maxHeld) 두 값 모두가 물어야 할 단 하나의 질문.
+     * 천장(maxConfirmed, maxHeld) 두 값 모두가 물어야 할 단 하나의 질문.
      *
      * <p>호출부가 둘로 나눠 묻던 것을 여기 하나로 모은다 - 나눠 두면 한쪽만
-     * 고쳐도 안 터진다(2026-09-23, fix round 3). MENU_ONLY는 4,999원 대체값을
-     * 주고, CAPPED·RANDOM·PERCENT는 통째로 null이다. 그 외(EXACT)는 own이거나
-     * 비할인이거나 품절이면 null, 아니면 금액 그대로다.
+     * 고쳐도 안 터진다(2026-09-23, fix round 3). 규칙은 {@link #isBestCandidate}와
+     * {@link #sortingAmount}를 그대로 불러 쓴다 - 판정표
+     * {@code docs/contracts/certainty-cases.json}이 검사하는 코드가 실제로 도는
+     * 코드여야 한다(2026-09-23, fix round 4).
+     *
+     * <p>own과 비할인, 품절은 확실성보다 먼저 뺀다. 확실성 갈래 안에서 빼면
+     * own에 품절인 특정메뉴 행이 4,999원 천장을 세운다(2026-09-23 fix round 4).
+     * 확실성과 무관한 축이라 {@code isBestCandidate}에 EXACT를 넣어 그 축만 묻는다.
+     *
+     * <p>{@code confirmed}가 false면 CAPPED("최대")도 금액을 낸다. maxHeld는
+     * 확정 오퍼가 없는 브랜드끼리 줄 세우는 데만 쓰고, 거기서는 견주는 값이
+     * 모두 똑같이 미확정이라 액면끼리 견줘도 뜻이 어긋나지 않는다. 빼면 상한
+     * 보류 브랜드가 전부 0으로 묶여 삽입 순서로 흩어진다. RANDOM과 PERCENT는
+     * 양쪽에서 계속 뺀다 - 뽑기와 정률은 금액이 아니다.
      */
     public static Integer comparisonAmount(Certainty certainty, AmountKind kind, boolean soldOut,
-            String platform, Integer amount) {
-        return switch (certainty) {
-            case MENU_ONLY -> MENU_LIMITED_SORTING_AMOUNT;
-            case CAPPED, RANDOM, PERCENT -> null;
-            case EXACT -> (OWN_PLATFORM.equals(platform) || kind != AmountKind.DISCOUNT || soldOut)
-                    ? null
-                    : amount;
-        };
+            String platform, Integer amount, boolean confirmed) {
+        if (!isBestCandidate(Certainty.EXACT, kind, soldOut, platform)) return null;
+        if (!confirmed && certainty == Certainty.CAPPED) return amount;
+        return sortingAmount(certainty, amount);
     }
 }
