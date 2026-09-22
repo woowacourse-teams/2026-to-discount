@@ -5,11 +5,13 @@ import { optedOut } from './privacy.js'
 import { declinePrompt, recordPromptVisit } from './pushPrompt.js'
 import {
   disablePush,
+  deletePushSubscription,
   enablePush,
   currentSubscription,
   pushAvailability,
   syncPushSubscription,
 } from './pushNotifications.js'
+import { createPushSyncRetry } from './pushSyncRetry.js'
 
 export default function PushNotificationSetting() {
   const [availability, setAvailability] = useState(() => pushAvailability())
@@ -19,6 +21,7 @@ export default function PushNotificationSetting() {
   const [showPrompt, setShowPrompt] = useState(false)
   const [feedback, setFeedback] = useState('')
   const changingRef = useRef(false)
+  const syncRetryRef = useRef(null)
 
   useEffect(() => {
     setToggleSlot(document.getElementById('push-toggle-slot'))
@@ -29,6 +32,24 @@ export default function PushNotificationSetting() {
     const id = window.setTimeout(() => setFeedback(''), 1000)
     return () => window.clearTimeout(id)
   }, [feedback])
+
+  useEffect(() => {
+    const retry = createPushSyncRetry({
+      onFailure: () => {
+        setFailed(true)
+        setFeedback('알림 서버 연결에 실패했습니다')
+      },
+      onSuccess: () => setFailed(false),
+    })
+    syncRetryRef.current = retry
+    const retryOnline = () => retry.retryNow()
+    window.addEventListener('online', retryOnline)
+    return () => {
+      window.removeEventListener('online', retryOnline)
+      retry.stop()
+      syncRetryRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     if (availability !== 'ready') return
@@ -42,11 +63,11 @@ export default function PushNotificationSetting() {
           setShowPrompt(recordPromptVisit())
           return
         }
-        syncPushSubscription({
+        syncRetryRef.current?.start(() => syncPushSubscription({
           subscription,
           visitorId,
           analyticsEnabled: !optedOut(),
-        }).catch(() => { if (active) setFailed(true) })
+        }))
       })
       .catch(() => { if (active) setFailed(true) })
     return () => { active = false }
@@ -69,6 +90,7 @@ export default function PushNotificationSetting() {
         } else if (!result.serverDeleted) {
           setFailed(true)
           setFeedback('알림 서버 연결에 실패했습니다')
+          syncRetryRef.current?.start(() => deletePushSubscription(result.endpoint))
         }
       } else {
         const { visitorId } = getAnalyticsContext()

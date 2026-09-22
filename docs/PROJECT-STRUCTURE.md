@@ -198,6 +198,8 @@ web/src/pushNotifications.js
 web/src/pushNotifications.test.js
 web/src/pushPrompt.js
 web/src/pushPrompt.test.js
+web/src/pushSyncRetry.js
+web/src/pushSyncRetry.test.js
 web/src/surveyDismiss.js
 web/src/surveyDismiss.test.js
 web/src/surveyQuestions.js
@@ -251,7 +253,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 111 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 65 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 67 |
 
 ### Tracker
 
@@ -342,6 +344,8 @@ HTTP 경계:
 | `pushNotifications.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `pushPrompt.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `pushPrompt.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pushSyncRetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pushSyncRetry.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
