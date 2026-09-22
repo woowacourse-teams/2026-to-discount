@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,11 +20,50 @@ class OfferComparisonTest {
     /** gradle은 api/를 작업 디렉터리로 돈다. 표는 저장소 뿌리의 docs/ 아래다. */
     private static final Path CASES = Path.of("..", "docs", "contracts", "certainty-cases.json");
 
+    /**
+     * 판정표가 certainty x kind x soldOut 조합을 하나도 빠짐없이 담고 있나.
+     *
+     * <p>행 개수만 세면(예: {@code >= 8}) 22개 조합이 빠진 채로도 통과한다 - 실제로
+     * 그런 일이 있었다. 열거형에서 기대 조합을 직접 뽑아 실제 행과 집합으로
+     * 견준다 - 열거형이 늘어나도 이 테스트가 스스로 따라온다.
+     */
+    @Test
+    void tableCoversEveryCertaintyKindSoldOutCombination() throws Exception {
+        JsonNode root = new ObjectMapper().readTree(CASES.toFile());
+        JsonNode cases = root.get("cases");
+
+        Set<String> expected = new TreeSet<>();
+        for (Certainty certainty : Certainty.values()) {
+            for (AmountKind kind : AmountKind.values()) {
+                for (boolean soldOut : new boolean[] {false, true}) {
+                    expected.add(comboKey(certainty.key(), kind.key(), soldOut));
+                }
+            }
+        }
+
+        Set<String> actual = new TreeSet<>();
+        for (JsonNode c : cases) {
+            actual.add(comboKey(c.get("certainty").asText(), c.get("kind").asText(),
+                    c.get("soldOut").asBoolean()));
+        }
+
+        Set<String> missing = new TreeSet<>(expected);
+        missing.removeAll(actual);
+        Set<String> extra = new TreeSet<>(actual);
+        extra.removeAll(expected);
+
+        assertEquals(Set.of(), missing, "판정표에 없는 조합: " + missing);
+        assertEquals(Set.of(), extra, "판정표에 있으면 안 되거나 중복 흡수로 구멍을 가리는 조합: " + extra);
+    }
+
+    private static String comboKey(String certainty, String kind, boolean soldOut) {
+        return certainty + "/" + kind + "/" + soldOut;
+    }
+
     @Test
     void everyContractCaseHolds() throws Exception {
         JsonNode root = new ObjectMapper().readTree(CASES.toFile());
         JsonNode cases = root.get("cases");
-        assertTrue(cases.size() >= 8, "판정표가 비었거나 줄었다");
         for (JsonNode c : cases) {
             Certainty certainty = Certainty.valueOf(toEnumName(c.get("certainty").asText()));
             AmountKind kind = AmountKind.from(c.get("kind").asText());
