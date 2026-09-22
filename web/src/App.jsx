@@ -173,9 +173,14 @@ function detailRows(offer) {
     return [...offer.tiers]
       .map((t) => (t.minOrder == null && t.amount === offer.amount && offer.minOrderAmount != null
         ? { ...t, minOrder: offer.minOrderAmount } : t))
+      // 구간이 스스로 멤버십을 말하지 않으면 오퍼 전체의 값을 따른다.
+      .map((t) => (t.membership == null && offer.membership ? { ...t, membership: offer.membership } : t))
       .sort((a, b) => b.amount - a.amount)
   }
-  return [{ minOrder: offer.minOrderAmount, amount: offer.amount }]
+  // 구간이 없는 오퍼(배너에서 선 것이 대부분)도 멤버십은 조건 줄에 서야 한다. 오퍼 전체에
+  // 걸린 값이라 구간 쪽만 보던 앞 판에서는 칩에만 뜨고 상세 조건에는 안 떴다(2026-09-22).
+  return [{ minOrder: offer.minOrderAmount, amount: offer.amount,
+            membership: offer.membership, channel: offer.channel }]
 }
 
 // brandLinks는 API가 내려주는 앱별 브랜드 쿠폰 바로가기(brands.yml 출처,

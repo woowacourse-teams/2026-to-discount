@@ -331,6 +331,9 @@ function bannerTag(banner) {
   if (limit === 'first_come' || /선착순|오픈/.test(text)) return { kind: 'first-come', label: '선착순' }
   if (limit === 'random' || /랜덤/.test(text)) return { kind: 'random', label: '랜덤' }
   if (limit === 'targeted' || /타겟/.test(text)) return { kind: 'targeted', label: '타겟' }
+  // 적립은 할인과 다르다 — 지금 깎아 주는 것이 아니라 나중에 포인트로 돌려준다.
+  // 같은 "최대 10,000원"이라도 쓸 수 있는 시점이 달라서 표식을 나눈다(2026-09-22).
+  if (limit === 'cashback' || /적립|환급|페이백/.test(text)) return { kind: 'cashback', label: '적립' }
   return null
 }
 

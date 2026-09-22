@@ -641,10 +641,11 @@ h1 {
 }
 .banner--soldout .banner__logo,
 .banner--soldout .banner__brand,
-.banner--soldout .banner__extra { opacity: .55;
-  /* 우측 하단 조작 묶음("n / N" + 멈춤, 약 80px)이 이 줄 위에 뜬다. */
-  padding-right: 84px;
-}
+.banner--soldout .banner__extra { opacity: .55; }
+/* 우측 하단 조작 묶음("n / N" + 멈춤, 약 80px)이 이 줄 위에 뜬다. 자리를 비우는 것은
+   **조건 줄 하나뿐이다**. 셋에 다 주면 로고 상자가 84px 넓어져 그 오른쪽 내용이 전부
+   밀린다 — 소진 표시가 켜지는 순간 배너가 통째로 어긋나 보였다(2026-09-22). */
+.banner--soldout .banner__extra { padding-right: 84px; }
 .banner__soldout {
   flex: none;
   margin-left: .35rem;
@@ -3258,6 +3259,8 @@ html.has-bottom-banner .survey-dock {
 .banner__tag--first-come { color: #fff; background: #e5322d; }
 .banner__tag--random { color: #fff; background: #333; }
 .banner__tag--targeted { color: var(--text); background: #ffe58a; }
+/* 적립은 뒤에 돌아오는 값이라 할인의 빨강과 갈라 놓는다. */
+.banner__tag--cashback { color: #fff; background: #1a7f5a; }
 /* 최고 할인 칩은 qualifier가 없어 탭이 안 뜬다 — 최고 표식은 왼쪽 라벨 그대로. */
 
 /* 작은 오퍼 칩(차순위 격자): 앱 아이콘이 오른쪽 위에서 포스트잇과 부딪혔다(2026-09-20).
