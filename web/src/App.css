@@ -3329,3 +3329,30 @@ html.has-bottom-banner .survey-dock {
 .chip-tags { top: -5px; }
 .offer__range-badge--best-tab { top: -5px; }
 .offer--hero .offer__range-badge { top: -5px; }
+
+/* ── 오퍼 탭 한 줄 (2026-09-22, 사용자 요청) ────────────────────────────
+   탭이 세 군데(왼쪽 위 "최고", 오른쪽 위 묶음, 왼쪽 아래 기간)에 흩어져 있었다.
+   칩 하나를 읽으려면 눈이 세 번 움직였고, 같은 칩의 아래쪽 탭이 다음 줄 칩의
+   위쪽 탭과 붙어 어느 칩 것인지 헷갈렸다(도미노피자 사례, 2026-09-17 주석).
+   전부 왼쪽 위 한 줄로 모아 왼쪽부터 순서대로 읽게 한다. */
+.chip-tags {
+  left: -7px;
+  right: auto;
+  gap: 5px;
+  /* 포스트잇 기울기는 탭마다가 아니라 줄 전체에 한 번 준다 — 탭마다 돌리면
+     이웃과 모서리가 겹친다. */
+  transform: rotate(-4deg);
+  transform-origin: left bottom;
+  /* 탭이 서넛까지 늘어나면 좁은 화면에서 칩 오른쪽 밖으로 나간다. 줄을 접지
+     않고 넘치게 두되 잘리지는 않는다.
+     ponytail: nowrap. 세 개를 넘는 칩이 실제로 생기면 그때 마지막 탭을 줄인다. */
+  flex-wrap: nowrap;
+}
+/* 줄 안에서는 전부 흐름 배치다 — 각자의 절대 위치와 기울기를 푼다. */
+.chip-tags > .offer__range-badge,
+.chip-tags > .offer__status-badge,
+.chip-tags > .offer__range-badge--best-tab {
+  position: static;
+  top: auto; right: auto; bottom: auto; left: auto;
+  transform: none;
+}
