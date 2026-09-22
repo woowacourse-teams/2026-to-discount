@@ -1,5 +1,7 @@
 import { API_BASE } from './api.js'
 
+const registrationPromises = new WeakMap()
+
 export function isIos(navigatorValue = globalThis.navigator) {
   if (!navigatorValue) return false
   return /iPad|iPhone|iPod/.test(navigatorValue.userAgent || '') || (
@@ -34,8 +36,16 @@ export function urlBase64ToUint8Array(value) {
 }
 
 async function registration(navigatorValue) {
-  await navigatorValue.serviceWorker.register('/sw.js')
-  return navigatorValue.serviceWorker.ready
+  if (!registrationPromises.has(navigatorValue)) {
+    const promise = navigatorValue.serviceWorker.register('/sw.js')
+      .then(() => navigatorValue.serviceWorker.ready)
+      .catch((error) => {
+        registrationPromises.delete(navigatorValue)
+        throw error
+      })
+    registrationPromises.set(navigatorValue, promise)
+  }
+  return registrationPromises.get(navigatorValue)
 }
 
 function subscriptionBody(subscription, visitorId, analyticsEnabled) {
@@ -55,6 +65,15 @@ async function saveSubscription(subscription, visitorId, analyticsEnabled, fetch
     body: JSON.stringify(subscriptionBody(subscription, visitorId, analyticsEnabled)),
   })
   if (!response.ok) throw new Error(`Push subscription ${response.status}`)
+}
+
+export async function syncPushSubscription({
+  subscription,
+  visitorId,
+  analyticsEnabled,
+  fetchValue = globalThis.fetch,
+} = {}) {
+  await saveSubscription(subscription, visitorId, analyticsEnabled, fetchValue)
 }
 
 export async function currentSubscription({ navigatorValue = globalThis.navigator } = {}) {

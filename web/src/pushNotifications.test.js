@@ -7,6 +7,7 @@ import {
   isStandalone,
   pushAvailability,
   refreshExistingSubscription,
+  syncPushSubscription,
 } from './pushNotifications.js'
 
 function subscription() {
@@ -87,4 +88,23 @@ test('기존 구독은 현재 visitorId로 갱신하고 해제할 수 있다', a
   assert.equal(await disablePush({ navigatorValue, fetchValue }), true)
   assert.equal(requests[1].options.method, 'DELETE')
   assert.equal(unsubscribed, true)
+})
+
+test('브라우저 구독 조회와 서버 동기화를 분리할 수 있다', async () => {
+  const existing = subscription()
+  const requests = []
+  const fetchValue = async (url, options = {}) => {
+    requests.push({ url, options })
+    return { ok: true }
+  }
+
+  await syncPushSubscription({
+    subscription: existing,
+    visitorId: 'v_local',
+    analyticsEnabled: true,
+    fetchValue,
+  })
+
+  assert.equal(requests.length, 1)
+  assert.equal(JSON.parse(requests[0].options.body).visitorId, 'v_local')
 })
