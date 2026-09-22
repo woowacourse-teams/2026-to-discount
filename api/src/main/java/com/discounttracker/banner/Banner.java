@@ -65,7 +65,11 @@ public record Banner(
         // 구조 필드(설계 25). 문장 칸이 비면 여기서 문구를 만든다. 응답에도 그대로 실린다.
         BannerSpec spec,
         @JsonProperty("notify") Boolean notifyFlag,
-        Boolean notifyImmediately) {
+        Boolean notifyImmediately,
+        // 화면에 쓸 짧은 이름. brands와 같은 순서다. 로고와 원장은 brands(대표명)를 쓰고,
+        // 글자만 이쪽을 쓴다 — 배너 한 장에 브랜드가 넷이면 긴 이름이 줄을 넘긴다
+        // (2026-09-22 사용자: 후라이드참잘하는집 -> 후참잘).
+        List<String> brandLabels) {
 
     static final int DEFAULT_PRIORITY = 999;
 
@@ -82,7 +86,7 @@ public record Banner(
                   LocalDate startsOn, LocalDate endsOn, Boolean soldOut,
                   LocalDate soldOutOn, int priority) {
         this(id, brand, platform, url, amount, period, extra, minOrder, color,
-                startsOn, endsOn, soldOut, soldOutOn, priority, null, null, false, false);
+                startsOn, endsOn, soldOut, soldOutOn, priority, null, null, false, false, null);
     }
 
     /** 옛 호출부(spec 없음)를 위한 생성자. */
@@ -91,7 +95,7 @@ public record Banner(
                   LocalDate startsOn, LocalDate endsOn, Boolean soldOut,
                   LocalDate soldOutOn, int priority, List<String> brands) {
         this(id, brand, platform, url, amount, period, extra, minOrder, color,
-                startsOn, endsOn, soldOut, soldOutOn, priority, brands, null, false, false);
+                startsOn, endsOn, soldOut, soldOutOn, priority, brands, null, false, false, null);
     }
 
     /** 이 배너가 덮는 브랜드 전부 — brands가 있으면 그것, 없으면 brand 하나. */
@@ -112,7 +116,7 @@ public record Banner(
                 ? this
                 : new Banner(id, brand, platform, url, amount, period, extra, minOrder,
                         color, startsOn, endsOn, out, null, priority, brands, spec,
-                        notifyFlag, notifyImmediately);
+                        notifyFlag, notifyImmediately, brandLabels);
     }
 
     public boolean notificationEnabled() {

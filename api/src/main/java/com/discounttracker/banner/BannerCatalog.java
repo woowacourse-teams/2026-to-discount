@@ -246,7 +246,9 @@ public class BannerCatalog {
                 many,
                 spec,
                 flag(attrs.get("notify")),
-                flag(attrs.get("notifyImmediately")));
+                flag(attrs.get("notifyImmediately")),
+                // 화면에 쓸 짧은 이름. 로고와 비교는 대표명(many)을 그대로 쓴다.
+                many == null ? null : many.stream().map(b -> brands.find(b).display()).toList());
     }
 
     /** yml의 구조 필드를 읽는다. 하나도 없으면 null. 형이 틀리면 IllegalArgumentException. */
