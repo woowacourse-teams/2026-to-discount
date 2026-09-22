@@ -91,6 +91,55 @@ def table(visited, active, days: int):
     return out
 
 
+def overall(visited, active, collection_days=None) -> dict:
+    """서비스를 연 날부터 지금까지 한 줄로.
+
+    `collection_days`를 주면 수집이 실제로 돈 날만 따로 센다. 수집이 멈춘 날은 화면의
+    값이 어제 것이라 방문자가 적게 나오는데, 그 날을 섞으면 서비스가 나빠진 것처럼 보인다.
+    """
+    days = sorted(set(visited) | set(active))
+    everyone, clickers = set(), set()
+    for day in days:
+        everyone |= visited.get(day, set())
+        clickers |= active.get(day, set())
+    out = {
+        "first_day": days[0] if days else None,
+        "last_day": days[-1] if days else None,
+        "days": len(days),
+        "visitors": len(everyone),
+        "actives": len(clickers),
+        "visits_sum": sum(len(visited.get(d, ())) for d in days),
+        "active_sum": sum(len(active.get(d, ())) for d in days),
+    }
+    if collection_days:
+        got = [d for d in days if d in collection_days]
+        on_visit, on_active = set(), set()
+        for day in got:
+            on_visit |= visited.get(day, set())
+            on_active |= active.get(day, set())
+        out["collection"] = {"days": len(got), "visitors": len(on_visit), "actives": len(on_active)}
+    return out
+
+
+def collection_days(path=None) -> set:
+    """수집이 돈 날. tracker의 data/sweeps.jsonl이 앱마다 한 줄씩 적는다."""
+    path = path or os.path.join(HERE, "..", "..", "data", "sweeps.jsonl")
+    got = set()
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    got.add(json.loads(line)["date"])
+                except (ValueError, KeyError):
+                    continue
+    except OSError:
+        return set()
+    return got
+
+
 def posthog_counts(days: int) -> dict:
     """PostHog에 같은 질문을 던진다. 키가 없으면 빈 dict."""
     sys.path.insert(0, HERE)
@@ -123,6 +172,8 @@ def main(argv=None) -> int:
     p.add_argument("--days", type=int, default=30, help="표에 담을 날 수")
     p.add_argument("--posthog", action="store_true", help="PostHog 숫자와 나란히 본다")
     p.add_argument("--json", action="store_true", help="표 대신 JSON")
+    p.add_argument("--all", action="store_true", dest="whole",
+                   help="전체 운영 기간과 수집일 기준 요약까지")
     args = p.parse_args(argv)
 
     people, rows = ex.load(ex.fetch(args.src))
@@ -146,6 +197,19 @@ def main(argv=None) -> int:
             got = ph_rows.get(r["date"])
             line += f"   |{got['dau']:8d}" if got else "   |       —"
         print(line)
+
+    if args.whole:
+        got = overall(visited, active, collection_days())
+        print(f"\n전체 운영 — {got['first_day']} ~ {got['last_day']} ({got['days']}일)")
+        print(f"  다녀간 사람 {got['visitors']:,}명 (연인원 {got['visits_sum']:,})")
+        rate_all = got["actives"] / got["visitors"] * 100 if got["visitors"] else 0
+        print(f"  한 번이라도 앱으로 나간 사람 {got['actives']:,}명 ({rate_all:.0f}%),"
+              f" 연인원 {got['active_sum']:,}")
+        col = got.get("collection")
+        if col:
+            crate = col["actives"] / col["visitors"] * 100 if col["visitors"] else 0
+            print(f"  수집이 돈 날만 — {col['days']}일, 방문 {col['visitors']:,}명,"
+                  f" 활성 {col['actives']:,}명 ({crate:.0f}%)")
 
     last = data[-1]
     rate = (last["dau_active"] / last["dau"] * 100) if last["dau"] else 0
