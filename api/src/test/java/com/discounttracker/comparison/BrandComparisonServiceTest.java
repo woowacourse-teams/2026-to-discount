@@ -860,24 +860,49 @@ class BrandComparisonServiceTest {
 
     @Test
     void dropsBannersThatCannotStandAsAnOffer() {
-        // 브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없다. 정률 배너("최대 30%")와
-        // 랜덤 배너(3,000~8,000원)는 카드에 서긴 하지만 액수가 확정이 아니라
-        // certainty가 EXACT가 아니다 — 확정으로 셀 수 있는 건 goobne 하나뿐이다.
+        // 정률·랜덤 배너는 이제 카드에도 선다(certainty가 EXACT가 아닐 뿐) - 그래서
+        // "certainty == EXACT" 필터로는 이 테스트의 이름을 더는 못 지킨다. 진짜로 오퍼가
+        // 하나도 못 서는 두 경우만 남긴다: 브랜드가 없는 배너(앱 전체 행사)와, 구조 칸
+        // (amount:)이 없어 amountSpec을 못 만드는 옛 문장 모양 배너.
         String brands = """
                 brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
                   BBQ:
                     category: chicken
-                  두찜:
-                    category: chicken
                 """;
-        List<String> confirmedByBanner =
-                serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML).compare().stream()
-                        .filter(c -> c.offers().stream().anyMatch(
-                                o -> o.fromBanner() && o.certainty() == com.discounttracker.offer.Certainty.EXACT))
-                        .map(c -> c.brand().name())
-                        .toList();
+        String yaml = """
+                banners:
+                  - id: allapps-20260817
+                    platform: baemin
+                    url: https://example.test/b
+                    amount: {won: 5000}
+                    period: 상시
+                    startsOn: 2026-08-17
+                    endsOn: 2026-08-23
+                  - id: oldshape-20260817
+                    brand: BBQ
+                    platform: baemin
+                    url: https://example.test/c
+                    amount: "8,000원"
+                    period: 상시
+                    startsOn: 2026-08-17
+                    endsOn: 2026-08-23
+                  - id: goobne-20260817
+                    brand: goobne
+                    platform: yogiyo
+                    url: https://example.test/a
+                    amount: {won: 6500}
+                    period: 상시
+                    startsOn: 2026-08-17
+                    endsOn: 2026-08-23
+                """;
+        List<String> names = serviceWith(List.of(), brands, on("2026-08-20"), yaml)
+                .compare().stream().map(c -> c.brand().name()).toList();
 
-        assertEquals(List.of("goobne"), confirmedByBanner);
+        // 브랜드 없는 배너와 옛 문장 모양(BBQ) 배너는 안 서고, 구조 칸을 쓴 goobne만 남는다.
+        assertEquals(List.of("굽네치킨"), names);
     }
 
     @Test

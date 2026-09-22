@@ -45,8 +45,26 @@ public record OfferRecord(
         // 들어올 때 MismatchedInputException으로 reload 전체가 깨진다(사람이
         // 직접 export.json을 편집하다 실측, 2026-08-04). null은 false로
         // 본다(Offer.from에서 정규화).
-        Boolean soldOut
+        Boolean soldOut,
+        // 무엇을 주는가("discount"/"cashback"/"points"). 원장(export.json)에는 없는
+        // 키다 — 수집기가 적은 적이 없어 전부 discount다. 배너의 구조 필드
+        // (amount.kind)에서만 채운다(Task 8 fix round). Offer.from이
+        // AmountKind.from으로 정규화한다 — 비어 있으면 discount다.
+        String kind
 ) {
+    /**
+     * 옛 19칸 호출부 호환용. {@code kind} 없이 만들면 원장 레코드처럼 discount로
+     * 읽힌다 — 기존 호출부(테스트 포함)를 전부 고치지 않아도 되게 남겨둔다.
+     */
+    public OfferRecord(String platform, String brand, Integer amount, String qualifier,
+            boolean needsReview, String offerType, String section, String rawText,
+            String capturedAt, String screenshotPath, Integer minOrderAmount, String tierMode,
+            List<DiscountTier> tiers, String conditions, String expiresAt, String badge,
+            String link, String membership, Boolean soldOut) {
+        this(platform, brand, amount, qualifier, needsReview, offerType, section, rawText,
+                capturedAt, screenshotPath, minOrderAmount, tierMode, tiers, conditions,
+                expiresAt, badge, link, membership, soldOut, null);
+    }
 
     /**
      * 금액이 있고 재확인도 필요 없어야 확정이다.

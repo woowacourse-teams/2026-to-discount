@@ -29,9 +29,21 @@ public final class OfferComparison {
      */
     public static final int MENU_LIMITED_SORTING_AMOUNT = 4999;
 
-    /** 카드의 "최고 할인"으로 세울 수 있는 값인가. */
-    public static boolean isBestCandidate(Certainty certainty, AmountKind kind, boolean soldOut) {
-        return certainty == Certainty.EXACT && kind == AmountKind.DISCOUNT && !soldOut;
+    /** 배달앱 밖, 브랜드 자체 앱이나 사이트의 행사 - {@code Banner.OWN}과 같은 값이다.
+     * offer 패키지가 banner 패키지에 기대지 않도록 문자열로 직접 둔다. */
+    private static final String OWN_PLATFORM = "own";
+
+    /**
+     * 카드의 "최고 할인"으로 세울 수 있는 값인가.
+     *
+     * <p>{@code platform}은 저장하는 값이 아니라 매번 넘겨받는 값이다 - own은 그 브랜드를
+     * 보는 사람에게는 고를 수 있는 값이라 카드에는 서지만(2026-09-22), 배달앱끼리 겨루는
+     * "최고 할인" 자리에는 못 낀다. own 여부는 다른 축과 마찬가지로 매 호출마다 답할
+     * 질문이지 이 값 자체의 성질이 아니다.
+     */
+    public static boolean isBestCandidate(Certainty certainty, AmountKind kind, boolean soldOut, String platform) {
+        return certainty == Certainty.EXACT && kind == AmountKind.DISCOUNT && !soldOut
+                && !OWN_PLATFORM.equals(platform);
     }
 
     /** 카드 정렬에 기여하는 금액. 견줄 수 없으면 null이라 아예 안 들어간다. */

@@ -86,8 +86,10 @@ class OfferComparisonTest {
             Integer amount = c.get("amount").isNull() ? null : c.get("amount").asInt();
             String where = c.toString();
 
+            // 판정표는 certainty x kind x soldOut만 다룬다 - platform 축은 없다(own은
+            // 2026-09-22에 따로 생겼다). 배달앱 값("baemin")으로 고정해 표의 의미를 그대로 둔다.
             assertEquals(c.get("best").asBoolean(),
-                    OfferComparison.isBestCandidate(certainty, kind, soldOut), where);
+                    OfferComparison.isBestCandidate(certainty, kind, soldOut, "baemin"), where);
             Integer wantSorting = c.get("sorting").isNull() ? null : c.get("sorting").asInt();
             assertEquals(wantSorting, OfferComparison.sortingAmount(certainty, amount), where);
         }

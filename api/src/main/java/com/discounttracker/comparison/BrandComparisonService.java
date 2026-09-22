@@ -1,6 +1,7 @@
 package com.discounttracker.comparison;
 
 import com.discounttracker.banner.Banner;
+import com.discounttracker.banner.BannerAmount;
 import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.banner.BannerText;
 import com.discounttracker.brand.BrandCatalog;
@@ -102,16 +103,22 @@ public class BrandComparisonService {
         List<OfferRecord> records = new ArrayList<>();
         for (Banner banner : banners.activeMembers()) {
             if (banner.brand() == null) continue;
-            if (banner.amountSpec() == null) continue;
+            BannerAmount amountSpec = banner.amountSpec();
+            if (amountSpec == null) continue;
+            // 정률 배너는 headline()이 없어 칩이 "금액 미확인"으로 뜬다 - 대신 배지에
+            // "30%할인" 꼴로 적는다. App.jsx의 rate-badge 자리(/^\d+%할인$/)가 그대로 읽는다.
+            String badge = amountSpec.percent() != null ? amountSpec.percent() + "%할인" : banner.period();
             records.add(new OfferRecord(
                     banner.platform(),
                     banner.brand(),
-                    banner.amountSpec().headline(),
+                    amountSpec.headline(),
                     // 표식은 칸에서 나온다. 타겟딜은 계정에 따라 갈리므로 상한과 같은 성질이다.
                     qualifierOf(banner),
                     false,
                     "banner",
-                    null,
+                    // section 자리를 배너 id로 쓴다 - 원장 레코드는 안 쓰는 칸이고(Offer.from이
+                    // 안 실어 나른다), 확실성이 어긋날 때 어느 배너인지 로그에서 찾아야 한다.
+                    banner.id(),
                     banner.amount(),
                     today,
                     null,
@@ -120,10 +127,13 @@ public class BrandComparisonService {
                     null,
                     BannerText.conditions(banner),
                     banner.endsOn().toString(),
-                    banner.period(),
+                    badge,
                     banner.url(),
                     banner.spec() == null ? null : banner.spec().membership(),
-                    banner.soldOut()));
+                    banner.soldOut(),
+                    // 무엇을 주는가 - own 배너의 캐시백/적립까지 discount로 뭉개면 확정
+                    // 할인처럼 최고 할인 후보에 낄 수 있다(2026-09-22 fix round).
+                    amountSpec.kind().key()));
         }
         return records;
     }
@@ -141,8 +151,10 @@ public class BrandComparisonService {
             case CAPPED -> "최대";
             case PERCENT -> "정률";
             case RANDOM -> "랜덤";
-            case MENU_ONLY -> "특정메뉴";
-            case EXACT -> null;
+            // MENU_ONLY는 여기 안 나온다 - BannerAmount.certainty()가 낼 수 있는 값이
+            // EXACT/CAPPED/RANDOM/PERCENT뿐이다(특정 메뉴 한정은 원장 qualifier
+            // "특정메뉴"에서만 나온다). EXACT와 함께 default로 묶는다.
+            default -> null;
         };
     }
 
@@ -160,6 +172,9 @@ public class BrandComparisonService {
         Map<String, Map<String, Offer>> byBrand = new LinkedHashMap<>();
         Map<String, Integer> maxConfirmed = new LinkedHashMap<>();
         Map<String, Integer> maxHeld = new LinkedHashMap<>();
+        // 확실성 어긋남 경고에 배너 id를 실으려고 슬롯마다 마지막으로 본 배너 id를
+        // 따로 든다. Offer는 출처(fromBanner)만 알고 자기가 어느 배너였는지는 모른다.
+        Map<String, Map<String, String>> bannerIdBySlot = new LinkedHashMap<>();
 
         for (OfferRecord record : records) {
             // 묶기·중복정리·대표금액 계산 어디에도 넣지 않는다. 정리한 뒤에
@@ -189,12 +204,19 @@ public class BrandComparisonService {
             // 배너에 "최대"라 적었는데 원장은 확정으로 캡처했거나 그 반대다. 조용히
             // 하나를 택해 버리면 그 어긋남이 아무도 모르게 묻힌다.
             Offer existing = offersOnPlatform.get(slot);
+            Map<String, String> bannerIdsHere = bannerIdBySlot.computeIfAbsent(name, k -> new LinkedHashMap<>());
             if (existing != null && existing.fromBanner() != offer.fromBanner()
                     && existing.certainty() != offer.certainty()) {
-                log.warn("배너와 원장의 확실성이 다르다 - 브랜드={}, 플랫폼={}, 배너 확실성={}, 원장 확실성={}",
-                        name, record.platform(),
+                // 브랜드 하나에 배너가 여러 장일 수 있어 브랜드·플랫폼만으로는 어느 배너인지
+                // 못 찾는다 - id를 같이 남긴다. 원장 쪽은 애초에 id가 없다.
+                String bannerId = offer.fromBanner() ? record.section() : bannerIdsHere.get(slot);
+                log.warn("배너와 원장의 확실성이 다르다 - 배너={}, 브랜드={}, 플랫폼={}, 배너 확실성={}, 원장 확실성={}",
+                        bannerId, name, record.platform(),
                         offer.fromBanner() ? offer.certainty() : existing.certainty(),
                         offer.fromBanner() ? existing.certainty() : offer.certainty());
+            }
+            if (offer.fromBanner()) {
+                bannerIdsHere.put(slot, record.section());
             }
             offersOnPlatform.merge(slot, offer, Offer::preferredOver);
 
@@ -205,11 +227,16 @@ public class BrandComparisonService {
             // ({@link OfferComparison#sortingAmount}). 프론트의 filters.js가 같은
             // 판정표(docs/contracts/certainty-cases.json)를 읽어 어긋남을 막는다(ADR-016).
             //
+            // own(자사) 배너는 카드에는 서지만 배달앱끼리 겨루는 "최고 할인"에는 못 낀다
+            // (OfferComparison.isBestCandidate와 같은 축, 2026-09-22 fix round) - sortingAmount는
+            // 이 축을 모르니 여기서 따로 막는다. comparable 같은 칸을 배너 파일에 새로
+            // 만들지 않는다 - platform이 이미 own을 말한다.
+            //
             // maxHeld는 그대로 둔다 — 확정이 하나도 없는 브랜드끼리만 줄
             // 세우는 내부값이고, 그 브랜드들은 이미 확정 있는 브랜드 전부
             // 아래에 깔린다. 여기서까지 빼면 정렬 근거가 없어져 삽입 순서로
             // 흩어진다.
-            if (offer.amount() != null) {
+            if (offer.amount() != null && !"own".equals(record.platform())) {
                 boolean confirmed = record.status().isConfirmed();
                 Integer forSorting = confirmed
                         ? OfferComparison.sortingAmount(offer.certainty(), offer.amount())

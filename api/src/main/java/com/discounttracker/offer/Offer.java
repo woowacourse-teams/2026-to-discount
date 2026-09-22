@@ -52,7 +52,7 @@ public record Offer(String platform, Integer amount, String qualifier,
                 r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
                 Boolean.TRUE.equals(r.soldOut()), r.link(), r.membershipTier(),
                 BANNER_OFFER_TYPE.equals(r.offerType()),
-                Certainty.fromQualifier(r.qualifier()), AmountKind.DISCOUNT);
+                Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()));
     }
 
     @JsonProperty("status")
