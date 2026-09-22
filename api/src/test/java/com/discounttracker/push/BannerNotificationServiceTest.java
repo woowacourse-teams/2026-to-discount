@@ -2,6 +2,7 @@ package com.discounttracker.push;
 
 import com.discounttracker.banner.Banner;
 import com.discounttracker.banner.BannerCatalog;
+import nl.martijndwars.webpush.PushService;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -9,6 +10,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -18,6 +20,11 @@ import static org.mockito.Mockito.when;
 import org.mockito.ArgumentCaptor;
 
 class BannerNotificationServiceTest {
+
+    @Test
+    void loadsRuntimeDependenciesWhenCreatingPushService() {
+        assertThatCode(PushService::new).doesNotThrowAnyException();
+    }
 
     @Test
     void leavesActivationPendingWhenOnlySomeSubscriptionsComplete() {
