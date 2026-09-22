@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * 판정표는 docs/contracts/certainty-cases.json 한 파일이고 web/src/filters.test.js도 같은
@@ -21,6 +23,21 @@ class OfferComparisonTest {
     private static final Path CASES = Path.of("..", "docs", "contracts", "certainty-cases.json");
 
     /**
+     * 표가 없으면 이 테스트들은 실패가 아니라 건너뛴다. 배포 미러
+     * nn98/delivery-discount-api는 api/ 안쪽만 복사해 가서 docs/가 통째로 없고, 거기서
+     * 실패로 처리하면 무관한 테스트까지 끌고 죽어 API 배포가 멈춘다. 표를 강제하는
+     * 자리는 mono 저장소의 check-api.yml이고 거기엔 이 파일이 늘 있다. 웹과 API가
+     * 갈라질 수 있는 곳도 둘이 같이 사는 mono뿐이다.
+     *
+     * <p>건너뛰기지 조용한 통과가 아니다 - 파일이 있는데 코드와 어긋나면 그대로 실패한다.
+     */
+    private static JsonNode readCases() throws Exception {
+        assumeTrue(Files.exists(CASES), "판정표 " + CASES.toAbsolutePath()
+                + " 가 없어 건너뛴다. 배포 미러에는 docs/가 없고, 검증은 mono의 check-api.yml이 맡는다.");
+        return new ObjectMapper().readTree(CASES.toFile()).get("cases");
+    }
+
+    /**
      * 판정표가 certainty x kind x soldOut 조합을 하나도 빠짐없이 담고 있나.
      *
      * <p>행 개수만 세면(예: {@code >= 8}) 22개 조합이 빠진 채로도 통과한다 - 실제로
@@ -29,8 +46,7 @@ class OfferComparisonTest {
      */
     @Test
     void tableCoversEveryCertaintyKindSoldOutCombination() throws Exception {
-        JsonNode root = new ObjectMapper().readTree(CASES.toFile());
-        JsonNode cases = root.get("cases");
+        JsonNode cases = readCases();
 
         Set<String> expected = new TreeSet<>();
         for (Certainty certainty : Certainty.values()) {
@@ -62,8 +78,7 @@ class OfferComparisonTest {
 
     @Test
     void everyContractCaseHolds() throws Exception {
-        JsonNode root = new ObjectMapper().readTree(CASES.toFile());
-        JsonNode cases = root.get("cases");
+        JsonNode cases = readCases();
         for (JsonNode c : cases) {
             Certainty certainty = Certainty.valueOf(toEnumName(c.get("certainty").asText()));
             AmountKind kind = AmountKind.from(c.get("kind").asText());
