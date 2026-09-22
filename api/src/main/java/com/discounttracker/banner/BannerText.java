@@ -1,5 +1,7 @@
 package com.discounttracker.banner;
 
+import com.discounttracker.offer.AmountKind;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +13,87 @@ import java.util.Objects;
  * <p>규칙은 지금 사람이 손으로 적던 문구와 글자까지 맞춘다. 문구를 여기서 만드는 이유는
  * 하나다: 파싱을 없앤다. 수집기와 웹이 {@code extra}를 읽어 브랜드와 금액을 되짚던 자리가
  * 2026-09-18 하루에 세 번 틀렸다.
+ *
+ * <p>2026-09-22 Task 5로 {@link BannerAmount}와 {@link Banner}에서 바로 만드는
+ * {@link #amount(BannerAmount)}, {@link #period(Banner)}, {@link #extra(Banner)},
+ * {@link #conditions(Banner)}가 들어왔다. {@link BannerSpec}에서 만들던 옛 메서드들은
+ * {@code BannerCatalog}가 아직 부르므로 그대로 둔다 - 그 호출부를 새 길로 옮기는 일은
+ * Task 19다.
  */
 final class BannerText {
 
     private BannerText() {
+    }
+
+    /** 금액 문구. "7,000원", "최대 8,000원", "1,000~8,000원", "30% 할인", "50% 적립". */
+    static String amount(BannerAmount a) {
+        if (a == null) return null;
+        if (a.percent() != null) {
+            return a.percent() + "% " + (a.kind() == AmountKind.DISCOUNT ? "할인" : "적립");
+        }
+        if (a.wonMax() == null) return null;
+        if (!a.isRange()) return won(a.wonMax()) + "원";
+        return a.wonMin() == null ? "최대 " + won(a.wonMax()) + "원"
+                : won(a.wonMin()) + "~" + won(a.wonMax()) + "원";
+    }
+
+    /**
+     * 기간 문구.
+     *
+     * <p>순서가 있다. 매일 반복하는 오픈 시각이 있으면 그것이 먼저고, 없으면 시작 시각이
+     * 자정이 아닐 때 그 시각을 말하고, 하루짜리면 날짜를, 아니면 종료일을 말한다.
+     */
+    static String period(Banner b) {
+        java.time.LocalDateTime from = b.startsAt();
+        java.time.LocalDateTime to = b.endsAt();
+        boolean oneDay = from.toLocalDate().equals(to.toLocalDate());
+        String opensAt = b.spec() == null ? null : b.spec().opensAt();
+        if (opensAt != null) {
+            String at = clock(opensAt) + " 오픈";
+            return oneDay ? at : "매일 " + at;
+        }
+        if (from.getHour() != 0 || from.getMinute() != 0) {
+            return clock(String.format("%02d:%02d", from.getHour(), from.getMinute())) + " 오픈";
+        }
+        if (oneDay) return from.getMonthValue() + "월 " + from.getDayOfMonth() + "일 하루";
+        return "~" + to.getMonthValue() + "/" + to.getDayOfMonth();
+    }
+
+    /** 부가 문구. "[행사] / [최소주문↑], [한정들], [채널], [비고]". */
+    static String extra(Banner b) {
+        return join(b, true);
+    }
+
+    /**
+     * 오퍼 상세의 조건 줄. {@link #extra(Banner)}에서 최소주문금액만 뺀다.
+     *
+     * <p>그 숫자는 이미 구간의 minOrder로 따로 뜬다. 둘 다 적으면 같은 문턱이 두 번
+     * 보인다(2026-09-03 네네치킨 요기요 실측).
+     */
+    static String conditions(Banner b) {
+        return join(b, false);
+    }
+
+    private static String join(Banner b, boolean withMinOrder) {
+        BannerSpec s = b.spec();
+        List<String> tail = new ArrayList<>();
+        if (withMinOrder && b.minOrder() != null) tail.add(won(b.minOrder()) + "원↑");
+        if (b.isTargeted()) tail.add("타겟딜");
+        if ("issue".equals(b.firstCome())) tail.add("발급 선착순");
+        if ("use".equals(b.firstCome())) tail.add("사용(발급X) 선착순");
+        if (b.amountSpec() != null && b.amountSpec().certainty() == com.discounttracker.offer.Certainty.RANDOM) {
+            tail.add("랜덤쿠폰");
+        }
+        if (b.untilSoldOutFlag()) tail.add("소진 시 종료");
+        if (s != null && s.channel() != null) tail.add(s.channel() + " 한정");
+        if (s != null && s.note() != null) tail.add(s.note());
+        // 타겟딜은 아무나 받는 것이 아니다. 그 사실이 조건 줄에 남아야 한다.
+        if (!withMinOrder && b.isTargeted()) tail.add("한정");
+        String body = String.join(", ", tail);
+        String head = s == null ? null : s.event();
+        if (head != null && !body.isEmpty()) return head + " / " + body;
+        if (head != null) return head;
+        return body.isEmpty() ? null : body;
     }
 
     /** 금액 문구. 6,000/5,000/8,000 → "6/5/8천원", 하나면 "8,000원", 범위는 "최대 8,000원". */
