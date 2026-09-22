@@ -4,6 +4,7 @@ import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.comparison.BrandComparison;
 import com.discounttracker.comparison.BrandComparisonService;
 import com.discounttracker.offer.OfferRepository;
+import com.discounttracker.push.BannerNotificationService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,13 +21,16 @@ public class BrandController {
     private final OfferRepository offers;
     private final BannerCatalog banners;
     private final com.discounttracker.analytics.PopularityIndex popularity;
+    private final BannerNotificationService notifications;
 
     public BrandController(BrandComparisonService service, OfferRepository offers,
-                           BannerCatalog banners, com.discounttracker.analytics.PopularityIndex popularity) {
+                           BannerCatalog banners, com.discounttracker.analytics.PopularityIndex popularity,
+                           BannerNotificationService notifications) {
         this.service = service;
         this.offers = offers;
         this.banners = banners;
         this.popularity = popularity;
+        this.notifications = notifications;
     }
 
     @GetMapping("/brands")
@@ -63,15 +67,19 @@ public class BrandController {
         // 필수 필드가 빠진 항목도 같은 부류다 — 2026-09-18 platform 없는 배너.
         List<String> dropped = banners.dropped();
         boolean bannersOk = parsed && unknown.isEmpty() && dropped.isEmpty();
-        return Map.of(
-                "reloaded", offers.findAll().size(),
-                "banners", banners.active().size(),
-                "bannersOk", bannersOk,
-                // 파일이 깨진 것과 이름을 못 찾은 것은 고칠 자리가 다르다.
-                "bannersParsed", parsed,
-                // 비어 있어야 정상이다 — brands.yml에 별칭 한 줄.
-                "unknownBrands", unknown,
-                // 비어 있어야 정상이다 — 빠진 필드를 채운다.
-                "dropped", dropped);
+        BannerNotificationService.ReloadResult push = bannersOk
+                ? notifications.onReload(banners.all())
+                : new BannerNotificationService.ReloadResult(0, 0, false, 0);
+        return Map.ofEntries(
+                Map.entry("reloaded", offers.findAll().size()),
+                Map.entry("banners", banners.active().size()),
+                Map.entry("bannersOk", bannersOk),
+                Map.entry("bannersParsed", parsed),
+                Map.entry("unknownBrands", unknown),
+                Map.entry("dropped", dropped),
+                Map.entry("pushActivated", push.activated()),
+                Map.entry("pushImmediateRequested", push.immediateRequested()),
+                Map.entry("pushImmediateAllowed", push.immediateAllowed()),
+                Map.entry("pushImmediateSent", push.immediateSent()));
     }
 }

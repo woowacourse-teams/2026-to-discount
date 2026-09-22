@@ -259,7 +259,17 @@ banners:
     startsOn: 2026-08-11          # 필수
     endsOn: 2026-08-11            # 필수
     priority: 1                   # 생략 시 999. 낮을수록 먼저
+    notify: false                 # 생략 시 false. 신규 등록 또는 false→true일 때 알림 대상
+    notifyImmediately: false      # 07:00 이상 22:00 미만에만 즉시 발송 요청
 ```
+
+Push는 기본 비활성화다. `DISCOUNT_PUSH_ENABLED=true`, VAPID 공개 키와 비공개 키,
+`DISCOUNT_PUSH_STATE_PATH`가 모두 설정돼야 구독과 발송 API가 활성화된다. 비공개 키와
+상태 파일은 저장소에 넣지 않는다. 오전 11시에는 지난 24시간의 미발송 대상 배너를
+한 건으로 요약한다. 즉시 발송에 성공한 배너는 요약에서 제외한다.
+
+구독은 기존 분석의 `visitorId`와 연결한다. 표시와 클릭 이벤트는 발송 토큰을 통해
+같은 `distinct_id`로 기록된다. Push endpoint와 암호화 키는 분석 이벤트에 남기지 않는다.
 
 **`amount`가 정수가 아니라 문자열인 이유**: 원장의 `Offer.amount`는 정수지만
 배너는 "첫 주문 5,000원", "최대 30%" 같은 것을 담아야 한다. 정수로 두면 못

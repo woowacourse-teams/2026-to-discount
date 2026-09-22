@@ -53,10 +53,21 @@ api/src/main/java/com/discounttracker/offer/OfferRecord.java
 api/src/main/java/com/discounttracker/offer/OfferRepository.java
 api/src/main/java/com/discounttracker/offer/OfferStartupLoader.java
 api/src/main/java/com/discounttracker/offer/OfferStatus.java
+api/src/main/java/com/discounttracker/push/BannerNotificationService.java
+api/src/main/java/com/discounttracker/push/BannerNotificationState.java
+api/src/main/java/com/discounttracker/push/PushEndpointPolicy.java
+api/src/main/java/com/discounttracker/push/PushMessageFactory.java
+api/src/main/java/com/discounttracker/push/PushProperties.java
+api/src/main/java/com/discounttracker/push/PushStateStore.java
+api/src/main/java/com/discounttracker/push/PushSubscription.java
+api/src/main/java/com/discounttracker/push/PushTrackingToken.java
+api/src/main/java/com/discounttracker/push/WebPushSender.java
 api/src/main/java/com/discounttracker/testdata/TestDataCatalog.java
 api/src/main/java/com/discounttracker/web/BannerController.java
 api/src/main/java/com/discounttracker/web/BrandController.java
 api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
+api/src/main/java/com/discounttracker/web/PushSubscriptionController.java
+api/src/main/java/com/discounttracker/web/PushTrackingController.java
 api/src/main/java/com/discounttracker/web/TestDataController.java
 api/src/main/java/com/discounttracker/web/WebConfig.java
 api/src/main/resources/application.yml
@@ -93,9 +104,14 @@ api/src/test/java/com/discounttracker/offer/DiscountLadderTest.java
 api/src/test/java/com/discounttracker/offer/OfferConvergenceTest.java
 api/src/test/java/com/discounttracker/offer/OfferRecordTest.java
 api/src/test/java/com/discounttracker/offer/OfferRepositoryTest.java
+api/src/test/java/com/discounttracker/push/BannerNotificationServiceTest.java
+api/src/test/java/com/discounttracker/push/PushEndpointPolicyTest.java
+api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
+api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
 api/src/test/java/com/discounttracker/testdata/TestDataCatalogTest.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
+api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
 tracker/.gitattributes
 tracker/.gitignore
 tracker/README.md
@@ -229,7 +245,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 95 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 111 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 60 |
 
 ### Tracker
@@ -260,19 +276,25 @@ flowchart TB
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 8 |
+| `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 9 |
 | `testdata/` | 검수용 더미 데이터, 오류를 일부러 섞는다 | 1 |
-| `web/` | HTTP 엔드포인트와 CORS | 5 |
+| `web/` | HTTP 엔드포인트와 CORS | 7 |
 
 HTTP 경계:
 
+- `DELETE /api/push/subscriptions`
 - `GET /api/banners`
 - `GET /api/brands`
+- `GET /api/push/click/{token}`
+- `GET /api/push/public-key`
 - `GET /api/stats/traffic`
 - `GET /api/survey`
 - `GET /api/survey/code`
 - `GET /api/test/brands`
 - `GET /api/test/faults`
 - `POST /api/events`
+- `POST /api/push/displayed/{token}`
+- `POST /api/push/subscriptions`
 - `POST /api/reload`
 - `POST /api/survey`
 
