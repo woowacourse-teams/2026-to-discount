@@ -42,6 +42,10 @@
 
 ## 선택
 
+2026-09-22 사용자 검토로 구조를 한 차례 고쳤다. 적립을 `limit`에서 빼고,
+멤버십을 자격 축으로 옮기고, 자사 행사도 오퍼로 올리고, 종료일을 종료 시각으로
+바꿨다. 아래는 고친 뒤의 결정이다.
+
 **배너 한 건은 브랜드 하나, 플랫폼 하나, 오퍼 하나다.** `items[]`를 없앤다.
 
 **묶음은 명시한다.** `group` 칸에 같은 값을 적은 배너들이 한 장으로 그려진다.
@@ -59,60 +63,116 @@
   group: ddangyo-doubleday-0922    # 선택. 같은 값끼리 한 장
   brand: 던킨
   platform: ddangyo                # 열린 집합. 4사 밖도 값 하나 더
-  comparable: true                 # 기본 true. own 성격이면 false
   url: "https://fdofd.ddangyo.com/gateway4.html?11sOkss"
+
+  # 무엇을 얼마나
   amount: {won: 7000}
   minOrder: 15000
-  startsOn: 2026-09-22
-  endsOn: 2026-09-22
-  limit: none                      # none | first_come | random | targeted
-  until: end_date                  # end_date | sold_out
+
+  # 언제부터 언제까지
+  startsAt: 2026-09-22T00:00
+  endsAt: 2026-09-22T23:59
+
+  # 누가 받나
+  membership: coupangEats          # 선택
+  channel: 배달                     # 배달 | 포장
+  targeted: false                  # 개인 지정 쿠폰
+
+  # 몇 명까지
+  firstCome: issue                 # issue | use | null
+  untilSoldOut: true
+
+  # 사람이 읽는 것
   event: 더블 땡데이
+  note: 일부 매장 제외
 ```
 
-바뀌는 칸만 적는다.
+칸을 세 축으로 나눠 읽는다. 무엇을 주나(`amount`), 누가 받나(`membership`,
+`channel`, `targeted`), 몇 명까지(`firstCome`, `untilSoldOut`). 중첩하지 않고
+평평하게 둔다. ops 콘솔이 `GET /ops/schema`를 읽어 칸을 그리는데, 중첩하면
+콘솔도 중첩을 그려야 하고 YAML을 손으로 고칠 때도 번거롭다.
 
-**`amount`가 한 가지 모양이다.** `{won:}` 또는 `{rate:}` 하나에 `kind`가 붙는다.
+### amount가 값의 유형을 갖는다
+
+`limit`에서 적립을 뺀다. 적립은 제한이 아니라 무엇을 주느냐다. 마찬가지로
+랜덤도 제한이 아니라 금액이 뽑기라는 뜻이라 `amount`로 옮긴다.
+
 ```yaml
-amount: {won: 8000}                      # 8,000원
-amount: {won: [null, 8000]}              # 최대 8,000원 (랜덤·상한)
-amount: {won: [3000, 8000]}              # 3,000~8,000원
-amount: {rate: 50, kind: cashback}       # 50% 적립
+amount: {won: 8000}                        # 8,000원 할인
+amount: {won: [null, 8000]}                # 최대 8,000원
+amount: {won: [1000, 8000], random: true}  # 1,000~8,000원 랜덤
+amount: {rate: 30}                         # 30% 할인
+amount: {rate: 50, kind: cashback}         # 50% 적립
 ```
-`kind`는 `discount`(기본), `cashback`, `point`다. 적립이 `limit`에서 나온다.
 
-**`platform`에서 스위치를 뗀다.** `platform`은 이름만 갖는 열린 집합이다.
-오퍼 비교에 들어갈지는 `comparable`이 말한다. 지금의 `own`은
-`comparable: false`로 옮기고, 브랜드 자체 채널이라는 뜻은 `platform: own`이
-그대로 갖는다.
+`kind`는 `discount`(기본), `cashback`, `point`다. `won`과 `rate`는 하나만 쓴다.
+`won`에 두 칸을 적으면 범위이고, 최소를 모르면 `null`이다.
 
-**기간을 쪼갠다.** 문장 `period`가 사라지고 네 칸이 남는다.
-`startsOn`/`endsOn`(날짜), `opensAt`("HH:MM" 매일 여는 시각),
-`limit`(한정의 종류), `until`(무엇이 먼저 끝내는가: 날짜냐 소진이냐).
-"~까지 선착순"은 `limit: first_come` + `until: end_date`이고,
-"소진 시 종료"는 `until: sold_out`이다.
+### 멤버십은 자격이지 제한이 아니다
 
-**브랜드는 이름 하나만 갖는다.** 정식명, 축약, 영문 구분은 `brands.yml`의
-alias가 이미 갖고 있고 `BrandCatalog`가 푼다. 배너는 라벨을 저장하지 않는다.
-파생 칸 `brands`, `brandLabels`는 묶음을 그릴 때 서버가 만든다.
+`membership`, `channel`, `targeted`가 "누가 받나"를 말한다. 지금 `targeted`가
+`limit`의 값 중 하나로 들어가 있는데, 개인 지정 쿠폰은 수량 제한이 아니라
+받을 사람이 정해져 있다는 뜻이다. 자리를 옮긴다.
 
-**문장 칸을 없앤다.** `amount`, `period`, `extra`를 문자열로 적는 길을 막는다.
-`BannerText`가 유일한 생산자가 된다. 2026-09-18에 시작한 이행을 여기서 끝낸다.
+남는 제한은 둘뿐이다. `firstCome`(선착순, `issue`는 발급 기준 `use`는 사용
+기준)과 `untilSoldOut`(소진되면 끝)이다.
 
-**`extra`가 조건과 기간을 흡수한다.** 최소주문금액, 멤버십, 채널, 한정, 기간이
-한 문장으로 모인다. 배너에서 나온 오퍼는 상세의 조건 줄을 비우고 `extra`만
-읽는다. 수집으로 들어온 일반 오퍼의 조건 줄은 그대로 둔다.
+### 날짜 대신 시각
+
+`startsOn`/`endsOn`을 `startsAt`/`endsAt`으로 바꾼다. 날짜만 적으면 그날
+포함인지 그날 전까지인지가 값에 안 적혀 있다. 규칙을 아무리 정해도 적는
+사람이 매번 다시 떠올려야 하고, 실제로 틀린 값이 여러 번 들어갔다.
+
+시각을 적으면 물어볼 것이 없다. `endsAt: 2026-09-22T23:59`는 그날 끝이고
+`endsAt: 2026-09-22T17:00`은 그날 오후 5시다. 17시 오픈 행사의 시작도
+`startsAt: 2026-09-22T17:00` 한 칸으로 끝난다.
+
+시간대는 한국 시각으로 못박는다. 지금 코드는 `LocalDate`라 시간대 문제가
+없었는데 시각으로 옮기면 생긴다. 저장은 시간대 없는 지역 시각으로 적고
+서버가 `Asia/Seoul`로 읽는다.
+
+`opensAt`은 매일 반복하는 오픈 시각으로만 남는다. 하루짜리 행사의 오픈은
+`startsAt`이 갖는다.
+
+### 오퍼에는 자사 행사도 올린다
+
+`platform: own`인 배너도 오퍼 목록에 선다. 브랜드 자체 앱이나 사이트의 행사도
+그 브랜드를 보는 사람에게는 고를 수 있는 값이다.
+
+다만 "최고 할인" 계산에는 안 들어간다. 백억커피의 네이버페이 50% 적립과 배민의
+8,000원 할인은 액면으로 견줄 수 있는 값이 아니다. 이 판단은 칸으로 묻지 않고
+값에서 끌어낸다. `amount.kind`가 `discount`가 아니거나(적립·포인트),
+`rate`(퍼센트)이거나, `won`이 범위이면 최고 후보에서 빠진다. 사람이 채우는
+칸을 하나 더 두면 채우는 것을 잊고, 잊으면 틀린 값이 "최고"로 올라간다.
+
+`comparable` 칸은 두지 않는다.
+
+### note는 남긴다
+
+`event`는 행사 이름(더블 땡데이, 위클리 슈퍼딜)이고, `note`는 위 칸 어디에도
+안 담기는 특이한 제약 한 줄이다(일부 매장 제외, 앱 첫 주문만). 성격이 달라
+합치지 않는다.
+
+화면에 나가는 `extra` 문장은 이 칸들을 모아 `BannerText`가 만든다. 사람이
+`extra`를 직접 적는 길은 막는다. 적는 칸은 `note` 하나다.
+
+### 없어지는 칸
+
+`items[]`, `amountRange`, `usage`, `limit`, `brands`, `brandLabels`,
+문자열 `amount`·`period`·`extra`, `startsOn`, `endsOn`.
 
 ## 실행
 
 1. 이 문서와 ADR을 올린다.
 2. API에 새 모양을 넣는다. `BannerSpec`을 갈고 `BannerText`를 다시 쓴다.
    읽기는 한동안 두 모양을 다 받는다. 테스트가 두 모양을 다 덮는다.
-3. 서버의 `banners.yml`을 옮기는 변환기를 쓴다. `--dry-run`으로 먼저 보고,
-   ops로 적용하고, 적용 전 파일을 백업한다.
+3. 서버의 `banners.yml`을 옮기는 변환기를 쓴다. `endsOn: D`는
+   `endsAt: D T23:59`로 옮긴다. `--dry-run`으로 먼저 보고, ops로 적용하고,
+   적용 전 파일을 백업한다.
 4. ops 콘솔은 `GET /ops/schema`를 읽어 그리므로 스키마만 바꾸면 따라온다.
    묶기/풀기 단추가 `group` 칸을 쓰게 고친다.
-5. 웹이 `group`으로 묶어 그린다. `items[]` 경로를 지운다.
+5. 웹이 `group`으로 묶어 그린다. `items[]` 경로를 지운다. 자사 배너가
+   오퍼로 서면서 링크가 브랜드 사이트로 가는 경로를 확인한다.
 6. 옛 모양 읽기를 지운다.
 
 2단계까지가 되돌릴 수 있는 지점이다. 3단계부터는 서버 파일을 바꾸므로
