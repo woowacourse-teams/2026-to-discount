@@ -109,11 +109,25 @@ public class BannerCatalog {
     /**
      * 오늘 이 시각에 띄울 배너. 묶음은 한 장으로 접는다.
      *
-     * <p>묶음의 순서는 구성원 중 가장 작은 priority다. 사람에게 여러 줄에 같은 숫자를
-     * 적게 하지 않는다 - 한 줄만 고치는 실수가 나고 그 실수는 화면을 봐도 안 보인다.
+     * <p>대표(카드의 amount·url·minOrder·color를 대는 쪽, brands의 첫 자리)는 구성원 중
+     * <b>원래</b> priority가 가장 작은 쪽이다. {@link #activeMembers()}는 카드 자신이
+     * 다른 배너 사이에서 어디에 설지 정하려고 그룹 구성원의 priority를 그룹
+     * 최솟값으로 덮어쓰므로, 대표를 고를 때는 그 전의 원래 값을 따로 봐야 한다 -
+     * 안 그러면 동률로 묶인 구성원들이 id 알파벳 순으로만 갈려, priority를 가장
+     * 작게 적은 사람이 아니라 id가 앞선 사람이 대표가 된다.
+     *
+     * <p>원래 priority도 같으면 종료 시각, 그래도 같으면 id로 가른다 - 파일에 적은
+     * 순서에 기대지 않는다.
      */
     public List<Banner> active() {
         List<Banner> members = activeMembers();
+        java.util.Map<String, Integer> originalPriority = all.stream()
+                .collect(java.util.stream.Collectors.toMap(Banner::id, Banner::priority, (a, b) -> a));
+        Comparator<Banner> byOriginalPriority = Comparator
+                .comparingInt((Banner b) -> originalPriority.getOrDefault(b.id(), Banner.DEFAULT_PRIORITY))
+                .thenComparing(Banner::endsAt)
+                .thenComparing(Banner::id);
+
         List<Banner> out = new ArrayList<>();
         java.util.Set<String> seen = new java.util.HashSet<>();
         for (Banner b : members) {
@@ -122,9 +136,11 @@ public class BannerCatalog {
                 continue;
             }
             if (!seen.add(b.group())) continue;
-            List<Banner> mates = members.stream().filter(m -> b.group().equals(m.group())).toList();
+            List<Banner> mates = members.stream().filter(m -> b.group().equals(m.group()))
+                    .sorted(byOriginalPriority).toList();
+            Banner lead = mates.get(0);
             List<String> names = mates.stream().map(Banner::brand).filter(java.util.Objects::nonNull).toList();
-            out.add(b.toBuilder()
+            out.add(lead.toBuilder()
                     .brands(names)
                     .brandLabels(names.stream().map(n -> brands.find(n).display()).toList())
                     .build());

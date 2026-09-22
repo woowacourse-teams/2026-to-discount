@@ -112,6 +112,71 @@ class BannerGroupTest {
         assertEquals(List.of("mixed-20260922"), c.mixedShape());
     }
 
+    private static final String CROSSED_PRIORITY_AND_ID = """
+            banners:
+              - id: zzz-20260922
+                group: crossed-0922
+                brand: 지브랜드
+                platform: ddangyo
+                url: "https://example.test/zzz"
+                amount: {won: 1111}
+                startsAt: 2026-09-22T00:00
+                endsAt: 2026-09-22T23:59
+                priority: 1
+              - id: aaa-20260922
+                group: crossed-0922
+                brand: 에이브랜드
+                platform: ddangyo
+                url: "https://example.test/aaa"
+                amount: {won: 2222}
+                startsAt: 2026-09-22T00:00
+                endsAt: 2026-09-22T23:59
+                priority: 9
+            """;
+
+    @Test
+    void representativeIsChosenByOriginalPriorityNotById() {
+        // 반례: id는 aaa가 zzz보다 앞서지만(알파벳 순) priority는 zzz가 더 작다.
+        // activeMembers()가 그룹 구성원의 priority를 그룹 최솟값(1)으로 덮어써
+        // 두 구성원이 동률이 되므로, 대표를 고를 때 그 전의 원래 값을 안 보면
+        // id가 앞선 aaa가 대표가 되어 버린다 - url과 amount로 zzz가 이겼는지 본다.
+        Banner card = catalog(CROSSED_PRIORITY_AND_ID).active().get(0);
+        assertEquals("https://example.test/zzz", card.url());
+        assertEquals("1,111원", card.amount());
+    }
+
+    @Test
+    void tiedOriginalPriorityFallsBackToIdRegardlessOfFileOrder() {
+        // priority가 진짜로 같으면(3, 3) endsAt도 같아 id로 가른다 - 그 결과가
+        // 파일에 적은 순서에 기대면 안 된다.
+        String memberA = """
+                  - id: id-a-20260922
+                    group: tied-0922
+                    brand: 브랜드A
+                    platform: ddangyo
+                    url: "https://example.test/a"
+                    amount: {won: 3000}
+                    startsAt: 2026-09-22T00:00
+                    endsAt: 2026-09-22T23:59
+                    priority: 3
+                """;
+        String memberB = """
+                  - id: id-b-20260922
+                    group: tied-0922
+                    brand: 브랜드B
+                    platform: ddangyo
+                    url: "https://example.test/b"
+                    amount: {won: 4000}
+                    startsAt: 2026-09-22T00:00
+                    endsAt: 2026-09-22T23:59
+                    priority: 3
+                """;
+        Banner aFirstInFile = catalog("banners:\n" + memberA + memberB).active().get(0);
+        Banner bFirstInFile = catalog("banners:\n" + memberB + memberA).active().get(0);
+        assertEquals("https://example.test/a", aFirstInFile.url(), "id-a가 id-b보다 앞선다");
+        assertEquals(aFirstInFile.url(), bFirstInFile.url(), "파일 순서를 바꿔도 대표는 같다");
+    }
+
     @Test
     void seventeenOclockBannerIsHiddenBeforeItOpens() {
         // 고정 시계는 2026-09-22 21:00 KST(12:00Z)다. 22시 오픈 배너는 아직 안 뜬다.
