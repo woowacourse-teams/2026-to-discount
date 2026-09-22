@@ -161,6 +161,118 @@ amount: {rate: 50, kind: cashback}         # 50% 적립
 `items[]`, `amountRange`, `usage`, `limit`, `brands`, `brandLabels`,
 문자열 `amount`·`period`·`extra`, `startsOn`, `endsOn`.
 
+## 배너 밖까지 — 화면, 오퍼, 표식
+
+배너 칸만 고치면 반쪽이다. 배너는 세 곳으로 흘러간다. 상단 배너 카드,
+브랜드 카드의 오퍼 칩, 그리고 최고 할인과 정렬이다. 셋이 같은 값을 다르게
+읽고 있다.
+
+### qualifier 한 칸이 세 가지 질문을 겸한다
+
+지금 `Offer.qualifier`에 다섯 값이 들어간다. 최대, 랜덤, 특정메뉴, 행사, 최적.
+이 다섯이 서로 다른 세 질문의 답이다.
+
+- 최대, 랜덤, 특정메뉴: **이 숫자를 액면대로 믿어도 되나**
+- 최적, 누적: **이 숫자가 어떻게 나온 값인가**
+- 행사: **어디서 온 값인가**
+
+한 칸이라 둘을 동시에 말할 수 없다. 랜덤이면서 특정 메뉴인 쿠폰은 하나만
+적힌다. `BrandComparisonService.bannerQualifier()`의 if 사슬이 그 충돌을
+우선순위로 때우고 있다. 랜덤을 최대보다 먼저 보고, 타겟딜을 최대로 접는다.
+`limit`에 무엇을 넣을지가 애매하게 느껴지는 원인이 여기다. 배너 쪽 칸이
+아니라 받는 쪽 칸이 뭉개져 있다.
+
+### 배너에서 오퍼를 만드는 길이 아직 문장을 되짚는다
+
+`bannerQualifier()`는 `banner.amount()` 문자열에 "최대"가 들어있는지 보고,
+`isRandom()`은 `period`와 `extra` 문장에 "랜덤"이 있는지 본다. 2026-09-18에
+구조 필드를 넣은 이유가 이 파싱을 없애는 것이었는데, 배너에서 오퍼로 가는
+길에는 그대로 남아 있다. 서버가 구조 칸으로 만든 문장을 서버가 다시 읽는다.
+
+### 값의 유형과 신뢰도를 갈라서 양쪽이 같은 규칙을 쓴다
+
+`qualifier` 한 칸을 파생값 셋으로 바꾼다. 원장(`log.jsonl`)의 `qualifier`는
+그대로 둔다. 덧붙이기만 하는 파일이라 과거를 고쳐 쓰지 않는다. API가 `Offer`를
+만들 때 옛 값에서 끌어낸다.
+
+- `certainty`: `exact` | `capped` | `random` | `menu` | `rate`
+  액면대로 견줄 수 있는 값인가. 회색 칩, 불확정·랜덤 배지, 넣기 토글이 이걸 본다.
+- `kind`: `discount` | `cashback` | `point`
+  무엇을 주는가. 배너의 `amount.kind`가 그대로 온다.
+- `basis`: `single` | `cumulative`
+  쿠폰을 겹친 값인가. 상세의 사다리가 이걸 본다.
+
+출처는 `source`(`ledger` | `banner`)가 따로 갖는다. 지금 "행사"가 qualifier
+자리를 한 칸 먹고 있었는데, 출처는 신뢰도와 무관하다.
+
+옛 값에서 끌어내는 대응은 1대 1이다.
+
+| 옛 qualifier | certainty | basis |
+| --- | --- | --- |
+| 최대 | capped | single |
+| 랜덤 | random | single |
+| 특정메뉴 | menu | single |
+| 최적, 누적 | exact | cumulative |
+| 행사, 없음 | exact | single |
+
+배너에서는 문장을 안 읽고 칸에서 바로 나온다.
+
+| 배너 칸 | certainty |
+| --- | --- |
+| `amount: {won: 8000}` | exact |
+| `amount: {won: [null, 8000]}` | capped |
+| `amount: {random: true}` | random |
+| `amount: {rate: ...}` | rate |
+| `targeted: true` | capped |
+
+타겟딜을 capped로 접는 것은 지금 규칙 그대로다. 계정에 따라 떴다 안 떴다
+하는 값을 확정 최고액으로 세우면 보고 온 사람 절반이 다른 화면을 만난다
+(2026-09-12 bhc, 홍콩반점 실측).
+
+### 비교 규칙이 한 곳이 된다
+
+지금 같은 규칙이 두 군데 있다. 웹의 `filters.INCOMPARABLE`과 API의
+`BrandComparisonService.confirmedSortingAmount()`다. ADR-016이 그 중복을
+적어 두고 한쪽만 고치면 순서가 어긋난다고 경고한다.
+
+새 규칙은 한 줄이다.
+
+    최고 후보 = certainty == exact && kind == discount && !soldOut
+
+`rate`(퍼센트)와 `cashback`(적립)이 자동으로 빠진다. 앞에서 `comparable` 칸을
+안 두기로 한 판단이 여기에 실린다. 사람이 채우는 칸 대신 값에서 나온다.
+
+속성 이름도 역할에 맞춘다. 사람이 말하던 `comparable`은 "오퍼 목록에 서는가"가
+아니라 "최고 할인 후보인가"였다. 그래서 칸으로 두지 않고 `certainty`와 `kind`가
+대신 답한다.
+
+### 자사 행사를 오퍼로 올리면 새로 필요한 것
+
+`platform: own` 배너가 오퍼 칩으로 서면 세 군데가 걸린다. 셋 다 지금 코드에서
+조용히 틀린다.
+
+1. **플랫폼 필터.** `filters.defaultFilters()`가 배달앱 4사만 켠다. `own`을
+   안 넣으면 자사 오퍼가 기본 상태에서 통째로 안 보인다.
+2. **앱 아이콘.** 칩 오른쪽의 `PlatformBadge`가 4사 아이콘만 갖는다. 자사는
+   브랜드 로고를 쓰거나 아이콘 자리를 비운다.
+3. **링크.** 딥링크 사다리(`PLATFORM_APP_LINKS` 등)에 `own`이 없다. 배너의
+   `url`을 그대로 쓴다. 지금도 배너 오퍼는 `offer.link`가 먼저라 그 경로는
+   이미 있다.
+
+### 묶음이 화면에 닿는 곳
+
+`group`으로 배너를 묶으면 두 가지가 따라온다.
+
+**정렬 순서.** `priority`가 배너마다 있는데 묶음은 한 장이다. 묶음의 순서는
+구성원 중 가장 작은 `priority`로 정한다.
+
+**알림.** `notify`와 `notifyImmediately`가 배너마다다. 네 브랜드를 묶으면
+알림이 네 번 나간다. 묶음 단위로 한 번만 보낸다. 지금은 `items[]`라 한 건이라
+안 드러났는데 배너를 쪼개면 바로 터진다.
+
+오퍼는 묶지 않는다. 묶음에 브랜드가 넷이면 브랜드 카드 넷에 오퍼가 하나씩
+선다. 지금 `Banner.brandAmounts()`가 하던 일과 결과가 같다.
+
 ## 실행
 
 1. 이 문서와 ADR을 올린다.
