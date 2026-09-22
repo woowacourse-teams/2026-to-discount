@@ -183,19 +183,33 @@ public class PushStateStore {
     private State load() {
         if (properties.statePath() == null || !Files.exists(properties.statePath())) return new State();
         try {
-            return mapper.readValue(properties.statePath().toFile(), State.class);
+            State loaded = mapper.readValue(properties.statePath().toFile(), State.class);
+            if (!valid(loaded)) throw new IOException("Push 상태 구조가 올바르지 않다");
+            return loaded;
         } catch (IOException e) {
-            Path damaged = properties.statePath().resolveSibling(
-                    properties.statePath().getFileName() + ".corrupt-" + clock.instant().toEpochMilli());
-            try {
-                Files.move(properties.statePath(), damaged, StandardCopyOption.REPLACE_EXISTING);
-                log.error("손상된 Push 상태 파일을 격리하고 빈 상태로 시작한다: backup={}", damaged, e);
-            } catch (IOException backupError) {
-                log.error("Push 상태 파일을 읽거나 격리하지 못해 빈 상태로 시작한다: path={}",
-                        properties.statePath(), backupError);
-            }
-            return new State();
+            return recoverDamagedState(e);
         }
+    }
+
+    private boolean valid(State value) {
+        return value != null
+                && value.subscriptions != null
+                && value.banners != null
+                && value.tokens != null
+                && value.delivered != null;
+    }
+
+    private State recoverDamagedState(IOException cause) {
+        Path damaged = properties.statePath().resolveSibling(
+                properties.statePath().getFileName() + ".corrupt-" + clock.instant().toEpochMilli());
+        try {
+            Files.move(properties.statePath(), damaged, StandardCopyOption.REPLACE_EXISTING);
+            log.error("손상된 Push 상태 파일을 격리하고 빈 상태로 시작한다: backup={}", damaged, cause);
+        } catch (IOException backupError) {
+            log.error("Push 상태 파일을 읽거나 격리하지 못해 빈 상태로 시작한다: path={}",
+                    properties.statePath(), backupError);
+        }
+        return new State();
     }
 
     private void save() {

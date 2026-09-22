@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Path;
 import java.time.Clock;
@@ -53,9 +55,17 @@ class PushStateStoreTest {
         assertThat(store.track(token.token(), "push_notification_clicked")).isEmpty();
     }
 
-    @Test
-    void isolatesDamagedStateAndStartsEmpty() throws Exception {
-        Files.writeString(properties().statePath(), "not-json");
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "not-json",
+            "null",
+            "{\"subscriptions\":null}",
+            "{\"banners\":null}",
+            "{\"tokens\":null}",
+            "{\"delivered\":null}"
+    })
+    void isolatesDamagedStateAndStartsEmpty(String damagedState) throws Exception {
+        Files.writeString(properties().statePath(), damagedState);
 
         PushStateStore store = new PushStateStore(properties(), mapper, clock);
 
