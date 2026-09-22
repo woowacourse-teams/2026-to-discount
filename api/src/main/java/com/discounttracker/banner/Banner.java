@@ -56,8 +56,8 @@ public record Banner(
         String extra,
         Integer minOrder,
         String color,
-        LocalDate startsOn,
-        LocalDate endsOn,
+        java.time.LocalDateTime startsAt,
+        java.time.LocalDateTime endsAt,
         Boolean soldOut,
         LocalDate soldOutOn,
         int priority,
@@ -69,7 +69,19 @@ public record Banner(
         // 화면에 쓸 짧은 이름. brands와 같은 순서다. 로고와 원장은 brands(대표명)를 쓰고,
         // 글자만 이쪽을 쓴다 — 배너 한 장에 브랜드가 넷이면 긴 이름이 줄을 넘긴다
         // (2026-09-22 사용자: 후라이드참잘하는집 -> 후참잘).
-        List<String> brandLabels) {
+        List<String> brandLabels,
+        // 2026-09-22 재설계. 같은 값을 적은 배너끼리 한 장으로 그린다.
+        String group,
+        // 제휴 결제 수단(naverpay 등). 아이콘만 바꾼다. 필터에는 안 들어간다.
+        String via,
+        // 무엇을 얼마나. 문자열 amount와 spec.amountRange를 대신한다.
+        BannerAmount amountSpec,
+        // 개인 지정 쿠폰인가. 자격이지 수량 제한이 아니다.
+        Boolean targeted,
+        // 선착순 기준. issue(발급), use(사용), null
+        String firstCome,
+        // 소진되면 끝인가.
+        Boolean untilSoldOut) {
 
     static final int DEFAULT_PRIORITY = 999;
 
@@ -95,9 +107,11 @@ public record Banner(
     public Builder toBuilder() {
         return new Builder(id, url).brand(brand).platform(platform).amount(amount)
                 .period(period).extra(extra).minOrder(minOrder).color(color)
-                .startsOn(startsOn).endsOn(endsOn).soldOut(soldOut).soldOutOn(soldOutOn)
+                .startsAt(startsAt).endsAt(endsAt).soldOut(soldOut).soldOutOn(soldOutOn)
                 .priority(priority).brands(brands).spec(spec)
-                .notify(notifyFlag).notifyImmediately(notifyImmediately).brandLabels(brandLabels);
+                .notify(notifyFlag).notifyImmediately(notifyImmediately).brandLabels(brandLabels)
+                .group(group).via(via).amountSpec(amountSpec)
+                .targeted(targeted).firstCome(firstCome).untilSoldOut(untilSoldOut);
     }
 
     public static final class Builder {
@@ -110,8 +124,8 @@ public record Banner(
         private String extra;
         private Integer minOrder;
         private String color;
-        private LocalDate startsOn;
-        private LocalDate endsOn;
+        private java.time.LocalDateTime startsAt;
+        private java.time.LocalDateTime endsAt;
         private Boolean soldOut;
         private LocalDate soldOutOn;
         private int priority = DEFAULT_PRIORITY;
@@ -120,6 +134,12 @@ public record Banner(
         private Boolean notify;
         private Boolean notifyImmediately;
         private List<String> brandLabels;
+        private String group;
+        private String via;
+        private BannerAmount amountSpec;
+        private Boolean targeted;
+        private String firstCome;
+        private Boolean untilSoldOut;
 
         private Builder(String id, String url) {
             this.id = id;
@@ -133,8 +153,12 @@ public record Banner(
         public Builder extra(String v) { this.extra = v; return this; }
         public Builder minOrder(Integer v) { this.minOrder = v; return this; }
         public Builder color(String v) { this.color = v; return this; }
-        public Builder startsOn(LocalDate v) { this.startsOn = v; return this; }
-        public Builder endsOn(LocalDate v) { this.endsOn = v; return this; }
+        public Builder startsAt(java.time.LocalDateTime v) { this.startsAt = v; return this; }
+        public Builder endsAt(java.time.LocalDateTime v) { this.endsAt = v; return this; }
+        /** 날짜만 아는 경우. 그날 00:00이다. 변환기가 쓰는 규칙과 같다. */
+        public Builder startsOn(LocalDate v) { this.startsAt = v == null ? null : v.atStartOfDay(); return this; }
+        /** 날짜만 아는 경우. 그날 23:59다 - 그날 포함이라는 뜻이었다. */
+        public Builder endsOn(LocalDate v) { this.endsAt = v == null ? null : v.atTime(23, 59); return this; }
         public Builder soldOut(Boolean v) { this.soldOut = v; return this; }
         public Builder soldOutOn(LocalDate v) { this.soldOutOn = v; return this; }
         public Builder priority(int v) { this.priority = v; return this; }
@@ -143,11 +167,18 @@ public record Banner(
         public Builder notify(Boolean v) { this.notify = v; return this; }
         public Builder notifyImmediately(Boolean v) { this.notifyImmediately = v; return this; }
         public Builder brandLabels(List<String> v) { this.brandLabels = v; return this; }
+        public Builder group(String v) { this.group = v; return this; }
+        public Builder via(String v) { this.via = v; return this; }
+        public Builder amountSpec(BannerAmount v) { this.amountSpec = v; return this; }
+        public Builder targeted(Boolean v) { this.targeted = v; return this; }
+        public Builder firstCome(String v) { this.firstCome = v; return this; }
+        public Builder untilSoldOut(Boolean v) { this.untilSoldOut = v; return this; }
 
         public Banner build() {
             return new Banner(id, brand, platform, url, amount, period, extra, minOrder, color,
-                    startsOn, endsOn, soldOut, soldOutOn, priority, brands, spec,
-                    notify, notifyImmediately, brandLabels);
+                    startsAt, endsAt, soldOut, soldOutOn, priority, brands, spec,
+                    notify, notifyImmediately, brandLabels,
+                    group, via, amountSpec, targeted, firstCome, untilSoldOut);
         }
     }
 
@@ -176,6 +207,29 @@ public record Banner(
 
     public boolean immediateNotificationRequested() {
         return Boolean.TRUE.equals(notifyImmediately);
+    }
+
+    /** 배너를 보여 줄 기간 안인가. 시각까지 본다 - 17시 오픈 행사가 17시에 뜬다. */
+    public boolean activeAt(java.time.LocalDateTime now) {
+        return !now.isBefore(startsAt) && !now.isAfter(endsAt);
+    }
+
+    /** 시작 날짜. 시각을 쓰기 전 코드가 부르던 이름 그대로다. */
+    public LocalDate startsOn() {
+        return startsAt.toLocalDate();
+    }
+
+    /** 종료 날짜. 오퍼의 expiresAt이 이 값을 쓴다. */
+    public LocalDate endsOn() {
+        return endsAt.toLocalDate();
+    }
+
+    public boolean isTargeted() {
+        return Boolean.TRUE.equals(targeted);
+    }
+
+    public boolean untilSoldOutFlag() {
+        return Boolean.TRUE.equals(untilSoldOut);
     }
 
     /**
@@ -440,8 +494,14 @@ public record Banner(
         }
     }
 
-    /** {@code startsOn <= day <= endsOn}. 경계일 자신도 포함이다. */
+    /**
+     * {@code startsOn() <= day <= endsOn()}. 경계일 자신도 포함이다.
+     *
+     * <p>Task 19 조정: {@code BannerCatalog}가 아직 이 이름으로 부른다 - 시각으로
+     * 옮긴 뒤에도 지우지 않고 파생 접근자로 다시 짠다. {@link #activeAt}로
+     * 바꾸는 일은 그 호출부를 고치는 Task 6이 한다.
+     */
     boolean activeOn(LocalDate day) {
-        return !day.isBefore(startsOn) && !day.isAfter(endsOn);
+        return !day.isBefore(startsOn()) && !day.isAfter(endsOn());
     }
 }
