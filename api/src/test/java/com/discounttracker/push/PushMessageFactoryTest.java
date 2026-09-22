@@ -23,8 +23,10 @@ class PushMessageFactoryTest {
     }
 
     private Banner banner(String id, String brand) {
-        return new Banner(id, brand, "baemin", "https://example.com", "5,000원", "오늘",
-                null, null, null, LocalDate.parse("2026-09-21"), LocalDate.parse("2026-09-22"),
-                false, null, 1, null, null, true, false, null);
+        return Banner.of(id, "https://example.com")
+                .brand(brand).platform("baemin").amount("5,000원").period("오늘")
+                .startsOn(LocalDate.parse("2026-09-21")).endsOn(LocalDate.parse("2026-09-22"))
+                .soldOut(false).priority(1).notify(true).notifyImmediately(false)
+                .build();
     }
 }

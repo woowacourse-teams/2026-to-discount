@@ -228,27 +228,27 @@ public class BannerCatalog {
         if (minOrder == null && spec != null) minOrder = BannerText.minOrder(spec);
         String extra = text(attrs.get("extra"));
         if (extra == null && spec != null) extra = BannerText.extra(spec, minOrder);
-        return new Banner(
-                id,
-                brand == null ? null : brands.canonical(brand),
-                platform,
-                url,
-                amount,
-                period,
-                extra,
-                minOrder,
-                text(attrs.get("color")),
-                startsOn,
-                endsOn,
-                flag(attrs.get("soldOut")),
-                date(attrs.get("soldOutOn")),
-                priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY,
-                many,
-                spec,
-                flag(attrs.get("notify")),
-                flag(attrs.get("notifyImmediately")),
+        return Banner.of(id, url)
+                .brand(brand == null ? null : brands.canonical(brand))
+                .platform(platform)
+                .amount(amount)
+                .period(period)
+                .extra(extra)
+                .minOrder(minOrder)
+                .color(text(attrs.get("color")))
+                .startsOn(startsOn)
+                .endsOn(endsOn)
+                .soldOut(flag(attrs.get("soldOut")))
+                .soldOutOn(date(attrs.get("soldOutOn")))
+                .priority(priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY)
+                .brands(many)
+                .spec(spec)
+                .notify(flag(attrs.get("notify")))
+                .notifyImmediately(flag(attrs.get("notifyImmediately")))
                 // 화면에 쓸 짧은 이름. 로고와 비교는 대표명(many)을 그대로 쓴다.
-                many == null ? null : many.stream().map(b -> brands.find(b).display()).toList());
+                .brandLabels(many == null ? null
+                        : many.stream().map(b -> brands.find(b).display()).toList())
+                .build();
     }
 
     /** yml의 구조 필드를 읽는다. 하나도 없으면 null. 형이 틀리면 IllegalArgumentException. */
