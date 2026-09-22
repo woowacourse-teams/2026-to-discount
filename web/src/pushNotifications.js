@@ -111,11 +111,17 @@ export async function enablePush({
   const { publicKey } = await keyResponse.json()
   const worker = await registration(navigatorValue)
   const existing = await worker.pushManager.getSubscription()
+  const created = !existing
   const subscription = existing || await worker.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(publicKey),
-  })
-  await saveSubscription(subscription, visitorId, analyticsEnabled, fetchValue)
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey),
+    })
+  try {
+    await saveSubscription(subscription, visitorId, analyticsEnabled, fetchValue)
+  } catch (error) {
+    if (created) await subscription.unsubscribe().catch(() => {})
+    throw error
+  }
   return true
 }
 

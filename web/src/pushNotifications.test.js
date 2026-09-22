@@ -21,10 +21,10 @@ function subscription() {
   }
 }
 
-function navigatorWith(existing = null) {
+function navigatorWith(existing = null, created = subscription()) {
   const pushManager = {
     getSubscription: async () => existing,
-    subscribe: async () => subscription(),
+    subscribe: async () => created,
   }
   return {
     userAgent: 'Chrome',
@@ -67,6 +67,42 @@ test('사용자 동작 뒤 구독을 만들고 visitorId와 함께 저장한다'
   assert.equal(body.visitorId, 'v_123')
   assert.equal(body.analyticsEnabled, true)
   assert.equal(body.endpoint, 'https://push.example/subscription')
+})
+
+test('새 구독 저장이 실패하면 새 브라우저 구독만 해제한다', async () => {
+  const created = subscription()
+  let unsubscribed = false
+  created.unsubscribe = async () => { unsubscribed = true; return true }
+  const fetchValue = async (url) => url.endsWith('/public-key')
+    ? { ok: true, json: async () => ({ publicKey: 'AQ' }) }
+    : { ok: false, status: 503 }
+
+  await assert.rejects(enablePush({
+    visitorId: 'v_new',
+    analyticsEnabled: true,
+    navigatorValue: navigatorWith(null, created),
+    notificationValue: { permission: 'granted' },
+    fetchValue,
+  }), /Push subscription 503/)
+  assert.equal(unsubscribed, true)
+})
+
+test('기존 구독 저장이 실패하면 브라우저 구독을 유지한다', async () => {
+  const existing = subscription()
+  let unsubscribed = false
+  existing.unsubscribe = async () => { unsubscribed = true; return true }
+  const fetchValue = async (url) => url.endsWith('/public-key')
+    ? { ok: true, json: async () => ({ publicKey: 'AQ' }) }
+    : { ok: false, status: 503 }
+
+  await assert.rejects(enablePush({
+    visitorId: 'v_existing',
+    analyticsEnabled: true,
+    navigatorValue: navigatorWith(existing),
+    notificationValue: { permission: 'granted' },
+    fetchValue,
+  }), /Push subscription 503/)
+  assert.equal(unsubscribed, false)
 })
 
 test('기존 구독은 현재 visitorId로 갱신하고 해제할 수 있다', async () => {
