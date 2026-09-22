@@ -31,15 +31,25 @@ public record BannerAmount(Integer wonMin, Integer wonMax, Integer percent,
                            boolean random, AmountKind kind) {
 
     public BannerAmount {
-        if (wonMax != null && percent != null) {
+        if ((wonMin != null || wonMax != null) && percent != null) {
             throw new IllegalArgumentException("amount는 won과 percent 중 하나만 쓴다");
+        }
+        if (wonMin != null && wonMin < 0) {
+            throw new IllegalArgumentException("amount.wonMin 값이 음수다: " + wonMin);
+        }
+        if (wonMax != null && wonMax < 0) {
+            throw new IllegalArgumentException("amount.wonMax 값이 음수다: " + wonMax);
+        }
+        if (percent != null && percent < 0) {
+            throw new IllegalArgumentException("amount.percent 값이 음수다: " + percent);
         }
     }
 
     /**
      * yml의 {@code amount:} 한 덩이에서. 덩이가 아니거나 금액이 없으면 null이다.
      *
-     * @throws IllegalArgumentException won과 percent를 같이 적었을 때
+     * @throws IllegalArgumentException won과 percent를 같이 적었거나, won/percent 중
+     *         하나라도 음수일 때
      */
     @SuppressWarnings("unchecked")
     public static BannerAmount of(Object raw) {

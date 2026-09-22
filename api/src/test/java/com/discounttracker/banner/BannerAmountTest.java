@@ -64,12 +64,53 @@ class BannerAmountTest {
         assertNull(BannerAmount.of(null));
         assertNull(BannerAmount.of("8,000원"));
         assertNull(BannerAmount.of(Map.of("kind", "cashback")));
+        assertNull(BannerAmount.of(Map.of()));
+        assertNull(BannerAmount.of(Map.of("won", List.of())));
+        assertNull(BannerAmount.of(Map.of("won", List.of(5000))));
+        assertNull(BannerAmount.of(Map.of("won", Arrays.asList(null, null))));
     }
 
     @Test
     void wonAndPercentTogetherIsRejected() {
         // 하나만 쓴다. 둘 다 적으면 어느 쪽이 화면에 나갈지 파일만 봐서는 모른다.
-        assertThrows(IllegalArgumentException.class,
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> BannerAmount.of(Map.of("won", 8000, "percent", 30)));
+        assertTrue(e.getMessage().contains("won"));
+        assertTrue(e.getMessage().contains("percent"));
+    }
+
+    @Test
+    void openUpperBoundWithPercentIsAlsoRejected() {
+        // 하한만 있고 상한이 비어도 won을 쓴 것이다. percent와 같이 못 쓴다.
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> BannerAmount.of(Map.of("percent", 30, "won", Arrays.asList(5000, null))));
+        assertTrue(e.getMessage().contains("won"));
+        assertTrue(e.getMessage().contains("percent"));
+    }
+
+    @Test
+    void negativeWonIsRejected() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> BannerAmount.of(Map.of("won", -5000)));
+        assertTrue(e.getMessage().contains("wonMin"));
+        assertTrue(e.getMessage().contains("-5000"));
+    }
+
+    @Test
+    void negativePercentIsRejected() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> BannerAmount.of(Map.of("percent", -10)));
+        assertTrue(e.getMessage().contains("percent"));
+        assertTrue(e.getMessage().contains("-10"));
+    }
+
+    @Test
+    void zeroWonIsAllowed() {
+        // 0은 음수가 아니다. "0원 할인"은 무의미하지만 그 판단은 운영 콘솔의 몫이지
+        // 이 레코드가 막을 계약은 아니다.
+        BannerAmount a = BannerAmount.of(Map.of("won", 0));
+        assertEquals(0, a.wonMin());
+        assertEquals(0, a.wonMax());
+        assertEquals(0, a.headline());
     }
 }
