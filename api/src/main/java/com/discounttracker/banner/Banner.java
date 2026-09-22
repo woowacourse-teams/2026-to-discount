@@ -157,8 +157,14 @@ public record Banner(
         public Builder endsAt(java.time.LocalDateTime v) { this.endsAt = v; return this; }
         /** 날짜만 아는 경우. 그날 00:00이다. 변환기가 쓰는 규칙과 같다. */
         public Builder startsOn(LocalDate v) { this.startsAt = v == null ? null : v.atStartOfDay(); return this; }
-        /** 날짜만 아는 경우. 그날 23:59다 - 그날 포함이라는 뜻이었다. */
-        public Builder endsOn(LocalDate v) { this.endsAt = v == null ? null : v.atTime(23, 59); return this; }
+        /**
+         * 날짜만 아는 경우. 그날 23:59:59다 - 초 단위까지 채워야 그날이 끝날 때까지
+         * 산다. 23:59로 채우면 23:59:01부터 만료로 읽혀, 날짜 대신 시각을 쓴
+         * 이유(그날 포함 여부를 안 따지게)가 59초짜리 구멍으로 되살아난다.
+         * {@code endsAt}을 직접 적은 사람은 이 메서드를 거치지 않으니 자기가 적은
+         * 값 그대로 받는다.
+         */
+        public Builder endsOn(LocalDate v) { this.endsAt = v == null ? null : v.atTime(23, 59, 59); return this; }
         public Builder soldOut(Boolean v) { this.soldOut = v; return this; }
         public Builder soldOutOn(LocalDate v) { this.soldOutOn = v; return this; }
         public Builder priority(int v) { this.priority = v; return this; }

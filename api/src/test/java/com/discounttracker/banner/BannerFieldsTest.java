@@ -36,11 +36,23 @@ class BannerFieldsTest {
 
     @Test
     void dateBuilderFillsTheDayBoundaries() {
-        // 변환기가 endsOn: D를 endsAt: D T23:59로 옮긴다. 빌더도 같은 규칙이다.
+        // endsOn(LocalDate)는 23:59:59까지 채운다 - 59분에서 끊으면 그날 마지막
+        // 59초 동안 만료로 읽혀, 날짜 대신 시각을 쓴 이유가 도로 구멍이 된다.
         Banner b = Banner.of("x", "https://example.test/b")
                 .startsOn(LocalDate.of(2026, 9, 22)).endsOn(LocalDate.of(2026, 9, 22)).build();
         assertEquals(LocalDateTime.of(2026, 9, 22, 0, 0), b.startsAt());
-        assertEquals(LocalDateTime.of(2026, 9, 22, 23, 59), b.endsAt());
+        assertEquals(LocalDateTime.of(2026, 9, 22, 23, 59, 59), b.endsAt());
+    }
+
+    @Test
+    void dateBuiltBannerStaysActiveUntilTheLastSecond() {
+        Banner b = Banner.of("z", "https://example.test/d")
+                .startsOn(LocalDate.of(2026, 9, 22)).endsOn(LocalDate.of(2026, 9, 22)).build();
+        assertTrue(b.activeAt(b.startsAt()));
+        assertTrue(b.activeAt(b.endsAt()));
+        assertTrue(b.activeAt(LocalDateTime.of(2026, 9, 22, 23, 59, 30)));
+        assertTrue(b.activeAt(LocalDateTime.of(2026, 9, 22, 23, 59, 59)));
+        assertFalse(b.activeAt(LocalDateTime.of(2026, 9, 23, 0, 0, 0)));
     }
 
     @Test
