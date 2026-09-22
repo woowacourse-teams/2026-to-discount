@@ -188,11 +188,34 @@ class BannerOfferCertaintyTest {
     }
 
     @Test
-    void percentBannerGetsARateBadgeInsteadOfANullAmount() {
-        // Important fix: amountSpec()==null 가드만 없앴을 때 정률 배너가 amount null인
-        // 채로 카드에 서서 App.jsx가 "금액 미확인"으로 그렸다. badge를 rate-badge 꼴
-        // (/^\d+%할인$/)로 채워 그 자리를 대신한다 - 웹 쪽 변경은 필요 없다.
-        Offer o = only(service("""
+    void deliveryAppCashbackBannerStandsButIsNeverTheBestCandidate() {
+        // Fix round 2: own만 막고 kind는 안 물었던 구멍 - 배달앱(baemin)에 적립·캐시백
+        // 배너를 적어도 그게 확정 "할인"인 것처럼 maxConfirmed로 새면 안 된다. own인지와
+        // 무관하게 kind가 discount가 아니면 최고 할인 후보가 아니다.
+        List<BrandComparison> cards = service("""
+                banners:
+                  - id: baemin-cashback-20260922
+                    brand: bhc
+                    platform: baemin
+                    url: "https://example.test/c"
+                    amount: {won: 3000, kind: cashback}
+                    startsAt: 2026-09-22T00:00
+                    endsAt: 2026-09-22T23:59
+                """).compare();
+        assertEquals(1, cards.size());
+        BrandComparison card = cards.get(0);
+        assertEquals(3000, card.offers().get(0).amount(), "오퍼 자체는 카드에 선다");
+        assertEquals(AmountKind.CASHBACK, card.offers().get(0).kind());
+        assertNull(card.maxConfirmedAmount(), "캐시백은 배달앱이어도 최고 할인 후보가 아니다");
+    }
+
+    @Test
+    void deliveryAppPercentBannerNeverBecomesAnOffer() {
+        // Fix round 2 되돌림: amount null인 채로 서면 "금액 미확인" 칩이 뜨고, 배지에
+        // 퍼센트를 적으면 App.jsx의 status-badge 자리(기간·시각 배지가 쓰는 자리)를
+        // 뺏는다(2026-09-21 고정을 되돌리는 셈). 배달앱 정률 배너는 Task 8 이전처럼
+        // 오퍼로 안 서는 것이 무회귀다 - own은 예외(ownBannerNowStandsAsAnOffer).
+        List<BrandComparison> cards = service("""
                 banners:
                   - id: bbq-rate-20260922
                     brand: BBQ
@@ -201,9 +224,8 @@ class BannerOfferCertaintyTest {
                     amount: {percent: 30}
                     startsAt: 2026-09-22T00:00
                     endsAt: 2026-09-22T23:59
-                """));
-        assertNull(o.amount());
-        assertEquals("30%할인", o.badge());
+                """).compare();
+        assertEquals(List.of(), cards);
     }
 
     @Test

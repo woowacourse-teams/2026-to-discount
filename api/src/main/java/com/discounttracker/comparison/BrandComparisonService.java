@@ -105,9 +105,14 @@ public class BrandComparisonService {
             if (banner.brand() == null) continue;
             BannerAmount amountSpec = banner.amountSpec();
             if (amountSpec == null) continue;
-            // 정률 배너는 headline()이 없어 칩이 "금액 미확인"으로 뜬다 - 대신 배지에
-            // "30%할인" 꼴로 적는다. App.jsx의 rate-badge 자리(/^\d+%할인$/)가 그대로 읽는다.
-            String badge = amountSpec.percent() != null ? amountSpec.percent() + "%할인" : banner.period();
+            // 정률 배너는 배달앱에서는 오퍼로 안 선다(2026-09-22 되돌림). headline()이 없어
+            // amount null인 채로 서면 "금액 미확인" 칩이 뜨고, 그걸 가리려 배지에 퍼센트를
+            // 적으면 App.jsx의 status-badge 한 자리를 차지해 기간·시각 배지가 사라진다
+            // (2026-09-21 고정을 되돌리는 셈이었다). 배달앱 정률 배너는 원래(Task 8 이전)
+            // 오퍼로 안 섰으니 그대로 두는 편이 무회귀다. own은 예외로 그대로 세운다 -
+            // brief의 ownBannerNowStandsAsAnOffer(50% 캐시백)가 이 값을 요구한다. 정률을
+            // 제대로 그리는 일(App.jsx가 별도 자리를 만드는 일)은 Task 17·18이 한다.
+            if (amountSpec.percent() != null && !Banner.OWN.equals(banner.platform())) continue;
             records.add(new OfferRecord(
                     banner.platform(),
                     banner.brand(),
@@ -116,8 +121,10 @@ public class BrandComparisonService {
                     qualifierOf(banner),
                     false,
                     "banner",
-                    // section 자리를 배너 id로 쓴다 - 원장 레코드는 안 쓰는 칸이고(Offer.from이
-                    // 안 실어 나른다), 확실성이 어긋날 때 어느 배너인지 로그에서 찾아야 한다.
+                    // section 자리는 원장에서는 화면 섹션 제목 그대로다(ADR-006). 배너
+                    // 레코드에는 그 개념이 없고 tracker가 offerType="banner"인 행을 낼 일도
+                    // 없어 두 뜻이 안 섞인다 - 여기서는 배너 id만 싣는다(확실성 경고 로그가
+                    // 브랜드·플랫폼만으로 못 찾는 배너를 이걸로 찾는다).
                     banner.id(),
                     banner.amount(),
                     today,
@@ -127,7 +134,7 @@ public class BrandComparisonService {
                     null,
                     BannerText.conditions(banner),
                     banner.endsOn().toString(),
-                    badge,
+                    banner.period(),
                     banner.url(),
                     banner.spec() == null ? null : banner.spec().membership(),
                     banner.soldOut(),
@@ -153,8 +160,9 @@ public class BrandComparisonService {
             case RANDOM -> "랜덤";
             // MENU_ONLY는 여기 안 나온다 - BannerAmount.certainty()가 낼 수 있는 값이
             // EXACT/CAPPED/RANDOM/PERCENT뿐이다(특정 메뉴 한정은 원장 qualifier
-            // "특정메뉴"에서만 나온다). EXACT와 함께 default로 묶는다.
-            default -> null;
+            // "특정메뉴"에서만 나온다). default 대신 이름을 적어 둔다 - Certainty에
+            // 여섯째 값이 생기면 이 스위치가 조용히 새지 말고 컴파일이 깨져야 한다.
+            case MENU_ONLY, EXACT -> null;
         };
     }
 
@@ -207,13 +215,14 @@ public class BrandComparisonService {
             Map<String, String> bannerIdsHere = bannerIdBySlot.computeIfAbsent(name, k -> new LinkedHashMap<>());
             if (existing != null && existing.fromBanner() != offer.fromBanner()
                     && existing.certainty() != offer.certainty()) {
-                // 브랜드 하나에 배너가 여러 장일 수 있어 브랜드·플랫폼만으로는 어느 배너인지
-                // 못 찾는다 - id를 같이 남긴다. 원장 쪽은 애초에 id가 없다.
-                String bannerId = offer.fromBanner() ? record.section() : bannerIdsHere.get(slot);
+                // 배너 레코드가 항상 원장보다 먼저 처리된다(compare()가 bannerRecords()를
+                // 원장 앞에 붙인다) - 그래서 어긋남이 걸리는 시점엔 existing이 배너, offer가
+                // 원장이다. offer가 배너인 경우는 실제 경로에서 안 나온다(2-인자 compare에
+                // 순서를 뒤집어 넘기는 테스트가 아니면). 브랜드 하나에 배너가 여러 장일 수
+                // 있어 브랜드·플랫폼만으로는 어느 배너인지 못 찾는다 - id를 같이 남긴다.
                 log.warn("배너와 원장의 확실성이 다르다 - 배너={}, 브랜드={}, 플랫폼={}, 배너 확실성={}, 원장 확실성={}",
-                        bannerId, name, record.platform(),
-                        offer.fromBanner() ? offer.certainty() : existing.certainty(),
-                        offer.fromBanner() ? existing.certainty() : offer.certainty());
+                        bannerIdsHere.get(slot), name, record.platform(),
+                        existing.certainty(), offer.certainty());
             }
             if (offer.fromBanner()) {
                 bannerIdsHere.put(slot, record.section());
@@ -227,16 +236,25 @@ public class BrandComparisonService {
             // ({@link OfferComparison#sortingAmount}). 프론트의 filters.js가 같은
             // 판정표(docs/contracts/certainty-cases.json)를 읽어 어긋남을 막는다(ADR-016).
             //
-            // own(자사) 배너는 카드에는 서지만 배달앱끼리 겨루는 "최고 할인"에는 못 낀다
-            // (OfferComparison.isBestCandidate와 같은 축, 2026-09-22 fix round) - sortingAmount는
-            // 이 축을 모르니 여기서 따로 막는다. comparable 같은 칸을 배너 파일에 새로
-            // 만들지 않는다 - platform이 이미 own을 말한다.
+            // own(자사)과 비할인(캐시백·포인트) 오퍼는 maxConfirmed·maxHeld 어느 쪽도
+            // 못 채운다 — 배달앱끼리 겨루는 값이 아니라 어느 쪽 천장도 그 값으로 정할 수
+            // 없다(2026-09-22 fix round 2: 자사 확정액이 "최고 할인"으로 새던 자리, 그리고
+            // 배달앱 캐시백까지 확정 할인으로 셌던 구멍 둘 다). 규칙은
+            // {@link OfferComparison#isBestCandidate} 한 곳에만 적는다 — comparable 같은
+            // 칸을 배너 파일에 새로 만들지 않는다, platform·kind가 이미 그 답이다.
+            //
+            // EXACT일 때만 물어본다 — MENU_ONLY(4,999원 대체값)는 sortingAmount가 이미
+            // 답한 축이고, 원장 qualifier에서만 나와 kind는 항상 discount, own일 수도
+            // 없으니 이 축과 안 만난다. CAPPED·RANDOM·PERCENT는 sortingAmount가 이미
+            // null을 줘서 아래에서 걸린다.
+            boolean excludedFromComparison = offer.certainty() == Certainty.EXACT
+                    && !OfferComparison.isBestCandidate(offer.certainty(), offer.kind(), offer.soldOut(), record.platform());
             //
             // maxHeld는 그대로 둔다 — 확정이 하나도 없는 브랜드끼리만 줄
             // 세우는 내부값이고, 그 브랜드들은 이미 확정 있는 브랜드 전부
             // 아래에 깔린다. 여기서까지 빼면 정렬 근거가 없어져 삽입 순서로
             // 흩어진다.
-            if (offer.amount() != null && !"own".equals(record.platform())) {
+            if (offer.amount() != null && !excludedFromComparison) {
                 boolean confirmed = record.status().isConfirmed();
                 Integer forSorting = confirmed
                         ? OfferComparison.sortingAmount(offer.certainty(), offer.amount())
