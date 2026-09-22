@@ -95,6 +95,7 @@ api/src/test/java/com/discounttracker/analytics/SurveyControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyEligibilityTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyTextTest.java
 api/src/test/java/com/discounttracker/analytics/TrafficStatsServiceTest.java
+api/src/test/java/com/discounttracker/banner/BannerBuilderTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogTest.java
 api/src/test/java/com/discounttracker/banner/BannerTextTest.java
 api/src/test/java/com/discounttracker/brand/BrandCatalogTest.java
@@ -245,7 +246,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 111 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 112 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 60 |
 
 ### Tracker
