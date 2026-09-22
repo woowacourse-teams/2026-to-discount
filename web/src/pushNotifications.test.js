@@ -121,9 +121,45 @@ test('기존 구독은 현재 visitorId로 갱신하고 해제할 수 있다', a
   }), true)
   assert.equal(JSON.parse(requests[0].options.body).visitorId, 'v_new')
 
-  assert.equal(await disablePush({ navigatorValue, fetchValue }), true)
+  assert.deepEqual(await disablePush({ navigatorValue, fetchValue }), {
+    localUnsubscribed: true,
+    serverDeleted: true,
+    endpoint: existing.endpoint,
+  })
   assert.equal(requests[1].options.method, 'DELETE')
   assert.equal(unsubscribed, true)
+})
+
+test('브라우저 구독 해제 실패 시 서버 구독을 삭제하지 않는다', async () => {
+  const existing = subscription()
+  existing.unsubscribe = async () => false
+  const requests = []
+
+  const result = await disablePush({
+    navigatorValue: navigatorWith(existing),
+    fetchValue: async (...args) => { requests.push(args); return { ok: true } },
+  })
+
+  assert.deepEqual(result, {
+    localUnsubscribed: false,
+    serverDeleted: false,
+    endpoint: existing.endpoint,
+  })
+  assert.equal(requests.length, 0)
+})
+
+test('브라우저 해제 후 서버 삭제 실패를 분리해 반환한다', async () => {
+  const existing = subscription()
+  const result = await disablePush({
+    navigatorValue: navigatorWith(existing),
+    fetchValue: async () => ({ ok: false, status: 503 }),
+  })
+
+  assert.deepEqual(result, {
+    localUnsubscribed: true,
+    serverDeleted: false,
+    endpoint: existing.endpoint,
+  })
 })
 
 test('브라우저 구독 조회와 서버 동기화를 분리할 수 있다', async () => {

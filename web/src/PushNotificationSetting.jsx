@@ -61,7 +61,15 @@ export default function PushNotificationSetting() {
     setFeedback(previous ? '할인 알림이 꺼졌습니다' : '할인 알림이 켜졌습니다')
     try {
       if (previous) {
-        await disablePush()
+        const result = await disablePush()
+        if (!result.localUnsubscribed) {
+          setEnabled(true)
+          setFailed(true)
+          setFeedback('알림을 끄지 못했습니다')
+        } else if (!result.serverDeleted) {
+          setFailed(true)
+          setFeedback('알림 서버 연결에 실패했습니다')
+        }
       } else {
         const { visitorId } = getAnalyticsContext()
         const subscribed = await enablePush({ visitorId, analyticsEnabled: !optedOut() })

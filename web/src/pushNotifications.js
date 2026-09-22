@@ -130,13 +130,29 @@ export async function disablePush({
   fetchValue = globalThis.fetch,
 } = {}) {
   const subscription = await currentSubscription({ navigatorValue })
-  if (!subscription) return false
+  if (!subscription) return { localUnsubscribed: true, serverDeleted: true, endpoint: null }
+  const endpoint = subscription.endpoint
+  let localUnsubscribed = false
+  try {
+    localUnsubscribed = await subscription.unsubscribe()
+  } catch {
+    return { localUnsubscribed: false, serverDeleted: false, endpoint }
+  }
+  if (!localUnsubscribed) return { localUnsubscribed: false, serverDeleted: false, endpoint }
+
+  try {
+    await deletePushSubscription(endpoint, fetchValue)
+    return { localUnsubscribed: true, serverDeleted: true, endpoint }
+  } catch {
+    return { localUnsubscribed: true, serverDeleted: false, endpoint }
+  }
+}
+
+export async function deletePushSubscription(endpoint, fetchValue = globalThis.fetch) {
   const response = await fetchValue(`${API_BASE}/api/push/subscriptions`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ endpoint: subscription.endpoint }),
+    body: JSON.stringify({ endpoint }),
   })
   if (!response.ok) throw new Error(`Push unsubscribe ${response.status}`)
-  await subscription.unsubscribe()
-  return true
 }
