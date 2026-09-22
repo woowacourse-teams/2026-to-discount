@@ -1,69 +1,139 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
+import { declinePrompt, recordPromptVisit } from './pushPrompt.js'
 import {
   disablePush,
   enablePush,
+  currentSubscription,
   pushAvailability,
-  refreshExistingSubscription,
+  syncPushSubscription,
 } from './pushNotifications.js'
 
 export default function PushNotificationSetting() {
   const [availability, setAvailability] = useState(() => pushAvailability())
   const [enabled, setEnabled] = useState(false)
-  const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [toggleSlot, setToggleSlot] = useState(null)
+  const [showPrompt, setShowPrompt] = useState(false)
+  const [feedback, setFeedback] = useState('')
+  const changingRef = useRef(false)
+
+  useEffect(() => {
+    setToggleSlot(document.getElementById('push-toggle-slot'))
+  }, [])
+
+  useEffect(() => {
+    if (!feedback) return
+    const id = window.setTimeout(() => setFeedback(''), 1000)
+    return () => window.clearTimeout(id)
+  }, [feedback])
 
   useEffect(() => {
     if (availability !== 'ready') return
     let active = true
     const { visitorId } = getAnalyticsContext()
-    refreshExistingSubscription({ visitorId, analyticsEnabled: !optedOut() })
-      .then((subscribed) => { if (active) setEnabled(subscribed) })
+    currentSubscription()
+      .then((subscription) => {
+        if (!active) return
+        setEnabled(Boolean(subscription))
+        if (!subscription) {
+          setShowPrompt(recordPromptVisit())
+          return
+        }
+        syncPushSubscription({
+          subscription,
+          visitorId,
+          analyticsEnabled: !optedOut(),
+        }).catch(() => { if (active) setFailed(true) })
+      })
       .catch(() => { if (active) setFailed(true) })
     return () => { active = false }
   }, [availability])
 
   async function toggle() {
-    setBusy(true)
+    if (changingRef.current) return
+    changingRef.current = true
     setFailed(false)
+    const previous = enabled
+    setEnabled(!previous)
+    setFeedback(previous ? '할인 알림이 꺼졌습니다' : '할인 알림이 켜졌습니다')
     try {
-      if (enabled) {
+      if (previous) {
         await disablePush()
-        setEnabled(false)
       } else {
         const { visitorId } = getAnalyticsContext()
         const subscribed = await enablePush({ visitorId, analyticsEnabled: !optedOut() })
-        setEnabled(subscribed)
+        if (subscribed) {
+          setShowPrompt(false)
+        } else {
+          setEnabled(false)
+          setFeedback('알림이 켜지지 않았습니다')
+        }
         if (!subscribed) setAvailability(pushAvailability())
       }
     } catch {
+      setEnabled(previous)
       setFailed(true)
+      setFeedback('알림 설정을 변경하지 못했습니다')
     } finally {
-      setBusy(false)
+      changingRef.current = false
     }
   }
 
   if (availability === 'unsupported') return null
 
-  return (
-    <section className="push-setting" aria-labelledby="push-setting-title">
-      <div>
-        <h2 id="push-setting-title">새 할인 알림</h2>
-        {availability === 'ios-install' ? (
-          <p>iPhone과 iPad에서는 공유 버튼을 눌러 홈 화면에 추가한 뒤, 설치된 앱에서 알림을 켜 주세요.</p>
-        ) : availability === 'denied' ? (
-          <p>알림이 차단되어 있습니다. 브라우저 또는 기기 설정에서 이 사이트의 알림을 허용해 주세요.</p>
+  const toggleControl = (
+    <div className="push-settings-control">
+      <button
+        type="button"
+        className={`filter-reset-btn push-settings-btn${enabled ? ' filter-reset-btn--active' : ''}`}
+        aria-label={enabled ? '할인 알림 끄기' : '할인 알림 켜기'}
+        title={enabled ? '할인 알림 끄기' : '할인 알림 켜기'}
+        aria-pressed={enabled}
+        onClick={() => {
+          if (availability === 'ready') toggle()
+          else if (availability === 'ios-install') setFeedback('홈 화면에 추가한 뒤 알림을 켜 주세요')
+          else if (availability === 'denied') setFeedback('브라우저 설정에서 알림을 허용해 주세요')
+        }}
+      >
+        {enabled ? (
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2a6 6 0 0 0-6 6c0 4.7-1.4 6.5-2.5 7.7A1.4 1.4 0 0 0 4.5 18h15a1.4 1.4 0 0 0 1-2.3C19.4 14.5 18 12.7 18 8a6 6 0 0 0-6-6Zm-2 18a2 2 0 0 0 4 0h-4Z" />
+          </svg>
         ) : (
-          <p>{enabled ? '중요한 신규 할인 알림을 받고 있습니다.' : '중요한 신규 할인을 알림으로 받아보세요.'}</p>
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M13.7 3.2A6 6 0 0 0 6 8c0 2.5-.4 4.2-1 5.4M18 8c0 4.7 1.4 6.5 2.5 7.7A1.4 1.4 0 0 1 19.5 18H8" />
+            <path d="M10 21h4M3 3l18 18" />
+          </svg>
         )}
-        {failed && <p className="push-setting__error" role="status">알림 설정을 변경하지 못했습니다. 잠시 뒤 다시 시도해 주세요.</p>}
-      </div>
-      {availability === 'ready' && (
-        <button type="button" onClick={toggle} disabled={busy} aria-pressed={enabled}>
-          {busy ? '처리 중' : enabled ? '알림 끄기' : '알림 켜기'}
-        </button>
+      </button>
+
+      {feedback && <div className="push-settings-feedback" role="status">{feedback}</div>}
+    </div>
+  )
+
+  return (
+    <>
+      {toggleSlot && createPortal(toggleControl, toggleSlot)}
+      {showPrompt && availability === 'ready' && !enabled && (
+        <section className="push-setting" aria-label="새 할인 알림 안내">
+          <button type="button" className="push-setting__close" aria-label="알림 안내 닫기" onClick={() => setShowPrompt(false)}>×</button>
+          <p>할인 정보를 빠르게 받아보시겠어요?</p>
+          {failed && <p className="push-setting__error" role="status">알림 설정을 변경하지 못했습니다. 잠시 뒤 다시 시도해 주세요.</p>}
+          <div className="push-setting__actions">
+            <button type="button" className="push-setting__cta" onClick={toggle}>
+              알림 켜기
+            </button>
+            <button type="button" className="push-setting__decline" onClick={() => {
+              declinePrompt()
+              setShowPrompt(false)
+            }}>아니요, 괜찮아요</button>
+          </div>
+        </section>
       )}
-    </section>
+
+    </>
   )
 }

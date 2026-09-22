@@ -1104,6 +1104,7 @@ export default function App() {
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
       <EventBanner banners={banners} />
+      <PushNotificationSetting />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 셋만 배너와 카드 사이에 둔다
           (2026-09-19, 사용자): 할인금액 높은순, 최소주문 낮은순, 랜덤쿠폰도 넣기. 시트의
@@ -1266,7 +1267,6 @@ export default function App() {
                     onDismiss={() => setSurveyOn(false)} />
       )}
 
-      <PushNotificationSetting />
       <SiteFooter />
 
       {/* 새벽 안내 — 맨 위로 버튼 맞은편(왼쪽 아래), 하단 배너 위. */}
