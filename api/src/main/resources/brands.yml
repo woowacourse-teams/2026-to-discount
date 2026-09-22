@@ -12,6 +12,8 @@
 #           pytest는 이 규칙을 몰라 로컬에서는 전부 초록이었다.
 #           마땅한 별칭이 없으면 대표명을 그대로 한 줄 넣는다.
 # category: chicken | pizza | fastfood | snack | cafe | convenience | korean | chinese | western | (생략 = 미분류)
+# shortName: 자리가 좁은 곳(배너)에서 쓰는 짧은 이름 (생략 = 대표명 그대로).
+#           로고 파일명과 원장은 **대표명**을 쓴다 — 짧은 이름은 보여 주는 자리에만 쓴다.
 # aliases:  원장에 다른 이름으로 찍히는 경우만 (생략 가능)
 # links:    앱별 브랜드 쿠폰 공유링크(앱 전용 딥링크, 생략 가능).
 #           키는 원장 platform 값과 맞춘다 — ddangyo, baemin, ...
@@ -67,6 +69,7 @@ brands:
       baemin: https://s.baemin.com/7o3.fea3y
   꾸브라꼬숯불치킨:
     searchAliases: [꾸브라꼬, 꾸브라꼬 치킨, 꾸브라코, kkuburakko, kkuburakko chicken]
+    shortName: 꾸브라꼬
     aliases: [꾸브라꼬숯불치킨, 꾸브라꼬 숯불치킨]
     category: chicken
     links:
@@ -222,6 +225,8 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=21
   후라이드참잘하는집:
     searchAliases: [후참잘, 후라이드 잘하는집, hoo cham jal, fried chicken house]
+    # 배너처럼 자리가 좁은 곳에 쓰는 이름. 로고 파일과 원장은 대표명을 그대로 쓴다.
+    shortName: 후참잘
     category: chicken
     # 쿠팡이츠 쿠폰함은 띄어쓰기를 넣어 부른다(2026-09-12 실측).
     aliases: [후라이드 참 잘하는집]
