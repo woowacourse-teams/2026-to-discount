@@ -18,4 +18,10 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') { useJUnitPlatform() }
+tasks.named('test') {
+    useJUnitPlatform()
+    // OfferComparisonTest가 이 표를 읽는다. gradle은 기본적으로 이 파일을 test 입력으로
+    // 안 잡아서 표만 고치면 재실행 없이 캐시된 결과를 그대로 낸다 - 그러면 웹과 API가
+    // 갈라져도 못 잡는다(ADR-016). api/가 gradle 루트라 rootDir는 api/ 자신이다.
+    inputs.file("$rootDir/../docs/contracts/certainty-cases.json")
+}
