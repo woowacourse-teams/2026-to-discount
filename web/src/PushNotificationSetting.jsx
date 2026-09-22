@@ -13,9 +13,28 @@ import {
 } from './pushNotifications.js'
 import { createPushSyncRetry } from './pushSyncRetry.js'
 
+const PUSH_ENABLED_KEY = 'discount-push-enabled'
+
+function storedPushEnabled() {
+  try {
+    return globalThis.localStorage?.getItem(PUSH_ENABLED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function storePushEnabled(enabled) {
+  try {
+    if (enabled) globalThis.localStorage?.setItem(PUSH_ENABLED_KEY, '1')
+    else globalThis.localStorage?.removeItem(PUSH_ENABLED_KEY)
+  } catch {
+    // 저장소가 막혀도 브라우저의 실제 Push 구독 상태를 사용한다.
+  }
+}
+
 export default function PushNotificationSetting() {
   const [availability, setAvailability] = useState(() => pushAvailability())
-  const [enabled, setEnabled] = useState(false)
+  const [enabled, setEnabled] = useState(storedPushEnabled)
   const [failed, setFailed] = useState(false)
   const [toggleSlot, setToggleSlot] = useState(null)
   const [showPrompt, setShowPrompt] = useState(false)
@@ -55,10 +74,12 @@ export default function PushNotificationSetting() {
     if (availability !== 'ready') return
     let active = true
     const { visitorId } = getAnalyticsContext()
-    currentSubscription()
+    const refreshSubscription = ({ initialize = false } = {}) => currentSubscription()
       .then((subscription) => {
         if (!active) return
         setEnabled(Boolean(subscription))
+        storePushEnabled(Boolean(subscription))
+        if (!initialize) return
         if (!subscription) {
           setShowPrompt(recordPromptVisit())
           return
@@ -70,7 +91,20 @@ export default function PushNotificationSetting() {
         }))
       })
       .catch(() => { if (active) setFailed(true) })
-    return () => { active = false }
+
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refreshSubscription()
+    }
+    const refreshAfterPageShow = () => refreshSubscription()
+
+    refreshSubscription({ initialize: true })
+    document.addEventListener('visibilitychange', refreshWhenVisible)
+    window.addEventListener('pageshow', refreshAfterPageShow)
+    return () => {
+      active = false
+      document.removeEventListener('visibilitychange', refreshWhenVisible)
+      window.removeEventListener('pageshow', refreshAfterPageShow)
+    }
   }, [availability])
 
   async function toggle() {
@@ -85,26 +119,33 @@ export default function PushNotificationSetting() {
         const result = await disablePush()
         if (!result.localUnsubscribed) {
           setEnabled(true)
+          storePushEnabled(true)
           setFailed(true)
           setFeedback('알림을 끄지 못했습니다')
         } else if (!result.serverDeleted) {
+          storePushEnabled(false)
           setFailed(true)
           setFeedback('알림 서버 연결에 실패했습니다')
           syncRetryRef.current?.start(() => deletePushSubscription(result.endpoint))
+        } else {
+          storePushEnabled(false)
         }
       } else {
         const { visitorId } = getAnalyticsContext()
         const subscribed = await enablePush({ visitorId, analyticsEnabled: !optedOut() })
         if (subscribed) {
+          storePushEnabled(true)
           setShowPrompt(false)
         } else {
           setEnabled(false)
+          storePushEnabled(false)
           setFeedback('알림이 켜지지 않았습니다')
         }
         if (!subscribed) setAvailability(pushAvailability())
       }
     } catch {
       setEnabled(previous)
+      storePushEnabled(previous)
       setFailed(true)
       setFeedback('알림 설정을 변경하지 못했습니다')
     } finally {
