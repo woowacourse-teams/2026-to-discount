@@ -232,36 +232,21 @@ public class BrandComparisonService {
             // 원장의 금액이 아니라 오늘 기준 금액을 쓴다 — 만료된 구간 때문에
             // 대표값이 내려갔으면 카드 대표 금액과 정렬도 같이 내려가야 한다.
             //
-            // 확정 오퍼가 정렬에 기여하는 금액은 확실성에 따라 다르다
-            // ({@link OfferComparison#sortingAmount}). 프론트의 filters.js가 같은
+            // 오퍼가 정렬에 기여하는 금액은 확실성에 따라 다르다
+            // ({@link OfferComparison#comparisonAmount}). 프론트의 filters.js가 같은
             // 판정표(docs/contracts/certainty-cases.json)를 읽어 어긋남을 막는다(ADR-016).
             //
-            // own(자사)과 비할인(캐시백·포인트) 오퍼는 maxConfirmed·maxHeld 어느 쪽도
-            // 못 채운다 — 배달앱끼리 겨루는 값이 아니라 어느 쪽 천장도 그 값으로 정할 수
-            // 없다(2026-09-22 fix round 2: 자사 확정액이 "최고 할인"으로 새던 자리, 그리고
-            // 배달앱 캐시백까지 확정 할인으로 셌던 구멍 둘 다). 규칙은
-            // {@link OfferComparison#isBestCandidate} 한 곳에만 적는다 — comparable 같은
-            // 칸을 배너 파일에 새로 만들지 않는다, platform·kind가 이미 그 답이다.
-            //
-            // EXACT일 때만 물어본다 — MENU_ONLY(4,999원 대체값)는 sortingAmount가 이미
-            // 답한 축이고, 원장 qualifier에서만 나와 kind는 항상 discount, own일 수도
-            // 없으니 이 축과 안 만난다. CAPPED·RANDOM·PERCENT는 sortingAmount가 이미
-            // null을 줘서 아래에서 걸린다.
-            boolean excludedFromComparison = offer.certainty() == Certainty.EXACT
-                    && !OfferComparison.isBestCandidate(offer.certainty(), offer.kind(), offer.soldOut(), record.platform());
-            //
-            // maxHeld는 그대로 둔다 — 확정이 하나도 없는 브랜드끼리만 줄
-            // 세우는 내부값이고, 그 브랜드들은 이미 확정 있는 브랜드 전부
-            // 아래에 깔린다. 여기서까지 빼면 정렬 근거가 없어져 삽입 순서로
-            // 흩어진다.
-            if (offer.amount() != null && !excludedFromComparison) {
+            // own(자사)과 비할인(캐시백·포인트), 품절 오퍼는 maxConfirmed·maxHeld
+            // 어느 쪽도 못 채운다 — 배달앱끼리 겨루는 값이 아니라 어느 쪽 천장도 그
+            // 값으로 정할 수 없다(2026-09-22 fix round 2: 자사 확정액이 "최고 할인"으로
+            // 새던 자리, 배달앱 캐시백까지 확정 할인으로 셌던 구멍; 2026-09-23 fix round 3:
+            // 품절도 같은 문). 규칙은 {@link OfferComparison#comparisonAmount} 한 곳에만
+            // 적는다 — 호출 한 번으로 maxConfirmed·maxHeld 둘 다 같은 값을 쓴다, 나눠
+            // 물으면 한쪽만 고쳐도 안 터진다.
+            Integer forSorting = OfferComparison.comparisonAmount(
+                    offer.certainty(), offer.kind(), offer.soldOut(), record.platform(), offer.amount());
+            if (forSorting != null) {
                 boolean confirmed = record.status().isConfirmed();
-                Integer forSorting = confirmed
-                        ? OfferComparison.sortingAmount(offer.certainty(), offer.amount())
-                        : offer.amount();
-                if (forSorting == null) {
-                    continue;
-                }
                 Map<String, Integer> target = confirmed ? maxConfirmed : maxHeld;
                 target.merge(name, forSorting, Math::max);
             }

@@ -54,4 +54,23 @@ public final class OfferComparison {
             case EXACT -> amount;
         };
     }
+
+    /**
+     * 천장(maxConfirmed·maxHeld) 두 값 모두가 물어야 할 단 하나의 질문.
+     *
+     * <p>호출부가 둘로 나눠 묻던 것을 여기 하나로 모은다 - 나눠 두면 한쪽만
+     * 고쳐도 안 터진다(2026-09-23, fix round 3). MENU_ONLY는 4,999원 대체값을
+     * 주고, CAPPED·RANDOM·PERCENT는 통째로 null이다. 그 외(EXACT)는 own이거나
+     * 비할인이거나 품절이면 null, 아니면 금액 그대로다.
+     */
+    public static Integer comparisonAmount(Certainty certainty, AmountKind kind, boolean soldOut,
+            String platform, Integer amount) {
+        return switch (certainty) {
+            case MENU_ONLY -> MENU_LIMITED_SORTING_AMOUNT;
+            case CAPPED, RANDOM, PERCENT -> null;
+            case EXACT -> (OWN_PLATFORM.equals(platform) || kind != AmountKind.DISCOUNT || soldOut)
+                    ? null
+                    : amount;
+        };
+    }
 }

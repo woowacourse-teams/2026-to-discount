@@ -171,6 +171,30 @@ class BannerOfferCertaintyTest {
     }
 
     @Test
+    void soldOutOfferNeverFeedsTheBestDiscountComparison() {
+        // Fix round 3: soldOut은 own·kind와 같은 문으로 들어왔다(isBestCandidate가
+        // !soldOut도 요구한다) - 확정 오퍼가 매진뿐인 브랜드는 maxConfirmedAmount가
+        // null이어야 byBestDiscount()에서 안 뜬다. 매진을 안 걸면(assertEquals(5000, ...))
+        // 이 테스트가 잡아낸다.
+        List<BrandComparison> cards = service("""
+                banners:
+                  - id: bbq-soldout-20260922
+                    brand: BBQ
+                    platform: baemin
+                    url: "https://example.test/s"
+                    amount: {won: 5000}
+                    soldOut: true
+                    startsAt: 2026-09-22T00:00
+                    endsAt: 2026-09-22T23:59
+                """).compare();
+        assertEquals(1, cards.size());
+        BrandComparison card = cards.get(0);
+        assertEquals(5000, card.offers().get(0).amount(), "오퍼 자체는 카드에 선다");
+        assertTrue(card.offers().get(0).soldOut());
+        assertNull(card.maxConfirmedAmount(), "확정 오퍼가 매진뿐이면 최고 할인 후보가 아니다");
+    }
+
+    @Test
     void ownBannerCarriesItsRealAmountKind() {
         // Offer.from이 kind를 discount로 굳히면 백억커피 네이버페이 적립(캐시백)이
         // 확정 할인으로 둔갑한다(banners.yml 예시에 있는 실제 사례).
@@ -215,7 +239,7 @@ class BannerOfferCertaintyTest {
         // 퍼센트를 적으면 App.jsx의 status-badge 자리(기간·시각 배지가 쓰는 자리)를
         // 뺏는다(2026-09-21 고정을 되돌리는 셈). 배달앱 정률 배너는 Task 8 이전처럼
         // 오퍼로 안 서는 것이 무회귀다 - own은 예외(ownBannerNowStandsAsAnOffer).
-        List<BrandComparison> cards = service("""
+        String yaml = """
                 banners:
                   - id: bbq-rate-20260922
                     brand: BBQ
@@ -224,8 +248,14 @@ class BannerOfferCertaintyTest {
                     amount: {percent: 30}
                     startsAt: 2026-09-22T00:00
                     endsAt: 2026-09-22T23:59
-                """).compare();
-        assertEquals(List.of(), cards);
+                """;
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource(yaml.getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
+        BrandComparisonService svc =
+                new BrandComparisonService(new OfferRepository(null), emptyBrands(), banners, CLOCK, "");
+
+        assertEquals(List.of(), svc.compare());
+        assertEquals(1, banners.active().size(), "레일에는 여전히 뜬다");
     }
 
     @Test

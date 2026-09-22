@@ -192,10 +192,12 @@ class BrandComparisonServiceTest {
     @Test
     void confirmedlessBrandsSortByHeldAmountDescending() {
         // held 작은 쪽을 먼저 넣어, 삽입 순서가 아니라 금액으로 정렬되는지 본다.
+        // qualifier는 비워 EXACT로 둔다 - "최대"(CAPPED)는 fix round 3부터
+        // comparisonAmount가 확정·보류 어느 쪽에도 null을 줘 이 정렬 검증과 안 맞는다.
         var result = serviceWith(
                 List.of(rec("baemin", "확정브랜드", 5000, null, false),
-                        rec("yogiyo", "held3000", 3000, "최대", true),
-                        rec("yogiyo", "held8000", 8000, "최대", true)),
+                        rec("yogiyo", "held3000", 3000, null, true),
+                        rec("yogiyo", "held8000", 8000, null, true)),
                 "brands: {}").compare();
         assertEquals("확정브랜드", result.get(0).name());
         assertEquals("held8000", result.get(1).name());
