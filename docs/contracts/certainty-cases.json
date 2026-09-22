@@ -1,13 +1,35 @@
 {
-  "note": "최고 후보 판정과 정렬 기여액. api의 OfferComparisonTest와 web의 filters.test.js가 같이 읽는다. 한쪽만 고치면 API가 준 순서와 화면이 다시 세운 순서가 어긋난다(ADR-016).",
+  "note": "최고 후보 판정과 정렬 기여액. api의 OfferComparisonTest와 web의 filters.test.js가 같이 읽는다. 한쪽만 고치면 API가 준 순서와 화면이 다시 세운 순서가 어긋난다(ADR-016). certainty 5개 x kind 3개 x soldOut 2개, 30행 전부를 채운다 - 빈 칸이 있으면 드리프트를 못 잡는다.",
   "cases": [
     {"certainty": "exact",    "kind": "discount", "soldOut": false, "amount": 5000,  "best": true,  "sorting": 5000},
     {"certainty": "exact",    "kind": "discount", "soldOut": true,  "amount": 5000,  "best": false, "sorting": 5000},
     {"certainty": "exact",    "kind": "cashback", "soldOut": false, "amount": 5000,  "best": false, "sorting": 5000},
+    {"certainty": "exact",    "kind": "cashback", "soldOut": true,  "amount": 5000,  "best": false, "sorting": 5000},
     {"certainty": "exact",    "kind": "points",   "soldOut": false, "amount": 5000,  "best": false, "sorting": 5000},
+    {"certainty": "exact",    "kind": "points",   "soldOut": true,  "amount": 5000,  "best": false, "sorting": 5000},
     {"certainty": "capped",   "kind": "discount", "soldOut": false, "amount": 8000,  "best": false, "sorting": null},
+    {"certainty": "capped",   "kind": "discount", "soldOut": true,  "amount": 8000,  "best": false, "sorting": null},
+    {"certainty": "capped",   "kind": "cashback", "soldOut": false, "amount": 8000,  "best": false, "sorting": null},
+    {"certainty": "capped",   "kind": "cashback", "soldOut": true,  "amount": 8000,  "best": false, "sorting": null},
+    {"certainty": "capped",   "kind": "points",   "soldOut": false, "amount": 8000,  "best": false, "sorting": null},
+    {"certainty": "capped",   "kind": "points",   "soldOut": true,  "amount": 8000,  "best": false, "sorting": null},
     {"certainty": "random",   "kind": "discount", "soldOut": false, "amount": 7000,  "best": false, "sorting": null},
+    {"certainty": "random",   "kind": "discount", "soldOut": true,  "amount": 7000,  "best": false, "sorting": null},
+    {"certainty": "random",   "kind": "cashback", "soldOut": false, "amount": 7000,  "best": false, "sorting": null},
+    {"certainty": "random",   "kind": "cashback", "soldOut": true,  "amount": 7000,  "best": false, "sorting": null},
+    {"certainty": "random",   "kind": "points",   "soldOut": false, "amount": 7000,  "best": false, "sorting": null},
+    {"certainty": "random",   "kind": "points",   "soldOut": true,  "amount": 7000,  "best": false, "sorting": null},
     {"certainty": "percent",  "kind": "discount", "soldOut": false, "amount": null,  "best": false, "sorting": null},
-    {"certainty": "menuOnly", "kind": "discount", "soldOut": false, "amount": 14000, "best": false, "sorting": 4999}
+    {"certainty": "percent",  "kind": "discount", "soldOut": true,  "amount": null,  "best": false, "sorting": null},
+    {"certainty": "percent",  "kind": "cashback", "soldOut": false, "amount": null,  "best": false, "sorting": null},
+    {"certainty": "percent",  "kind": "cashback", "soldOut": true,  "amount": null,  "best": false, "sorting": null},
+    {"certainty": "percent",  "kind": "points",   "soldOut": false, "amount": null,  "best": false, "sorting": null},
+    {"certainty": "percent",  "kind": "points",   "soldOut": true,  "amount": null,  "best": false, "sorting": null},
+    {"certainty": "menuOnly", "kind": "discount", "soldOut": false, "amount": 14000, "best": false, "sorting": 4999},
+    {"certainty": "menuOnly", "kind": "discount", "soldOut": true,  "amount": 14000, "best": false, "sorting": 4999},
+    {"certainty": "menuOnly", "kind": "cashback", "soldOut": false, "amount": 14000, "best": false, "sorting": 4999},
+    {"certainty": "menuOnly", "kind": "cashback", "soldOut": true,  "amount": 14000, "best": false, "sorting": 4999},
+    {"certainty": "menuOnly", "kind": "points",   "soldOut": false, "amount": 14000, "best": false, "sorting": 4999},
+    {"certainty": "menuOnly", "kind": "points",   "soldOut": true,  "amount": 14000, "best": false, "sorting": 4999}
   ]
 }
