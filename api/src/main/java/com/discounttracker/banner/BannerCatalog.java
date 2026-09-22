@@ -60,6 +60,9 @@ public class BannerCatalog {
      */
     private volatile List<String> dropped = List.of();
 
+    /** 옛 칸과 새 칸을 같이 적은 배너의 id. reload 응답에 실어 사람이 바로 안다. */
+    private volatile List<String> mixed = List.of();
+
     public BannerCatalog(@Value("${discount.banners-path:classpath:banners.yml}") Resource source,
                          Clock clock, BrandCatalog brands) {
         this.source = source;
@@ -104,18 +107,47 @@ public class BannerCatalog {
     }
 
     /**
-     * 오늘 띄울 배너. priority 오름차순, 동률이면 endsOn이 가까운 순.
+     * 오늘 이 시각에 띄울 배너. 묶음은 한 장으로 접는다.
      *
-     * <p>캐러셀 순서를 프론트가 정하지 않게 서버에서 정렬해 내려준다.
+     * <p>묶음의 순서는 구성원 중 가장 작은 priority다. 사람에게 여러 줄에 같은 숫자를
+     * 적게 하지 않는다 - 한 줄만 고치는 실수가 나고 그 실수는 화면을 봐도 안 보인다.
      */
     public List<Banner> active() {
-        LocalDate today = LocalDate.now(clock);
-        return all.stream()
-                .filter(b -> b.activeOn(today))
-                .sorted(Comparator.comparingInt(Banner::priority).thenComparing(Banner::endsOn))
-                // 매진 여부를 여기서 오늘 기준으로 굳혀 내려보낸다 — 프론트가
-                // 날짜를 다시 따지면 시계가 두 곳이 되고, 자정을 넘길 때 갈린다.
-                .map(b -> b.resolvedFor(today))
+        List<Banner> members = activeMembers();
+        List<Banner> out = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (Banner b : members) {
+            if (b.group() == null) {
+                out.add(b);
+                continue;
+            }
+            if (!seen.add(b.group())) continue;
+            List<Banner> mates = members.stream().filter(m -> b.group().equals(m.group())).toList();
+            List<String> names = mates.stream().map(Banner::brand).filter(java.util.Objects::nonNull).toList();
+            out.add(b.toBuilder()
+                    .brands(names)
+                    .brandLabels(names.stream().map(n -> brands.find(n).display()).toList())
+                    .build());
+        }
+        return List.copyOf(out);
+    }
+
+    /** 묶음을 안 접은 구성원 전부. 오퍼는 브랜드마다 하나씩 서므로 이쪽을 쓴다. */
+    public List<Banner> activeMembers() {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now(clock);
+        java.util.Map<String, Integer> groupPriority = new java.util.HashMap<>();
+        List<Banner> live = all.stream().filter(b -> b.activeAt(now)).toList();
+        for (Banner b : live) {
+            if (b.group() != null) {
+                groupPriority.merge(b.group(), b.priority(), Math::min);
+            }
+        }
+        return live.stream()
+                .map(b -> b.group() == null ? b
+                        : b.toBuilder().priority(groupPriority.get(b.group())).build())
+                .sorted(Comparator.comparingInt(Banner::priority).thenComparing(Banner::endsAt)
+                        .thenComparing(Banner::id))
+                .map(b -> b.resolvedFor(now.toLocalDate()))
                 .toList();
     }
 
@@ -136,9 +168,18 @@ public class BannerCatalog {
         return unknownBrands;
     }
 
-    /** 필수 필드(id, url, amount, period, startsOn, endsOn)가 빠져 버린 항목의 id. */
+    /**
+     * 필수 필드(id, url, 시작·종료 시각)가 빠져 버린 항목의 id.
+     *
+     * <p>Task 6부터 amount·period는 더는 필수가 아니다 - 문장 칸이 비어도 구조 칸
+     * ({@code amount:} 덩이)에서 만들 수 있기 때문이다.
+     */
     public List<String> dropped() {
         return dropped;
+    }
+
+    public List<String> mixedShape() {
+        return mixed;
     }
 
     @SuppressWarnings("unchecked")
@@ -153,14 +194,19 @@ public class BannerCatalog {
 
             List<Banner> parsed = new ArrayList<>();
             List<String> skipped = new ArrayList<>();
+            List<String> mixedIds = new ArrayList<>();
             for (Object item : list) {
                 if (item instanceof Map<?, ?> map) {
+                    if (mixedShape((Map<String, Object>) map)) {
+                        mixedIds.add(map.get("id") == null ? "(id 없음)" : String.valueOf(map.get("id")));
+                    }
                     Banner banner = toBanner((Map<String, Object>) map, brands);
                     if (banner != null) parsed.add(banner);
                     else skipped.add(map.get("id") == null ? "(id 없음)" : String.valueOf(map.get("id")));
                 }
             }
             dropped = List.copyOf(skipped);
+            mixed = List.copyOf(mixedIds);
             return List.copyOf(parsed);
         } catch (IOException e) {
             // 파일이 사라졌거나 못 읽는 경우. 부르는 쪽(reload)이 이전 목록을
@@ -182,8 +228,6 @@ public class BannerCatalog {
         String platform = text(attrs.get("platform"));
         if (platform == null) platform = Banner.OWN;
         String url = text(attrs.get("url"));
-        LocalDate startsOn = date(attrs.get("startsOn"));
-        LocalDate endsOn = date(attrs.get("endsOn"));
         // 구조 필드(설계 25, 2026-09-18). 문장 칸(amount, period, extra)이 비어 있으면
         // 여기서 만든다. 적혀 있으면 그 문장이 이긴다(이행 기간 규칙).
         BannerSpec spec;
@@ -192,19 +236,20 @@ public class BannerCatalog {
         } catch (IllegalArgumentException e) {
             return null;
         }
-        String amount = text(attrs.get("amount"));
-        String period = text(attrs.get("period"));
-        if (spec != null) {
-            if (amount == null) amount = BannerText.amount(spec);
-            if (period == null) period = BannerText.period(spec, startsOn, endsOn);
+        java.time.LocalDateTime startsAt = moment(attrs.get("startsAt"), attrs.get("startsOn"), false);
+        java.time.LocalDateTime endsAt = moment(attrs.get("endsAt"), attrs.get("endsOn"), true);
+        BannerAmount amountSpec;
+        try {
+            amountSpec = BannerAmount.of(attrs.get("amount"));
+        } catch (IllegalArgumentException e) {
+            return null;
         }
+        String amount = attrs.get("amount") instanceof String s ? s : null;
+        String period = text(attrs.get("period"));
         // platform은 선택이다(2026-09-18). 없거나 "own"이면 브랜드 자체 앱이나
         // 사이트의 행사다 — 뚜레쥬르 네이버페이 적립처럼 배달앱 밖에서 여는 행사가
         // 얼마든지 있다. 나중에 다른 플랫폼을 더할 때도 이 자리는 그대로다.
-        if (id == null || url == null
-                || amount == null || period == null || startsOn == null || endsOn == null) {
-            return null;
-        }
+        if (id == null || url == null || startsAt == null || endsAt == null) return null;
 
         Object priority = attrs.get("priority");
         // 별칭표에 없는 이름은 canonical이 그대로 돌려준다 — 대표명을 직접
@@ -220,24 +265,16 @@ public class BannerCatalog {
                     .filter(s -> s != null).map(brands::canonical).toList();
             if (many.isEmpty()) many = null;
         }
-        if (many == null && spec != null && BannerText.brands(spec) != null) {
-            many = BannerText.brands(spec).stream().map(brands::canonical).toList();
-        }
         if (brand == null && many != null) brand = many.get(0);
         Integer minOrder = number(attrs.get("minOrder"));
-        if (minOrder == null && spec != null) minOrder = BannerText.minOrder(spec);
         String extra = text(attrs.get("extra"));
-        if (extra == null && spec != null) extra = BannerText.extra(spec, minOrder);
-        return Banner.of(id, url)
+        Banner banner = Banner.of(id, url)
                 .brand(brand == null ? null : brands.canonical(brand))
                 .platform(platform)
-                .amount(amount)
-                .period(period)
-                .extra(extra)
                 .minOrder(minOrder)
                 .color(text(attrs.get("color")))
-                .startsOn(startsOn)
-                .endsOn(endsOn)
+                .startsAt(startsAt)
+                .endsAt(endsAt)
                 .soldOut(flag(attrs.get("soldOut")))
                 .soldOutOn(date(attrs.get("soldOutOn")))
                 .priority(priority instanceof Number n ? n.intValue() : Banner.DEFAULT_PRIORITY)
@@ -248,33 +285,54 @@ public class BannerCatalog {
                 // 화면에 쓸 짧은 이름. 로고와 비교는 대표명(many)을 그대로 쓴다.
                 .brandLabels(many == null ? null
                         : many.stream().map(b -> brands.find(b).display()).toList())
+                .group(text(attrs.get("group")))
+                .via(text(attrs.get("via")))
+                .amountSpec(amountSpec)
+                .targeted(flag(attrs.get("targeted")))
+                .firstCome(text(attrs.get("firstCome")))
+                .untilSoldOut(flag(attrs.get("untilSoldOut")))
+                .amount(amount)
+                .period(period)
+                .extra(extra)
+                .build();
+        // 문장 칸이 비면 구조 칸에서 만든다. 적혀 있으면 그 문장이 이긴다(이행 기간 규칙).
+        return banner.toBuilder()
+                .amount(amount != null ? amount : BannerText.amount(amountSpec))
+                .period(period != null ? period : BannerText.period(banner))
+                .extra(banner.extra() != null ? banner.extra() : BannerText.extra(banner))
                 .build();
     }
 
-    /** yml의 구조 필드를 읽는다. 하나도 없으면 null. 형이 틀리면 IllegalArgumentException. */
-    @SuppressWarnings("unchecked")
+    /** yml의 문구 칸을 읽는다. 하나도 없으면 null. */
     private static BannerSpec spec(Map<String, Object> attrs) {
-        List<BannerSpec.BannerItem> items = null;
-        if (attrs.get("items") instanceof List<?> raw) {
-            items = new ArrayList<>();
-            for (Object o : raw) {
-                if (o instanceof Map<?, ?> m) {
-                    Map<String, Object> it = (Map<String, Object>) m;
-                    items.add(new BannerSpec.BannerItem(text(it.get("brand")), number(it.get("amount")),
-                            number(it.get("minOrder")), text(it.get("opensAt"))));
-                }
-            }
-            if (items.isEmpty()) items = null;
-        }
-        List<Integer> range = null;
-        if (attrs.get("amountRange") instanceof List<?> raw) {
-            range = new ArrayList<>();
-            for (Object o : raw) range.add(number(o));
-        }
-        BannerSpec spec = new BannerSpec(items, range, text(attrs.get("opensAt")), text(attrs.get("limit")),
-                text(attrs.get("usage")), text(attrs.get("channel")), text(attrs.get("membership")),
-                text(attrs.get("event")), text(attrs.get("note")));
+        BannerSpec spec = new BannerSpec(text(attrs.get("opensAt")), text(attrs.get("channel")),
+                text(attrs.get("membership")), text(attrs.get("event")), text(attrs.get("note")));
         return spec.isEmpty() ? null : spec;
+    }
+
+    /** 옛 날짜 칸과 새 시각 칸을 다 받는다. 날짜만 있으면 하루의 시작과 끝으로 채운다. */
+    private static java.time.LocalDateTime moment(Object at, Object on, boolean endOfDay) {
+        String s = text(at);
+        if (s != null) {
+            try {
+                return java.time.LocalDateTime.parse(s.replace(" ", "T"));
+            } catch (java.time.format.DateTimeParseException e) {
+                return null;
+            }
+        }
+        LocalDate d = date(on);
+        if (d == null) return null;
+        return endOfDay ? d.atTime(23, 59) : d.atStartOfDay();
+    }
+
+    /** 옛 칸과 새 칸을 같이 적었나. 어느 쪽이 이기는지 파일만 봐서는 모른다(드리프트 2). */
+    private static boolean mixedShape(Map<String, Object> attrs) {
+        boolean dates = attrs.get("startsOn") != null || attrs.get("endsOn") != null;
+        boolean moments = attrs.get("startsAt") != null || attrs.get("endsAt") != null;
+        boolean sentences = attrs.get("amount") instanceof String
+                || attrs.get("period") != null || attrs.get("extra") != null;
+        boolean structured = attrs.get("amount") instanceof Map<?, ?>;
+        return (dates && moments) || (sentences && structured);
     }
 
     /** yes/true/1 무엇으로 적어도 참으로 읽는다. 손으로 고치는 파일이다. */

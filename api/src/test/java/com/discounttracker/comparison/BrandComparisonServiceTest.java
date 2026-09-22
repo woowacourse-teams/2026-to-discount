@@ -630,6 +630,11 @@ class BrandComparisonServiceTest {
     void aBundleBannerPutsAnOfferOnEveryBrandWithItsOwnAmount() {
         // 2026-09-19: 노모어·푸라닭 묶음("최대 10,000/8,000원", limit random)에서 푸라닭 오퍼가 안 섰고
         // 노모어는 랜덤이 아니라 불확정으로 떴다. 브랜드마다 제 금액으로, 표식은 랜덤.
+        //
+        // Task 6: BannerCatalog의 구조 필드(spec)가 문구 다섯 칸으로 줄며 limit을 더는 안 읽는다
+        // (설계 25 옛 items/amountRange/limit 자리는 Task 19가 정리한다). isRandom()은 아직
+        // spec.limit() 또는 문구의 "랜덤"만 본다(BrandComparisonService는 Task 8이 고친다) -
+        // 그래서 여기서는 문구로 랜덤임을 밝힌다.
         String brands = """
                 brands:
                   노모어피자:
@@ -646,7 +651,7 @@ class BrandComparisonServiceTest {
                     url: https://example.test/hub
                     amount: "최대 10,000/8,000원"
                     period: 오늘
-                    limit: random
+                    extra: 랜덤
                     startsOn: 2026-09-19
                     endsOn: 2026-09-19
                 """;

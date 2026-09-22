@@ -240,10 +240,14 @@ class BannerCatalogTest {
                 """;
 
         List<Banner> active = catalogOn(yaml, "2026-08-11").active();
-        assertTrue(active.get(0).notificationEnabled());
-        assertTrue(active.get(0).immediateNotificationRequested());
-        assertFalse(active.get(1).notificationEnabled());
-        assertFalse(active.get(1).immediateNotificationRequested());
+        // 우선순위와 종료일이 같으면 이제 id로 갈린다(그룹을 접을 때 순서를 정하려고
+        // 더한 세 번째 정렬 기준) - 자리 대신 id로 찾는다.
+        Banner enabled = active.stream().filter(b -> b.id().equals("notification-enabled")).findFirst().orElseThrow();
+        Banner disabled = active.stream().filter(b -> b.id().equals("notification-disabled")).findFirst().orElseThrow();
+        assertTrue(enabled.notificationEnabled());
+        assertTrue(enabled.immediateNotificationRequested());
+        assertFalse(disabled.notificationEnabled());
+        assertFalse(disabled.immediateNotificationRequested());
     }
 
     @Test
@@ -401,41 +405,54 @@ class BannerCatalogTest {
 
     @Test
     void buildsTextFromStructuredFieldsWhenSentencesAreEmpty() {
-        // 설계 25: 문장 칸 없이 items, limit만 적어도 카드가 선다. 적힌 문장은 이긴다.
+        // Task 5/6 새 모양: 문장 칸 없이 amount(구조 필드)만 적어도 카드가 선다. 적힌 문장은
+        // 이긴다. 옛 모양의 묶음(items)은 이제 여러 배너를 group으로 한 장에 접는다(Task 6).
         String yaml = """
                 banners:
-                  - id: coupangeats-open-20260918
+                  - id: coupangeats-open-버거킹-20260918
+                    group: coupangeats-open-20260918
                     platform: coupangeats
                     url: https://example.test/hub
-                    items:
-                      - {brand: 버거킹, amount: 4000, opensAt: "10:00"}
-                      - {brand: 호식이두마리치킨, amount: 6000, opensAt: "15:00"}
-                    limit: first_come
+                    brand: 버거킹
+                    amount: {won: 4000}
+                    firstCome: issue
                     startsOn: 2026-09-18
                     endsOn: 2026-09-18
+                    priority: 1
+                  - id: coupangeats-open-호식이-20260918
+                    group: coupangeats-open-20260918
+                    platform: coupangeats
+                    url: https://example.test/hub2
+                    brand: 호식이두마리치킨
+                    amount: {won: 6000}
+                    firstCome: issue
+                    startsOn: 2026-09-18
+                    endsOn: 2026-09-18
+                    priority: 2
                   - id: bhc-20260918
                     brand: bhc
                     platform: coupangeats
                     url: https://example.test/bhc
-                    amountRange: [null, 7000]
-                    limit: random
+                    amount: {won: [null, 7000], random: true}
                     period: 일일 슈퍼딜
                     startsOn: 2026-09-18
                     endsOn: 2026-09-18
                 """;
         BannerCatalog catalog = catalogOn(yaml, "2026-09-18");
-        assertEquals(2, catalog.active().size());
-        Banner open = catalog.active().get(0);
-        assertEquals("4/6천원", open.amount());
+        assertEquals(2, catalog.active().size(), "묶음 둘은 한 장으로 접힌다");
+        Banner open = catalog.active().stream()
+                .filter(b -> b.id().equals("coupangeats-open-버거킹-20260918")).findFirst().orElseThrow();
+        assertEquals("4,000원", open.amount());          // 대표(우선순위가 작은) 구성원 자신의 값
         assertEquals("9월 18일 하루", open.period());
-        assertEquals("10시~ 버거킹 · 15시~ 호식이두마리치킨 / 선착순", open.extra());
+        assertEquals("발급 선착순", open.extra());
         assertEquals(List.of("버거킹", "호식이두마리치킨"), open.brands());
         assertEquals("버거킹", open.brand());
-        Banner bhc = catalog.active().get(1);
+        Banner bhc = catalog.active().stream()
+                .filter(b -> b.id().equals("bhc-20260918")).findFirst().orElseThrow();
         assertEquals("최대 7,000원", bhc.amount());
         assertEquals("일일 슈퍼딜", bhc.period());            // 적힌 문장이 이긴다
         assertEquals("랜덤쿠폰", bhc.extra());
-        assertNotNull(bhc.spec());
+        assertNotNull(bhc.amountSpec());
     }
 
     @Test
