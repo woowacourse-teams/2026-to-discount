@@ -220,6 +220,20 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void confirmedSoldOutMenuOnlyRowSetsNoCeiling() {
+        // 확정 특정메뉴라도 품절이면 4,999원을 안 낸다. 제외 축을 확실성보다 먼저 물면서
+        // 확정 경로도 같이 바뀐 자리다(2026-09-23 fix round 4).
+        var result = serviceWith(
+                List.of(new OfferRecord("baemin", "품절브랜드", 14000, "특정메뉴", false,
+                        "discount", null, "14000원", "2026-07-27T14:20:00+09:00", "path.jpg",
+                        null, null, null, null, null, null, null, null, true)),
+                "brands: {}").compare();
+        assertEquals(1, result.size());
+        assertNull(result.get(0).maxConfirmedAmount());
+        assertNull(result.get(0).maxHeldAmount());
+    }
+
+    @Test
     void ownSoldOutMenuOnlyRowSetsNoCeiling() {
         // own에 품절인 특정메뉴 행이 4,999원 천장을 세우던 구멍. 제외 축을 확실성보다
         // 먼저 묻는다(2026-09-23 fix round 4). /api/test 픽스처로 실제로 들어온다.
@@ -652,7 +666,7 @@ class BrandComparisonServiceTest {
         assertEquals(8000, offer.amount());
         // 원장 오퍼와 같은 말을 쓴다. 구조 필드(amount.random)가 "랜덤"을 낸다(2026-09-18).
         assertEquals("랜덤", offer.qualifier());
-        // "랜덤"도 "최대"처럼 정렬에 안 들어간다(OfferComparison.sortingAmount).
+        // "랜덤"은 확정 천장에 안 들어간다(OfferComparison.comparisonAmount).
         assertNull(card.maxConfirmedAmount());
     }
 

@@ -42,8 +42,12 @@ public final class OfferComparison {
      * 질문이지 이 값 자체의 성질이 아니다.
      */
     public static boolean isBestCandidate(Certainty certainty, AmountKind kind, boolean soldOut, String platform) {
-        return certainty == Certainty.EXACT && kind == AmountKind.DISCOUNT && !soldOut
-                && !OWN_PLATFORM.equals(platform);
+        return certainty == Certainty.EXACT && comparable(kind, soldOut, platform);
+    }
+
+    /** 확실성을 빼고, 이 오퍼가 배달앱끼리 견주는 자리에 낄 수 있는 값인가. */
+    private static boolean comparable(AmountKind kind, boolean soldOut, String platform) {
+        return kind == AmountKind.DISCOUNT && !soldOut && !OWN_PLATFORM.equals(platform);
     }
 
     /** 카드 정렬에 기여하는 금액. 견줄 수 없으면 null이라 아예 안 들어간다. */
@@ -59,14 +63,13 @@ public final class OfferComparison {
      * 천장(maxConfirmed, maxHeld) 두 값 모두가 물어야 할 단 하나의 질문.
      *
      * <p>호출부가 둘로 나눠 묻던 것을 여기 하나로 모은다 - 나눠 두면 한쪽만
-     * 고쳐도 안 터진다(2026-09-23, fix round 3). 규칙은 {@link #isBestCandidate}와
+     * 고쳐도 안 터진다(2026-09-23, fix round 3). 규칙은 {@link #isBestCandidate}, {@link #comparable},
      * {@link #sortingAmount}를 그대로 불러 쓴다 - 판정표
      * {@code docs/contracts/certainty-cases.json}이 검사하는 코드가 실제로 도는
      * 코드여야 한다(2026-09-23, fix round 4).
      *
      * <p>own과 비할인, 품절은 확실성보다 먼저 뺀다. 확실성 갈래 안에서 빼면
      * own에 품절인 특정메뉴 행이 4,999원 천장을 세운다(2026-09-23 fix round 4).
-     * 확실성과 무관한 축이라 {@code isBestCandidate}에 EXACT를 넣어 그 축만 묻는다.
      *
      * <p>{@code confirmed}가 false면 CAPPED("최대")도 금액을 낸다. maxHeld는
      * 확정 오퍼가 없는 브랜드끼리 줄 세우는 데만 쓰고, 거기서는 견주는 값이
@@ -76,7 +79,7 @@ public final class OfferComparison {
      */
     public static Integer comparisonAmount(Certainty certainty, AmountKind kind, boolean soldOut,
             String platform, Integer amount, boolean confirmed) {
-        if (!isBestCandidate(Certainty.EXACT, kind, soldOut, platform)) return null;
+        if (!comparable(kind, soldOut, platform)) return null;
         if (!confirmed && certainty == Certainty.CAPPED) return amount;
         return sortingAmount(certainty, amount);
     }
