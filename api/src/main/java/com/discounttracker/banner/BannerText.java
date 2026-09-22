@@ -20,7 +20,7 @@ import java.util.Objects;
  * {@code BannerCatalog}가 아직 부르므로 그대로 둔다 - 그 호출부를 새 길로 옮기는 일은
  * Task 19다.
  */
-final class BannerText {
+public final class BannerText {
 
     private BannerText() {
     }
@@ -70,7 +70,7 @@ final class BannerText {
      * <p>그 숫자는 이미 구간의 minOrder로 따로 뜬다. 둘 다 적으면 같은 문턱이 두 번
      * 보인다(2026-09-03 네네치킨 요기요 실측).
      */
-    static String conditions(Banner b) {
+    public static String conditions(Banner b) {
         return join(b, false);
     }
 

@@ -2,11 +2,15 @@ package com.discounttracker.comparison;
 
 import com.discounttracker.banner.Banner;
 import com.discounttracker.banner.BannerCatalog;
+import com.discounttracker.banner.BannerText;
 import com.discounttracker.brand.BrandCatalog;
+import com.discounttracker.offer.Certainty;
 import com.discounttracker.offer.Offer;
-import com.discounttracker.offer.DiscountTier;
+import com.discounttracker.offer.OfferComparison;
 import com.discounttracker.offer.OfferRecord;
 import com.discounttracker.offer.OfferRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -26,6 +30,8 @@ import java.util.Map;
  */
 @Service
 public class BrandComparisonService {
+
+    private static final Logger log = LoggerFactory.getLogger(BrandComparisonService.class);
 
     private final OfferRepository offers;
     private final BrandCatalog brands;
@@ -76,9 +82,15 @@ public class BrandComparisonService {
     /**
      * 오늘 띄우는 배너 중 오퍼로 세울 수 있는 것.
      *
-     * <p>브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없고, 금액이 정액이
-     * 아닌 배너("최대 30%")는 다른 오퍼와 견줄 수가 없다. 둘 다 오퍼로는
-     * 안 넣고 배너로만 둔다 — 억지로 넣으면 정렬과 최고 할인이 흔들린다.
+     * <p>브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없어서 뺀다. 구조 칸
+     * ({@code amount:} 덩이)이 없는 배너 — 문장만 적은 옛 모양 — 도 뺀다. 문장을
+     * 다시 읽지 않기 때문이다(Task 8). 자사 배너는 2026-09-22부터 넣는다 - 브랜드
+     * 자체 앱이나 사이트의 행사도 그 브랜드를 보는 사람에게는 고를 수 있는 값이다.
+     *
+     * <p>정률 배너는 대표 정액(headline)이 없다 — 그래도 카드에는 선다. 다만 최고 할인
+     * 비교에는 못 들어간다(액수 자체가 없어서).
+     *
+     * <p>묶음은 접지 않는다. 브랜드마다 오퍼가 하나씩 선다.
      */
     private List<OfferRecord> bannerRecords() {
         // capturedAt은 날짜가 아니라 시각까지 있어야 한다. Offer.preferredOver가
@@ -88,133 +100,50 @@ public class BrandComparisonService {
         // 카드에 안 뜨는 사고가 났다(사용자 확인, 2026-09-03).
         String today = java.time.OffsetDateTime.now(clock).toString();
         List<OfferRecord> records = new ArrayList<>();
-        for (Banner banner : banners.active()) {
+        for (Banner banner : banners.activeMembers()) {
             if (banner.brand() == null) continue;
-            // 배달앱 밖의 행사(platform 없음)는 오퍼 비교 대상이 아니다 —
-            // 같은 브랜드의 배달앱 쿠폰과 나란히 세울 수 없다. 배너로만 둔다.
-            if (banner.isOwn()) continue;
-            // 랜덤 쿠폰 배너도 오퍼로 선다(사용자 2026-09-18 확인). 표식은 "랜덤"이라
-            // 카드에 랜덤 배지로 보이고, 정렬과 "최고 할인"에는 사용자가 토글로 넣는다.
-            // 파서는 Banner 한 곳이다. 여기 따로 두었을 때 "8,000/5,000/6,000원"
-            // 같은 나열에서 둘이 다른 값을 냈다(2026-09-14).
-            List<DiscountTier> compound = banner.compoundTiers();
-            // 묶음 배너는 브랜드마다 오퍼가 선다(Banner.brandAmounts, 2026-09-19).
-            for (java.util.Map.Entry<String, Integer> pair : banner.brandAmounts()) {
-            Integer amount = pair.getValue();
-
+            if (banner.amountSpec() == null) continue;
             records.add(new OfferRecord(
                     banner.platform(),
-                    pair.getKey(),
-                    amount,
-                    // 쿠폰 두 장을 겹쳐 나온 값이면 "최적"이다(ADR-019) — 그래야
-                    // 상세의 사다리와 칩의 배지가 같은 말을 한다. 둘 다 견줄 수 있는
-                    // 값이라 정렬에서 빠지지 않는다(confirmedSortingAmount).
-                    bannerQualifier(banner, compound),
+                    banner.brand(),
+                    banner.amountSpec().headline(),
+                    // 표식은 칸에서 나온다. 타겟딜은 계정에 따라 갈리므로 상한과 같은 성질이다.
+                    qualifierOf(banner),
                     false,
                     "banner",
                     null,
                     banner.amount(),
-                    // 오늘 확인한 행사다. capturedAt이 오늘이라 같은 앱에
-                    // 어제 캡처된 오퍼가 있으면 이쪽이 이긴다(Offer.preferredOver).
                     today,
                     null,
-                    // 적혀 있으면 조건으로 함께 들어간다. 없으면 상세에
-                    // "최소주문 미확인"이 뜬다 — 감추지 않는다.
-                    banner.effectiveMinOrder(),
-                    // 복합쿠폰이면 구간 둘을 겹쳐 놓는다(ADR-019). 아니면 둘 다
-                    // null이라 지금까지와 같은 대표값 하나짜리다.
-                    compound.isEmpty() ? null : "cumulative",
-                    compound.isEmpty() ? null : compound,
-                    // extra 원문이 아니라 최소주문금액 언급만 뺀 화면용
-                    // 파생값을 쓴다 — 그 숫자는 이미 tiers의 minOrder로
-                    // 따로 뜬다(사용자 지적, 2026-09-03: 네네치킨 요기요
-                    // 실측에서 문턱이 문장과 티어 줄 양쪽에 중복으로 보임).
-                    bannerConditions(banner),
+                    banner.minOrder(),
+                    null,
+                    null,
+                    BannerText.conditions(banner),
                     banner.endsOn().toString(),
-                    // 기간 문구를 배지로 올린다 — "오전 11시부터 선착순"이
-                    // 안 보이면 아무 때나 받을 수 있는 할인으로 읽힌다.
                     banner.period(),
-                    // 행사 딥링크를 이 오퍼가 들고 간다. 브랜드 링크
-                    // (brands.yml)는 그대로 둔다 — 배너와 무관한 다른 오퍼
-                    // 칩까지 행사로 끌려가면 안 되고, 배너가 끝나도 원래
-                    // 링크가 남아 있어야 한다.
                     banner.url(),
-                    // 구조 필드 membership(예: coupangEats)이 있으면 그대로. 없으면 모르는
-                    // 것이라 Membership.NONE으로 정규화된다. 2026-09-21: 쿠팡이츠 선착순은
-                    // 릴레이 슈퍼딜만 공통이고 나머지는 와우 전용인데 배너가 그걸 못 실었다.
                     banner.spec() == null ? null : banner.spec().membership(),
-                    // 다 나간 배너는 오퍼로도 품절이다. 그래야 카드에서
-                    // 취소선이 그어지고 최고 할인 후보에서도 빠진다
-                    // (프론트 bestConfirmedAmount가 soldOut을 거른다).
                     banner.soldOut()));
-            }
         }
         return records;
     }
 
     /**
-     * 배너가 오퍼로 설 때 다는 표식.
+     * 이행 기간에만 남는 다리. 원장 표기를 배너 칸에서 만든다.
      *
-     * <p>배너 금액은 사람이 적는 자유 문구라 "8,000원"과 "최대 8,000원"이
-     * 같은 칸에 들어온다. 앞의 것은 받는 금액이고 뒤의 것은 상한이다 —
-     * 랜덤 쿠폰(3,000~8,000원)이 그렇다. 그런데 금액 추출은 정규식으로
-     * 숫자만 집어가서 둘이 똑같이 8000이 된다.
-     *
-     * <p>표식을 "행사"로 굳혀 두면 상한이 확정 금액으로 서고
-     * ({@link #confirmedSortingAmount}가 "행사"를 정렬에 넣는다) 카드
-     * 대표값과 "최고 할인"까지 그 값으로 간다. 실제로 3,000원을 받을 수도
-     * 있는데 화면은 8,000원을 약속한다.
-     *
-     * <p>그래서 원장 오퍼와 같은 말을 쓴다 — 문구가 상한을 뜻하면 "최대"다.
-     * 정렬에서 빠지고 화면에는 "불확정" 배지가 붙는다.
+     * <p>{@code OfferRecord}가 아직 {@code qualifier}만 들고 있어서, 배너 칸에서 정한
+     * 확실성을 원장 표기로 한 번 돌려 적는다({@link Certainty#fromQualifier}가 되짚는다).
+     * Task 19에서 {@code OfferRecord}가 확실성을 직접 갖게 되면 이 메서드가 사라진다.
      */
-    private static String bannerQualifier(Banner banner, List<DiscountTier> compound) {
-        // 뽑기 쿠폰은 "랜덤"이다(2026-09-18). 구조 필드 limit=random이거나 문구에
-        // "랜덤"이 있으면 그렇다. 상한("최대")보다 먼저 본다 — 랜덤 배너는 대개
-        // "최대 7,000원"이라고 적히기 때문이다(coupangeats-random-20260914 bhc).
-        if (isRandom(banner)) {
-            return RANDOM_QUALIFIER;
-        }
-        String text = banner.amount();
-        if (text != null && text.contains("최대")) {
-            return MAX_QUALIFIER;
-        }
-        // 타겟딜은 계정에 따라 뜨기도 하고 안 뜨기도 한다. "행사"로 굳히면
-        // 그 금액이 확정 최고액으로 서서, 보고 온 사람 절반은 화면과 다른
-        // 앱을 만난다 — 2026-09-12 실측: bhc/홍콩반점 8,000원이 번갈아 떴다.
-        // 상한과 같은 성질이라 같은 표식("최대", 화면 배지 "불확정")을 쓴다.
-        if (isTargeted(banner)) {
-            return MAX_QUALIFIER;
-        }
-        return compound.isEmpty() ? BANNER_QUALIFIER : CUMULATIVE_QUALIFIER;
-    }
-
-    /** 뽑기 쿠폰인가. 구조 필드(limit=random) 또는 기간·부가 문구의 "랜덤". */
-    private static boolean isRandom(Banner banner) {
-        if (banner.spec() != null && "random".equals(banner.spec().limit())) return true;
-        String text = (banner.period() == null ? "" : banner.period()) + " " + (banner.extra() == null ? "" : banner.extra());
-        return text.contains("랜덤");
-    }
-
-    /** 고객마다 갈리는 딜인가. 배너 문구가 그렇게 적혀 있으면 그렇다. */
-    private static boolean isTargeted(Banner banner) {
-        return banner.extra() != null && banner.extra().contains(TARGETED_MARK);
-    }
-
-    /**
-     * 타겟딜에는 "한정"을 붙인다 — 아무나 받는 것이 아니라는 사실이
-     * 조건 줄에 남아야 한다. 일반 행사에는 안 붙인다(사용자 결정,
-     * 2026-09-12): 행사는 그 기간 누구나 받는 것이라 "한정"이 거짓이 된다.
-     */
-    private static String bannerConditions(Banner banner) {
-        String base = banner.displayConditions();
-        if (!isTargeted(banner)) {
-            return base;
-        }
-        if (base == null) {
-            return LIMITED_MARK;
-        }
-        return base.contains(LIMITED_MARK) ? base : base + " · " + LIMITED_MARK;
+    private static String qualifierOf(Banner banner) {
+        Certainty c = banner.isTargeted() ? Certainty.CAPPED : banner.amountSpec().certainty();
+        return switch (c) {
+            case CAPPED -> "최대";
+            case PERCENT -> "정률";
+            case RANDOM -> "랜덤";
+            case MENU_ONLY -> "특정메뉴";
+            case EXACT -> null;
+        };
     }
 
     /**
@@ -252,18 +181,29 @@ public class BrandComparisonService {
             // 앱마다 오퍼 하나가 대표다. 다만 뽑기 오퍼(랜덤)는 확정 오퍼와 **다른 자리**에 둔다 —
             // 같은 자리에 두면 확정액이 이겨 상한이 사라진다(2026-09-20 노모어·푸라닭). 원장
             // 쪽(store.offer_key)과 같은 규칙.
-            String slot = RANDOM_QUALIFIER.equals(offer.qualifier())
-                    ? record.platform() + "#" + RANDOM_QUALIFIER : record.platform();
-            byBrand.computeIfAbsent(name, k -> new LinkedHashMap<>())
-                    .merge(slot, offer, Offer::preferredOver);
+            String slot = offer.certainty() == Certainty.RANDOM
+                    ? record.platform() + "#random" : record.platform();
+            Map<String, Offer> offersOnPlatform = byBrand.computeIfAbsent(name, k -> new LinkedHashMap<>());
+
+            // 배너와 원장이 같은 (브랜드, 앱)을 서로 다른 확실성으로 볼 수 있다 — 사람이
+            // 배너에 "최대"라 적었는데 원장은 확정으로 캡처했거나 그 반대다. 조용히
+            // 하나를 택해 버리면 그 어긋남이 아무도 모르게 묻힌다.
+            Offer existing = offersOnPlatform.get(slot);
+            if (existing != null && existing.fromBanner() != offer.fromBanner()
+                    && existing.certainty() != offer.certainty()) {
+                log.warn("배너와 원장의 확실성이 다르다 - 브랜드={}, 플랫폼={}, 배너 확실성={}, 원장 확실성={}",
+                        name, record.platform(),
+                        offer.fromBanner() ? offer.certainty() : existing.certainty(),
+                        offer.fromBanner() ? existing.certainty() : offer.certainty());
+            }
+            offersOnPlatform.merge(slot, offer, Offer::preferredOver);
 
             // 원장의 금액이 아니라 오늘 기준 금액을 쓴다 — 만료된 구간 때문에
             // 대표값이 내려갔으면 카드 대표 금액과 정렬도 같이 내려가야 한다.
             //
-            // 확정 오퍼가 정렬에 기여하는 금액은 qualifier에 따라 다르다
-            // ({@link #confirmedSortingAmount}). 프론트가 카드 안에서 쓰는
-            // bestAmount는 이미 qualifier를 빼고 고르는데 여기가 안 빼서
-            // 두 레이어가 다른 답을 내고 있었다(ADR-016).
+            // 확정 오퍼가 정렬에 기여하는 금액은 확실성에 따라 다르다
+            // ({@link OfferComparison#sortingAmount}). 프론트의 filters.js가 같은
+            // 판정표(docs/contracts/certainty-cases.json)를 읽어 어긋남을 막는다(ADR-016).
             //
             // maxHeld는 그대로 둔다 — 확정이 하나도 없는 브랜드끼리만 줄
             // 세우는 내부값이고, 그 브랜드들은 이미 확정 있는 브랜드 전부
@@ -272,7 +212,7 @@ public class BrandComparisonService {
             if (offer.amount() != null) {
                 boolean confirmed = record.status().isConfirmed();
                 Integer forSorting = confirmed
-                        ? confirmedSortingAmount(offer)
+                        ? OfferComparison.sortingAmount(offer.certainty(), offer.amount())
                         : offer.amount();
                 if (forSorting == null) {
                     continue;
@@ -294,59 +234,7 @@ public class BrandComparisonService {
         return result;
     }
 
-    /**
-     * 특정 메뉴 한정 쿠폰이 정렬에서 갖는 값.
-     *
-     * <p>액면은 크지만(열정국밥 배민 14,000원) 메뉴 하나에만 쓰는 값이라
-     * 브랜드 전체에 걸리는 일반 할인과 같은 선에서 견줄 수 없다. 그렇다고
-     * 정렬에서 통째로 빼면 그 쿠폰밖에 없는 브랜드가 근거를 잃는다.
-     *
-     * <p>5,000원 바로 아래에 둔다 — 일반 할인 5,000원짜리를 절대 못 넘고,
-     * 그보다 작은 일반 할인보다는 위에 선다.
-     */
-    private static final int MENU_LIMITED_SORTING_AMOUNT = 4999;
-
-    /** 배너에서 온 오퍼임을 화면에 알리는 표식. 프론트가 배지로 그린다. */
-    private static final String BANNER_QUALIFIER = "행사";
-
-    /** 겹쳐 쓰는 쿠폰의 대표값임을 알리는 표식. 원장과 같은 말을 쓴다. */
-    private static final String CUMULATIVE_QUALIFIER = "최적";
-
-    /** 상한액임을 알리는 표식. 원장과 같은 말을 쓴다 — 정렬에서 빠진다. */
-    private static final String MAX_QUALIFIER = "최대";
-    /** 뽑기 쿠폰임을 알리는 표식(2026-09-18). 상한처럼 정렬에서 빠진다. 원장과 같은 말. */
-    private static final String RANDOM_QUALIFIER = "랜덤";
     /** 브랜드 링크 없이는 그 브랜드에 못 가는 앱 — 링크 없는 오퍼는 숨긴다(application.yml
      * discount.hide-unlinked-platforms, 기본 yogiyo). 테스트의 4인자 생성자는 비어 있다. */
     private final java.util.Set<String> unlinkedHidden;
-    /** 배너 문구에 이 말이 있으면 고객마다 갈리는 딜이다. */
-    private static final String TARGETED_MARK = "타겟딜";
-    private static final String LIMITED_MARK = "한정";
-
-    /**
-     * 확정 오퍼가 카드 정렬(maxConfirmedAmount)에 기여하는 금액.
-     * 견줄 수 없는 값이면 {@code null}이라 아예 안 들어간다.
-     */
-    private static Integer confirmedSortingAmount(Offer offer) {
-        String qualifier = offer.qualifier();
-        if (qualifier == null) {
-            return offer.amount();
-        }
-        if ("특정메뉴".equals(qualifier)) {
-            return MENU_LIMITED_SORTING_AMOUNT;
-        }
-        // "최대"(화면 배지 "불확정")만 뺀다. 최소주문금액을 채워야 나오는
-        // 상한액이라 얼마를 받는지가 아직 정해지지 않은 값이다.
-        //
-        // "최적"(쿠폰을 다 겹쳤을 때)과 "행사"(당일 배너)는 넣는다 — 조건은
-        // 붙지만 액수 자체는 확정이고, 빼두면 그 브랜드에서 실제로 받을 수
-        // 있는 가장 큰 값이 화면에서 사라진다.
-        //
-        // 프론트의 isBest(App.jsx)가 같은 규칙을 들고 있다. 한쪽만 고치면
-        // 카드 정렬과 카드 안 "최고 할인" 표식이 서로 다른 답을 낸다(ADR-016).
-        if (MAX_QUALIFIER.equals(qualifier) || RANDOM_QUALIFIER.equals(qualifier)) {
-            return null;
-        }
-        return offer.amount();
-    }
 }

@@ -564,22 +564,23 @@ class BrandComparisonServiceTest {
         assertEquals(3, result.get(0).offers().get(0).tiers().size(), "품절 구간은 만료가 아니라 그대로 있다");
     }
 
+    // Task 8: 구조 칸(amount:)을 쓰는 새 모양이다. 문장(period/extra)은 여전히 손으로
+    // 적을 수 있지만, 오퍼로 설 때 읽는 칸은 amount:/minOrder:/targeted:/firstCome: 뿐이다.
     private static final String BANNER_YAML = """
             banners:
               - id: goobne-20260817
                 brand: goobne
                 platform: yogiyo
                 url: https://example.test/a
-                amount: "6,500원(4,000+10%)"
+                amount: {won: 6500}
                 period: 매일 오후 3시부터 선착순
-                extra: "25,000원↑, 선착순"
                 minOrder: 25000
                 startsOn: 2026-08-17
                 endsOn: 2026-08-23
               - id: allapps-20260817
                 platform: baemin
                 url: https://example.test/b
-                amount: "첫 주문 5,000원"
+                amount: {won: 5000}
                 period: 상시
                 startsOn: 2026-08-17
                 endsOn: 2026-08-23
@@ -587,7 +588,7 @@ class BrandComparisonServiceTest {
                 brand: BBQ
                 platform: baemin
                 url: https://example.test/c
-                amount: "최대 30%"
+                amount: {percent: 30}
                 period: 상시
                 startsOn: 2026-08-17
                 endsOn: 2026-08-23
@@ -595,19 +596,17 @@ class BrandComparisonServiceTest {
                 brand: 두찜
                 platform: coupangeats
                 url: https://example.test/d
-                amount: "최대 8,000원"
+                amount: {won: [3000, 8000], random: true}
                 period: 이번주
-                extra: "랜덤쿠폰(3,000~8,000)"
                 startsOn: 2026-08-17
                 endsOn: 2026-08-23
             """;
 
     @Test
     void marksBannerWithAnUpperBoundAsMaxNotConfirmed() {
-        // 랜덤 쿠폰(3,000~8,000원)은 상한만 정해져 있다. 금액 추출이
-        // 정규식이라 "8,000원"과 "최대 8,000원"이 똑같이 8000이 되는데,
-        // 표식까지 "행사"로 굳으면 상한이 확정 금액으로 서서 카드 대표값과
-        // "최고 할인"이 8,000원을 약속한다 — 3,000원을 받을 수도 있는데.
+        // 랜덤 쿠폰(3,000~8,000원)은 상한만 정해져 있다. 표식까지 확정으로 굳으면
+        // 상한이 확정 금액으로 서서 카드 대표값과 "최고 할인"이 8,000원을 약속한다 —
+        // 3,000원을 받을 수도 있는데.
         String brands = """
                 brands:
                   두찜:
@@ -620,21 +619,21 @@ class BrandComparisonServiceTest {
 
         Offer offer = card.offers().get(0);
         assertEquals(8000, offer.amount());
-        // 원장 오퍼와 같은 말을 쓴다. 문구가 "랜덤쿠폰"이라 "랜덤"이다(2026-09-18).
+        // 원장 오퍼와 같은 말을 쓴다. 구조 필드(amount.random)가 "랜덤"을 낸다(2026-09-18).
         assertEquals("랜덤", offer.qualifier());
-        // "랜덤"도 "최대"처럼 정렬에 안 들어간다(confirmedSortingAmount).
+        // "랜덤"도 "최대"처럼 정렬에 안 들어간다(OfferComparison.sortingAmount).
         assertNull(card.maxConfirmedAmount());
     }
 
     @Test
     void aBundleBannerPutsAnOfferOnEveryBrandWithItsOwnAmount() {
-        // 2026-09-19: 노모어·푸라닭 묶음("최대 10,000/8,000원", limit random)에서 푸라닭 오퍼가 안 섰고
-        // 노모어는 랜덤이 아니라 불확정으로 떴다. 브랜드마다 제 금액으로, 표식은 랜덤.
+        // 2026-09-19: 노모어·푸라닭 묶음에서 푸라닭 오퍼가 안 섰고 노모어는 랜덤이 아니라
+        // 불확정으로 떴다. 브랜드마다 제 금액으로, 표식은 랜덤.
         //
-        // Task 6: BannerCatalog의 구조 필드(spec)가 문구 다섯 칸으로 줄며 limit을 더는 안 읽는다
-        // (설계 25 옛 items/amountRange/limit 자리는 Task 19가 정리한다). isRandom()은 아직
-        // spec.limit() 또는 문구의 "랜덤"만 본다(BrandComparisonService는 Task 8이 고친다) -
-        // 그래서 여기서는 문구로 랜덤임을 밝힌다.
+        // Task 6이 group:으로 묶은 배너를 구성원 단위로 펼친다(BannerCatalog.activeMembers) -
+        // 옛 brands:[...] 나열식 묶음 대신 이 모양을 쓴다. 랜덤 표식은 구조 필드
+        // (amount.random)가 낸다 - 문구에 "랜덤"이 없어도 선다(Task 8, extra: 랜덤
+        // 땜질을 걷어낸다).
         String brands = """
                 brands:
                   노모어피자:
@@ -644,14 +643,22 @@ class BrandComparisonServiceTest {
                 """;
         String yaml = """
                 banners:
-                  - id: coupangeats-weekly-20260919
+                  - id: coupangeats-weekly-nomore-20260919
+                    group: g1
                     brand: 노모어피자
-                    brands: [노모어피자, 푸라닭]
                     platform: coupangeats
                     url: https://example.test/hub
-                    amount: "최대 10,000/8,000원"
+                    amount: {won: [null, 10000], random: true}
                     period: 오늘
-                    extra: 랜덤
+                    startsOn: 2026-09-19
+                    endsOn: 2026-09-19
+                  - id: coupangeats-weekly-puradak-20260919
+                    group: g1
+                    brand: 푸라닭
+                    platform: coupangeats
+                    url: https://example.test/hub
+                    amount: {won: [null, 8000], random: true}
+                    period: 오늘
                     startsOn: 2026-09-19
                     endsOn: 2026-09-19
                 """;
@@ -721,11 +728,13 @@ class BrandComparisonServiceTest {
 
         Offer offer = card.offers().get(0);
         assertEquals(6500, offer.amount());
-        // "6,500원(4,000+10%)"는 쿠폰 두 장을 겹친 값이라 "행사"가 아니라
-        // "최적"이다(ADR-019) — 상세의 사다리와 칩의 배지가 같은 말을 해야 한다.
-        assertEquals("최적", offer.qualifier());
-        assertEquals("cumulative", offer.tierMode());
-        assertEquals(2, offer.tiers().size());
+        // 확정 오퍼는 이제 qualifier가 없다 — 배너 출처는 fromBanner가 이미 답한다(Task 8).
+        // 쿠폰을 겹친 사다리(옛 "최적")는 구조 칸에 대응이 없어 더는 만들지 않는다
+        // (Banner.compoundTiers는 Task 19가 정리할 다리로만 남는다).
+        assertNull(offer.qualifier());
+        assertTrue(offer.fromBanner());
+        assertNull(offer.tierMode());
+        assertNull(offer.tiers());
         assertEquals("2026-08-23", offer.expiresAt());
         // 적어둔 최소주문금액이 조건으로 함께 들어가야 상세가 "미확인"으로
         // 남지 않는다.
@@ -797,7 +806,7 @@ class BrandComparisonServiceTest {
                     brand: goobne
                     platform: yogiyo
                     url: https://example.test/a
-                    amount: "6,000원"
+                    amount: {won: 6000}
                     period: 오전 11시 선착순
                     soldOut: true
                     startsOn: 2026-08-20
@@ -829,7 +838,7 @@ class BrandComparisonServiceTest {
                     brand: goobne
                     platform: yogiyo
                     url: https://example.test/a
-                    amount: "6,000원"
+                    amount: {won: 6000}
                     period: 오전 11시 선착순
                     soldOutOn: 2026-08-20
                     startsOn: 2026-08-19
@@ -851,23 +860,24 @@ class BrandComparisonServiceTest {
 
     @Test
     void dropsBannersThatCannotStandAsAnOffer() {
-        // 브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없고, 정액이 아닌
-        // 금액("최대 30%")은 다른 오퍼와 견줄 수가 없다.
+        // 브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없다. 정률 배너("최대 30%")와
+        // 랜덤 배너(3,000~8,000원)는 카드에 서긴 하지만 액수가 확정이 아니라
+        // certainty가 EXACT가 아니다 — 확정으로 셀 수 있는 건 goobne 하나뿐이다.
         String brands = """
                 brands:
                   BBQ:
                     category: chicken
+                  두찜:
+                    category: chicken
                 """;
-        List<String> withEventOffer =
+        List<String> confirmedByBanner =
                 serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML).compare().stream()
-                        // 배너에서 온 오퍼는 "행사", 그중 복합쿠폰은 "최적"이다.
                         .filter(c -> c.offers().stream().anyMatch(
-                                o -> "행사".equals(o.qualifier()) || "최적".equals(o.qualifier())))
+                                o -> o.fromBanner() && o.certainty() == com.discounttracker.offer.Certainty.EXACT))
                         .map(c -> c.brand().name())
                         .toList();
 
-        // 셋 중 정액에 브랜드까지 있는 배너 하나만 남는다.
-        assertEquals(List.of("goobne"), withEventOffer);
+        assertEquals(List.of("goobne"), confirmedByBanner);
     }
 
     @Test
@@ -886,9 +896,8 @@ class BrandComparisonServiceTest {
 
     @Test
     void countsEventAndBestCombinationOffersTowardTheBestDiscount() {
-        // "최대"만 뺀다 — 그건 최소주문금액을 채워야 나오는 상한액이라
-        // 얼마를 받는지가 아직 안 정해졌다. "행사"와 "최적"은 조건이 붙을
-        // 뿐 액수 자체는 확정이다.
+        // 상한("최대")만 정렬에서 뺀다 — 최소주문금액을 채워야 나오는 값이라 얼마를
+        // 받는지가 아직 안 정해졌다. 확정(EXACT) 배너 오퍼는 액수 자체가 확정이라 그대로 든다.
         String brands = """
                 brands:
                   굽네치킨:

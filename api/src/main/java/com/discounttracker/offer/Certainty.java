@@ -40,6 +40,10 @@ public enum Certainty {
      *
      * <p>"최적"과 "최소"는 겹침 축({@code tierMode})이 이미 답하는 사실이라 확실성으로는
      * 그냥 확정이다. "행사"는 출처 축({@code fromBanner})이 답한다.
+     *
+     * <p>"정률"은 원장(schema.py ALLOWED_QUALIFIERS)에는 없는 값이다 - 배너의 구조 필드
+     * (amount.percent)에서만 나온다(Task 8). {@code BrandComparisonService.qualifierOf}가
+     * {@link #PERCENT}를 이행 기간 동안 이 문자열로 실어 보내고, 여기서 되짚는다.
      */
     public static Certainty fromQualifier(String qualifier) {
         if (qualifier == null) return EXACT;
@@ -47,6 +51,7 @@ public enum Certainty {
             case "최대" -> CAPPED;
             case "랜덤" -> RANDOM;
             case "특정메뉴" -> MENU_ONLY;
+            case "정률" -> PERCENT;
             default -> EXACT;
         };
     }
