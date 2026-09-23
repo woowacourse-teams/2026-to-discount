@@ -10,6 +10,7 @@ import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
 import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
+import { bannerTag } from './bannerTag.js'
 
 // 넘어가는 간격. 4.3초에서 1초 늘렸다(사용자 결정 2026-09-16).
 const ROTATE_MS = 5300
@@ -325,18 +326,6 @@ function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, 
 
 
 // 배너 로고 오른쪽 위 스티키 탭. 구조 필드(limit)가 있으면 그것, 없으면 기간·조건 문구에서 짐작.
-function bannerTag(banner) {
-  const limit = banner.spec?.limit
-  const text = `${banner.period ?? ''} ${banner.extra ?? ''}`
-  if (limit === 'first_come' || /선착순|오픈/.test(text)) return { kind: 'first-come', label: '선착순' }
-  if (limit === 'random' || /랜덤/.test(text)) return { kind: 'random', label: '랜덤' }
-  if (limit === 'targeted' || /타겟/.test(text)) return { kind: 'targeted', label: '타겟' }
-  // 적립은 할인과 다르다 — 지금 깎아 주는 것이 아니라 나중에 포인트로 돌려준다.
-  // 같은 "최대 10,000원"이라도 쓸 수 있는 시점이 달라서 표식을 나눈다(2026-09-22).
-  if (limit === 'cashback' || /적립|환급|페이백/.test(text)) return { kind: 'cashback', label: '적립' }
-  return null
-}
-
 export default function EventBanner({ banners }) {
   const [index, setIndex] = useState(0)
   const [hovered, setHovered] = useState(false)

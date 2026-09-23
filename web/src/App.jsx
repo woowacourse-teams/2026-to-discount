@@ -480,6 +480,14 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
   // 비교에서 뺀다 — 같은 선에서 견줄 수 없는 값이다. 동점이면 동점인
   // 만큼 전부 표시한다(하나만 고르면 거짓 우열이 생긴다). 하나뿐이어도
   // 그 값이 그 브랜드에서 받을 수 있는 최고다 — 그대로 표시한다.
+  //
+  // filters.js의 bestConfirmedAmount를 그대로 안 쓴다(Task 18 결론). 그 함수는 정렬
+  // 천장을 채우려고 특정메뉴 쿠폰뿐인 브랜드에 MENU_LIMITED_SORTING_AMOUNT(4,999원)를
+  // 끼워 넣는데 — 화면에 4,999원을 진짜 가격처럼 찍으면 안 된다. 여기서는 comparable로
+  // 넣을지만 가르고 금액은 항상 오퍼의 액면(o.amount)만 쓴다 — 토글 꺼진 특정메뉴는
+  // comparable이 false라 애초에 안 낀다. 규칙은 하나(RULES 3)인데 "정렬 순서"와
+  // "화면에 찍을 값"이 갈라야 해서 두 자리에 산다. 판정표는 sortingAmount 쪽 하나만
+  // 검사하므로 어긋나면 filters.test.js가 먼저 잡는다.
   const bestAmount = useMemo(() => {
     const plain = brand.offers.filter((o) => comparable(o, include) && o.amount != null && !o.soldOut)
     if (plain.length === 0) return null
