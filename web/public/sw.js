@@ -10,6 +10,7 @@ self.addEventListener('push', (event) => {
   event.waitUntil((async () => {
     await self.registration.showNotification(payload.title, {
       body: payload.body,
+      icon: '/notification-icon.svg',
       data: { clickUrl: payload.url },
       tag: payload.notificationId,
     })
