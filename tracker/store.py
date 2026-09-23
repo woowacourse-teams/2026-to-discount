@@ -8,7 +8,7 @@ from schema import PERSISTENT_EXCLUSIONS, validate_record
 def append_record(record: dict, log_path: Path) -> dict:
     normalized = validate_record(record)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(log_path, "a", encoding="utf-8") as f:
+    with open(log_path, "a", encoding="utf-8", newline="\n") as f:
         f.write(json.dumps(normalized, ensure_ascii=False) + "\n")
     return normalized
 
