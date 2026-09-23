@@ -45,6 +45,30 @@ class EventControllerTest {
     }
 
     @Test
+    void acceptsPushSubscriptionEventsWithSource() throws Exception {
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            [
+                              {"event":"push_subscription_enabled","visitorId":"v_push_on",
+                               "sessionId":"s_push","props":{"source":"header"}},
+                              {"event":"push_subscription_disabled","visitorId":"v_push_off",
+                               "sessionId":"s_push","props":{"source":"prompt"}},
+                              {"event":"push_permission_denied","visitorId":"v_push_denied",
+                               "sessionId":"s_push","props":{"source":"header"}}
+                            ]
+                            """))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.accepted").value(3));
+
+        String logged = Files.readString(Path.of(logPath));
+        assertTrue(logged.contains("\"event\":\"push_subscription_enabled\""));
+        assertTrue(logged.contains("\"event\":\"push_subscription_disabled\""));
+        assertTrue(logged.contains("\"event\":\"push_permission_denied\""));
+        assertTrue(logged.contains("\"source\":\"header\""));
+        assertTrue(logged.contains("\"source\":\"prompt\""));
+    }
+
+    @Test
     void acceptsBrandImpressionWithApprovedPropertiesAndContext() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content(batch("""
@@ -123,7 +147,7 @@ class EventControllerTest {
            .andExpect(status().isOk());
 
         // 자유 문자열로 열어두면 무엇이 진짜 갈래인지 알 수 없게 된다.
-        assertFalse(Files.readString(Path.of(logPath)).contains("script"));
+        assertFalse(Files.readString(Path.of(logPath)).contains("<script>"));
     }
 
     @Test
