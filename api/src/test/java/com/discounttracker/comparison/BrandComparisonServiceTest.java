@@ -946,8 +946,9 @@ class BrandComparisonServiceTest {
         List<String> names = serviceWith(List.of(), brands, on("2026-08-20"), yaml)
                 .compare().stream().map(c -> c.brand().name()).toList();
 
-        // 브랜드 없는 배너와 옛 문장 모양(BBQ) 배너는 안 서고, 구조 칸을 쓴 goobne만 남는다.
-        assertEquals(List.of("굽네치킨"), names);
+        // 브랜드 없는 배너(붙을 카드가 없다)만 안 선다. 옛 문장 모양(BBQ)은 2026-09-23
+        // RULES 12로 다시 선다 - 문자열 금액을 옛 경로가 읽는다.
+        assertEquals(List.of("BBQ", "굽네치킨"), names);
     }
 
     @Test

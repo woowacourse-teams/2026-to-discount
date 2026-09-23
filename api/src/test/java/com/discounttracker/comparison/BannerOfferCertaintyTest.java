@@ -259,10 +259,10 @@ class BannerOfferCertaintyTest {
     }
 
     @Test
-    void oldSentenceShapeBannerStaysOnTheRailButNeverBecomesAnOffer() {
-        // amountSpec() == null 가드가 실제로 지키는 경계: 문장만 적은 옛 모양은 레일에는
-        // 그대로 뜨지만(BannerCatalog.active()) 브랜드 카드의 오퍼로는 안 선다 - 문장을
-        // 다시 안 읽는다(Task 8). 이 한 줄이 배포된 banners.yml의 향방을 가른다.
+    void oldSentenceShapeBannerStandsAsAnOfferToo() {
+        // 2026-09-23 RULES 12로 뒤집혔다. Task 8이 여기서 문장 모양을 건너뛰게 했는데,
+        // 라이브 배너 9장이 전부 문장 모양이라 브랜드 카드의 배너 오퍼가 통째로
+        // 사라졌다(조용한 회귀 - 레일은 그대로 떴다). 이제 옛 경로로 내려가 선다.
         String yaml = """
                 banners:
                   - id: oldshape-20260922
@@ -280,7 +280,8 @@ class BannerOfferCertaintyTest {
         BrandComparisonService svc =
                 new BrandComparisonService(new OfferRepository(null), emptyBrands(), banners, CLOCK, "");
 
-        assertEquals(List.of(), svc.compare(), "구조 칸(amount:)이 없으면 오퍼로 안 선다");
+        assertEquals(1, svc.compare().size(), "구조 칸이 없어도 문자열 금액에서 오퍼가 선다");
+        assertEquals(8000, svc.compare().get(0).offers().get(0).amount());
         assertEquals(1, banners.active().size(), "레일에는 여전히 뜬다");
         assertEquals("8,000원", banners.active().get(0).amount());
     }

@@ -84,8 +84,8 @@ public class BrandComparisonService {
      * 오늘 띄우는 배너 중 오퍼로 세울 수 있는 것.
      *
      * <p>브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없어서 뺀다. 구조 칸
-     * ({@code amount:} 덩이)이 없는 배너 — 문장만 적은 옛 모양 — 도 뺀다. 문장을
-     * 다시 읽지 않기 때문이다(Task 8). 자사 배너는 2026-09-22부터 넣는다 - 브랜드
+     * ({@code amount:} 덩이)이 없는 배너 — 문장만 적은 옛 모양 — 는 {@link #legacyRecords}
+     * 로 내려간다(RULES 12). 자사 배너는 2026-09-22부터 넣는다 - 브랜드
      * 자체 앱이나 사이트의 행사도 그 브랜드를 보는 사람에게는 고를 수 있는 값이다.
      *
      * <p>정률 배너는 대표 정액(headline)이 없다 — 그래도 카드에는 선다. 다만 최고 할인
@@ -104,7 +104,19 @@ public class BrandComparisonService {
         for (Banner banner : banners.activeMembers()) {
             if (banner.brand() == null) continue;
             BannerAmount amountSpec = banner.amountSpec();
-            if (amountSpec == null) continue;
+            // 구조 칸에 금액이 없으면 옛 경로로 내려간다(RULES 12). 여기서 건너뛰면
+            // 문자열 amount로 적힌 배너 전부가 브랜드 카드에서 조용히 사라진다 -
+            // 라이브 9장이 전부 그 모양이었다. 옛 limit(cashback/random)만 보고 만든
+            // 껍데기 amountSpec(BannerCatalog)도 금액이 없어 같이 내려간다.
+            //
+            // 이 갈림길은 라이브 banners.yml에 문자열 amount 행이 0장이 되는 날
+            // 지운다 - RULES 9가 만료 배너를 그대로 두기로 했으므로 그날은 영영 안
+            // 올 수도 있다. 몇 장 남았는지는 beggars-ops의
+            // `python tools/convert_banners.py --file <banners.yml>`이 센다.
+            if (amountSpec == null || (amountSpec.headline() == null && amountSpec.percent() == null)) {
+                records.addAll(legacyRecords(banner, today));
+                continue;
+            }
             // 정률 배너는 배달앱에서는 오퍼로 안 선다(2026-09-22 되돌림). headline()이 없어
             // amount null인 채로 서면 "금액 미확인" 칩이 뜨고, 그걸 가리려 배지에 퍼센트를
             // 적으면 App.jsx의 status-badge 한 자리를 차지해 기간·시각 배지가 사라진다
@@ -143,6 +155,91 @@ public class BrandComparisonService {
                     amountSpec.kind().key()));
         }
         return records;
+    }
+
+    /**
+     * 옛 모양 배너(문자열 {@code amount})가 세우는 오퍼. 브랜드마다 하나씩 선다.
+     *
+     * <p>{@code origin/main}이 같은 자리에서 하던 일 그대로다 -
+     * {@link Banner#brandAmounts()}가 "7/6/6/5천원" 같은 나열을 브랜드 순서로 짝짓고,
+     * {@link Banner#compoundTiers()}가 겹쳐 쓴 쿠폰을 구간으로 풀고,
+     * {@link Banner#effectiveMinOrder()}가 {@code extra} 문장에서 문턱을 되짚는다.
+     * RULES 1이 이 셋을 지우지 말라고 한 자리가 여기다.
+     *
+     * <p>자사(own)와 정률 취급은 새 경로와 같다. 정률만 적은 옛 배너("최대 30%")는
+     * {@code brandAmounts()}가 빈 목록을 내므로 저절로 안 선다 - 따로 막지 않는다.
+     */
+    private List<OfferRecord> legacyRecords(Banner banner, String today) {
+        List<com.discounttracker.offer.DiscountTier> compound = banner.compoundTiers();
+        String qualifier = legacyQualifier(banner);
+        List<OfferRecord> out = new ArrayList<>();
+        for (Map.Entry<String, Integer> pair : banner.brandAmounts()) {
+            out.add(new OfferRecord(
+                    banner.platform(),
+                    pair.getKey(),
+                    pair.getValue(),
+                    qualifier,
+                    false,
+                    "banner",
+                    // 새 경로와 같이 배너 id를 싣는다 - 확실성 경고 로그가 이 값으로
+                    // 어느 배너인지 찾는다(origin/main은 null이었다, 그때는 그 로그가 없었다).
+                    banner.id(),
+                    banner.amount(),
+                    today,
+                    null,
+                    banner.effectiveMinOrder(),
+                    compound.isEmpty() ? null : "cumulative",
+                    compound.isEmpty() ? null : compound,
+                    legacyConditions(banner),
+                    banner.endsOn().toString(),
+                    banner.period(),
+                    banner.url(),
+                    banner.spec() == null ? null : banner.spec().membership(),
+                    banner.soldOut(),
+                    banner.amountSpec() == null ? null : banner.amountSpec().kind().key()));
+        }
+        return out;
+    }
+
+    /**
+     * 옛 경로로 선 오퍼의 확실성. 옛 규칙 그대로다(RULES 12).
+     *
+     * <p>뽑기가 먼저다 - 랜덤 배너는 대개 "최대 7,000원"이라고 적힌다. 그 다음이 금액
+     * 문구의 "최대", 그 다음이 타겟딜이다(계정마다 갈리니 상한과 같은 성질). 나머지는
+     * 확정이다.
+     *
+     * <p>{@code origin/main}의 {@code isRandom}은 {@code spec.limit() == "random"}을 봤는데
+     * 지금은 {@code BannerCatalog}가 그 칸을 {@code amountSpec.random}으로 옮겨 담는다 -
+     * 같은 사실을 새 자리에서 읽는다. {@code isTargeted}의 {@code extra}에 적힌 "타겟딜"도
+     * 마찬가지로 {@code banner.targeted}로 옮겨 담기는데, 문장에만 적고 칸은 비운 옛 행이
+     * 남아 있어 문장도 함께 본다. {@code origin/main}이 겹침에 붙이던 "최적"은 안 쓴다 -
+     * {@link Certainty#fromQualifier}가 그것을 EXACT로 읽어 값이 같고, 겹침이라는 사실은
+     * {@code tierMode}가 이미 답한다.
+     */
+    private static String legacyQualifier(Banner banner) {
+        if (legacyRandom(banner)) return "랜덤";
+        if (banner.amount() != null && banner.amount().contains("최대")) return "최대";
+        if (legacyTargeted(banner)) return "최대";
+        return null;
+    }
+
+    private static boolean legacyRandom(Banner banner) {
+        if (banner.amountSpec() != null && banner.amountSpec().certainty() == Certainty.RANDOM) return true;
+        String text = (banner.period() == null ? "" : banner.period())
+                + " " + (banner.extra() == null ? "" : banner.extra());
+        return text.contains("랜덤");
+    }
+
+    private static boolean legacyTargeted(Banner banner) {
+        return banner.isTargeted() || (banner.extra() != null && banner.extra().contains("타겟딜"));
+    }
+
+    /** 옛 경로의 조건 줄. {@code extra}에서 최소주문 언급만 빼고, 타겟딜이면 "한정"을 붙인다. */
+    private static String legacyConditions(Banner banner) {
+        String base = banner.displayConditions();
+        if (!legacyTargeted(banner)) return base;
+        if (base == null) return "한정";
+        return base.contains("한정") ? base : base + " · 한정";
     }
 
     /**
