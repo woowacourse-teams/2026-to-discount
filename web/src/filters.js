@@ -83,23 +83,18 @@ export function isDefaultFilters(f) {
 }
 
 /**
- * 이 오퍼의 확실성. API가 `certainty`를 내려준다. 아직 안 오면(옛 캐시,
- * 미러 배포 시차) `qualifier`에서 끌어낸다. 양쪽이 다 나간 뒤에나 이
- * 다리를 뗀다. 모르는 값도 예전값도 전부 `exact`로 떨어진다(RULES 5).
+ * 이 오퍼의 확실성. API가 `certainty`를 항상 내려준다(RULES 11, Task 19) - Task 8부터
+ * 서버가 옛 원장의 `qualifier`에서 끌어내 응답에 싣는 쪽으로 바뀌었으니, 웹이 그
+ * 변환을 다시 할 필요가 없다.
  *
- * Object.create(null)로 만든다 - platforms.js의 ICON_BY_KEY와 같은 이유다.
- * 평범한 객체 리터럴은 Object.prototype을 물려받아 qualifier가 우연히
- * "constructor" 같은 문자열이면 함수를 돌려준다.
+ * 옛 `CERTAINTY_FROM_QUALIFIER` 다리를 지웠다 - 이 앱은 서비스워커도, 응답을 오래
+ * 붙드는 캐시도 없어(2026-09-23 확인) 배포가 끝난 뒤 `certainty` 없는 응답을 계속
+ * 받을 길이 없다. 배포 겹침 순간에 옛 버전 API가 잠깐 응답해도 `?? 'exact'`가 같은
+ * 값으로 떨어져 안전하고, 다음 새로고침이면 사라진다. `offer.qualifier` 자체는
+ * 원장 호환으로 API에 남는다.
  */
-const CERTAINTY_FROM_QUALIFIER = Object.assign(Object.create(null), {
-  최대: 'capped',
-  랜덤: 'random',
-  특정메뉴: 'menuOnly',
-  정률: 'percent',
-})
-
 export function certaintyOf(offer) {
-  return offer.certainty ?? CERTAINTY_FROM_QUALIFIER[offer.qualifier] ?? 'exact'
+  return offer.certainty ?? 'exact'
 }
 
 /** 이 오퍼의 종류. 아직 안 오면 할인으로 본다(옛 응답은 전부 할인이었다). */

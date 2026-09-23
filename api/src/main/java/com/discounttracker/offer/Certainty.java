@@ -44,6 +44,15 @@ public enum Certainty {
      * <p>"정률"은 원장(schema.py ALLOWED_QUALIFIERS)에는 없는 값이다 - 배너의 구조 필드
      * (amount.percent)에서만 나온다(Task 8). {@code BrandComparisonService.qualifierOf}가
      * {@link #PERCENT}를 이행 기간 동안 이 문자열로 실어 보내고, 여기서 되짚는다.
+     *
+     * <p><b>옛 모양 전용 다리(RULES 11, Task 19).</b> 지울 수 있는 조건이 다른 셋과
+     * 다르다 - {@code data/log.jsonl}은 덧붙이기 전용 원장이라(RULES 5) 옛 {@code qualifier}
+     * 행이 지워지지 않고 영원히 남는다. 즉 "라이브에 옛 모양이 없어지면 지운다"는
+     * 조건이 여기서는 사실상 성립하지 않는다 - 원장을 다시 쓰지 않는 한 이 다리는
+     * 계속 산다. 몇 건이 이 다리를 타는지는 {@code data/log.jsonl}에서
+     * {@code grep -c '"qualifier"' data/log.jsonl}로 센다 - qualifier가 있는 행 전부가
+     * 이 다리를 거쳐야 certainty가 나온다. 원장이 덧붙이기 전용인 한 이 수는 줄지
+     * 않고, 그래서 이 다리는 사실상 지울 조건이 없다(다른 셋과 다름).
      */
     public static Certainty fromQualifier(String qualifier) {
         if (qualifier == null) return EXACT;

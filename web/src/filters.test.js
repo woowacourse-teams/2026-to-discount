@@ -14,11 +14,14 @@ test('특정메뉴 쿠폰은 넣기를 꺼도 정렬 천장(4,999원)엔 든다.
   // 3000을 냈다. api의 comparisonAmount는 토글을 모르고 특정메뉴를 늘 4,999원
   // 천장으로 센다(OfferComparison.java 주석) - 그 값이 3000보다 커 여기서도 4999가
   // 맞다. 이 쿠폰만 있는 브랜드가 정렬 기준을 잃던 문제(critical)의 증거이기도 하다.
-  const offers = [o(3000), o(9000, { qualifier: '특정메뉴' })]
+  // certainty로 직접 적는다(2026-09-23) - qualifier만으로는 더는 menuOnly/random이
+  // 안 나온다(RULES 11로 웹의 qualifier 다리를 뗐다). 실제 API 응답은 항상
+  // certainty를 같이 낸다.
+  const offers = [o(3000), o(9000, { qualifier: '특정메뉴', certainty: 'menuOnly' })]
   assert.equal(bestConfirmedAmount(offers), 4999)
   assert.equal(bestConfirmedAmount(offers, { menu: true }), 9000)
   assert.equal(bestConfirmedAmount(offers, { random: true }), 4999)
-  assert.equal(comparable(o(1, { qualifier: '랜덤' }), true), true)   // 예전 호출(랜덤만)
+  assert.equal(comparable(o(1, { qualifier: '랜덤', certainty: 'random' }), true), true)   // 예전 호출(랜덤만)
 })
 
 test('특정메뉴 쿠폰뿐인 브랜드도 정렬 천장을 잃지 않는다(fix round 1 critical)', () => {
@@ -100,16 +103,14 @@ test('판정표를 API와 같이 읽는다 - 규칙을 두 벌 적지 않는다(
   }
 })
 
-test('certainty가 안 오면 qualifier로 읽는다 - API와 웹은 따로 배포된다', () => {
-  // 드리프트. 웹이 먼저 나가면 아직 안 오는 certainty를 읽어 전부 회색이 된다.
-  assert.equal(certaintyOf({ qualifier: '최대' }), 'capped')
-  assert.equal(certaintyOf({ qualifier: '랜덤' }), 'random')
-  assert.equal(certaintyOf({ qualifier: '특정메뉴' }), 'menuOnly')
-  assert.equal(certaintyOf({ qualifier: '최적' }), 'exact')
-  assert.equal(certaintyOf({ qualifier: '행사' }), 'exact')
+test('certainty를 그대로 읽는다. 안 오면 exact다(2026-09-23, RULES 11로 qualifier 다리를 뗐다)', () => {
+  // Task 8부터 API가 certainty를 항상 낸다 - qualifier에서 끌어내는 다리는 웹에
+  // 더는 없다(Offer.qualifier 자체는 원장 호환으로 API에 남는다). qualifier만
+  // 있고 certainty가 없는 오퍼도 이제는 그냥 exact다 - "안 오면 qualifier로
+  // 읽는다"던 옛 동작이 바로 이 테스트가 지웠던 그 동작이다.
+  assert.equal(certaintyOf({ certainty: 'capped' }), 'capped')
+  assert.equal(certaintyOf({ qualifier: '최대' }), 'exact')
   assert.equal(certaintyOf({}), 'exact')
-  // certainty가 오면 그쪽이 이긴다.
-  assert.equal(certaintyOf({ qualifier: '최대', certainty: 'random' }), 'random')
 })
 
 test('캐시백은 최고 할인 후보가 아니다 - 액면으로 견줄 수 없다', () => {

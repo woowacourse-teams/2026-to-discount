@@ -36,6 +36,16 @@ import java.util.Map;
  * 복사한 표기가 그대로 들어온다 — 2026-08-21 배너에 {@code goobne}라고
  * 적혀 로고 파일(굽네치킨.png)을 못 찾고 폴백 글자만 떴다. brands.yml의
  * 별칭표가 이미 서버에 있으니 여기서 한 번 통과시킨다.
+ *
+ * <p><b>두 모양 읽기는 옛 모양 전용이다(RULES 11, Task 19).</b> {@link #toBanner}가
+ * {@code amount}가 문자열인지 지도인지, {@code startsOn}/{@code endsOn}(날짜)인지
+ * {@code startsAt}/{@code endsAt}(시각)인지를 매번 나눠 읽는다. 지울 수 있는 조건은
+ * 라이브 {@code banners.yml}에 옛 모양(문자열 {@code amount}, 옛 {@code limit}/{@code usage}/
+ * {@code items}/{@code amountRange})을 쓰는 행이 0건일 때다 - 그 전에는 만료된 95장이라도
+ * 다시 읽혀야 한다(RULES 9). 몇 건 남았는지는 이미 있는
+ * {@code python tools/convert_banners.py --file <banners.yml>}(beggars-ops, Task 11이
+ * 만든 것, 새로 만들지 않는다)로 센다 - "N장 중 M장 새 모양, K장 옛 모양 그대로"를
+ * 찍어 준다. K가 0이면 지울 수 있다.
  */
 @Component
 public class BannerCatalog {

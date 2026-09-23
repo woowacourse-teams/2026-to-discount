@@ -263,6 +263,16 @@ public record Banner(
      * 실측(2026-08-25)으로 살아 있는 배너 셋 전부가 extra에는 금액을
      * 적고 minOrder는 비워 두어, 카드에 선 오퍼가 전부 "최소주문 미확인"
      * 이었다. 그 문장을 몸도 읽게 해서 손으로 두 번 적는 일을 없앱니다.
+     *
+     * <p><b>{@code effectiveMinOrder}/{@code minOrderFromExtra}/{@code compoundMinOrders}/
+     * {@link #compoundTiers()}/{@link #brandAmounts()}는 옛 모양 전용이다(RULES 11,
+     * Task 19).</b> 전부 {@code extra} 문장을 정규식으로 되짚거나 {@code spec.items()}
+     * (BannerSpec의 옛 칸)를 읽는다 - 지울 수 있는 조건은 라이브 파일에 그 모양이 없을
+     * 때다. Task 19에서 {@code main} 트리를 찾아본 결과 이 다섯 메서드를 부르는 곳이
+     * {@code BannerTextTest}/{@code BannerCatalogTest} 말고 없었다 - {@code BrandComparisonService}가
+     * "아직 읽는다"(RULES 1)는 근거를 다시 확인 못 했다. 그래도 RULES 1이 명시적으로
+     * "손대면 안 된다"고 못 박았으니 지우지 않고 둔다 - 리플렉션이나 향후 호출부
+     * 가능성까지 이 파일만 보고 배제할 수 없다.
      */
     public Integer effectiveMinOrder() {
         Integer fromText = minOrderFromExtra();

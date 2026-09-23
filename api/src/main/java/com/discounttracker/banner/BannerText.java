@@ -16,9 +16,17 @@ import java.util.Objects;
  *
  * <p>2026-09-22 Task 5로 {@link BannerAmount}와 {@link Banner}에서 바로 만드는
  * {@link #amount(BannerAmount)}, {@link #period(Banner)}, {@link #extra(Banner)},
- * {@link #conditions(Banner)}가 들어왔다. {@link BannerSpec}에서 만들던 옛 메서드들은
- * {@code BannerCatalog}가 아직 부르므로 그대로 둔다 - 그 호출부를 새 길로 옮기는 일은
- * Task 19다.
+ * {@link #conditions(Banner)}가 들어왔다.
+ *
+ * <p><b>{@link BannerSpec} 판 메서드는 옛 모양 전용이다(RULES 11, Task 19).</b>
+ * {@code amount(BannerSpec)}, {@code period(BannerSpec, ...)}, {@code extra(BannerSpec, Integer)},
+ * {@code minOrder(BannerSpec)}, {@code brands(BannerSpec)}가 그것이다. Task 19에서 실제
+ * 호출부를 찾아봤는데 {@code main} 어디서도 이 다섯을 부르지 않았다 - {@code BannerCatalog}는
+ * {@link #amount(BannerAmount)}/{@link #period(Banner)}/{@link #extra(Banner)}만 쓴다.
+ * 지금은 {@code BannerTextTest}에서만 닿는 죽은 코드로 보이지만, RULES 1이 "손대면 안
+ * 된다"고 못 박은 것과 같은 계열(BannerSpec 기반)이라 지우지 않고 그대로 둔다 - 실제로
+ * 안 쓰이는지는 이 파일만 봐서 확신할 수 없고(리플렉션·향후 호출부 가능성), 지우는 결정은
+ * 이 재설계의 범위 밖이다.
  */
 public final class BannerText {
 
