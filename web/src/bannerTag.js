@@ -11,9 +11,14 @@
  * 받은 값을 어디서 쓸 수 있는지가 달라 문구가 달라야 한다. 캐시백은 그 결제 수단이
  * 닿는 곳이면 어디서든 쓰고, 적립은 그 브랜드나 그 앱 안에서만 쓴다.
  *
- * 정률(percent) 그 자체는 여기서 표식으로 안 만든다. 서버가 만든 amount 문구("30%
- * 할인")가 이미 금액 자리에 그대로 뜨고, 자사 정률 배너가 오퍼로 설 때는 offer.badge의
- * `n%할인` 칩(App.jsx)이 그 값을 또 보여준다. 표식 줄은 "선착순이다/타겟이다/랜덤이다/
+ * 정률(percent) 그 자체는 여기서 표식으로 안 만든다. 배너 자체(EventBanner.jsx)는
+ * 서버가 amountSpec에서 만든 amount 문구("30% 할인")를 금액 자리에 그대로 찍는다.
+ * 자사 정률 배너가 브랜드 카드의 오퍼로 설 때는 그 문구가 offer.rawText로 실려
+ * offerAmountText(App.jsx)의 폴백 값이 된다 — offer.badge는 banner.period()라
+ * `n%할인` 칩(App.jsx의 /^\d+%할인$/ 검사)은 배너에서 온 오퍼와는 안 맞고, headline()이
+ * null이라 amount도 비어 rawText로 떨어지는 경로가 실제로 값을 낸다(BrandComparisonService
+ * 인자 순서로 확인, OfferRecord.java 칸 순서와 대조). 결과("30% 할인"이 뜬다)는 같지만
+ * 지나가는 자리가 badge/칩이 아니라 rawText다. 표식 줄은 "선착순이다/타겟이다/랜덤이다/
  * 캐시백·적립이다"처럼 오퍼의 성격을 말하는 자리지 금액을 다시 적는 자리가 아니다.
  */
 export function bannerTag(banner) {

@@ -456,6 +456,80 @@ class BannerCatalogTest {
     }
 
     @Test
+    void backfillsFirstComeTargetedAndCashbackFromOldSignalsWhenTheNewFieldsAreEmpty() {
+        // Task 18 fix round 1. web/src/bannerTag.js가 이제 firstCome/targeted/amountSpec만
+        // 읽는다(문장·limit을 더는 안 본다) - RULES 8·9로 옛 모양 그대로 남는 배너는 이
+        // 세 칸이 비어 있으므로 여기서 옛 신호(문장의 "선착순"·"랜덤"·limit 칸)로
+        // 채워야 표식이 안 사라진다. archive/banners-2026-09-22.yml의 살아 있는 배너
+        // 여덟 장 중 여섯 장이 이 문장 경로(limit 없이 extra/period만)로 선착순이다.
+        String yaml = """
+                banners:
+                  - id: coupangeats-open-20260923-17시
+                    platform: coupangeats
+                    url: https://example.test/hub
+                    brand: 두찜
+                    amount: 7,000원
+                    period: 오늘 17시 선착순
+                    extra: 17시~ 와우 전용
+                    startsOn: 2026-09-23
+                    endsOn: 2026-09-23
+                  - id: 처갓집양념치킨-legacy-limit
+                    brand: 처갓집양념치킨
+                    platform: baemin
+                    url: https://example.test/jutgas
+                    amount: 8,000원
+                    period: 오늘의 핫딜
+                    startsOn: 2026-09-23
+                    endsOn: 2026-09-23
+                    limit: first_come
+                    usage: use
+                  - id: 백억커피-legacy-cashback
+                    brand: 백억커피
+                    url: https://example.test/coffee
+                    amount: 최대 10,000원, 50% 적립
+                    period: 9/21~10/11
+                    startsOn: 2026-09-21
+                    endsOn: 2026-10-11
+                    limit: cashback
+                  - id: coupangeats-weekly-legacy-random
+                    brand: bhc
+                    platform: coupangeats
+                    url: https://example.test/bhc
+                    amount: 최대 7,000원
+                    period: 일일 슈퍼딜 랜덤
+                    startsOn: 2026-09-23
+                    endsOn: 2026-09-23
+                  - id: has-new-field-already
+                    brand: 교촌치킨
+                    platform: baemin
+                    url: https://example.test/kyochon
+                    amount: 5,000원
+                    period: 선착순 특가
+                    firstCome: issue
+                    startsOn: 2026-09-23
+                    endsOn: 2026-09-23
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-23");
+        var byId = catalog.active().stream()
+                .collect(java.util.stream.Collectors.toMap(Banner::id, b -> b));
+
+        // 문장에만 "선착순"이 있고 limit도 firstCome도 없는 실제 살아있는 배너 모양.
+        assertEquals("use", byId.get("coupangeats-open-20260923-17시").firstCome());
+        // limit: first_come + usage: use — 옛 아홉 칸 시절 신호도 그대로 받는다.
+        assertEquals("use", byId.get("처갓집양념치킨-legacy-limit").firstCome());
+        // limit: cashback — amountSpec이 새로 생겨 kind가 CASHBACK이 된다.
+        assertNotNull(byId.get("백억커피-legacy-cashback").amountSpec());
+        assertEquals(com.discounttracker.offer.AmountKind.CASHBACK,
+                byId.get("백억커피-legacy-cashback").amountSpec().kind());
+        // 문장의 "랜덤" — amountSpec이 새로 생겨 random이 켜진다.
+        assertNotNull(byId.get("coupangeats-weekly-legacy-random").amountSpec());
+        assertTrue(byId.get("coupangeats-weekly-legacy-random").amountSpec().random());
+        // firstCome을 사람이 직접 적었으면 문장에 "선착순"이 있어도 그 값(issue)이 그대로다 —
+        // 백필이 덮어쓰지 않는다.
+        assertEquals("issue", byId.get("has-new-field-already").firstCome());
+    }
+
+    @Test
     void readsMinOrderOutOfTheExtraLineWhenNobodyFilledTheField() {
         // 사람은 extra에 "16,000원↑"를 적고 끝낸다. 실측(2026-08-25)에서
         // 살아 있는 배너 셋 전부가 minOrder를 비워 둔 채였고, 그 배너가

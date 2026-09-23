@@ -32,3 +32,8 @@ test('선착순이 랜덤보다 먼저다 - 뽑기 선착순은 선착순으로 
   assert.deepEqual(bannerTag({ firstCome: 'use', amountSpec: { wonMax: 7000, random: true } }),
     { kind: 'first-come', label: '선착순' })
 })
+
+test('타겟이 캐시백/적립보다 먼저다 - 개인 지정 캐시백도 타겟으로 읽힌다', () => {
+  assert.deepEqual(bannerTag({ targeted: true, amountSpec: { percent: 50, kind: 'cashback' } }),
+    { kind: 'targeted', label: '타겟' })
+})
