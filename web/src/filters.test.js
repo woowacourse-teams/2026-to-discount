@@ -9,12 +9,21 @@ import {
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
 const o = (amount, extra = {}) => ({ amount, platform: 'baemin', ...extra })
 
-test('특정메뉴 쿠폰은 넣기를 켰을 때만 최고 할인 산정에 든다(2026-09-19)', () => {
+test('특정메뉴 쿠폰은 넣기를 꺼도 정렬 천장(4,999원)엔 든다. 켜야 액면으로 오른다(2026-09-19, 2026-09-23 정정)', () => {
+  // fix round 1: 예전엔 토글이 꺼지면 이 오퍼가 통째로 빠져 bestConfirmedAmount가
+  // 3000을 냈다. api의 comparisonAmount는 토글을 모르고 특정메뉴를 늘 4,999원
+  // 천장으로 센다(OfferComparison.java 주석) - 그 값이 3000보다 커 여기서도 4999가
+  // 맞다. 이 쿠폰만 있는 브랜드가 정렬 기준을 잃던 문제(critical)의 증거이기도 하다.
   const offers = [o(3000), o(9000, { qualifier: '특정메뉴' })]
-  assert.equal(bestConfirmedAmount(offers), 3000)
+  assert.equal(bestConfirmedAmount(offers), 4999)
   assert.equal(bestConfirmedAmount(offers, { menu: true }), 9000)
-  assert.equal(bestConfirmedAmount(offers, { random: true }), 3000)
+  assert.equal(bestConfirmedAmount(offers, { random: true }), 4999)
   assert.equal(comparable(o(1, { qualifier: '랜덤' }), true), true)   // 예전 호출(랜덤만)
+})
+
+test('특정메뉴 쿠폰뿐인 브랜드도 정렬 천장을 잃지 않는다(fix round 1 critical)', () => {
+  assert.equal(bestConfirmedAmount([o(14000, { certainty: 'menuOnly' })]), 4999)
+  assert.equal(bestConfirmedAmount([o(14000, { certainty: 'menuOnly' })], { menu: true }), 14000)
 })
 
 test('정렬 우선순위는 고른 순서가 아니라 고정이다: 그 외 → 할인금액 → 최소주문금액', () => {
@@ -66,16 +75,18 @@ test('자사 오퍼가 없는 브랜드는 플랫폼을 다 끄면 그대로 사
   assert.equal(applyFilters(brands, none).length, 0)
 })
 
-test('판정표를 API와 같이 읽는다 - 규칙을 두 벌 적지 않는다(ADR-016)', () => {
+test('판정표를 API와 같이 읽는다 - 규칙을 두 벌 적지 않는다(ADR-016)', (t) => {
   // 배포 미러(nn98/delivery-discount-api)는 api/만 가져가 docs/가 없다.
-  // 파일이 없으면 이 테스트만 건너뛴다 - RULES 3.
+  // 파일이 없으면 이 테스트만 건너뛴다 - RULES 3. t.skip으로 건너뛰어야
+  // 러너의 skipped 집계에 잡힌다 - console.log와 return만으로는 단언 0개짜리
+  // ✔가 찍혀 표가 통째로 빠졌다는 사실이 안 보인다(fix round 1).
   let table
   try {
     table = JSON.parse(
       readFileSync(new URL('../../docs/contracts/certainty-cases.json', import.meta.url), 'utf8'))
   } catch (err) {
     if (err.code === 'ENOENT') {
-      console.log('certainty-cases.json 없음 - 배포 미러라 건너뜀')
+      t.skip('certainty-cases.json 없음 - 배포 미러라 건너뜀')
       return
     }
     throw err
