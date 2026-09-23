@@ -244,6 +244,8 @@ export default function TopBarA({
               {cart.size > 0 && <span className="cart-btn__count">{cart.size}</span>}
             </button>}
 
+            <span id="push-toggle-slot" className="push-toggle-slot" />
+
             {/* 홈 — 첫 화면으로. 필터·검색을 풀고 맨 위로, /brand/<이름>에서
                 들어왔으면 전체 목록으로(사용자 결정 2026-09-16). */}
             <button
