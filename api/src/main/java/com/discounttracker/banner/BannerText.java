@@ -91,6 +91,8 @@ final class BannerText {
             case "first_come" -> "issue".equals(usage) ? "발급 선착순" : "use".equals(usage) ? "사용(발급X) 선착순" : "선착순";
             case "random" -> "랜덤쿠폰";
             case "targeted" -> "타겟딜";
+            // 적립은 지금 깎는 것이 아니라 나중에 포인트로 돌아온다(2026-09-22 백억커피).
+            case "cashback" -> "적립";
             default -> null;
         };
     }

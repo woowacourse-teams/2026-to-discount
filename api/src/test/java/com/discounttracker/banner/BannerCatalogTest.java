@@ -477,10 +477,13 @@ class BannerCatalogTest {
     }
 
     private Banner banner(String amount, String extra, Integer minOrder) {
-        return new Banner("id", "교촌치킨", "baemin", "https://example.test",
-                amount, "상시", extra, minOrder, null,
-                java.time.LocalDate.parse("2026-08-25"),
-                java.time.LocalDate.parse("2026-08-25"), null, null, 1);
+        return Banner.of("id", "https://example.test")
+                .brand("교촌치킨").platform("baemin")
+                .amount(amount).period("상시").extra(extra).minOrder(minOrder)
+                .startsOn(java.time.LocalDate.parse("2026-08-25"))
+                .endsOn(java.time.LocalDate.parse("2026-08-25"))
+                .priority(1)
+                .build();
     }
 
     @Test
@@ -501,10 +504,13 @@ class BannerCatalogTest {
     void thousandShorthandPairsEveryBrandOfABundle() {
         // banner_routine.group_first_come이 "7/6/6/5천원"으로 적는다. 2026-09-21까지 이 꼴은
         // HEADLINE에 안 걸려 묶음 배너의 브랜드 오퍼가 하나도 안 섰다.
-        Banner bundle = new Banner("id", null, "coupangeats", "https://example.test",
-                "7/6/6/5천원", "오늘 17시 선착순", null, null, null,
-                java.time.LocalDate.parse("2026-09-21"), java.time.LocalDate.parse("2026-09-21"),
-                null, null, 1, java.util.List.of("두찜", "자담치킨", "후라이드참잘하는집", "꾸브라꼬숯불치킨"));
+        Banner bundle = Banner.of("id", "https://example.test")
+                .platform("coupangeats").amount("7/6/6/5천원").period("오늘 17시 선착순")
+                .startsOn(java.time.LocalDate.parse("2026-09-21"))
+                .endsOn(java.time.LocalDate.parse("2026-09-21"))
+                .priority(1)
+                .brands(java.util.List.of("두찜", "자담치킨", "후라이드참잘하는집", "꾸브라꼬숯불치킨"))
+                .build();
         assertEquals(7000, bundle.headlineAmount());
         assertEquals(java.util.List.of(
                 java.util.Map.entry("두찜", 7000), java.util.Map.entry("자담치킨", 6000),

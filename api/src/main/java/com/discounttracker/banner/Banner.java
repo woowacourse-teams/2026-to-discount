@@ -65,7 +65,11 @@ public record Banner(
         // 구조 필드(설계 25). 문장 칸이 비면 여기서 문구를 만든다. 응답에도 그대로 실린다.
         BannerSpec spec,
         @JsonProperty("notify") Boolean notifyFlag,
-        Boolean notifyImmediately) {
+        Boolean notifyImmediately,
+        // 화면에 쓸 짧은 이름. brands와 같은 순서다. 로고와 원장은 brands(대표명)를 쓰고,
+        // 글자만 이쪽을 쓴다 — 배너 한 장에 브랜드가 넷이면 긴 이름이 줄을 넘긴다
+        // (2026-09-22 사용자: 후라이드참잘하는집 -> 후참잘).
+        List<String> brandLabels) {
 
     static final int DEFAULT_PRIORITY = 999;
 
@@ -76,22 +80,75 @@ public record Banner(
         return platform == null || OWN.equals(platform);
     }
 
-    /** 옛 호출부(brands 없음)를 위한 생성자. */
-    public Banner(String id, String brand, String platform, String url, String amount,
-                  String period, String extra, Integer minOrder, String color,
-                  LocalDate startsOn, LocalDate endsOn, Boolean soldOut,
-                  LocalDate soldOutOn, int priority) {
-        this(id, brand, platform, url, amount, period, extra, minOrder, color,
-                startsOn, endsOn, soldOut, soldOutOn, priority, null, null, false, false);
+    /**
+     * 칸이 많아 순서로 쓰면 틀린다. 2026-09-22에 같은 날 두 사람이 이 record에 칸을 더했고
+     * (웹 푸시의 notify 둘, 화면용 brandLabels 하나), 인자 수가 달라진 호출부를 컴파일러가
+     * 하나씩 잡아 줘야 했다. 이름으로 적으면 칸이 늘어도 기존 호출부가 그대로 선다.
+     *
+     * <pre>Banner.of("id", "https://...").brand("교촌치킨").platform("baemin").build()</pre>
+     */
+    public static Builder of(String id, String url) {
+        return new Builder(id, url);
     }
 
-    /** 옛 호출부(spec 없음)를 위한 생성자. */
-    public Banner(String id, String brand, String platform, String url, String amount,
-                  String period, String extra, Integer minOrder, String color,
-                  LocalDate startsOn, LocalDate endsOn, Boolean soldOut,
-                  LocalDate soldOutOn, int priority, List<String> brands) {
-        this(id, brand, platform, url, amount, period, extra, minOrder, color,
-                startsOn, endsOn, soldOut, soldOutOn, priority, brands, null, false, false);
+    /** 이 배너에서 한 칸만 바꾼 사본. */
+    public Builder toBuilder() {
+        return new Builder(id, url).brand(brand).platform(platform).amount(amount)
+                .period(period).extra(extra).minOrder(minOrder).color(color)
+                .startsOn(startsOn).endsOn(endsOn).soldOut(soldOut).soldOutOn(soldOutOn)
+                .priority(priority).brands(brands).spec(spec)
+                .notify(notifyFlag).notifyImmediately(notifyImmediately).brandLabels(brandLabels);
+    }
+
+    public static final class Builder {
+        private final String id;
+        private final String url;
+        private String brand;
+        private String platform;
+        private String amount;
+        private String period;
+        private String extra;
+        private Integer minOrder;
+        private String color;
+        private LocalDate startsOn;
+        private LocalDate endsOn;
+        private Boolean soldOut;
+        private LocalDate soldOutOn;
+        private int priority = DEFAULT_PRIORITY;
+        private List<String> brands;
+        private BannerSpec spec;
+        private Boolean notify;
+        private Boolean notifyImmediately;
+        private List<String> brandLabels;
+
+        private Builder(String id, String url) {
+            this.id = id;
+            this.url = url;
+        }
+
+        public Builder brand(String v) { this.brand = v; return this; }
+        public Builder platform(String v) { this.platform = v; return this; }
+        public Builder amount(String v) { this.amount = v; return this; }
+        public Builder period(String v) { this.period = v; return this; }
+        public Builder extra(String v) { this.extra = v; return this; }
+        public Builder minOrder(Integer v) { this.minOrder = v; return this; }
+        public Builder color(String v) { this.color = v; return this; }
+        public Builder startsOn(LocalDate v) { this.startsOn = v; return this; }
+        public Builder endsOn(LocalDate v) { this.endsOn = v; return this; }
+        public Builder soldOut(Boolean v) { this.soldOut = v; return this; }
+        public Builder soldOutOn(LocalDate v) { this.soldOutOn = v; return this; }
+        public Builder priority(int v) { this.priority = v; return this; }
+        public Builder brands(List<String> v) { this.brands = v; return this; }
+        public Builder spec(BannerSpec v) { this.spec = v; return this; }
+        public Builder notify(Boolean v) { this.notify = v; return this; }
+        public Builder notifyImmediately(Boolean v) { this.notifyImmediately = v; return this; }
+        public Builder brandLabels(List<String> v) { this.brandLabels = v; return this; }
+
+        public Banner build() {
+            return new Banner(id, brand, platform, url, amount, period, extra, minOrder, color,
+                    startsOn, endsOn, soldOut, soldOutOn, priority, brands, spec,
+                    notify, notifyImmediately, brandLabels);
+        }
     }
 
     /** 이 배너가 덮는 브랜드 전부 — brands가 있으면 그것, 없으면 brand 하나. */
@@ -110,9 +167,7 @@ public record Banner(
         boolean out = soldOutOn(today);
         return Boolean.valueOf(out).equals(soldOut) && soldOutOn == null
                 ? this
-                : new Banner(id, brand, platform, url, amount, period, extra, minOrder,
-                        color, startsOn, endsOn, out, null, priority, brands, spec,
-                        notifyFlag, notifyImmediately);
+                : toBuilder().soldOut(out).soldOutOn(null).build();
     }
 
     public boolean notificationEnabled() {

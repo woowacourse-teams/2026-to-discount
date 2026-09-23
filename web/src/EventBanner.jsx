@@ -196,10 +196,13 @@ function BannerCard({ banner, position, onClose, onSeen }) {
                   전엔 금액 옆에 붙었는데 묶음 배너(브랜드 셋)에선 금액 줄이
                   접히거나 이름이 잘렸다(2026-09-16). 앱 전체 행사(brand
                   없음)면 앱 이름을 대신 쓴다. */}
+              {/* 글자는 짧은 이름(brandLabels), 로고는 대표명(brands). 브랜드가 넷이면
+                  "후라이드참잘하는집"이 줄을 넘긴다 — brands.yml의 shortName이 온다. */}
               <span className="banner__brand">
                 {banner.brands?.length > 1
-                  ? banner.brands.join(' · ')
-                  : (banner.brand ?? platform?.label ?? (banner.platform === 'own' ? '' : banner.platform))}
+                  ? (banner.brandLabels ?? banner.brands).join(' · ')
+                  : (banner.brandLabels?.[0] ?? banner.brand ?? platform?.label
+                     ?? (banner.platform === 'own' ? '' : banner.platform))}
               </span>
               <span className="banner__period">{banner.period}</span>
               {/* 다 나갔어도 배너는 남긴다. 사라지면 "원래 없었나" 싶고,
@@ -328,6 +331,9 @@ function bannerTag(banner) {
   if (limit === 'first_come' || /선착순|오픈/.test(text)) return { kind: 'first-come', label: '선착순' }
   if (limit === 'random' || /랜덤/.test(text)) return { kind: 'random', label: '랜덤' }
   if (limit === 'targeted' || /타겟/.test(text)) return { kind: 'targeted', label: '타겟' }
+  // 적립은 할인과 다르다 — 지금 깎아 주는 것이 아니라 나중에 포인트로 돌려준다.
+  // 같은 "최대 10,000원"이라도 쓸 수 있는 시점이 달라서 표식을 나눈다(2026-09-22).
+  if (limit === 'cashback' || /적립|환급|페이백/.test(text)) return { kind: 'cashback', label: '적립' }
   return null
 }
 

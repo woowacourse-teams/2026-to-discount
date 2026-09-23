@@ -174,9 +174,14 @@ function detailRows(offer) {
     return [...offer.tiers]
       .map((t) => (t.minOrder == null && t.amount === offer.amount && offer.minOrderAmount != null
         ? { ...t, minOrder: offer.minOrderAmount } : t))
+      // 구간이 스스로 멤버십을 말하지 않으면 오퍼 전체의 값을 따른다.
+      .map((t) => (t.membership == null && offer.membership ? { ...t, membership: offer.membership } : t))
       .sort((a, b) => b.amount - a.amount)
   }
-  return [{ minOrder: offer.minOrderAmount, amount: offer.amount }]
+  // 구간이 없는 오퍼(배너에서 선 것이 대부분)도 멤버십은 조건 줄에 서야 한다. 오퍼 전체에
+  // 걸린 값이라 구간 쪽만 보던 앞 판에서는 칩에만 뜨고 상세 조건에는 안 떴다(2026-09-22).
+  return [{ minOrder: offer.minOrderAmount, amount: offer.amount,
+            membership: offer.membership, channel: offer.channel }]
 }
 
 // brandLinks는 API가 내려주는 앱별 브랜드 쿠폰 바로가기(brands.yml 출처,
@@ -229,10 +234,13 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             불확정(최대)과 특정메뉴는 액면 그대로 견주면 안 되는 값이라 같은 회색으로 물러나고,
             랜덤은 뽑기라 검은 배지, 최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
         {/* 최고 할인도 같은 포스트잇 — 자리는 원래대로 왼쪽 위, 색(네온 그라디언트)은 그대로(2026-09-21). */}
+        <span className="chip-tags">
+        {/* 탭은 전부 이 한 줄에 왼쪽부터 선다(사용자 2026-09-22). 순서가 뜻이다 —
+            "최고"(값의 순위) 다음에 값의 성격(불확정·랜덤·n%), 그 다음 누구만
+            쓰는지(멤버십), 마지막이 언제까지인지(기간·시각). */}
         {best && (
           <span className="offer__range-badge offer__range-badge--best-tab" aria-label="최고 할인">최고</span>
         )}
-        <span className="chip-tags">
         {!best && showRangeBadge && (
           <span className={`offer__range-badge offer__range-badge--${QUALIFIER_TONE[offer.qualifier] ?? 'plain'}`}>
             {offer.qualifier === '최대' ? '불확정' : offer.qualifier}
@@ -257,13 +265,13 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
           </span>
         )}
-        </span>
         {/* 멤버십과 별개로 기간·시각 배지("오늘 17시 선착순")는 늘 그린다 — 배너 오퍼가
             와우 전용이 되면서 시각 배지가 사라졌다(2026-09-21). 배지 원문이 멤버십 문구
             그 자체("쿠팡와우 전용쿠폰", "배민클럽")일 때만 위의 멤버십 탭이 대신한다. */}
         {offer.badge && !/^\d+%할인$/.test(offer.badge) && !/전용|클럽|패스/.test(offer.badge) && (
           <span className="offer__status-badge">{offer.badge}</span>
         )}
+        </span>
         {offer.soldOut ? (
           <>
             <s className="offer__amount--soldout">{offerAmountText(offer)}</s>
@@ -1106,9 +1114,10 @@ export default function App() {
       <EventBanner banners={banners} />
       <PushNotificationSetting />
     <main>
-      {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 셋만 배너와 카드 사이에 둔다
-          (2026-09-19, 사용자): 할인금액 높은순, 최소주문 낮은순, 랜덤쿠폰도 넣기. 시트의
-          같은 값과 한 상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
+      {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
+          높은순, 최소주문 낮은순. 랜덤쿠폰 토글은 2026-09-21에 여기서 뺐다(사용자) — 뽑기
+          값은 사람마다 달라 자주 켤 것이 아니다. 시트에는 그대로 있다. 시트의 같은 값과 한
+          상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
       {brands && (
         <div className="quick-bar" role="group" aria-label="빠른 필터">
           {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문 낮은순']].map(([key, dir, label]) => {
@@ -1131,17 +1140,6 @@ export default function App() {
               </button>
             )
           })}
-          <button
-            type="button"
-            className={`quick-bar__chip${filters.includeRandom ? ' quick-bar__chip--on' : ''}`}
-            aria-pressed={filters.includeRandom}
-            onClick={() => {
-              setFilters((f) => ({ ...f, includeRandom: !f.includeRandom }))
-              track('quick_filter', { key: 'random', on: !filters.includeRandom })
-            }}
-          >
-            랜덤쿠폰도 넣기
-          </button>
         </div>
       )}
 

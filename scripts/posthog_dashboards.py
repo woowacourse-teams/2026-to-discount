@@ -124,6 +124,61 @@ def q(sql, display="ActionsTable"):
 
 
 INSIGHTS = [
+    # ---- 활성 사용자 (2026-09-22) ---------------------------------------
+    {
+        "name": "활성 사용자 — DAU·WAU·MAU (방문과 클릭)",
+        "description":
+            "온 사람과 쓴 사람을 나란히 센다. 이 서비스가 하는 일은 배달앱으로 "
+            "보내는 것이라(offer_link_click, banner_click), 화면만 보고 나간 "
+            "방문은 아직 아무 일도 일어나지 않은 것이다. "
+            "WAU와 MAU는 그날을 포함한 7일, 30일 동안의 고유 사람 수다 — 매일 온 "
+            "사람을 일곱 번 세지 않는다. "
+            "원장 기준 같은 숫자는 scripts/active_users.py가 낸다.",
+        "query": q(f"""
+SELECT
+    day AS `날짜`,
+    length(ids) AS `방문 DAU`,
+    length(arrayDistinct(arrayFlatten(groupArray(ids) OVER (ORDER BY day ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)))) AS `방문 WAU`,
+    length(arrayDistinct(arrayFlatten(groupArray(ids) OVER (ORDER BY day ROWS BETWEEN 29 PRECEDING AND CURRENT ROW)))) AS `방문 MAU`,
+    length(hits) AS `활성 DAU`,
+    length(arrayDistinct(arrayFlatten(groupArray(hits) OVER (ORDER BY day ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)))) AS `활성 WAU`,
+    length(arrayDistinct(arrayFlatten(groupArray(hits) OVER (ORDER BY day ROWS BETWEEN 29 PRECEDING AND CURRENT ROW)))) AS `활성 MAU`
+FROM (
+    SELECT toDate(timestamp) AS day,
+           groupUniqArray(toString(person_id)) AS ids,
+           groupUniqArrayIf(toString(person_id), event IN {GOAL}) AS hits
+    FROM events
+    WHERE {WINDOW} AND {PEOPLE} AND properties.dev IS NULL
+    GROUP BY day
+)
+ORDER BY day
+"""),
+    },
+    {
+        "name": "운영 전체 — 누적 사용자와 활성 사용자",
+        "description":
+            "서비스를 연 날부터 지금까지. 그날까지 다녀간 사람이 모두 몇 명이고 "
+            "그중 몇 명이 한 번이라도 배달앱으로 나갔는지 누적으로 센다. "
+            "일별 지표는 어제와 오늘만 보여 주지만 이 곡선은 '지금까지 이 서비스를 "
+            "쓴 사람'이라는 한 숫자를 준다. 기울기가 눕는 것이 성장이 멈춘 신호다.",
+        "query": q(f"""
+SELECT
+    day AS `날짜`,
+    visitors AS `그날 방문자`,
+    actives AS `그날 활성`,
+    sum(visitors) OVER (ORDER BY day) AS `누적 방문(연인원)`,
+    sum(actives) OVER (ORDER BY day) AS `누적 활성(연인원)`
+FROM (
+    SELECT toDate(timestamp) AS day,
+           count(DISTINCT person_id) AS visitors,
+           count(DISTINCT if(event IN {GOAL}, person_id, NULL)) AS actives
+    FROM events
+    WHERE {PEOPLE} AND properties.dev IS NULL
+    GROUP BY day
+)
+ORDER BY day
+"""),
+    },
     # ---- 0. 배너 — 장별 클릭률 ------------------------------------------
     {
         "name": "배너 — 장별 노출·클릭·클릭률 (최근 14일, 일별)",

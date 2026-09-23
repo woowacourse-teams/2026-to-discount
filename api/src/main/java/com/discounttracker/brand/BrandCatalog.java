@@ -59,6 +59,7 @@ public class BrandCatalog {
                 byName.put(name, new Brand(
                         name,
                         readStringList(attrs.get("searchAliases")),
+                        (String) attrs.get("shortName"),
                         Category.from((String) attrs.get("category")),
                         readLinks(attrs)));
 
