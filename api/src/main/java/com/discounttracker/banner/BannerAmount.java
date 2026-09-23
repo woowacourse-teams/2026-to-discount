@@ -66,6 +66,13 @@ public record BannerAmount(Integer wonMin, Integer wonMax, Integer percent,
             lo = intOrNull(won);
             hi = lo;
         }
+        // 두 칸을 거꾸로 적으면 대표 정액이 상한이 아니라 하한이 된다 - `won: [8000, 1000]`이
+        // 8,000원짜리 행사를 1,000원으로 세운다. 적은 순서가 아니라 값으로 가린다(2026-09-24).
+        if (lo != null && hi != null && lo > hi) {
+            Integer swap = lo;
+            lo = hi;
+            hi = swap;
+        }
         if (hi == null && percent == null) return null;
         boolean random = Boolean.TRUE.equals(map.get("random"));
         AmountKind kind = AmountKind.from(map.get("kind") == null ? null : String.valueOf(map.get("kind")));

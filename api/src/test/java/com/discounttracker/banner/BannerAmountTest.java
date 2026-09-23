@@ -113,4 +113,23 @@ class BannerAmountTest {
         assertEquals(0, a.wonMax());
         assertEquals(0, a.headline());
     }
+
+    @Test
+    void ordersATwoSlotListByValueNotByHowItWasWritten() {
+        // `won: [8000, 1000]`을 적은 순서대로 읽으면 대표 정액이 1,000원이 된다.
+        BannerAmount written = BannerAmount.of(Map.of("won", List.of(8000, 1000)));
+        assertEquals(1000, written.wonMin());
+        assertEquals(8000, written.wonMax());
+        assertTrue(written.isRange());
+    }
+
+    @Test
+    void refusesANegativeAmountInATwoSlotList() {
+        // 한 칸짜리 음수는 negativeWonIsRejected가 이미 본다. 두 칸 목록에도 같은
+        // 계약이 서는지 - 순서를 바로잡은 뒤에도 예외가 올라와야 한다(2026-09-24).
+        assertThrows(IllegalArgumentException.class,
+                () -> BannerAmount.of(Map.of("won", Arrays.asList(-1000, 8000))));
+        assertThrows(IllegalArgumentException.class,
+                () -> BannerAmount.of(Map.of("won", Arrays.asList(8000, -1000))));
+    }
 }
