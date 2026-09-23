@@ -1965,6 +1965,218 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .site-footer strong { color: var(--text); font-weight: 600; }
 .site-footer__fine { font-size: .7rem; opacity: .85; }
 
+.push-setting {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(840px, calc(100% - 2.5rem));
+  margin: .75rem auto 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.push-setting p { margin: 0; color: var(--text); font-size: .88rem; line-height: 1.5; }
+.push-setting__actions { display: flex; align-items: center; gap: .45rem; padding-right: 1.35rem; }
+.push-setting__cta {
+  flex: none;
+  min-height: 40px;
+  padding: 0 .9rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--text);
+  color: var(--surface);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.push-setting__cta:disabled { opacity: .55; cursor: wait; }
+.push-setting__decline {
+  min-height: 40px;
+  padding: 0 .75rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.push-setting__close {
+  position: absolute;
+  top: .35rem;
+  right: .45rem;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.push-setting__error { margin-top: .35rem !important; color: #b42318 !important; }
+
+.ios-push-guide-backdrop {
+  position: fixed;
+  z-index: 130;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(15 23 42 / 38%);
+  animation: ios-push-guide-backdrop-in .24s ease-out both;
+}
+.ios-push-guide-backdrop--closing { animation: ios-push-guide-backdrop-out .2s ease-in both; }
+.ios-push-guide {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 1.35rem 1.25rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 20px 55px rgb(15 23 42 / 22%);
+  animation: ios-push-guide-in .24s cubic-bezier(.22, 1, .36, 1) both;
+}
+.ios-push-guide--closing { animation: ios-push-guide-out .2s ease-in both; }
+.ios-push-guide__close {
+  position: absolute;
+  top: .65rem;
+  right: .7rem;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.ios-push-guide__eyebrow {
+  margin: 0 0 .35rem;
+  color: var(--text-muted);
+  font-size: .72rem;
+  font-weight: 700;
+}
+.ios-push-guide h2 { margin: 0; padding-right: 2rem; font-size: 1.15rem; line-height: 1.4; }
+.ios-push-guide__description { margin: .55rem 0 0; color: var(--text-muted); font-size: .84rem; line-height: 1.55; }
+.ios-push-guide__steps {
+  display: grid;
+  gap: .8rem;
+  margin: 1.15rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ios-push-guide__steps li { display: flex; align-items: flex-start; gap: .7rem; font-size: .86rem; line-height: 1.55; }
+.ios-push-guide__step-content { display: flex; flex-direction: column; gap: .25rem; }
+.ios-push-guide__step-number {
+  display: grid;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-soft, #f4f5f7);
+  color: var(--text);
+  font-size: .75rem;
+  font-weight: 800;
+}
+.ios-push-guide__share { display: inline; margin: 0 .15rem; vertical-align: -.2rem; }
+.ios-push-guide__note { margin: 1rem 0 0; color: var(--text-muted); font-size: .72rem; line-height: 1.5; }
+.ios-push-guide__step-content .ios-push-guide__note { margin: 0; }
+.ios-push-guide__confirm {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 1rem;
+  border: 0;
+  border-radius: 13px;
+  background: var(--text);
+  color: var(--surface);
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+@keyframes ios-push-guide-in {
+  from { opacity: 0; transform: translateY(calc(100% + 1rem)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ios-push-guide-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(calc(100% + 1rem)); }
+}
+@keyframes ios-push-guide-backdrop-in {
+  from { background: rgb(15 23 42 / 0%); }
+  to { background: rgb(15 23 42 / 38%); }
+}
+@keyframes ios-push-guide-backdrop-out {
+  from { background: rgb(15 23 42 / 38%); }
+  to { background: rgb(15 23 42 / 0%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ios-push-guide,
+  .ios-push-guide-backdrop { animation: none; }
+}
+
+.push-toggle-slot { display: flex; order: 1; }
+.push-settings-control { position: relative; display: flex; }
+.push-settings-feedback {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 9px);
+  left: 50%;
+  width: max-content;
+  max-width: min(240px, calc(100vw - 2rem));
+  padding: .5rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
+  pointer-events: none;
+  animation: push-feedback 1s ease both;
+}
+.push-settings-feedback::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  background: var(--text);
+  transform: translateX(-50%) rotate(45deg);
+}
+@keyframes push-feedback {
+  0% { opacity: 0; transform: translate(-50%, -4px); }
+  15%, 72% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .push-settings-feedback { animation: none; }
+}
+
+
+@media (max-width: 560px) {
+  .push-setting {
+    width: calc(100% - 2rem);
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .push-setting__actions { padding-right: 0; }
+}
+
 @media (max-width: 560px) {
   main { padding: 0 1rem 3rem; }
   /* .brand-grid는 이제 auto-fit/minmax라 이 폭에서 이미 1열이 된다. */
