@@ -98,6 +98,67 @@ class BannerCatalogTest {
     }
 
     /** 한국 날짜 기준 그날 09:00. UTC로 떠 있어도 같은 날이 나오는지까지 본다. */
+    @Test
+    void theOldShapeAndTheNewShapeReadTheSameOnScreen() {
+        // 이행기 내내 두 모양이 같은 파일에 산다(RULES 9: 지난 배너 95장은 옛 모양으로
+        // 남는다). 여태 둘이 같은 문구를 내는지 견주는 자리가 없었다. 옛 배너는 사람이
+        // 적은 문장을 그대로 쓰고, 새 배너는 구조 칸에서 서버가 만든다 - 같은 행사면
+        // 화면에 같은 글자가 떠야 한다(2026-09-24).
+        String yaml = """
+                banners:
+                  - id: 옛모양-20260924
+                    brand: 굽네치킨
+                    platform: baemin
+                    url: https://example.test/a
+                    amount: "최대 8,000원"
+                    period: 9/24 하루
+                    startsOn: 2026-09-24
+                    endsOn: 2026-09-24
+                  - id: 새모양-20260924
+                    brand: 굽네치킨
+                    platform: baemin
+                    url: https://example.test/b
+                    amount:
+                      won: [~, 8000]          # 하한 없음 = 상한액
+                    startsAt: 2026-09-24T00:00:00
+                    endsAt: 2026-09-24T23:59:59
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-24");
+        assertEquals(List.of(), catalog.dropped(), "배너가 빠졌다");
+        assertEquals(2, catalog.active().size(),
+                "활성 배너: " + catalog.active().stream().map(Banner::id).toList());
+        Banner old = catalog.active().stream().filter(b -> b.id().equals("옛모양-20260924"))
+                .findFirst().orElseThrow();
+        Banner made = catalog.active().stream().filter(b -> b.id().equals("새모양-20260924"))
+                .findFirst().orElseThrow();
+
+        assertEquals(old.amount(), made.amount(),
+                "같은 금액인데 옛 배너와 새 배너의 금액 문구가 다르다");
+        // 기간 문구는 아직 두 경로가 다르다. 사람은 "9/24 하루"로 적어 왔고 서버는
+        // "9월 24일 하루"를 만든다. 어느 쪽을 쓸지는 사용자에게 보이는 문구라 개발자가
+        // 정한다(COPY-STYLE 3). 정해지기 전까지는 다르다는 사실만 못박는다.
+        assertEquals("9/24 하루", old.period());
+        assertEquals("9월 24일 하루", made.period());
+    }
+
+    @Test
+    void readsAMomentWrittenWithoutQuotes() {
+        // snakeyaml이 따옴표 없는 시각을 Date로 만든다. 여태 그 배너가 조용히 버려졌다.
+        String yaml = """
+                banners:
+                  - id: 따옴표없음-20260924
+                    platform: baemin
+                    url: https://example.test/a
+                    amount: "6,000원"
+                    period: 오늘
+                    startsAt: 2026-09-24T00:00:00
+                    endsAt: 2026-09-24T23:59:59
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-24");
+        assertEquals(List.of(), catalog.dropped(), "따옴표 없는 시각이 배너를 버렸다");
+        assertEquals(1, catalog.active().size());
+    }
+
     private BannerCatalog catalogOn(String yaml, String isoDate) {
         Clock clock = Clock.fixed(Instant.parse(isoDate + "T00:00:00Z"), SEOUL);
         return new BannerCatalog(new ByteArrayResource(yaml.getBytes(StandardCharsets.UTF_8)),

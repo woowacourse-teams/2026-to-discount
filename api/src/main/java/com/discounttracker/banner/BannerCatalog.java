@@ -392,6 +392,13 @@ public class BannerCatalog {
 
     /** 옛 날짜 칸과 새 시각 칸을 다 받는다. 날짜만 있으면 하루의 시작과 끝으로 채운다. */
     private static java.time.LocalDateTime moment(Object at, Object on, boolean endOfDay) {
+        // 따옴표 없는 2026-09-24T09:00:00을 snakeyaml이 Date로 만든다. 그 toString은
+        // "Thu Sep 24 09:00:00 KST 2026"이라 LocalDateTime.parse가 못 읽고, 배너가
+        // 통째로 버려졌다 - 날짜 칸(date)은 이미 이 처리를 하는데 시각 칸만 빠져
+        // 있었다(2026-09-24). yml은 시각을 UTC로 읽으므로 같은 시간대로 되돌린다.
+        if (at instanceof Date d) {
+            return d.toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
+        }
         String s = text(at);
         if (s != null) {
             try {
