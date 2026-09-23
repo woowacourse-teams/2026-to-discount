@@ -47,6 +47,16 @@ test('iOS는 홈 화면 실행 전까지 권한 요청 대상으로 보지 않�
   }), 'ios-install')
 })
 
+test('일반 Safari가 알림 API를 감춰도 iOS 설치 안내 대상으로 본다', () => {
+  const ios = { userAgent: 'Mozilla iPad', standalone: false }
+  assert.equal(pushAvailability({
+    navigatorValue: ios,
+    windowValue: { matchMedia: () => ({ matches: false }) },
+    notificationValue: undefined,
+    pushManagerValue: undefined,
+  }), 'ios-install')
+})
+
 test('사용자 동작 뒤 구독을 만들고 visitorId와 함께 저장한다', async () => {
   const requests = []
   const fetchValue = async (url, options = {}) => {

@@ -38,6 +38,7 @@ export default function PushNotificationSetting() {
   const [failed, setFailed] = useState(false)
   const [toggleSlot, setToggleSlot] = useState(null)
   const [showPrompt, setShowPrompt] = useState(false)
+  const [showIosGuide, setShowIosGuide] = useState(false)
   const [feedback, setFeedback] = useState('')
   const changingRef = useRef(false)
   const syncRetryRef = useRef(null)
@@ -51,6 +52,15 @@ export default function PushNotificationSetting() {
     const id = window.setTimeout(() => setFeedback(''), 1000)
     return () => window.clearTimeout(id)
   }, [feedback])
+
+  useEffect(() => {
+    if (!showIosGuide) return
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setShowIosGuide(false)
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [showIosGuide])
 
   useEffect(() => {
     const retry = createPushSyncRetry({
@@ -165,7 +175,7 @@ export default function PushNotificationSetting() {
         aria-pressed={enabled}
         onClick={() => {
           if (availability === 'ready') toggle()
-          else if (availability === 'ios-install') setFeedback('홈 화면에 추가한 뒤 알림을 켜 주세요')
+          else if (availability === 'ios-install') setShowIosGuide(true)
           else if (availability === 'denied') setFeedback('브라우저 설정에서 알림을 허용해 주세요')
         }}
       >
@@ -203,6 +213,53 @@ export default function PushNotificationSetting() {
             }}>아니요, 괜찮아요</button>
           </div>
         </section>
+      )}
+
+      {showIosGuide && createPortal(
+        <div className="ios-push-guide-backdrop" role="presentation" onClick={() => setShowIosGuide(false)}>
+          <section
+            className="ios-push-guide"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ios-push-guide-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="ios-push-guide__close"
+              aria-label="알림 설정 안내 닫기"
+              onClick={() => setShowIosGuide(false)}
+            >×</button>
+            <h2 id="ios-push-guide-title">할인 알림 받는 방법</h2>
+
+            <ol className="ios-push-guide__steps">
+              <li>
+                <span className="ios-push-guide__step-number">1</span>
+                <span>Safari의 공유 버튼
+                  <svg className="ios-push-guide__share" aria-label="공유" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 16V3" />
+                    <path d="m7 8 5-5 5 5" />
+                    <path d="M5 12v8h14v-8" />
+                  </svg>
+                  을 눌러 주세요.
+                </span>
+              </li>
+              <li>
+                <span className="ios-push-guide__step-number">2</span>
+                <span><strong>홈 화면에 추가</strong>를 선택해 주세요.</span>
+              </li>
+              <li>
+                <span className="ios-push-guide__step-number">3</span>
+                <span>홈 화면에 추가된 앱을 열고 알림 아이콘을 다시 눌러 주세요.</span>
+              </li>
+            </ol>
+            <p className="ios-push-guide__note">iOS와 iPadOS 16.4 이상에서 사용할 수 있어요.</p>
+            <button type="button" className="ios-push-guide__confirm" onClick={() => setShowIosGuide(false)}>
+              확인
+            </button>
+          </section>
+        </div>,
+        document.body,
       )}
 
     </>

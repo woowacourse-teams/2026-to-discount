@@ -2020,6 +2020,85 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 }
 .push-setting__error { margin-top: .35rem !important; color: #b42318 !important; }
 
+.ios-push-guide-backdrop {
+  position: fixed;
+  z-index: 130;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(15 23 42 / 38%);
+}
+.ios-push-guide {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 1.35rem 1.25rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 20px 55px rgb(15 23 42 / 22%);
+}
+.ios-push-guide__close {
+  position: absolute;
+  top: .65rem;
+  right: .7rem;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.ios-push-guide__eyebrow {
+  margin: 0 0 .35rem;
+  color: var(--text-muted);
+  font-size: .72rem;
+  font-weight: 700;
+}
+.ios-push-guide h2 { margin: 0; padding-right: 2rem; font-size: 1.15rem; line-height: 1.4; }
+.ios-push-guide__description { margin: .55rem 0 0; color: var(--text-muted); font-size: .84rem; line-height: 1.55; }
+.ios-push-guide__steps {
+  display: grid;
+  gap: .8rem;
+  margin: 1.15rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ios-push-guide__steps li { display: flex; align-items: flex-start; gap: .7rem; font-size: .86rem; line-height: 1.55; }
+.ios-push-guide__step-number {
+  display: grid;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-soft, #f4f5f7);
+  color: var(--text);
+  font-size: .75rem;
+  font-weight: 800;
+}
+.ios-push-guide__share { display: inline; margin: 0 .15rem; vertical-align: -.2rem; }
+.ios-push-guide__note { margin: 1rem 0 0; color: var(--text-muted); font-size: .72rem; line-height: 1.5; }
+.ios-push-guide__confirm {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 1rem;
+  border: 0;
+  border-radius: 13px;
+  background: var(--text);
+  color: var(--surface);
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .push-toggle-slot { display: flex; order: 1; }
 .push-settings-control { position: relative; display: flex; }
 .push-settings-feedback {

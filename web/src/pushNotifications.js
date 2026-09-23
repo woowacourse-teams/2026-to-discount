@@ -22,8 +22,8 @@ export function pushAvailability({
   notificationValue = globalThis.Notification,
   pushManagerValue = globalThis.PushManager,
 } = {}) {
-  if (!navigatorValue?.serviceWorker || !pushManagerValue || !notificationValue) return 'unsupported'
   if (isIos(navigatorValue) && !isStandalone(windowValue, navigatorValue)) return 'ios-install'
+  if (!navigatorValue?.serviceWorker || !pushManagerValue || !notificationValue) return 'unsupported'
   if (notificationValue.permission === 'denied') return 'denied'
   return 'ready'
 }
