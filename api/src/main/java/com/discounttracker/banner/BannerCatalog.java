@@ -74,6 +74,15 @@ public class BannerCatalog {
     /** 옛 칸과 새 칸을 같이 적은 배너의 id. reload 응답에 실어 사람이 바로 안다. */
     private volatile List<String> mixed = List.of();
 
+    /**
+     * 둘 이상이 나눠 쓴 id. {@link #reload()}가 채운다.
+     *
+     * <p>콘솔로 올릴 때는 {@code ops_apply.duplicate_id_problem}이 막지만, 파일을
+     * 손으로 고치면 그 검사를 지나간다. id가 겹치면 "이 id의 배너"가 파일 순서로
+     * 정해진다 - API는 맵을 id로 찾고 콘솔도 id로 찾는다. 읽을 때 한 번 더 본다.
+     */
+    private volatile List<String> duplicateIds = List.of();
+
     public BannerCatalog(@Value("${discount.banners-path:classpath:banners.yml}") Resource source,
                          Clock clock, BrandCatalog brands) {
         this.source = source;
@@ -108,6 +117,16 @@ public class BannerCatalog {
                     .flatMap(b -> b.allBrands().stream())
                     .filter(b -> b != null && !brands.knows(b))
                     .distinct()
+                    .toList();
+            Map<String, Long> byId = all.stream()
+                    .map(Banner::id)
+                    .filter(java.util.Objects::nonNull)
+                    .collect(java.util.stream.Collectors.groupingBy(id -> id,
+                            java.util.stream.Collectors.counting()));
+            duplicateIds = byId.entrySet().stream()
+                    .filter(e -> e.getValue() > 1)
+                    .map(Map.Entry::getKey)
+                    .sorted()
                     .toList();
             return true;
         } catch (RuntimeException e) {
@@ -201,6 +220,11 @@ public class BannerCatalog {
      * <p>Task 6부터 amount·period는 더는 필수가 아니다 - 문장 칸이 비어도 구조 칸
      * ({@code amount:} 덩이)에서 만들 수 있기 때문이다.
      */
+    /** 둘 이상이 나눠 쓴 id. 비어 있어야 정상이다. */
+    public List<String> duplicateIds() {
+        return duplicateIds;
+    }
+
     public List<String> dropped() {
         return dropped;
     }

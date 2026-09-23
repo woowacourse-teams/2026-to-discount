@@ -384,6 +384,54 @@ class BannerCatalogTest {
     }
 
     @Test
+    void reportsBannersThatShareAnId() {
+        // 파일을 손으로 고치면 적용 시점 검사(ops_apply.duplicate_id_problem)를 지나간다.
+        // id가 겹치면 "이 id의 배너"가 파일 순서로 정해진다 - API는 맵을 id로 찾고
+        // 콘솔도 id로 찾는다. 읽을 때 한 번 더 본다(2026-09-24).
+        String yaml = """
+                banners:
+                  - id: 겹침-20260924
+                    platform: baemin
+                    url: https://example.test/a
+                    amount: "6,000원"
+                    period: 상시
+                    startsOn: 2026-09-24
+                    endsOn: 2026-09-24
+                  - id: 겹침-20260924
+                    platform: yogiyo
+                    url: https://example.test/b
+                    amount: "7,000원"
+                    period: 상시
+                    startsOn: 2026-09-24
+                    endsOn: 2026-09-24
+                  - id: 안겹침-20260924
+                    platform: ddangyo
+                    url: https://example.test/c
+                    amount: "5,000원"
+                    period: 상시
+                    startsOn: 2026-09-24
+                    endsOn: 2026-09-24
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-24");
+        assertEquals(List.of("겹침-20260924"), catalog.duplicateIds());
+    }
+
+    @Test
+    void reportsNoDuplicateIdsWhenEveryIdIsItsOwn() {
+        String yaml = """
+                banners:
+                  - id: 하나-20260924
+                    platform: baemin
+                    url: https://example.test/a
+                    amount: "6,000원"
+                    period: 상시
+                    startsOn: 2026-09-24
+                    endsOn: 2026-09-24
+                """;
+        assertEquals(List.of(), catalogOn(yaml, "2026-09-24").duplicateIds());
+    }
+
+    @Test
     void keepsBannersWithoutPlatformAsOwnAppEvents() {
         // 2026-09-18 뚜레쥬르 네이버페이 적립: 배달앱 밖 행사라 platform이 없다.
         String yaml = """
