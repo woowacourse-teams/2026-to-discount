@@ -2029,7 +2029,9 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   justify-content: center;
   padding: 1rem;
   background: rgb(15 23 42 / 38%);
+  animation: ios-push-guide-backdrop-in .24s ease-out both;
 }
+.ios-push-guide-backdrop--closing { animation: ios-push-guide-backdrop-out .2s ease-in both; }
 .ios-push-guide {
   position: relative;
   width: min(440px, 100%);
@@ -2039,7 +2041,9 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   background: var(--surface);
   color: var(--text);
   box-shadow: 0 20px 55px rgb(15 23 42 / 22%);
+  animation: ios-push-guide-in .24s cubic-bezier(.22, 1, .36, 1) both;
 }
+.ios-push-guide--closing { animation: ios-push-guide-out .2s ease-in both; }
 .ios-push-guide__close {
   position: absolute;
   top: .65rem;
@@ -2071,6 +2075,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   list-style: none;
 }
 .ios-push-guide__steps li { display: flex; align-items: flex-start; gap: .7rem; font-size: .86rem; line-height: 1.55; }
+.ios-push-guide__step-content { display: flex; flex-direction: column; gap: .25rem; }
 .ios-push-guide__step-number {
   display: grid;
   flex: 0 0 26px;
@@ -2085,6 +2090,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 }
 .ios-push-guide__share { display: inline; margin: 0 .15rem; vertical-align: -.2rem; }
 .ios-push-guide__note { margin: 1rem 0 0; color: var(--text-muted); font-size: .72rem; line-height: 1.5; }
+.ios-push-guide__step-content .ios-push-guide__note { margin: 0; }
 .ios-push-guide__confirm {
   width: 100%;
   min-height: 44px;
@@ -2097,6 +2103,26 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   font-size: .86rem;
   font-weight: 700;
   cursor: pointer;
+}
+@keyframes ios-push-guide-in {
+  from { opacity: 0; transform: translateY(calc(100% + 1rem)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ios-push-guide-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(calc(100% + 1rem)); }
+}
+@keyframes ios-push-guide-backdrop-in {
+  from { background: rgb(15 23 42 / 0%); }
+  to { background: rgb(15 23 42 / 38%); }
+}
+@keyframes ios-push-guide-backdrop-out {
+  from { background: rgb(15 23 42 / 38%); }
+  to { background: rgb(15 23 42 / 0%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ios-push-guide,
+  .ios-push-guide-backdrop { animation: none; }
 }
 
 .push-toggle-slot { display: flex; order: 1; }

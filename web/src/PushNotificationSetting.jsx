@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { getAnalyticsContext } from './analytics-context.js'
@@ -40,9 +40,21 @@ export default function PushNotificationSetting() {
   const [toggleSlot, setToggleSlot] = useState(null)
   const [showPrompt, setShowPrompt] = useState(false)
   const [showIosGuide, setShowIosGuide] = useState(false)
+  const [iosGuideClosing, setIosGuideClosing] = useState(false)
   const [feedback, setFeedback] = useState('')
   const changingRef = useRef(false)
   const syncRetryRef = useRef(null)
+  const iosGuideCloseTimerRef = useRef(null)
+
+  const closeIosGuide = useCallback(() => {
+    if (iosGuideClosing) return
+    setIosGuideClosing(true)
+    iosGuideCloseTimerRef.current = window.setTimeout(() => {
+      setShowIosGuide(false)
+      setIosGuideClosing(false)
+      iosGuideCloseTimerRef.current = null
+    }, 200)
+  }, [iosGuideClosing])
 
   useEffect(() => {
     setToggleSlot(document.getElementById('push-toggle-slot'))
@@ -57,11 +69,15 @@ export default function PushNotificationSetting() {
   useEffect(() => {
     if (!showIosGuide) return
     const closeOnEscape = (event) => {
-      if (event.key === 'Escape') setShowIosGuide(false)
+      if (event.key === 'Escape') closeIosGuide()
     }
     document.addEventListener('keydown', closeOnEscape)
     return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [showIosGuide])
+  }, [closeIosGuide, showIosGuide])
+
+  useEffect(() => () => {
+    if (iosGuideCloseTimerRef.current) window.clearTimeout(iosGuideCloseTimerRef.current)
+  }, [])
 
   useEffect(() => {
     const retry = createPushSyncRetry({
@@ -182,7 +198,10 @@ export default function PushNotificationSetting() {
         aria-pressed={enabled}
         onClick={() => {
           if (availability === 'ready') toggle('header')
-          else if (availability === 'ios-install') setShowIosGuide(true)
+          else if (availability === 'ios-install') {
+            setIosGuideClosing(false)
+            setShowIosGuide(true)
+          }
           else if (availability === 'denied') setFeedback('브라우저 설정에서 알림을 허용해 주세요')
         }}
       >
@@ -223,9 +242,13 @@ export default function PushNotificationSetting() {
       )}
 
       {showIosGuide && createPortal(
-        <div className="ios-push-guide-backdrop" role="presentation" onClick={() => setShowIosGuide(false)}>
+        <div
+          className={`ios-push-guide-backdrop${iosGuideClosing ? ' ios-push-guide-backdrop--closing' : ''}`}
+          role="presentation"
+          onClick={closeIosGuide}
+        >
           <section
-            className="ios-push-guide"
+            className={`ios-push-guide${iosGuideClosing ? ' ios-push-guide--closing' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="ios-push-guide-title"
@@ -235,7 +258,7 @@ export default function PushNotificationSetting() {
               type="button"
               className="ios-push-guide__close"
               aria-label="알림 설정 안내 닫기"
-              onClick={() => setShowIosGuide(false)}
+              onClick={closeIosGuide}
             >×</button>
             <h2 id="ios-push-guide-title">할인 알림 받는 방법</h2>
 
@@ -253,15 +276,17 @@ export default function PushNotificationSetting() {
               </li>
               <li>
                 <span className="ios-push-guide__step-number">2</span>
-                <span><strong>홈 화면에 추가</strong>를 선택해 주세요.</span>
+                <div className="ios-push-guide__step-content">
+                  <span><strong>홈 화면에 추가</strong>를 선택해 주세요.</span>
+                  <p className="ios-push-guide__note">웹 앱으로 열기 옵션은 ON으로 유지해주세요.</p>
+                </div>
               </li>
               <li>
                 <span className="ios-push-guide__step-number">3</span>
-                <span>홈 화면에 추가된 앱을 열고 알림 아이콘을 다시 눌러 주세요.</span>
+                <span>추가된 앱을 열고 알림 아이콘을 다시 눌러 주세요.</span>
               </li>
             </ol>
-            <p className="ios-push-guide__note">iOS와 iPadOS 16.4 이상에서 사용할 수 있어요.</p>
-            <button type="button" className="ios-push-guide__confirm" onClick={() => setShowIosGuide(false)}>
+            <button type="button" className="ios-push-guide__confirm" onClick={closeIosGuide}>
               확인
             </button>
           </section>
