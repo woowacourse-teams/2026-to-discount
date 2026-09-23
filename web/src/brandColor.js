@@ -16,6 +16,8 @@ const PLATFORM_SEED = {
   coupangeats: '#985a31',
   ddangyo: '#fe3e00',
   yogiyo: '#e61c4f',
+  // 제휴 결제 수단. 배너가 via로 네이버페이를 가리키면 이 색으로 그린다.
+  naverpay: '#03c75a',
 }
 const NEUTRAL_SEED = '#5b6470'
 

@@ -1,3 +1,4 @@
+import { OWN } from './platforms.js'
 const STORAGE_KEY = 'dk_brand_impressions'
 const IMPRESSION_MS = 1000
 const VISIBLE_RATIO = 0.99
@@ -25,7 +26,11 @@ export function brandImpressionProps(brand, position) {
   return {
     brand: brand.name,
     position: String(position),
-    platforms: [...new Set(brand.offers.map((offer) => offer.platform))].sort().join('+'),
+    // 이 차원은 "이 브랜드가 어느 배달앱에 있나"를 묻는다. 자사앱은 그 답이 아니라
+    // 뺀다 - 안 빼면 own이 새 값으로 섞여 들어 지난 수치와 안 이어진다(2026-09-24).
+    // 자사 행사만 있는 브랜드는 빈 값이 되고, 그것이 사실이다.
+    platforms: [...new Set(brand.offers.map((offer) => offer.platform))]
+      .filter((key) => key !== OWN).sort().join('+'),
     category: brand.category ?? 'none',
   }
 }

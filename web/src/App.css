@@ -1810,6 +1810,9 @@ h1 {
 .platform-badge--coupangeats { background: #fdebec; }
 .platform-badge--ddangyo { background: #fbf3db; }
 .platform-badge--yogiyo { background: #edf3ec; }
+/* 제휴 결제 수단. 아이콘 이미지는 상표라 만들지 않고 글자 폴백(N)을 쓴다 —
+   배경색이 없으면 회색 원에 글자만 떠서 다른 배지와 안 어울린다(2026-09-24). */
+.platform-badge--naverpay { background: #e6f7ed; }
 
 /* button으로 렌더될 때(헤더 필터 토글)만 해당 — 기본 버튼 여백·테두리
    리셋하고 눌림/비활성(dim) 상태를 더한다. 장식용 span 쪽엔 영향 없다. */
