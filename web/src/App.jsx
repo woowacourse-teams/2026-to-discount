@@ -276,7 +276,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
         ) : offerAmountText(offer)}
       </span>
       <span className="offer__icon-badge">
-        <PlatformBadge platformKey={offer.platform} />
+        <PlatformBadge platformKey={offer.platform} via={offer.via} brand={brandName} />
       </span>
     </>
   )
@@ -333,7 +333,7 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
 // 칩 하나를 펼쳤을 때 나오는 상세 한 칸. 아직 안 채워진 값(최소주문금액,
 // 구간 할인)은 감추지 않고 "미확인"으로 드러낸다 — 없다는 사실 자체가
 // 사용자에게 필요한 정보이고, 채워지면 이 자리에 그대로 들어온다.
-function OfferDetail({ offer }) {
+function OfferDetail({ offer, brandName }) {
   const platform = PLATFORM_BY_KEY[offer.platform]
   const rows = detailRows(offer)
 
@@ -341,7 +341,7 @@ function OfferDetail({ offer }) {
     <div className="detail">
       {/* 금액은 칩 버튼과 아래 쿠폰 목록에 이미 있다 — 헤더에 또 찍지 않는다. */}
       <div className="detail__head">
-        <PlatformBadge platformKey={offer.platform} />
+        <PlatformBadge platformKey={offer.platform} via={offer.via} brand={brandName} />
         <span className="detail__platform">{platform?.label ?? offer.platform}</span>
         {offer.status === 'held' && <span className="pill pill--pending">재확인</span>}
       </div>
@@ -622,7 +622,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
           브랜드 73개 × 앱 4개어치를 미리 심어두면 첫 화면이 통째로 멎는다.
           컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
       <div id={detailId} className="brand-detail" hidden={!open}>
-        {open && sortedOffers.map((o) => <OfferDetail key={o.platform} offer={o} />)}
+        {open && sortedOffers.map((o) => <OfferDetail key={o.platform} offer={o} brandName={brand.name} />)}
       </div>
 
       {/* 카드 맨 아래 줄 — 담기와 펼치기. 펼치기를 헤더에서 내린 건
