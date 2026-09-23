@@ -234,10 +234,13 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             불확정(최대)과 특정메뉴는 액면 그대로 견주면 안 되는 값이라 같은 회색으로 물러나고,
             랜덤은 뽑기라 검은 배지, 최적은 쿠폰을 다 겹쳤을 때의 값이라 초록으로 앞에 세운다. */}
         {/* 최고 할인도 같은 포스트잇 — 자리는 원래대로 왼쪽 위, 색(네온 그라디언트)은 그대로(2026-09-21). */}
+        <span className="chip-tags">
+        {/* 탭은 전부 이 한 줄에 왼쪽부터 선다(사용자 2026-09-22). 순서가 뜻이다 —
+            "최고"(값의 순위) 다음에 값의 성격(불확정·랜덤·n%), 그 다음 누구만
+            쓰는지(멤버십), 마지막이 언제까지인지(기간·시각). */}
         {best && (
           <span className="offer__range-badge offer__range-badge--best-tab" aria-label="최고 할인">최고</span>
         )}
-        <span className="chip-tags">
         {!best && showRangeBadge && (
           <span className={`offer__range-badge offer__range-badge--${QUALIFIER_TONE[offer.qualifier] ?? 'plain'}`}>
             {offer.qualifier === '최대' ? '불확정' : offer.qualifier}
@@ -262,13 +265,13 @@ function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, bes
             {MEMBERSHIP_LABEL[offer.platform] ?? offer.badge}
           </span>
         )}
-        </span>
         {/* 멤버십과 별개로 기간·시각 배지("오늘 17시 선착순")는 늘 그린다 — 배너 오퍼가
             와우 전용이 되면서 시각 배지가 사라졌다(2026-09-21). 배지 원문이 멤버십 문구
             그 자체("쿠팡와우 전용쿠폰", "배민클럽")일 때만 위의 멤버십 탭이 대신한다. */}
         {offer.badge && !/^\d+%할인$/.test(offer.badge) && !/전용|클럽|패스/.test(offer.badge) && (
           <span className="offer__status-badge">{offer.badge}</span>
         )}
+        </span>
         {offer.soldOut ? (
           <>
             <s className="offer__amount--soldout">{offerAmountText(offer)}</s>

@@ -3244,8 +3244,8 @@ html.has-bottom-banner .survey-dock {
   gap: 4px;
   z-index: 3;
 }
-.chip-tags .offer__range-badge,
-.chip-tags .offer__status-badge--membership {
+.offer--hero .chip-tags .offer__range-badge,
+.offer--hero .chip-tags .offer__status-badge--membership {
   position: static;
   top: auto; right: auto; left: auto; bottom: auto;
 }
@@ -3292,8 +3292,8 @@ html.has-bottom-banner .survey-dock {
 
 /* 탭 높이 통일(2026-09-21 실측: 배너 24.4 / 큰 칩 24.2 / 작은 칩 25.3 / 조건 28.9). 크기·자리별
    규칙(.offer--hero .offer__range-badge 등)이 글자 크기를 제각각 덮어써서 생긴 차이 — 한 값으로 못박는다. */
-.chip-tags > .offer__range-badge,
-.chip-tags > .offer__status-badge--membership,
+.offer--hero .chip-tags > .offer__range-badge,
+.offer--hero .chip-tags > .offer__status-badge--membership,
 .offer__amount > .offer__status-badge,
 .offer__range-badge--best-tab,
 .banner__tag {
@@ -3329,3 +3329,77 @@ html.has-bottom-banner .survey-dock {
 .chip-tags { top: -5px; }
 .offer__range-badge--best-tab { top: -5px; }
 .offer--hero .offer__range-badge { top: -5px; }
+
+/* ── 오퍼 탭 한 줄 (2026-09-22, 사용자 요청) ────────────────────────────
+   탭이 세 군데(왼쪽 위 "최고", 오른쪽 위 묶음, 왼쪽 아래 기간)에 흩어져 있었다.
+   칩 하나를 읽으려면 눈이 세 번 움직였고, 같은 칩의 아래쪽 탭이 다음 줄 칩의
+   위쪽 탭과 붙어 어느 칩 것인지 헷갈렸다(도미노피자 사례, 2026-09-17 주석).
+   전부 왼쪽 위 한 줄로 모아 왼쪽부터 순서대로 읽게 한다. */
+.offer--hero .chip-tags {
+  left: -7px;
+  right: auto;
+  gap: 5px;
+  /* 포스트잇 기울기는 탭마다가 아니라 줄 전체에 한 번 준다 — 탭마다 돌리면
+     이웃과 모서리가 겹친다. */
+  transform: rotate(-4deg);
+  transform-origin: left bottom;
+  /* 탭이 서넛까지 늘어나면 좁은 화면에서 칩 오른쪽 밖으로 나간다. 줄을 접지
+     않고 넘치게 두되 잘리지는 않는다.
+     ponytail: nowrap. 세 개를 넘는 칩이 실제로 생기면 그때 마지막 탭을 줄인다. */
+  flex-wrap: nowrap;
+}
+/* 줄 안에서는 전부 흐름 배치다 — 각자의 절대 위치와 기울기를 푼다. */
+.offer--hero .chip-tags > .offer__range-badge,
+.offer--hero .chip-tags > .offer__status-badge,
+.offer--hero .chip-tags > .offer__range-badge--best-tab {
+  position: static;
+  top: auto; right: auto; bottom: auto; left: auto;
+  transform: none;
+}
+
+/* 탭 줄이 금액을 가린다 — 칩 위로 올려 붙인다 (2026-09-22 실측).
+   왼쪽 위로 모으면서 탭 줄이 금액 글자와 겹쳤다. 오퍼 140개 중 12개에서
+   7.2px가 덮였다. 작은 칩(차순위 격자, 폭 92px)에서는 탭 두 장이 166.7px라
+   칩 오른쪽으로 66.8px 넘쳤다.
+
+   위쪽 모서리에 top으로 매다는 대신 줄의 아래 끝을 칩 윗변에 맞춘다. 줄이
+   길어 두 줄이 되면 위로 쌓이므로 금액을 덮을 수가 없다. */
+.offer--hero .chip-tags {
+  top: auto;
+  bottom: calc(100% - 17px);
+  flex-wrap: wrap;
+  max-width: calc(100% + 14px);
+}
+/* 작은 칩(차순위 격자)은 한 줄 배치에서 뺀다(사용자 2026-09-22). 폭이 92px라
+   탭을 줄여도 줄이 100px이다 — 칩보다 넓어서 줄 전체가 칩 위에 떠 카드 사이
+   빈자리에 뜬다. 큰 칩(141~330px)에서만 줄로 읽힌다.
+
+   display:contents로 묶음이 자리를 안 잡게 하면 탭들이 각자 옛 규칙
+   (왼쪽 위 최고, 오른쪽 위 멤버십, 왼쪽 아래 조건)으로 돌아간다. */
+.offer:not(.offer--hero) .chip-tags { display: contents; }
+
+/* 탭 줄이 브랜드 로고를 덮는다 — 헤더와 오퍼 줄 사이를 넓힌다 (2026-09-22 실측).
+   탭 줄 윗변이 카드 헤더 아래끝을 1.2px 넘어섰다. 줄을 7px 내린 것만으로도
+   안 겹치지만, 로고와 탭이 맞닿아 보이지 않게 여유를 더 둔다. */
+.brand-card__head { margin-bottom: 8px; }
+
+/* ── 갈래 B: 기울기는 두고 높이만 맞춘다 (2026-09-22) ──────────────────
+   갈래 A는 줄 전체를 한 번 돌린다. 그래서 오른쪽으로 갈수록 탭이 계단처럼
+   올라간다. 여기서는 줄을 안 돌리고 탭을 하나씩 돌린다. 포스트잇 기울기는
+   그대로인데 세로 위치가 전부 같다.
+
+   기울기 축은 탭 가운데다. 왼쪽 아래를 축으로 잡으면 탭마다 위로 밀려
+   올라가 다시 계단이 된다. 사이 간격은 5px에서 7px로 넓힌다 — 24px 탭을
+   4도 돌리면 좌우 모서리가 각각 1.7px씩 밖으로 나온다. */
+.offer--hero .chip-tags { transform: none; gap: 7px; }
+/* 선택자를 A의 규칙과 같은 모양으로 쓴다. `> *`로 적으면 클래스가 둘뿐이라
+   위쪽의 `.offer--hero .chip-tags > .offer__range-badge { transform: none }`
+   (클래스 셋)에 진다. 실제로 져서 탭이 하나도 안 기울었다(2026-09-22 실측:
+   계산된 transform이 세 탭 모두 none). */
+.offer--hero .chip-tags > .offer__range-badge,
+.offer--hero .chip-tags > .offer__status-badge,
+.offer--hero .chip-tags > .offer__range-badge--best-tab,
+.offer--hero .chip-tags > .offer__status-badge--membership {
+  transform: rotate(-4deg);
+  transform-origin: center;
+}
