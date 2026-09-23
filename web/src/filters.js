@@ -2,7 +2,7 @@
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
 // "화면에 뜬 것"이 어긋난다. (B안 시트·메뉴바는 2026-09-15에 지웠다.)
 
-import { PLATFORMS } from './platforms.js'
+import { PLATFORMS, OWN } from './platforms.js'
 
 // 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
 // (실제 브랜드별 분류는 API 쪽 brands.yml이 단일 출처다).
@@ -213,7 +213,7 @@ export function applyFilters(brands, filters, { cart, cartOnly } = {}) {
   const q = filters.search.trim()
   const visible = brands
     .map((b) => {
-      const offers = b.offers.filter((o) => filters.platforms.has(o.platform)
+      const offers = b.offers.filter((o) => (o.platform === OWN || filters.platforms.has(o.platform))
         && (!filters.minAmount5k || (o.amount ?? 0) >= 5000))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })

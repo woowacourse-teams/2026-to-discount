@@ -16,8 +16,12 @@ export const PARTNERS = [
   { key: 'naverpay', label: '네이버페이', initial: 'N' },
 ]
 
-export const ICON_BY_KEY = Object.fromEntries(
-  [...PLATFORMS, ...PARTNERS].map((p) => [p.key, p]))
+// Object.create(null): 평범한 객체 리터럴은 Object.prototype을 물려받아
+// iconFor('constructor')가 함수를 돌려준다. 프로토타입 없는 객체로 막는다.
+export const ICON_BY_KEY = [...PLATFORMS, ...PARTNERS].reduce((acc, p) => {
+  acc[p.key] = p
+  return acc
+}, Object.create(null))
 
 /**
  * 이 오퍼에 그릴 아이콘. 없으면 null이고 부르는 쪽이 브랜드 로고로 떨어진다.

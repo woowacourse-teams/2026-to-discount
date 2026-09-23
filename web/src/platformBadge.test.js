@@ -25,3 +25,8 @@ test('via는 아이콘에만 쓴다 - 필터 목록에는 안 들어간다', () 
   assert.ok(!PLATFORMS.some((p) => p.key === 'naverpay'))
   assert.ok(ICON_BY_KEY.naverpay)
 })
+
+test('ICON_BY_KEY는 Object.prototype을 안 물려받는다 - constructor도 그냥 키다', () => {
+  assert.equal(iconFor('constructor', null), null)
+  assert.equal(iconFor('toString', null), null)
+})

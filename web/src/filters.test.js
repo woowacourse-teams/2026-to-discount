@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { bestConfirmedAmount, comparable, sortBrands } from './filters.js'
+import { applyFilters, bestConfirmedAmount, comparable, defaultFilters, sortBrands } from './filters.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
 const o = (amount, extra = {}) => ({ amount, platform: 'baemin', ...extra })
@@ -31,4 +31,33 @@ test('인기순을 고르면 기본으로 켜진 할인금액보다 앞선다 �
   ]
   const sorts = [{ key: 'amount', dir: 'desc' }, { key: 'popularity', dir: 'desc' }]
   assert.deepEqual(sortBrands(brands, { sorts }).map((b) => b.name), ['나', '가'])
+})
+
+test('자사 오퍼는 플랫폼 필터 밖이다 - 배달앱을 다 꺼도 남는다', () => {
+  const brands = [{
+    name: '백억커피',
+    category: 'cafe',
+    offers: [
+      { platform: 'own', amount: 5000, certainty: 'exact', kind: 'cashback' },
+      { platform: 'baemin', amount: 3000, certainty: 'exact', kind: 'discount' },
+    ],
+  }]
+  const all = defaultFilters()
+  assert.equal(applyFilters(brands, all)[0].offers.length, 2)
+
+  // 필터가 고르는 것은 "어느 배달앱으로 시킬까"다. 자사 행사는 그 질문의 답이 아니다.
+  const none = { ...defaultFilters(), platforms: new Set() }
+  const left = applyFilters(brands, none)
+  assert.equal(left.length, 1)
+  assert.deepEqual(left[0].offers.map((o) => o.platform), ['own'])
+})
+
+test('자사 오퍼가 없는 브랜드는 플랫폼을 다 끄면 그대로 사라진다', () => {
+  const brands = [{
+    name: '어느치킨',
+    category: 'chicken',
+    offers: [{ platform: 'baemin', amount: 4000, certainty: 'exact', kind: 'discount' }],
+  }]
+  const none = { ...defaultFilters(), platforms: new Set() }
+  assert.equal(applyFilters(brands, none).length, 0)
 })
