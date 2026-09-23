@@ -149,15 +149,17 @@ export default function PushNotificationSetting() {
           storePushEnabled(true)
           setFailed(true)
           setFeedback('알림을 끄지 못했습니다')
-        } else if (!result.serverDeleted) {
-          storePushEnabled(false)
-          track('push_subscription_disabled', { source })
-          setFailed(true)
-          setFeedback('알림 서버 연결에 실패했습니다')
-          syncRetryRef.current?.start(() => deletePushSubscription(result.endpoint))
         } else {
+          syncRetryRef.current?.stop()
           storePushEnabled(false)
-          if (result.endpoint) track('push_subscription_disabled', { source })
+          if (!result.serverDeleted) {
+            track('push_subscription_disabled', { source })
+            setFailed(true)
+            setFeedback('알림 서버 연결에 실패했습니다')
+            syncRetryRef.current?.start(() => deletePushSubscription(result.endpoint))
+          } else if (result.endpoint) {
+            track('push_subscription_disabled', { source })
+          }
         }
       } else {
         const { visitorId } = getAnalyticsContext()

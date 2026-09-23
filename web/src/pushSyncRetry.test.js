@@ -59,3 +59,39 @@ test('온라인 복구 재시도 성공 시 예약 재시도를 중단한다', a
 
   assert.equal(successes, 1)
 })
+
+test('실행 중인 동기화를 중단하면 실패 뒤 재시도하지 않는다', async () => {
+  const scheduled = []
+  let rejectTask
+  const retry = createPushSyncRetry({
+    setTimeoutValue: (callback, delay) => {
+      scheduled.push({ callback, delay })
+      return scheduled.length
+    },
+    clearTimeoutValue: () => {},
+  })
+
+  retry.start(() => new Promise((resolve, reject) => { rejectTask = reject }))
+  await flush()
+  retry.stop()
+  rejectTask(new Error('offline'))
+  await flush()
+
+  assert.equal(scheduled.length, 0)
+})
+
+test('실행 중인 동기화를 교체하면 완료 후 최신 작업만 실행한다', async () => {
+  let resolveSync
+  let deleteRuns = 0
+  const retry = createPushSyncRetry()
+
+  retry.start(() => new Promise((resolve) => { resolveSync = resolve }))
+  await flush()
+  retry.stop()
+  retry.start(async () => { deleteRuns += 1 })
+  resolveSync()
+  await flush()
+  await flush()
+
+  assert.equal(deleteRuns, 1)
+})

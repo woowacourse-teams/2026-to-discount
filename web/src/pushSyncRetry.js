@@ -10,6 +10,7 @@ export function createPushSyncRetry({
   let attempt = 0
   let timer = null
   let running = false
+  let generation = 0
 
   function clearTimer() {
     if (timer === null) return
@@ -17,38 +18,44 @@ export function createPushSyncRetry({
     timer = null
   }
 
-  async function run() {
+  async function run(runGeneration = generation) {
     if (!task || running) return
+    const currentTask = task
     clearTimer()
     running = true
     try {
-      await task()
+      await currentTask()
+      if (runGeneration !== generation) return
       task = null
       attempt = 0
       onSuccess?.()
     } catch {
+      if (runGeneration !== generation) return
       onFailure?.()
       const delay = PUSH_SYNC_RETRY_DELAYS[attempt]
       if (delay !== undefined) {
         attempt += 1
-        timer = setTimeoutValue(run, delay)
+        timer = setTimeoutValue(() => run(runGeneration), delay)
       }
     } finally {
       running = false
+      if (runGeneration !== generation && task) void run(generation)
     }
   }
 
   function start(nextTask) {
+    generation += 1
     task = nextTask
     attempt = 0
-    void run()
+    void run(generation)
   }
 
   function retryNow() {
-    void run()
+    void run(generation)
   }
 
   function stop() {
+    generation += 1
     clearTimer()
     task = null
   }
