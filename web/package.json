@@ -21,7 +21,9 @@
     "test:logo-manifest": "node --test src/logoManifest.test.js",
     "test:api-base": "node scripts/verify-api-base.mjs",
     "test:push": "node --test src/pushNotifications.test.js src/pushPrompt.test.js src/pushSyncRetry.test.js",
-    "test:copy": "node scripts/check-copy.mjs"
+    "test:copy": "node scripts/check-copy.mjs",
+    "test:platform-badge": "node --test src/platformBadge.test.js",
+    "test:banner-tag": "node --test src/bannerTag.test.js"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
