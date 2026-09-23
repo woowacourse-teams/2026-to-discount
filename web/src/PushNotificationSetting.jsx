@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { track } from './analytics.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
 import { declinePrompt, recordPromptVisit } from './pushPrompt.js'
@@ -117,7 +118,7 @@ export default function PushNotificationSetting() {
     }
   }, [availability])
 
-  async function toggle() {
+  async function toggle(source) {
     if (changingRef.current) return
     changingRef.current = true
     setFailed(false)
@@ -134,11 +135,13 @@ export default function PushNotificationSetting() {
           setFeedback('알림을 끄지 못했습니다')
         } else if (!result.serverDeleted) {
           storePushEnabled(false)
+          track('push_subscription_disabled', { source })
           setFailed(true)
           setFeedback('알림 서버 연결에 실패했습니다')
           syncRetryRef.current?.start(() => deletePushSubscription(result.endpoint))
         } else {
           storePushEnabled(false)
+          if (result.endpoint) track('push_subscription_disabled', { source })
         }
       } else {
         const { visitorId } = getAnalyticsContext()
@@ -146,10 +149,14 @@ export default function PushNotificationSetting() {
         if (subscribed) {
           storePushEnabled(true)
           setShowPrompt(false)
+          track('push_subscription_enabled', { source })
         } else {
           setEnabled(false)
           storePushEnabled(false)
           setFeedback('알림이 켜지지 않았습니다')
+          if (globalThis.Notification?.permission === 'denied') {
+            track('push_permission_denied', { source })
+          }
         }
         if (!subscribed) setAvailability(pushAvailability())
       }
@@ -174,7 +181,7 @@ export default function PushNotificationSetting() {
         title={enabled ? '할인 알림 끄기' : '할인 알림 켜기'}
         aria-pressed={enabled}
         onClick={() => {
-          if (availability === 'ready') toggle()
+          if (availability === 'ready') toggle('header')
           else if (availability === 'ios-install') setShowIosGuide(true)
           else if (availability === 'denied') setFeedback('브라우저 설정에서 알림을 허용해 주세요')
         }}
@@ -204,7 +211,7 @@ export default function PushNotificationSetting() {
           <p>할인 정보를 빠르게 받아보시겠어요?</p>
           {failed && <p className="push-setting__error" role="status">알림 설정을 변경하지 못했습니다. 잠시 뒤 다시 시도해 주세요.</p>}
           <div className="push-setting__actions">
-            <button type="button" className="push-setting__cta" onClick={toggle}>
+            <button type="button" className="push-setting__cta" onClick={() => toggle('prompt')}>
               알림 켜기
             </button>
             <button type="button" className="push-setting__decline" onClick={() => {
