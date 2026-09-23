@@ -51,6 +51,8 @@ public class EventController {
             "banner_autoplay_toggle",
             "banner_impression", "banner_dismiss", "brand_search_submitted",
             "brand_impression",
+            // 웹 푸시 설정 결과. 브라우저 SDK가 차단돼도 서버 릴레이로 남아야 한다.
+            "push_subscription_enabled", "push_subscription_disabled", "push_permission_denied",
             // 설문 노출·닫기는 프론트가 쏜다. 응답(survey_answer)은 SurveyService가
             // 직접 적는다 — 이 경로는 인증이 없어 위조하면 응답 수와 코드 발급
             // 수가 어긋난다.
