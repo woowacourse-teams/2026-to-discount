@@ -28,6 +28,9 @@ const topBarASource = await source('web/src/TopBarA.jsx')
 // 서버 허용 목록에 없어도 검사를 통과하고, 서버가 조용히 버린다.
 const surveyCardSource = await source('web/src/SurveyCard.jsx')
 const surveyDockSource = await source('web/src/SurveyDock.jsx')
+// 푸시 설정. 구독 결과 이벤트도 자체 API 원장으로 릴레이하므로 목록에서
+// 빠지면 API가 이름을 모른 채 조용히 버린다.
+const pushNotificationSettingSource = await source('web/src/PushNotificationSetting.jsx')
 const analyticsSource = await source('web/src/analytics.js')
 const startAnalyticsSource = analyticsSource.slice(
   analyticsSource.indexOf('export function startAnalytics()'),
@@ -42,6 +45,7 @@ const emittedEvents = new Set([
   ...staticTrackEvents('web/src/TopBarA.jsx', topBarASource),
   ...staticTrackEvents('web/src/SurveyCard.jsx', surveyCardSource),
   ...staticTrackEvents('web/src/SurveyDock.jsx', surveyDockSource),
+  ...staticTrackEvents('web/src/PushNotificationSetting.jsx', pushNotificationSettingSource),
   ...staticTrackEvents('web/src/analytics.js#startAnalytics', startAnalyticsSource),
   'page_exit',
 ])
