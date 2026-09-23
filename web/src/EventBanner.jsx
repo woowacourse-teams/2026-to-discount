@@ -11,6 +11,7 @@ import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
 import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
 import { bannerTag } from './bannerTag.js'
+import { OWN } from './platforms.js'
 
 // 넘어가는 간격. 4.3초에서 1초 늘렸다(사용자 결정 2026-09-16).
 const ROTATE_MS = 5300
@@ -160,7 +161,7 @@ function BannerCard({ banner, position, onClose, onSeen }) {
             </span>
           ) : banner.brand
             ? <BrandLogo name={banner.brand} />
-            : banner.platform && banner.platform !== 'own' ? (
+            : banner.platform && banner.platform !== OWN ? (
               <span className="brand-logo brand-logo--platform">
                 <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
               </span>
@@ -168,7 +169,7 @@ function BannerCard({ banner, position, onClose, onSeen }) {
         </span>
         {/* 앱 배지는 로고 밖, 카드(.banner__link)의 오른쪽 위에 선다(2026-09-16).
             platform이 own이면 브랜드 자체 앱이나 사이트의 행사라 배지도 없다(2026-09-18). */}
-        {banner.brand && banner.platform && banner.platform !== 'own' && (
+        {banner.brand && banner.platform && banner.platform !== OWN && (
           <span className="banner__platform">
             <img src={platformIconSrc(banner.platform)} alt={platform?.label ?? banner.platform} />
           </span>
@@ -203,7 +204,7 @@ function BannerCard({ banner, position, onClose, onSeen }) {
                 {banner.brands?.length > 1
                   ? (banner.brandLabels ?? banner.brands).join(' · ')
                   : (banner.brandLabels?.[0] ?? banner.brand ?? platform?.label
-                     ?? (banner.platform === 'own' ? '' : banner.platform))}
+                     ?? (banner.platform === OWN ? '' : banner.platform))}
               </span>
               <span className="banner__period">{banner.period}</span>
               {/* 다 나갔어도 배너는 남긴다. 사라지면 "원래 없었나" 싶고,

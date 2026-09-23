@@ -1,6 +1,8 @@
 package com.discounttracker.offer;
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 이 금액을 액면대로 견줄 수 있나.
@@ -23,6 +25,8 @@ public enum Certainty {
     MENU_ONLY("menuOnly"),
     /** 정률이라 주문 금액을 모르면 얼마인지 안 정해진다. */
     PERCENT("percent");
+
+    private static final Logger log = LoggerFactory.getLogger(Certainty.class);
 
     private final String key;
 
@@ -61,7 +65,17 @@ public enum Certainty {
             case "랜덤" -> RANDOM;
             case "특정메뉴" -> MENU_ONLY;
             case "정률" -> PERCENT;
-            default -> EXACT;
+            // 사다리 꼭대기(최적)와 최저 문턱(최소)은 실제로 받는 값이다. 액면대로 견준다.
+            // 원장 schema.py의 ALLOWED_QUALIFIERS 여섯 값이 여기에 하나씩 대응한다.
+            case "최적", "최소" -> EXACT;
+            default -> {
+                // 모르는 값을 EXACT로 떨어뜨리면 견줄 수 없는 금액이 최고 할인 후보로
+                // 선다. 대응을 빠뜨린 쪽이 더 위험하므로 소리를 낸다 - 원장에 새 값이
+                // 늘면 여기도 늘려야 한다(2026-09-24).
+                log.warn("모르는 qualifier라 EXACT로 둔다: {} - Certainty.fromQualifier에 "
+                        + "대응을 넣을 것", qualifier);
+                yield EXACT;
+            }
         };
     }
 }

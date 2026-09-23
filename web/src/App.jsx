@@ -9,7 +9,7 @@ import { OWN, OWN_LABEL } from './platforms.js'
 import TopBarA from './TopBarA.jsx'
 import FilterSheet from './FilterSheet.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature } from './filters.js'
+import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, offerKey, displayBestAmount } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
@@ -492,11 +492,9 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
   // comparable이 false라 애초에 안 낀다. 규칙은 하나(RULES 3)인데 "정렬 순서"와
   // "화면에 찍을 값"이 갈라야 해서 두 자리에 산다. 판정표는 sortingAmount 쪽 하나만
   // 검사하므로 어긋나면 filters.test.js가 먼저 잡는다.
-  const bestAmount = useMemo(() => {
-    const plain = brand.offers.filter((o) => comparable(o, include) && o.amount != null && !o.soldOut)
-    if (plain.length === 0) return null
-    return Math.max(...plain.map((o) => o.amount))
-  }, [brand.offers, include?.random, include?.menu])
+  const bestAmount = useMemo(
+    () => displayBestAmount(brand.offers, include),
+    [brand.offers, include?.random, include?.menu])
 
   const sortedOffers = useMemo(
     () => [...brand.offers].sort((a, b) => {
@@ -598,7 +596,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
             <OfferChip
               include={include}
               position={position}
-              key={o.platform}
+              key={offerKey(o)}
               offer={o}
               brandLinks={brand.links}
               brandName={brand.name}
@@ -618,7 +616,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
             <OfferChip
               include={include}
               position={position}
-              key={o.platform}
+              key={offerKey(o)}
               offer={o}
               brandLinks={brand.links}
               brandName={brand.name}
@@ -635,7 +633,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
           브랜드 73개 × 앱 4개어치를 미리 심어두면 첫 화면이 통째로 멎는다.
           컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
       <div id={detailId} className="brand-detail" hidden={!open}>
-        {open && sortedOffers.map((o) => <OfferDetail key={o.platform} offer={o} brandName={brand.name} />)}
+        {open && sortedOffers.map((o) => <OfferDetail key={offerKey(o)} offer={o} brandName={brand.name} />)}
       </div>
 
       {/* 카드 맨 아래 줄 — 담기와 펼치기. 펼치기를 헤더에서 내린 건

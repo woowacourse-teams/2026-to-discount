@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import {
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate,
-  sortBrands, sortingAmount,
+  displayBestAmount, offerKey, sortBrands, sortingAmount,
 } from './filters.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
@@ -135,4 +135,22 @@ test('넣기를 켠 랜덤은 판정표의 기본값과 달리 최고 후보에 
   assert.equal(isBestCandidate(random), false) // 표의 기본값: 안 낀다
   assert.equal(comparable(random, { random: true }), true) // 사용자가 켰다
   assert.equal(comparable(random, false), false)
+})
+
+test('오퍼 키는 같은 앱의 확정과 랜덤을 가른다', () => {
+  // 서버 slot과 같은 기준이다 - BrandComparisonService가 platform#random으로 가른다.
+  const exact = { platform: 'coupangeats', certainty: 'exact' }
+  const random = { platform: 'coupangeats', certainty: 'random' }
+  assert.equal(offerKey(exact), 'coupangeats')
+  assert.equal(offerKey(random), 'coupangeats#random')
+  assert.notEqual(offerKey(exact), offerKey(random))
+})
+
+test('화면에 찍을 최고액은 특정메뉴 천장값(4,999원)을 쓰지 않는다', () => {
+  // 정렬용 sortingAmount는 특정메뉴뿐인 브랜드에 4,999원을 끼운다. 그 값이 화면에
+  // 가격처럼 찍히면 안 된다 - 토글이 꺼져 있으면 아예 없고, 켜면 액면이 나온다.
+  const menuOnly = [{ platform: 'baemin', certainty: 'menuOnly', amount: 12100 }]
+  assert.equal(displayBestAmount(menuOnly, false), null)
+  assert.equal(displayBestAmount(menuOnly, { menu: true }), 12100)
+  assert.equal(displayBestAmount([{ platform: 'baemin', certainty: 'exact', amount: 8000, soldOut: true }]), null)
 })

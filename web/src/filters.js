@@ -307,3 +307,32 @@ export function applyFilters(brands, filters, { cart, cartOnly } = {}) {
     })
   return sortBrands(visible, { ...filters, include: includesFrom(filters) })
 }
+
+/**
+ * 오퍼 목록을 그릴 때 쓰는 React 키.
+ *
+ * 앱 이름만으로는 겹친다. 서버는 같은 (브랜드, 앱)에 확정 오퍼와 랜덤 오퍼를 따로
+ * 세운다(BrandComparisonService의 slot이 `platform` 또는 `platform#random`이다).
+ * 둘이 함께 서면 키가 같아져 React가 한 줄을 지우거나 엉뚱한 자리에 다시 그린다.
+ * 서버가 가르는 기준을 그대로 쓴다.
+ */
+export function offerKey(offer) {
+  return certaintyOf(offer) === 'random' ? `${offer.platform}#random` : offer.platform
+}
+
+/**
+ * 그 브랜드 카드에 큰 글씨로 찍을 최고 할인액. 없으면 null.
+ *
+ * `bestConfirmedAmount`와 가르는 이유 - 그 함수는 정렬 천장을 채우려고 특정메뉴
+ * 쿠폰뿐인 브랜드에 MENU_LIMITED_SORTING_AMOUNT(4,999원)를 끼워 넣는다. 화면에
+ * 4,999원을 진짜 가격처럼 찍으면 안 된다. 여기서는 넣을지만 `comparable`로 가르고
+ * 금액은 항상 오퍼의 액면을 쓴다.
+ *
+ * 규칙은 하나(RULES 3)인데 "정렬 순서"와 "화면에 찍을 값"이 갈라야 해서 두 함수가
+ * 된다. 두 함수를 한 파일에 나란히 두는 이유가 그것이다 - App.jsx에 흩어져 있으면
+ * 한쪽만 고쳐도 아무도 모른다(2026-09-24 지적).
+ */
+export function displayBestAmount(offers, include = false) {
+  const plain = offers.filter((o) => comparable(o, include) && o.amount != null && !o.soldOut)
+  return plain.length === 0 ? null : Math.max(...plain.map((o) => o.amount))
+}
