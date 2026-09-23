@@ -181,6 +181,7 @@ web/src/App.jsx
 web/src/BrandSuggestions.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
+web/src/PushNotificationSetting.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
 web/src/TopBarA.jsx
@@ -209,6 +210,12 @@ web/src/platformIcons.js
 web/src/platforms.js
 web/src/posthog.js
 web/src/privacy.js
+web/src/pushNotifications.js
+web/src/pushNotifications.test.js
+web/src/pushPrompt.js
+web/src/pushPrompt.test.js
+web/src/pushSyncRetry.js
+web/src/pushSyncRetry.test.js
 web/src/surveyDismiss.js
 web/src/surveyDismiss.test.js
 web/src/surveyQuestions.js
@@ -262,7 +269,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 124 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 63 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 70 |
 
 ### Tracker
 
@@ -323,6 +330,7 @@ HTTP 경계:
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합) |
+| `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `TopBarA.jsx` | 상단 바(앱 버튼·분류 캐러셀). 옛 A안, 2026-09-15부터 유일 |
@@ -351,6 +359,12 @@ HTTP 경계:
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |
 | `privacy.js` | DNT/GPC 추적 거부 판정 |
+| `pushNotifications.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pushNotifications.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pushPrompt.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pushPrompt.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pushSyncRetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pushSyncRetry.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
