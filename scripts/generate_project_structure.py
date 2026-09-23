@@ -33,7 +33,10 @@ TOP_LEVEL_EXECUTABLE_EXTENSIONS = {
     ".tsx",
 }
 
-NON_UNIT_TOP_LEVEL = {"scripts"}
+# docs는 문서와 계약 데이터만 담는다. 2026-09-23에 웹과 API가 같이 읽는 판정표
+# docs/contracts/certainty-cases.json이 생기면서 .json 확장자 때문에 실행 단위로
+# 잘못 잡혔다. 파일 형식이 아니라 자리가 단위를 정한다.
+NON_UNIT_TOP_LEVEL = {"scripts", "docs"}
 
 TOP_LEVEL_MARKERS = {
     "build.gradle",

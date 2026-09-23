@@ -8,7 +8,7 @@ import { PLATFORM_ICON_DATA } from './platformIcons.js'
 // 공용 모듈로 빼서 양쪽이 여기서 가져다 쓴다.
 
 // 플랫폼 목록은 platforms.js(순수 모듈)에 있다 — filters.js의 node --test가 .jsx를 못 읽는다.
-import { PLATFORMS, PLATFORM_BY_KEY } from './platforms.js'
+import { PLATFORMS, PLATFORM_BY_KEY, iconFor } from './platforms.js'
 export { PLATFORMS, PLATFORM_BY_KEY }
 
 // 주소 계산은 logoSrc.js에 있다 — node --test가 .jsx를 못 읽어서
@@ -45,8 +45,11 @@ function hideSiblingFallback(e) {
 // onClick이 있으면 버튼(플랫폼 필터 토글 등)으로, 없으면 예전처럼 순수
 // 장식용 span으로 렌더한다 — 오퍼 칩·배너처럼 클릭 의미가 없는 자리에서는
 // 여전히 span이라 키보드 포커스를 쓸데없이 늘리지 않는다.
-export function PlatformBadge({ platformKey, onClick, active }) {
-  const p = PLATFORM_BY_KEY[platformKey]
+export function PlatformBadge({ platformKey, via = null, brand = null, onClick, active }) {
+  const p = iconFor(platformKey, via)
+  // 아이콘이 없는 자리(자사 행사)는 브랜드 로고를 그대로 쓴다. 로고도 없으면 아무것도
+  // 안 그린다 — 여기서 죽으면 카드 하나가 아니라 페이지 전체가 안 그려진다.
+  if (!p) return brand ? <BrandLogo name={brand} /> : null
   const content = (
     <>
       <img

@@ -37,6 +37,7 @@ api/src/main/java/com/discounttracker/analytics/TrafficStats.java
 api/src/main/java/com/discounttracker/analytics/TrafficStatsService.java
 api/src/main/java/com/discounttracker/analytics/VisitEvent.java
 api/src/main/java/com/discounttracker/banner/Banner.java
+api/src/main/java/com/discounttracker/banner/BannerAmount.java
 api/src/main/java/com/discounttracker/banner/BannerCatalog.java
 api/src/main/java/com/discounttracker/banner/BannerSpec.java
 api/src/main/java/com/discounttracker/banner/BannerText.java
@@ -45,10 +46,13 @@ api/src/main/java/com/discounttracker/brand/BrandCatalog.java
 api/src/main/java/com/discounttracker/brand/Category.java
 api/src/main/java/com/discounttracker/comparison/BrandComparison.java
 api/src/main/java/com/discounttracker/comparison/BrandComparisonService.java
+api/src/main/java/com/discounttracker/offer/AmountKind.java
+api/src/main/java/com/discounttracker/offer/Certainty.java
 api/src/main/java/com/discounttracker/offer/DiscountLadder.java
 api/src/main/java/com/discounttracker/offer/DiscountTier.java
 api/src/main/java/com/discounttracker/offer/Membership.java
 api/src/main/java/com/discounttracker/offer/Offer.java
+api/src/main/java/com/discounttracker/offer/OfferComparison.java
 api/src/main/java/com/discounttracker/offer/OfferRecord.java
 api/src/main/java/com/discounttracker/offer/OfferRepository.java
 api/src/main/java/com/discounttracker/offer/OfferStartupLoader.java
@@ -95,13 +99,21 @@ api/src/test/java/com/discounttracker/analytics/SurveyControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyEligibilityTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyTextTest.java
 api/src/test/java/com/discounttracker/analytics/TrafficStatsServiceTest.java
+api/src/test/java/com/discounttracker/banner/BannerAmountTest.java
 api/src/test/java/com/discounttracker/banner/BannerBuilderTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogTest.java
+api/src/test/java/com/discounttracker/banner/BannerFieldsTest.java
+api/src/test/java/com/discounttracker/banner/BannerGroupTest.java
 api/src/test/java/com/discounttracker/banner/BannerTextTest.java
 api/src/test/java/com/discounttracker/brand/BrandCatalogTest.java
+api/src/test/java/com/discounttracker/comparison/BannerOfferCertaintyTest.java
 api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java
+api/src/test/java/com/discounttracker/comparison/LegacyBannerOfferTest.java
 api/src/test/java/com/discounttracker/comparison/TargetedBannerTest.java
+api/src/test/java/com/discounttracker/offer/CertaintyTest.java
 api/src/test/java/com/discounttracker/offer/DiscountLadderTest.java
+api/src/test/java/com/discounttracker/offer/OfferCertaintyTest.java
+api/src/test/java/com/discounttracker/offer/OfferComparisonTest.java
 api/src/test/java/com/discounttracker/offer/OfferConvergenceTest.java
 api/src/test/java/com/discounttracker/offer/OfferRecordTest.java
 api/src/test/java/com/discounttracker/offer/OfferRepositoryTest.java
@@ -178,6 +190,8 @@ web/src/analytics.js
 web/src/api.js
 web/src/bannerScroll.js
 web/src/bannerScroll.test.js
+web/src/bannerTag.js
+web/src/bannerTag.test.js
 web/src/brandAutocomplete.js
 web/src/brandAutocomplete.test.js
 web/src/brandColor.js
@@ -191,6 +205,7 @@ web/src/logoManifest.test.js
 web/src/logoSrc.js
 web/src/logos.jsx
 web/src/main.jsx
+web/src/platformBadge.test.js
 web/src/platformIcons.js
 web/src/platforms.js
 web/src/posthog.js
@@ -253,8 +268,8 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 112 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 67 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 124 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 70 |
 
 ### Tracker
 
@@ -280,10 +295,10 @@ flowchart TB
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
 | `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 24 |
-| `banner/` | 당일 행사 로드와 날짜 판정 | 4 |
+| `banner/` | 당일 행사 로드와 날짜 판정 | 5 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
-| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 8 |
+| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 11 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 9 |
 | `testdata/` | 검수용 더미 데이터, 오류를 일부러 섞는다 | 1 |
 | `web/` | HTTP 엔드포인트와 CORS | 7 |
@@ -324,6 +339,8 @@ HTTP 경계:
 | `api.js` | 브랜드와 배너 API 호출 |
 | `bannerScroll.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerScroll.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `bannerTag.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `bannerTag.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandAutocomplete.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `brandColor.js` | 배너 색 파생 |
@@ -337,6 +354,7 @@ HTTP 경계:
 | `logoSrc.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logos.jsx` | 브랜드와 플랫폼 로고 |
 | `main.jsx` | React와 분석 도구 진입점 |
+| `platformBadge.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |

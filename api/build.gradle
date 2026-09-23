@@ -19,4 +19,16 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') { useJUnitPlatform() }
+tasks.named('test') {
+    useJUnitPlatform()
+    // OfferComparisonTest가 이 표를 읽는다. gradle은 기본적으로 이 파일을 test 입력으로
+    // 안 잡아서 표만 고치면 재실행 없이 캐시된 결과를 그대로 낸다 - 그러면 웹과 API가
+    // 갈라져도 못 잡는다(ADR-016). api/가 gradle 루트라 rootDir는 api/ 자신이다.
+    //
+    // file이 아니라 files인 이유: 배포 미러 nn98/delivery-discount-api는 api/ 안쪽만
+    // 복사해 가서 docs/가 통째로 없다. inputs.file은 없는 경로에서 test 태스크를
+    // 시작도 전에 죽여 무관한 테스트까지 끌고 간다. files는 없으면 그냥 빈 입력으로
+    // 넘어가고, 파일이 있을 때의 변경 추적은 그대로다. 표를 강제하는 자리는
+    // mono 저장소의 check-api.yml이고 거기엔 이 파일이 늘 있다.
+    inputs.files("$rootDir/../docs/contracts/certainty-cases.json")
+}

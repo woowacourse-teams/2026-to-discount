@@ -20,6 +20,10 @@ import java.util.List;
  * @param event       짧은 행사 제목(뚜쥬데이, 위클리 슈퍼딜)
  * @param note        위 칸에 안 담기는 나머지 한 줄
  */
+// 2026-09-22 계획서(Task 5)는 이 record를 opensAt, channel, membership, event, note
+// 다섯 칸으로 줄이라고 했다. 그대로 하면 BannerCatalog와 BrandComparisonService가
+// 아직 읽는 items, amountRange, limit, usage가 사라져 컴파일이 깨진다 - 그 호출부를
+// 고치는 일은 Task 19다. 그래서 옛 아홉 칸은 그대로 두고, 다섯 칸짜리 생성자만 더한다.
 public record BannerSpec(
         List<BannerItem> items,
         List<Integer> amountRange,
@@ -45,6 +49,14 @@ public record BannerSpec(
                 }
             }
         }
+    }
+
+    /**
+     * Task 5가 쓰는 다섯 칸짜리 생성자. 금액과 기간과 한정은 이제 {@link Banner} 자신과
+     * {@link BannerAmount}가 가져가서, 새로 적는 배너는 items나 amountRange가 필요 없다.
+     */
+    public BannerSpec(String opensAt, String channel, String membership, String event, String note) {
+        this(null, null, opensAt, null, null, channel, membership, event, note);
     }
 
     public boolean isEmpty() {

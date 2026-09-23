@@ -2,7 +2,7 @@
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
 // "화면에 뜬 것"이 어긋난다. (B안 시트·메뉴바는 2026-09-15에 지웠다.)
 
-import { PLATFORMS } from './platforms.js'
+import { PLATFORMS, OWN } from './platforms.js'
 
 // 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
 // (실제 브랜드별 분류는 API 쪽 brands.yml이 단일 출처다).
@@ -83,28 +83,71 @@ export function isDefaultFilters(f) {
 }
 
 /**
- * 다른 오퍼와 같은 선에서 견줄 수 있는 값인가.
+ * 이 오퍼의 확실성. API가 `certainty`를 항상 내려준다(RULES 11, Task 19) - Task 8부터
+ * 서버가 옛 원장의 `qualifier`에서 끌어내 응답에 싣는 쪽으로 바뀌었으니, 웹이 그
+ * 변환을 다시 할 필요가 없다.
  *
- * "최대"(화면 배지 "불확정")는 최소주문금액을 채워야 나오는 상한액이고
- * "랜덤"(뽑기 쿠폰. 받는 사람마다 값이 다르다)은 오늘 내가 뽑은 값일 뿐이며
- * "특정메뉴"는 메뉴 하나에만 쓰는 값이라 액면 그대로 견주면 그 오퍼가
- * 실제보다 세 보인다. "최적"(쿠폰을 다 겹쳤을 때)과 "행사"(당일 배너)는
- * 조건이 붙을 뿐 액수 자체는 확정이라 넣는다.
- *
- * 같은 규칙이 api의 BrandComparisonService.confirmedSortingAmount()에도
- * 있다(카드 정렬용). 한쪽만 고치면 API가 준 순서와 화면이 다시 세운 순서가
- * 어긋난다(ADR-016).
+ * 옛 `CERTAINTY_FROM_QUALIFIER` 다리를 지웠다 - 이 앱은 서비스워커도, 응답을 오래
+ * 붙드는 캐시도 없어(2026-09-23 확인) 배포가 끝난 뒤 `certainty` 없는 응답을 계속
+ * 받을 길이 없다. 배포 겹침 순간에 옛 버전 API가 잠깐 응답해도 `?? 'exact'`가 같은
+ * 값으로 떨어져 안전하고, 다음 새로고침이면 사라진다. `offer.qualifier` 자체는
+ * 원장 호환으로 API에 남는다.
  */
-const INCOMPARABLE = new Set(['최대', '랜덤', '특정메뉴'])
+export function certaintyOf(offer) {
+  return offer.certainty ?? 'exact'
+}
+
+/** 이 오퍼의 종류. 아직 안 오면 할인으로 본다(옛 응답은 전부 할인이었다). */
+export function kindOf(offer) {
+  return offer.kind ?? 'discount'
+}
+
+/**
+ * 확실성과 무관하게, 이 오퍼가 배달앱끼리 견주는 자리에 낄 수 있는가.
+ *
+ * api의 OfferComparison.comparable과 같은 축이다. 할인이어야 하고, 품절이
+ * 아니어야 하고, 자사(own) 채널이 아니어야 한다. 자사는 오퍼 목록에는
+ * 서지만 배달앱끼리 겨루는 "최고 할인" 자리에는 못 낀다(RULES 3).
+ */
+function comparableAxes(offer) {
+  return kindOf(offer) === 'discount' && !offer.soldOut && offer.platform !== OWN
+}
+
+/**
+ * 카드의 "최고 할인"으로 세울 수 있는 값인가.
+ *
+ * 같은 판정이 api의 OfferComparison.isBestCandidate에도 있다. 판정표
+ * docs/contracts/certainty-cases.json을 양쪽 테스트가 같이 읽어 어긋남을
+ * 막는다(ADR-016).
+ */
+export function isBestCandidate(offer) {
+  return certaintyOf(offer) === 'exact' && comparableAxes(offer)
+}
+
+/** 특정 메뉴 한정 쿠폰이 정렬에서 갖는 값. 5,000원 바로 아래다. */
+export const MENU_LIMITED_SORTING_AMOUNT = 4999
+
+/**
+ * 카드 정렬에 기여하는 금액. 견줄 수 없으면 null이라 아예 안 들어간다.
+ *
+ * api의 OfferComparison.sortingAmount와 같다. kind·soldOut·platform과
+ * 무관하게 확실성만으로 정해진다(그 축은 comparableAxes가 이미 따로 본다).
+ */
+export function sortingAmount(offer) {
+  const c = certaintyOf(offer)
+  if (c === 'menuOnly') return MENU_LIMITED_SORTING_AMOUNT
+  if (c === 'capped' || c === 'random' || c === 'percent') return null
+  return offer.amount ?? null
+}
 
 export const RANDOM_QUALIFIER = '랜덤'
 export function isRandom(offer) {
-  return offer.qualifier === RANDOM_QUALIFIER
+  return certaintyOf(offer) === 'random'
 }
 
 export const MENU_QUALIFIER = '특정메뉴'
 export function isMenuOnly(offer) {
-  return offer.qualifier === MENU_QUALIFIER
+  return certaintyOf(offer) === 'menuOnly'
 }
 
 /** 넣을 것. `true`는 예전 호출(랜덤만)과 같다. 객체면 {random, menu}. */
@@ -114,21 +157,56 @@ function includesOf(include) {
   return { random: !!include.random, menu: !!include.menu }
 }
 
+/**
+ * 다른 오퍼와 같은 선에서 견줄 수 있는 값인가. `isBestCandidate`의 얇은
+ * 겉옷이다 - exact 판정은 그 함수를 그대로 물려받고, 토글이 켜졌을 때만
+ * 그 위에 랜덤·특정메뉴를 얹는다.
+ *
+ * 판정표(certainty-cases.json)는 사용자 설정을 모른다. "넣기"를 켠
+ * 랜덤·특정메뉴는 그 표의 `best`가 아니어도 여기서는 낀다. 표가 답하는
+ * 것은 "아무도 안 켰을 때의 기본값"이고, 토글은 그 위에 사용자가 얹는
+ * 예외다. capped와 percent는 토글로도 못 넣는다. 상한과 정률은 액면이
+ * 아예 없다.
+ */
 export function comparable(offer, include = false) {
+  if (isBestCandidate(offer)) return true
+  if (!comparableAxes(offer)) return false
   const inc = includesOf(include)
-  if (inc.random && isRandom(offer)) return true
-  if (inc.menu && isMenuOnly(offer)) return true
-  return !INCOMPARABLE.has(offer.qualifier)
+  const c = certaintyOf(offer)
+  if (inc.random && c === 'random') return true
+  if (inc.menu && c === 'menuOnly') return true
+  return false
 }
 
 /**
- * 그 카드의 최고 확정 할인액. 견줄 수 없는 값과 품절은 뺀다. 카드의
- * "최고 할인" 배지가 고르는 값과 같은 규칙이다 — App.jsx가 이 함수의
- * 판정(comparable)을 그대로 가져다 쓴다.
+ * 정렬 천장에 이 오퍼가 기여하는 금액. `bestConfirmedAmount`만 쓰는
+ * 내부 함수다 - api의 `OfferComparison.comparisonAmount`처럼 `comparableAxes`와
+ * `sortingAmount`(둘 다 판정표가 검사하는 함수)를 그대로 불러 쓴다.
+ *
+ * 특정메뉴는 토글이 꺼져 있어도 `sortingAmount`의 4,999원으로 정렬 천장에
+ * 낀다 - 그 쿠폰뿐인 브랜드가 정렬 기준을 통째로 잃지 않게 하려는 것과
+ * 같은 이유다(RULES 3, OfferComparison.java 주석). 토글을 켜면 액면
+ * 그대로 올라간다 - "넣기"는 그 오퍼를 진짜 최고 후보로 승격하는
+ * 사용자의 선택이라 4,999원 천장에 묶어 둘 이유가 없다. 랜덤도 같다:
+ * 꺼져 있으면 sortingAmount가 null이라 안 낀다. 켜면 액면이 오른다.
+ */
+function comparisonAmount(offer, include) {
+  if (!comparableAxes(offer)) return null
+  const inc = includesOf(include)
+  const c = certaintyOf(offer)
+  if (inc.random && c === 'random') return offer.amount ?? null
+  if (inc.menu && c === 'menuOnly') return offer.amount ?? null
+  return sortingAmount(offer)
+}
+
+/**
+ * 그 카드의 최고 확정 할인액. `comparisonAmount`를 오퍼마다 불러 최댓값을
+ * 낸다. 견줄 수 없는 값(capped·percent, 토글 꺼진 random)은 null이라
+ * 아예 안 낀다.
  */
 export function bestConfirmedAmount(offers, include = false) {
-  const plain = offers.filter((o) => comparable(o, include) && o.amount != null && !o.soldOut)
-  return plain.length === 0 ? null : Math.max(...plain.map((o) => o.amount))
+  const amounts = offers.map((o) => comparisonAmount(o, include)).filter((v) => v != null)
+  return amounts.length === 0 ? null : Math.max(...amounts)
 }
 
 /** 그 카드에서 가장 낮은 최소주문금액. 못 읽은 값은 없는 것으로 친다. */
@@ -213,7 +291,7 @@ export function applyFilters(brands, filters, { cart, cartOnly } = {}) {
   const q = filters.search.trim()
   const visible = brands
     .map((b) => {
-      const offers = b.offers.filter((o) => filters.platforms.has(o.platform)
+      const offers = b.offers.filter((o) => (o.platform === OWN || filters.platforms.has(o.platform))
         && (!filters.minAmount5k || (o.amount ?? 0) >= 5000))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })

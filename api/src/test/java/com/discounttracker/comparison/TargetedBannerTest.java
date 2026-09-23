@@ -29,20 +29,19 @@ class TargetedBannerTest {
     private static final Clock TODAY =
             Clock.fixed(Instant.parse("2026-09-12T03:00:00Z"), ZoneId.of("Asia/Seoul"));
 
-    private Offer offerWith(String extra) {
+    /** 구조 칸을 쓰는 새 모양이다 - 문장을 다시 읽지 않는다(Task 8). extraYaml이 amount도 적는다. */
+    private Offer offerWith(String extraYaml) {
         String bannerYaml = """
                 banners:
                 - id: baemin-targetdeal-20260912
                   brand: bhc
                   platform: baemin
                   url: https://baemin.go.link/5H0ry
-                  amount: BHC·홍콩반점 8,000원
-                  period: 타겟딜
-                  extra: "%s"
                   startsOn: 2026-09-12
                   endsOn: 2026-09-12
                   priority: 1
-                """.formatted(extra);
+                  %s
+                """.formatted(extraYaml);
         BrandCatalog brands = new BrandCatalog(
                 new ByteArrayResource("brands: {}".getBytes(StandardCharsets.UTF_8)));
         BannerCatalog banners = new BannerCatalog(
@@ -57,20 +56,21 @@ class TargetedBannerTest {
 
     @Test
     void targetedDealIsNotAConfirmedAmount() {
-        assertEquals("최대", offerWith("고객별 타겟딜, 앱에서 확인").qualifier(),
+        assertEquals("최대", offerWith("amount: {won: 8000}\n  targeted: true").qualifier(),
                 "화면에 '불확정'으로 뜬다");
     }
 
     @Test
     void randomCouponBannerIsMarkedRandomNotMax() {
         // 2026-09-18: bhc "최대 7,000원 / 매일 랜덤쿠폰 뽑기" 배너. 뽑기 쿠폰은 "랜덤"이다 —
-        // 카드에 오르되 배지가 다르고 정렬 포함 여부는 사용자가 고른다.
-        assertEquals("랜덤", offerWith("매일 랜덤쿠폰 뽑기").qualifier());
+        // 카드에 오르되 배지가 다르고 정렬 포함 여부는 사용자가 고른다. 표식은 구조 필드
+        // (amount.random)에서 나온다 - 문구에 "랜덤"이 없어도 선다(Task 8).
+        assertEquals("랜덤", offerWith("amount: {won: [3000, 7000], random: true}").qualifier());
     }
 
     @Test
     void targetedDealSaysItIsLimited() {
-        Offer offer = offerWith("고객별 타겟딜, 앱에서 확인");
+        Offer offer = offerWith("amount: {won: 8000}\n  targeted: true");
 
         assertNotNull(offer.conditions());
         assertTrue(offer.conditions().contains("한정"), offer.conditions());
@@ -78,10 +78,12 @@ class TargetedBannerTest {
 
     @Test
     void anOrdinaryEventKeepsItsConfirmedMark() {
-        // 행사는 그 기간 누구나 받는 것이라 "한정"이 거짓이 된다.
-        Offer offer = offerWith("18,000원↑, 사용(발급X) 선착순");
+        // 확정 오퍼는 이제 "행사" 표식이 없다 - 배너 출처는 Offer.fromBanner가 이미 답하는
+        // 사실이라 qualifier가 그 말을 중복해서 실을 필요가 없다(Task 8).
+        Offer offer = offerWith("amount: {won: 8000}\n  firstCome: use");
 
-        assertEquals("행사", offer.qualifier());
+        assertNull(offer.qualifier());
+        assertTrue(offer.fromBanner());
         assertFalse(String.valueOf(offer.conditions()).contains("한정"),
                 String.valueOf(offer.conditions()));
     }

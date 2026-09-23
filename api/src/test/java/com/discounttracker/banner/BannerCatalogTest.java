@@ -240,10 +240,14 @@ class BannerCatalogTest {
                 """;
 
         List<Banner> active = catalogOn(yaml, "2026-08-11").active();
-        assertTrue(active.get(0).notificationEnabled());
-        assertTrue(active.get(0).immediateNotificationRequested());
-        assertFalse(active.get(1).notificationEnabled());
-        assertFalse(active.get(1).immediateNotificationRequested());
+        // 우선순위와 종료일이 같으면 이제 id로 갈린다(그룹을 접을 때 순서를 정하려고
+        // 더한 세 번째 정렬 기준) - 자리 대신 id로 찾는다.
+        Banner enabled = active.stream().filter(b -> b.id().equals("notification-enabled")).findFirst().orElseThrow();
+        Banner disabled = active.stream().filter(b -> b.id().equals("notification-disabled")).findFirst().orElseThrow();
+        assertTrue(enabled.notificationEnabled());
+        assertTrue(enabled.immediateNotificationRequested());
+        assertFalse(disabled.notificationEnabled());
+        assertFalse(disabled.immediateNotificationRequested());
     }
 
     @Test
@@ -401,41 +405,145 @@ class BannerCatalogTest {
 
     @Test
     void buildsTextFromStructuredFieldsWhenSentencesAreEmpty() {
-        // 설계 25: 문장 칸 없이 items, limit만 적어도 카드가 선다. 적힌 문장은 이긴다.
+        // Task 5/6 새 모양: 문장 칸 없이 amount(구조 필드)만 적어도 카드가 선다. 적힌 문장은
+        // 이긴다. 옛 모양의 묶음(items)은 이제 여러 배너를 group으로 한 장에 접는다(Task 6).
         String yaml = """
                 banners:
-                  - id: coupangeats-open-20260918
+                  - id: coupangeats-open-버거킹-20260918
+                    group: coupangeats-open-20260918
                     platform: coupangeats
                     url: https://example.test/hub
-                    items:
-                      - {brand: 버거킹, amount: 4000, opensAt: "10:00"}
-                      - {brand: 호식이두마리치킨, amount: 6000, opensAt: "15:00"}
-                    limit: first_come
+                    brand: 버거킹
+                    amount: {won: 4000}
+                    firstCome: issue
                     startsOn: 2026-09-18
                     endsOn: 2026-09-18
+                    priority: 1
+                  - id: coupangeats-open-호식이-20260918
+                    group: coupangeats-open-20260918
+                    platform: coupangeats
+                    url: https://example.test/hub2
+                    brand: 호식이두마리치킨
+                    amount: {won: 6000}
+                    firstCome: issue
+                    startsOn: 2026-09-18
+                    endsOn: 2026-09-18
+                    priority: 2
                   - id: bhc-20260918
                     brand: bhc
                     platform: coupangeats
                     url: https://example.test/bhc
-                    amountRange: [null, 7000]
-                    limit: random
+                    amount: {won: [null, 7000], random: true}
                     period: 일일 슈퍼딜
                     startsOn: 2026-09-18
                     endsOn: 2026-09-18
                 """;
         BannerCatalog catalog = catalogOn(yaml, "2026-09-18");
-        assertEquals(2, catalog.active().size());
-        Banner open = catalog.active().get(0);
-        assertEquals("4/6천원", open.amount());
+        assertEquals(2, catalog.active().size(), "묶음 둘은 한 장으로 접힌다");
+        Banner open = catalog.active().stream()
+                .filter(b -> b.id().equals("coupangeats-open-버거킹-20260918")).findFirst().orElseThrow();
+        assertEquals("4,000원", open.amount());          // 대표(우선순위가 작은) 구성원 자신의 값
         assertEquals("9월 18일 하루", open.period());
-        assertEquals("10시~ 버거킹 · 15시~ 호식이두마리치킨 / 선착순", open.extra());
+        assertEquals("발급 선착순", open.extra());
         assertEquals(List.of("버거킹", "호식이두마리치킨"), open.brands());
         assertEquals("버거킹", open.brand());
-        Banner bhc = catalog.active().get(1);
+        Banner bhc = catalog.active().stream()
+                .filter(b -> b.id().equals("bhc-20260918")).findFirst().orElseThrow();
         assertEquals("최대 7,000원", bhc.amount());
         assertEquals("일일 슈퍼딜", bhc.period());            // 적힌 문장이 이긴다
         assertEquals("랜덤쿠폰", bhc.extra());
-        assertNotNull(bhc.spec());
+        assertNotNull(bhc.amountSpec());
+    }
+
+    @Test
+    void backfillsFirstComeTargetedAndCashbackFromLimitUsageOnlyWhenTheNewFieldsAreEmpty() {
+        // Task 18 fix round 2. web/src/bannerTag.js가 이제 firstCome/targeted/amountSpec만
+        // 읽는다 - RULES 8·9로 옛 모양 그대로 남는 배너는 이 세 칸이 비어 있을 수 있어
+        // 여기서 옛 limit/usage 칸으로 채운다. period·extra 문장은 안 본다(fix round 1의
+        // 문장 정규식은 되돌렸다) - "적립금은 본 행사에 사용 불가", "가을맞이 신규 오픈
+        // 매장 한정" 같은 문장이 오탐을 내고, RULES 9로 옛 모양이 무기한 남아 "이행기용"
+        // 파서가 안 끝난다(리뷰어 지적, fix round 2). 살아있는 배너는 운영자가
+        // firstCome/limit을 직접 적는 것으로 해결한다.
+        String yaml = """
+                banners:
+                  - id: coupangeats-open-20260923-17시
+                    platform: coupangeats
+                    url: https://example.test/hub
+                    brand: 두찜
+                    amount: 7,000원
+                    period: 오늘 17시 선착순
+                    extra: 17시~ 와우 전용
+                    firstCome: issue
+                    startsOn: 2026-09-23
+                    endsOn: 2026-09-23
+                  - id: 처갓집양념치킨-legacy-limit
+                    brand: 처갓집양념치킨
+                    platform: baemin
+                    url: https://example.test/jutgas
+                    amount: 8,000원
+                    period: 오늘의 핫딜
+                    startsOn: 2026-09-23
+                    endsOn: 2026-09-23
+                    limit: first_come
+                    usage: use
+                  - id: 백억커피-legacy-cashback
+                    brand: 백억커피
+                    url: https://example.test/coffee
+                    amount: 최대 10,000원, 50% 적립
+                    period: 9/21~10/11
+                    startsOn: 2026-09-21
+                    endsOn: 2026-10-11
+                    limit: cashback
+                  - id: coupangeats-weekly-legacy-random
+                    brand: bhc
+                    platform: coupangeats
+                    url: https://example.test/bhc
+                    amount: 최대 7,000원
+                    period: 일일 슈퍼딜
+                    startsOn: 2026-09-23
+                    endsOn: 2026-09-23
+                    limit: random
+                  - id: has-new-field-already
+                    brand: 교촌치킨
+                    platform: baemin
+                    url: https://example.test/kyochon
+                    amount: 5,000원
+                    period: 선착순 특가
+                    firstCome: issue
+                    startsOn: 2026-09-23
+                    endsOn: 2026-09-23
+                  - id: 적립금-오탐-문구
+                    brand: bhc
+                    platform: baemin
+                    url: https://example.test/bhc2
+                    amount: 5,000원
+                    period: 가을맞이 신규 오픈 매장 한정
+                    extra: 적립금은 본 행사에 사용 불가
+                    startsOn: 2026-09-23
+                    endsOn: 2026-09-23
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-23");
+        var byId = catalog.active().stream()
+                .collect(java.util.stream.Collectors.toMap(Banner::id, b -> b));
+
+        // firstCome을 사람이 직접 적었으면 그 값이 그대로다.
+        assertEquals("issue", byId.get("coupangeats-open-20260923-17시").firstCome());
+        // limit: first_come + usage: use — 옛 아홉 칸 시절 신호에서 채운다.
+        assertEquals("use", byId.get("처갓집양념치킨-legacy-limit").firstCome());
+        // limit: cashback — amountSpec이 새로 생겨 kind가 CASHBACK이 된다.
+        assertNotNull(byId.get("백억커피-legacy-cashback").amountSpec());
+        assertEquals(com.discounttracker.offer.AmountKind.CASHBACK,
+                byId.get("백억커피-legacy-cashback").amountSpec().kind());
+        // limit: random — amountSpec이 새로 생겨 random이 켜진다.
+        assertNotNull(byId.get("coupangeats-weekly-legacy-random").amountSpec());
+        assertTrue(byId.get("coupangeats-weekly-legacy-random").amountSpec().random());
+        // firstCome을 사람이 직접 적었으면 그 값(issue)이 그대로다 — 백필이 덮어쓰지 않는다.
+        assertEquals("issue", byId.get("has-new-field-already").firstCome());
+        // "적립"/"오픈" 같은 단어가 문장에 있어도 limit/usage가 없으면 그냥 지나간다 —
+        // 문장을 더는 정규식으로 되짚지 않는다(fix round 2).
+        Banner falsePositive = byId.get("적립금-오탐-문구");
+        assertNull(falsePositive.firstCome());
+        assertNull(falsePositive.amountSpec());
     }
 
     @Test

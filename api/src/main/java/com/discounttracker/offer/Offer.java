@@ -26,11 +26,13 @@ public record Offer(String platform, Integer amount, String qualifier,
                     // 떨어진다 — 브랜드 링크를 대체하지는 않는다.
                     String link,
                     @JsonIgnore Membership membership,
-                    // 배너에서 세운 오퍼인가. 원장 오퍼와 겹쳤을 때
-                    // 한쪽을 버리지 않고 사다리로 합치는 근거다
-                    // (preferredOver). link로 추정하지 않는다 —
-                    // 링크는 나중에 다른 오퍼에도 붙을 수 있다.
-                    @JsonIgnore boolean fromBanner) {
+                    // 배너에서 세운 오퍼인가. 출처 축이다 - qualifier의 "행사"가 같은 사실의
+                    // 중복이었다. 웹이 읽어야 해서 이행 기간에 응답에 싣는다.
+                    boolean fromBanner,
+                    // 이 금액을 액면대로 견줄 수 있나. 원장 qualifier에서 끌어낸다.
+                    Certainty certainty,
+                    // 무엇을 주는가. 원장에서 온 오퍼는 전부 discount다.
+                    AmountKind kind) {
 
     /** 배너에서 세운 오퍼의 offerType. BrandComparisonService가 적는 값과 같다. */
     public static final String BANNER_OFFER_TYPE = "banner";
@@ -49,7 +51,8 @@ public record Offer(String platform, Integer amount, String qualifier,
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
                 r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
                 Boolean.TRUE.equals(r.soldOut()), r.link(), r.membershipTier(),
-                BANNER_OFFER_TYPE.equals(r.offerType()));
+                BANNER_OFFER_TYPE.equals(r.offerType()),
+                Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()));
     }
 
     @JsonProperty("status")
@@ -166,7 +169,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         //
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, mergedBadge, soldOut,
-                link, mergedMembership, fromBanner);
+                link, mergedMembership, fromBanner, certainty, kind);
     }
 
     /**
@@ -223,6 +226,6 @@ public record Offer(String platform, Integer amount, String qualifier,
         }
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
-                soldOut, link, membership, fromBanner);
+                soldOut, link, membership, fromBanner, certainty, kind);
     }
 }
