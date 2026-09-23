@@ -83,28 +83,71 @@ export function isDefaultFilters(f) {
 }
 
 /**
- * 다른 오퍼와 같은 선에서 견줄 수 있는 값인가.
- *
- * "최대"(화면 배지 "불확정")는 최소주문금액을 채워야 나오는 상한액이고
- * "랜덤"(뽑기 쿠폰. 받는 사람마다 값이 다르다)은 오늘 내가 뽑은 값일 뿐이며
- * "특정메뉴"는 메뉴 하나에만 쓰는 값이라 액면 그대로 견주면 그 오퍼가
- * 실제보다 세 보인다. "최적"(쿠폰을 다 겹쳤을 때)과 "행사"(당일 배너)는
- * 조건이 붙을 뿐 액수 자체는 확정이라 넣는다.
- *
- * 같은 규칙이 api의 BrandComparisonService.confirmedSortingAmount()에도
- * 있다(카드 정렬용). 한쪽만 고치면 API가 준 순서와 화면이 다시 세운 순서가
- * 어긋난다(ADR-016).
+ * 이 오퍼의 확실성. API가 `certainty`를 내려준다. 아직 안 오면(옛 캐시,
+ * 미러 배포 시차) `qualifier`에서 끌어낸다 — 양쪽이 다 나간 뒤에나 이
+ * 다리를 뗀다. 모르는 값도 예전값도 전부 `exact`로 떨어진다(RULES 5).
  */
-const INCOMPARABLE = new Set(['최대', '랜덤', '특정메뉴'])
+const CERTAINTY_FROM_QUALIFIER = {
+  최대: 'capped',
+  랜덤: 'random',
+  특정메뉴: 'menuOnly',
+}
+
+export function certaintyOf(offer) {
+  return offer.certainty ?? CERTAINTY_FROM_QUALIFIER[offer.qualifier] ?? 'exact'
+}
+
+/** 이 오퍼의 종류. 아직 안 오면 할인으로 본다(옛 응답은 전부 할인이었다). */
+export function kindOf(offer) {
+  return offer.kind ?? 'discount'
+}
+
+/**
+ * 확실성과 무관하게, 이 오퍼가 배달앱끼리 견주는 자리에 낄 수 있는가.
+ *
+ * api의 OfferComparison.comparable과 같은 축이다: 할인이어야 하고, 품절이
+ * 아니어야 하고, 자사(own) 채널이 아니어야 한다. 자사는 오퍼 목록에는
+ * 서지만 배달앱끼리 겨루는 "최고 할인" 자리에는 못 낀다(RULES 3).
+ */
+function comparableAxes(offer) {
+  return kindOf(offer) === 'discount' && !offer.soldOut && offer.platform !== OWN
+}
+
+/**
+ * 카드의 "최고 할인"으로 세울 수 있는 값인가.
+ *
+ * 같은 판정이 api의 OfferComparison.isBestCandidate에도 있다. 판정표
+ * docs/contracts/certainty-cases.json을 양쪽 테스트가 같이 읽어 어긋남을
+ * 막는다(ADR-016).
+ */
+export function isBestCandidate(offer) {
+  return certaintyOf(offer) === 'exact' && comparableAxes(offer)
+}
+
+/** 특정 메뉴 한정 쿠폰이 정렬에서 갖는 값. 5,000원 바로 아래다. */
+export const MENU_LIMITED_SORTING_AMOUNT = 4999
+
+/**
+ * 카드 정렬에 기여하는 금액. 견줄 수 없으면 null이라 아예 안 들어간다.
+ *
+ * api의 OfferComparison.sortingAmount와 같다 — kind·soldOut·platform과
+ * 무관하게 확실성만으로 정해진다(그 축은 comparableAxes가 이미 따로 본다).
+ */
+export function sortingAmount(offer) {
+  const c = certaintyOf(offer)
+  if (c === 'menuOnly') return MENU_LIMITED_SORTING_AMOUNT
+  if (c === 'capped' || c === 'random' || c === 'percent') return null
+  return offer.amount ?? null
+}
 
 export const RANDOM_QUALIFIER = '랜덤'
 export function isRandom(offer) {
-  return offer.qualifier === RANDOM_QUALIFIER
+  return certaintyOf(offer) === 'random'
 }
 
 export const MENU_QUALIFIER = '특정메뉴'
 export function isMenuOnly(offer) {
-  return offer.qualifier === MENU_QUALIFIER
+  return certaintyOf(offer) === 'menuOnly'
 }
 
 /** 넣을 것. `true`는 예전 호출(랜덤만)과 같다. 객체면 {random, menu}. */
@@ -114,11 +157,23 @@ function includesOf(include) {
   return { random: !!include.random, menu: !!include.menu }
 }
 
+/**
+ * 다른 오퍼와 같은 선에서 견줄 수 있는 값인가.
+ *
+ * 판정표(certainty-cases.json)는 사용자 설정을 모른다 — "넣기"를 켠
+ * 랜덤·특정메뉴는 그 표의 `best`가 아니어도 여기서는 낀다. 표가 답하는
+ * 것은 "아무도 안 켰을 때의 기본값"이고, 토글은 그 위에 사용자가 얹는
+ * 예외다. exact는 축(kind·soldOut·own)만 통과하면 항상 낀다; capped와
+ * percent는 토글로도 못 넣는다 — 상한과 정률은 액면이 아예 없다.
+ */
 export function comparable(offer, include = false) {
   const inc = includesOf(include)
-  if (inc.random && isRandom(offer)) return true
-  if (inc.menu && isMenuOnly(offer)) return true
-  return !INCOMPARABLE.has(offer.qualifier)
+  if (!comparableAxes(offer)) return false
+  const c = certaintyOf(offer)
+  if (c === 'exact') return true
+  if (inc.random && c === 'random') return true
+  if (inc.menu && c === 'menuOnly') return true
+  return false
 }
 
 /**

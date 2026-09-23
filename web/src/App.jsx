@@ -5,6 +5,7 @@ import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { BrandLogo, PlatformBadge, PLATFORMS, PLATFORM_BY_KEY } from './logos.jsx'
+import { OWN, OWN_LABEL } from './platforms.js'
 import TopBarA from './TopBarA.jsx'
 import FilterSheet from './FilterSheet.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
@@ -342,7 +343,7 @@ function OfferDetail({ offer, brandName }) {
       {/* 금액은 칩 버튼과 아래 쿠폰 목록에 이미 있다 — 헤더에 또 찍지 않는다. */}
       <div className="detail__head">
         <PlatformBadge platformKey={offer.platform} via={offer.via} brand={brandName} />
-        <span className="detail__platform">{platform?.label ?? offer.platform}</span>
+        <span className="detail__platform">{platform?.label ?? (offer.platform === OWN ? OWN_LABEL : offer.platform)}</span>
         {offer.status === 'held' && <span className="pill pill--pending">재확인</span>}
       </div>
 

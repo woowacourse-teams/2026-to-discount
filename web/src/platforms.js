@@ -9,6 +9,9 @@ export const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p
 
 // 브랜드 자체 앱이나 사이트의 행사. 배달앱이 아니라 필터에 안 들어간다.
 export const OWN = 'own'
+// 화면에 내보내는 자사 채널 이름. COPY-STYLE 명사구 규칙 — "own"을 그대로
+// 찍으면 개발자 값이 사용자 화면에 샌다.
+export const OWN_LABEL = '자사 채널'
 
 // 제휴 결제 수단. 아이콘에만 쓴다 — 필터가 고르는 것은 "어느 배달앱으로 시킬까"인데
 // 결제 수단은 그 질문의 답이 아니다.

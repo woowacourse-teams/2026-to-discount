@@ -1,6 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { applyFilters, bestConfirmedAmount, comparable, defaultFilters, sortBrands } from './filters.js'
+import { readFileSync } from 'node:fs'
+import {
+  applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate,
+  sortBrands, sortingAmount,
+} from './filters.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
 const o = (amount, extra = {}) => ({ amount, platform: 'baemin', ...extra })
@@ -60,4 +64,63 @@ test('자사 오퍼가 없는 브랜드는 플랫폼을 다 끄면 그대로 사
   }]
   const none = { ...defaultFilters(), platforms: new Set() }
   assert.equal(applyFilters(brands, none).length, 0)
+})
+
+test('판정표를 API와 같이 읽는다 - 규칙을 두 벌 적지 않는다(ADR-016)', () => {
+  // 배포 미러(nn98/delivery-discount-api)는 api/만 가져가 docs/가 없다.
+  // 파일이 없으면 이 테스트만 건너뛴다 - RULES 3.
+  let table
+  try {
+    table = JSON.parse(
+      readFileSync(new URL('../../docs/contracts/certainty-cases.json', import.meta.url), 'utf8'))
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      console.log('certainty-cases.json 없음 - 배포 미러라 건너뜀')
+      return
+    }
+    throw err
+  }
+  const { cases } = table
+  assert.ok(cases.length >= 8, '판정표가 비었거나 줄었다')
+  for (const c of cases) {
+    const offer = { certainty: c.certainty, kind: c.kind, soldOut: c.soldOut, amount: c.amount }
+    assert.equal(isBestCandidate(offer), c.best, JSON.stringify(c))
+    assert.equal(sortingAmount(offer), c.sorting, JSON.stringify(c))
+  }
+})
+
+test('certainty가 안 오면 qualifier로 읽는다 - API와 웹은 따로 배포된다', () => {
+  // 드리프트. 웹이 먼저 나가면 아직 안 오는 certainty를 읽어 전부 회색이 된다.
+  assert.equal(certaintyOf({ qualifier: '최대' }), 'capped')
+  assert.equal(certaintyOf({ qualifier: '랜덤' }), 'random')
+  assert.equal(certaintyOf({ qualifier: '특정메뉴' }), 'menuOnly')
+  assert.equal(certaintyOf({ qualifier: '최적' }), 'exact')
+  assert.equal(certaintyOf({ qualifier: '행사' }), 'exact')
+  assert.equal(certaintyOf({}), 'exact')
+  // certainty가 오면 그쪽이 이긴다.
+  assert.equal(certaintyOf({ qualifier: '최대', certainty: 'random' }), 'random')
+})
+
+test('캐시백은 최고 할인 후보가 아니다 - 액면으로 견줄 수 없다', () => {
+  const offers = [
+    o(3000, { certainty: 'exact', kind: 'discount' }),
+    o(9000, { certainty: 'exact', kind: 'cashback' }),
+  ]
+  assert.equal(bestConfirmedAmount(offers), 3000)
+})
+
+test('자사(own) 오퍼는 금액이 커도 최고 할인 후보가 아니다 - 배달앱끼리만 겨룬다', () => {
+  const offers = [
+    o(3000, { certainty: 'exact', kind: 'discount', platform: 'baemin' }),
+    o(9000, { certainty: 'exact', kind: 'discount', platform: 'own' }),
+  ]
+  assert.equal(bestConfirmedAmount(offers), 3000)
+  assert.equal(isBestCandidate(offers[1]), false)
+})
+
+test('넣기를 켠 랜덤은 판정표의 기본값과 달리 최고 후보에 낀다 - 토글은 표 위의 사용자 예외다', () => {
+  const random = o(7000, { certainty: 'random', kind: 'discount' })
+  assert.equal(isBestCandidate(random), false) // 표의 기본값: 안 낀다
+  assert.equal(comparable(random, { random: true }), true) // 사용자가 켰다
+  assert.equal(comparable(random, false), false)
 })
