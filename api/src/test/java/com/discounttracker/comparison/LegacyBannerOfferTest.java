@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LegacyBannerOfferTest {
 
     /** 텍스트 블록에 줄바꿈을 이어 붙일 때 쓴다. */
-    private static final String LF = System.lineSeparator();
+    private static final String LF = "\n";
 
     private static final Clock TODAY =
             Clock.fixed(Instant.parse("2026-09-23T02:00:00Z"), ZoneId.of("Asia/Seoul"));
