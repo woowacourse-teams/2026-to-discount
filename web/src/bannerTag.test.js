@@ -12,9 +12,9 @@ test('표식은 칸에서 나온다 - 문구를 되짚지 않는다', () => {
     { kind: 'random', label: '랜덤' })
 })
 
-test('캐시백과 적립은 문구가 다르다 - 쓸 수 있는 곳이 다르다', () => {
+test('캐시백과 적립은 같은 라벨이다 - 2026-09-22 승인된 문구(적립)를 그대로 쓴다', () => {
   assert.deepEqual(bannerTag({ amountSpec: { percent: 50, kind: 'cashback' } }),
-    { kind: 'cashback', label: '캐시백' })
+    { kind: 'cashback', label: '적립' })
   assert.deepEqual(bannerTag({ amountSpec: { percent: 5, kind: 'points' } }),
     { kind: 'cashback', label: '적립' })
 })

@@ -265,32 +265,31 @@ public class BannerCatalog {
         String period = text(attrs.get("period"));
         String extraForLegacy = text(attrs.get("extra"));
         // 옛 배너(RULES 8·9로 그대로 남은, 문장 칸뿐인 배너들)는 firstCome/targeted/
-        // amountSpec이 비어 있다. 웹의 bannerTag는 이제 그 세 칸만 읽으므로(Task 18)
-        // 여기서 한 번만 옛 신호를 새 칸으로 채운다 - EventBanner.jsx에서 지운 옛
-        // bannerTag의 정규식(선착순|오픈, 랜덤, 타겟, 적립|환급|페이백)과 spec.limit
-        // 판정을 그대로 옮긴 것이다. 확인: archive/banners-2026-09-22.yml의 살아있는
-        // 8장 전부 limit/usage 칸이 없고 period·extra 문장으로만 선착순을 적어서,
-        // limit/usage만 봤다면 이 8장은 여전히 표식을 잃는다(fix round 1 지적) - 그래서
-        // 문장도 같이 본다. 새로 적는 배너가 firstCome/targeted를 직접 쓰면 그 값이
-        // 이긴다. 웹은 옛 문장·옛 limit 칸을 몰라야 한다는 것이 이 작업의 요지라 웹
-        // 쪽 폴백은 안 둔다(Task 18 fix round 1).
+        // amountSpec이 비어 있을 수 있다. 웹의 bannerTag는 이제 그 세 칸만 읽으므로
+        // (Task 18) 여기서 한 번만 옛 limit/usage 칸으로 채운다. 새로 적는 배너가
+        // firstCome/targeted를 직접 쓰면 그 값이 이긴다.
+        //
+        // period·extra 문장을 정규식으로 되짚는 길은 만들지 않는다(fix round 2,
+        // 리뷰어 지적). "적립금은 본 행사에 사용 불가", "가을맞이 신규 오픈 매장
+        // 한정" 같은 문장이 오탐을 낸다 - 이 재설계 자체가 생성 문구를 다시 파싱해서
+        // 틀린 답을 내던 자리를 없애려는 것이었고, RULES 9로 옛 모양 배너가 무기한
+        // 남으므로 "이행기용" 파서는 만료되지 않는다. 실측(운영 파일 확인, fix round
+        // 2)으로 확인한 살아있는 배너 9장은 운영자가 firstCome/limit을 직접 적어서
+        // 해결했다 - 문장 파싱 없이도 표식이 산다.
         String legacyLimit = text(attrs.get("limit"));
-        String legacyText = (period == null ? "" : period) + " " + (extraForLegacy == null ? "" : extraForLegacy);
         String firstCome = text(attrs.get("firstCome"));
-        if (firstCome == null && ("first_come".equals(legacyLimit)
-                || legacyText.contains("선착순") || legacyText.contains("오픈"))) {
+        if (firstCome == null && "first_come".equals(legacyLimit)) {
             String usage = text(attrs.get("usage"));
             firstCome = usage != null ? usage : "use";
         }
         Boolean targeted = flag(attrs.get("targeted"));
-        if (targeted == null && ("targeted".equals(legacyLimit) || legacyText.contains("타겟"))) targeted = true;
+        if (targeted == null && "targeted".equals(legacyLimit)) targeted = true;
         // 캐시백·랜덤은 amountSpec.kind/amountSpec.random에 산다 - bannerTag가 거기서
-        // 읽는다. 옛 배너는 amount가 문자열이라 amountSpec이 아예 null로 오므로, 옛
-        // 신호만 남아 있으면 표식이 필요로 하는 최소한의 값만 채운 amountSpec을 만든다.
-        if (amountSpec == null && ("cashback".equals(legacyLimit)
-                || legacyText.contains("적립") || legacyText.contains("환급") || legacyText.contains("페이백"))) {
+        // 읽는다. 옛 배너는 amount가 문자열이라 amountSpec이 아예 null로 오므로, limit만
+        // 남아 있으면 표식이 필요로 하는 최소한의 값만 채운 amountSpec을 만든다.
+        if (amountSpec == null && "cashback".equals(legacyLimit)) {
             amountSpec = new BannerAmount(null, null, null, false, AmountKind.CASHBACK);
-        } else if (amountSpec == null && ("random".equals(legacyLimit) || legacyText.contains("랜덤"))) {
+        } else if (amountSpec == null && "random".equals(legacyLimit)) {
             amountSpec = new BannerAmount(null, null, null, true, AmountKind.DISCOUNT);
         }
         // platform은 선택이다(2026-09-18). 없거나 "own"이면 브랜드 자체 앱이나

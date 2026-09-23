@@ -7,9 +7,10 @@
  * 구조 금액 칸은 응답에서 amountSpec이다 - api Banner.java의 amountSpec 레코드 칸을
  * 그대로 받는다. amount는 옛 문자열 칸("30% 할인" 같은 화면 문구)이라 여기서는 안 읽는다.
  *
- * 캐시백과 적립을 갈라 쓴다. 비교 규칙에서는 둘 다 최고 후보에서 빠져 차이가 없지만,
- * 받은 값을 어디서 쓸 수 있는지가 달라 문구가 달라야 한다. 캐시백은 그 결제 수단이
- * 닿는 곳이면 어디서든 쓰고, 적립은 그 브랜드나 그 앱 안에서만 쓴다.
+ * 캐시백·적립 둘 다 화면 라벨은 "적립"이다(fix round 2). 2026-09-22 개발자가 백억커피
+ * 배너에 "적립"을 요청했고 그 문구가 이미 승인되어 나가 있다(BannerText: case
+ * "cashback" -> "적립"). 구분은 데이터에만 남는다 - amountSpec.kind가 cashback/points를
+ * 가르고 비교 규칙(filters.js)이 그 값을 쓰지만, 표식 줄은 승인된 단어를 그대로 쓴다.
  *
  * 정률(percent) 그 자체는 여기서 표식으로 안 만든다. 배너 자체(EventBanner.jsx)는
  * 서버가 amountSpec에서 만든 amount 문구("30% 할인")를 금액 자리에 그대로 찍는다.
@@ -26,8 +27,7 @@ export function bannerTag(banner) {
   if (banner.targeted) return { kind: 'targeted', label: '타겟' }
   const amount = banner.amountSpec
   if (amount) {
-    if (amount.kind === 'cashback') return { kind: 'cashback', label: '캐시백' }
-    if (amount.kind === 'points') return { kind: 'cashback', label: '적립' }
+    if (amount.kind === 'cashback' || amount.kind === 'points') return { kind: 'cashback', label: '적립' }
     if (amount.random) return { kind: 'random', label: '랜덤' }
   }
   return null
