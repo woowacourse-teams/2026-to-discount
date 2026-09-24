@@ -55,9 +55,36 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> onUnhandled(Exception e, WebRequest request) {
+        if (clientWentAway(e)) {
+            // 우리 잘못이 아니고 우리가 할 일도 없다. 응답을 쓰는 도중에 상대가 끊었다 -
+            // 탭을 닫거나, 새로고침하거나, 모바일에서 전파가 끊기면 난다. 2026-09-24까지
+            // 24시간에 두 번 났는데 ERROR에 스택까지 찍혀 진짜 장애처럼 보였다. 진짜
+            // 오류가 이런 줄에 묻히면 안 된다. 한 줄로 남긴다.
+            log.info("클라이언트가 응답을 받다 끊었다 — {}", request.getDescription(false));
+            return null;                       // 이미 끊긴 연결에 다시 쓸 수 없다
+        }
         log.error("처리되지 않은 예외 — {}", request.getDescription(false), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "internal_error"));
+    }
+
+    /**
+     * 클라이언트가 먼저 끊어서 난 예외인가.
+     *
+     * <p>클래스 이름으로 가린다. {@code ClientAbortException}(톰캣)과
+     * {@code AsyncRequestNotUsableException}(스프링) 둘 다 원인은 하나, 끊긴 연결에
+     * 쓰려 한 것이다. 원인 사슬을 따라가는 이유는 스프링이 톰캣 예외를 제 것으로
+     * 감싸서 올리기 때문이다.
+     */
+    static boolean clientWentAway(Throwable e) {
+        for (Throwable t = e; t != null && t != t.getCause(); t = t.getCause()) {
+            String name = t.getClass().getSimpleName();
+            if (name.equals("ClientAbortException") || name.equals("AsyncRequestNotUsableException")) {
+                return true;
+            }
+            if (t instanceof java.io.IOException && "Broken pipe".equals(t.getMessage())) return true;
+        }
+        return false;
     }
 
     /**

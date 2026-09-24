@@ -9,6 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -62,5 +64,19 @@ class GlobalExceptionHandlerTest {
     @Test
     void wrongMethodStays405() throws Exception {
         mvc.perform(post("/api/brands")).andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    void treatsAClientDisconnectAsNotOurProblem() {
+        // 2026-09-24 실측: /api/brands에서 "처리되지 않은 예외"가 ERROR로 두 번 떴는데
+        // 원인은 Broken pipe였다. 응답을 쓰는 도중에 상대가 끊은 것이라 우리가 할 일이
+        // 없다. 진짜 오류가 이런 줄에 묻히면 안 된다.
+        Exception wrapped = new IllegalStateException("겉",
+                new java.io.IOException("Broken pipe"));
+        assertTrue(GlobalExceptionHandler.clientWentAway(wrapped));
+        assertTrue(GlobalExceptionHandler.clientWentAway(new java.io.IOException("Broken pipe")));
+        assertFalse(GlobalExceptionHandler.clientWentAway(new IllegalStateException("진짜 장애")));
+        assertFalse(GlobalExceptionHandler.clientWentAway(
+                new java.io.IOException("디스크가 꽉 찼다")), "다른 IOException은 장애다");
     }
 }
