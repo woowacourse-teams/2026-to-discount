@@ -71,4 +71,16 @@ class BannerFieldsTest {
         assertTrue(copy.untilSoldOutFlag());
         assertEquals(50, copy.amountSpec().percent());
     }
+
+    @Test
+    void displayConditionsDoesNotLeaveADanglingSlash() {
+        // 2026-09-24 실측: 반올림피자 오퍼 조건에 "/ 쿠팡와우 전용"이 떴다. 최소주문
+        // 토큰을 떼어낸 자리에 구분 슬래시가 그대로 남은 것이다.
+        Banner b = Banner.of("b", "https://example.test/b")
+                .startsAt(LocalDateTime.of(2026, 9, 24, 0, 0))
+                .endsAt(LocalDateTime.of(2026, 9, 24, 23, 59))
+                .extra("16,900원↑ / 쿠팡와우 전용")
+                .build();
+        assertEquals("쿠팡와우 전용", b.displayConditions());
+    }
 }

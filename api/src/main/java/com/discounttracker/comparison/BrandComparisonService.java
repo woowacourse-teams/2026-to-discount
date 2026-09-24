@@ -234,9 +234,21 @@ public class BrandComparisonService {
         return banner.isTargeted() || (banner.extra() != null && banner.extra().contains("타겟딜"));
     }
 
-    /** 옛 경로의 조건 줄. {@code extra}에서 최소주문 언급만 빼고, 타겟딜이면 "한정"을 붙인다. */
+    /**
+     * 옛 경로의 조건 줄.
+     *
+     * <p>구조 칸에서 먼저 만든다. 사람이 적은 {@code extra}를 쓰면 구조 칸과 같은 말이
+     * 두 번 나온다 - 2026-09-24 실측: 반올림피자 오퍼 조건에 "/ 쿠팡와우 전용"이 떴는데
+     * 그 자격은 {@code membership} 칸으로 이미 배지에 뜨고 있었고, 최소주문을 떼어낸
+     * 자리에 슬래시만 덜렁 남은 모양이었다. 새 모양 배너(두찜)는 같은 자리에 "발급
+     * 선착순"만 낸다 - 두 경로가 같은 답을 내야 한다.
+     *
+     * <p>구조 칸이 아무 말도 못 만들면(옛 배너에 firstCome도 targeted도 없을 때)
+     * {@code extra}에서 최소주문 언급만 뺀 문장으로 떨어진다. 타겟딜이면 "한정"을 붙인다.
+     */
     private static String legacyConditions(Banner banner) {
-        String base = banner.displayConditions();
+        String structured = BannerText.conditions(banner);
+        String base = structured != null ? structured : banner.displayConditions();
         if (!legacyTargeted(banner)) return base;
         if (base == null) return "한정";
         return base.contains("한정") ? base : base + " · 한정";
