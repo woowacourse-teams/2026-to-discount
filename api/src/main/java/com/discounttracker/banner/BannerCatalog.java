@@ -173,9 +173,29 @@ public class BannerCatalog {
             out.add(lead.toBuilder()
                     .brands(names)
                     .brandLabels(names.stream().map(n -> brands.find(n).display()).toList())
+                    .amount(groupAmount(mates, lead))
                     .build());
         }
         return List.copyOf(out);
+    }
+
+    /**
+     * 묶음 한 장에 찍을 금액 문구.
+     *
+     * <p>구성원 금액이 다르면 브랜드 늘어선 순서대로 전부 적는다({@code "8/7천원"}).
+     * 대표 것 하나만 찍으면 그 값이 아닌 브랜드를 누른 사람이 속는다. 값이 전부 같거나
+     * 한 명이라도 금액을 모르면 대표의 문구를 그대로 쓴다 - 반쯤 적은 목록이 더 나쁘다.
+     */
+    private static String groupAmount(List<Banner> mates, Banner lead) {
+        List<Integer> amounts = new ArrayList<>();
+        for (Banner m : mates) {
+            Integer won = m.amountSpec() == null ? null : m.amountSpec().wonMax();
+            if (won == null) return lead.amount();
+            amounts.add(won);
+        }
+        if (amounts.stream().distinct().count() <= 1) return lead.amount();
+        String joined = BannerText.joinAmounts(amounts);
+        return joined != null ? joined : lead.amount();
     }
 
     /** 묶음을 안 접은 구성원 전부. 오퍼는 브랜드마다 하나씩 서므로 이쪽을 쓴다. */

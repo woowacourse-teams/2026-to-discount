@@ -553,7 +553,9 @@ class BannerCatalogTest {
         assertEquals(2, catalog.active().size(), "묶음 둘은 한 장으로 접힌다");
         Banner open = catalog.active().stream()
                 .filter(b -> b.id().equals("coupangeats-open-버거킹-20260918")).findFirst().orElseThrow();
-        assertEquals("4,000원", open.amount());          // 대표(우선순위가 작은) 구성원 자신의 값
+        // 구성원 금액이 다르면 묶음 한 장이 전부를 적는다(2026-09-24). 대표 것 하나만
+        // 찍으면 4,000원인 줄 알고 호식이를 누른다. 순서는 브랜드 늘어선 순서와 같다.
+        assertEquals("4/6천원", open.amount());
         assertEquals("9월 18일 하루", open.period());
         assertEquals("발급 선착순", open.extra());
         assertEquals(List.of("버거킹", "호식이두마리치킨"), open.brands());

@@ -116,6 +116,16 @@ public final class BannerText {
                 if (it.amount() != null) amounts.add(it.amount());
             }
         }
+        return joinAmounts(amounts);
+    }
+
+    /**
+     * 금액 여럿을 한 줄로. {@code [7000, 6000, 6000, 5000]} -> {@code "7/6/6/5천원"}.
+     *
+     * <p>천 단위로 안 떨어지는 값이 하나라도 섞이면 전부 원래 표기로 둔다.
+     * {@code "1.9/5천원"} 같은 표기는 읽는 사람이 한 번 더 생각해야 한다.
+     */
+    static String joinAmounts(List<Integer> amounts) {
         if (amounts.isEmpty()) return null;
         if (amounts.size() == 1) return won(amounts.get(0)) + "원";
         boolean thousands = amounts.stream().allMatch(a -> a % 1000 == 0);

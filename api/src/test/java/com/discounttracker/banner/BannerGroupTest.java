@@ -59,6 +59,22 @@ class BannerGroupTest {
     }
 
     @Test
+    void groupShowsEveryMemberAmountWhenTheyDiffer() {
+        // 구성원 금액이 다르면 대표 것 하나만 찍을 수 없다. 8,000원만 보이면 던킨을
+        // 누른 사람이 8,000원인 줄 안다. 브랜드 늘어선 순서와 같은 순서로 적는다
+        // (2026-09-24: 수집기가 묶음을 brands 배열 대신 group으로 적게 되면서 드러났다).
+        Banner card = catalog(TWO_IN_A_GROUP).active().get(0);
+        assertEquals(List.of("피자알볼로", "던킨"), card.brands());
+        assertEquals("8/7천원", card.amount());
+    }
+
+    @Test
+    void groupShowsOneAmountWhenEveryMemberIsTheSame() {
+        String yml = TWO_IN_A_GROUP.replace("{won: 7000}", "{won: 8000}");
+        assertEquals("8,000원", catalog(yml).active().get(0).amount());
+    }
+
+    @Test
     void groupPriorityIsTheSmallestMemberPriority() {
         // 사람에게 두 줄에 같은 숫자를 적게 하지 않는다. 한 줄만 고치는 실수가 나고
         // 그 실수는 화면을 봐도 안 보인다.
@@ -139,10 +155,14 @@ class BannerGroupTest {
         // 반례: id는 aaa가 zzz보다 앞서지만(알파벳 순) priority는 zzz가 더 작다.
         // activeMembers()가 그룹 구성원의 priority를 그룹 최솟값(1)으로 덮어써
         // 두 구성원이 동률이 되므로, 대표를 고를 때 그 전의 원래 값을 안 보면
-        // id가 앞선 aaa가 대표가 되어 버린다 - url과 amount로 zzz가 이겼는지 본다.
+        // id가 앞선 aaa가 대표가 되어 버린다 - url로 zzz가 이겼는지 본다.
+        //
+        // 금액으로는 못 본다. 2026-09-24부터 구성원 금액이 다르면 묶음 한 장이 전부를
+        // 적는다("1,111/2,222원") - 대표 것 하나만 찍으면 그 값이 아닌 브랜드를 누른
+        // 사람이 속기 때문이다. 순서가 대표부터라는 것은 그 문구로도 확인된다.
         Banner card = catalog(CROSSED_PRIORITY_AND_ID).active().get(0);
         assertEquals("https://example.test/zzz", card.url());
-        assertEquals("1,111원", card.amount());
+        assertEquals("1,111/2,222원", card.amount(), "대표(zzz) 금액이 앞에 온다");
     }
 
     @Test
@@ -191,5 +211,64 @@ class BannerGroupTest {
                     endsAt: 2026-09-22T23:59
                 """);
         assertEquals(List.of(), c.active());
+    }
+
+    @Test
+    void aCollectedFirstComeGroupDrawsOneCardAndFourOffers() {
+        // 2026-09-24 수집기가 실제로 내보내는 모양. 17시 선착순 네 곳이 group으로 묶인다.
+        String yml = """
+                banners:
+                  - id: coupangeats-open-20260925-17시-두찜
+                    group: coupangeats-open-20260925-17시
+                    brand: 두찜
+                    platform: coupangeats
+                    url: "https://example.test/hub"
+                    amount: {won: 7000}
+                    startsAt: 2026-09-22T00:00:00
+                    endsAt: 2026-09-22T23:59:59
+                    opensAt: "17:00"
+                    firstCome: issue
+                    priority: 6
+                  - id: coupangeats-open-20260925-17시-자담치킨
+                    group: coupangeats-open-20260925-17시
+                    brand: 자담치킨
+                    platform: coupangeats
+                    url: "https://example.test/hub"
+                    amount: {won: 6000}
+                    startsAt: 2026-09-22T00:00:00
+                    endsAt: 2026-09-22T23:59:59
+                    opensAt: "17:00"
+                    firstCome: issue
+                    priority: 7
+                  - id: coupangeats-open-20260925-17시-꾸브라꼬숯불치킨
+                    group: coupangeats-open-20260925-17시
+                    brand: 꾸브라꼬 숯불치킨
+                    platform: coupangeats
+                    url: "https://example.test/hub"
+                    amount: {won: 5000}
+                    startsAt: 2026-09-22T00:00:00
+                    endsAt: 2026-09-22T23:59:59
+                    opensAt: "17:00"
+                    firstCome: issue
+                    priority: 8
+                """;
+        BannerCatalog catalog = catalog(yml);
+
+        assertEquals(1, catalog.active().size(), "화면에는 한 장");
+        Banner card = catalog.active().get(0);
+        assertEquals(List.of("두찜", "자담치킨", "꾸브라꼬 숯불치킨"), card.brands());
+        assertEquals("7/6/5천원", card.amount(), "구성원 금액을 브랜드 순서대로 적는다");
+        assertEquals("오후 5시 오픈", card.period());   // 하루짜리라 "매일"이 안 붙는다
+        assertEquals(6, card.priority(), "묶음 우선순위는 구성원 최솟값");
+        assertEquals("발급 선착순", card.extra());
+
+        List<Banner> members = catalog.activeMembers();
+        assertEquals(3, members.size(), "오퍼는 브랜드마다 하나");
+        // 오퍼는 브랜드마다 다른 카드로 가므로 구성원 사이의 순서는 뜻이 없다
+        // (activeMembers가 묶음 우선순위를 최솟값으로 덮어 id순이 된다). 값만 본다.
+        assertEquals(java.util.Map.of("두찜", 7000, "자담치킨", 6000, "꾸브라꼬 숯불치킨", 5000),
+                members.stream().collect(java.util.stream.Collectors.toMap(
+                        Banner::brand, m -> m.amountSpec().wonMax())),
+                "브랜드마다 제 금액을 갖는다 - 문장 amount로는 못 하던 것");
     }
 }
