@@ -793,17 +793,16 @@ h1 {
   position: absolute;
   top: 50%;
   z-index: 2;
-  width: 32px;
-  height: 32px;
-  margin-top: -16px;
+  width: 26px;
+  height: 26px;
+  margin-top: -13px;
   padding: 0;
-  border: 0;
   border-radius: 50%;
-  /* 배너가 어두우니 화살표는 밝게. 판과 같은 색이면 얹은 것이 안 보인다. */
-  background: rgba(255, 255, 255, .92);
-  border: 0;
-  color: #111;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .3);
+  /* 판을 덮지 않는다. 배경을 비우고 흰 화살표에 검은 테두리를 둘러, 밝은 배너
+     위에서도 윤곽이 남게 한다(2026-09-24 사용자). */
+  background: none;
+  border: 1px solid rgba(0, 0, 0, .55);
+  color: #fff;
   cursor: pointer;
   display: none;
   align-items: center;
@@ -817,8 +816,7 @@ h1 {
    판 위에 얹힌다 - 안 그러면 판 바깥 빈 자리에 떠서 왼쪽 선을 다시 깨뜨린다. */
 .banner__arrow--prev { left: calc(1.25rem + 8px); }
 .banner__arrow--next { right: calc(1.25rem + 8px); }
-@media (hover: hover) { .banner__arrow:hover { background: #fff; color: #111; }
-  .banner__arrow--on-plate:hover { background: #111; color: #fff; } }
+@media (hover: hover) { .banner__arrow:hover { background: rgba(0, 0, 0, .55); } }
 .banner__arrow:active { transform: scale(.94); }
 .banner__arrow:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: 2px; }
 /* 넓은 화면에서만 화살표. hover/pointer 미디어쿼리는 안 쓴다 — 일부
@@ -1247,6 +1245,8 @@ h1 {
      읽혀 무엇이 바뀐 건지 안 보인다 — 카드가 아래에서 올라오면 새
      목록이라는 사실 자체가 눈에 들어온다. */
   animation: brand-grid-in 500ms cubic-bezier(.16, 1, .3, 1);
+  /* 빠지는 카드가 흐름 밖에서 제자리에 머무는 동안의 기준(2026-09-24). */
+  position: relative;
 }
 @keyframes brand-grid-in {
   from { opacity: 0; transform: translateY(10px); }
@@ -3712,10 +3712,12 @@ html.has-bottom-banner .survey-dock {
 .hidden-clip { overflow: hidden; min-height: 0; }
 
 .hidden-sheet {
-  margin: 0;
+  /* 위를 띄워 정렬바와 갈라 놓는다. 테두리는 없앤다 - 배경만으로도 판이 갈리고,
+     선을 두면 아래 카드들의 테두리와 겹쳐 줄이 두 겹으로 보인다(2026-09-24 사용자). */
+  margin: .6rem 0 0;
   padding: .75rem .85rem;
   background: var(--bg, #fff);
-  border: 1px solid var(--border, #e6e8eb);
+  border: 0;
   border-radius: 14px;
   /* 펼칠 때 내용이 살짝 따라 올라온다. 높이만 늘면 종이가 늘어나는 것처럼 보인다. */
   transform: translateY(-6px);
@@ -3939,10 +3941,17 @@ html.has-bottom-banner .survey-dock {
 .brand-card--leaving {
   pointer-events: none;
   transform-origin: 100% 0;
-  animation: brand-card-leave .24s cubic-bezier(.4, 0, 1, .6) both;
+  animation: brand-card-leave .22s cubic-bezier(.4, 0, 1, .6) both;
 }
+/* 앞 220ms는 카드 자신이(.brand-card--leaving), 남은 200ms는 흐름에서 빠진 뒤
+   격자 위에 얹힌 복제본이 이어 받는다. 그래서 두 구간의 크기가 이어지도록
+   시작값을 나눠 둔다. */
 @keyframes brand-card-leave {
   from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(.06); }
+}
+@keyframes brand-card-leave-tail {
+  from { opacity: .55; transform: scale(.55); }
   to { opacity: 0; transform: scale(.06); }
 }
 @media (prefers-reduced-motion: reduce) {
