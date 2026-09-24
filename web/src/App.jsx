@@ -17,10 +17,12 @@ import HideBrandAsk from './HideBrandAsk.jsx'
 import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import { captureRects, playShift, readCards } from './cardShift.js'
 
-// 카드가 오른쪽 위로 쪼그라드는 시간과, 그 끝보다 얼마나 먼저 남은 카드가
-// 움직이기 시작하는가. App.css의 brand-card-leave와 같은 값이어야 한다.
-const LEAVE_MS = 420
-const SHIFT_LEAD_MS = 200
+// 카드가 오른쪽 위로 쪼그라드는 시간(App.css의 brand-card-leave와 같은 값)과,
+// 다 사라진 뒤 남은 카드가 움직이기까지 쉬는 시간. 겹쳐 봤더니 사라지는 것과
+// 밀려 올라오는 것이 한꺼번에 움직여 어수선했다 - 끝까지 사라지고 한 박자 쉰
+// 뒤에 정렬한다(2026-09-25 사용자).
+const LEAVE_MS = 260
+const SHIFT_PAUSE_MS = 200
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
@@ -1082,42 +1084,10 @@ export default function App() {
         })
         playShift(gridRef.current, first, quick ? 0 : 260)
       }
-      // 퇴장이 다 끝난 뒤에 밀면 "사라지고 나서 밀렸다"로 끊겨 보인다. 끝나기
-      // 0.2초 전에 이동을 시작해 둘이 겹치게 한다(2026-09-24 사용자).
-      //
-      // 그냥 일찍 빼면 안 겹친다 - 빼는 순간 카드가 DOM에서 사라져 남은 퇴장이
-      // 잘린다. 흐름에서만 빼고(position: absolute) 자리는 비워, 남은 카드가
-      // 미끄러지는 동안 그 위에서 계속 쪼그라들게 한다.
+      // 카드가 끝까지 사라지고, 한 박자 쉰 뒤에 남은 카드가 제자리를 찾는다.
+      // 사라지는 것과 밀려 올라오는 것이 겹치면 한꺼번에 움직여 어수선하다.
       if (quick) commit()
-      else {
-        setLeaving(ask.name)
-        window.setTimeout(() => {
-          // 선택자로 찾지 않는다. 브랜드 이름에 따옴표나 &가 들어가면 깨진다
-          // (굽네치킨&피자). 목록을 훑어 dataset으로 고른다.
-          const el = [...(gridRef.current?.querySelectorAll('[data-brand]') || [])]
-            .find((node) => node.dataset.brand === ask.name)
-          if (el) {
-            // React가 다시 그리며 이 요소를 버린다. 그래도 남은 퇴장이 보이도록
-            // 복제본을 격자 위에 얹어 그 자리에서 마저 쪼그라들게 한다.
-            const r = el.getBoundingClientRect()
-            const box = gridRef.current.getBoundingClientRect()
-            const ghost = el.cloneNode(true)
-            ghost.removeAttribute('data-brand')       // FLIP이 유령을 세지 않게
-            ghost.style.position = 'absolute'
-            ghost.style.left = `${r.left - box.left}px`
-            ghost.style.top = `${r.top - box.top}px`
-            ghost.style.width = `${r.width}px`
-            ghost.style.margin = '0'
-            ghost.style.pointerEvents = 'none'
-            ghost.style.zIndex = '2'
-            ghost.style.transformOrigin = '100% 0'
-            ghost.style.animation = `brand-card-leave-tail ${SHIFT_LEAD_MS}ms cubic-bezier(.4, 0, 1, .6) both`
-            gridRef.current.appendChild(ghost)
-            window.setTimeout(() => ghost.remove(), SHIFT_LEAD_MS + 60)
-          }
-          commit()
-        }, LEAVE_MS - SHIFT_LEAD_MS)
-      }
+      else { setLeaving(ask.name); window.setTimeout(commit, LEAVE_MS + SHIFT_PAUSE_MS) }
       return null
     })
   }, [])
