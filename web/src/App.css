@@ -3941,11 +3941,13 @@ html.has-bottom-banner .survey-dock {
 .brand-card--leaving {
   pointer-events: none;
   transform-origin: 100% 0;
-  animation: brand-card-leave .26s cubic-bezier(.4, 0, 1, .6) both;
+  /* 접히듯 천천히가 아니라 뿅 하고 빠진다. 뒤로 갈수록 빨라지는 곡선이라
+     마지막 프레임이 눈에 안 남는다(2026-09-25 사용자). */
+  animation: brand-card-leave .15s cubic-bezier(.55, 0, 1, .45) both;
 }
 @keyframes brand-card-leave {
   from { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(.06); }
+  to { opacity: 0; transform: scale(.2); }
 }
 @media (prefers-reduced-motion: reduce) {
   .brand-card--leaving { animation: none; opacity: 0; }

@@ -17,12 +17,11 @@ import HideBrandAsk from './HideBrandAsk.jsx'
 import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import { captureRects, playShift, readCards } from './cardShift.js'
 
-// 카드가 오른쪽 위로 쪼그라드는 시간(App.css의 brand-card-leave와 같은 값)과,
-// 다 사라진 뒤 남은 카드가 움직이기까지 쉬는 시간. 겹쳐 봤더니 사라지는 것과
-// 밀려 올라오는 것이 한꺼번에 움직여 어수선했다 - 끝까지 사라지고 한 박자 쉰
-// 뒤에 정렬한다(2026-09-25 사용자).
-const LEAVE_MS = 260
-const SHIFT_PAUSE_MS = 200
+// 카드가 사라지는 시간(App.css의 brand-card-leave와 같은 값)과, 그 뒤 남은 카드가
+// 움직이기까지 쉬는 시간. 사라지는 건 접히듯 말고 뿅 하고 빠지게 짧게, 그다음
+// 한 박자 쉬고 밀어 올린다(2026-09-25 사용자).
+const LEAVE_MS = 150
+const SHIFT_PAUSE_MS = 400
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
@@ -1258,7 +1257,13 @@ export default function App() {
           revived={revived}
           open={hiddenOpen}
           onClose={() => setHiddenOpen(false)}
-          onShow={(name) => setHidden((prev) => showBrand(prev, name))}
+          onShow={(name) => setHidden((prev) => {
+            const next = showBrand(prev, name)
+            // 다 되살리면 펼침을 끈다. 안 끄면 다음에 하나 숨겼을 때 누르지도
+            // 않은 목록이 펼쳐진 채로 뜬다(2026-09-25 사용자).
+            if (Object.keys(next).length === 0) setHiddenOpen(false)
+            return next
+          })}
           onRule={(name, rule) => setHidden((prev) => setRule(prev, name, rule))}
         />
       )}
