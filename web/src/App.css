@@ -3744,29 +3744,41 @@ html.has-bottom-banner .survey-dock {
 .hidden-sheet__row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: .4rem .5rem;
+  align-items: stretch;
+  gap: .45rem .4rem;
   padding: .6rem 0;
   border-top: 1px solid rgba(0, 0, 0, .07);
 }
 .hidden-sheet__row:first-child { border-top: 0; }
 
+/* 로고, 이름, 금액이 한 줄이다. 금액을 오른쪽 끝에 밀어 두면 이름과 금액 사이가
+   비어 둘을 같이 못 읽는다 - 이름 바로 옆에 붙이고 남는 자리는 뒤로 흘린다. */
 .hidden-sheet__line {
   grid-column: 1 / -1;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: .5rem;
+  align-items: center;
+  gap: .45rem;
   margin: 0;
 }
+.hidden-sheet__line .brand-logo { width: 26px; height: 26px; flex: 0 0 auto; }
 .hidden-sheet__name { font-size: .88rem; font-weight: 700; }
-.hidden-sheet__amount { font-size: .8rem; color: var(--dim, #7c838d); font-variant-numeric: tabular-nums; }
+.hidden-sheet__amount {
+  font-size: .95rem;
+  font-weight: 800;
+  color: var(--text, #14161a);
+  font-variant-numeric: tabular-nums;
+}
 
 /* 행의 세그먼트. 홈 안에서 알약이 미끄러져 옮겨 간다 - 색만 바뀌면
    "다른 것이 켜졌다"로 읽히고, 미끄러지면 "옮겼다"로 읽힌다. */
+/* 홈이 줄 끝까지 늘어나면 두 선택지가 멀어져 하나를 고르는 느낌이 없어진다.
+   글자 폭에 맞추고 좌우로 10px만 띄운다. */
 .seg {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  justify-self: start;
+  margin: 0 10px;
   padding: 3px;
   background: var(--border, #eceef1);
   border-radius: 999px;
@@ -3799,8 +3811,11 @@ html.has-bottom-banner .survey-dock {
 }
 .seg__opt[aria-pressed="true"] { color: var(--text, #111); font-weight: 700; }
 
+/* 세그먼트와 같은 높이로 선다. 나란한 두 컨트롤의 높이가 다르면 줄이 어긋나 보인다. */
 .hidden-sheet__undo {
-  padding: .34rem .55rem;
+  display: flex;
+  align-items: center;
+  padding: 3px .6rem;
   font: inherit;
   font-size: .74rem;
   white-space: nowrap;
@@ -3902,4 +3917,21 @@ html.has-bottom-banner .survey-dock {
   background: none;
   border: 0;
   font-weight: 600;
+}
+
+
+/* 숨긴 카드는 오른쪽 위로 쪼그라들며 사라진다. 방금 누른 버튼이 거기 있어서
+   "저기로 들어갔다"로 읽힌다. 그냥 사라지면 무엇이 없어졌는지 안 남는다.
+   높이도 같이 접어야 아래 카드가 뛰어오르지 않고 따라 올라온다. */
+.brand-card--leaving {
+  pointer-events: none;
+  transform-origin: 100% 0;
+  animation: brand-card-leave .24s cubic-bezier(.4, 0, 1, .6) both;
+}
+@keyframes brand-card-leave {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-card--leaving { animation: none; opacity: 0; }
 }

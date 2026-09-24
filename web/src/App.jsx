@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
@@ -14,6 +15,7 @@ import SurveyDock from './SurveyDock.jsx'
 import HiddenBrandsSheet from './HiddenBrandsSheet.jsx'
 import HideBrandAsk from './HideBrandAsk.jsx'
 import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
+import { captureRects, playShift, readCards } from './cardShift.js'
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
@@ -478,7 +480,7 @@ function routeFilters() {
   return brand ? { ...defaultFilters(), search: brand } : defaultFilters()
 }
 
-function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck, include = null, onHide }) {
+function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck, include = null, onHide, leaving = false }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -561,7 +563,8 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
     <article
       id={brandCardId(brand.name)}
       ref={cardRef}
-      className={`brand-card ${open ? 'brand-card--open' : ''} ${highlighted ? 'brand-card--highlighted' : ''}`}
+      className={`brand-card ${open ? 'brand-card--open' : ''} ${highlighted ? 'brand-card--highlighted' : ''}${leaving ? ' brand-card--leaving' : ''}`}
+      data-brand={brand.name}
     >
       {/* 헤더는 이름표다. 펼침 트리거는 카드 아래 한 곳뿐이다 —
           헤더 전체·화살표·아래 버튼 셋이 같은 일을 하면 어느 것을
@@ -1054,12 +1057,28 @@ export default function App() {
   // 바로 숨기지 않는다. 어떻게 숨길지 물어본 뒤에 숨긴다.
   const [asking, setAsking] = useState(null)
   const onHide = useCallback((name, amount) => setAsking({ name, amount }), [])
+  // 카드가 쪼그라들어 사라진 뒤에 목록에서 뺀다. 바로 빼면 아래 카드들이
+  // 순간이동해서 무엇이 사라졌는지 눈이 못 따라간다.
+  const gridRef = useRef(null)
+  const [leaving, setLeaving] = useState(null)
   const onHideChoose = useCallback((rule) => {
     setAsking((ask) => {
-      if (ask) {
-        setHidden((prev) => hideBrand(prev, ask.name, { amount: ask.amount, rule }))
-        track('brand_hide', { brand: ask.name, rule })
+      if (!ask) return null
+      const quick = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      track('brand_hide', { brand: ask.name, rule })
+      const commit = () => {
+        const first = captureRects(readCards(gridRef.current))
+        // flushSync로 지금 당장 그리게 한다. requestAnimationFrame에 맡기면 React가
+        // 아직 안 그린 옛 목록을 다시 재서 움직인 카드가 하나도 없다고 나온다
+        // (2026-09-24 실측: 카드는 사라지는데 나머지가 안 미끄러졌다).
+        flushSync(() => {
+          setLeaving(null)
+          setHidden((prev) => hideBrand(prev, ask.name, { amount: ask.amount, rule }))
+        })
+        playShift(gridRef.current, first, quick ? 0 : 260)
       }
+      if (quick) commit()
+      else { setLeaving(ask.name); window.setTimeout(commit, 240) }
       return null
     })
   }, [])
@@ -1317,7 +1336,7 @@ export default function App() {
         // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
-        <div className="brand-grid" key={gridKey}>
+        <div className="brand-grid" key={gridKey} ref={gridRef}>
           {/* 브랜드 카드와 같은 칸에 놓는다 — 요청대로 맨 앞칸. 필터를
               바꾸면 그리드 전체가 새로 마운트되니 이 카드도 같이 날아가지만,
               발급된 코드는 App이 들고 있어(surveyCode) 다시 열면 그대로
@@ -1339,6 +1358,7 @@ export default function App() {
           {visibleBrands.slice(0, shown).map((b, index) => (
             <BrandCard
               key={b.name}
+              leaving={leaving === b.name}
               onHide={onHide}
               include={includesFrom(filters)}
               brand={b}

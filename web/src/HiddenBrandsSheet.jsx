@@ -9,6 +9,7 @@
  * 다르고, 대부분은 후자다.
  */
 import { NEVER, WHEN_BIGGER } from './hiddenBrands.js'
+import { BrandLogo } from './logos.jsx'
 
 export default function HiddenBrandsSheet({ hidden, revived = [], open, onClose, onShow, onRule }) {
   const names = Object.keys(hidden)
@@ -35,6 +36,7 @@ export default function HiddenBrandsSheet({ hidden, revived = [], open, onClose,
           return (
             <li key={name} className="hidden-sheet__row">
               <p className="hidden-sheet__line">
+                <BrandLogo name={name} />
                 <span className="hidden-sheet__name">{name}</span>
                 <span className="hidden-sheet__amount">
                   {amount != null ? `${amount.toLocaleString()}원` : '금액 미확인'}
