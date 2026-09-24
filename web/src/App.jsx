@@ -12,8 +12,8 @@ import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, offerKey, displayBestAmount } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
 import HiddenBrandsSheet from './HiddenBrandsSheet.jsx'
-import { NEVER, WHEN_BIGGER, applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand }
-  from './hiddenBrands.js'
+import HideBrandAsk from './HideBrandAsk.jsx'
+import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
@@ -574,6 +574,26 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
       {/* 담기 + 버튼. 헤더 버튼의 형제라 눌러도 카드가 안 펼쳐진다.
           아래 담기 줄과 같은 동작이고, 스크롤 중에 카드 아래까지 안 가도
           바로 담을 수 있는 지름길이다. */}
+      {/* 카드 오른쪽 위. 옛 담기 버튼이 쓰던 자리와 모양이다(CART_ENABLED가 꺼져
+          비어 있었다). 헤더 버튼의 형제라 눌러도 카드가 안 펼쳐진다. */}
+      {onHide && (
+        <button
+          type="button"
+          className="brand-card__hide"
+          aria-label={`${brand.name} 숨기기`}
+          title="숨기기"
+          onClick={() => onHide(brand.name, bestAmount)}
+        >
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 3l18 18" />
+            <path d="M10.6 5.2A9.6 9.6 0 0 1 12 5c5 0 9 4.5 9 7 0 .9-.5 2-1.4 3.1" />
+            <path d="M6.2 6.7C3.9 8.2 3 10.2 3 12c0 2.5 4 7 9 7 1.6 0 3-.4 4.2-1.1" />
+            <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+          </svg>
+        </button>
+      )}
+
       {CART_ENABLED && <button
         type="button"
         className={`brand-card__add${checked ? ' brand-card__add--on' : ''}`}
@@ -667,16 +687,6 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
           {open ? '접기' : '자세히'}
           <span className="brand-card__chevron" aria-hidden="true" />
         </button>
-        {onHide && (
-          <button
-            type="button"
-            className="brand-card__hide"
-            onClick={() => onHide(brand.name, bestAmount)}
-            aria-label={`${brand.name} 안 보기`}
-          >
-            안 보기
-          </button>
-        )}
       </div>
     </article>
   )
@@ -1041,9 +1051,17 @@ export default function App() {
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const bestOf = useCallback(
     (b) => displayBestAmount(b.offers, includesFrom(filters)), [filters])
-  const onHide = useCallback((name, amount) => {
-    setHidden((prev) => hideBrand(prev, name, { amount, rule: WHEN_BIGGER }))
-    track('brand_hide', { brand: name })
+  // 바로 숨기지 않는다. 어떻게 숨길지 물어본 뒤에 숨긴다.
+  const [asking, setAsking] = useState(null)
+  const onHide = useCallback((name, amount) => setAsking({ name, amount }), [])
+  const onHideChoose = useCallback((rule) => {
+    setAsking((ask) => {
+      if (ask) {
+        setHidden((prev) => hideBrand(prev, ask.name, { amount: ask.amount, rule }))
+        track('brand_hide', { brand: ask.name, rule })
+      }
+      return null
+    })
   }, [])
 
   const visibleBrands = useMemo(
@@ -1195,12 +1213,22 @@ export default function App() {
         </div>
       )}
 
+      {asking && (
+        <HideBrandAsk
+          brand={asking.name}
+          amount={asking.amount}
+          onChoose={onHideChoose}
+          onCancel={() => setAsking(null)}
+        />
+      )}
+
       {/* 목록은 정렬바 바로 아래, 흐름 안에서 열린다. 화면 아래에 띄우면 하단 배너와
           겹치고 카드 위를 덮어 무엇이 사라졌는지 안 보인다(2026-09-24 사용자). */}
-      {hiddenOpen && Object.keys(hidden).length > 0 && (
+      {Object.keys(hidden).length > 0 && (
         <HiddenBrandsSheet
           hidden={hidden}
           revived={revived}
+          open={hiddenOpen}
           onClose={() => setHiddenOpen(false)}
           onShow={(name) => setHidden((prev) => showBrand(prev, name))}
           onRule={(name, rule) => setHidden((prev) => setRule(prev, name, rule))}

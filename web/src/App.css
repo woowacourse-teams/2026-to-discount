@@ -3385,30 +3385,34 @@ html.has-bottom-banner .survey-dock {
   margin: 0 -.65rem;
   padding: 6px 0 2px;
 }
+/* 정렬 둘은 "하나 고르기"다. 홈 하나에 넣어 그 뜻을 형태로 보여 준다(B안). */
 .quick-bar__sorts {
   display: flex;
-  gap: 6px;
+  gap: 0;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
+  padding: 3px;
+  background: var(--border, #eceef1);
+  border-radius: 999px;
 }
-.quick-bar__sorts::-webkit-scrollbar { display: none; }
 .quick-bar__chip {
   flex: 0 0 auto;
   font: inherit;
-  font-size: .82rem;
-  padding: .35rem .7rem;
+  font-size: .78rem;
+  padding: .34rem .68rem;
+  border: 0;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
+  background: transparent;
+  color: var(--text-muted, #6f767f);
   cursor: pointer;
   white-space: nowrap;
+  transition: background .2s cubic-bezier(.2, .8, .2, 1), color .2s ease, box-shadow .2s ease;
 }
+/* 고른 쪽만 홈 위로 떠오른다. 색을 통째로 뒤집지 않아 카드의 배지와 안 싸운다. */
 .quick-bar__chip--on {
-  background: var(--text);
-  color: var(--bg);
-  border-color: var(--text);
+  background: var(--bg, #fff);
+  color: var(--text, #111);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
 }
 .quick-bar__chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -3639,28 +3643,35 @@ html.has-bottom-banner .survey-dock {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: .3rem;
-  padding: .35rem .6rem;
+  gap: .32rem;
+  padding: .36rem .6rem;
   font: inherit;
-  font-size: .78rem;
-  color: var(--dim, #6b7280);
-  background: none;
-  border: 0;
-  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 700;
+  color: #fff;
+  background: #111;
+  border: 1px solid #111;
+  border-radius: 10px;
   cursor: pointer;
+  transition: background .18s ease, color .18s ease;
 }
+/* 열면 색을 뒤집는다 - 눌린 상태가 배경색으로 보여야 한다. */
 .quick-bar__hidden[aria-expanded="true"] {
-  color: var(--text, #111);
-  background: var(--border, #eceef1);
+  color: #111;
+  background: var(--bg, #fff);
 }
 .quick-bar__hidden-count {
   min-width: 1.05rem;
   padding: 0 .28rem;
   font-size: .72rem;
   line-height: 1.35;
+  color: #111;
+  background: #fff;
+  border-radius: 999px;
+}
+.quick-bar__hidden[aria-expanded="true"] .quick-bar__hidden-count {
   color: #fff;
   background: #111;
-  border-radius: 999px;
 }
 /* 되살아난 브랜드가 있다는 표시. 숫자를 늘리는 대신 점 하나로 둔다 -
    "몇 곳이 숨겨져 있나"와 "새 소식이 있나"는 다른 질문이다. */
@@ -3672,16 +3683,32 @@ html.has-bottom-banner .survey-dock {
 }
 
 /* 목록은 정렬바 바로 아래, 흐름 안에서 열린다. 화면 아래에 띄우면 하단 배너와
-   겹치고, 카드 위를 덮어 무엇이 사라졌는지 안 보인다. */
+   겹치고 카드 위를 덮어 무엇이 사라졌는지 안 보인다.
+
+   여닫기는 grid-template-rows를 0fr에서 1fr로 옮겨 높이를 전환한다. max-height에
+   큰 값을 박으면 항목 수에 따라 속도가 제멋대로 바뀐다. 내용 높이를 모르고도
+   시작과 끝이 있는 전환이 된다. */
+.hidden-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin: 0 -.65rem;
+  opacity: 0;
+  transition: grid-template-rows .32s cubic-bezier(.2, .8, .2, 1), opacity .22s ease;
+}
+.hidden-wrap--open { grid-template-rows: 1fr; opacity: 1; }
+.hidden-wrap > * { overflow: hidden; min-height: 0; }
+
 .hidden-sheet {
-  margin: .4rem -.65rem .2rem;
-  max-height: min(50vh, 22rem);
-  overflow-y: auto;
+  margin: .4rem 0 .2rem;
   padding: .75rem .85rem;
   background: var(--bg, #fff);
   border: 1px solid var(--border, #e6e8eb);
   border-radius: 14px;
+  /* 펼칠 때 내용이 살짝 따라 올라온다. 높이만 늘면 종이가 늘어나는 것처럼 보인다. */
+  transform: translateY(-6px);
+  transition: transform .32s cubic-bezier(.2, .8, .2, 1);
 }
+.hidden-wrap--open .hidden-sheet { transform: none; }
 
 .hidden-sheet__head {
   display: flex;
@@ -3712,60 +3739,167 @@ html.has-bottom-banner .survey-dock {
 
 .hidden-sheet__list { margin: 0; padding: 0; list-style: none; }
 
+/* 한 줄에 브랜드와 금액, 그 아래 고르는 줄. 이름과 금액을 세로로 쌓으면
+   목록이 두 배로 길어지고 훑을 수가 없다. */
 .hidden-sheet__row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: .15rem .5rem;
-  padding: .55rem 0;
+  gap: .4rem .5rem;
+  padding: .6rem 0;
   border-top: 1px solid rgba(0, 0, 0, .07);
 }
 .hidden-sheet__row:first-child { border-top: 0; }
 
-.hidden-sheet__name { font-size: .88rem; font-weight: 700; }
-.hidden-sheet__when { grid-column: 1; font-size: .74rem; color: var(--dim, #777); }
-.hidden-sheet__acts {
-  grid-column: 2;
-  grid-row: 1 / span 2;
+.hidden-sheet__line {
+  grid-column: 1 / -1;
   display: flex;
-  align-items: center;
-  gap: .35rem;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  margin: 0;
 }
+.hidden-sheet__name { font-size: .88rem; font-weight: 700; }
+.hidden-sheet__amount { font-size: .8rem; color: var(--dim, #7c838d); font-variant-numeric: tabular-nums; }
 
-.hidden-sheet__rule,
-.hidden-sheet__show {
+/* 행의 세그먼트. 홈 안에서 알약이 미끄러져 옮겨 간다 - 색만 바뀌면
+   "다른 것이 켜졌다"로 읽히고, 미끄러지면 "옮겼다"로 읽힌다. */
+.seg {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  background: var(--border, #eceef1);
+  border-radius: 999px;
+}
+.seg__thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  background: var(--bg, #fff);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+  transition: transform .26s cubic-bezier(.2, .8, .2, 1);
+}
+.seg[data-on="bigger"] .seg__thumb { transform: translateX(100%); }
+.seg__opt {
+  position: relative;
+  z-index: 1;
+  padding: .32rem .5rem;
+  font: inherit;
+  font-size: .74rem;
+  white-space: nowrap;
+  color: var(--dim, #6f767f);
+  background: none;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .2s ease, font-weight .2s ease;
+}
+.seg__opt[aria-pressed="true"] { color: var(--text, #111); font-weight: 700; }
+
+.hidden-sheet__undo {
   padding: .34rem .55rem;
   font: inherit;
   font-size: .74rem;
   white-space: nowrap;
+  color: var(--dim, #7c838d);
+  background: none;
+  border: 1px solid var(--border, #e6e8eb);
   border-radius: 999px;
   cursor: pointer;
+  transition: color .16s ease, border-color .16s ease;
 }
-.hidden-sheet__rule {
-  color: var(--dim, #666);
-  background: #f2f3f5;
-  border: 1px solid transparent;
-}
-.hidden-sheet__rule--on {
-  color: #0f5132;
-  background: #e6f7ed;
-  border-color: #b7e4c7;
-}
-.hidden-sheet__show {
-  color: #fff;
-  background: #111;
-  border: 0;
+.hidden-sheet__undo:hover { color: var(--text, #111); border-color: var(--dim, #b6bbc2); }
+
+/* 움직임을 줄이라고 한 사람에게는 자리만 바뀐다. */
+@media (prefers-reduced-motion: reduce) {
+  .hidden-wrap, .hidden-sheet, .seg__thumb, .quick-bar__chip { transition: none; }
 }
 
-/* 카드 발의 "안 보기". 담기·자세히 옆에 조용히 선다 — 누르면 목록에서
-   사라지는 동작이라 눈에 먼저 띄면 잘못 누른다. */
+/* 카드 오른쪽 위 숨기기. 옛 담기 버튼(.brand-card__add)이 쓰던 자리와 모양을
+   그대로 쓴다 - 카드에서 이미 자리를 비워 둔 곳이고, 새 자리를 만들면 카드
+   머리가 또 복잡해진다. 색은 조용하게 둔다. 누르면 카드가 사라지는 동작이라
+   눈에 먼저 띄면 잘못 누른다. */
 .brand-card__hide {
-  margin-left: auto;
-  padding: .3rem .5rem;
-  font: inherit;
-  font-size: .76rem;
-  color: var(--dim, #8a8f98);
-  background: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 3;
+  width: 52px;
+  height: 48px;
+  display: grid;
+  place-items: center;
   border: 0;
+  border-radius: 0 13px 0 14px;
+  background: none;
+  color: var(--dim, #b6bbc2);
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease;
+}
+.brand-card__hide:hover {
+  color: var(--text, #111);
+  background: var(--border, #f1f3f5);
+}
+.brand-card__hide:active { transform: scale(.94); }
+.brand-card__hide:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* ── 숨기기 확인 ───────────────────────────────────────────────────
+   바로 숨기지 않는다. 싫어서 다시 안 볼 브랜드와 지금 할인이 시원찮아 잠깐
+   치워 둘 브랜드는 다르다. 기본값을 주지 않고 매번 고르게 한다. */
+.hide-ask {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: end center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, .38);
+  animation: hide-ask-veil .2s ease both;
+}
+@keyframes hide-ask-veil { from { background: rgba(0, 0, 0, 0); } }
+.hide-ask__box {
+  animation: hide-ask-rise .3s cubic-bezier(.2, .8, .2, 1) both;
+  width: min(22rem, 100%);
+  padding: 1.1rem 1.1rem .9rem;
+  background: var(--bg, #fff);
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .28);
+}
+@keyframes hide-ask-rise { from { opacity: 0; transform: translateY(14px); } }
+@media (prefers-reduced-motion: reduce) {
+  .hide-ask, .hide-ask__box { animation: none; }
+}
+.hide-ask__title { margin: 0 0 .3rem; font-size: 1rem; font-weight: 800; }
+.hide-ask__desc { margin: 0 0 .9rem; font-size: .84rem; line-height: 1.5; color: var(--dim, #6b7280); }
+.hide-ask__acts { display: grid; gap: .45rem; }
+
+.hide-ask__keep,
+.hide-ask__drop,
+.hide-ask__cancel {
+  display: grid;
+  gap: .12rem;
+  padding: .7rem .8rem;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+  text-align: left;
+  border-radius: 12px;
   cursor: pointer;
 }
-.brand-card__hide:hover { color: var(--fg, #111); }
+/* 권하는 쪽을 채운 색으로 둔다 - 둘 다 같은 무게면 "아예 제거"를 습관처럼 누른다. */
+.hide-ask__keep { color: #fff; background: #111; border: 0; }
+.hide-ask__hint { font-size: .74rem; font-weight: 500; opacity: .72; }
+.hide-ask__drop {
+  color: var(--text, #111);
+  background: none;
+  border: 1px solid var(--border, #e6e8eb);
+}
+.hide-ask__cancel {
+  justify-items: center;
+  color: var(--dim, #6b7280);
+  background: none;
+  border: 0;
+  font-weight: 600;
+}

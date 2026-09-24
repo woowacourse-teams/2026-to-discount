@@ -10,9 +10,12 @@
  */
 import { NEVER, WHEN_BIGGER } from './hiddenBrands.js'
 
-export default function HiddenBrandsSheet({ hidden, revived = [], onClose, onShow, onRule }) {
+export default function HiddenBrandsSheet({ hidden, revived = [], open, onClose, onShow, onRule }) {
   const names = Object.keys(hidden)
+  // 닫혀 있어도 DOM에 남긴다. 붙였다 뗐다 하면 높이를 잴 수 없어 펼치는 동작이
+  // 한 칸 튀어 버린다. 여닫기는 CSS 전환이 맡는다.
   return (
+    <div className={`hidden-wrap${open ? ' hidden-wrap--open' : ''}`} aria-hidden={!open}>
     <div className="hidden-sheet" role="dialog" aria-modal="true" aria-label="숨긴 브랜드">
       <div className="hidden-sheet__head">
         <strong>숨긴 브랜드 {names.length}곳</strong>
@@ -27,31 +30,47 @@ export default function HiddenBrandsSheet({ hidden, revived = [], onClose, onSho
 
       <ul className="hidden-sheet__list">
         {names.map((name) => {
-          const entry = hidden[name]
-          const bigger = entry.rule === WHEN_BIGGER
+          const bigger = hidden[name].rule === WHEN_BIGGER
+          const amount = hidden[name].amount
           return (
             <li key={name} className="hidden-sheet__row">
-              <span className="hidden-sheet__name">{name}</span>
-              <span className="hidden-sheet__when">
-                {entry.amount != null ? `${entry.amount.toLocaleString()}원일 때 숨김` : '숨김'}
-              </span>
-              <span className="hidden-sheet__acts">
+              <p className="hidden-sheet__line">
+                <span className="hidden-sheet__name">{name}</span>
+                <span className="hidden-sheet__amount">
+                  {amount != null ? `${amount.toLocaleString()}원` : '금액 미확인'}
+                </span>
+              </p>
+
+              {/* 두 선택지가 하나를 고르는 관계다. 홈 안에서 알약이 미끄러져 옮겨
+                  가야 "바뀌었다"가 아니라 "옮겼다"로 읽힌다. */}
+              <div className="seg" data-on={bigger ? 'bigger' : 'never'}>
+                <span className="seg__thumb" aria-hidden="true" />
                 <button
                   type="button"
-                  className={`hidden-sheet__rule${bigger ? ' hidden-sheet__rule--on' : ''}`}
-                  aria-pressed={bigger}
-                  onClick={() => onRule(name, bigger ? NEVER : WHEN_BIGGER)}
+                  className="seg__opt"
+                  aria-pressed={!bigger}
+                  onClick={() => onRule(name, NEVER)}
                 >
-                  할인 커지면 다시
+                  완전히 숨기기
                 </button>
-                <button type="button" className="hidden-sheet__show" onClick={() => onShow(name)}>
-                  되살리기
+                <button
+                  type="button"
+                  className="seg__opt"
+                  aria-pressed={bigger}
+                  onClick={() => onRule(name, WHEN_BIGGER)}
+                >
+                  변경시 보이기
                 </button>
-              </span>
+              </div>
+
+              <button type="button" className="hidden-sheet__undo" onClick={() => onShow(name)}>
+                숨기기 취소
+              </button>
             </li>
           )
         })}
       </ul>
+    </div>
     </div>
   )
 }
