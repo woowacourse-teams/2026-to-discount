@@ -20,7 +20,7 @@ import { captureRects, playShift, readCards } from './cardShift.js'
 // 카드가 사라지는 시간(App.css의 brand-card-leave와 같은 값)과, 그 뒤 남은 카드가
 // 움직이기까지 쉬는 시간. 사라지는 건 접히듯 말고 뿅 하고 빠지게 짧게, 그다음
 // 한 박자 쉬고 밀어 올린다(2026-09-25 사용자).
-const LEAVE_MS = 150
+const LEAVE_MS = 100
 const SHIFT_PAUSE_MS = 400
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'

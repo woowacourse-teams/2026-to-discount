@@ -3943,7 +3943,7 @@ html.has-bottom-banner .survey-dock {
   transform-origin: 100% 0;
   /* 접히듯 천천히가 아니라 뿅 하고 빠진다. 뒤로 갈수록 빨라지는 곡선이라
      마지막 프레임이 눈에 안 남는다(2026-09-25 사용자). */
-  animation: brand-card-leave .15s cubic-bezier(.55, 0, 1, .45) both;
+  animation: brand-card-leave .1s cubic-bezier(.55, 0, 1, .45) both;
 }
 @keyframes brand-card-leave {
   from { opacity: 1; transform: scale(1); }

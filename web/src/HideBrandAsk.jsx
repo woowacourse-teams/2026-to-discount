@@ -7,11 +7,26 @@
  *
  * 문구는 개발자가 정한 것을 그대로 쓴다(COPY-STYLE 3).
  */
+import { useEffect } from 'react'
 import { NEVER, WHEN_BIGGER } from './hiddenBrands.js'
 
 export default function HideBrandAsk({ brand, amount, onChoose, onCancel }) {
+  // 바깥을 누르면 취소다. 되돌릴 수 없는 일이 아니라 물러날 길이 넓어야 한다.
+  // Esc도 같이 받는다 - 이 창은 role="dialog"라 키보드로도 닫혀야 한다.
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onCancel() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onCancel])
+
   return (
-    <div className="hide-ask" role="dialog" aria-modal="true" aria-labelledby="hide-ask-title">
+    <div
+      className="hide-ask"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="hide-ask-title"
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel() }}
+    >
       <div className="hide-ask__box">
         <p className="hide-ask__title" id="hide-ask-title">
           {brand}를 숨기시겠어요?
