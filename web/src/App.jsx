@@ -11,7 +11,7 @@ import FilterSheet from './FilterSheet.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, offerKey, displayBestAmount } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
-import HiddenBrandsDock from './HiddenBrandsDock.jsx'
+import HiddenBrandsSheet from './HiddenBrandsSheet.jsx'
 import { NEVER, WHEN_BIGGER, applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand }
   from './hiddenBrands.js'
 import SurveyCard from './SurveyCard.jsx'
@@ -1155,7 +1155,8 @@ export default function App() {
           값은 사람마다 달라 자주 켤 것이 아니다. 시트에는 그대로 있다. 시트의 같은 값과 한
           상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
       {brands && (
-        <div className="quick-bar" role="group" aria-label="빠른 필터">
+        <div className="quick-bar">
+        <div className="quick-bar__sorts" role="group" aria-label="빠른 필터">
           {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문 낮은순']].map(([key, dir, label]) => {
             const first = primarySort(filters)
             const on = first.key === key && first.dir === dir
@@ -1177,6 +1178,33 @@ export default function App() {
             )
           })}
         </div>
+        {/* 숨긴 목록은 정렬과 다른 일이라 오른쪽에 따로 선다. 떠 있는 알약으로 두었더니
+            하단 배너와 겹쳤다(2026-09-24 사용자). 숨긴 것이 없으면 안 그린다. */}
+        {Object.keys(hidden).length > 0 && (
+          <button
+            type="button"
+            className="quick-bar__hidden"
+            aria-expanded={hiddenOpen}
+            onClick={() => { setHiddenOpen((v) => !v); if (!hiddenOpen) track('hidden_open') }}
+          >
+            숨긴 목록
+            <span className="quick-bar__hidden-count">{Object.keys(hidden).length}</span>
+            {revived.length > 0 && <span className="quick-bar__hidden-dot" aria-hidden="true" />}
+          </button>
+        )}
+        </div>
+      )}
+
+      {/* 목록은 정렬바 바로 아래, 흐름 안에서 열린다. 화면 아래에 띄우면 하단 배너와
+          겹치고 카드 위를 덮어 무엇이 사라졌는지 안 보인다(2026-09-24 사용자). */}
+      {hiddenOpen && Object.keys(hidden).length > 0 && (
+        <HiddenBrandsSheet
+          hidden={hidden}
+          revived={revived}
+          onClose={() => setHiddenOpen(false)}
+          onShow={(name) => setHidden((prev) => showBrand(prev, name))}
+          onRule={(name, rule) => setHidden((prev) => setRule(prev, name, rule))}
+        />
       )}
 
       {error && (
@@ -1300,21 +1328,6 @@ export default function App() {
         <SurveyDock open={surveyOpen} answered={Boolean(surveyCode)}
                     onOpen={() => setSurveyOpen(true)}
                     onDismiss={() => setSurveyOn(false)} />
-      )}
-
-      {/* 숨긴 목록. 설문 알약과 같은 자리(하단 배너 위)다 - 설문이 떠 있으면 그 위로
-          비켜선다. 숨긴 것이 없으면 아예 안 그린다. */}
-      {Object.keys(hidden).length > 0 && (
-        <HiddenBrandsDock
-          hidden={hidden}
-          revived={revived}
-          raised={surveyOn}
-          open={hiddenOpen}
-          onOpen={() => { setHiddenOpen(true); track('hidden_open') }}
-          onClose={() => setHiddenOpen(false)}
-          onShow={(name) => setHidden((prev) => showBrand(prev, name))}
-          onRule={(name, rule) => setHidden((prev) => setRule(prev, name, rule))}
-        />
       )}
 
       <SiteFooter />

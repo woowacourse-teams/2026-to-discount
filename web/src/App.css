@@ -3373,14 +3373,26 @@ html.has-bottom-banner .survey-dock {
 
 /* 빠른 필터 줄 — 배너와 카드 사이. 시트의 칩(.sheet__chip)과 같은 생김새로,
    같은 상태를 바꾼다. 가로로 넘치면 스크롤(360px에서 셋이 한 줄에 안 들어간다). */
+/* 정렬 칩은 왼쪽에 붙이고, 숨긴 목록은 오른쪽 끝에 따로 선다. 둘은 다른 일이라
+   같은 줄에 나란히 두면 어느 것이 정렬인지 안 읽힌다(2026-09-24 사용자). */
 .quick-bar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 6px;
-  padding: 8px 16px 2px;
+  /* main의 좌우 여백(1.25rem) 일부를 되가져와 왼쪽에 더 붙인다. 정렬 칩은 카드보다
+     작아서 카드 선에 맞추면 그 위가 휑하다(2026-09-24 사용자). */
+  margin: 0 -.65rem;
+  padding: 6px 0 2px;
+}
+.quick-bar__sorts {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
-.quick-bar::-webkit-scrollbar { display: none; }
+.quick-bar__sorts::-webkit-scrollbar { display: none; }
 .quick-bar__chip {
   flex: 0 0 auto;
   font: inherit;
@@ -3620,61 +3632,55 @@ html.has-bottom-banner .survey-dock {
 }
 
 /* ── 숨긴 브랜드 ──────────────────────────────────────────────
-   알약은 설문 알약과 같은 자리(하단 배너 위)다. 둘이 같이 뜨면 설문이 아래,
-   숨긴 목록이 그 위로 비켜선다(--raised) — 겹치면 둘 다 못 누른다. */
-.hidden-dock {
-  position: fixed;
-  right: 1rem;
-  bottom: calc(1rem + 40px + .6rem);
-  z-index: 50;
+   여는 버튼은 정렬바 오른쪽 끝이다. 떠 있는 알약으로 두었더니 하단 배너와
+   겹쳤다(2026-09-24 사용자). 정렬 칩과 생김새를 가른다 - 같은 모양이면
+   정렬이 셋인 것처럼 읽힌다. */
+.quick-bar__hidden {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: .4rem;
-  padding: .5rem .8rem;
+  gap: .3rem;
+  padding: .35rem .6rem;
   font: inherit;
-  font-size: .82rem;
-  font-weight: 700;
-  color: var(--fg, #111);
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, .12);
+  font-size: .78rem;
+  color: var(--dim, #6b7280);
+  background: none;
+  border: 0;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, .1), 0 8px 20px rgba(0, 0, 0, .08);
   cursor: pointer;
 }
-/* 설문 알약(높이 약 3rem)만큼 더 올린다. */
-.hidden-dock--raised { bottom: calc(1rem + 40px + .6rem + 3.4rem); }
-
-.hidden-dock__count {
-  min-width: 1.1rem;
-  padding: 0 .3rem;
-  font-size: .74rem;
+.quick-bar__hidden[aria-expanded="true"] {
+  color: var(--text, #111);
+  background: var(--border, #eceef1);
+}
+.quick-bar__hidden-count {
+  min-width: 1.05rem;
+  padding: 0 .28rem;
+  font-size: .72rem;
   line-height: 1.35;
   color: #fff;
   background: #111;
   border-radius: 999px;
 }
-/* 되살아난 브랜드가 있다는 표시. 숫자를 늘리는 대신 점 하나로 둔다 —
+/* 되살아난 브랜드가 있다는 표시. 숫자를 늘리는 대신 점 하나로 둔다 -
    "몇 곳이 숨겨져 있나"와 "새 소식이 있나"는 다른 질문이다. */
-.hidden-dock__dot {
-  width: .42rem;
-  height: .42rem;
+.quick-bar__hidden-dot {
+  width: .4rem;
+  height: .4rem;
   background: #e5484d;
   border-radius: 50%;
 }
 
+/* 목록은 정렬바 바로 아래, 흐름 안에서 열린다. 화면 아래에 띄우면 하단 배너와
+   겹치고, 카드 위를 덮어 무엇이 사라졌는지 안 보인다. */
 .hidden-sheet {
-  position: fixed;
-  left: 50%;
-  bottom: calc(1rem + 40px + .6rem);
-  transform: translateX(-50%);
-  z-index: 52;
-  width: min(23rem, calc(100vw - 2rem));
-  max-height: min(60vh, 26rem);
+  margin: .4rem -.65rem .2rem;
+  max-height: min(50vh, 22rem);
   overflow-y: auto;
-  padding: .9rem;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, .14), 0 16px 40px rgba(0, 0, 0, .16);
+  padding: .75rem .85rem;
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, #e6e8eb);
+  border-radius: 14px;
 }
 
 .hidden-sheet__head {

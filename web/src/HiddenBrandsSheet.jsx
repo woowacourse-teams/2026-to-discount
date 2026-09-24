@@ -1,31 +1,17 @@
 /**
- * 숨긴 브랜드 목록. 설문 알약과 같은 자리(하단 배너 위)에 알약으로 떠 있다가,
- * 누르면 목록을 연다. 숨긴 것이 없으면 App이 아예 안 그린다.
+ * 숨긴 브랜드 목록. 정렬바 오른쪽의 "숨긴 목록" 버튼이 연다.
+ *
+ * 처음에는 화면 오른쪽 아래에 떠 있는 알약이었는데 하단 배너와 겹쳤다(2026-09-24
+ * 사용자). 숨기기는 정렬과 다른 일이라 정렬바 안에서 오른쪽 끝에 따로 선다.
  *
  * 목록에서 브랜드마다 두 가지를 고른다. 바로 되살리거나, "할인이 커지면 다시"로
  * 두거나. 숨길 때 기본은 후자다 - 싫어서 숨긴 것과 "지금은 안 좋아서" 숨긴 것이
- * 다르고, 대부분은 후자다(사용자 2026-09-24).
+ * 다르고, 대부분은 후자다.
  */
 import { NEVER, WHEN_BIGGER } from './hiddenBrands.js'
 
-export default function HiddenBrandsDock({
-  hidden, revived = [], raised = false, open, onOpen, onClose, onShow, onRule,
-}) {
+export default function HiddenBrandsSheet({ hidden, revived = [], onClose, onShow, onRule }) {
   const names = Object.keys(hidden)
-  if (!open) {
-    return (
-      <button
-        type="button"
-        className={`hidden-dock${raised ? ' hidden-dock--raised' : ''}`}
-        onClick={onOpen}
-      >
-        숨긴 목록
-        <span className="hidden-dock__count">{names.length}</span>
-        {revived.length > 0 && <span className="hidden-dock__dot" aria-hidden="true" />}
-      </button>
-    )
-  }
-
   return (
     <div className="hidden-sheet" role="dialog" aria-modal="true" aria-label="숨긴 브랜드">
       <div className="hidden-sheet__head">

@@ -181,7 +181,7 @@ web/src/App.jsx
 web/src/BrandSuggestions.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
-web/src/HiddenBrandsDock.jsx
+web/src/HiddenBrandsSheet.jsx
 web/src/PushNotificationSetting.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
@@ -333,7 +333,7 @@ HTTP 경계:
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합) |
-| `HiddenBrandsDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `HiddenBrandsSheet.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
