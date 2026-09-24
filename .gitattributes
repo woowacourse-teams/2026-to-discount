@@ -13,3 +13,8 @@ scripts/githooks/* text eol=lf
 *.md text eol=lf
 *.json text eol=lf
 *.java text eol=lf
+
+# cmd.exe는 CRLF를 요구한다. LF로 두면 주석 줄이 명령으로 해석돼 exit 9009로 죽는다
+# (2026-09-25 00:01 tracker 수집이 통째로 안 돌았다).
+*.cmd text eol=crlf
+*.bat text eol=crlf
