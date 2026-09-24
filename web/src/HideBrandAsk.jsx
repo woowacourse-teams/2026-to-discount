@@ -16,7 +16,7 @@ export default function HideBrandAsk({ brand, amount, onChoose, onCancel }) {
         <p className="hide-ask__title" id="hide-ask-title">
           {brand}를 숨기시겠어요?
         </p>
-        <p className="hide-ask__desc">아예 제거하거나, 업데이트 전까지 숨길 수 있어요.</p>
+        <p className="hide-ask__desc">완전히 숨기거나, 업데이트 전까지 숨길 수 있어요.</p>
 
         <div className="hide-ask__acts">
           <button
@@ -24,13 +24,13 @@ export default function HideBrandAsk({ brand, amount, onChoose, onCancel }) {
             className="hide-ask__keep"
             onClick={() => onChoose(WHEN_BIGGER)}
           >
-            업데이트 전까지
+            업데이트 전까지 숨기기
             {amount != null && (
               <span className="hide-ask__hint">지금 {amount.toLocaleString()}원보다 커지면 다시 보여요</span>
             )}
           </button>
           <button type="button" className="hide-ask__drop" onClick={() => onChoose(NEVER)}>
-            아예 제거
+            완전히 숨기기
           </button>
           <button type="button" className="hide-ask__cancel" onClick={onCancel}>
             취소
