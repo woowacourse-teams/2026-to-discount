@@ -181,6 +181,7 @@ web/src/App.jsx
 web/src/BrandSuggestions.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
+web/src/HiddenBrandsDock.jsx
 web/src/PushNotificationSetting.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
@@ -200,6 +201,8 @@ web/src/brandImpression.test.js
 web/src/filters.js
 web/src/filters.test.js
 web/src/ga4.js
+web/src/hiddenBrands.js
+web/src/hiddenBrands.test.js
 web/src/logoManifest.js
 web/src/logoManifest.test.js
 web/src/logoSrc.js
@@ -269,7 +272,7 @@ flowchart TB
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 124 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 70 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 73 |
 
 ### Tracker
 
@@ -330,6 +333,7 @@ HTTP 경계:
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합) |
+| `HiddenBrandsDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -349,6 +353,8 @@ HTTP 경계:
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `filters.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `ga4.js` | 임시 GA4 측정 |
+| `hiddenBrands.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `hiddenBrands.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoManifest.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoManifest.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoSrc.js` | 런타임 모듈, 세부 책임은 코드 확인 |

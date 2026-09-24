@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "node scripts/build-logo-manifest.mjs && vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "test": "npm run test:autocomplete && npm run test:brand-impression && npm run test:survey-dismiss && npm run test:banner-scroll && npm run test:analytics && npm run test:posthog && npm run test:event-contract && npm run test:filters && npm run test:brand-route && npm run test:logo-manifest && npm run test:api-base && npm run test:push && npm run test:copy && npm run test:platform-badge && npm run test:banner-tag",
+    "test": "npm run test:autocomplete && npm run test:brand-impression && npm run test:survey-dismiss && npm run test:banner-scroll && npm run test:analytics && npm run test:posthog && npm run test:event-contract && npm run test:filters && npm run test:brand-route && npm run test:logo-manifest && npm run test:api-base && npm run test:push && npm run test:copy && npm run test:platform-badge && npm run test:banner-tag && npm run test:hidden-brands",
     "test:autocomplete": "node --test src/brandAutocomplete.test.js",
     "test:brand-impression": "node --test src/brandImpression.test.js",
     "test:survey-dismiss": "node --test src/surveyDismiss.test.js",
@@ -23,7 +23,8 @@
     "test:push": "node --test src/pushNotifications.test.js src/pushPrompt.test.js src/pushSyncRetry.test.js",
     "test:copy": "node scripts/check-copy.mjs",
     "test:platform-badge": "node --test src/platformBadge.test.js",
-    "test:banner-tag": "node --test src/bannerTag.test.js"
+    "test:banner-tag": "node --test src/bannerTag.test.js",
+    "test:hidden-brands": "node --test src/hiddenBrands.test.js"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

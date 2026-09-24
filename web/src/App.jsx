@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
@@ -11,6 +11,9 @@ import FilterSheet from './FilterSheet.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, MEMBERSHIP_LABEL, applyFilters, comparable, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, offerKey, displayBestAmount } from './filters.js'
 import SurveyDock from './SurveyDock.jsx'
+import HiddenBrandsDock from './HiddenBrandsDock.jsx'
+import { NEVER, WHEN_BIGGER, applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand }
+  from './hiddenBrands.js'
 import SurveyCard from './SurveyCard.jsx'
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
@@ -475,7 +478,7 @@ function routeFilters() {
   return brand ? { ...defaultFilters(), search: brand } : defaultFilters()
 }
 
-function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck, include = null }) {
+function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck, include = null, onHide }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -664,6 +667,16 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
           {open ? '접기' : '자세히'}
           <span className="brand-card__chevron" aria-hidden="true" />
         </button>
+        {onHide && (
+          <button
+            type="button"
+            className="brand-card__hide"
+            onClick={() => onHide(brand.name, bestAmount)}
+            aria-label={`${brand.name} 안 보기`}
+          >
+            안 보기
+          </button>
+        )}
       </div>
     </article>
   )
@@ -1023,9 +1036,25 @@ export default function App() {
   }, [gridKey])
 
   // 필터·정렬 규칙은 filters.js가 단일 출처다(시트·메뉴바와 같은 규칙).
+  // 싫은 브랜드는 목록에서 걷어낸다. 브라우저에만 남는다(hiddenBrands.js).
+  const [hidden, setHidden] = useState(() => readHidden())
+  const [hiddenOpen, setHiddenOpen] = useState(false)
+  const bestOf = useCallback(
+    (b) => displayBestAmount(b.offers, includesFrom(filters)), [filters])
+  const onHide = useCallback((name, amount) => {
+    setHidden((prev) => hideBrand(prev, name, { amount, rule: WHEN_BIGGER }))
+    track('brand_hide', { brand: name })
+  }, [])
+
   const visibleBrands = useMemo(
-    () => (brands ? applyFilters(brands, filters, { cart, cartOnly }) : brands),
-    [brands, filters, cart, cartOnly],
+    () => (brands ? applyHidden(applyFilters(brands, filters, { cart, cartOnly }), hidden, bestOf) : brands),
+    [brands, filters, cart, cartOnly, hidden, bestOf],
+  )
+
+  // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
+  const revived = useMemo(
+    () => (brands ? revivedNames(brands, hidden, bestOf) : []),
+    [brands, hidden, bestOf],
   )
 
   // 카드를 나눠 그린다.
@@ -1254,6 +1283,7 @@ export default function App() {
           {visibleBrands.slice(0, shown).map((b, index) => (
             <BrandCard
               key={b.name}
+              onHide={onHide}
               include={includesFrom(filters)}
               brand={b}
               position={index + 1}
@@ -1270,6 +1300,21 @@ export default function App() {
         <SurveyDock open={surveyOpen} answered={Boolean(surveyCode)}
                     onOpen={() => setSurveyOpen(true)}
                     onDismiss={() => setSurveyOn(false)} />
+      )}
+
+      {/* 숨긴 목록. 설문 알약과 같은 자리(하단 배너 위)다 - 설문이 떠 있으면 그 위로
+          비켜선다. 숨긴 것이 없으면 아예 안 그린다. */}
+      {Object.keys(hidden).length > 0 && (
+        <HiddenBrandsDock
+          hidden={hidden}
+          revived={revived}
+          raised={surveyOn}
+          open={hiddenOpen}
+          onOpen={() => { setHiddenOpen(true); track('hidden_open') }}
+          onClose={() => setHiddenOpen(false)}
+          onShow={(name) => setHidden((prev) => showBrand(prev, name))}
+          onRule={(name, rule) => setHidden((prev) => setRule(prev, name, rule))}
+        />
       )}
 
       <SiteFooter />

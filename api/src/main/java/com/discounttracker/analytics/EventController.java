@@ -56,7 +56,10 @@ public class EventController {
             // 설문 노출·닫기는 프론트가 쏜다. 응답(survey_answer)은 SurveyService가
             // 직접 적는다 — 이 경로는 인증이 없어 위조하면 응답 수와 코드 발급
             // 수가 어긋난다.
-            "survey_impression", "survey_open", "survey_dismiss");
+            "survey_impression", "survey_open", "survey_dismiss",
+            // 싫은 브랜드 숨기기(2026-09-24). 브랜드 이름은 brand 칸으로 이미 오는 값이라
+            // 새로 여는 것이 없다. 어떤 브랜드가 얼마나 숨겨지는지가 목록 품질의 신호다.
+            "brand_hide", "hidden_open");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
             "inputLength", "resultCount", "submitMethod",
             "fCategory", "fPlatforms", "fSearch", "fCart", "fSaved", "fSort");

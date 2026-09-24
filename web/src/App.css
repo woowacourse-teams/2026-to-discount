@@ -3618,3 +3618,148 @@ html.has-bottom-banner .survey-dock {
   transform: rotate(-4deg);
   transform-origin: center;
 }
+
+/* ── 숨긴 브랜드 ──────────────────────────────────────────────
+   알약은 설문 알약과 같은 자리(하단 배너 위)다. 둘이 같이 뜨면 설문이 아래,
+   숨긴 목록이 그 위로 비켜선다(--raised) — 겹치면 둘 다 못 누른다. */
+.hidden-dock {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(1rem + 40px + .6rem);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem .8rem;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--fg, #111);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, .12);
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .1), 0 8px 20px rgba(0, 0, 0, .08);
+  cursor: pointer;
+}
+/* 설문 알약(높이 약 3rem)만큼 더 올린다. */
+.hidden-dock--raised { bottom: calc(1rem + 40px + .6rem + 3.4rem); }
+
+.hidden-dock__count {
+  min-width: 1.1rem;
+  padding: 0 .3rem;
+  font-size: .74rem;
+  line-height: 1.35;
+  color: #fff;
+  background: #111;
+  border-radius: 999px;
+}
+/* 되살아난 브랜드가 있다는 표시. 숫자를 늘리는 대신 점 하나로 둔다 —
+   "몇 곳이 숨겨져 있나"와 "새 소식이 있나"는 다른 질문이다. */
+.hidden-dock__dot {
+  width: .42rem;
+  height: .42rem;
+  background: #e5484d;
+  border-radius: 50%;
+}
+
+.hidden-sheet {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1rem + 40px + .6rem);
+  transform: translateX(-50%);
+  z-index: 52;
+  width: min(23rem, calc(100vw - 2rem));
+  max-height: min(60vh, 26rem);
+  overflow-y: auto;
+  padding: .9rem;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .14), 0 16px 40px rgba(0, 0, 0, .16);
+}
+
+.hidden-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .6rem;
+  font-size: .92rem;
+}
+.hidden-sheet__close {
+  padding: 0 .3rem;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--dim, #666);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.hidden-sheet__note {
+  margin: 0 0 .6rem;
+  padding: .5rem .6rem;
+  font-size: .78rem;
+  line-height: 1.45;
+  color: #0f5132;
+  background: #e6f7ed;
+  border-radius: 10px;
+}
+
+.hidden-sheet__list { margin: 0; padding: 0; list-style: none; }
+
+.hidden-sheet__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .15rem .5rem;
+  padding: .55rem 0;
+  border-top: 1px solid rgba(0, 0, 0, .07);
+}
+.hidden-sheet__row:first-child { border-top: 0; }
+
+.hidden-sheet__name { font-size: .88rem; font-weight: 700; }
+.hidden-sheet__when { grid-column: 1; font-size: .74rem; color: var(--dim, #777); }
+.hidden-sheet__acts {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+.hidden-sheet__rule,
+.hidden-sheet__show {
+  padding: .34rem .55rem;
+  font: inherit;
+  font-size: .74rem;
+  white-space: nowrap;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.hidden-sheet__rule {
+  color: var(--dim, #666);
+  background: #f2f3f5;
+  border: 1px solid transparent;
+}
+.hidden-sheet__rule--on {
+  color: #0f5132;
+  background: #e6f7ed;
+  border-color: #b7e4c7;
+}
+.hidden-sheet__show {
+  color: #fff;
+  background: #111;
+  border: 0;
+}
+
+/* 카드 발의 "안 보기". 담기·자세히 옆에 조용히 선다 — 누르면 목록에서
+   사라지는 동작이라 눈에 먼저 띄면 잘못 누른다. */
+.brand-card__hide {
+  margin-left: auto;
+  padding: .3rem .5rem;
+  font: inherit;
+  font-size: .76rem;
+  color: var(--dim, #8a8f98);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.brand-card__hide:hover { color: var(--fg, #111); }
