@@ -78,7 +78,7 @@
 | --- | --- |
 | 판정 본체 | `api/.../offer/OfferComparison.java` |
 | 같은 판정의 웹판 | `web/src/filters.js` (`isBestCandidate`, `comparisonAmount`, `sortingAmount`) |
-| 두 쪽이 함께 읽는 판정표 | `docs/contracts/certainty-cases.json` (30가지) |
+| 두 쪽이 함께 읽는 판정표 | `api/src/test/resources/contracts/certainty-cases.json` (30가지) |
 | 원장 표기와의 다리 | `api/.../offer/Certainty.java#fromQualifier`, 원장 값은 tracker `schema.py`의 `ALLOWED_QUALIFIERS` |
 
 - **묶인 이유**: 정렬은 서버가, 배지는 웹이 정한다. 규칙이 하나인데 실행하는 곳이 둘이다.
@@ -198,7 +198,7 @@
 2. **한 곳에 모은다.** 같은 규칙이 두 함수에 적혀 있으면 하나로 뽑는다. 즉시 알림 창을
    서버 한 곳으로 되돌린 것이 이것이다.
 3. **같이 읽는 계약 파일을 둔다.** 없앨 수 없으면 양쪽이 같은 파일을 읽게 한다.
-   `docs/contracts/certainty-cases.json`을 Java 테스트와 JS 테스트가 함께 읽는다.
+   `api/src/test/resources/contracts/certainty-cases.json`을 Java 테스트와 JS 테스트가 함께 읽는다.
 4. **맞대는 검사를 둔다.** 계약 파일도 못 만들면 양쪽 목록을 맞대는 스크립트를 둔다.
    `verify-analytics-event-contract.mjs`가 그것이다. 빠진 쪽도 남는 쪽도 잡는다.
 

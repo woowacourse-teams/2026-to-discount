@@ -14,7 +14,7 @@ package com.discounttracker.offer;
  * 4,999원으로 남는다 - 통째로 빼면 그 쿠폰밖에 없는 브랜드가 근거를 잃는다.
  *
  * <p>웹의 {@code filters.js}가 같은 규칙을 들고 있다. 판정표
- * {@code docs/contracts/certainty-cases.json}을 양쪽 테스트가 같이 읽어 어긋남을 막는다(ADR-016).
+ * {@code src/test/resources/contracts/certainty-cases.json}을 양쪽 테스트가 같이 읽어 어긋남을 막는다(ADR-016).
  */
 public final class OfferComparison {
 
@@ -65,7 +65,7 @@ public final class OfferComparison {
      * <p>호출부가 둘로 나눠 묻던 것을 여기 하나로 모은다 - 나눠 두면 한쪽만
      * 고쳐도 안 터진다(2026-09-23, fix round 3). 규칙은 {@link #isBestCandidate}, {@link #comparable},
      * {@link #sortingAmount}를 그대로 불러 쓴다 - 판정표
-     * {@code docs/contracts/certainty-cases.json}이 검사하는 코드가 실제로 도는
+     * {@code src/test/resources/contracts/certainty-cases.json}이 검사하는 코드가 실제로 도는
      * 코드여야 한다(2026-09-23, fix round 4).
      *
      * <p>own과 비할인, 품절은 확실성보다 먼저 뺀다. 확실성 갈래 안에서 빼면

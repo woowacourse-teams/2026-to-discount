@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
+import { apiFile } from './api-repo.mjs'
 
-const root = new URL('../..', import.meta.url)
+// 웹 소스는 이 저장소 뿌리에서, 허용 목록은 API 저장소에서 읽는다(api-repo.mjs).
+const root = new URL('..', import.meta.url)
 
 async function source(path) {
   return readFile(new URL(path, root), 'utf8')
@@ -18,35 +20,36 @@ function staticTrackEvents(path, contents) {
   return staticCalls.map((match) => match[2])
 }
 
-const appSource = await source('web/src/App.jsx')
-const bannerSource = await source('web/src/EventBanner.jsx')
+const appSource = await source('src/App.jsx')
+const bannerSource = await source('src/EventBanner.jsx')
 // 상단 바(옛 A안 — 2026-09-15 B를 내리고 하나로 통일). 이 파일이 목록에서 빠져 있으면 A안에서만 쏘는 이벤트가
 // 허용 목록에 없어도 검사를 통과한다 — 정확히 그렇게 여섯 종이 서버에서
 // 버려지고 있었다.
-const topBarASource = await source('web/src/TopBarA.jsx')
+const topBarASource = await source('src/TopBarA.jsx')
 // 설문 카드. 이 파일이 목록에서 빠지면 survey_impression·survey_dismiss가
 // 서버 허용 목록에 없어도 검사를 통과하고, 서버가 조용히 버린다.
-const surveyCardSource = await source('web/src/SurveyCard.jsx')
-const surveyDockSource = await source('web/src/SurveyDock.jsx')
+const surveyCardSource = await source('src/SurveyCard.jsx')
+const surveyDockSource = await source('src/SurveyDock.jsx')
 // 푸시 설정. 구독 결과 이벤트도 자체 API 원장으로 릴레이하므로 목록에서
 // 빠지면 API가 이름을 모른 채 조용히 버린다.
-const pushNotificationSettingSource = await source('web/src/PushNotificationSetting.jsx')
-const analyticsSource = await source('web/src/analytics.js')
+const pushNotificationSettingSource = await source('src/PushNotificationSetting.jsx')
+const analyticsSource = await source('src/analytics.js')
 const startAnalyticsSource = analyticsSource.slice(
   analyticsSource.indexOf('export function startAnalytics()'),
 )
-const controllerSource = await source(
-  'api/src/main/java/com/discounttracker/analytics/EventController.java',
+const controllerSource = await readFile(
+  apiFile('src', 'main', 'java', 'com', 'discounttracker', 'analytics', 'EventController.java'),
+  'utf8',
 )
 
 const emittedEvents = new Set([
-  ...staticTrackEvents('web/src/App.jsx', appSource),
-  ...staticTrackEvents('web/src/EventBanner.jsx', bannerSource),
-  ...staticTrackEvents('web/src/TopBarA.jsx', topBarASource),
-  ...staticTrackEvents('web/src/SurveyCard.jsx', surveyCardSource),
-  ...staticTrackEvents('web/src/SurveyDock.jsx', surveyDockSource),
-  ...staticTrackEvents('web/src/PushNotificationSetting.jsx', pushNotificationSettingSource),
-  ...staticTrackEvents('web/src/analytics.js#startAnalytics', startAnalyticsSource),
+  ...staticTrackEvents('src/App.jsx', appSource),
+  ...staticTrackEvents('src/EventBanner.jsx', bannerSource),
+  ...staticTrackEvents('src/TopBarA.jsx', topBarASource),
+  ...staticTrackEvents('src/SurveyCard.jsx', surveyCardSource),
+  ...staticTrackEvents('src/SurveyDock.jsx', surveyDockSource),
+  ...staticTrackEvents('src/PushNotificationSetting.jsx', pushNotificationSettingSource),
+  ...staticTrackEvents('src/analytics.js#startAnalytics', startAnalyticsSource),
   'page_exit',
 ])
 

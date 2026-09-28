@@ -74,6 +74,8 @@
 조건부 상한을 확정 금액과 액면으로 못 견주기 때문인데, 보류 버킷에서는 서로 다 보류라
 그 이유가 성립하지 않는다. `RANDOM`과 `PERCENT`는 양쪽 다 제외한다.
 
+> 2026-09-29: 판정표는 `api/src/test/resources/contracts/certainty-cases.json`으로 옮겼다. API와 웹의 정본 저장소가 갈리면서 아래의 "mono CI가 강제한다"는 전제가 사라졌기 때문이다. 이제 파일이 없으면 두 테스트 모두 건너뛰지 않고 실패한다.
+
 **판정표는 `docs/contracts/certainty-cases.json` 한 파일이다.** 30가지 조합을 전부 덮고,
 테스트가 열거값 곱집합으로 완전성을 검사한다. 파일이 없으면 그 테스트만 건너뛴다.
 배포 미러(`nn98/delivery-discount-api`)에는 `docs/`가 없기 때문이다. 강제는 mono의 CI가

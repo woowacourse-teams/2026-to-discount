@@ -11,29 +11,26 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * 판정표는 docs/contracts/certainty-cases.json 한 파일이고 web/src/filters.test.js도 같은
- * 파일을 읽는다. 규칙을 두 벌 적지 않는다(ADR-016).
+ * 판정표는 src/test/resources/contracts/certainty-cases.json 한 파일이고 웹 저장소의
+ * src/filters.test.js도 같은 파일을 읽는다. 규칙을 두 벌 적지 않는다(ADR-016).
  */
 class OfferComparisonTest {
 
-    /** gradle은 api/를 작업 디렉터리로 돈다. 표는 저장소 뿌리의 docs/ 아래다. */
-    private static final Path CASES = Path.of("..", "docs", "contracts", "certainty-cases.json");
+    /** gradle은 이 저장소 뿌리(mono에서는 api/)를 작업 디렉터리로 돈다. */
+    private static final Path CASES = Path.of("src", "test", "resources", "contracts", "certainty-cases.json");
 
     /**
-     * 표가 없으면 이 테스트들은 실패가 아니라 건너뛴다. 배포 미러
-     * nn98/delivery-discount-api는 api/ 안쪽만 복사해 가서 docs/가 통째로 없고, 거기서
-     * 실패로 처리하면 무관한 테스트까지 끌고 죽어 API 배포가 멈춘다. 표를 강제하는
-     * 자리는 mono 저장소의 check-api.yml이고 거기엔 이 파일이 늘 있다. 웹과 API가
-     * 갈라질 수 있는 곳도 둘이 같이 사는 mono뿐이다.
+     * 표가 없으면 실패한다. 건너뛰지 않는다.
      *
-     * <p>건너뛰기지 조용한 통과가 아니다 - 파일이 있는데 코드와 어긋나면 그대로 실패한다.
+     * <p>2026-09-29까지는 표가 mono 뿌리의 docs/에 있어서, api/만 복사해 가는 배포 미러에서는
+     * 건너뛰고 강제는 mono CI에 맡겼다. 운영 정본이 이 저장소로 옮겨오면서 그 전제가 깨졌다 -
+     * mono가 전시용이 되면 표를 강제하는 곳이 사라지고, 건너뛴 테스트는 초록으로 보인다.
+     * 판정의 권위가 서버에 있으니 표도 이 저장소에 둔다.
      */
     private static JsonNode readCases() throws Exception {
-        assumeTrue(Files.exists(CASES), "판정표 " + CASES.toAbsolutePath()
-                + " 가 없어 건너뛴다. 배포 미러에는 docs/가 없고, 검증은 mono의 check-api.yml이 맡는다.");
+        assertTrue(Files.exists(CASES), "판정표 " + CASES.toAbsolutePath() + " 가 없다");
         return new ObjectMapper().readTree(CASES.toFile()).get("cases");
     }
 

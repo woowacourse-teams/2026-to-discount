@@ -110,7 +110,7 @@
 #
 # 확실성(certainty)은 적는 칸이 아니라 위 칸에서 서버가 정한다 — exact, capped,
 # random, menuOnly, percent 다섯이고, "최고 할인" 후보는 exact인 것만이다.
-# 판정표는 docs/contracts/certainty-cases.json 한 곳에 있다.
+# 판정표는 src/test/resources/contracts/certainty-cases.json 한 곳에 있다.
 #
 # 예시(그대로 두면 기간이 지나 안 뜬다):
 #

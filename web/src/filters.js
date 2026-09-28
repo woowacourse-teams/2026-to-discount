@@ -117,7 +117,7 @@ function comparableAxes(offer) {
  * 카드의 "최고 할인"으로 세울 수 있는 값인가.
  *
  * 같은 판정이 api의 OfferComparison.isBestCandidate에도 있다. 판정표
- * docs/contracts/certainty-cases.json을 양쪽 테스트가 같이 읽어 어긋남을
+ * API 저장소 src/test/resources/contracts/certainty-cases.json을 양쪽 테스트가 같이 읽어 어긋남을
  * 막는다(ADR-016).
  */
 export function isBestCandidate(offer) {

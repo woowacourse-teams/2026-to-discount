@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { apiFile } from '../scripts/api-repo.mjs'
 import {
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
@@ -78,22 +79,12 @@ test('자사 오퍼가 없는 브랜드는 플랫폼을 다 끄면 그대로 사
   assert.equal(applyFilters(brands, none).length, 0)
 })
 
-test('판정표를 API와 같이 읽는다 - 규칙을 두 벌 적지 않는다(ADR-016)', (t) => {
-  // 배포 미러(nn98/delivery-discount-api)는 api/만 가져가 docs/가 없다.
-  // 파일이 없으면 이 테스트만 건너뛴다 - RULES 3. t.skip으로 건너뛰어야
-  // 러너의 skipped 집계에 잡힌다 - console.log와 return만으로는 단언 0개짜리
-  // ✔가 찍혀 표가 통째로 빠졌다는 사실이 안 보인다(fix round 1).
-  let table
-  try {
-    table = JSON.parse(
-      readFileSync(new URL('../../docs/contracts/certainty-cases.json', import.meta.url), 'utf8'))
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      t.skip('certainty-cases.json 없음 - 배포 미러라 건너뜀')
-      return
-    }
-    throw err
-  }
+test('판정표를 API와 같이 읽는다 - 규칙을 두 벌 적지 않는다(ADR-016)', () => {
+  // 판정표의 정본은 API 저장소다(scripts/api-repo.mjs). 못 찾으면 실패한다.
+  // 2026-09-29 전에는 없으면 건너뛰고 강제를 mono CI에 맡겼는데, 운영 정본이 개인
+  // 저장소로 옮겨오면서 그 자리가 사라졌다. 건너뛴 테스트는 초록으로 보인다.
+  const table = JSON.parse(
+    readFileSync(apiFile('src', 'test', 'resources', 'contracts', 'certainty-cases.json'), 'utf8'))
   const { cases } = table
   assert.ok(cases.length >= 8, '판정표가 비었거나 줄었다')
   for (const c of cases) {

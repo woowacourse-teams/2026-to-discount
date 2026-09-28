@@ -343,7 +343,7 @@ public class BrandComparisonService {
             //
             // 오퍼가 정렬에 기여하는 금액은 확실성에 따라 다르다
             // ({@link OfferComparison#comparisonAmount}). 프론트의 filters.js가 같은
-            // 판정표(docs/contracts/certainty-cases.json)를 읽어 어긋남을 막는다(ADR-016).
+            // 판정표(src/test/resources/contracts/certainty-cases.json)를 읽어 어긋남을 막는다(ADR-016).
             //
             // own(자사)과 비할인(캐시백·포인트), 품절 오퍼는 maxConfirmed·maxHeld
             // 어느 쪽도 못 채운다 — 배달앱끼리 겨루는 값이 아니라 어느 쪽 천장도 그
