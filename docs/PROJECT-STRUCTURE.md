@@ -125,6 +125,7 @@ api/src/test/java/com/discounttracker/testdata/TestDataCatalogTest.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
+api/src/test/resources/contracts/certainty-cases.json
 tracker/.gitattributes
 tracker/.gitignore
 tracker/README.md
@@ -160,6 +161,7 @@ web/README.md
 web/index.html
 web/package-lock.json
 web/package.json
+web/scripts/api-repo.mjs
 web/scripts/build-logo-manifest.mjs
 web/scripts/build-platform-icons.py
 web/scripts/check-copy.mjs
@@ -274,8 +276,8 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 124 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 76 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 125 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 77 |
 
 ### Tracker
 
