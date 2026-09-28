@@ -1,3 +1,4 @@
+<!-- 원본: tracker docs/public/README.md — 여기서 고치지 않는다 -->
 # docs/public — mono로 나가는 문서
 
 여기 있는 문서만 공개 저장소 mono의 `docs/` 같은 자리로 나간다. 나머지 tracker 문서는 안 나간다.
