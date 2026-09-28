@@ -3,7 +3,7 @@
 
 팀원이 작업을 시작할 때, 또는 처음 온 사람이 이 프로젝트가 어떻게 굴러가는지 볼 때 읽는 문서다. 코드가 무엇을 하는지는 자동 생성 문서 [`PROJECT-STRUCTURE.md`](PROJECT-STRUCTURE.md)에 있고, 규칙의 근거는 [`decisions/`](decisions/)와 각 앱의 ADR에 있다. 이 문서는 어디서 무엇을 고치고 어떤 순서로 내보내는지만 적는다.
 
-## 1. 저장소 넷 중 하나만 사람이 고친다
+## 1. 저장소 다섯, 사람이 고치는 것은 셋
 
 | 저장소 | 성격 | 무엇이 있나 | 누가 쓰나 |
 |---|---|---|---|
@@ -13,7 +13,7 @@
 | `nn98/delivery-discount-web` | 배포 미러 | mono `web/`의 복사본. Vercel이 본다 | 사람이 push하지 않는다 |
 | `nn98/delivery-discount-api` | 배포 미러 | mono `api/`의 복사본. 운영 서버 러너가 빌드하고 재시작한다 | 사람이 push하지 않는다 |
 
-원칙은 tracker 저장소 ADR-018(작업 사본 원칙)에 있다. 개발은 tracker 작업 사본 안에서 한다. mono는 그 안의 `mono/`에서 커밋하고 push한다. 미러 둘은 mono `main`에 push가 들어오면 워크플로 `mirror-deploy-repos.yml`이 채운다. 미러를 직접 고치면 다음 push에서 덮인다.
+원칙은 [ADR-002](decisions/ADR-002-mono-is-the-public-source.md)와 tracker 저장소(비공개) ADR-018에 있다. 구조와 그렇게 정한 이유는 [`ARCHITECTURE.md`](ARCHITECTURE.md)에 모았다. 개발은 tracker 작업 사본 안에서 한다. mono는 그 안의 `mono/`에서 커밋하고 push한다. 미러 둘은 mono `main`에 push가 들어오면 워크플로 `mirror-deploy-repos.yml`이 채운다. 미러를 직접 고치면 다음 push에서 덮인다.
 
 ```
 tracker(작업 사본) --커밋--> tracker origin
@@ -38,7 +38,7 @@ tracker(작업 사본) --커밋--> tracker origin
 
 ### 3-1. 수집과 판독 (tracker)
 
-1. `capture/`와 `scripts/`를 고친다. `python -m pytest -q`(600건 넘음)를 돌리고 커밋한다.
+1. `capture/`와 `scripts/`를 고친다. `python -m pytest -q`(700건 넘음)를 돌리고 커밋한다. 예약 실행 1단계는 `ci_only` 표식이 붙은 테스트를 빼고 돈다([`ARCHITECTURE.md`](ARCHITECTURE.md) 4절).
 2. 검증은 다음 예약 실행이 한다. 00:01(전수조사 포함), 08:30, 15:55. 실행이 끝나면 `python scripts/check_routine.py <날짜>`로 단계별 PASS, SUSPECT, FAIL을 본다. 진행은 대시보드 `https://bebeggars.duckdns.org/ops/`에서 본다(설계 [`design/32-ops-monitoring.md`](design/32-ops-monitoring.md)).
 3. 실기 확인이 필요하면 예약 시각을 피해 폰을 쓴다. 한 바퀴는 25분(낮)에서 130분(전수조사 포함)이다.
 4. 실패, 원인, 조치는 tracker `docs/setup/COLLECTION-INCIDENTS.md`에 날짜별로 적는다. 규칙이 바뀌면 ADR을 쓴다. 실행 절차의 명세는 `docs/setup/ROUTINE-SPEC.md`, 소요 시간은 `ROUTINE-TIMING.md`에 있다.
@@ -61,7 +61,7 @@ CORS: 프리뷰 도메인 패턴은 `api/.../WebConfig.java`에 이미 열려 �
 
 ### 3-4. 데이터 반영
 
-자동이다. 예약 실행 8단계가 원장에서 export를 만들고 scripts/deploy_export.py가 서버 파일을 교체하고 reload한다. mono의 tracker/data/export.json은 쓰지 않는다(2026-09-01부터). 사람이 끼어드는 곳은 둘이다.
+자동이다. 예약 실행 8단계가 원장에서 export를 만들고 scripts/deploy_export.py가 서버 파일을 교체하고 reload한다. mono에는 export가 없다(2026-09-01부터 서버로 직접, ADR-002). 사람이 끼어드는 곳은 둘이다.
 
 - 실행이 FAIL로 끝났을 때. 로그를 보고 실패한 단계만 단독으로 다시 돌린 뒤 `reflect_daily --apply --pass <단계>`로 반영한다.
 - `check_deploy.py`(tracker 저장소 전용 스크립트)가 배포를 막았을 때. 무엇이 사라졌는지 읽고 예외를 코드에 적는다. 검증을 끄지 않는다.
@@ -113,6 +113,7 @@ curl -s https://bebeggars.duckdns.org/api/banners | head -c 300
 | 알고 싶은 것 | 문서 |
 |---|---|
 | 문서를 어디서 쓰나 | tracker docs/public/. mono에는 전파된다 |
+| 저장소 구조, 도는 길, 2026-09-29 결정의 이유 | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
 | 어느 문서가 이기나 | 확정 규칙 → ADR → 설계 → 코드 옆 머리말 → 기록(tracker HARNESS §15) |
 | 처음 환경 구성과 실행 | [`ONBOARDING.md`](../ONBOARDING.md) |
 | 지금 서비스가 어떤 상태인가 | 대시보드 `/ops/`. 설계는 [`design/32-ops-monitoring.md`](design/32-ops-monitoring.md) |
@@ -123,5 +124,5 @@ curl -s https://bebeggars.duckdns.org/api/banners | head -c 300
 | 무엇을 모으고 어떻게 가르나(분석) | [`ANALYTICS.md`](ANALYTICS.md), [`metrics/`](metrics/) |
 | 되돌리기 어려운 판단 | [`decisions/`](decisions/), `api/docs/decisions`, `web/docs/decisions`, tracker `docs/decisions` |
 | 예약 실행 절차, 소요, 사고 | tracker `docs/setup/ROUTINE-SPEC.md`, `ROUTINE-TIMING.md`, `COLLECTION-INCIDENTS.md` |
-| 수집 PC와 폰 인수인계 | tracker `docs/setup/MINIPC-HANDOVER.md`, `docs/HANDOFF-*.md` |
+| 수집 PC와 폰 인수인계 | tracker `docs/setup/MINIPC-HANDOVER.md`, 기록은 `docs/archive/HANDOFF-*.md` |
 | 자동화 세션이 지킬 규칙 | tracker `AGENTS.md`, `docs/HARNESS.md` |
