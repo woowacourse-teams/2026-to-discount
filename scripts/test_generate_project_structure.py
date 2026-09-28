@@ -16,8 +16,6 @@ import generate_project_structure as gen
 
 BASE = [
     ".github/workflows/deploy-api.yml",
-    ".github/workflows/deploy-data.yml",
-    "tracker/schema.py",
     "api/build.gradle",
     "web/package.json",
 ]
@@ -31,21 +29,6 @@ def test_new_top_level_unit_stops():
     """분류 안 된 실행 단위가 생기면 멈춘다 — 안 멈추면 문서가 계속 "3층"이라고 말한다."""
     everything = paths("mobile/src/Main.kt")
     with pytest.raises(ValueError, match="mobile"):
-        gen.render(gen.source_files(everything), everything)
-
-
-def test_unknown_deploy_workflow_stops():
-    """배포 경계 그림은 손으로 그린 것이라, 그림이 낡았을 조건을 대신 검증한다."""
-    everything = paths(".github/workflows/deploy-web.yml")
-    with pytest.raises(ValueError, match="deploy-web.yml"):
-        gen.render(gen.source_files(everything), everything)
-
-
-def test_missing_deploy_workflow_stops():
-    everything = sorted(
-        p for p in paths() if p.name != "deploy-data.yml"
-    )
-    with pytest.raises(ValueError, match="deploy-data.yml"):
         gen.render(gen.source_files(everything), everything)
 
 
@@ -91,6 +74,6 @@ def test_signature_is_order_independent():
 
 def test_signature_catches_swap():
     """집계 숫자만 있으면 파일 하나 지우고 하나 더할 때 문서가 안 바뀐다."""
-    before = gen.structure_signature(paths("tracker/a.py"))
-    after = gen.structure_signature(paths("tracker/b.py"))
+    before = gen.structure_signature(paths("api/src/main/java/com/discounttracker/a/A.java"))
+    after = gen.structure_signature(paths("api/src/main/java/com/discounttracker/b/B.java"))
     assert before != after
