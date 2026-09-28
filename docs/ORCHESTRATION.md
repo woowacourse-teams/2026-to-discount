@@ -2,18 +2,18 @@
 
 세 층이 한 방향으로만 흐른다. 이 문서는 각 층이 무엇을 보장하고 무엇을 가정하는지 적는다. 층을 가로지르는 작업에서 반복해서 사고가 났던 지점도 적는다.
 
-앱 안에서 끝나는 세부는 각 디렉터리의 `docs/ORCHESTRATION-CONTRACT.md`에 있다. 여기는 **층을 가로지를 때만** 필요한 것을 담는다.
+앱 안에서 끝나는 세부는 각 디렉터리의 `docs/ORCHESTRATION-CONTRACT.md`에 있다(api, web). 수집기(tracker) 쪽 계약은 tracker 저장소(비공개)에 있다. 여기는 **층을 가로지를 때만** 필요한 것을 담는다.
 
 ```
-화면(배달앱)  →  tracker  →  export.json  →  api  →  /api/brands  →  web
-                 판독·원장     파일 드롭      가공·판정              화면
+화면(배달앱)  →  tracker(비공개)  →  서버(직접 배포)  →  api  →  /api/brands  →  web
+                 판독·원장                              가공·판정              화면
 ```
 
 ## 1. 데이터가 흐르는 규칙
 
-**원장은 `tracker/data/log.jsonl`, 배포되는 산출물은 `tracker/data/export.json`.** export는 원장의 파생물이다. `store.latest_per_brand()`가 (앱, 브랜드)당 하나만 남긴다.
+원장과 배포되는 산출물(export)은 tracker 저장소(비공개)에 있다. export는 원장의 파생물이다. 원장의 `latest_per_brand()`가 (앱, 브랜드)당 하나만 남긴다.
 
-승자 규칙은 **확정 > 최신 캡처 > 금액** 순이다. 이 규칙은 tracker(`store._prefer`)와 api(`Offer.preferredOver`) **양쪽에 중복 구현돼 있다.** 한쪽만 고치면 같은 원장이 경로에 따라 다른 결과를 낸다. 실제로 어긋나 있었다(2026-08-06: tracker가 상세 3개만 병합, api는 5개). `tracker/docs/decisions/ADR-016`이 이 중복을 명시적으로 허용하되 동기화를 의무로 못박은 문서다.
+승자 규칙은 **확정 > 최신 캡처 > 금액** 순이다. 이 규칙은 tracker와 api(`Offer.preferredOver`) **양쪽에 중복 구현돼 있다.** 한쪽만 고치면 같은 원장이 경로에 따라 다른 결과를 낸다. 실제로 어긋나 있었다(2026-08-06: tracker가 상세 3개만 병합, api는 5개). tracker 저장소(비공개) ADR-016이 이 중복을 명시적으로 허용하되 동기화를 의무로 못박은 문서다.
 
 ## 2. 필드를 늘릴 때는 API를 먼저 배포한다
 
@@ -25,11 +25,11 @@
 
 ## 3. 배포는 파일을 통째로 갈아치운다
 
-`deploy-data.yml` 워크플로가 `cp data/export.json`으로 서버 파일을 덮고 `POST /api/reload`를 부른다. 커밋이 서버보다 낡았으면 **푸시 한 번에, 사람 개입 없이 서버 데이터가 사라진다.**
+수집기(tracker)가 export를 서버로 직접 올리고 `POST /api/reload`를 부른다(비공개 저장소, 09-01부터). 이 저장소는 관여하지 않는다. 배포본이 원장보다 낡았으면 **사람 개입 없이 서버 데이터가 사라진다.**
 
 2026-08-05에 실제로 그렇게 잃었다(청년피자 땡겨요의 tiers 2건과 badge). 로컬 사본이 서버와 같다고 **가정하고 표본 몇 건만 대조**한 것이 원인이다.
 
-`tracker/check_deploy.py`가 두 가지를 검사한다.
+수집기의 배포 가드가 두 가지를 검사한다.
 
 - 들어오는 파일의 최신 `capturedAt`이 서버보다 이르면 중단
 - 서버에 채워져 있던 상세(`tiers`, `badge`, `minOrderAmount`, `conditions`, `expiresAt`)가 비면 중단
@@ -45,9 +45,9 @@
 
 두 번째 축이 2026-08-10에 들어오면서 재현이 가능해졌다.
 
-그전에는 종료된 프로모션 제거가 `export.json`에서만 일어났다. 원장으로 재생성하면 그 프로모션들이 되살아났다(2026-08-06 기준 20건). 2026-08-05 백필과 2026-08-10 원장 정리로 닫혔다. 그 뒤 `export.json`이 바뀐 커밋 다섯 개는 전부 재생성 결과와 완전히 일치한다. 커밋별 대조표는 [`tracker/docs/ORCHESTRATION-CONTRACT.md`](../tracker/docs/ORCHESTRATION-CONTRACT.md) §1.
+그전에는 종료된 프로모션 제거가 export에서만 일어났다. 원장으로 재생성하면 그 프로모션들이 되살아났다(2026-08-06 기준 20건). 2026-08-05 백필과 2026-08-10 원장 정리로 닫혔다. 그 뒤 export가 바뀐 커밋 다섯 개는 전부 재생성 결과와 완전히 일치한다. 커밋별 대조표는 tracker 저장소(비공개) ORCHESTRATION-CONTRACT.md §1.
 
-원장에 새 관측을 넣을 때는 `tracker/ingest.py`를 쓴다. 원장은 append-only라 **정정은 삭제 대신 덮어쓰기**다. 더 최신 시각의 새 관측이어야 하고, `needs_review=false`여야 확정을 이긴다. `--dry-run`이 이길지 미리 보여준다.
+원장에 새 관측을 넣는 도구는 tracker 저장소(비공개)에 있다. 원장은 append-only라 **정정은 삭제 대신 덮어쓰기**다. 더 최신 시각의 새 관측이어야 하고, `needs_review=false`여야 확정을 이긴다.
 
 ## 5. `tiers`는 "구간 누진"만 뜻하지 않는다
 
@@ -66,7 +66,7 @@
 
 ## 6. `qualifier`는 금액 수식어 전용이다
 
-`{null, "최대", "최소"}`만 온다. `최대 4,000원`과 `최소 4,000원`은 정반대 의미이고, 그 구분이 `amount` 해석을 바꾼다(`tracker/docs/decisions/ADR-004`).
+`{null, "최대", "최소"}`만 온다. `최대 4,000원`과 `최소 4,000원`은 정반대 의미이고, 그 구분이 `amount` 해석을 바꾼다(tracker 저장소(비공개) ADR-004).
 
 조건 라벨을 여기 넣으면 그 구분이 영구히 사라진다. 짧은 상태나 조건 표시는 `badge`에 넣는다.
 

@@ -14,7 +14,7 @@ from pathlib import Path, PurePosixPath
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs" / "PROJECT-STRUCTURE.md"
 
-LAYERS = ("tracker", "api", "web")
+LAYERS = ("api", "web")
 
 TOP_LEVEL_EXECUTABLE_EXTENSIONS = {
     ".gradle",
@@ -51,9 +51,6 @@ IGNORED_PREFIXES = (
     PurePosixPath("api/build"),
     PurePosixPath("api/data"),
     PurePosixPath("api/docs"),
-    PurePosixPath("tracker/data"),
-    PurePosixPath("tracker/docs"),
-    PurePosixPath("tracker/ref"),
     PurePosixPath("web/dist"),
     PurePosixPath("web/docs"),
     PurePosixPath("web/node_modules"),
@@ -69,16 +66,6 @@ IGNORED_SUFFIXES = {
     ".pdf",
     ".png",
 }
-
-TRACKER_GROUPS = (
-    ("데이터 모델", ("schema.py", "store.py")),
-    ("원장 운용", ("ingest.py", "backfill_export.py", "check_deploy.py")),
-    ("내보내기", ("export_data.py",)),
-    ("일관성 검사", ("check_brands.py",)),
-    ("판독 계약", ("parse",)),
-    ("테스트 설정", ("conftest.py",)),
-    ("검증", ("tests",)),
-)
 
 API_RESPONSIBILITIES = {
     "offer": "원장 스냅샷 적재, 만료 판정, 오퍼 선택",
@@ -247,45 +234,6 @@ def markdown_list(items: list[str]) -> str:
     return "\n".join(f"- `{item}`" for item in items)
 
 
-def workflow_names(paths: set[PurePosixPath]) -> set[str]:
-    workflows = sorted(
-        path.name
-        for path in paths
-        if path.parts[:2] == (".github", "workflows")
-        and path.name.startswith("deploy-")
-    )
-    if not workflows:
-        raise ValueError("배포 워크플로를 찾지 못했습니다.")
-    return set(workflows)
-
-
-def tracker_rows(paths: set[PurePosixPath]) -> str:
-    rows = []
-    known = {member for _, members in TRACKER_GROUPS for member in members}
-    for label, members in TRACKER_GROUPS:
-        found = []
-        for member in members:
-            prefix = PurePosixPath("tracker") / member
-            if prefix in paths or any(prefix in candidate.parents for candidate in paths):
-                found.append(member)
-        if found:
-            rows.append(f"| {label} | {', '.join(f'`{item}`' for item in found)} |")
-    unknown = sorted(
-        {
-            path.parts[1]
-            for path in paths
-            if path.parts[0] == "tracker"
-            and len(path.parts) > 1
-            and not path.parts[1].startswith(".")
-            and path.parts[1] != "README.md"
-            and path.parts[1] not in known
-        }
-    )
-    if unknown:
-        rows.append(f"| 기타 현재 모듈 | {', '.join(f'`{item}`' for item in unknown)} |")
-    return "\n".join(rows)
-
-
 def web_rows(paths: set[PurePosixPath]) -> str:
     rows = []
     modules = sorted(
@@ -322,21 +270,6 @@ def render(paths: list[PurePosixPath], all_paths: list[PurePosixPath]) -> str:
 
     signature = structure_signature(signature_paths)
 
-    deploy_workflows = workflow_names(set(all_paths))
-    expected_deploy_workflows = {"deploy-api.yml", "deploy-data.yml"}
-    missing_deploy_workflows = expected_deploy_workflows - deploy_workflows
-    if missing_deploy_workflows:
-        raise ValueError(
-            "배포 그림이 참조하는 워크플로가 없습니다: "
-            + ", ".join(sorted(missing_deploy_workflows))
-        )
-    unexpected_deploy_workflows = deploy_workflows - expected_deploy_workflows
-    if unexpected_deploy_workflows:
-        raise ValueError(
-            "새 배포 워크플로를 배포 그림에 분류하세요: "
-            + ", ".join(sorted(unexpected_deploy_workflows))
-        )
-
     return f"""# 프로젝트 구조
 
 <!-- structure-inputs
@@ -369,13 +302,16 @@ flowchart LR
 
 ## 배포 경계
 
+수집기(비공개 저장소)는 서버로 직접 배포한다 - 이 모노레포를 거치지 않는다
+([`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)).
+
 ```mermaid
 flowchart TB
-    repo[이 모노레포] --> dataWorkflow[deploy-data.yml]
-    repo --> apiWorkflow[deploy-api.yml]
-    repo --> vercel[Vercel Git 배포]
-    dataWorkflow -->|export.json 교체 후 reload| oci[OCI, systemd, nginx]
-    apiWorkflow -->|Gradle build 후 재시작| oci
+    repo[이 모노레포] --> mirror[mirror-deploy-repos.yml]
+    mirror -->|web/| webRepo[nn98/delivery-discount-web]
+    mirror -->|api/| apiRepo[nn98/delivery-discount-api]
+    webRepo --> vercel[Vercel Git 배포]
+    apiRepo -->|self-hosted 러너, Gradle build 후 재시작| oci[OCI, systemd, nginx]
     oci --> apiOrigin["API 오리진 bebeggars.duckdns.org"]
     vercel --> site["웹 beggars-five.vercel.app"]
     site --> apiOrigin
@@ -385,19 +321,12 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | {counts['tracker']} |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | {counts['api']} |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | {counts['web']} |
 
-### Tracker
-
-| 묶음 | 현재 경로 |
-|---|---|
-{tracker_rows(path_set)}
-
-공개 모노레포에는 수집 실행 원본인 `capture/`, `tracker.py`, `dashboard.py`,
-`config/`, `ref/`가 의도적으로 없다. 이 경계는
-[`ADR-001`](decisions/ADR-001-monorepo-consolidation.md)에 고정돼 있다.
+공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
+경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
+고정돼 있다.
 
 ### API
 

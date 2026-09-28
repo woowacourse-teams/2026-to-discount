@@ -7,7 +7,7 @@
 | 위치 | 담는 것 |
 |---|---|
 | `docs/decisions/` (여기) | 오케스트레이션 층. 앱 하나로 끝나지 않는 결정 |
-| `tracker/docs/decisions/` | 판독, 캡처, 데이터 모델 (17건) |
+| tracker 저장소(비공개) `docs/decisions/` | 판독, 캡처, 데이터 모델 (17건) |
 | `api/docs/decisions/` | 응답 계약, 중복 정리, 만료, 배포 경로 (9건) |
 | `web/docs/decisions/` | 화면, 백엔드 주소, 계측 (2건) |
 

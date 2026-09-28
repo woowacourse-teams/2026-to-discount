@@ -125,34 +125,6 @@ api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
 api/src/test/resources/contracts/certainty-cases.json
-tracker/.gitattributes
-tracker/.gitignore
-tracker/README.md
-tracker/backfill_export.py
-tracker/check_brands.py
-tracker/check_deploy.py
-tracker/config.py
-tracker/conftest.py
-tracker/contract_numbers.py
-tracker/export_data.py
-tracker/ingest.py
-tracker/parse/CONTRACT.md
-tracker/record_sweep.py
-tracker/requirements.txt
-tracker/schema.py
-tracker/store.py
-tracker/tests/test_check_brands.py
-tracker/tests/test_check_deploy.py
-tracker/tests/test_docs_are_tracked.py
-tracker/tests/test_evidence_links.py
-tracker/tests/test_export_data.py
-tracker/tests/test_ingest.py
-tracker/tests/test_ledger_consistency.py
-tracker/tests/test_record_sweep.py
-tracker/tests/test_schema.py
-tracker/tests/test_store.py
-tracker/tests/test_weekly_check.py
-tracker/weekly_check.py
 web/.env.example
 web/.env.production
 web/.gitignore
@@ -258,13 +230,16 @@ flowchart LR
 
 ## 배포 경계
 
+수집기(비공개 저장소)는 서버로 직접 배포한다 - 이 모노레포를 거치지 않는다
+([`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)).
+
 ```mermaid
 flowchart TB
-    repo[이 모노레포] --> dataWorkflow[deploy-data.yml]
-    repo --> apiWorkflow[deploy-api.yml]
-    repo --> vercel[Vercel Git 배포]
-    dataWorkflow -->|export.json 교체 후 reload| oci[OCI, systemd, nginx]
-    apiWorkflow -->|Gradle build 후 재시작| oci
+    repo[이 모노레포] --> mirror[mirror-deploy-repos.yml]
+    mirror -->|web/| webRepo[nn98/delivery-discount-web]
+    mirror -->|api/| apiRepo[nn98/delivery-discount-api]
+    webRepo --> vercel[Vercel Git 배포]
+    apiRepo -->|self-hosted 러너, Gradle build 후 재시작| oci[OCI, systemd, nginx]
     oci --> apiOrigin["API 오리진 bebeggars.duckdns.org"]
     vercel --> site["웹 beggars-five.vercel.app"]
     site --> apiOrigin
@@ -274,26 +249,12 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `tracker/` | 판독 계약, 데이터 모델, 원장, 배포 스냅샷 | 28 |
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 124 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 77 |
 
-### Tracker
-
-| 묶음 | 현재 경로 |
-|---|---|
-| 데이터 모델 | `schema.py`, `store.py` |
-| 원장 운용 | `ingest.py`, `backfill_export.py`, `check_deploy.py` |
-| 내보내기 | `export_data.py` |
-| 일관성 검사 | `check_brands.py` |
-| 판독 계약 | `parse` |
-| 테스트 설정 | `conftest.py` |
-| 검증 | `tests` |
-| 기타 현재 모듈 | `config.py`, `contract_numbers.py`, `record_sweep.py`, `requirements.txt`, `weekly_check.py` |
-
-공개 모노레포에는 수집 실행 원본인 `capture/`, `tracker.py`, `dashboard.py`,
-`config/`, `ref/`가 의도적으로 없다. 이 경계는
-[`ADR-001`](decisions/ADR-001-monorepo-consolidation.md)에 고정돼 있다.
+공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
+경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
+고정돼 있다.
 
 ### API
 

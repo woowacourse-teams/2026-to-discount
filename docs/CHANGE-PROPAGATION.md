@@ -179,7 +179,7 @@
 
 - **순서**: API가 먼저, 웹이 나중. 반대로 하면 새 웹이 옛 응답을 읽어 정렬이 풀리고 배너 표식이 사라진다(2026-09-24 실측).
 - **tracker와 mono는 별도 저장소다.** 둘 다 푸시해야 한다.
-- **tracker `store.py`는 `mono/tracker/store.py`에 사본이 있다**(ADR-018). 테스트가 대조한다.
+- **mono는 tracker의 코드를 싣지 않는다**(ADR-002). `mono/tracker/`에는 README만 있다.
 - **웹 변경은 프리뷰 먼저**: 브랜치 → 미러 `preview/<이름>` → Vercel → 승인 → main. 360px로 찍어 본다.
 
 ## 9. 새 파일을 더할 때

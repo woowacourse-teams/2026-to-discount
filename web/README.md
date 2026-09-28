@@ -9,8 +9,8 @@
 
 **개인이 만든 비영리 정보 제공 페이지다.** 광고나 제휴 수수료를 받지 않고,
 어느 배달앱과도 제휴 관계가 없다. 이 성격은 화면 하단 `SiteFooter`에
-그대로 밝혀 두었다. 문구를 지우지 말 것. 근거는 tracker 레포의
-[ADR-015](../delivery-discount-tracker/docs/decisions/ADR-015-open-access-only-and-disclosure.md).
+그대로 밝혀 두었다. 문구를 지우지 말 것. 근거는 tracker 저장소(비공개)
+ADR-015.
 
 데이터는 각 앱에서 **누구나 볼 수 있는 화면을 사람이 직접 보고 옮겨 적은
 것**이다. 자동 크롤링과 기술적 접근 제한 우회는 하지 않는다.

@@ -27,7 +27,7 @@ tracker(작업 사본) --커밋--> tracker origin
 
 | 것 | 진실 | 파생본 | 고치는 방법 |
 |---|---|---|---|
-| 관측(오퍼의 원천) | tracker `data/log.jsonl`. 덧붙이기만 한다 | mono `tracker/data/export.json`, 서버, `/api/brands` | 예약 실행 8단계 reflect_daily --apply가 원장에서 export를 만들고 deploy_export.py로 서버에 바로 올린다 |
+| 관측(오퍼의 원천) | tracker `data/log.jsonl`. 덧붙이기만 한다 | 서버, `/api/brands` (mono에는 파생본을 두지 않는다, ADR-002) | 예약 실행 8단계 reflect_daily --apply가 원장에서 export를 만들고 deploy_export.py로 서버에 바로 올린다 |
 | 브랜드 사전과 링크 | mono `api/src/main/resources/brands.yml` | 서버 classpath | 커밋하고 API를 배포한다. 배민 단축링크는 그대로 두고, 풀린 주소는 tracker `data/resolved_links.json`에 캐시한다(tracker ADR-031) |
 | 당일 배너 | 서버 `data/banners.yml`만 | `/api/banners` | 예약 실행이 제안을 만들고 콘솔(beggars-ops) 배너 탭에서 사람이 승인하면 반영된다. 파일을 손으로 고칠 때는 머리말을 먼저 읽는다 |
 | 기프티콘 | 서버 `data/gifticons.yml`만 | `/api/gifticons` | 배너와 같다 |

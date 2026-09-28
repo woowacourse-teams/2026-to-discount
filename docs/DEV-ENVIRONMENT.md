@@ -53,10 +53,10 @@
 
 방문 이벤트 관측과 판정 파이프라인(원장 SSOT, PostHog 보조, 개발 트래픽 판정)은 [ANALYTICS-CAPABILITY.md](ANALYTICS-CAPABILITY.md)에서 다룬다. 여기서는 서버 에러만 본다.
 
-**선택.** 위 `GlobalExceptionHandler`가 유일한 장애 대응 지점이다. 응답 본문에는 `{"error": "internal_error"}`만 내려가고 예외 메시지는 안 담는다. 내부 경로와 파일명이 새어나갈 이유가 없어서다. 데이터 배포(`deploy-data.yml`) 쪽에는 별도 가드가 있다. 두 경우에 배포를 중단시킨다.
+**선택.** 위 `GlobalExceptionHandler`가 유일한 장애 대응 지점이다. 응답 본문에는 `{"error": "internal_error"}`만 내려가고 예외 메시지는 안 담는다. 내부 경로와 파일명이 새어나갈 이유가 없어서다. 데이터 배포(수집기가 서버로 직접 올린다, tracker 저장소(비공개)) 쪽에는 별도 가드가 있다. 두 경우에 배포를 중단시킨다.
 
-- 커밋된 `export.json`이 서버 실물보다 오래된 경우(`capturedAt` 최신값 비교)
-- 캡처 시각은 같은데 상세 필드(tiers, badge)만 빈 경우(`tracker/check_deploy.py`)
+- 커밋된 export가 서버 실물보다 오래된 경우(`capturedAt` 최신값 비교)
+- 캡처 시각은 같은데 상세 필드(tiers, badge)만 빈 경우(tracker 저장소(비공개)의 배포 가드)
 
 둘 다 실측 사고에서 나온 가드다. 2026-08-05에 서버 138건 vs 커밋 135건으로 데이터 유실 직전까지 갔고, 청년피자 땡겨요의 tiers와 badge가 소실됐다.
 
