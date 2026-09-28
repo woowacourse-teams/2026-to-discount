@@ -3,6 +3,7 @@
 - 날짜: 2026-08-06
 - 상태: 확정
 - 대체: `tracker/docs/decisions/ADR-012-three-repo-split-and-deployment.md`
+- 일부 대체: ADR-002 (트래커는 싣지 않는다)
 
 ## 전제
 

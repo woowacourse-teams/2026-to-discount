@@ -18,6 +18,7 @@
 | 번호 | 제목 | 상태 |
 |---|---|---|
 | [ADR-001](ADR-001-monorepo-consolidation.md) | 3레포를 한 저장소로, 트래커는 일부만 | 확정 |
+| [ADR-002](ADR-002-mono-is-the-public-source.md) | mono는 공개 정본이자 단일 진입점이다 | 확정 |
 
 ## 상태 표기
 
