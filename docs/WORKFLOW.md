@@ -47,7 +47,7 @@ tracker(작업 사본) --커밋--> tracker origin
 
 1. `mono/api`를 고친다. `./gradlew test`를 돌리고 커밋한 뒤 mono에서 `git push origin main`.
 2. 미러 저장소로 복사되면 OCI runner가 빌드하고 재시작한다. `GET /api/brands`와 `/api/banners`로 확인한다.
-3. 필드를 늘릴 때는 API를 먼저 배포한다([ORCHESTRATION.md](ORCHESTRATION.md) 2절). export.json에 새 필드가 먼저 들어가면 배포 검증 `check_deploy.py`가 막는다.
+3. 필드를 늘릴 때는 API를 먼저 배포한다([ORCHESTRATION.md](ORCHESTRATION.md) 2절). export.json에 새 필드가 먼저 들어가면 배포 검증 `check_deploy.py`(tracker 저장소 전용 스크립트)가 막는다.
 
 ### 3-3. 웹 (mono/web): 프리뷰가 기본값
 
@@ -64,7 +64,7 @@ CORS: 프리뷰 도메인 패턴은 `api/.../WebConfig.java`에 이미 열려 �
 자동이다. 예약 실행 8단계가 원장에서 export를 만들고 scripts/deploy_export.py가 서버 파일을 교체하고 reload한다. mono의 tracker/data/export.json은 쓰지 않는다(2026-09-01부터). 사람이 끼어드는 곳은 둘이다.
 
 - 실행이 FAIL로 끝났을 때. 로그를 보고 실패한 단계만 단독으로 다시 돌린 뒤 `reflect_daily --apply --pass <단계>`로 반영한다.
-- `check_deploy.py`가 배포를 막았을 때. 무엇이 사라졌는지 읽고 예외를 코드에 적는다. 검증을 끄지 않는다.
+- `check_deploy.py`(tracker 저장소 전용 스크립트)가 배포를 막았을 때. 무엇이 사라졌는지 읽고 예외를 코드에 적는다. 검증을 끄지 않는다.
 
 ### 3-5. 설계에서 계획, 결정으로
 
@@ -83,7 +83,7 @@ CORS: 프리뷰 도메인 패턴은 `api/.../WebConfig.java`에 이미 열려 �
 - 미러 저장소 `main`에 직접 push하지 않는다.
 - 웹 변경을 프리뷰 없이 main에 올리지 않는다.
 - 예약 실행 시각(00:01, 08:30, 15:55, 각 25분에서 130분)에 폰을 만지지 않는다. 폰 잠금은 사람이 푼다. 자동화가 패턴을 넣지 않는다.
-- 로그인이 필요한 화면과 자동 접근을 거부하는 곳은 수집하지 않는다([ADR-015](../tracker/docs/decisions/ADR-015-open-access-only-and-disclosure.md)).
+- 로그인이 필요한 화면과 자동 접근을 거부하는 곳은 수집하지 않는다(tracker 저장소(비공개) ADR-015-open-access-only-and-disclosure 참고).
 - 비밀(서버 키, 분석 토큰, 슬랙 토큰)은 저장소 밖에 둔다. 설문 자유 응답과 User-Agent 원문은 저장하지 않는다.
 
 ## 5. 확인 명령
