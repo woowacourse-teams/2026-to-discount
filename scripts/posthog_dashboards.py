@@ -45,7 +45,7 @@ import urllib.request
 HOST = os.environ.get("POSTHOG_HOST", "https://us.posthog.com")
 PROJECT = os.environ.get("POSTHOG_PROJECT_ID", "548055")
 KEY_VAR = "POSTHOG_PERSONAL_API_KEY"
-KEY_FILE = os.environ.get("POSTHOG_KEY_FILE", os.path.expanduser("~/.posthog_key"))
+KEY_FILE = os.environ.get("POSTHOG_KEY_FILE", os.path.expanduser("<서버의 비밀 파일>"))
 
 DASHBOARD = "서비스 지표 — 재사용·실질 사용자·성공 신호"
 DASHBOARD_NOTE = (

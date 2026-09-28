@@ -30,7 +30,7 @@ OCI 인스턴스, systemd(`delivery-discount-api.service`) + nginx(TLS
 데이터 갱신(재배포 불필요):
 
 ```bash
-scp data/export.json ubuntu@bebeggars.duckdns.org:/home/ubuntu/delivery-discount-api/data/export.json
+scp data/export.json <서버>:<서버>/delivery-discount-api/data/export.json
 curl -X POST https://bebeggars.duckdns.org/api/reload
 ```
 
@@ -134,7 +134,7 @@ curl -X POST http://localhost:8080/api/events \
 
 기본값 `data/events.jsonl`(원장 export.json과 같은 자리 규칙). 배포
 환경은 systemd 유닛의 `DISCOUNT_EVENT_LOG_PATH`로 지정돼 있다
-(`/home/ubuntu/delivery-discount-api/data/events.jsonl`). 로컬에서
+(`<서버>/delivery-discount-api/data/events.jsonl`). 로컬에서
 경로를 바꾸려면:
 
 ```bash
@@ -158,7 +158,7 @@ DISCOUNT_POSTHOG_ENABLED=false
 DISCOUNT_POSTHOG_ENABLED=true
 POSTHOG_PROJECT_TOKEN=<project-token>
 POSTHOG_HOST=https://us.i.posthog.com
-DISCOUNT_POSTHOG_OUTBOX_PATH=/home/ubuntu/delivery-discount-api/data/posthog-outbox
+DISCOUNT_POSTHOG_OUTBOX_PATH=<서버>/delivery-discount-api/data/posthog-outbox
 ```
 
 원본 기록 후 이벤트별 pending 파일을 만들고 즉시 비동기 전송한다. 실패하면
@@ -231,13 +231,13 @@ brands:
 ## 당일 행사 배너 추가와 수정
 
 운영 서버는 jar 밖 파일을 문다(`DISCOUNT_BANNERS_PATH`, 기본
-`/home/ubuntu/delivery-discount-api/data/banners.yml`). 그 파일을 고치고
+`<서버>/delivery-discount-api/data/banners.yml`). 그 파일을 고치고
 `POST /api/reload`. 프론트 재배포도 API 재배포도 필요 없다.
 
 > **고친 뒤 파싱부터 확인한다.**
 >
 > ```bash
-> ssh <서버> "python3 -c \"import yaml; d=yaml.safe_load(open('/home/ubuntu/delivery-discount-api/data/banners.yml')); print('OK', len(d['banners']), '건')\""
+> ssh <서버> "python3 -c \"import yaml; d=yaml.safe_load(open('<서버>/delivery-discount-api/data/banners.yml')); print('OK', len(d['banners']), '건')\""
 > ```
 >
 > `reload`는 파싱에 실패해도 서비스를 죽이지 않고 이전 목록을 유지한다

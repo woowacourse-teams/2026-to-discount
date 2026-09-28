@@ -15,20 +15,20 @@
 
 `discount.export-path`를 서버에서는 `file:` 절대경로로 오버라이드한다. 코드 변경은 없다. Spring의 relaxed binding으로 환경변수 `DISCOUNT_EXPORT_PATH`가 `discount.export-path`에 그대로 매핑된다.
 
-systemd 유닛(`/etc/systemd/system/delivery-discount-api.service`)에 추가:
+systemd 유닛(`<서버>/systemd/delivery-discount-api.service`)에 추가:
 
 ```
-Environment="DISCOUNT_EXPORT_PATH=file:/home/ubuntu/delivery-discount-api/data/export.json"
+Environment="DISCOUNT_EXPORT_PATH=file:<서버>/delivery-discount-api/data/export.json"
 ```
 
-데이터는 jar와 git 트리 밖의 `/home/ubuntu/delivery-discount-api/data/`에 둔다.
+데이터는 jar와 git 트리 밖의 `<서버>/delivery-discount-api/data/`에 둔다.
 
 ### 데이터 갱신 절차 (서버)
 
 재빌드, 재배포 없이:
 
 ```bash
-scp export.json ubuntu@bebeggars.duckdns.org:/home/ubuntu/delivery-discount-api/data/export.json
+scp export.json <서버>:<서버>/delivery-discount-api/data/export.json
 curl -X POST https://bebeggars.duckdns.org/api/reload
 ```
 

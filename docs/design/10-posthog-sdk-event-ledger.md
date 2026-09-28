@@ -283,7 +283,7 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 `send_instantly`, `transport: 'sendBeacon'`, `timestamp`, `uuid`를 지원함을 확인했다.
 
 운영 반영은 저장소 밖 작업이다. 실제 systemd 환경 파일은 사고 기록상
-`/etc/delivery-discount-api.env`이며, 변경, 서비스 재시작, Vercel 배포에는 별도 운영
+`<서버>/delivery-discount-api.env`이며, 변경, 서비스 재시작, Vercel 배포에는 별도 운영
 권한과 명시적 실행 승인이 필요하다. 이는 코드 구현의 선행 조건이 아니라 배포 단계의
 승인 조건으로 둔다.
 
@@ -384,7 +384,7 @@ API PostHog outbox: DISCOUNT_POSTHOG_ENABLED=false
 - 변경:
   1. PostHog의 client IP 폐기 설정과 Vercel Production의 `VITE_POSTHOG_KEY`,
      `VITE_POSTHOG_HOST`를 먼저 확인한다.
-  2. `/etc/delivery-discount-api.env`에 `DISCOUNT_POSTHOG_ENABLED=false`를 적용하고
+  2. `<서버>/delivery-discount-api.env`에 `DISCOUNT_POSTHOG_ENABLED=false`를 적용하고
      API를 재시작한다. `/api/brands` 200과 `/api/events` JSONL 기록을 확인한다.
   3. outbox 비활성 상태에서 새 웹 빌드를 배포한다. 이 순서는 짧은 PostHog 공백을
      허용하되 이중 집계를 만들지 않는다.

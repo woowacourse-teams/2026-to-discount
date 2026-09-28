@@ -77,7 +77,7 @@ public class BannerCatalog {
     /**
      * 둘 이상이 나눠 쓴 id. {@link #reload()}가 채운다.
      *
-     * <p>콘솔로 올릴 때는 {@code ops_apply.duplicate_id_problem}이 막지만, 파일을
+     * <p>콘솔로 올릴 때는 beggars-ops 저장소 {@code ops_apply.duplicate_id_problem}이 막지만, 파일을
      * 손으로 고치면 그 검사를 지나간다. id가 겹치면 "이 id의 배너"가 파일 순서로
      * 정해진다 - API는 맵을 id로 찾고 콘솔도 id로 찾는다. 읽을 때 한 번 더 본다.
      */

@@ -35,7 +35,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void unhandledExceptionBecomes500WithoutLeakingTheMessage() throws Exception {
-        given(service.compare()).willThrow(new IllegalStateException("export.json 읽기 실패: /home/ubuntu/..."));
+        given(service.compare()).willThrow(new IllegalStateException("export.json 읽기 실패: <서버>/..."));
 
         mvc.perform(get("/api/brands"))
            .andExpect(status().isInternalServerError())

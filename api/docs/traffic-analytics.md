@@ -28,7 +28,7 @@
 한 줄에 이벤트 하나, JSON Lines(`.jsonl`)로 append-only 기록한다(`EventLog`). 경로는 `discount.event-log-path` 프로퍼티로 설정한다.
 
 - 로컬 기본값: `data/events.jsonl` (`application.yml`에 명시 안 하면 이 기본값)
-- 운영(systemd, `/etc/systemd/system/delivery-discount-api.service`): `DISCOUNT_EVENT_LOG_PATH=/home/ubuntu/delivery-discount-api/data/events.jsonl` 환경변수로 오버라이드. 같은 서비스 파일에서 `export.json`도 `DISCOUNT_EXPORT_PATH=file:.../data/export.json`로 이 저장소 루트의 `data/` 디렉터리를 가리키게 되어 있다. 그래서 `data/`가 이 저장소 워킹 디렉터리에 실제 운영 데이터로 존재한다(git에는 커밋하지 않음, `.gitignore` 참고).
+- 운영(systemd, `<서버>/systemd/delivery-discount-api.service`): `DISCOUNT_EVENT_LOG_PATH=<서버>/delivery-discount-api/data/events.jsonl` 환경변수로 오버라이드. 같은 서비스 파일에서 `export.json`도 `DISCOUNT_EXPORT_PATH=file:.../data/export.json`로 이 저장소 루트의 `data/` 디렉터리를 가리키게 되어 있다. 그래서 `data/`가 이 저장소 워킹 디렉터리에 실제 운영 데이터로 존재한다(git에는 커밋하지 않음, `.gitignore` 참고).
 
 ### `VisitEvent` 스키마 (한 줄 = 한 레코드)
 
@@ -126,12 +126,12 @@ pending 파일은 임시 파일 작성 후 원자적으로 이동한다. worker�
 
 ### 지금 운영 설정 (2026-09-28 서버에서 확인)
 
-릴레이는 **켜져 있다.** `/etc/delivery-discount-api.env`에 이렇게 들어 있다.
+릴레이는 **켜져 있다.** `<서버>/delivery-discount-api.env`에 이렇게 들어 있다.
 
 ```bash
 DISCOUNT_POSTHOG_ENABLED=true
 POSTHOG_PROJECT_TOKEN=<서버에만>
-DISCOUNT_POSTHOG_OUTBOX_PATH=/home/ubuntu/delivery-discount-api/data/posthog-outbox
+DISCOUNT_POSTHOG_OUTBOX_PATH=<서버>/delivery-discount-api/data/posthog-outbox
 ```
 
 > 예전 이 자리에 `DISCOUNT_POSTHOG_ENABLED=false`가 적혀 있었다. 웹 SDK 직송을 배포하기

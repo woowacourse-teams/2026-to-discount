@@ -11,7 +11,7 @@ package com.discounttracker.offer;
  * {@link #NONE}은 봤는데 제한이 없더라는 관측이다. 쿠폰함엔 표시가 있고
  * (쿠팡 [와우회원전용], 배민 배민클럽 배지) 허브 카드·브랜드관 목록엔 없다 —
  * 표시 없는 화면이 "none"을 적으면 쿠폰함 관측을 덮는다
- * ({@code tracker/schema.py}의 {@code ALLOWED_MEMBERSHIP} 주석 참고).
+ * (예전 tracker `schema.py`의 {@code ALLOWED_MEMBERSHIP} 주석에 있던 근거이며, 그 파일은 지워졌다).
  * JSON으로는 둘 다 "none"으로 나간다 — 화면은 배지를 안 그리면 그만이고,
  * 구분이 필요한 곳은 아직 없다.
  */

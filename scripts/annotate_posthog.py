@@ -55,7 +55,7 @@ PROJECT = os.environ.get("POSTHOG_PROJECT_ID", "548055")
 KEY_VAR = "POSTHOG_PERSONAL_API_KEY"
 # 환경변수가 없을 때 볼 자리. 저장소 밖이라 실수로 커밋될 수 없다.
 KEY_FILE = os.environ.get("POSTHOG_KEY_FILE",
-                          os.path.expanduser("~/.posthog_key"))
+                          os.path.expanduser("<서버의 비밀 파일>"))
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 DOC = os.path.join(REPO, "docs", "metrics", "ANNOTATIONS.md")
 

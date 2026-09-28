@@ -4,7 +4,7 @@
 #
 # 실제 데이터를 보려면 DISCOUNT_EXPORT_PATH로 실파일을 가리켜야 한다.
 # 서버(systemd)가 그렇게 띄운다:
-#   DISCOUNT_EXPORT_PATH=file:/home/ubuntu/delivery-discount-api/data/export.json
+#   DISCOUNT_EXPORT_PATH=file:<서버>/delivery-discount-api/data/export.json
 # 로컬에서 export.json을 고쳐도 안 보이던 건 이 기본값 때문이었다
 # (2026-08-03 실측). ADR-001 참고.
 #

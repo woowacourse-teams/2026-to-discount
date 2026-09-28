@@ -201,7 +201,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 ### 자체 원장: 단일 진실
 
 ```
-서버  /home/ubuntu/delivery-discount-api/data/events.jsonl
+서버  <서버>/delivery-discount-api/data/events.jsonl
 형식  한 줄 = 이벤트 하나 (JSONL)
 ```
 
@@ -210,7 +210,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 python scripts/experiments.py segments
 
 # 직접 볼 때
-ssh <서버> "jq -c 'select(.dev != true)' /home/ubuntu/delivery-discount-api/data/events.jsonl"
+ssh <서버> "jq -c 'select(.dev != true)' <서버>/delivery-discount-api/data/events.jsonl"
 ```
 
 ### PostHog: 탐색용
@@ -301,13 +301,13 @@ PostHog에서는 `?dev=1` 트래픽이 애초에 안 넘어온다. 표시 없는
 nginx 로그는 14일 뒤 사라지므로(`logrotate rotate 14`) 매일 새벽 집계만 뽑아 원장에 남긴다.
 
 ```
-서버      /home/ubuntu/coverage_snapshot.sh   (크론 매일 01:05)
+서버      <서버>/coverage_snapshot.sh   (크론 매일 01:05)
 원장      data/coverage.jsonl
 소스      scripts/coverage_snapshot.sh
 ```
 
 ```bash
-ssh <서버> "cat /home/ubuntu/delivery-discount-api/data/coverage.jsonl"
+ssh <서버> "cat <서버>/delivery-discount-api/data/coverage.jsonl"
 ```
 
 **자릿수만 보는 값이다.** IP 기준이라 같은 와이파이는 뭉치고, 모바일은 흩어지고, 봇도 섞인다. "우리 통계가 실제의 대략 90%를 보고 있다" 정도로 읽는다.

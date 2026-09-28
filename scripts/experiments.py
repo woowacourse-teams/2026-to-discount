@@ -35,10 +35,10 @@ import os
 import subprocess
 import sys
 
-REMOTE_HOST = os.environ.get("EVENTS_HOST", "ubuntu@bebeggars.duckdns.org")
-REMOTE_KEY = os.environ.get("EVENTS_KEY", os.path.expanduser("~/key_turbom_v0.key"))
+REMOTE_HOST = os.environ.get("EVENTS_HOST", "<서버>")
+REMOTE_KEY = os.environ.get("EVENTS_KEY", os.path.expanduser("<키 파일>"))
 REMOTE_PATH = os.environ.get(
-    "EVENTS_PATH", "/home/ubuntu/delivery-discount-api/data/events.jsonl")
+    "EVENTS_PATH", "<서버>/delivery-discount-api/data/events.jsonl")
 
 # 전환 = 배달앱으로 나가는 모든 길. 오퍼 칩과 배너 둘 다다.
 #

@@ -36,7 +36,7 @@ append-only로 쌓는다 — 원장과 같은 방식이다. API는 1년치만 �
 ## 인증
 
 Personal Access Token을 `VERCEL_TOKEN` 환경변수나 `~/.vercel_token` 파일에
-둔다. 저장소 밖이라 실수로 커밋될 수 없다 — `~/.posthog_key`와 같은 방식이다.
+둔다. 저장소 밖이라 실수로 커밋될 수 없다 — `<서버의 비밀 파일>`와 같은 방식이다.
 팀은 `VERCEL_TEAM_ID`(team_... 또는 slug).
 """
 import argparse

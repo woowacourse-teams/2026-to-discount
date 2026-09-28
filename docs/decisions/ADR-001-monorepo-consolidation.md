@@ -64,7 +64,7 @@
 
 배포 워크플로는 옮겼고, 2026-08-08부터 이 저장소에서 자동으로 돈다. 하위 디렉터리에 있으면 GitHub이 읽지 않으므로(루트 `.github/`만 인식) 둘 다 루트로 올리고 경로를 모노레포 기준으로 고쳤다. `deploy-api.yml`(working-directory: `api`), 데이터 배포 워크플로(export 파일 경로는 트래커 쪽). 데이터 배포 워크플로는 이후 ADR-002로 걷어냈다 - 수집기가 서버로 직접 올린다.
 
-self-hosted 러너 `turbom-v0-2026-to-discount`를 이 저장소에 등록하고, `push: branches: [main] paths: [...]` 트리거를 켰다. 원본 두 저장소(`nn98/delivery-discount-api`, `nn98/delivery-discount-tracker`)의 push 트리거는 껐다. `workflow_dispatch` 수동 폴백만 남기고, 러너 서비스 자체는 그 폴백을 받을 수 있게 살려뒀다. 등록 직후 실 push로 data, api 두 워크플로가 순서대로 자동 실행돼 서비스 재시작과 헬스체크 200까지 확인했다.
+self-hosted 러너 `<러너>`를 이 저장소에 등록하고, `push: branches: [main] paths: [...]` 트리거를 켰다. 원본 두 저장소(`nn98/delivery-discount-api`, `nn98/delivery-discount-tracker`)의 push 트리거는 껐다. `workflow_dispatch` 수동 폴백만 남기고 이후 러너 서비스 자체를 해제했다(tracker f0b4552). 등록 직후 실 push로 data, api 두 워크플로가 순서대로 자동 실행돼 서비스 재시작과 헬스체크 200까지 확인했다.
 
 운영 배포는 이제 이 저장소에서만 돈다.
 

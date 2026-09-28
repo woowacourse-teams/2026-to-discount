@@ -34,7 +34,7 @@
 | 트래커 | `C:\Users\Jaewun\_dev\delivery-discount-tracker` | `python -m pytest tests/<파일>.py -q` |
 | ops | `C:\Users\Jaewun\_dev\beggars-ops` | `python tools/test_convert.py`, `node --test tools/<파일>.mjs` |
 
-살아 있는 `banners.yml`은 서버에 있다(`/home/ubuntu/delivery-discount-api/data/banners.yml`). mono 저장소의 `api/src/main/resources/banners.yml`은 주석과 `banners: []`뿐인 빈 파일이라 테스트 기본값으로만 쓴다.
+살아 있는 `banners.yml`은 서버에 있다(`<서버>/delivery-discount-api/data/banners.yml`). mono 저장소의 `api/src/main/resources/banners.yml`은 주석과 `banners: []`뿐인 빈 파일이라 테스트 기본값으로만 쓴다.
 
 ---
 
@@ -1843,7 +1843,7 @@ git commit -m "feat(api): 배너 표식을 칸에서 만들고 자사 행사도 
 - [ ] **Step 1: 서버에서 지금 파일을 가져온다**
 
 ```bash
-scp ubuntu@bebeggars.duckdns.org:/home/ubuntu/delivery-discount-api/data/banners.yml \
+scp <서버>:<서버>/delivery-discount-api/data/banners.yml \
     "C:/Users/Jaewun/_dev/beggars-ops/archive/banners-2026-09-22.yml"
 ```
 
@@ -2306,16 +2306,16 @@ if __name__ == "__main__":
 - [ ] **Step 2: 서버에서 비교를 돌린다**
 
 ```bash
-ssh ubuntu@bebeggars.duckdns.org \
-  "cd /home/ubuntu/beggars-ops && python3 tools/compare_banner_text.py --file /home/ubuntu/delivery-discount-api/data/banners.yml"
+ssh <서버> \
+  "cd <서버>/beggars-ops && python3 tools/compare_banner_text.py --file <서버>/delivery-discount-api/data/banners.yml"
 ```
 Expected: 다른 칸의 목록이 찍힌다. 한 건씩 읽고 "왜 달라졌는지"가 설명되는지 본다. 설명이 안 되는 차이가 하나라도 있으면 여기서 멈추고 `convert_banners.py`를 고친 뒤 다시 돌린다.
 
 - [ ] **Step 3: 적용한다**
 
 ```bash
-ssh ubuntu@bebeggars.duckdns.org \
-  "cd /home/ubuntu/beggars-ops && python3 tools/convert_banners.py --file /home/ubuntu/delivery-discount-api/data/banners.yml --apply"
+ssh <서버> \
+  "cd <서버>/beggars-ops && python3 tools/convert_banners.py --file <서버>/delivery-discount-api/data/banners.yml --apply"
 ```
 
 - [ ] **Step 4: 읽혔는지 확인한다**
@@ -2328,15 +2328,15 @@ Expected: `"bannersOk": true`. 배너 건수가 2단계에서 보관해 둔 수�
 `bannersOk`가 false면 즉시 되돌린다. 응답의 배너 건수는 새로 읽은 값이 아니라 이전 목록 그대로라서, 건수만 보고 성공으로 읽으면 안 된다.
 
 ```bash
-ssh ubuntu@bebeggars.duckdns.org \
-  "cd /home/ubuntu/delivery-discount-api/data && cp \$(ls -t banners.yml.bak-*-convert | head -1) banners.yml"
+ssh <서버> \
+  "cd <서버>/delivery-discount-api/data && cp \$(ls -t banners.yml.bak-*-convert | head -1) banners.yml"
 curl -s -X POST http://bebeggars.duckdns.org/api/reload
 ```
 
 - [ ] **Step 5: 적용 후 파일도 보관한다**
 
 ```bash
-scp ubuntu@bebeggars.duckdns.org:/home/ubuntu/delivery-discount-api/data/banners.yml \
+scp <서버>:<서버>/delivery-discount-api/data/banners.yml \
     "C:/Users/Jaewun/_dev/beggars-ops/archive/banners-2026-09-22-converted.yml"
 cd "C:/Users/Jaewun/_dev/beggars-ops"
 git add tools/compare_banner_text.py archive/
@@ -3262,8 +3262,8 @@ git branch -D _split_banner_model
 - [ ] **Step 1: 옛 칸이 파일에 안 남았는지 확인한다**
 
 ```bash
-ssh ubuntu@bebeggars.duckdns.org \
-  "grep -nE '^\\s+(startsOn|endsOn|period|extra|items|amountRange|limit|usage):' /home/ubuntu/delivery-discount-api/data/banners.yml || echo '옛 칸 없음'"
+ssh <서버> \
+  "grep -nE '^\\s+(startsOn|endsOn|period|extra|items|amountRange|limit|usage):' <서버>/delivery-discount-api/data/banners.yml || echo '옛 칸 없음'"
 ```
 Expected: `옛 칸 없음`. 하나라도 나오면 여기서 멈추고 그 배너를 콘솔에서 고친다.
 

@@ -1,6 +1,6 @@
 # 32. 운영 관측을 한 화면과 한 알림 채널로 모은다 (2026-09-17)
 
-결정: 수집 PC와 서버의 상태를 서버의 정적 파일로 모아 대시보드 한 장으로 보여 주고, 슬랙에는 실패와 완료 알림만 보낸다. 1단계(수집 현황과 슬랙 알림)와 2단계(서버 상태 탭, 배포 실패 알림) 모두 2026-09-17에 구현을 마쳤다. 대시보드 주소는 `https://bebeggars.duckdns.org/ops/`이고 계정과 비밀번호는 수집 PC의 `~/.ops_auth`에 있다.
+결정: 수집 PC와 서버의 상태를 서버의 정적 파일로 모아 대시보드 한 장으로 보여 주고, 슬랙에는 실패와 완료 알림만 보낸다. 1단계(수집 현황과 슬랙 알림)와 2단계(서버 상태 탭, 배포 실패 알림) 모두 2026-09-17에 구현을 마쳤다. 대시보드 주소는 `https://bebeggars.duckdns.org/ops/`이고 계정과 비밀번호는 수집 PC의 `<서버의 비밀 파일>`에 있다.
 
 계획 문서는 tracker 저장소에 있다.
 - 1단계: `docs/archive/superpowers/plans/2026-09-17-ops-status-and-alerts.md`
@@ -44,8 +44,8 @@
 
 ```
 수집 PC  run_routine.py ─이벤트─▶ capture/ops.py ─▶ logs/state.json
-                                     ├─ SlackSink   (~/.slack_ops, alert 모드)
-                                     └─ UploadSink  (scp) ─▶ 서버 /var/www/ops/{state.json, steps/, runs/, logs/}
+                                     ├─ SlackSink   (<서버의 비밀 파일>, alert 모드)
+                                     └─ UploadSink  (scp) ─▶ 서버 <서버>/ops/{state.json, steps/, runs/, logs/}
 팀원     https://<API 호스트>/ops/  (Basic Auth)  대시보드 index.html, 5초 폴링
 개발자   python scripts/status.py [--remote] [--history] [--run <실행 id>] [--log <단계>]
 ```
@@ -71,7 +71,7 @@
 
 ## 8. 실행 (2단계, 2026-09-17 완료)
 
-서버가 5분마다 cron으로 자기 상태를 `/var/www/ops/server/*.json`에 쓴다. 수집기는 tracker 저장소 `scripts/ops_collect.py`이고 scp로 서버 `/home/ubuntu/ops_collect.py`에 올린다. 외부 패키지 없이 돌고 한 번에 2.4초 걸린다. API 코드는 바꾸지 않았다. IP는 읽지 않고 User-Agent는 봇 판별에만 쓰고 버린다.
+서버가 5분마다 cron으로 자기 상태를 `<서버>/ops/server/*.json`에 쓴다. 수집기는 beggars-ops 저장소 `scripts/ops_collect.py`이고 scp로 서버의 실행 경로에 올린다. 외부 패키지 없이 돌고 한 번에 2.4초 걸린다. API 코드는 바꾸지 않았다. IP는 읽지 않고 User-Agent는 봇 판별에만 쓰고 버린다.
 
 | 탭 | 원천 | 보여 주는 것 |
 |---|---|---|

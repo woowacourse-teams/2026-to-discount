@@ -263,7 +263,7 @@ extra  "고정 6,000+선착순 4,000"  amount "10,000원"
   - 허용 메서드: `GET`, `POST`만 명시(정적으로 적어뒀지만 Spring 기본값도 어차피 GET/HEAD/POST).
   - 코드에 `TODO`가 남아 있다. 실제 Vercel project slug를 확인해 안 맞는 패턴을 지워야 한다. 지금은 넉넉하게 열려 있는 상태다.
 - 서버 포트: `8080` (`application.yml`, `server.port`).
-- export.json 경로: 기본값은 `classpath:data/export.json`. 레포에 커밋된 픽스처다. 서버(systemd)는 `DISCOUNT_EXPORT_PATH`로 `file:/home/ubuntu/delivery-discount-api/data/export.json`을 가리킨다(ADR-001). 로컬에서 export.json을 고쳐도 안 보이는 것은 이 기본값 때문이다. 환경변수를 걸어야 한다.
+- export.json 경로: 기본값은 `classpath:data/export.json`. 레포에 커밋된 픽스처다. 서버(systemd)는 `DISCOUNT_EXPORT_PATH`로 `file:<서버>/delivery-discount-api/data/export.json`을 가리킨다(ADR-001). 로컬에서 export.json을 고쳐도 안 보이는 것은 이 기본값 때문이다. 환경변수를 걸어야 한다.
 - 갱신 절차는 `scp`가 아니다. tracker 레포의 `.github/workflows/deploy.yml`이 main 푸시마다 서버로 `cp`하고 `POST /api/reload`를 부른다(사람 개입 없음). 복사 전에 낡은 파일이 서버를 덮지 않는지 검사하는 가드가 있다. tracker `check_deploy.py`.
 
 ## 5. 알려진 갭/WIP

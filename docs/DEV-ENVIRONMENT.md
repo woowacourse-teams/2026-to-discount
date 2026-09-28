@@ -8,7 +8,7 @@
 
 ## CI/CD와 배포 자동화
 
-**선택.** GitHub Actions를 쓴다. 저장소는 모노레포(`woowacourse-teams/2026-to-discount`) 하나다. 사람은 여기에만 커밋한다. 배포는 `mirror-deploy-repos.yml`이 push마다 `web/`, `api/`를 `rsync -a --delete`로 개별 배포 저장소(`nn98/delivery-discount-web`, `nn98/delivery-discount-api`)에 미러한다. web은 Vercel이 그 저장소를 보고 자동 배포한다. api는 `nn98/delivery-discount-api`에 붙은 OCI self-hosted 러너가 `deploy.yml`로 빌드하고 재기동한다. 검증(`check-web.yml`, `check-project-structure.yml`, `weekly-check.yml`)은 GitHub 호스팅 러너에서만 돈다. 배포 권한이 있는 self-hosted 러너에는 `pull_request` 트리거를 안 붙인다.
+**선택.** GitHub Actions를 쓴다. 저장소는 모노레포(`woowacourse-teams/2026-to-discount`) 하나다. 사람은 여기에만 커밋한다. 배포는 `mirror-deploy-repos.yml`이 push마다 `web/`, `api/`를 `rsync -a --delete`로 개별 배포 저장소(`nn98/delivery-discount-web`, `nn98/delivery-discount-api`)에 미러한다. web은 Vercel이 그 저장소를 보고 자동 배포한다. api는 `nn98/delivery-discount-api`에 붙은 OCI self-hosted 러너가 `deploy.yml`로 빌드하고 재기동한다. 검증(`check-web.yml`, `check-project-structure.yml`)은 GitHub 호스팅 러너에서만 돈다. 주간 점검은 tracker 저장소의 `weekly.yml`로 옮겨졌다. 배포 권한이 있는 self-hosted 러너에는 `pull_request` 트리거를 안 붙인다.
 
 **고려한 대안.** 처음에는 개별 저장소에 각자 직접 커밋했다. 두 사고를 겪고 미러 방식으로 옮겼다.
 
@@ -17,7 +17,7 @@
 
 모노레포에서 바로 Vercel과 self-hosted 러너를 물리는 방법도 있었다. 하지만 두 배포 대상이 이미 개별 저장소에 연결돼 있었고 그 연결을 옮길 권한이 없었다.
 
-**트레이드오프.** 개별 저장소에 직접 커밋하면 다음 미러에 조용히 지워진다. 실수로라도 그쪽에서 작업하면 흔적 없이 사라진다. api 배포는 미러 저장소 `nn98/delivery-discount-api`의 `deploy.yml`이 `main` push에서 자동으로 돈다(2026-09-17 확인). 모노레포 쪽 `deploy-api.yml`은 `workflow_dispatch`만 남긴 수동 폴백이다. 두 저장소가 동시에 push로 배포하면 같은 서버에 경쟁 배포가 생기기 때문에 막아 뒀다.
+**트레이드오프.** 개별 저장소에 직접 커밋하면 다음 미러에 조용히 지워진다. 실수로라도 그쪽에서 작업하면 흔적 없이 사라진다. api 배포는 미러 저장소 `nn98/delivery-discount-api`의 `deploy.yml`이 `main` push에서 자동으로 돈다(2026-09-17 확인). 모노레포 쪽에는 배포 워크플로가 없다(`deploy-api.yml`은 지웠다). 두 저장소가 동시에 push로 배포하면 같은 서버에 경쟁 배포가 생기기 때문에 막아 뒀다.
 
 ---
 
@@ -33,7 +33,7 @@
 
 ## 로깅, 모니터링, 알림
 
-**선택.** 로그는 Spring Boot 기본(Logback, stdout → systemd journal)만 쓴다. `GlobalExceptionHandler`(`api/src/main/java/.../web/GlobalExceptionHandler.java`)가 예상 못 한 예외만 `log.error`로 스택트레이스를 남긴다. Spring이 이미 의미를 아는 예외(404/405/400)는 그대로 상태코드만 내보낸다. 배포 헬스체크는 `deploy-api.yml`의 `curl -sf http://localhost:8088/api/brands`다. 운영 API는 서버에서 8088 포트로 돌고 nginx가 앞에서 프록시한다. 주간 모니터링은 `weekly-check.yml`(매주 월요일 09:00 KST 크론)이 "어느 플랫폼을 다시 훑어야 하는지"를 GitHub Actions Job Summary에 띄운다. 수집 PC와 서버 상태는 운영 현황 대시보드 https://bebeggars.duckdns.org/ops/ 에서 본다. 설계는 [design/32-ops-monitoring.md](design/32-ops-monitoring.md).
+**선택.** 로그는 Spring Boot 기본(Logback, stdout → systemd journal)만 쓴다. `GlobalExceptionHandler`(`api/src/main/java/.../web/GlobalExceptionHandler.java`)가 예상 못 한 예외만 `log.error`로 스택트레이스를 남긴다. Spring이 이미 의미를 아는 예외(404/405/400)는 그대로 상태코드만 내보낸다. 배포 헬스체크는 미러 저장소 `nn98/delivery-discount-api`의 `deploy.yml`이 도는 `curl -sf http://localhost:8088/api/brands`다. 운영 API는 서버에서 8088 포트로 돌고 nginx가 앞에서 프록시한다. 주간 모니터링은 tracker 저장소의 `weekly.yml`(매주 월요일 09:00 KST 크론)이 "어느 플랫폼을 다시 훑어야 하는지"를 GitHub Actions Job Summary에 띄운다. 수집 PC와 서버 상태는 운영 현황 대시보드 https://bebeggars.duckdns.org/ops/ 에서 본다. 설계는 [design/32-ops-monitoring.md](design/32-ops-monitoring.md).
 
 **고려한 대안.** 처음에는 `Exception` 하나로 다 잡았다. 정적 리소스 없음 같은 정상 404까지 500으로 바뀌면서 봇 스캔(`/.env`, `/.git/config`) 로그가 30분 만에 쌓였다(2026-08-07 실측). 그래서 `ResponseEntityExceptionHandler` 상속으로 좁혔다. **서버 APM**(Sentry, Datadog 등)은 도입한 적 없다. 트래픽 규모(하루 방문 수백 명)와 단일 서버 구조에서 값어치가 로그 확인 비용보다 낮다고 판단했다.
 
@@ -92,7 +92,7 @@
 
 **고려한 대안.** DB 스냅샷과 주기적 오프사이트 백업은 검토한 적 없다. DB 자체가 없다([TECH-CHOICES.md](TECH-CHOICES.md#api) "DB가 없다" 참고).
 
-**한계.** 서버 실물 데이터(`~/delivery-discount-api/data/export.json`)와 커밋된 사본이 어긋날 수 있다. 실제로 서버 138건 vs 커밋 135건 사고가 있었고, 그래서 `deploy-data.yml`에 최신성 가드가 붙었다. "백업"은 있지만 "서버가 항상 최신 백업과 일치함을 보장"하는 장치는 배포 가드가 간접적으로만 대신한다.
+**한계.** 서버 실물 데이터(`~/delivery-discount-api/data/export.json`)와 커밋된 사본이 어긋날 수 있다. 실제로 서버 138건 vs 커밋 135건 사고가 있었고, 그래서 수집 루틴의 최신성 가드가 붙었다. "백업"은 있지만 "서버가 항상 최신 백업과 일치함을 보장"하는 장치는 배포 가드가 간접적으로만 대신한다.
 
 ---
 
@@ -110,7 +110,7 @@
 
 ## 무중단 배포
 
-**선택.** 없다. `deploy-api.yml`이 `systemctl restart`로 재기동하는 동안 짧은 다운타임이 생긴다. 블루/그린이나 롤링 배포는 안 한다.
+**선택.** 없다. 미러 저장소 `nn98/delivery-discount-api`의 `deploy.yml`이 `systemctl restart`로 재기동하는 동안 짧은 다운타임이 생긴다. 블루/그린이나 롤링 배포는 안 한다.
 
 **고려한 대안.** 검토한 적 없다.
 
@@ -132,7 +132,7 @@
 
 체크리스트 표준 항목에는 없지만 이 제품 특유의 문제라서 별도로 다룬 것들이다.
 
-**하루 1회 배치 수집, 실시간 아님.** 배달앱 UI를 실기 ADB로 매일 훑어 `export.json`을 만든다([TECH-CHOICES.md](TECH-CHOICES.md#tracker) 참고). "오늘 데이터가 최신인가"를 보장하는 장치(`weekly-check.yml`, `deploy-data.yml`의 최신성 가드)가 이 프로젝트에서만 필요한 인프라다.
+**하루 1회 배치 수집, 실시간 아님.** 배달앱 UI를 실기 ADB로 매일 훑어 `export.json`을 만든다([TECH-CHOICES.md](TECH-CHOICES.md#tracker) 참고). "오늘 데이터가 최신인가"를 보장하는 장치(tracker `weekly.yml`, 수집 루틴의 최신성 가드)가 이 프로젝트에서만 필요한 인프라다.
 
 **방문 원장(events.jsonl)이 SSOT, PostHog은 보조.** 3rd-party SDK 유실 가능성 때문에 자체 서버가 이벤트를 직접 기록한다. 자세한 내용은 [ANALYTICS-CAPABILITY.md](ANALYTICS-CAPABILITY.md)와 [api/docs/traffic-analytics.md](../api/docs/traffic-analytics.md).
 

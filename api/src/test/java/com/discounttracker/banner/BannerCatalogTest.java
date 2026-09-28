@@ -448,7 +448,7 @@ class BannerCatalogTest {
 
     @Test
     void reportsBannersThatShareAnId() {
-        // 파일을 손으로 고치면 적용 시점 검사(ops_apply.duplicate_id_problem)를 지나간다.
+        // 파일을 손으로 고치면 적용 시점 검사(beggars-ops ops_apply.duplicate_id_problem)를 지나간다.
         // id가 겹치면 "이 id의 배너"가 파일 순서로 정해진다 - API는 맵을 id로 찾고
         // 콘솔도 id로 찾는다. 읽을 때 한 번 더 본다(2026-09-24).
         String yaml = """

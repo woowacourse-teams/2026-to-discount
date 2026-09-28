@@ -131,7 +131,7 @@
 
 - 기술적 제약: Web Push는 HTTPS와 Service Worker가 필요하다. iOS와 iPadOS에서는 16.4 이상과 홈 화면 설치가 필요하다.
 - 기술적 제약: 로그인하지 않으므로 사람 단위 중복 제거와 여러 기기 간 설정 동기화를 할 수 없다.
-- 운영 제약: 배너 승인과 편집을 담당하는 운영 콘솔 코드는 `nn98/beggars-ops` 저장소의 `main`에서 관리한다. `web/index.html`은 서버의 `/var/www/ops/index.html`로, `ops_apply.py`는 `/home/ubuntu/ops_apply.py`로 배포된다.
+- 운영 제약: 배너 승인과 편집을 담당하는 운영 콘솔 코드는 `nn98/beggars-ops` 저장소의 `main`에서 관리한다. `web/index.html`은 서버의 `<서버>/ops/index.html`로, `ops_apply.py`는 `<서버>/ops_apply.py`로 배포된다.
 - 운영 제약: `ops_apply.py`가 서버 외부 `banners.yml`을 수정한 뒤 `POST /api/reload`를 호출한다. Spring API에 배너 쓰기 경로를 추가하지 않는다.
 - 운영 제약: 브라우저 구독 정보와 알림 상태는 서버 재시작 후에도 유지돼야 한다.
 - 보안 제약: VAPID 비공개 키와 Push 구독 정보는 저장소에 커밋하지 않는다.
@@ -318,7 +318,7 @@ endpoint 원문은 로그에 남기지 않는다. 저장소와 발송 이력에�
 #### ops_apply.py
 
 - 책임: 승인 요청 검증, `banners.yml` 백업과 수정, 편집 이력 기록, `/api/reload` 호출
-- 의존성: 서버의 `scripts/ops_apply.py`, `banners.yml`, `/var/www/ops/edits`, Spring API
+- 의존성: 서버의 `scripts/ops_apply.py`, `banners.yml`, `<서버>/ops/edits`, Spring API
 - 외부 인터페이스: nginx Basic Auth 뒤의 `/ops/apply`, `/ops/edit`
 
 #### Service Worker

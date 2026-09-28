@@ -178,7 +178,7 @@
 
 무엇이 열렸나.
 
-- 수집 PC의 배너 루틴(`scripts/banner_routine.py --propose`)이 변경안을 작업 목록(`add`, `set`, `expire`)으로 서버 `/var/www/ops/proposals/<날짜>.json`에 올리고 슬랙에 요약을 보낸다.
+- 수집 PC의 배너 루틴(`scripts/banner_routine.py --propose`)이 변경안을 작업 목록(`add`, `set`, `expire`)으로 서버 `<서버>/ops/proposals/<날짜>.json`에 올리고 슬랙에 요약을 보낸다.
 - 운영 화면 `/ops/` 데이터 탭이 제안마다 승인 또는 거부를 받고 `POST /ops/apply`로 보낸다.
 - 서버의 별도 프로세스 `scripts/ops_apply.py`(127.0.0.1:8090, systemd `ops-apply.service`)가 승인된 작업만 `banners.yml`에 적용하고 백업을 남긴 뒤 `POST /api/reload`를 부른다.
 
@@ -189,5 +189,5 @@
 
 22(검수 화면)와 25(배너 문구 구조화)는 이 경로 위에 얹을 수 있다. 검수 화면의 첫 형태가 곧 이 승인 화면이다.
 
-같은 날 오후에 이 경로 위에 배너 편집기를 얹었다(콘솔 `/ops/#banner`). 사람이 목록에서 고르고 필드를 고쳐 저장하면 `POST /ops/edit`가 같은 프로세스로 적용한다. 검수 화면(28)의 첫 형태가 이것이다. 편집 이력은 `/var/www/ops/edits/<날짜>.jsonl`, 편집한 필드는 스냅샷에 사람 것으로 남아 루틴이 덮지 않는다.
+같은 날 오후에 이 경로 위에 배너 편집기를 얹었다(콘솔 `/ops/#banner`). 사람이 목록에서 고르고 필드를 고쳐 저장하면 `POST /ops/edit`가 같은 프로세스로 적용한다. 검수 화면(28)의 첫 형태가 이것이다. 편집 이력은 `<서버>/ops/edits/<날짜>.jsonl`, 편집한 필드는 스냅샷에 사람 것으로 남아 루틴이 덮지 않는다.
 

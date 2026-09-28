@@ -28,7 +28,7 @@
 set -euo pipefail
 
 LOG_DIR="${COVERAGE_LOG_DIR:-/var/log/nginx}"
-LEDGER="${COVERAGE_LEDGER:-/home/ubuntu/delivery-discount-api/data/coverage.jsonl}"
+LEDGER="${COVERAGE_LEDGER:-<서버>/delivery-discount-api/data/coverage.jsonl}"
 
 mkdir -p "$(dirname "$LEDGER")"
 

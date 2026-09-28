@@ -239,7 +239,7 @@ PR#4(PostHog outbox)를 머지(`f7031ba`)하자 `Build and Deploy API` 워크플
 자동 트리거됐고, 배포 뒤 헬스체크(`curl localhost:8088/api/brands`)가
 실패했다.
 
-**원인**: 서버 `/etc/delivery-discount-api.env`에 이미
+**원인**: 서버 `<서버>/delivery-discount-api.env`에 이미
 `DISCOUNT_POSTHOG_ENABLED=true`와 `POSTHOG_PROJECT_TOKEN`이 설정돼
 있었다(테스트 흔적이 아니라 실제로 기능을 켤 준비를 해둔 상태). 그런데
 `DISCOUNT_POSTHOG_OUTBOX_PATH`는 없었다. 이번 PR에서 반영한 요청사항
@@ -252,7 +252,7 @@ PR#4(PostHog outbox)를 머지(`f7031ba`)하자 `Build and Deploy API` 워크플
 `enabled=true`가 설정돼 있었는지는 코드 리뷰만으론 알 수 없다.
 
 **조치**: SSH로 서버 접속, env 파일에
-`DISCOUNT_POSTHOG_OUTBOX_PATH=/home/ubuntu/delivery-discount-api/data/posthog-outbox`
+`DISCOUNT_POSTHOG_OUTBOX_PATH=<서버>/delivery-discount-api/data/posthog-outbox`
 추가 후 `systemctl restart delivery-discount-api`. `active` 상태 및
 `/api/brands` 200 확인, `/api/events`로 실제 이벤트 전송해 outbox
 `pending`/`dead-letter` 디렉토리가 정상 생성되는 것까지 확인. 기능을

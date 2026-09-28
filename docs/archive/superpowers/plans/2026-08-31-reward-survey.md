@@ -1864,8 +1864,8 @@ git commit -m "docs: 리워드 설문 운영 절차와 기프티콘 경로"
 설문만 내리려면 서버에서 `gifticons.yml`을 치우거나 비운다.
 
 ```bash
-ssh -i ~/key_turbom_v0.key ubuntu@bebeggars.duckdns.org \
-  'mv /home/ubuntu/delivery-discount-api/data/gifticons.yml{,.off}'
+ssh -i <키 파일> <서버> \
+  'mv <서버>/delivery-discount-api/data/gifticons.yml{,.off}'
 ```
 
 남은 코드가 0이 되어 `GET /api/survey`가 `eligible: false`를 답하고, 프론트가 카드를 안 그린다. 재배포도 재시작도 필요 없다. 이미 발급된 코드는 파일에 남아 있으므로 되돌릴 때 그대로 쓴다.

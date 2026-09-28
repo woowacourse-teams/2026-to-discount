@@ -45,9 +45,9 @@
    `delivery-discount-api`다.** `discount-api`처럼 줄여 쓰면 유닛을
    못 찾는다.
    ```bash
-   ssh <REMOTE> "sudo tee /etc/systemd/system/delivery-discount-api.service.d/survey.conf > /dev/null << 'EOF'
+   ssh <REMOTE> "sudo tee <서버>/systemd/delivery-discount-api.service.d/survey.conf > /dev/null << 'EOF'
    [Service]
-   Environment=\"DISCOUNT_GIFTICONS_PATH=/home/ubuntu/delivery-discount-api/data/gifticons.yml\"
+   Environment=\"DISCOUNT_GIFTICONS_PATH=<서버>/delivery-discount-api/data/gifticons.yml\"
    Environment=DISCOUNT_SURVEY_TEST_VISITORS=<내visitorId>
    EOF
    sudo systemctl daemon-reload && sudo systemctl restart delivery-discount-api"

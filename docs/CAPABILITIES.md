@@ -137,7 +137,7 @@ React 18 + Vite 5, **정적 `dist/`**. 라우터, SSR, API 라우트 안 씀.
 | web 배포 | Vercel 자동 |
 | api 배포 | self-hosted 러너, **수동**(`workflow_dispatch`) + 헬스체크 |
 | 검증 | `check-web.yml`, `check-project-structure.yml`. GitHub 호스팅 러너에서만(배포 권한 있는 러너엔 PR 트리거 안 붙임) |
-| 주간 모니터링 | `weekly-check.yml` 월요일 09:00 KST. 어느 플랫폼을 다시 훑어야 하는지 |
+| 주간 모니터링 | tracker 저장소 `weekly.yml` 월요일 09:00 KST. 어느 플랫폼을 다시 훑어야 하는지 |
 | 백업 | 별도 인프라 없이 **git 커밋 자체가 백업**(DB가 없다) |
 | 로그 | Logback → systemd journal |
 
