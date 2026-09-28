@@ -66,11 +66,11 @@
 
 self-hosted 러너 `<러너>`를 이 저장소에 등록하고, `push: branches: [main] paths: [...]` 트리거를 켰다. 원본 두 저장소(`nn98/delivery-discount-api`, `nn98/delivery-discount-tracker`)의 push 트리거는 껐다. `workflow_dispatch` 수동 폴백만 남기고 이후 러너 서비스 자체를 해제했다(tracker f0b4552). 등록 직후 실 push로 data, api 두 워크플로가 순서대로 자동 실행돼 서비스 재시작과 헬스체크 200까지 확인했다.
 
-운영 배포는 이제 이 저장소에서만 돈다.
+운영 배포는 이제 이 저장소에서만 돈다. (2026-09-29 기준으로는 아니다. 배포는 미러 저장소의 워크플로가 하고, 이 저장소의 배포 워크플로와 러너는 ADR-002로 걷어냈다.)
 
 다만 이 저장소는 조직 소유 public 레포라, self-hosted 러너를 붙이면 GitHub이 "포크 PR이 러너에서 코드를 실행할 수 있다"고 경고한다. 지금 워크플로는 `pull_request` 트리거가 없어 포크 PR로는 실행되지 않는다. 이 경로를 여는 트리거(`pull_request`, `pull_request_target` 등)는 추가하지 않는다.
 
 ### 아직 안 한 것
 
 - ADR 번호가 앱마다 1부터다. 합치면서 통합 번호로 바꾸지 않았다. 앱 단위 결정은 앱 디렉터리 안에서 완결되고, 상호 링크 27건을 전부 고치는 비용이 이득보다 크다. 루트 `docs/decisions/`는 오케스트레이션 층의 결정만 담는다. 앱 하나로 끝나지 않는 것이다.
-- 원본 저장소를 아카이브하지 않았다. push 트리거는 껐지만 `workflow_dispatch` 수동 폴백과 러너 서비스는 살려뒀다.
+- 원본 저장소를 아카이브하지 않았다. push 트리거는 껐지만 `workflow_dispatch` 수동 폴백과 러너 서비스는 살려뒀다. 이후 두 저장소는 배포 미러가 됐다([WORKFLOW.md](../WORKFLOW.md) 1절).

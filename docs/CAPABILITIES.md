@@ -8,8 +8,8 @@
 | 스택을 왜 골랐나 | [TECH-CHOICES.md](TECH-CHOICES.md) |
 | 어떻게 빌드, 배포, 운영하나 | [DEV-ENVIRONMENT.md](DEV-ENVIRONMENT.md) |
 | 이벤트 분석에 무슨 공학을 넣었나 | [ANALYTICS-CAPABILITY.md](ANALYTICS-CAPABILITY.md) |
-| 언제 무엇을 했나 | [WORK-HISTORY.md](WORK-HISTORY.md) |
-| 지표가 어떻게 움직였나 | [PRODUCT-HISTORY.md](PRODUCT-HISTORY.md) |
+| 언제 무엇을 했나(기록) | [archive/WORK-HISTORY.md](archive/WORK-HISTORY.md) |
+| 지표가 어떻게 움직였나(기록) | [archive/PRODUCT-HISTORY.md](archive/PRODUCT-HISTORY.md) |
 | 검색 노출에서 무엇을 고쳐야 하나 | [SEO-ACTIONS.md](SEO-ACTIONS.md) |
 
 ---
@@ -135,7 +135,7 @@ React 18 + Vite 5, **정적 `dist/`**. 라우터, SSR, API 라우트 안 씀.
 |---|---|
 | 저장소 구조 | 사람은 모노레포에만 커밋 → `mirror-deploy-repos.yml`이 `rsync -a --delete`로 개별 배포 저장소에 미러 |
 | web 배포 | Vercel 자동 |
-| api 배포 | self-hosted 러너, **수동**(`workflow_dispatch`) + 헬스체크 |
+| api 배포 | 미러 저장소 `nn98/delivery-discount-api`의 self-hosted 러너가 `main` push마다 빌드, 재시작, 헬스체크. 이 저장소에는 배포 워크플로가 없다(ADR-002) |
 | 검증 | `check-web.yml`, `check-project-structure.yml`. GitHub 호스팅 러너에서만(배포 권한 있는 러너엔 PR 트리거 안 붙임) |
 | 주간 모니터링 | tracker 저장소 `weekly.yml` 월요일 09:00 KST. 어느 플랫폼을 다시 훑어야 하는지 |
 | 백업 | 별도 인프라 없이 **git 커밋 자체가 백업**(DB가 없다) |

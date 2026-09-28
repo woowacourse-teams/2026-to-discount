@@ -88,7 +88,7 @@
 
 ## 데이터 백업과 복구
 
-**선택.** 별도 백업 인프라 없이 **git 자체가 백업**이다. `export.json`, `banners.yml`, `brands.yml`이 전부 저장소에 커밋되는 파일이라, 복구는 이전 커밋으로 되돌리는 것과 같다. 원본 캡처(`tracker/data/log.jsonl`, 방문 원장 `events.jsonl`)도 마찬가지로 append-only 파일이며 커밋 이력이 곧 스냅샷 이력이다.
+**선택.** 별도 백업 인프라 없이 **git 자체가 백업**이다. `brands.yml`은 이 저장소에, 관측 원장(`data/log.jsonl`)은 비공개 수집기 저장소에 커밋된다. 복구는 이전 커밋으로 되돌리는 것과 같다. 원장은 덧붙이기만 하는 파일이라 커밋 이력이 곧 스냅샷 이력이다. `export.json`은 원장에서 다시 만들고, `banners.yml`과 방문 원장 `events.jsonl`은 서버 파일이 유일본이라 서버에서 백업을 남긴다(ADR-002, [WORKFLOW.md](WORKFLOW.md) 2절).
 
 **고려한 대안.** DB 스냅샷과 주기적 오프사이트 백업은 검토한 적 없다. DB 자체가 없다([TECH-CHOICES.md](TECH-CHOICES.md#api) "DB가 없다" 참고).
 
@@ -104,7 +104,7 @@
 
 ## 부하 테스트와 서버 튜닝
 
-**왜 지금 안 하는가.** 하루 방문자가 수백 명대([PRODUCT-HISTORY.md](PRODUCT-HISTORY.md) 참고)라 동시접속 부하 자체가 발생하지 않는다. 부하 테스트 도구(k6, nGrinder 등)는 검토한 적 없다. 트래픽이 이 규모를 벗어나는 시점(외부 홍보로 순간 유입이 몰리는 경우 등)이 뒤집을 조건이다.
+**왜 지금 안 하는가.** 하루 방문자가 수백 명대([archive/PRODUCT-HISTORY.md](archive/PRODUCT-HISTORY.md) 참고)라 동시접속 부하 자체가 발생하지 않는다. 부하 테스트 도구(k6, nGrinder 등)는 검토한 적 없다. 트래픽이 이 규모를 벗어나는 시점(외부 홍보로 순간 유입이 몰리는 경우 등)이 뒤집을 조건이다.
 
 ---
 
