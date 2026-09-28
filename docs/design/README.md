@@ -41,7 +41,7 @@
 | 34 | 라이브 오퍼 상시 확인 봇(링크 열어 유효한지, 없으면 내림) | 계획만 (2026-09-19) | 32 | 주기(폰 하나 3바퀴 vs 두 번째 폰 상시), 사라짐 자동 내림 여부, 4a 주기 스킵 대체 |
 
 트래커 쪽 설계·계획(수집 파이프라인)은 `delivery-discount-tracker/docs/superpowers/`에
-따로 있다 — `2026-09-17-audit-runtime-design.md`, `2026-09-17-multi-device-parallel-design.md`
+따로 있다 — `docs/archive/superpowers/specs/2026-09-17-audit-runtime-design.md`, `2026-09-17-multi-device-parallel-design.md`
 (둘 다 구현 완료, ADR-032·조율기).
 
 ## 다음 순서 (추천)

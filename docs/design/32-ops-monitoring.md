@@ -3,8 +3,8 @@
 결정: 수집 PC와 서버의 상태를 서버의 정적 파일로 모아 대시보드 한 장으로 보여 주고, 슬랙에는 실패와 완료 알림만 보낸다. 1단계(수집 현황과 슬랙 알림)와 2단계(서버 상태 탭, 배포 실패 알림) 모두 2026-09-17에 구현을 마쳤다. 대시보드 주소는 `https://bebeggars.duckdns.org/ops/`이고 계정과 비밀번호는 수집 PC의 `~/.ops_auth`에 있다.
 
 계획 문서는 tracker 저장소에 있다.
-- 1단계: `docs/superpowers/plans/2026-09-17-ops-status-and-alerts.md`
-- 2단계: `docs/superpowers/plans/2026-09-17-ops-server-tabs.md`
+- 1단계: `docs/archive/superpowers/plans/2026-09-17-ops-status-and-alerts.md`
+- 2단계: `docs/archive/superpowers/plans/2026-09-17-ops-server-tabs.md`
 
 ## 1. 배경
 

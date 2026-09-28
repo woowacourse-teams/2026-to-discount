@@ -341,7 +341,7 @@ A  앱 버튼 + 분류 캐러셀을 전부 펼침        (TopBarA.jsx)          
 B  검색 중심 바 + 분류 메뉴바 + 바텀시트     (MenuBar, FilterSheet)  ← 2026-09-15 삭제
 ```
 
-결론은 `docs/HANDOFF-20260914.md` §4에 있다. 시트에 감추면 조건이 걸려 있다는 사실 자체를
+결론은 `docs/archive/HANDOFF-20260914.md` §4에 있다. 시트에 감추면 조건이 걸려 있다는 사실 자체를
 못 보고, 펼쳐두면 그 자리에서 푼다. `uiVariant`는 상수 `'a'`가 됐고 `?variant=`와
 `VITE_UI_VARIANT` 강제는 없어졌다. 이벤트의 `variant` 속성과 CSS의
 `[data-variant="a"]` 접두는 남긴다. 실험 전후를 한 축으로 보고, 바 규칙의
