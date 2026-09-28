@@ -124,20 +124,23 @@ posthog-outbox/
 
 pending 파일은 임시 파일 작성 후 원자적으로 이동한다. worker는 HTTP 요청 전에 `attemptCount`를 올리고 다음 시도 시각을 저장한다. 실패하면 1시간 뒤 다시 시도하며 최초 시도를 포함해 최대 5회만 전송한다. 다섯 번째 실패 파일은 마지막 오류와 실패 시각을 기록해 dead-letter로 이동하고 자동 재시도를 중단한다.
 
-웹 SDK 직접 전송 배포 전 운영 서버에 적용할 설정:
+### 지금 운영 설정 (2026-09-28 서버에서 확인)
 
-```bash
-DISCOUNT_POSTHOG_ENABLED=false
-```
-
-웹을 이전 버전으로 롤백해 서버 전달을 다시 활성화할 때 필요한 환경변수:
+릴레이는 **켜져 있다.** `/etc/delivery-discount-api.env`에 이렇게 들어 있다.
 
 ```bash
 DISCOUNT_POSTHOG_ENABLED=true
-POSTHOG_PROJECT_TOKEN=<project-token>
-POSTHOG_HOST=https://us.i.posthog.com
+POSTHOG_PROJECT_TOKEN=<서버에만>
 DISCOUNT_POSTHOG_OUTBOX_PATH=/home/ubuntu/delivery-discount-api/data/posthog-outbox
 ```
+
+> 예전 이 자리에 `DISCOUNT_POSTHOG_ENABLED=false`가 적혀 있었다. 웹 SDK 직송을 배포하기
+> **전에** 잠시 쓰던 값인데, 현재 운영값처럼 읽혀서 "릴레이를 꺼 뒀다"는 오해를 낳았다
+> (2026-09-28에 실제로 그렇게 잘못 기억한 채로 조사를 시작했다). 릴레이를 끄는 경우는
+> 지금 없다. 두 경로를 함께 두는 이유는 위 표에 있다.
+
+끄려면 `DISCOUNT_POSTHOG_ENABLED=false`만 주면 된다. 활성 상태에서 토큰이 비어 있거나
+outbox를 준비할 수 없으면 시작을 실패시킨다(조용한 미전송을 막는다).
 
 활성 상태에서 토큰이 비어 있거나 outbox를 준비할 수 없으면 시작을 실패시킨다. PostHog의 HTTP 오류, 타임아웃, 네트워크 오류는 원본 수집 응답에 전파하지 않는다.
 
