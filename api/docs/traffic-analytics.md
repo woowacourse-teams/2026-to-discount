@@ -48,7 +48,7 @@
 
 ### 본인 테스트 트래픽 (`dev` 플래그)
 
-배포된 사이트를 개발자가 직접 열어 확인하다 보면 그 클릭도 실 트래픽처럼 `events.jsonl`에 섞인다. 프론트(`delivery-discount-web/src/analytics.js`)에서 `?dev=1`을 한 번 열면 `localStorage`에 남아 이후 모든 이벤트에 `dev: true`가 붙는다(`?dev=0`으로 다시 끔).
+배포된 사이트를 개발자가 직접 열어 확인하다 보면 그 클릭도 실 트래픽처럼 `events.jsonl`에 섞인다. 프론트(`web/src/analytics.js`)에서 `?dev=1`을 한 번 열면 `localStorage`에 남아 이후 모든 이벤트에 `dev: true`가 붙는다(`?dev=0`으로 다시 끔).
 
 > 개발자가 반드시 알아야 할 것
 >
