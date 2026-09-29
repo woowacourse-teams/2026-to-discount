@@ -256,6 +256,52 @@ GROUP BY `자리`
 ORDER BY `자리`
 """),
     },
+    # ---- 0-3b. 자사 배너 vs 배달앱 배너 (2026-09-30) ----------------------
+    # 배너 platform 속성이 'own'(자사 제작)과 baemin/coupangeats/ddangyo/yogiyo(배달앱
+    # 제휴 핫딜)로 갈린다. 지금까지 이 축으로 견주는 화면이 없었다 — 각 앱은 위
+    # '장별' 표에서 따로만 보였다.
+    {
+        "name": "배너 — 자사 제작 vs 배달앱 제휴 (플랫폼별, 최근 30일)",
+        "description":
+            "배너 platform이 'own'(자사가 직접 만든 배너)인지 delivery-app(배민·쿠팡이츠·"
+            "땡겨요·요기요 핫딜을 옮긴 것)인지로 노출·클릭·클릭률을 견준다. "
+            "자사 배너가 앱 제휴 배너보다 덜 눌리면 소재·문구를 다시 볼 신호, "
+            "더 눌리면 자사 배너를 늘릴 근거.",
+        "query": q(f"""
+SELECT
+    if(properties.platform = 'own', '자사 제작', toString(properties.platform)) AS `배너 출처`,
+    count(DISTINCT if(event = 'banner_impression', distinct_id, NULL)) AS `본 사람`,
+    countIf(event = 'banner_impression') AS `노출`,
+    countIf(event = 'banner_click') AS `클릭`,
+    round(countIf(event = 'banner_click') / greatest(countIf(event = 'banner_impression'), 1) * 100, 2) AS `클릭률_퍼센트`
+FROM events
+WHERE timestamp >= now() - INTERVAL 30 DAY
+  AND event IN ('banner_impression', 'banner_click')
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `배너 출처`
+ORDER BY `클릭률_퍼센트` DESC
+"""),
+    },
+    {
+        "name": "배너 — 자사 배너 장별 성과 (최근 30일)",
+        "description":
+            "자사 제작 배너(platform='own') 안에서만 어느 배너(id)가 잘 눌리는지. "
+            "위 비교표가 '자사 대 배달앱'을 갈랐다면 이건 자사 배너끼리의 순위다.",
+        "query": q(f"""
+SELECT
+    toString(properties.banner) AS `배너`,
+    countIf(event = 'banner_impression') AS `노출`,
+    countIf(event = 'banner_click') AS `클릭`,
+    round(countIf(event = 'banner_click') / greatest(countIf(event = 'banner_impression'), 1) * 100, 2) AS `클릭률_퍼센트`
+FROM events
+WHERE timestamp >= now() - INTERVAL 30 DAY
+  AND event IN ('banner_impression', 'banner_click')
+  AND properties.platform = 'own'
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `배너`
+ORDER BY `노출` DESC
+"""),
+    },
     # ---- 0-4. 정렬·필터 사용 ----------------------------------------------
     {
         "name": "기능 사용 — 정렬·필터 종류별 (주별, 사람 수)",
@@ -1126,6 +1172,150 @@ NATIVE = [
                 "filterTestAccounts": True,
             },
         },
+    },
+    # ---- 버려진 지표 (2026-09-30) ------------------------------------------
+    # ALLOWED_EVENTS(EventController.java)에 있고 실제로 쏘이는데, 이 파일
+    # 어디에도 없어 조직 스크립트(organize_posthog.py)의 BOARDS에도 못 묶이던
+    # 것들. brand_hide는 배포(2026-09-24) 뒤 손으로 만든 임시 대시보드로
+    # 한 번 봤다가(전체 3건, 쓴 사람 3명) 이 파일 규칙(PEOPLE·dev 필터)을 안
+    # 따라서 지우고 다시 넣는다.
+    {
+        "name": "기능 사용 — 브랜드 숨기기 (일별)",
+        "description":
+            "브랜드 카드 숨기기(brand_hide, 2026-09-24 배포)를 실제로 쓰는 사람이 있나. "
+            "rule 속성으로 '완전히 숨기기'(never)와 '변경시까지'를 가른다.\n\n"
+            "숨긴 목록을 다시 여는 hidden_open은 여기 없다 - 배포 이후 0건이라 이 창에서는 "
+            "안 잡힌다(계측 누락 의심, 확인 필요).",
+        "query": q(f"""
+SELECT
+    toDate(timestamp) AS `날짜`,
+    if(properties.rule = 'never', '완전히 숨기기', '변경시까지') AS `방식`,
+    count() AS `횟수`,
+    count(DISTINCT distinct_id) AS `쓴 사람`
+FROM events
+WHERE timestamp >= now() - INTERVAL 60 DAY
+  AND event = 'brand_hide'
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `날짜`, `방식`
+ORDER BY `날짜` DESC
+"""),
+    },
+    {
+        "name": "기능 사용 — 브랜드 펼치기 (brand_expand, 주별)",
+        "description":
+            "카드를 눌러 조건을 펼쳐 보는 행동. 탐색 깊이 신호인데 지금까지 어느 "
+            "대시보드에도 안 묶여 있었다 — 노출(brand_impression) 대비 펼침 비율로 "
+            "카드 자체가 궁금증을 얼마나 끄는지 본다.",
+        "query": q(f"""
+SELECT
+    toStartOfWeek(timestamp) AS `주`,
+    countIf(event = 'brand_impression') AS `노출`,
+    countIf(event = 'brand_expand') AS `펼침`,
+    count(DISTINCT if(event = 'brand_expand', distinct_id, NULL)) AS `펼친 사람`,
+    round(countIf(event = 'brand_expand') / greatest(countIf(event = 'brand_impression'), 1) * 100, 2) AS `펼침률_퍼센트`
+FROM events
+WHERE timestamp >= now() - INTERVAL 12 WEEK
+  AND event IN ('brand_impression', 'brand_expand')
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `주`
+ORDER BY `주` DESC
+"""),
+    },
+    {
+        "name": "기능 사용 — 배너 닫기 (banner_dismiss, 주별)",
+        "description":
+            "배너를 눌러 닫는 행동. 노출 대비 닫힘 비율이 높으면 배너 피로도 신호로 "
+            "읽을 수 있다 - 지금까지 아무 대시보드에도 없었다.",
+        "query": q(f"""
+SELECT
+    toStartOfWeek(timestamp) AS `주`,
+    countIf(event = 'banner_impression') AS `노출`,
+    countIf(event = 'banner_dismiss') AS `닫음`,
+    round(countIf(event = 'banner_dismiss') / greatest(countIf(event = 'banner_impression'), 1) * 100, 2) AS `닫힘률_퍼센트`
+FROM events
+WHERE timestamp >= now() - INTERVAL 12 WEEK
+  AND event IN ('banner_impression', 'banner_dismiss')
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `주`
+ORDER BY `주` DESC
+"""),
+    },
+    {
+        "name": "기능 사용 — 멤버십 배지 열람 (membership_open, 주별)",
+        "description":
+            "와우회원 전용 같은 멤버십 배지를 눌러 설명을 보는 행동. membership_toggle(필터로 "
+            "쓰기)과는 다른 이벤트라 따로 안 보면 묻힌다.",
+        "query": q(f"""
+SELECT
+    toStartOfWeek(timestamp) AS `주`,
+    count() AS `횟수`,
+    count(DISTINCT distinct_id) AS `쓴 사람`
+FROM events
+WHERE timestamp >= now() - INTERVAL 12 WEEK
+  AND event = 'membership_open'
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `주`
+ORDER BY `주` DESC
+"""),
+    },
+    {
+        "name": "기능 사용 — 웹 푸시 구독·도달 퍼널",
+        "description":
+            "구독 설정(enabled/disabled)과 실제 도달(displayed)·클릭(clicked)을 한 표에. "
+            "전부 표본이 한 자릿수~십몇 건이라 추세 판단용이 아니라 '계측이 죽지 않았나' "
+            "확인용이다 - 지금까지 아무 대시보드에도 없었다.",
+        "query": q(f"""
+SELECT
+    toDate(timestamp) AS `날짜`,
+    event AS `이벤트`,
+    count() AS `횟수`,
+    count(DISTINCT distinct_id) AS `사람`
+FROM events
+WHERE timestamp >= now() - INTERVAL 60 DAY
+  AND event IN ('push_subscription_enabled', 'push_subscription_disabled',
+                'push_notification_displayed', 'push_notification_clicked',
+                'push_permission_denied')
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `날짜`, `이벤트`
+ORDER BY `날짜` DESC, `이벤트`
+"""),
+    },
+    {
+        "name": "기능 사용 — 배너 자동넘김 멈춤 (banner_autoplay_toggle)",
+        "description":
+            "캐러셀 자동 넘김을 사람이 끄는지. 표본이 작아(전체 9건) 추세보다는 "
+            "'이 조작이 존재를 들키고 있나'를 보는 계측 건강도에 가깝다.",
+        "query": q(f"""
+SELECT
+    toDate(timestamp) AS `날짜`,
+    count() AS `횟수`,
+    count(DISTINCT distinct_id) AS `쓴 사람`
+FROM events
+WHERE timestamp >= now() - INTERVAL 60 DAY
+  AND event = 'banner_autoplay_toggle'
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `날짜`
+ORDER BY `날짜` DESC
+"""),
+    },
+    {
+        "name": "죽은 기능 — 담기(cart_*, 기능 제거 전 마지막 기록)",
+        "description":
+            "담기 기능은 2026-09-29 웹에서 통째로 지웠다(EventController 주석). "
+            "cart_toggle·cart_view_toggle·cart_clear는 그날부터 더는 안 쏘인다 - "
+            "이 표는 새 데이터가 안 느는 게 정상이다. 남겨 두는 이유는 제거 전 "
+            "마지막 볼륨(cart_toggle 871건)을 나중에 복기할 근거로.",
+        "query": q(f"""
+SELECT
+    toDate(timestamp) AS `날짜`,
+    event AS `이벤트`,
+    count() AS `횟수`
+FROM events
+WHERE event IN ('cart_toggle', 'cart_view_toggle', 'cart_clear')
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `날짜`, `이벤트`
+ORDER BY `날짜` DESC
+"""),
     },
 ]
 

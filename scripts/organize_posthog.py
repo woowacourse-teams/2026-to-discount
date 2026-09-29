@@ -86,12 +86,23 @@ BOARDS = {
         "검색 조건 활성 상태의 후속 행동 사용자는 얼마나 되는가",
         "검색과 필터 사용 유형별 오퍼 링크 도달률",
         "첫 화면 이탈 — 세션의 첫 동작",
+        # 2026-09-30: 어느 대시보드에도 안 묶여 있던 것들.
+        "기능 사용 — 브랜드 숨기기 (일별)",
+        "기능 사용 — 브랜드 펼치기 (brand_expand, 주별)",
+        "기능 사용 — 멤버십 배지 열람 (membership_open, 주별)",
+        "기능 사용 — 배너 자동넘김 멈춤 (banner_autoplay_toggle)",
+        "기능 사용 — 웹 푸시 구독·도달 퍼널",
+        "죽은 기능 — 담기(cart_*, 기능 제거 전 마지막 기록)",
     ],
     "배너 할인정보 성과": [
         "배너 — 브랜드별 클릭",
         "배너 — 클릭과 위치",
         "배너 — 자리(position)별 클릭률 (최근 14일)",
         "배너 — 장별 노출·클릭·클릭률 (최근 14일, 일별)",
+        # 2026-09-30: 자사 제작 배너와 배달앱 제휴 배너를 처음 나란히 견준다.
+        "배너 — 자사 제작 vs 배달앱 제휴 (플랫폼별, 최근 30일)",
+        "배너 — 자사 배너 장별 성과 (최근 30일)",
+        "기능 사용 — 배너 닫기 (banner_dismiss, 주별)",
     ],
     "계측 건강도 — 숫자를 믿어도 되나": [
         "brand_impression 수집 건강도",
@@ -127,6 +138,8 @@ def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--apply", action="store_true", help="실제로 내리고 붙인다")
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     args = p.parse_args(argv)
 
     token = ph.key()
