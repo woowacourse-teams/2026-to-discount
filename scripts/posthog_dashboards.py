@@ -302,6 +302,27 @@ GROUP BY `배너`
 ORDER BY `노출` DESC
 """),
     },
+    {
+        "name": "배너 — 슬롯별 노출 도달·클릭률 (최근 30일)",
+        "description":
+            "캐러셀 몇 번째 칸(slot)에 섰을 때 몇 번 보였고 눌렸나. slot 속성은 2026-09-29부터 찍힌다. "
+            "그 전은 docs/metrics/BANNER-ORDER-20260930.md의 복원 분석을 본다.",
+        "query": q(f"""
+SELECT
+    toInt(properties.slot) AS `슬롯`,
+    toString(properties.position) AS `위치`,
+    countIf(event = 'banner_impression') AS `노출`,
+    countIf(event = 'banner_click') AS `클릭`,
+    round(countIf(event = 'banner_click') / greatest(countIf(event = 'banner_impression'), 1) * 100, 2) AS `클릭률_퍼센트`
+FROM events
+WHERE timestamp >= now() - INTERVAL 30 DAY
+  AND event IN ('banner_impression', 'banner_click')
+  AND properties.slot IS NOT NULL
+  AND {PEOPLE} AND properties.dev IS NULL
+GROUP BY `슬롯`, `위치`
+ORDER BY `위치`, `슬롯`
+"""),
+    },
     # ---- 0-4. 정렬·필터 사용 ----------------------------------------------
     {
         "name": "기능 사용 — 정렬·필터 종류별 (주별, 사람 수)",
