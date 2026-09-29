@@ -27,13 +27,10 @@ api/src/main/java/com/discounttracker/analytics/PostHogEventMapper.java
 api/src/main/java/com/discounttracker/analytics/PostHogForwardingWorker.java
 api/src/main/java/com/discounttracker/analytics/PostHogOutbox.java
 api/src/main/java/com/discounttracker/analytics/PostHogProperties.java
-api/src/main/java/com/discounttracker/analytics/StatsController.java
 api/src/main/java/com/discounttracker/analytics/SurveyController.java
 api/src/main/java/com/discounttracker/analytics/SurveyEligibility.java
 api/src/main/java/com/discounttracker/analytics/SurveyService.java
 api/src/main/java/com/discounttracker/analytics/SurveyText.java
-api/src/main/java/com/discounttracker/analytics/TrafficStats.java
-api/src/main/java/com/discounttracker/analytics/TrafficStatsService.java
 api/src/main/java/com/discounttracker/analytics/VisitEvent.java
 api/src/main/java/com/discounttracker/banner/Banner.java
 api/src/main/java/com/discounttracker/banner/BannerAmount.java
@@ -77,7 +74,6 @@ api/src/main/resources/application.yml
 api/src/main/resources/banners.yml
 api/src/main/resources/brands.yml
 api/src/main/resources/data/export.json
-api/src/main/resources/static/stats.html
 api/src/main/resources/test-export.json
 api/src/test/http/reload.http
 api/src/test/http/reloadRemoteServer.http
@@ -97,7 +93,6 @@ api/src/test/java/com/discounttracker/analytics/PostHogPropertiesTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyEligibilityTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyTextTest.java
-api/src/test/java/com/discounttracker/analytics/TrafficStatsServiceTest.java
 api/src/test/java/com/discounttracker/banner/BannerAmountTest.java
 api/src/test/java/com/discounttracker/banner/BannerBuilderTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogTest.java
@@ -262,7 +257,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 132 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 127 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 82 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -275,7 +270,7 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 24 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 21 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 5 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
@@ -291,7 +286,6 @@ HTTP 경계:
 - `GET /api/brands`
 - `GET /api/push/click/{token}`
 - `GET /api/push/public-key`
-- `GET /api/stats/traffic`
 - `GET /api/survey`
 - `GET /api/survey/code`
 - `GET /api/test/brands`

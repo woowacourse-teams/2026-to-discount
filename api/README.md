@@ -64,9 +64,7 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
   - `PostHogOutbox`, `PostHogForwardingWorker`: 영속 큐와 비동기 전달
   - `ClientFingerprint`: IP를 날짜별 솔트로 해시(원본 미저장)
   - `EventRateLimiter`: IP 해시별 분당 상한
-  - `StatsController`, `TrafficStatsService`: GET /api/stats/traffic 집계 조회,
-    `/stats.html` 대시보드. 자세한 내용은
-    [docs/traffic-analytics.md](docs/traffic-analytics.md) 참고
+  - 자세한 내용은 [docs/traffic-analytics.md](docs/traffic-analytics.md) 참고
 
 ### 응답 스키마는 계약이다
 

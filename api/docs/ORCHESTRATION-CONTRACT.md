@@ -153,32 +153,6 @@ Web Push 기능은 `DISCOUNT_PUSH_ENABLED=true`와 VAPID 키, 상태 파일 경�
 - `ipHash`와 `dev=true` 이벤트는 PostHog payload에 포함하지 않는다.
 - `visitorId`가 없는 이벤트는 원본에는 기록하지만 PostHog outbox에는 넣지 않는다.
 
-### GET /api/stats/traffic?days={n}
-
-- 컨트롤러: `src/main/java/com/discounttracker/analytics/StatsController.java:20-24`
-- 쿼리 파라미터: `days` (기본 7, 1~365로 clamp)
-- 응답: `TrafficStats` (`src/main/java/com/discounttracker/analytics/TrafficStats.java:6-20`)
-
-```json
-{
-  "rangeDays": "number",
-  "from": "string",
-  "to": "string",
-  "totalEvents": "number",
-  "uniqueVisitors": "number",
-  "uniqueSessions": "number",
-  "eventCounts": { "eventName": "number" },
-  "dailyPageViews": [{ "date": "string", "count": "number" }],
-  "topPaths": [{ "name": "string", "count": "number" }],
-  "deviceBreakdown": { "deviceKey": "number" },
-  "topReferrers": [{ "name": "string", "count": "number" }],
-  "avgDwellMs": "number | null",
-  "categoryChanges": { "categoryKey": "number" }
-}
-```
-
-- 내부 대시보드용(`/stats.html`, `src/main/resources/static/stats.html`)이다. web 레포가 이 API를 소비할 필요는 지금 없지만 계약 표면이라 기록한다.
-
 ## 3. 소비하는 외부 입력 (tracker의 export.json, 사람이 적는 banners.yml)
 
 - 설정 프로퍼티: `discount.export-path` (`src/main/resources/application.yml:1-2`), 로컬 기본값 `classpath:data/export.json`. 서버 배포 시 `DISCOUNT_EXPORT_PATH` 환경변수로 `file:` 절대경로 오버라이드(relaxed binding, ADR-001). 코드 변경 없이 Spring `Resource` 타입이 classpath든 file이든 그대로 받는다.
