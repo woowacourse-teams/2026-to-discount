@@ -1,6 +1,6 @@
 # Orchestration Contract (delivery-discount-web)
 
-이 문서는 3-레포 파이프라인(delivery-discount-tracker, delivery-discount-api, delivery-discount-web(이 레포))을 교차 점검하는 루트 오케스트레이터용 기준 문서다. 이 레포가 백엔드(delivery-discount-api)에 대해 실제로 가정하는 것만 담는다. 매번 소스를 다시 grep하지 않아도 되게 하기 위해서다. 코드가 바뀌면 이 문서도 같이 갱신할 것(문서가 아니라 코드가 진실이다).
+이 문서는 tracker(비공개) → `api/` → `web/`(여기) 파이프라인을 교차 점검하는 기준 문서다. 저장소 구조는 [ARCHITECTURE](../../docs/ARCHITECTURE.md)에 있다. 아래의 delivery-discount-api는 지금 mono `api/`다. 이 레포가 백엔드(delivery-discount-api)에 대해 실제로 가정하는 것만 담는다. 매번 소스를 다시 grep하지 않아도 되게 하기 위해서다. 코드가 바뀌면 이 문서도 같이 갱신할 것(문서가 아니라 코드가 진실이다).
 
 ## 1. 역할
 
@@ -95,7 +95,7 @@ GA4(`src/ga4.js`)는 별도 도구로 `/api/events`를 타지 않으므로 이 �
 
 이 레포 README.md에 명시된, 오케스트레이터가 버그로 오인하면 안 되는 의도적 미완성 상태:
 
-- 상세 스키마가 한 유형만 전제. README "상세 패널" 절: "상세 값은 API가 내려주며 지금은 대부분 비어 있다... 지금 스키마(`min_order_amount`/`tiers`)는 '최소주문금액 누진 할인' 한 유형만 전제해서 정률·적립·현물·메뉴한정 같은 실제 사례를 못 담는다 — 재설계 방향과 진행 상태는 tracker 레포의 `docs/plans/2026-07-29-offer-detail-collection.md`." 따라서 `offer.minOrderAmount`/`offer.tiers`가 비어 있는 것은 미수집이지 버그가 아니다.
+- 상세 스키마가 한 유형만 전제. README "상세 패널" 절: "상세 값은 API가 내려주며 지금은 대부분 비어 있다... 지금 스키마(`min_order_amount`/`tiers`)는 '최소주문금액 누진 할인' 한 유형만 전제해서 정률·적립·현물·메뉴한정 같은 실제 사례를 못 담는다 — 재설계 방향과 진행 상태는 tracker 레포의 `docs/specs/2026-07-29-offer-detail-collection.md`." 따라서 `offer.minOrderAmount`/`offer.tiers`가 비어 있는 것은 미수집이지 버그가 아니다.
 - 멤버십/지역화폐 반영은 UI만, 로직 없음. `src/App.jsx` 주석: "멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의 `docs/specs/2026-07-28-product-brief.md`에 'UI만 배치, 로직 보류'로 명시된 의도적 보류 상태 — 계산 모델이 나오면 그 레포 `docs/plans`에 계획이 생긴다." 따라서 `MembershipMenu`의 체크박스는 전부 `disabled`, 눌러도 금액이 안 바뀐다(`MembershipMenu`). 다만 배민클럽 전용가 자체는 이미 데이터로 들어오고 있다. `badge`("배민클럽 7,500원")와 tier로 표시되며, 대표 금액은 비가입자가 받는 값이다. 계산 모델이 붙기 전에도 두 값이 화면에 다 있다는 뜻이라, 멤버십 기능의 선행조건은 부분적으로 해소된 상태다.
 - 분류 기준 중 카테고리만 활성화. `ClassifyPicker`에서 `disabled = m.key !== 'category'`. 할인금액대/최소주문금액대는 지금도 비활성이다(2026-08-06 확인). `AmountBandSlider`, `brand.maxConfirmedAmount` 기반 분류 코드는 존재하지만 UI에서 고를 수 없다. WIP.
 - GA4는 임시 도구. README "방문 측정" 절: 재방문 정확도 확보를 위한 임시 병행 도입, 제거 조건은 `docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md`. 쿠키(`_ga`)를 쓰는 유일한 도구라는 점은 갭이 아니라 의도된 예외.

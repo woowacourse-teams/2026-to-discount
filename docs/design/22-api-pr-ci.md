@@ -1,5 +1,10 @@
 # Design: API PR CI
 
+> 상태: 구현 완료(`.github/workflows/check-api.yml`). 2026-09-29 갱신: 아래 1~5절의
+> `deploy-api.yml`은 지웠다. API 배포는 지금 미러 저장소 `nn98/delivery-discount-api`의
+> 워크플로가 그 미러에 붙은 러너에서 한다([ARCHITECTURE](../ARCHITECTURE.md) 2-2절).
+> 배포 권한이 있는 러너에 PR 코드를 올리지 않는다는 제약은 그대로다.
+
 ## 1. 문제
 
 ### 배경

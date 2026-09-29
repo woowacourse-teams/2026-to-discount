@@ -264,12 +264,12 @@ extra  "고정 6,000+선착순 4,000"  amount "10,000원"
   - 코드에 `TODO`가 남아 있다. 실제 Vercel project slug를 확인해 안 맞는 패턴을 지워야 한다. 지금은 넉넉하게 열려 있는 상태다.
 - 서버 포트: `8080` (`application.yml`, `server.port`).
 - export.json 경로: 기본값은 `classpath:data/export.json`. 레포에 커밋된 픽스처다. 서버(systemd)는 `DISCOUNT_EXPORT_PATH`로 `file:<서버>/delivery-discount-api/data/export.json`을 가리킨다(ADR-001). 로컬에서 export.json을 고쳐도 안 보이는 것은 이 기본값 때문이다. 환경변수를 걸어야 한다.
-- 갱신 절차는 `scp`가 아니다. tracker 레포의 `.github/workflows/deploy.yml`이 main 푸시마다 서버로 `cp`하고 `POST /api/reload`를 부른다(사람 개입 없음). 복사 전에 낡은 파일이 서버를 덮지 않는지 검사하는 가드가 있다. tracker `check_deploy.py`.
+- 갱신 절차: 수집 PC의 예약 실행 8단계(`reflect_daily`)가 export를 만들고 tracker `scripts/deploy_export.py`가 서버로 올린 뒤 `POST /api/reload`를 부른다(사람 개입 없음, [ARCHITECTURE](../../docs/ARCHITECTURE.md) 2-1절). 올리기 전에 낡은 파일이 서버를 덮지 않는지 tracker `check_deploy.py`가 검사한다.
 
 ## 5. 알려진 갭/WIP
 
 - 코드 내 `TODO`/`FIXME` 주석은 없음(검색 결과 0건).
-- 멤버십 반영 미구현. `docs/plans/2026-07-28-membership-pricing.md`: 프론트에 멤버십/지역화폐 체크박스(배민클럽, 쿠팡 와우, 요기패스, 땡겨요 지역화폐) UI만 배치돼 있고 계산 로직은 없다("준비 중" 배지). 계획 초안은 `Offer`에 `membershipAdjustments` 필드를 얹거나 `/api/brands`에 멤버십 쿼리 파라미터를 추가하는 두 방향을 검토 중이나 아직 미착수다. 선행 작업(tracker 쪽 멤버십 화면 판독)이 먼저 필요하다고 명시.
+- 멤버십: 지금은 `offer/Membership.java`가 티어의 멤버십 조건을 다룬다(tracker ADR-029). 아래는 2026-07-28 계획 초안(지웠다) 당시의 상태다. 프론트에 멤버십/지역화폐 체크박스(배민클럽, 쿠팡 와우, 요기패스, 땡겨요 지역화폐) UI만 배치돼 있고 계산 로직은 없다("준비 중" 배지). 계획 초안은 `Offer`에 `membershipAdjustments` 필드를 얹거나 `/api/brands`에 멤버십 쿼리 파라미터를 추가하는 두 방향을 검토 중이나 아직 미착수다. 선행 작업(tracker 쪽 멤버십 화면 판독)이 먼저 필요하다고 명시.
 - 오퍼 상세 필드 대부분 비어 있음. ADR-003: `minOrderAmount`/`tiers`/`conditions`는 스키마만 있고 원장에 채워진 값은 (ADR 작성 시점 기준) 거의 없다("비어 있다는 사실도 데이터"로 취급, null로 그대로 노출). 구간 데이터 수집은 tracker 레포의 별도 계획 문서에서 다룬다.
 - 이 섹션은 자동 grep 결과 기반이라 완전하지 않을 수 있다. 다른 갭을 발견하면 이 목록에 추가할 것.
 

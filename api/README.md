@@ -1,9 +1,9 @@
 # 배거스 API
 
 배달앱별 브랜드 할인을 한 화면에서 비교하는 MVP의 백엔드(Spring Boot).
-데이터는 [delivery-discount-tracker](../delivery-discount-tracker) 파이썬
-파이프라인이 판독해 공급한다. 프론트엔드는
-[delivery-discount-web](../delivery-discount-web) 별도 레포다.
+데이터는 tracker 저장소(비공개)의 파이썬 파이프라인이 판독해 공급한다.
+프론트엔드는 같은 저장소의 [web/](../web)이다. 구조와 배포 경로는
+[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)에 있다.
 
 ## 실행
 

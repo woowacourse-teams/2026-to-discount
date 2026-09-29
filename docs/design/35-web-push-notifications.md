@@ -318,7 +318,7 @@ endpoint 원문은 로그에 남기지 않는다. 저장소와 발송 이력에�
 #### ops_apply.py
 
 - 책임: 승인 요청 검증, `banners.yml` 백업과 수정, 편집 이력 기록, `/api/reload` 호출
-- 의존성: 서버의 `scripts/ops_apply.py`, `banners.yml`, `<서버>/ops/edits`, Spring API
+- 의존성: 서버의 `ops_apply.py`(정본은 beggars-ops, 그 저장소 Actions가 배포), `banners.yml`, `<서버>/ops/edits`, Spring API
 - 외부 인터페이스: nginx Basic Auth 뒤의 `/ops/apply`, `/ops/edit`
 
 #### Service Worker

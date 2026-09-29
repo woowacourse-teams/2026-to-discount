@@ -2,9 +2,7 @@
 
 결정: 수집 PC와 서버의 상태를 서버의 정적 파일로 모아 대시보드 한 장으로 보여 주고, 슬랙에는 실패와 완료 알림만 보낸다. 1단계(수집 현황과 슬랙 알림)와 2단계(서버 상태 탭, 배포 실패 알림) 모두 2026-09-17에 구현을 마쳤다. 대시보드 주소는 `https://bebeggars.duckdns.org/ops/`이고 계정과 비밀번호는 수집 PC의 `<서버의 비밀 파일>`에 있다.
 
-계획 문서는 tracker 저장소에 있다.
-- 1단계: `docs/archive/superpowers/plans/2026-09-17-ops-status-and-alerts.md`
-- 2단계: `docs/archive/superpowers/plans/2026-09-17-ops-server-tabs.md`
+1·2단계 계획 문서는 일이 끝나 지웠다(tracker 저장소 git 이력). 지금 콘솔 코드의 정본은 beggars-ops 저장소다.
 
 ## 1. 배경
 
@@ -71,7 +69,7 @@
 
 ## 8. 실행 (2단계, 2026-09-17 완료)
 
-서버가 5분마다 cron으로 자기 상태를 `<서버>/ops/server/*.json`에 쓴다. 수집기는 beggars-ops 저장소 `scripts/ops_collect.py`이고 scp로 서버의 실행 경로에 올린다. 외부 패키지 없이 돌고 한 번에 2.4초 걸린다. API 코드는 바꾸지 않았다. IP는 읽지 않고 User-Agent는 봇 판별에만 쓰고 버린다.
+서버가 5분마다 cron으로 자기 상태를 `<서버>/ops/server/*.json`에 쓴다. 수집기는 beggars-ops 저장소 루트의 `ops_collect.py`이고 scp로 서버의 실행 경로에 올린다. 외부 패키지 없이 돌고 한 번에 2.4초 걸린다. API 코드는 바꾸지 않았다. IP는 읽지 않고 User-Agent는 봇 판별에만 쓰고 버린다.
 
 | 탭 | 원천 | 보여 주는 것 |
 |---|---|---|

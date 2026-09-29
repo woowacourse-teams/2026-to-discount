@@ -75,7 +75,7 @@
   `application-dev.yml`/`prod.yml`.
 - 이 규모(1~2명, 하루 수백 명)에서는 **과하다**. 서버 둘을 같은 상태로 유지하는
   일 자체가 새 일이 된다. 지금도 미러 저장소 둘이 "뒤처진 사본"을 만든 전력이
-  있다(deploy-api.yml 주석). 갈래를 늘릴수록 그 사고가 는다.
+  있었다(지금은 지운 mono `deploy-api.yml`의 주석). 갈래를 늘릴수록 그 사고가 는다.
 
 ### E. 분리 대신 "운영 안에서 안전하게" (대안)
 
@@ -180,7 +180,7 @@
 
 - 수집 PC의 배너 루틴(`scripts/banner_routine.py --propose`)이 변경안을 작업 목록(`add`, `set`, `expire`)으로 서버 `<서버>/ops/proposals/<날짜>.json`에 올리고 슬랙에 요약을 보낸다.
 - 운영 화면 `/ops/` 데이터 탭이 제안마다 승인 또는 거부를 받고 `POST /ops/apply`로 보낸다.
-- 서버의 별도 프로세스 `scripts/ops_apply.py`(127.0.0.1:8090, systemd `ops-apply.service`)가 승인된 작업만 `banners.yml`에 적용하고 백업을 남긴 뒤 `POST /api/reload`를 부른다.
+- 서버의 별도 프로세스 `ops_apply.py`(정본은 beggars-ops 저장소, 127.0.0.1:8090, systemd `ops-apply.service`)가 승인된 작업만 `banners.yml`에 적용하고 백업을 남긴 뒤 `POST /api/reload`를 부른다.
 
 왜 전제를 지킨 셈인가.
 

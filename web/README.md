@@ -1,9 +1,9 @@
 # 배달앱 브랜드 할인 비교 웹
 
 배달앱별 브랜드 할인을 한 화면에서 비교하는 MVP의 프론트엔드(React + Vite).
-백엔드는 [delivery-discount-api](../delivery-discount-api) 별도 레포다.
-원본 캡처와 데이터는 [delivery-discount-tracker](../delivery-discount-tracker)
-파이썬 파이프라인이 판독해 API 레포로 공급한다.
+백엔드는 같은 저장소의 [api/](../api)다. 원본 캡처와 데이터는
+tracker 저장소(비공개)의 파이썬 파이프라인이 판독해 서버로 올린다.
+구조와 배포 경로는 [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)에 있다.
 
 ## 성격과 수집 원칙
 
@@ -105,7 +105,7 @@ ADR-015.
 지금 스키마(`min_order_amount`/`tiers`)는 "최소주문금액 누진 할인" 한
 유형만 전제해서 정률, 적립, 현물, 메뉴한정 같은 실제 사례를 못 담는다.
 재설계 방향과 진행 상태는 tracker 레포의
-`docs/plans/2026-07-29-offer-detail-collection.md`.
+`docs/specs/2026-07-29-offer-detail-collection.md`.
 
 ## 방문 측정 (analytics)
 
@@ -116,8 +116,8 @@ ADR-015.
    JSONL에 기록하고, 이 구성을 배포할 때 운영 백엔드 outbox를 비활성화한다.
    왜 자체 구현인지,
    무엇을 수집하고 무엇을 안 하는지는
-   delivery-discount-api의
-   [ADR-005](../delivery-discount-api/docs/decisions/ADR-005-first-party-analytics.md).
+   api의
+   [ADR-005](../api/docs/decisions/ADR-005-first-party-analytics.md).
    재방문(`visitCount`)은 `localStorage` 기반이라 삭제나 기기 변경에
    취약하다.
 2. **`src/posthog.js`(PostHog SDK)**: 도메인 `track()` 이벤트와 `page_exit`를
