@@ -646,6 +646,8 @@ h1 {
    **조건 줄 하나뿐이다**. 셋에 다 주면 로고 상자가 84px 넓어져 그 오른쪽 내용이 전부
    밀린다 — 소진 표시가 켜지는 순간 배너가 통째로 어긋나 보였다(2026-09-22). */
 .banner--soldout .banner__extra { padding-right: 84px; }
+/* 묶음에서 한 곳만 소진이면 그 이름만 흐린다(bannerMembers.js). */
+.banner__member--soldout { opacity: .45; text-decoration: line-through; }
 .banner__soldout {
   flex: none;
   margin-left: .35rem;
