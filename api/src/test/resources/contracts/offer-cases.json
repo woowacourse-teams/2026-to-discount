@@ -1,0 +1,248 @@
+{
+  "note": "오퍼 응답 계약(R3, 2026-09-29). export.json 한 줄(record, tracker export_data.py가 쓴다) -> Java OfferRecord -> Offer.from(asOf) -> 응답 JSON(offer, GET /api/brands의 offers[] 한 칸). API OfferContractTest가 record를 파싱해 offer와 글자까지 같은지, 웹 offerContract.test.js가 웹이 읽는 칸이 offerKeys 안에 있는지, tracker가 export.json의 칸이 exportKeys 안에 있는지 본다. record는 2026-09-28~29 라이브 export.json에서 옮겼다(screenshotPath만 가렸다).",
+  "asOf": "2026-09-29",
+  "cases": [
+    {
+      "name": "누적 구간(요기요 bhc, 정률 구간)",
+      "record": {
+        "platform": "yogiyo",
+        "brand": "bhc",
+        "amount": 4150,
+        "qualifier": "최적",
+        "needsReview": false,
+        "offerType": "discount",
+        "section": "브랜드 할인",
+        "rawText": "18,000원 이상 3,000원 + 23,000원 이상 5%(최대 3,000원)",
+        "capturedAt": "2026-09-29T02:10:15+09:00",
+        "screenshotPath": "captures/example.png",
+        "minOrderAmount": 23000,
+        "tierMode": "cumulative",
+        "tiers": [
+          {
+            "minOrder": 18000,
+            "amount": 3000
+          },
+          {
+            "minOrder": 23000,
+            "amount": 1150,
+            "percent": 5,
+            "cap": 3000
+          }
+        ],
+        "conditions": "23,000원 × 5% + 3,000원",
+        "expiresAt": "2026-09-30",
+        "badge": "5%할인",
+        "soldOut": false,
+        "membership": null
+      },
+      "offer": {
+        "platform": "yogiyo",
+        "amount": 4150,
+        "qualifier": "최적",
+        "rawText": "18,000원 이상 3,000원 + 23,000원 이상 5%(최대 3,000원)",
+        "capturedAt": "2026-09-29T02:10:15+09:00",
+        "minOrderAmount": 23000,
+        "tierMode": "cumulative",
+        "tiers": [
+          {
+            "minOrder": 18000,
+            "amount": 3000,
+            "percent": null,
+            "cap": null,
+            "channel": null,
+            "soldOut": null,
+            "expiresAt": null,
+            "note": null,
+            "membership": null
+          },
+          {
+            "minOrder": 23000,
+            "amount": 1150,
+            "percent": 5,
+            "cap": 3000,
+            "channel": null,
+            "soldOut": null,
+            "expiresAt": null,
+            "note": null,
+            "membership": null
+          }
+        ],
+        "conditions": "23,000원 × 5% + 3,000원",
+        "expiresAt": "2026-09-30",
+        "badge": "5%할인",
+        "soldOut": false,
+        "link": null,
+        "fromBanner": false,
+        "certainty": "exact",
+        "kind": "discount",
+        "membership": "none",
+        "status": "confirmed"
+      }
+    },
+    {
+      "name": "상한액(요기요 공차 최대)",
+      "record": {
+        "platform": "yogiyo",
+        "brand": "공차",
+        "amount": 3000,
+        "qualifier": "최대",
+        "needsReview": false,
+        "offerType": "discount",
+        "section": "브랜드 할인",
+        "rawText": "최대 3,000원 할인",
+        "capturedAt": "2026-09-29T02:10:15+09:00",
+        "screenshotPath": "captures/example.png",
+        "minOrderAmount": null,
+        "tierMode": "exclusive",
+        "tiers": null,
+        "conditions": null,
+        "expiresAt": null,
+        "badge": null,
+        "soldOut": false,
+        "membership": null
+      },
+      "offer": {
+        "platform": "yogiyo",
+        "amount": 3000,
+        "qualifier": "최대",
+        "rawText": "최대 3,000원 할인",
+        "capturedAt": "2026-09-29T02:10:15+09:00",
+        "minOrderAmount": null,
+        "tierMode": "exclusive",
+        "tiers": null,
+        "conditions": null,
+        "expiresAt": null,
+        "badge": null,
+        "soldOut": false,
+        "link": null,
+        "fromBanner": false,
+        "certainty": "capped",
+        "kind": "discount",
+        "membership": "none",
+        "status": "confirmed"
+      }
+    },
+    {
+      "name": "멤버십과 추정 종료일(쿠팡이츠 bhc)",
+      "record": {
+        "platform": "coupangeats",
+        "brand": "bhc",
+        "amount": 3000,
+        "qualifier": null,
+        "needsReview": false,
+        "offerType": "discount",
+        "section": "위클리 슈퍼딜 > 브랜드 할인",
+        "rawText": "3,000원할인",
+        "capturedAt": "2026-09-28T16:14:26+09:00",
+        "screenshotPath": "captures/example.png",
+        "minOrderAmount": 18000,
+        "tierMode": "exclusive",
+        "tiers": null,
+        "conditions": null,
+        "expiresAt": "2026-10-04",
+        "badge": "쿠팡와우 전용쿠폰",
+        "soldOut": false,
+        "membership": "coupangEats",
+        "expiresAtEstimated": true
+      },
+      "offer": {
+        "platform": "coupangeats",
+        "amount": 3000,
+        "qualifier": null,
+        "rawText": "3,000원할인",
+        "capturedAt": "2026-09-28T16:14:26+09:00",
+        "minOrderAmount": 18000,
+        "tierMode": "exclusive",
+        "tiers": null,
+        "conditions": null,
+        "expiresAt": "2026-10-04",
+        "badge": "쿠팡와우 전용쿠폰",
+        "soldOut": false,
+        "link": null,
+        "fromBanner": false,
+        "certainty": "exact",
+        "kind": "discount",
+        "membership": "coupangEats",
+        "status": "confirmed"
+      }
+    }
+  ],
+  "exportKeys": [
+    "amount",
+    "badge",
+    "brand",
+    "capturedAt",
+    "conditions",
+    "expiresAt",
+    "expiresAtEstimated",
+    "membership",
+    "minOrderAmount",
+    "needsReview",
+    "offerType",
+    "platform",
+    "qualifier",
+    "rawText",
+    "screenshotPath",
+    "section",
+    "soldOut",
+    "tierMode",
+    "tiers"
+  ],
+  "exportDropped": {
+    "keys": [
+      "brand",
+      "expiresAtEstimated",
+      "needsReview",
+      "offerType",
+      "screenshotPath",
+      "section"
+    ],
+    "why": "brand는 BrandComparison.name으로 올라간다. needsReview/offerType은 status/fromBanner로 바뀌어 나간다. section, screenshotPath는 서버 안에서만 쓴다. expiresAtEstimated는 아무도 안 읽는다(죽은 칸)."
+  },
+  "offerKeys": [
+    "amount",
+    "badge",
+    "capturedAt",
+    "certainty",
+    "conditions",
+    "expiresAt",
+    "fromBanner",
+    "kind",
+    "link",
+    "membership",
+    "minOrderAmount",
+    "platform",
+    "qualifier",
+    "rawText",
+    "soldOut",
+    "status",
+    "tierMode",
+    "tiers"
+  ],
+  "tierKeys": [
+    "amount",
+    "cap",
+    "channel",
+    "expiresAt",
+    "membership",
+    "minOrder",
+    "note",
+    "percent",
+    "soldOut"
+  ],
+  "brandKeys": [
+    "category",
+    "links",
+    "maxConfirmedAmount",
+    "name",
+    "offers",
+    "popularity",
+    "searchAliases"
+  ],
+  "unreadByWeb": {
+    "brand": [
+      "maxConfirmedAmount"
+    ],
+    "why": "응답에는 있지만 웹이 안 읽는다(죽은 칸). 정렬은 웹이 오퍼에서 다시 센다."
+  }
+}
