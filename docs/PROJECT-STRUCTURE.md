@@ -105,6 +105,8 @@ api/src/test/java/com/discounttracker/banner/BannerContractTest.java
 api/src/test/java/com/discounttracker/banner/BannerFieldsTest.java
 api/src/test/java/com/discounttracker/banner/BannerGroupTest.java
 api/src/test/java/com/discounttracker/banner/BannerTextTest.java
+api/src/test/java/com/discounttracker/banner/PlatformContractTest.java
+api/src/test/java/com/discounttracker/brand/BrandAliasContractTest.java
 api/src/test/java/com/discounttracker/brand/BrandCatalogTest.java
 api/src/test/java/com/discounttracker/comparison/BannerOfferCertaintyTest.java
 api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java
@@ -114,6 +116,7 @@ api/src/test/java/com/discounttracker/offer/CertaintyTest.java
 api/src/test/java/com/discounttracker/offer/DiscountLadderTest.java
 api/src/test/java/com/discounttracker/offer/OfferCertaintyTest.java
 api/src/test/java/com/discounttracker/offer/OfferComparisonTest.java
+api/src/test/java/com/discounttracker/offer/OfferContractTest.java
 api/src/test/java/com/discounttracker/offer/OfferConvergenceTest.java
 api/src/test/java/com/discounttracker/offer/OfferRecordTest.java
 api/src/test/java/com/discounttracker/offer/OfferRepositoryTest.java
@@ -126,7 +129,10 @@ api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
 api/src/test/resources/contracts/banner-cases.json
+api/src/test/resources/contracts/brand-alias-cases.json
 api/src/test/resources/contracts/certainty-cases.json
+api/src/test/resources/contracts/offer-cases.json
+api/src/test/resources/contracts/platforms.json
 web/.env.example
 web/.env.production
 web/.gitignore
@@ -189,9 +195,11 @@ web/src/logoManifest.test.js
 web/src/logoSrc.js
 web/src/logos.jsx
 web/src/main.jsx
+web/src/offerContract.test.js
 web/src/platformBadge.test.js
 web/src/platformIcons.js
 web/src/platforms.js
+web/src/platformsContract.test.js
 web/src/posthog.js
 web/src/privacy.js
 web/src/pushNotifications.js
@@ -254,8 +262,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 126 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 80 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 132 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 82 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -335,9 +343,11 @@ HTTP 경계:
 | `logoSrc.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logos.jsx` | 브랜드와 플랫폼 로고 |
 | `main.jsx` | React와 분석 도구 진입점 |
+| `offerContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformBadge.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `platformsContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |
 | `privacy.js` | DNT/GPC 추적 거부 판정 |
 | `pushNotifications.js` | 런타임 모듈, 세부 책임은 코드 확인 |
