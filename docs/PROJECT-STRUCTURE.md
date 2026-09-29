@@ -62,19 +62,16 @@ api/src/main/java/com/discounttracker/push/PushStateStore.java
 api/src/main/java/com/discounttracker/push/PushSubscription.java
 api/src/main/java/com/discounttracker/push/PushTrackingToken.java
 api/src/main/java/com/discounttracker/push/WebPushSender.java
-api/src/main/java/com/discounttracker/testdata/TestDataCatalog.java
 api/src/main/java/com/discounttracker/web/BannerController.java
 api/src/main/java/com/discounttracker/web/BrandController.java
 api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
 api/src/main/java/com/discounttracker/web/PushSubscriptionController.java
 api/src/main/java/com/discounttracker/web/PushTrackingController.java
-api/src/main/java/com/discounttracker/web/TestDataController.java
 api/src/main/java/com/discounttracker/web/WebConfig.java
 api/src/main/resources/application.yml
 api/src/main/resources/banners.yml
 api/src/main/resources/brands.yml
 api/src/main/resources/data/export.json
-api/src/main/resources/test-export.json
 api/src/test/http/reload.http
 api/src/test/http/reloadRemoteServer.http
 api/src/test/java/com/discounttracker/DiscountApiApplicationTests.java
@@ -119,7 +116,6 @@ api/src/test/java/com/discounttracker/push/BannerNotificationServiceTest.java
 api/src/test/java/com/discounttracker/push/PushEndpointPolicyTest.java
 api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
 api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
-api/src/test/java/com/discounttracker/testdata/TestDataCatalogTest.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
@@ -257,7 +253,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 127 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 123 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 82 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -276,8 +272,7 @@ flowchart TB
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 11 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 9 |
-| `testdata/` | 검수용 더미 데이터, 오류를 일부러 섞는다 | 1 |
-| `web/` | HTTP 엔드포인트와 CORS | 7 |
+| `web/` | HTTP 엔드포인트와 CORS | 6 |
 
 HTTP 경계:
 
@@ -288,8 +283,6 @@ HTTP 경계:
 - `GET /api/push/public-key`
 - `GET /api/survey`
 - `GET /api/survey/code`
-- `GET /api/test/brands`
-- `GET /api/test/faults`
 - `POST /api/events`
 - `POST /api/push/displayed/{token}`
 - `POST /api/push/subscriptions`
