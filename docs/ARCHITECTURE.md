@@ -47,7 +47,7 @@ flowchart LR
 3. 8단계 `reflect_daily --apply`가 원장에서 export를 만들고 `scripts/deploy_export.py`로 서버에
    바로 올린 뒤 reload한다. 원장, export, 전수 기록(`data/sweeps.jsonl`)은 tracker에 자동 커밋된다
 
-mono를 거치지 않는다. 2026-09-01부터 그렇다. 올리기 전에 서버 파일보다 낡았는지 본다(`check_deploy`).
+mono를 거치지 않는다. 2026-09-01부터 그렇다. 다른 데이터 배포 경로는 없다. 올리기 전에 서버 파일보다 낡았는지 본다(`check_deploy`).
 배너와 기프티콘은 서버 파일이 유일본이다. 저장소에 두지 않는다.
 
 ### 2-2. 코드: mono → 미러 → API 러너 / Vercel
@@ -130,7 +130,8 @@ mono `check-api`에는 아직 슬랙 단계가 없다. 실패는 GitHub에서만
 
 ### 죽은 배포 워크플로와 mono 서버 러너를 걷어냈다
 
-- 무엇: mono `deploy-api.yml`, `deploy-data.yml`을 지우고 mono에 붙어 있던 운영 서버 러너를 해제했다
+- 무엇: mono `deploy-api.yml`, `deploy-data.yml`을 지우고 mono에 붙어 있던 운영 서버 러너를 해제했다.
+  tracker의 수동 워크플로 `Deploy Data`도 지웠다. 데이터 배포는 `deploy_export.py` 하나다
 - 왜: 둘 다 실제 배포 경로가 아니었다. 데이터 워크플로는 09-18 이후 돈 적이 없고 API는 미러가 배포한다.
   그런데 누가 수동 실행 버튼을 누르면 멈춘 코드가 운영을 덮는다. 공개 저장소에 운영 서버 러너가
   붙어 있는 것 자체가 위험이다

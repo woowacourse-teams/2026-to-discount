@@ -124,5 +124,5 @@ curl -s https://bebeggars.duckdns.org/api/banners | head -c 300
 | 무엇을 모으고 어떻게 가르나(분석) | [`ANALYTICS.md`](ANALYTICS.md), [`metrics/`](metrics/) |
 | 되돌리기 어려운 판단 | [`decisions/`](decisions/), `api/docs/decisions`, `web/docs/decisions`, tracker `docs/decisions` |
 | 예약 실행 절차, 소요, 사고 | tracker `docs/setup/ROUTINE-SPEC.md`, `ROUTINE-TIMING.md`, `COLLECTION-INCIDENTS.md` |
-| 수집 PC와 폰 인수인계 | tracker `docs/setup/MINIPC-HANDOVER.md`, 기록은 `docs/archive/HANDOFF-*.md` |
+| 수집 PC와 폰 인수인계 | tracker `docs/setup/MINIPC-HANDOVER.md` |
 | 자동화 세션이 지킬 규칙 | tracker `AGENTS.md`, `docs/HARNESS.md` |
