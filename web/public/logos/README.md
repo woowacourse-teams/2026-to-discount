@@ -1,6 +1,6 @@
 # 브랜드 로고 위치
 
-파일명 = **대표명**(`brand-aliases.yml` 적용 후, API가 내려주는 `brand.name`)에
+파일명 = **대표명**(`brands.yml` 적용 후, API가 내려주는 `brand.name`)에
 `src/logos.jsx`의 `brandLogoSrc()`가 적용하는 치환을 거친 것 + `.png`.
 원장에 찍힌 원본 표기가 아니다 — `BHC`/`bhc`/`BHC치킨`은 전부 대표명 `bhc` 하나로
 묶이므로 파일도 `bhc.png` 하나만 있으면 된다.
