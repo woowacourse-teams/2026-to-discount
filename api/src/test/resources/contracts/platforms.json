@@ -1,0 +1,39 @@
+{
+  "note": "플랫폼 목록의 정본(R3, 2026-09-29). Java(Banner.OWN, 배너 계약의 platform 값), 웹(platforms.js), 콘솔(beggars-ops ops_apply.py 편집기 select와 web/index.html B_PLATFORMS, 사본은 tests/fixtures/), 수집기(tracker schema.ALLOWED_PLATFORMS와 banner_routine 상수)가 같은 파일로 시험한다. 배달앱을 하나 더하면 여기부터 고치고, 빨개지는 곳을 따라 고친다.",
+  "own": "own",
+  "delivery": [
+    {
+      "key": "baemin",
+      "label": "배달의민족",
+      "initial": "배"
+    },
+    {
+      "key": "coupangeats",
+      "label": "쿠팡이츠",
+      "initial": "쿠"
+    },
+    {
+      "key": "ddangyo",
+      "label": "땡겨요",
+      "initial": "땡"
+    },
+    {
+      "key": "yogiyo",
+      "label": "요기요",
+      "initial": "요"
+    }
+  ],
+  "ledgerOnly": {
+    "keys": [
+      "specialdelivery"
+    ],
+    "why": "원장(schema.py)은 받지만 화면 필터와 배너에는 없다. 수집기가 관측을 버리지 않으려고 둔 값이다."
+  },
+  "bannerOptions": [
+    "own",
+    "baemin",
+    "coupangeats",
+    "ddangyo",
+    "yogiyo"
+  ]
+}
