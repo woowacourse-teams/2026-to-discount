@@ -586,6 +586,7 @@
    "problem": null,
    "after": {
     "id": "coupangeats-open-20260929-11시-릴레이",
+    "startsAt": "2026-09-28T23:59:59",
     "endsAt": "2026-09-28T23:59:59",
     "endsOn": null
    }
@@ -896,6 +897,6 @@
  },
  "bannerOps": {
   "note": "banner_ops.py(beggars-ops 정본, tracker 사본)의 머리말 docstring 뒤 본문 sha256. 두 사본이 바이트 단위로 같아야 한다. 정본을 고치면 여기도 고친다",
-  "bodySha256": "b9d00201f987310bf717a68d6716d75413c1f608b7f6f99b6eb269381cc8f9da"
+  "bodySha256": "23b6d08bf20311be0fe9645a82d64c01678f37f7413e87faa1592bb24be902a6"
  }
 }
