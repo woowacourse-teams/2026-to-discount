@@ -1,0 +1,311 @@
+/* 설문 카드. 크기와 모서리를 브랜드 카드와 같게 해서 그리드 첫 줄에
+   끼워도 이물감이 없게 한다 — 배너 슬롯에 안 넣은 이유가 이것이다.
+   배너는 4.3초마다 넘어가는데 설문은 머물러야 한다.
+
+   색은 전부 :root 토큰에서 가져온다. 이 페이지는 color-scheme이
+   light dark라 값을 박아 넣으면 다크에서 흰 카드에 검은 글자가 남는다. */
+/* 브랜드 카드와 같은 칸에 섞여 있다(그리드 맨 앞칸) — 회색 테두리로는
+   브랜드 카드 69장 사이에 묻힌다. 배민 민트를 테두리 색으로 직접 써서
+   "이건 브랜드가 아니다"가 스치듯 봐도 걸리게 한다.
+   테두리 밖에 옅은 후광(box-shadow 스프레드)까지 얹었더니 카드가
+   바닥에서 들뜬 것처럼 보였다 — 후광은 빼고 브랜드 카드와 같은
+   그림자만 쓴다. 구분은 테두리 색과 굵기만으로 한다. */
+/* 테두리를 단색 대신 그라데이션으로 준다. border-image는 border-radius와
+   같이 못 써서, 표준 트릭(두 배경을 padding-box/border-box로 나눠 칠하기)
+   으로 만든다 — 안쪽은 카드 배경, 바깥쪽 띠만 그라데이션이 보인다. */
+.survey-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid transparent;
+  border-radius: 14px;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(135deg, #0bebd0, #00c2ff, #7b5cff) border-box;
+  /* 머리 띠가 모서리 밖으로 안 삐져나가게 자른다. */
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(0, 0, 0, .06);
+}
+
+/* 지급 조건을 머리에 띠로 붙인다. 카드를 연 사람이 제일 먼저 보는 줄이
+   "왜 답해야 하는가"여야 한다. 테두리와 같은 그라데이션 계열로 묶는다. */
+.survey-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: 0;
+  padding: 1rem 2.9rem 1rem 1.1rem;   /* 오른쪽은 × 자리 */
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: #fff;
+  background: linear-gradient(100deg, #0bebd0, #00c2ff 55%, #7b5cff);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .18);
+}
+
+.survey-header__icon { flex: none; opacity: .9; }
+
+.survey-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.15rem;
+}
+
+/* 진행 표시. 몇 문항 중 몇 번째인지가 항상 보여야 다음이 얼마나
+   남았는지 가늠이 된다. */
+.survey-progress {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.survey-progress__count {
+  flex: none;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.survey-progress__bar {
+  flex: 1;
+  height: 4px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.survey-progress__fill {
+  height: 100%;
+  background: #0bebd0;
+  border-radius: inherit;
+  transition: width 250ms ease;
+}
+
+/* 캐러셀. 화면마다 질문 하나씩만 보인다 — .survey-slide를 가로로
+   나란히 두고 트랙을 밀어 넘긴다. */
+.survey-viewport { overflow: hidden; }
+
+.survey-track {
+  display: flex;
+  transition: transform 280ms cubic-bezier(.16, 1, .3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .survey-track { transition: none; }
+}
+
+.survey-slide {
+  flex: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+
+.survey-q {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* 항목마다 따로 테두리 박스를 두르던 것을 걷어냈다 — 낱개 카드처럼
+   보여 리스트 하나가 아니라 조각 여러 개로 읽혔다. 목록 전체를 한
+   테두리로 감싸고 항목 사이는 구분선 하나로만 가른다 — 흔한 설정
+   목록 패턴이다. */
+.survey-choices {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.survey-choices li + li {
+  border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+.survey-choice {
+  width: 100%;
+  padding: .7rem .85rem;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 100ms ease;
+}
+
+.survey-choice:hover { background: var(--save-soft); }
+.survey-choice:active:not(:disabled) { transform: scale(.99); }
+.survey-choice:focus-visible { outline: 2px solid #00c2ff; outline-offset: -2px; }
+.survey-choice:disabled { opacity: .5; cursor: default; }
+
+/* 고른 것. 여러 섹션을 훑고 내려가므로 무엇을 골랐는지 남아 보여야 한다.
+   테두리 색을 바꾸는 대신(이제 항목 개별 테두리가 없다) 왼쪽에 얇은
+   그라데이션 띠 하나와 옅은 배경 톤만 준다 — 목록 결은 유지하면서
+   골랐다는 신호만 튄다. */
+.survey-choice--on {
+  position: relative;
+  background: color-mix(in srgb, #00c2ff 8%, var(--surface));
+  color: var(--text);
+  font-weight: 600;
+}
+.survey-choice--on::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #0bebd0, #00c2ff 55%, #7b5cff);
+}
+.survey-choice--on:hover { background: color-mix(in srgb, #00c2ff 12%, var(--surface)); }
+
+.survey-other-input {
+  width: 100%;
+  padding: .5rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 10px;
+  resize: vertical;
+}
+
+.survey-close-btn {
+  align-self: flex-start;
+  padding: .5rem .9rem;
+  font: inherit;
+  color: var(--surface);
+  background: var(--save);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* 마지막 화면의 제출 버튼 — 다음 버튼과 같은 자리, 같은 그라데이션. */
+.survey-send {
+  align-self: flex-start;
+  padding: .5rem .9rem;
+  font: inherit;
+  color: #fff;
+  background: linear-gradient(100deg, #0bebd0, #00c2ff 55%, #7b5cff);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 150ms ease, transform 100ms ease;
+}
+.survey-send:hover:not(:disabled) { filter: brightness(1.08); }
+.survey-send:active:not(:disabled) { transform: scale(.97); }
+.survey-send:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.survey-send:disabled { opacity: .4; cursor: default; }
+
+.survey-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+}
+
+.survey-nav__back {
+  padding: .5rem .7rem;
+  font: inherit;
+  font-size: .88rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 150ms ease, transform 100ms ease;
+}
+.survey-nav__back:disabled { visibility: hidden; }
+.survey-nav__back:hover:not(:disabled) { color: var(--text); }
+.survey-nav__back:active:not(:disabled) { transform: scale(.96); }
+.survey-nav__back:focus-visible { outline: 2px solid #00c2ff; outline-offset: 1px; }
+
+/* 헤더·테두리와 같은 그라데이션 — 카드 안에서 색이 두 갈래로 안 갈리게. */
+.survey-nav__next {
+  padding: .5rem 1.1rem;
+  font: inherit;
+  color: #fff;
+  background: linear-gradient(100deg, #0bebd0, #00c2ff 55%, #7b5cff);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: filter 150ms ease, transform 100ms ease;
+}
+.survey-nav__next:hover:not(:disabled) { filter: brightness(1.08); }
+.survey-nav__next:active:not(:disabled) { transform: scale(.97); }
+.survey-nav__next:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.survey-nav__next:disabled { opacity: .4; cursor: default; }
+
+.survey-nav .survey-send { align-self: auto; }
+
+.survey-close-btn {
+  transition: background-color 150ms ease, transform 100ms ease;
+}
+.survey-close-btn:hover { background: var(--save-hover); }
+.survey-close-btn:active { transform: scale(.97); }
+.survey-close-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* 머리 띠 위에 앉는다 — 띠가 색이라 글자색도 흰색이다. */
+.survey-x {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44px;
+  height: 40px;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, .92);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 100ms ease;
+}
+
+.survey-x:hover:not(:disabled) { background: rgba(255, 255, 255, .16); }
+.survey-x:active:not(:disabled) { transform: scale(.9); }
+.survey-x:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.survey-x:disabled { opacity: .4; cursor: default; }
+
+.survey-thanks { margin: 0; color: var(--text); }
+.survey-code-label { margin: 0; font-size: .82rem; color: var(--text-muted); }
+.survey-nostock { margin: 0; font-size: .9rem; color: var(--text-muted); }
+.survey-help { margin: 0; font-size: .82rem; color: var(--text-muted); }
+.survey-help a { color: inherit; text-decoration: underline; }
+
+/* 사용자가 번호를 받아 가는 유일한 자리다. 연락처를 안 받기로 했으니
+   여기서 놓치면 다시 줄 방법이 없다 — 크게, 통째로 선택되게 둔다. */
+.survey-code {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  user-select: all;
+}
+
+/* 코드 대신 사람마다 다른 1회용 링크를 줄 때 쓴다. 문자열로 복사하는
+   대신 바로 눌러 열게 — 링크는 외워 옮겨 적을 수 있는 값이 아니다. */
+.survey-code-link {
+  align-self: flex-start;
+  padding: .6rem 1.1rem;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: color-mix(in srgb, #0bebd0 78%, #000);
+  border-radius: 8px;
+  text-decoration: none;
+}
+.survey-code-link:hover { background: color-mix(in srgb, #0bebd0 88%, #000); }
+
+.survey-failed { margin: 0; font-size: .85rem; color: var(--pending-text); }

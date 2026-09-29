@@ -1,0 +1,62 @@
+/* ── 분류 캐러셀 ──────────────────────────────────────────────────
+   버튼을 눌러 패널을 여는 대신 분류를 그냥 깔아둔다. 분류를 고르는 건
+   이 화면의 주된 조작이고, 한 번 더 누르게 하면 그만큼 안 쓴다.
+
+   좁으면 옆으로 흐른다 — 줄바꿈으로 두면 분류가 늘 때마다 바 높이가
+   변해 스페이서 실측이 매번 따라다녀야 한다. */
+/* 자기 판을 깔지 않는다. .title-bar 안에 있으니 그 그라데이션(--bg에서
+   투명으로)을 그대로 잇는다 — 전엔 --surface 불투명 판에 윗선까지 그어
+   타이틀바와 다른 색의 띠로 보였다(2026-09-14). 하나의 바다. */
+[data-variant="a"] .cat-bar {
+  background: transparent;
+}
+[data-variant="a"] .cat-bar__list {
+  display: flex;
+  align-items: center;
+  gap: .1rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  max-width: 880px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* 손을 떼면 항목 경계에 멈춘다 — 글자가 반쯤 잘린 채로 서면 무엇이
+     더 있는지 읽히지 않는다. */
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+[data-variant="a"] .cat-bar__list::-webkit-scrollbar { display: none; }
+[data-variant="a"] .cat-bar__item {
+  position: relative;
+  scroll-snap-align: start;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  white-space: nowrap;
+  /* 44px 세로 타깃. 글자는 작게 두되 눌리는 상자는 손가락에 맞춘다. */
+  height: 44px;
+  padding: 0 .55rem;
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color .16s ease, transform .12s ease;
+}
+[data-variant="a"] .cat-bar__item:hover { color: var(--text); }
+[data-variant="a"] .cat-bar__item:active { transform: scale(.96); }
+[data-variant="a"] .cat-bar__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 고른 분류만 밑줄. 판을 깔면 캐러셀이 알약 줄처럼 무거워진다. */
+[data-variant="a"] .cat-bar__item--on { color: var(--text); font-weight: 700; }
+[data-variant="a"] .cat-bar__item--on::after {
+  content: '';
+  position: absolute;
+  left: .45rem;
+  right: .45rem;
+  bottom: 6px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--text);
+}
+
+/* 바 아래 구분선이 생긴 뒤(2026-09-16)로는 큰 띄움이 필요 없다 — 30px은
+   흐려지는 바에서 배너가 바에 닿아 보이던 시절 값이다. */
+[data-variant="a"] .banner-slot { margin-top: 2px; }

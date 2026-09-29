@@ -151,12 +151,17 @@ web/scripts/verify-posthog-sdk.mjs
 web/scripts/verify-search-filters.mjs
 web/src/App.css
 web/src/App.jsx
+web/src/BrandCard.jsx
+web/src/BrandGridSkeleton.jsx
 web/src/BrandSuggestions.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
 web/src/HiddenBrandsSheet.jsx
 web/src/HideBrandAsk.jsx
+web/src/OfferChip.jsx
+web/src/OfferDetail.jsx
 web/src/PushNotificationSetting.jsx
+web/src/SiteFooter.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
 web/src/TopBarA.jsx
@@ -199,6 +204,21 @@ web/src/pushPrompt.js
 web/src/pushPrompt.test.js
 web/src/pushSyncRetry.js
 web/src/pushSyncRetry.test.js
+web/src/styles/banner.css
+web/src/styles/base.css
+web/src/styles/brand-card.css
+web/src/styles/card-foot-bar.css
+web/src/styles/cat-bar.css
+web/src/styles/filter-sheet.css
+web/src/styles/footer-push.css
+web/src/styles/hidden-brands.css
+web/src/styles/hide-ask.css
+web/src/styles/offer-tabs.css
+web/src/styles/overflow.css
+web/src/styles/status.css
+web/src/styles/survey-dock.css
+web/src/styles/survey.css
+web/src/styles/topbar-overrides.css
 web/src/surveyDismiss.js
 web/src/surveyDismiss.test.js
 web/src/surveyQuestions.js
@@ -254,7 +274,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 123 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 82 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 102 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -293,14 +313,19 @@ HTTP 경계:
 
 | 모듈 | 책임 |
 |---|---|
-| `App.css` | 서비스 전체 스타일 |
-| `App.jsx` | 브랜드 비교, 분류, 검색, 상세 |
+| `App.css` | 스타일 진입점(styles/를 캐스케이드 순서대로 import) |
+| `App.jsx` | 브랜드 비교, 분류, 검색 화면 조립 |
+| `BrandCard.jsx` | 브랜드 카드 한 장 |
+| `BrandGridSkeleton.jsx` | 로딩 중 카드 자리지킴 |
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합) |
 | `HiddenBrandsSheet.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `HideBrandAsk.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `OfferChip.jsx` | 앱별 할인 칩과 앱 링크 사다리 |
+| `OfferDetail.jsx` | 칩을 펼친 상세 조건 |
 | `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `SiteFooter.jsx` | 서비스 안내 푸터 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `TopBarA.jsx` | 상단 바(앱 버튼·분류 캐러셀). 옛 A안, 2026-09-15부터 유일 |

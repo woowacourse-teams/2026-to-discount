@@ -1,0 +1,564 @@
+/* ---------------------------------------------------------------------------
+   당일 행사 배너 (EventBanner.jsx)
+
+   상단(.banner--top)과 하단(.banner--bottom)은 밀도와 색만 다른 같은 상자다.
+   색은 JS가 시드색 하나에서 파생해 CSS 변수로 꽂아준다(brandColor.js) —
+   여기서는 어느 변수를 어디에 칠할지만 정한다.
+   --------------------------------------------------------------------------- */
+
+.banner-slot {
+  position: relative;
+  /* 좌우 여백은 화살표 자리(데스크톱, 아래 미디어쿼리). 폰은 0. */
+  --arrow-gutter: 0px;
+  padding: 0 var(--arrow-gutter);
+  /* main 바깥에 있어 폭 제약이 없었다 — 넓은 화면에서 배너만 카드
+     격자를 넘어 끝까지 늘어났다. 본문 너비(880px)에 맞추되 좌우 여백은
+     두지 않는다 — 배너는 카드 격자 위를 꽉 채우는 한 덩어리다. */
+  max-width: 880px;
+  margin: 0 auto 2px;
+
+  /* 메뉴바에 바로 붙고, 아래로도 거의 붙는다 — 배너와 카드가 한
+     덩어리로 읽혀야 배너가 목록 위에 떠 있는 별개 층으로 안 보인다. */
+}
+
+/* 배너 판은 한 색으로 고정한다.
+   브랜드마다 로고에서 색을 뽑아 깔았더니 넘어갈 때마다 판이 통째로
+   바뀌어, 무엇이 바뀐 건지(브랜드인지 배너인지)가 안 읽혔다. 색은 로고와
+   플랫폼 배지가 이미 충분히 들고 있다. 판은 조용히 뒤에 있는 편이 낫다. */
+.banner {
+  /* #17171a에서 한 단계 밝게(사용자 결정 2026-09-16). */
+  --banner-plate: #2e2e34;
+  --banner-plate-line: rgba(255, 255, 255, .1);
+  position: relative;
+  border-radius: 14px;
+  /* 테두리 없이, 왼쪽 위 완전 검정에서 오른쪽 아래 판 색으로 길게·천천히
+     변하는 약한 그라데이션(사용자 결정 2026-09-16). */
+  background: linear-gradient(135deg, #121214 0%, var(--banner-plate) 100%);
+  border: 0;
+  /* overflow는 건드리지 않는다. 하단 배너의 닫기 버튼이 모서리 밖에
+     걸쳐 있어 잘라내면 사라진다. 진행 막대는 .banner 안이 아니라
+     .banner-slot에 있으므로 여기서 자를 것이 없다. */
+  animation: banner-in 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* 상단은 밝은 틴트에 진한 글자, 하단은 진한 브랜드색에 흰 글자다. 하단은
+   카드 위에 겹쳐 뜨는 층이라 밝은 틴트로는 카드와 구분이 약하다. */
+.banner--top {
+  --banner-bg-c: var(--banner-plate);
+  --banner-line-c: var(--banner-plate-line);
+  --banner-ink-c: #f5f5f4;
+  --banner-accent-c: var(--banner-accent);
+}
+.banner--bottom {
+  --banner-bg-c: var(--banner-deep);
+  --banner-line-c: var(--banner-deep);
+  --banner-ink-c: #fff;
+  --banner-accent-c: var(--banner-deep-accent);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .18);
+}
+
+/* 배너가 갈아탈 때 옆에서 들어온다. 캐러셀은 가로로 넘어가는 물건인데
+   세로로 올라오면 "다음 장"이 아니라 "새 알림이 떴다"로 읽힌다. */
+@keyframes banner-in {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* 안쪽 요소가 각자 여백을 들고 있다. 링크가 또 패딩을 주면 로고 패딩
+   12px이 실제로는 12 + 링크 패딩이 되어 값이 뜻대로 안 먹는다. 오른쪽만
+   닫기 버튼 자리를 비운다. */
+.banner__link {
+  position: relative;   /* .banner__platform(앱 배지)의 기준 */
+  flex: 1 1 auto;       /* 카드 높이를 다 차지한다 — 세로 가운데의 기준 */
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  /* 위아래 같은 값 — 로고와 글줄이 배너 판의 정가운데에 선다. 오른쪽은
+     닫기 버튼 자리. 우측 하단 조작 묶음 자리는 조건 줄(.banner__extra)만
+     비운다 — 링크 전체를 비우면 금액 줄이 접혀 배너가 커진다. */
+  padding: 6px 2.4rem 6px 0;   /* 2026-09-19 사용자: 배너 높이 조금 줄임(9→6, 글줄 7→4 = -12px) */
+  text-decoration: none;
+  color: inherit;
+}
+.banner__link:focus-visible { outline: 2px solid var(--banner-ink-c); outline-offset: 2px; border-radius: 14px; }
+/* 인디케이터가 있는 배너만 아래를 더 비운다 — 한 건짜리 배너에 빈 자리를
+   남기지 않는다. */
+/* 인디케이터는 자리를 따로 차지하지 않고 배너 위에 얹는다. 아래에만
+   자리를 비우면 위 11px / 아래 28px이 되어 여백이 아니라 덧대진 테두리로
+   읽혔다. 위아래를 같게 두고 점은 겹쳐 그린다 — 캐러셀에서 흔한 배치다. */
+
+/* 가로로 넘기는 배너 줄. 한 장이 화면 폭을 꽉 채우고 경계에서 멈춘다 —
+   반쯤 걸친 채로 서면 어디까지가 한 배너인지 안 읽힌다. */
+/* 트랙은 스크롤 컨테이너가 아니다(2026-09-16). 장 전체를 한 줄로 깔고
+   EventBanner가 slot 하나를 transform으로 옮긴다 — 상단·도크가 같은 값을
+   본다. 끌기는 포인터 이벤트로 받는다(touch-action: pan-y — 세로 스크롤은
+   브라우저에, 가로는 우리가). 넘치는 장은 슬롯이 자른다. */
+.banner-track {
+  display: flex;
+  /* 장 사이 12px — 넘어갈 때 옆 장이 딱 붙어 따라오지 않는다(2026-09-16).
+     transform도 이 값을 더해 옮긴다(EventBanner SLIDE_GAP). */
+  gap: var(--slide-gap, 12px);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+}
+.banner-viewport { overflow: hidden; }
+/* 도크는 떠 있는 층이라 둥글고, 상단은 바 밑에 붙는 띠라 각지다(A안). */
+.banner-dock__inner .banner-viewport { border-radius: 14px; }
+.banner-slot .banner-track > .banner, .banner-dock__inner .banner-track > .banner {
+  flex: 0 0 100%;
+  /* 카드는 트랙의 가장 키 큰 장 높이로 늘어난다(묶음 로고 격자 83px). 링크가
+     그 높이를 다 채워야 낱장 로고·글줄이 카드 세로 가운데에 선다 — 안 채우면
+     내용이 위에 붙는다(사용자 지적 2026-09-16). */
+  display: flex;
+  flex-direction: column;
+  /* flex 항목의 min-width:auto는 내용 폭(줄바꿈 안 되는 금액)만큼 카드를
+     키운다 — 360px에서 카드가 380px이 돼 배지가 잘렸다(2026-09-16 실측). */
+  min-width: 0;
+  width: 100%;
+}
+
+.banner-track > .banner {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  /* 여러 장이 한 줄에 있으므로 등장 애니메이션은 첫 장에만 의미가 있다.
+     전부 걸면 옆으로 넘길 때마다 이미 있던 배너가 다시 떠오른다. */
+  animation: none;
+}
+
+/* 로고 덩어리. --logo 하나로 로고와 그 위 배지 크기가 같이 움직인다 —
+   두 값을 따로 적어두면 한쪽만 고쳐서 배지가 로고 밖으로 나간다.
+   .brand-logo는 span이라 감싼 쪽이 flex여야 폭·높이가 먹는다. */
+.banner__logo {
+  /* 56 → 64px(1.3배는 묶음 격자 쪽에서, 아래 --grid). */
+  --logo: 64px;
+  --logo-radius: 14px;
+  position: relative;
+  display: flex;
+  flex: none;
+  line-height: 0;
+  /* 왼쪽 여백과 로고-글줄 사이(.banner__link gap)를 같은 16px로(사용자
+     결정 2026-09-16). 오른쪽은 gap이 맡으니 0. */
+  padding: 6px 0 6px 22px;
+}
+.banner__logo .brand-logo {
+  width: var(--logo);
+  height: var(--logo);
+  border-radius: var(--logo-radius);
+  /* 판이 진한 한 색이라 검은 로고는 그대로 두면 사라진다. 흰 받침을
+     깔아 어떤 로고든 형태가 남게 한다 — 로고 파일마다 배경이 있고 없고가
+     제각각이라 이쪽에서 바닥을 만들어 주는 편이 확실하다. */
+  background: #fff;
+  /* 네모난 로고를 둥근 상자에 넣으면 모서리가 깎여 나간다. 깎이는 만큼
+     안쪽으로 들여 그린다(반지름 * 0.3 ≈ 45도 지점의 잘림 깊이). */
+  padding: calc(var(--logo-radius) * .3);
+}
+/* cover는 상자를 채우려고 잘라낸다 — 로고는 잘리면 안 되는 그림이다. */
+.banner__logo .brand-logo img { object-fit: contain; }
+
+/* 한 장에 묶인 브랜드 로고들 — 2×2 격자. 한 줄로 겹쳐 쌓으면 넷일 때
+   폭이 로고 두 개 반이 되어 금액 줄이 접혔다(모바일 360px, 사용자 지적
+   2026-09-16). 격자는 낱장 로고 자리(--logo)보다 살짝 큰 정사각형 하나만
+   차지해 오른쪽 글줄 폭이 낱장 배너와 같다. 셋이면 한 칸이 빈다 — 그대로
+   둔다. 칸 안 여백은 없다: 칸 자체가 이미 작다. */
+.banner__logos {
+  /* 낱장 로고의 1.3배 — 네 칸으로 나눠도 한 칸이 40px 넘게 남아 식별된다. */
+  --grid: calc(var(--logo) * 1.15);   /* 1.3 → 1.15: 낱장과 크기 차이를 줄인다(2026-09-20) */
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;
+  gap: 1px;
+  width: var(--grid);
+  height: var(--grid);
+}
+.banner__logos .brand-logo {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--logo-radius) * .55);
+}
+/* 개수별 배치(2026-09-16). 순서대로 2×2에 넣으면 둘일 때 아래 반이, 셋일 때
+   한 칸이 빈다. 그룹 아바타(슬랙·팀즈·iOS 폴더)가 쓰는 배치를 따른다:
+     2 = 왼쪽 위·오른쪽 아래 대각선, 각 64%
+     3 = 위 두 칸 + 아래 가운데 한 칸(삼각)
+     4 = 2×2 */
+.banner__logos[data-count="2"] { display: block; }
+/* 둘이면 왼쪽 아래 + 오른쪽 위, 오른쪽 위가 덮는다(사용자 2026-09-20). 각 74% — 낱장(--logo)과
+   크기 차이가 심하지 않게, 그리고 겹치는 만큼 붙여 한 덩어리로. */
+.banner__logos[data-count="2"] .brand-logo { position: absolute; width: 66%; height: 66%; }
+/* 첫(대표) 브랜드가 오른쪽 위, 위에 덮인다. 둘째는 왼쪽 아래. */
+.banner__logos[data-count="2"] .brand-logo:nth-child(1) { right: 0; top: 0; z-index: 2; }
+.banner__logos[data-count="2"] .brand-logo:nth-child(2) { left: 0; bottom: 0; z-index: 1; }
+/* 셋은 삼각 배치에 살짝 겹침: 위 둘은 안쪽으로, 아래 하나는 위로 올라와 겹친다. */
+.banner__logos[data-count="3"] { display: block; }
+.banner__logos[data-count="3"] .brand-logo { position: absolute; width: 58%; height: 58%; }
+.banner__logos[data-count="3"] .brand-logo:nth-child(1) { left: 0; top: 0; z-index: 3; }
+.banner__logos[data-count="3"] .brand-logo:nth-child(2) { right: 0; top: 0; z-index: 2; }
+.banner__logos[data-count="3"] .brand-logo:nth-child(3) { left: 21%; bottom: 0; z-index: 1; }
+
+/* 브랜드가 없는 앱 전체 행사 — 로고 자리에 앱 아이콘이 들어간다. */
+.brand-logo--platform { background: var(--surface); }
+.brand-logo--platform img { object-fit: contain; padding: 4px; }
+
+/* 플랫폼 배지는 로고 우측 하단에 얹는다. 따로 떨어뜨려 두면 "이 브랜드"와
+   "이 앱"이 각각 읽히는데, 겹쳐 두면 한 덩어리로 읽힌다 — 앱 아이콘에
+   흔한 배치다. 로고 크기를 따라가므로 어느 자리에서든 비율이 같다. */
+/* 앱 배지는 로고 모서리가 아니라 **배너 판의 오른쪽 위**에 선다(사용자
+   결정 2026-09-16). 로고 위에 겹치면 묶음 2×2에서 한 칸을 먹고 낱장에서는
+   로고를 가렸다. 기준은 .banner(카드)다. */
+.banner__platform {
+  position: absolute;
+  /* 34px의 0.9배, 오른쪽 위 모서리에서 안쪽으로 3px 더(사용자 결정 2026-09-16). */
+  right: 11px;
+  top: 10px;
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  /* 앱 아이콘은 그 자체로 모양과 색을 가진 그림이다. 판을 깔거나 테두리를
+     두르면 한 겹 덧댄 스티커처럼 보인다 — 그림만 남긴다. */
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.banner__platform img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 금액·기간·조건을 한 세로줄로. 높이는 내용이 정한다 — 줄 수를 미리
+   박아두면 조건이 긴 배너에서 글자가 잘린다. */
+.banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  /* 위아래 같은 값. 점이 뜰 자리는 이 여백과 링크 여백을 합친 10px이다(2026-09-19 -12px). */
+  padding: 4px 0;
+}
+
+/* 금액이 배너의 주인공이다. 좁은 화면에서도 이 글씨는 줄이지 않는다. */
+/* 금액 한 줄, 브랜드·기간 한 줄, 조건 한 줄 — 폭과 무관하게 세 줄이다.
+   전엔 금액과 기간을 한 줄에 두고 좁으면 flex-wrap으로 내려가게 했는데,
+   그러면 폰과 데스크톱이 다른 배너를 보고 조건 긴 배너는 폭마다 줄 수가
+   달라졌다. 폰에서 내려간 모양이 더 읽혀서 그걸 기본으로 박는다. */
+.banner__headline {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  /* 금액 줄과 브랜드·기간 줄 사이. 좁으면 한 덩어리로 뭉쳐 보였다
+     (사용자 지적 2026-09-16). */
+  gap: .3rem .5rem;
+  min-width: 0;
+}
+.banner__when {
+  flex-basis: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: .1rem .35rem;
+  min-width: 0;
+}
+
+/* 둘째 줄, 기간 바로 왼쪽. 같은 줄에 서지만 기간보다 진해서 이름이 먼저
+   읽힌다. 이름이 길면 이쪽이 줄고 기간은 안 줄인다(flex: 0 1 auto + 말줄임). */
+.banner__brand {
+  flex: 0 1 auto;
+  font-size: .82rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--banner-ink-c);
+  /* 이름이 길어도 금액을 밀어내지 않는다. 잘려도 로고가 받쳐 준다. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.banner__amount {
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  /* 제일 큰 글씨가 제일 높은 대비를 갖는다. 금액을 틴트색으로 두고
+     기간을 흰색으로 뒀더니 눈이 기간부터 읽었다. */
+  color: var(--banner-ink-c);
+  /* 글자 중간에서 안 끊는다("중복할|인"). 끊을 자리는 띄어쓰기뿐이다. */
+  word-break: keep-all;
+}
+/* 긴 금액 문구("1,000/2,000원 중복할인")는 한 단계 작게 — 두 줄로 접히면
+   그 장만 키가 커지고, 캐러셀은 가장 큰 장에 맞춰 나머지 장 아래에 빈 띠를
+   만든다. 폭이 아니라 글자 수로 정해 폰과 데스크톱이 같은 배너를 본다. */
+.banner__amount--long { font-size: 1.15rem; }
+.banner--bottom .banner__amount--long { font-size: 1rem; }
+.banner--bottom .banner__amount { font-size: 1.15rem; }
+
+.banner__period {
+  flex: none;
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--banner-accent-c);
+}
+/* 조건은 말줄임하지 않는다. 최소주문금액이나 선착순 여부가 잘리면
+   눌러야 할지 말지를 판단할 수 없어, 있으나 마나 한 줄이 된다. */
+/* 다 나간 배너. 지우지 않고 눌러 둔다 — 금액에 취소선을 긋고 판 전체를
+   흐리게 해서, 눌러도 소용없다는 것이 누르기 전에 읽히게 한다. */
+.banner--soldout .banner__amount {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  opacity: .55;
+}
+.banner--soldout .banner__logo,
+.banner--soldout .banner__brand,
+.banner--soldout .banner__extra { opacity: .55; }
+/* 우측 하단 조작 묶음("n / N" + 멈춤, 약 80px)이 이 줄 위에 뜬다. 자리를 비우는 것은
+   **조건 줄 하나뿐이다**. 셋에 다 주면 로고 상자가 84px 넓어져 그 오른쪽 내용이 전부
+   밀린다 — 소진 표시가 켜지는 순간 배너가 통째로 어긋나 보였다(2026-09-22). */
+.banner--soldout .banner__extra { padding-right: 84px; }
+/* 묶음에서 한 곳만 소진이면 그 이름만 흐린다(bannerMembers.js). */
+.banner__member--soldout { opacity: .45; text-decoration: line-through; }
+.banner__soldout {
+  flex: none;
+  margin-left: .35rem;
+  padding: .1rem .4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+
+.banner__extra {
+  font-size: .72rem;
+  line-height: 1.4;
+  color: var(--banner-ink-c);
+  opacity: .78;
+  overflow-wrap: anywhere;
+}
+
+/* 오른쪽 위 모서리 밖으로 걸치되, 오른쪽 테두리에서는 유격을 둔다.
+   배경색 테두리로 한 겹 띄워 배너에서 떠 보이게 한다. */
+/* 닫기는 오른쪽 위 모서리 — 플랫폼 배지가 있던 자리다. 오른쪽 세로
+   가운데는 이제 플랫폼 로고가 쓴다. 하단 플로팅 배너에서는 모서리
+   밖으로 걸쳐 "맨 위로" 버튼과 자리를 다투지 않는다(아래 규칙). */
+.banner__close {
+  position: absolute;
+  top: .4rem;
+  right: .4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .18);
+  color: #fff;
+  cursor: pointer;
+}
+@media (hover: hover) { .banner__close:hover { background: rgba(255, 255, 255, .3); } }
+/* 플로팅 배너는 화면에 떠 있어 모서리 밖 여유가 있다. 밖으로 빼면
+   금액·부가정보를 가리지 않고, 배너 자체와도 겹치지 않는다. */
+.banner--bottom .banner__close,
+.banner-dock__close {
+  background: var(--text);
+  color: #fff;
+  border: 2px solid var(--bg);
+}
+.banner--bottom .banner__close { top: -9px; right: -9px; }
+/* 도크의 닫기는 트랙 밖에 하나 — 배너 카드 우상단 모서리 밖(전과 같은 자리).
+   도크 안쪽 패딩(위 12px, 옆 --dock-pad-x) 기준으로 셈한다. */
+.banner-dock__close {
+  top: 3px;
+  right: calc(var(--dock-pad-x) - 9px);
+  z-index: 3;
+}
+@media (hover: hover) { .banner--bottom .banner__close:hover, .banner-dock__close:hover { background: #333; } }
+.banner__close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* 하단 중앙 인디케이터. 점 자체는 6px이지만 버튼은 14px을 차지해
+   손가락으로 누를 자리를 남긴다. */
+/* 아래 테두리 자리를 채우는 진행 막대. 트랙 밖(.banner-slot)에 있으므로
+   장이 넘어가도 자리를 지킨다. 다 차면 onAnimationEnd가 다음 장을 부른다 —
+   보이는 시간과 실제로 넘어가는 시점이 하나다. */
+/* 진행 링 — 멈춤/재생 버튼(정확한 원)을 감싼다. 테두리가 다 차면 다음 장.
+   stroke-dashoffset를 둘레(--c)에서 0으로 줄여 채운다. 시작점은 12시(-90°). */
+.banner__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.banner__ring-track { fill: none; stroke: rgba(255, 255, 255, .18); stroke-width: 2.5; }
+.banner__ring-fill {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: var(--c);
+  stroke-dashoffset: var(--c);
+  animation: banner-ring var(--rotate, 5s) linear forwards;
+}
+.banner__ring-fill--paused { animation-play-state: paused; }
+@keyframes banner-ring { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .banner__ring { display: none; }
+}
+
+/* 캐러셀 조작(사용자 결정 2026-09-16). 우측 하단에 "n / N" + 멈춤/재생
+   묶음, 좌우 가장자리에 이전/다음 화살표. 화살표는 손가락 화면(hover 없음)
+   에서 숨긴다 — 미는 것이 곧 이동이다. 판은 반투명 흰색 알약. */
+.banner__ctl {
+  position: absolute;
+  /* 슬롯 기준이라 화살표 여백(--arrow-gutter)만큼 안으로 — 안 그러면 판
+     밖 밝은 바탕에 흰 알약이 떨어져 안 보인다(2026-09-16 800px 실측). */
+  right: calc(var(--arrow-gutter, 0px) + 8px);
+  bottom: 6px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.banner__counter,
+.banner__ctl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 카운터와 멈춤 원이 같은 높이 24px(사용자 결정 2026-09-16). */
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.banner__counter {
+  padding: 0 9px;
+  font-size: .74rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+  opacity: .9;
+}
+.banner__counter b { font-weight: 800; margin-right: 1px; }
+.banner__ctl-btn {
+  /* 정확한 원(사용자 결정 2026-09-16). 링(.banner__ring)이 이 원을 감싼다. */
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  transition: background .15s ease, transform .12s ease;
+}
+@media (hover: hover) { .banner__ctl-btn:hover { background: rgba(255, 255, 255, .28); } }
+.banner__ctl-btn:active { transform: scale(.94); }
+.banner__ctl-btn:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: 2px; }
+
+.banner__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  margin-top: -13px;
+  padding: 0;
+  border-radius: 50%;
+  /* 판을 덮지 않는다. 배경을 비우고 흰 화살표에 검은 테두리를 둘러, 밝은 배너
+     위에서도 윤곽이 남게 한다(2026-09-24 사용자). */
+  background: none;
+  border: 1px solid rgba(0, 0, 0, .55);
+  color: #fff;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease, transform .12s ease;
+}
+/* 배너 위에 얹는다. 좌우에 빈 칸을 두면 배너만 안쪽으로 들어가 정렬바, 카드와
+   왼쪽 선이 어긋난다(2026-09-24 사용자). 로고는 왼쪽 끝에서 조금 들어와 있고
+   조작 묶음은 오른쪽 아래라, 세로 가운데의 이 자리는 비어 있다. */
+/* 슬롯이 아니라 판 안쪽을 기준으로 선다. 슬롯 좌우 여백(1.25rem)만큼 더 들어와야
+   판 위에 얹힌다 - 안 그러면 판 바깥 빈 자리에 떠서 왼쪽 선을 다시 깨뜨린다. */
+.banner__arrow--prev { left: calc(1.25rem + 8px); }
+.banner__arrow--next { right: calc(1.25rem + 8px); }
+@media (hover: hover) { .banner__arrow:hover { background: rgba(0, 0, 0, .55); } }
+.banner__arrow:active { transform: scale(.94); }
+.banner__arrow:focus-visible { outline: 2px solid rgba(255, 255, 255, .8); outline-offset: 2px; }
+/* 넓은 화면에서만 화살표. hover/pointer 미디어쿼리는 안 쓴다 — 일부
+   안드로이드 브라우저가 hover:hover를 보고한다(experiments.py 개발 판정
+   사고와 같은 뿌리). 폭으로 가른다. */
+/* 폰(≤ 600px)만 숨긴다. 작은 데스크톱 창에서도 화살표는 있어야 한다. */
+@media (min-width: 601px) {
+  .banner__arrow { display: inline-flex; }
+
+  .banner-slot { padding: 0 1.25rem; }
+}
+
+/* 상단 배너가 화면 밖으로 나가면 올라오는 층. 불투명하고, 떠 있는 층은
+   뷰포트가 아니라 본문 폭을 따라간다는 이 레포 규칙을 그대로 따른다 —
+   하단만 화면 끝까지 채우면 위는 880px, 아래는 화면 폭으로 어긋난다.
+   안 보일 때 visibility:hidden이라 탭 순서에서도 빠진다. */
+/* 하단 플로팅도 본문 폭을 넘지 않는다 — 화면이 넓으면 배너만 끝까지
+   늘어나 목록과 어긋나 보인다. */
+.banner-dock {
+  max-width: 880px;
+  margin-left: auto;
+  margin-right: auto;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 14;
+  visibility: hidden;
+  opacity: 0;
+  /* 옆에서 들어온다. 아래에서 올라오면 토스트나 알림처럼 읽히는데,
+     이건 위 슬롯에 있던 것과 같은 캐러셀이라 움직임도 같아야 한다
+     (@keyframes banner-in도 같은 방향). */
+  transform: translateX(14px);
+  transition: opacity 200ms ease,
+              transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 200ms;
+}
+.banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
+/* 하단 도크에서는 배너 카드의 바닥선에 맞춘다(도크 패딩만큼 올린다). */
+
+.banner-dock__inner .banner__ctl { bottom: calc(var(--dock-pad-bottom) + 6px); right: calc(var(--dock-pad-x, 1rem) + 6px); }
+/* 막대도 배너 아래 테두리 자리에 맞춘다 — 도크는 배너가 패딩만큼
+   안쪽에 있어 슬롯과 자리가 다르다. */
+/* 하단 도크 진행 막대는 뺐다(2026-09-15). */
+
+.banner-dock__inner {
+  /* 점은 absolute다 — 여기가 기준이 아니면 fixed인 .banner-dock을 잡아
+     배너 바깥(도크 바닥)으로 떨어진다. */
+  position: relative;
+  /* 아래 패딩만큼 기준선이 배너 바닥보다 내려가 있다. 점은 그 몫을
+     되돌려 배너 안에 앉는다(상단 슬롯은 패딩이 없어 그대로 맞는다). */
+  --dock-pad-bottom: .85rem;
+  --dock-pad-x: 1.25rem;
+  max-width: 880px;
+  margin: 0 auto;
+  /* 위쪽 여유는 걸쳐 나온 배지 몫이다. */
+  padding: 12px var(--dock-pad-x) var(--dock-pad-bottom);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner { animation: none; }
+  /* 움직임을 줄이라고 했으면 올라오는 동작만 뺀다 — 보이고 안 보이고는
+     그대로 둔다. 폭·정렬 규칙까지 여기서 다시 적을 이유가 없다. */
+  .banner-dock {
+    transition: opacity 200ms ease, visibility 200ms;
+    transform: none;
+  }
+}

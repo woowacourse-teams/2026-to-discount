@@ -64,7 +64,7 @@ test('데일리 슈퍼딜은 최대 N원으로 온다', () => {
 
 test('웹이 읽는 배너 칸은 계약의 consumers.web과 같고 전부 응답에 있다', () => {
   // 소스에서 banner.X를 모은다. 주석 속 이름은 뺀다(bannerTag.js 머리말이 period를 말한다).
-  const files = ['EventBanner.jsx', 'bannerTag.js', 'bannerMembers.js', 'App.jsx']
+  const files = ['EventBanner.jsx', 'bannerTag.js', 'bannerMembers.js', 'App.jsx', 'OfferChip.jsx']
   const read = new Set()
   for (const f of files) {
     const code = readFileSync(fileURLToPath(new URL(f, import.meta.url)), 'utf8')

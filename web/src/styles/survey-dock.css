@@ -1,0 +1,131 @@
+/* 설문 트리거 알약. 우측 하단에 떠 있다가 누르면 그리드 맨 앞칸에 카드가
+   열린다(App.jsx) — 이 버튼 자체는 카드를 안 그린다.
+   ────────────────────────────────────────────────
+   회색 배경이던 것을 배민 민트 원색으로 바꿨다 — 브랜드 카드 사이 틈에
+   섞이는 대신 화면에서 먼저 눈에 띄어야 하는 요소라서다.
+   같은 자리에 "맨 위로" 버튼이 있다(.to-top-btn, 40px). 평소엔 그 위로
+   올려 겹치지 않게 한다.
+   하단 이벤트 배너가 뜨면 자리가 배너로 바뀐다 — 맨 위로 버튼 몫
+   여백은 배너가 뜬 동안은 안 쓰는 자리라 빼고, 배너 실측 높이
+   (--banner-dock-h, EventBanner.jsx가 채운다) 바로 위에 작은 틈만
+   두고 붙인다. 두 여백을 같이 더했다가(처음 버전) 배너가 두 줄로
+   접히는 좁은 화면(실측 375px)에서 카드 영역까지 밀려 올라간 적이
+   있다 — 값을 안 재고 넓은 창에서만 확인한 채 넘긴 결과다. */
+/* 바깥 상자가 색·모양·위치를 들고, 안의 두 버튼(열기/닫기)은 투명해
+   그 위에 얹힌다 — 배경이 둘로 갈리면 이음매가 보여 알약 하나가 아니라
+   붙여 놓은 두 조각처럼 읽힌다. */
+.survey-dock {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(1rem + 40px + .6rem);
+  transition: bottom 200ms ease;
+  z-index: 51;
+  display: flex;
+  align-items: stretch;
+  max-width: min(19rem, calc(100vw - 2rem));
+  color: #fff;
+  background: color-mix(in srgb, #0bebd0 78%, #000);
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .12), 0 10px 24px color-mix(in srgb, #0bebd0 35%, transparent);
+  animation:
+    survey-dock-in 400ms cubic-bezier(.16, 1, .3, 1),
+    survey-dock-bob 2600ms ease-in-out .5s infinite;
+}
+
+@keyframes survey-dock-in {
+  from { opacity: 0; transform: translateY(8px) scale(.96); }
+  to { opacity: 1; transform: none; }
+}
+/* 가만히 있으면 브랜드 카드들 사이에 묻힌다 — 아주 살짝 위아래로 떠서
+   시선이 한 번은 걸리게 한다. 진입 애니메이션이 끝난 뒤(.5s 지연)
+   시작해서 둘이 안 겹친다. */
+@keyframes survey-dock-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .survey-dock { animation: none; }
+}
+
+.survey-dock__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .7rem .5rem .7rem .8rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.survey-dock__body:hover { background: rgba(255, 255, 255, .1); }
+.survey-dock__body:active { transform: scale(.98); }
+.survey-dock__body:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+.survey-dock__badge {
+  flex: none;
+  padding: .2rem .55rem;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: color-mix(in srgb, #0bebd0 78%, #000);
+  background: #fff;
+  border-radius: 999px;
+}
+
+.survey-dock__text { display: flex; flex-direction: column; gap: .1rem; min-width: 0; }
+.survey-dock__label { font-size: .9rem; font-weight: 700; }
+.survey-dock__hint { font-size: .78rem; color: rgba(255, 255, 255, .88); }
+
+/* 터치 영역 44px — 옆에 여는 버튼이 붙어 있어도 닫기가 실수로 안 눌리게. */
+.survey-dock__close {
+  flex: none;
+  width: 44px;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, .8);
+  background: transparent;
+  border: 0;
+  border-radius: 0 14px 14px 0;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 100ms ease;
+}
+.survey-dock__close:hover { background: rgba(255, 255, 255, .12); color: #fff; }
+.survey-dock__close:active { transform: scale(.9); }
+.survey-dock__close:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+@media (max-width: 24rem) {
+  .survey-dock { left: 1rem; right: 1rem; max-width: none; }
+}
+
+/* 하단 이벤트 배너가 떠 있으면 맨 위로 버튼 몫 여백은 빼고, 배너 실측
+   높이 바로 위에 작은 틈(.5rem)만 두고 붙인다. */
+/* 맨 위로 버튼도 도크 위로 올린다 — 도크 우측 하단에 조작 묶음이 생긴 뒤
+   둘이 겹쳤다(2026-09-16 실측). */
+html.has-bottom-banner .to-top-btn { bottom: calc(var(--banner-dock-h) + .5rem); }
+
+/* 새벽 안내(00~07시). 맨 위로 버튼 맞은편, 왼쪽 아래에 알림 모양으로 뜬다. 배너가 있으면
+   같은 규칙으로 배너 위로 올라간다. 누르는 것이 아니라 읽는 것이라 버튼이 아니다. */
+.night-notice {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  max-width: calc(100vw - 5rem);
+  padding: .5rem .75rem;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.3;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .18);
+  animation: to-top-in 160ms ease;
+}
+html.has-bottom-banner .night-notice { bottom: calc(var(--banner-dock-h) + .5rem); }
+html.has-bottom-banner .survey-dock {
+  bottom: calc(var(--banner-dock-h) + .5rem);
+}
