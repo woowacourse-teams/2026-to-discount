@@ -1,0 +1,141 @@
+/* 0건 화면에서 빠져나가는 길. 안내문 안에 있으므로 판을 세우지 않고
+   밑줄 글자로만 둔다 — 카드 그리드가 없는 화면이라 버튼이 커지면 그것만
+   보인다. */
+.msg__action {
+  display: inline;
+  margin: 0 0 0 .35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.msg__action:hover { opacity: .75; }
+.msg__action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
+
+/* 실패는 문장 하나로 끝내지 않는다 — 사용자가 할 수 있는 행동(다시
+   시도)을 같은 자리에 둔다. 원문 오류는 아래 작게 남긴다. */
+.load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .5rem;
+  margin: 1.5rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.load-error__title { margin: 0; font-weight: 600; }
+.load-error__detail { margin: 0; font-size: .8rem; color: var(--text-muted); }
+.load-error__retry {
+  padding: .45rem .9rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.load-error__retry:hover { opacity: .85; }
+.load-error__retry:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 로딩 자리지킴. 실제 카드와 같은 그리드 안에 같은 크기 상자를 놓는다. */
+.brand-card--skeleton { pointer-events: none; }
+.skeleton-head { display: flex; align-items: center; gap: .6rem; padding: .9rem 1rem; }
+.skeleton-offers { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; padding: 0 1rem 1rem; }
+.skeleton-box {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--text) 6%, var(--bg)) 25%,
+    color-mix(in srgb, var(--text) 11%, var(--bg)) 37%,
+    color-mix(in srgb, var(--text) 6%, var(--bg)) 63%);
+  background-size: 400% 100%;
+  animation: skeleton-sweep 1.4s ease infinite;
+}
+.skeleton-box--logo { width: 34px; height: 34px; border-radius: 10px; flex: none; }
+.skeleton-box--name { height: 15px; width: 45%; }
+.skeleton-box--offer { height: 38px; }
+@keyframes skeleton-sweep {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-box { animation: none; }
+}
+
+/* 맨 위로. 화면 오른쪽 아래에 떠 있고, 카드 위를 덮으므로 작게 둔다. */
+.to-top-btn {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .12);
+  cursor: pointer;
+  animation: to-top-in 160ms ease;
+}
+.to-top-btn:hover { border-color: var(--text-muted); }
+.to-top-btn:active { transform: scale(.94); }
+.to-top-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@keyframes to-top-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.pill {
+  font-size: .65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: .15rem .55rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+.pill--pending { background: var(--pending-bg); color: var(--pending-text); }
+
+/* 필터가 하나라도 걸려 있으면 눈에 띄게 — 평소엔 존재감 없는 회색
+   아이콘이다가, 걸리는 순간 진해지고 옅은 배경이 붙는다. */
+
+/* 검색 — 닫힌 상태는 다른 원형 아이콘 버튼(▾, ?, 멤버십)과 높이를 맞춘
+   26px 원. 열리면 입력창으로 바뀌며 폭만 늘어난다(화면 절반 정도까지 —
+   레이블 행 전체를 덮진 않는다) — 나머지(top/height/위치)는 그대로라
+   같은 flex 행 안에서 자기 자리만 넓히고, 늘어난 만큼 왼쪽 형제(멤버십
+   버튼)가 밀려난다. 포커스를 잃으면 다시 아이콘 버튼으로 접힌다
+   (App.jsx SearchControl). */
+/* 닫힌 상태는 초기화 버튼과 같은 36px 원이다 — 같은 줄에 나란히 서는
+   조작이라 크기도 스타일도 나눌 이유가 없다. 열리면 흐름 안에서 폭을
+   넓혀 왼쪽 형제(초기화·카테고리)를 밀어낸다. */
+/* 분류·초기화·검색 묶음. 셋 다 자기 크기를 지킨다 — 입력창은 이제 줄
+   안에서 넓어지지 않고 바 아래로 펼쳐지므로 아무도 밀리지 않는다. */
+
+/* .category-panel을 그대로 입고 방향만 가로로 돌린다 — 같은 자리에 뜨는
+   같은 상자인데 모양이 다르면 둘이 다른 기능처럼 보인다. */
+/* 열려 있는 동안 버튼은 색을 뒤집는다 — 접힌 입력창이 안 보여도 지금
+   검색이 켜져 있다는 게 읽혀야 한다. */
+/* /brand/<이름>으로 들어왔을 때만 뜨는 탈출구. 카드 위에 한 줄로 앉는다.
+   눈에 띄되 카드보다 앞서면 안 된다 — 보러 온 것은 그 브랜드다. */
+.route-back {
+  display: inline-block;
+  margin: 0 0 .7rem;
+  font-size: .85rem;
+  color: #787774;
+  text-decoration: none;
+}
+.route-back:hover { color: #171717; }

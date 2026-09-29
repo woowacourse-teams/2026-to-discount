@@ -1,0 +1,271 @@
+/* 맨 아래: 이 서비스가 무엇이고 정보를 어떻게 모았는지 밝히는 자리.
+   읽히긴 해야 하므로 회색으로 죽이되 본문 너비 안에 그대로 둔다. */
+.site-footer {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: .76rem;
+  line-height: 1.7;
+}
+.site-footer p { margin: 0 0 .7rem; }
+.site-footer p:last-child { margin-bottom: 0; }
+.site-footer strong { color: var(--text); font-weight: 600; }
+.site-footer__fine { font-size: .7rem; opacity: .85; }
+
+.push-setting {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(840px, calc(100% - 2.5rem));
+  margin: .75rem auto 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.push-setting p { margin: 0; color: var(--text); font-size: .88rem; line-height: 1.5; }
+.push-setting__actions { display: flex; align-items: center; gap: .45rem; padding-right: 1.35rem; }
+.push-setting__cta {
+  flex: none;
+  min-height: 40px;
+  padding: 0 .9rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--text);
+  color: var(--surface);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.push-setting__cta:disabled { opacity: .55; cursor: wait; }
+.push-setting__decline {
+  min-height: 40px;
+  padding: 0 .75rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.push-setting__close {
+  position: absolute;
+  top: .35rem;
+  right: .45rem;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.push-setting__error { margin-top: .35rem !important; color: #b42318 !important; }
+
+.ios-push-guide-backdrop {
+  position: fixed;
+  z-index: 130;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(15 23 42 / 38%);
+  animation: ios-push-guide-backdrop-in .24s ease-out both;
+}
+.ios-push-guide-backdrop--closing { animation: ios-push-guide-backdrop-out .2s ease-in both; }
+.ios-push-guide {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 1.35rem 1.25rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 20px 55px rgb(15 23 42 / 22%);
+  animation: ios-push-guide-in .24s cubic-bezier(.22, 1, .36, 1) both;
+}
+.ios-push-guide--closing { animation: ios-push-guide-out .2s ease-in both; }
+.ios-push-guide__close {
+  position: absolute;
+  top: .65rem;
+  right: .7rem;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.ios-push-guide h2 { margin: 0; padding-right: 2rem; font-size: 1.15rem; line-height: 1.4; }
+.ios-push-guide__steps {
+  display: grid;
+  gap: .8rem;
+  margin: 1.15rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ios-push-guide__steps li { display: flex; align-items: flex-start; gap: .7rem; font-size: .86rem; line-height: 1.55; }
+.ios-push-guide__step-content { display: flex; flex-direction: column; gap: .25rem; }
+.ios-push-guide__step-number {
+  display: grid;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-soft, #f4f5f7);
+  color: var(--text);
+  font-size: .75rem;
+  font-weight: 800;
+}
+.ios-push-guide__share { display: inline; margin: 0 .15rem; vertical-align: -.2rem; }
+.ios-push-guide__note { margin: 1rem 0 0; color: var(--text-muted); font-size: .72rem; line-height: 1.5; }
+.ios-push-guide__step-content .ios-push-guide__note { margin: 0; }
+.ios-push-guide__confirm {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 1rem;
+  border: 0;
+  border-radius: 13px;
+  background: var(--text);
+  color: var(--surface);
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+@keyframes ios-push-guide-in {
+  from { opacity: 0; transform: translateY(calc(100% + 1rem)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ios-push-guide-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(calc(100% + 1rem)); }
+}
+@keyframes ios-push-guide-backdrop-in {
+  from { background: rgb(15 23 42 / 0%); }
+  to { background: rgb(15 23 42 / 38%); }
+}
+@keyframes ios-push-guide-backdrop-out {
+  from { background: rgb(15 23 42 / 38%); }
+  to { background: rgb(15 23 42 / 0%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ios-push-guide,
+  .ios-push-guide-backdrop { animation: none; }
+}
+
+.push-toggle-slot { display: flex; order: 1; }
+.push-settings-control { position: relative; display: flex; }
+.push-settings-feedback {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 9px);
+  left: 50%;
+  width: max-content;
+  max-width: min(240px, calc(100vw - 2rem));
+  padding: .5rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
+  pointer-events: none;
+  animation: push-feedback 1s ease both;
+}
+.push-settings-feedback::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  background: var(--text);
+  transform: translateX(-50%) rotate(45deg);
+}
+@keyframes push-feedback {
+  0% { opacity: 0; transform: translate(-50%, -4px); }
+  15%, 72% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .push-settings-feedback { animation: none; }
+}
+
+@media (max-width: 560px) {
+  .push-setting {
+    width: calc(100% - 2rem);
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .push-setting__actions { padding-right: 0; }
+}
+
+@media (max-width: 560px) {
+  main { padding: 0 1rem 3rem; }
+  /* .brand-grid는 이제 auto-fit/minmax라 이 폭에서 이미 1열이 된다. */
+  .banner-dock__inner { --dock-pad-x: 1rem; }
+}
+
+/* 좁은 화면(360px 이하)에서 줄이는 건 로고와 배지뿐이다. 금액은 배너의
+   주인공이라 글씨를 줄이지 않는다. */
+@media (max-width: 400px) {
+  .banner__link { gap: 18px; }
+  /* --logo 하나만 줄이면 배지도 같은 비율로 따라온다. */
+  .banner__logo { --logo: 54px; padding: 6px 0 6px 18px; }
+  .banner--bottom .banner__logo { --logo: 40px; }
+}
+
+@media (max-width: 560px) {
+  .brand-card__head .brand-logo { width: 53px; height: 53px; border-radius: 14px; }
+}
+@media (max-width: 400px) {
+  .brand-card__head .brand-logo { width: 47px; height: 47px; border-radius: 13px; }
+  .title-bar__inner { gap: .25rem; padding: 0 .35rem; }
+}
+
+/* 앱 버튼은 화면이 좁아질수록 작아진다. 전에는 반대로 45 -> 53 -> 47px로
+   커져서, A안 바에서 앱 넷과 조작 셋이 한 줄에 못 들어가 세 줄로 밀렸다.
+
+   한 줄에 들어갈 수 있는 최대 폭은 이렇게 나온다:
+
+     조작 셋 44*3 + 사이 8 = 140,  inner 좌우 여백 11
+     앱 넷   4w + 사이 18 ≤ 화면폭 - 151
+
+   360px -> w ≤ 45,  320px -> w ≤ 37. 그 아래로 잡는다. */
+@media (max-width: 480px) {
+  .page-head__apps .platform-badge { width: 42px; height: 42px; border-radius: 11px; }
+}
+@media (max-width: 380px) {
+  .page-head__apps .platform-badge { width: 36px; height: 36px; border-radius: 10px; }
+  .page-head__apps { gap: 4px; }
+}
+
+/* 최고 칩 외의 로고는 2배로 키운다 — 어느 앱 것인지 스치듯 봐도
+   구분되게. 최고 칩은 링크 옆이라 1.3배만 키웠다(위 규칙). */
+/* 칩 모서리에 얹히는 배지라 테두리가 칩 선과 겹쳐 두 줄로 보였다.
+   판(배경색)도 걷고 그림만 남긴다. */
+.offer:not(.offer--hero) .offer__icon-badge .platform-badge {
+  width: 25px; height: 25px;
+  border-radius: 8px;
+  border: 0;
+  background: none;
+}
+.offer:not(.offer--hero) .offer__icon-badge .platform-badge img { padding: 0; }
+.detail__head .platform-badge { width: 40px; height: 40px; border-radius: 9px; }

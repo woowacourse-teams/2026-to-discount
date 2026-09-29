@@ -1,0 +1,87 @@
+/* ── 상단 바 재구성(2026-08-19) ────────────────────────────────────
+   플랫폼 배지가 시트로 옮겨가면서 바는 두 줄이 됐다: 위는 메뉴바,
+   아래는 걸린 필터 칩 + 초기화 + 검색.
+
+   전에는 배지·분류·검색이 한 줄에 섞여 있었고, 검색이 열리면 앞의 둘이
+   밀려나는 장치까지 얹혀 있었다. 조작이 시트로 빠진 지금은 밀어낼
+   대상이 없으니 그 규칙도 같이 걷는다. */
+
+/* 배너는 이제 바 아래 흐름에 있다 — 바가 fixed라 흐름 맨 위에 두면
+   그 자리를 덮어 스크롤 전에는 안 보였다. 메뉴바와 카드 사이 자리다. */
+.banner-slot { margin-top: 0; }
+/* 카드 오른쪽 위 숨기기 버튼(.brand-card__hide)이 카드 기준으로 절대 배치된다. */
+.brand-card { position: relative; }
+
+.brand-suggestions {
+  position: absolute;
+  top: calc(100% + .35rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: min(320px, 52vh);
+  margin: 0;
+  padding: .35rem;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
+}
+.brand-suggestions__option {
+  display: block;
+  width: 100%;
+  padding: .55rem .65rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: .88rem;
+  text-align: left;
+  cursor: pointer;
+}
+.brand-suggestions__option:hover,
+.brand-suggestions__option--active {
+  background: var(--save-soft);
+}
+.brand-suggestions__option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* 누를 수 있는 것은 전부 같은 네 가지로 답한다: 손을 올리면(hover),
+   누르는 동안(active), 키보드로 짚었을 때(focus-visible), 누를 수 없을
+   때(disabled). 규칙을 자리마다 따로 적다 보니 어떤 버튼은 눌러도
+   아무 반응이 없고, 키보드로는 어디에 서 있는지 안 보이는 곳이 있었다.
+
+   여기 모아 적는 건 "빠진 것을 채우는" 몫이고, 각 컴포넌트 고유의
+   색·판은 그대로 자기 자리에 남는다. */
+.sheet__chip,
+.sheet__reset,
+.sheet__apply,
+.banner__close {
+  transition: color .16s ease, background .16s ease, opacity .16s ease, transform .12s ease;
+}
+.sheet__chip:active,
+.sheet__reset:active,
+.sheet__apply:active,
+.banner__close:active { transform: scale(.96); }
+
+.sheet__chip:focus-visible,
+.sheet__reset:focus-visible,
+.sheet__apply:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── 배너: 위아래 같은 플로팅 상자 ─────────────────────────────────
+   전에는 위가 밝은 틴트, 아래가 진한 브랜드색이라 같은 배너가 자리에
+   따라 다른 물건처럼 보였다. 하나로 통일하고 밀도만 다르게 둔다. */
+.banner--top {
+  --banner-bg-c: var(--banner-deep);
+  --banner-line-c: var(--banner-deep);
+  --banner-ink-c: #fff;
+  --banner-accent-c: var(--banner-deep-accent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+}
+
+/* 하단 플로팅은 카드 위에 겹쳐 뜨는 층이라 더 낮게 잡는다. */
+.banner--bottom .banner__logo { --logo: 50px; padding: 6px 0 6px 20px; }

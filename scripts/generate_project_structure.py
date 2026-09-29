@@ -78,8 +78,13 @@ API_RESPONSIBILITIES = {
 }
 
 WEB_RESPONSIBILITIES = {
-    "App.css": "서비스 전체 스타일",
-    "App.jsx": "브랜드 비교, 분류, 검색, 상세",
+    "App.css": "스타일 진입점(styles/를 캐스케이드 순서대로 import)",
+    "App.jsx": "브랜드 비교, 분류, 검색 화면 조립",
+    "BrandCard.jsx": "브랜드 카드 한 장",
+    "BrandGridSkeleton.jsx": "로딩 중 카드 자리지킴",
+    "OfferChip.jsx": "앱별 할인 칩과 앱 링크 사다리",
+    "OfferDetail.jsx": "칩을 펼친 상세 조건",
+    "SiteFooter.jsx": "서비스 안내 푸터",
     "EventBanner.jsx": "당일 행사 배너",
     "api.js": "브랜드와 배너 API 호출",
     "analytics.js": "자체 행동 이벤트",

@@ -1,0 +1,199 @@
+/* ── 카드 담기 줄 ──────────────────────────────────────────────────
+   카드 위에 얹은 체크박스는 로고·이름과 자리를 다투고 무엇을 체크하는
+   건지도 흐렸다. 카드 폭을 그대로 쓰는 줄이면 목적이 글자로 드러난다. */
+/* 카드 아래 줄 — 담기(주)와 펼치기(부). 담기는 채운 판에 흰 글씨로
+   두어 카드에서 유일하게 "누르면 뭔가 담긴다"고 말하는 자리로 만든다. */
+/* 카드 좌우 패딩을 음수 마진으로 상쇄해 테두리에 맞닿는다. 카드가
+   overflow:hidden이라 아래 모서리는 카드 반경을 그대로 따른다. */
+.brand-card__foot {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  margin: 0 -1.15rem;
+  border-top: 1px solid var(--border);
+  /* 카드 아래 모서리를 직접 맞춘다. 카드에 overflow:hidden을 걸면
+     칩 밖으로 걸치는 "최고 할인" 라벨까지 잘린다. */
+  border-radius: 0 0 13px 13px;
+  overflow: hidden;
+}
+
+.brand-card__expand {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  border: 0;
+  cursor: pointer;
+  padding: .75rem 1rem;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface);
+  transition: color .16s ease, background .16s ease;
+}
+.brand-card__expand:hover { color: var(--text); background: var(--bg); }
+
+/* 상단 배너 모서리를 직각으로 둔다 — 배너는 카드 격자 위를 가로지르는
+   띠이지 카드와 같은 층의 상자가 아니다. 둥글리면 큰 카드처럼 보여
+   목록의 일부로 읽힌다.
+
+   위 여백은 두지 않는다. B안은 바가 두 줄(메뉴바 포함)이라 이미 배너와
+   목록 사이가 충분히 갈린다 — A안에만 14px을 준다. */
+.banner--top { border-radius: 0; }
+
+.brand-card__head { padding-right: 60px; }
+
+/* ══ 상단 바(옛 A안) ═════════════════════════════════════════════════
+   A/B 실험은 2026-09-15에 A로 끝났다(HANDOFF-20260914 §4). B의 규칙
+   (.menu-bar·.sheet·두 줄 바)은 지웠고, [data-variant="a"] 접두는 그대로
+   둔다 — variant.js가 여전히 뿌리에 'a'를 새기고, 접두를 떼면 아래
+   규칙들이 위쪽 기본 .title-bar 규칙과 순서로 겨루게 된다. */
+
+/* 멤버십 라벨이 배지 기준으로 떠야 해서 자리를 잡아둔다. A안 바와 B안
+   시트가 같은 앱 버튼을 쓰므로 갈래로 나누지 않는다. */
+.platform-badge-wrap { position: relative; }
+
+/* 라벨이 상자 밖에 떠 있어 레이아웃 높이에 안 잡힌다 — 아래로 오는 줄과
+   반드시 겹친다. 라벨이 차지하는 만큼 자리를 비운다: 간격 2px + 라벨
+   높이 19px = 21px(실측). 18px로 뒀더니 분류 줄을 3px 파고들었다. */
+[data-variant="a"] .page-head__apps { padding-bottom: 21px; }
+/* 멤버십 버튼을 숨긴 동안(TopBarA MEMBERSHIP_BUTTONS=false)은 그 자리도 없다. */
+[data-variant="a"] .page-head__apps--no-membership { padding-bottom: 6px; }
+
+/* 조작 셋(담기·초기화·검색)은 앱 줄 오른쪽에 붙는다. inner가
+   flex-start라 위로 붙어 떠 보여서, 앱 줄 상자 한가운데에 맞춘다 —
+   앱 줄은 멤버십 라벨 자리까지 포함해 키가 크다. */
+[data-variant="a"] .title-bar__ops {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .25rem;
+  flex: none;
+  margin-left: auto;
+  align-self: center;
+}
+[data-variant="a"] .title-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+}
+
+/* 초기화 — 판 없이 글자처럼 가볍게 두고, 조건이 걸릴 때만 진해진다.
+   아이콘 stroke가 currentColor라 글자색을 바꾸면 그림도 따라온다. */
+[data-variant="a"] .filter-reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease, transform .12s ease;
+}
+[data-variant="a"] .filter-reset-btn:hover:not(:disabled) { color: var(--text); background: var(--bg); }
+[data-variant="a"] .filter-reset-btn:active:not(:disabled) { transform: scale(.96); }
+[data-variant="a"] .filter-reset-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[data-variant="a"] .filter-reset-btn:disabled { opacity: .3; cursor: default; }
+[data-variant="a"] .filter-reset-btn--active,
+[data-variant="a"] .filter-reset-btn--active:hover {
+  color: var(--text);
+  background: var(--save-soft);
+}
+
+/* 검색 — 접힌 원형 버튼. 누르면 바 아래로 입력칸이 펼쳐진다. 줄 안에서
+   넓어지지 않으므로 옆의 조작이 밀리지 않는다. */
+[data-variant="a"] .search-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+}
+[data-variant="a"] .search-control__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color .16s ease, background .16s ease, transform .12s ease;
+}
+[data-variant="a"] .search-control__btn:hover { color: var(--text); background: var(--bg); }
+[data-variant="a"] .search-control__btn:active { transform: scale(.96); }
+[data-variant="a"] .search-control__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 열려 있는 동안 버튼은 색을 뒤집는다 — 접힌 입력칸이 안 보여도 지금
+   검색이 켜져 있다는 게 읽혀야 한다. */
+[data-variant="a"] .search-control__btn--open,
+[data-variant="a"] .search-control__btn--open:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+[data-variant="a"] .search-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: .4rem;
+  width: min(78vw, 320px);
+  min-width: 0;
+  margin-top: .3rem;
+  padding: .6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
+  animation: search-panel-in 140ms ease;
+}
+[data-variant="a"] .search-panel .brand-suggestions {
+  top: calc(100% + .25rem);
+}
+@keyframes search-panel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+/* 판 없이 밑줄만 있는 글자 — 분류 캐러셀과 같은 결이다. */
+[data-variant="a"] .search-control__input {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 30px;
+  font: inherit;
+  font-size: .9rem;
+  padding: 0 .2rem;
+  border: 0;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--text) 35%, transparent);
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+}
+[data-variant="a"] .search-control__input:focus { outline: none; border-bottom-color: var(--accent); }
+[data-variant="a"] .search-control__input::placeholder { color: var(--text-muted); }
+[data-variant="a"] .search-panel__submit {
+  flex: none;
+  padding: .25rem .6rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+[data-variant="a"] .search-panel__submit:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }

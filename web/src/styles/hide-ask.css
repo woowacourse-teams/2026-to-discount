@@ -1,0 +1,85 @@
+/* ── 숨기기 확인 ───────────────────────────────────────────────────
+   바로 숨기지 않는다. 싫어서 다시 안 볼 브랜드와 지금 할인이 시원찮아 잠깐
+   치워 둘 브랜드는 다르다. 기본값을 주지 않고 매번 고르게 한다. */
+.hide-ask {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: end center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, .38);
+  animation: hide-ask-veil .2s ease both;
+}
+@keyframes hide-ask-veil { from { background: rgba(0, 0, 0, 0); } }
+.hide-ask__box {
+  animation: hide-ask-rise .3s cubic-bezier(.2, .8, .2, 1) both;
+  width: min(22rem, 100%);
+  padding: 1.1rem 1.1rem .9rem;
+  background: var(--bg, #fff);
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .28);
+}
+@keyframes hide-ask-rise { from { opacity: 0; transform: translateY(14px); } }
+@media (prefers-reduced-motion: reduce) {
+  .hide-ask, .hide-ask__box { animation: none; }
+}
+.hide-ask__title { margin: 0 0 .3rem; font-size: 1rem; font-weight: 800; }
+.hide-ask__desc { margin: 0 0 .9rem; font-size: .84rem; line-height: 1.5; color: var(--dim, #6b7280); }
+.hide-ask__acts { display: grid; gap: .45rem; }
+
+.hide-ask__keep,
+.hide-ask__drop,
+.hide-ask__cancel {
+  display: grid;
+  gap: .12rem;
+  padding: .7rem .8rem;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+  text-align: left;
+  border-radius: 12px;
+  cursor: pointer;
+}
+/* 권하는 쪽을 채운 색으로 둔다 - 둘 다 같은 무게면 "아예 제거"를 습관처럼 누른다. */
+.hide-ask__keep { color: #fff; background: #111; border: 0; }
+.hide-ask__hint { font-size: .74rem; font-weight: 500; opacity: .72; }
+.hide-ask__drop {
+  color: var(--text, #111);
+  background: none;
+  border: 1px solid var(--border, #e6e8eb);
+}
+.hide-ask__cancel {
+  justify-items: center;
+  color: var(--dim, #6b7280);
+  background: none;
+  border: 0;
+  font-weight: 600;
+}
+
+/* 숨긴 카드는 오른쪽 위로 쪼그라들며 사라진다. 방금 누른 버튼이 거기 있어서
+   "저기로 들어갔다"로 읽힌다. 그냥 사라지면 무엇이 없어졌는지 안 남는다.
+   높이도 같이 접어야 아래 카드가 뛰어오르지 않고 따라 올라온다. */
+.brand-card--leaving {
+  pointer-events: none;
+  transform-origin: 100% 0;
+  /* 접히듯 천천히가 아니라 뿅 하고 빠진다. 뒤로 갈수록 빨라지는 곡선이라
+     마지막 프레임이 눈에 안 남는다(2026-09-25 사용자). */
+  animation: brand-card-leave .1s cubic-bezier(.55, 0, 1, .45) both;
+}
+@keyframes brand-card-leave {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(.2); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-card--leaving { animation: none; opacity: 0; }
+}
+
+/* 배너, 정렬바, 카드 격자의 좌우 선을 하나로 맞춘다. 셋이 110, 120, 130으로 갈려
+   있었다(2026-09-24 실측). 카드 선(main의 1.25rem 여백)에 모은다 - 제일 안쪽 선이라
+   나머지를 당겨 오면 되고, 반대로 하면 카드를 넓혀야 한다.
+   폰은 그대로 둔다 - 정렬 칩이 카드보다 작아 카드 선에 맞추면 그 위가 휑하다. */
+@media (min-width: 601px) {
+  .quick-bar { margin-inline: 0; }
+  .hidden-wrap { margin-inline: 0; }
+}
