@@ -88,7 +88,7 @@ function useSeed(banner) {
   return seed
 }
 
-function BannerCard({ banner, position, onClose, onSeen }) {
+function BannerCard({ banner, position, slot, onClose, onSeen }) {
   // 색은 카드가 직접 뽑는다. 여러 장이 한 줄에 나란히 놓이면서 배너마다
   // 색이 달라졌다 — 바깥에서 하나만 계산해 내리면 전부 같은 색이 된다.
   const seed = useSeed(banner)
@@ -136,6 +136,7 @@ function BannerCard({ banner, position, onClose, onSeen }) {
           brand: banner.brand ?? 'none',
           platform: banner.platform,
           position,
+          slot,
           // 무엇이 눌렸는지 id 밖에서도 읽히게 — 배너는 날마다 새 id라
           // 금액·묶음·매진 상태가 있어야 종류별로 모아 볼 수 있다(2026-09-17).
           amount: banner.amount ?? 'none',
@@ -348,6 +349,8 @@ export default function EventBanner({ banners }) {
   // 실제보다 몇 배로 부풀어 클릭률이 무의미해진다. 위/아래는 따로 센다.
   const seen = useRef(new Set())
 
+  const slotOf = (banner) => (banners ?? []).findIndex((x) => x.id === banner.id) + 1
+
   const markSeen = (banner, position) => {
     const key = `${banner.id}:${position}`
     if (seen.current.has(key)) return
@@ -357,6 +360,8 @@ export default function EventBanner({ banners }) {
       brand: banner.brand ?? 'none',
       platform: banner.platform,
       position,
+      // 캐러셀 몇 번째 칸인지. 앞칸일수록 많이 보여 클릭률을 칸끼리 비교해야 한다(2026-09-29).
+      slot: slotOf(banner),
     })
   }
 
@@ -565,6 +570,7 @@ export default function EventBanner({ banners }) {
                 key={`${b.id}:${i}`}
                 banner={b}
                 position="top"
+                slot={slotOf(b)}
                 onSeen={() => markSeen(b, 'top')}
               />
             ))}
@@ -587,7 +593,7 @@ export default function EventBanner({ banners }) {
           <div className="banner-viewport">
             <div className="banner-track banner-track--dock" style={trackStyle} {...dragProps}>
               {slides.map((b, i) => (
-                <BannerCard key={`${b.id}:${i}`} banner={b} position="bottom" />
+                <BannerCard key={`${b.id}:${i}`} banner={b} position="bottom" slot={slotOf(b)} />
               ))}
             </div>
           </div>
