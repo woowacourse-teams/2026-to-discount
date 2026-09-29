@@ -30,6 +30,8 @@ const topBarASource = await source('src/TopBarA.jsx')
 // 서버 허용 목록에 없어도 검사를 통과하고, 서버가 조용히 버린다.
 const surveyCardSource = await source('src/SurveyCard.jsx')
 const surveyDockSource = await source('src/SurveyDock.jsx')
+// 필터 시트. membership_toggle(시트의 멤버십 칩)을 여기서 쏜다.
+const filterSheetSource = await source('src/FilterSheet.jsx')
 // 푸시 설정. 구독 결과 이벤트도 자체 API 원장으로 릴레이하므로 목록에서
 // 빠지면 API가 이름을 모른 채 조용히 버린다.
 const pushNotificationSettingSource = await source('src/PushNotificationSetting.jsx')
@@ -48,6 +50,7 @@ const emittedEvents = new Set([
   ...staticTrackEvents('src/TopBarA.jsx', topBarASource),
   ...staticTrackEvents('src/SurveyCard.jsx', surveyCardSource),
   ...staticTrackEvents('src/SurveyDock.jsx', surveyDockSource),
+  ...staticTrackEvents('src/FilterSheet.jsx', filterSheetSource),
   ...staticTrackEvents('src/PushNotificationSetting.jsx', pushNotificationSettingSource),
   ...staticTrackEvents('src/analytics.js#startAnalytics', startAnalyticsSource),
   'page_exit',
@@ -57,7 +60,12 @@ const allowedBlock = controllerSource.match(/ALLOWED_EVENTS\s*=\s*Set\.of\(([\s\
 assert.ok(allowedBlock, 'EventController.ALLOWED_EVENTS를 찾을 수 없습니다.')
 const allowedEvents = new Set([...allowedBlock[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]))
 const missingEvents = [...emittedEvents].filter((event) => !allowedEvents.has(event)).sort()
-const unusedAllowedEvents = [...allowedEvents].filter((event) => !emittedEvents.has(event)).sort()
+// 담기(cart)는 2026-08-25부터 꺼져 있다가 2026-09-29에 웹에서 지웠다. API 허용 목록에는
+// 아직 남아 있다 — API에서 지우면 이 목록도 비운다.
+const retiredOnWeb = new Set(['cart_clear', 'cart_toggle', 'cart_view_toggle'])
+const unusedAllowedEvents = [...allowedEvents]
+  .filter((event) => !emittedEvents.has(event) && !retiredOnWeb.has(event))
+  .sort()
 
 assert.deepEqual(missingEvents, [], `API 허용 목록에서 빠진 이벤트: ${missingEvents.join(', ')}`)
 assert.deepEqual(

@@ -113,26 +113,11 @@ export function setHubLinks(banners) {
 // 한 번에 그리는 브랜드 카드 수. 화면에 두 줄쯤 들어간다.
 const BRAND_PAGE = 12
 
-const CART_KEY = 'dk_cart'
-
-// 담기(모아보기)를 끔 스위치. 2026-08-25 비활성.
-//
-// 원장 집계에서 방문자 2,438명 중 cart_toggle 73명(3.0%),
-// cart_clear는 2명이었다. 화면 위아래 두 자리(상단바 버튼,
-// 카드 마다의 담기)를 차지하는 것치고는 안 쓰인다.
-//
-// 지우지 않고 끔만 둔다 — 다시 켜려면 이 줄을 true로 되돌리면
-// 된다. localStorage의 dk_cart도 그대로 둘 다 — 꺼둔 동안 담아둔
-// 것이 지워지면 되돌렸을 때 사람마다 빈 상태로 시작한다.
-const CART_ENABLED = false
-
-function analyticsFilterContext(filters, cartOnly, cartSize) {
+function analyticsFilterContext(filters) {
   return {
     fCategory: filters.categories.size === 0 ? 'all' : [...filters.categories].sort().join('+'),
     fPlatforms: filters.platforms.size,
     fSearch: filters.search.trim() !== '' || undefined,
-    fCart: cartOnly || undefined,
-    fSaved: cartSize || undefined,
     fSort: sortSignature(filters.sorts),
   }
 }
@@ -488,7 +473,7 @@ function routeFilters() {
   return brand ? { ...defaultFilters(), search: brand } : defaultFilters()
 }
 
-function BrandCard({ brand, position, highlighted, onInteract, checked, onToggleCheck, include = null, onHide, leaving = false }) {
+function BrandCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -582,11 +567,7 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
         <h2 className="brand-card__name">{brand.name}</h2>
       </div>
 
-      {/* 담기 + 버튼. 헤더 버튼의 형제라 눌러도 카드가 안 펼쳐진다.
-          아래 담기 줄과 같은 동작이고, 스크롤 중에 카드 아래까지 안 가도
-          바로 담을 수 있는 지름길이다. */}
-      {/* 카드 오른쪽 위. 옛 담기 버튼이 쓰던 자리와 모양이다(CART_ENABLED가 꺼져
-          비어 있었다). 헤더 버튼의 형제라 눌러도 카드가 안 펼쳐진다. */}
+      {/* 카드 오른쪽 위. 헤더 버튼의 형제라 눌러도 카드가 안 펼쳐진다. */}
       {onHide && (
         <button
           type="button"
@@ -604,21 +585,6 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
           </svg>
         </button>
       )}
-
-      {CART_ENABLED && <button
-        type="button"
-        className={`brand-card__add${checked ? ' brand-card__add--on' : ''}`}
-        aria-pressed={checked}
-        aria-label={checked ? `${brand.name} 담기 해제` : `${brand.name} 담기`}
-        title={checked ? '담기 해제' : '담기'}
-        onClick={() => onToggleCheck(brand.name)}
-      >
-        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-          {checked
-            ? <polyline points="20 6 9 17 4 12" />
-            : <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>}
-        </svg>
-      </button>}
 
       {/* 최고 할인을 단독 줄로 올리고 나머지는 아래 가로 그리드로
           내린다. 동점이면 그만큼 줄이 늘어난다. 넷을 균등한 격자에 늘어놓으면 "어느 게 제일 센가"를
@@ -674,20 +640,6 @@ function BrandCard({ brand, position, highlighted, onInteract, checked, onToggle
           헤더가 로고·이름만 갖게 하려는 것이고, 담기와 나란히 두면
           "이 카드로 할 수 있는 일"이 한자리에 모인다. */}
       <div className="brand-card__foot">
-        {CART_ENABLED && <button
-          type="button"
-          className={`brand-card__save${checked ? ' brand-card__save--on' : ''}`}
-          aria-pressed={checked}
-          onClick={() => onToggleCheck(brand.name)}
-        >
-          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-            {checked
-              ? <polyline points="20 6 9 17 4 12" />
-              : <><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></>}
-          </svg>
-          {checked ? '담김' : '담기'}
-        </button>}
-
         <button
           type="button"
           className="brand-card__expand"
@@ -907,7 +859,6 @@ export default function App() {
     }
     setSheetOpen(false)
     setFilters(defaultFilters())
-    setCartOnly(false)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -957,20 +908,6 @@ export default function App() {
   //
   // 오퍼를 걷어내고 나서 남는 게 없는 카드는 뺀다. 그 브랜드에서 볼
   // 것이 하나도 없는데 이름만 남기면 빈 카드가 격자를 채운다.
-  // 담아둔 브랜드. 비교하려고 몇 개를 골라두면 스크롤을 오가지 않고
-  // 그것만 모아 볼 수 있다. 브랜드명이 곧 키다(API가 별칭을 이미 대표명
-  // 하나로 합쳐 내려준다). localStorage라 새로고침해도 남고, 사이트
-  // 데이터를 지우면 끊긴다 — visitorId와 같은 한계다.
-  const [cart, setCart] = useState(() => {
-    try {
-      const raw = localStorage.getItem(CART_KEY)
-      return new Set(raw ? JSON.parse(raw) : [])
-    } catch {
-      return new Set()
-    }
-  })
-  const [cartOnly, setCartOnly] = useState(false)
-
   // 입력 중인 문자열이 아니라 사용자가 확정한 검색만 센다. 원문은 보내지
   // 않고 길이만 남겨, 검색 행동은 분석하되 자유 입력 개인정보는 수집하지 않는다.
   const submitSearch = (raw, submitMethod) => {
@@ -980,7 +917,7 @@ export default function App() {
     // 둘을 AND로 걸면 치킨을 켜둔 채 "피자"를 친 사람에게 0건이 나간다.
     // 실측(2026-08-24~25): 분류가 걸린 채 들어온 검색 13건이 예외 없이
     // 0건이었다. 검색은 "이걸 찾아 달라"는 말이라 다른 조건이 이기면
-    // 안 된다 — 담아보기가 이미 같은 이유로 최우선이다(applyFilters).
+    // 안 된다.
     //
     // 조용히 무시하지 않고 상태에서 실제로 지운다. 그래야 검색창의 분류
     // 칩도 같이 사라져서, 화면이 말하는 것과 걸린 조건이 어긋나지 않는다.
@@ -992,39 +929,15 @@ export default function App() {
 
     // 상태 반영 뒤 effect를 기다리면 이 이벤트만 이전 검색 맥락을 가진다.
     // 제출로 확정한 조건을 먼저 알려 같은 이벤트에도 최신 fSearch를 싣는다.
-    setFilterContext(analyticsFilterContext(nextFilters, cartOnly, cart.size))
+    setFilterContext(analyticsFilterContext(nextFilters))
     track('brand_search_submitted', {
       inputLength: query.length,
       resultCount: brands
-        ? applyFilters(brands, nextFilters, { cart, cartOnly }).length
+        ? applyFilters(brands, nextFilters).length
         : undefined,
       submitMethod,
     })
   }
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(CART_KEY, JSON.stringify([...cart]))
-    } catch {
-      /* 사파리 프라이빗 등 — 못 적으면 이번 세션에만 남는다 */
-    }
-  }, [cart])
-
-  const toggleCart = (name) => {
-    setCart((prev) => {
-      const next = new Set(prev)
-      const adding = !next.has(name)
-      if (adding) next.add(name); else next.delete(name)
-      track('cart_toggle', { brand: name, state: adding ? 'add' : 'remove' })
-      return next
-    })
-  }
-
-  // 담은 게 하나도 없으면 모아보기를 켜둔 채로 둘 이유가 없다 — 빈
-  // 화면만 남는다.
-  useEffect(() => {
-    if (cart.size === 0) setCartOnly(false)
-  }, [cart.size])
 
   // 조건이 하나라도 바뀌면 이 값이 바뀌고, 그러면 카드 격자가 새로
   // 마운트돼 등장 애니메이션이 다시 걸린다. 정렬만 바꿔도 순서가 통째로
@@ -1033,15 +946,14 @@ export default function App() {
   // 실제로 이동까지 하는가"의 답이다. A안과 같은 키를 쓴다 — 이름이
   // 다르면 두 안을 나란히 못 놓는다.
   useEffect(() => {
-    setFilterContext(analyticsFilterContext(filters, cartOnly, cart.size))
-  }, [filters, cartOnly, cart.size])
+    setFilterContext(analyticsFilterContext(filters))
+  }, [filters])
 
   const gridKey = [
     [...filters.categories].sort().join('|'),
     [...filters.platforms].sort().join('|'),
     sortSignature(filters.sorts),
     filters.search.trim(),
-    cartOnly ? 'cart' : '',
   ].join('/')
 
   // 조건이 바뀌면 목록 자체가 갈리므로 보던 위치는 의미가 없다. 맨 위로
@@ -1094,8 +1006,8 @@ export default function App() {
   }, [])
 
   const visibleBrands = useMemo(
-    () => (brands ? applyHidden(applyFilters(brands, filters, { cart, cartOnly }), hidden, bestOf) : brands),
-    [brands, filters, cart, cartOnly, hidden, bestOf],
+    () => (brands ? applyHidden(applyFilters(brands, filters), hidden, bestOf) : brands),
+    [brands, filters, hidden, bestOf],
   )
 
   // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
@@ -1181,10 +1093,6 @@ export default function App() {
         search={search}
         onSearchSubmit={submitSearch}
         brands={brands}
-        cart={cart}
-        cartOnly={cartOnly}
-        setCartOnly={setCartOnly}
-        cartEnabled={CART_ENABLED}
         isFiltered={isFiltered}
         resetFilters={resetFilters}
         sheetOpen={sheetOpen}
@@ -1287,34 +1195,12 @@ export default function App() {
           도착했을 때 레이아웃이 튀지 않는다. */}
       {!error && !brands && <BrandGridSkeleton />}
 
-      {/* 담아둔 것만 보는 중이라는 표시와 비우는 길. 검색창 토큰은
-          "지금 무엇을 보는가"를 말하고, 이 줄은 "그래서 무엇을 할 수
-          있는가"를 말한다 — 비우기를 토큰 옆에 두면 X(모아보기 끄기)와
-          뜻이 헷갈린다. */}
-      {CART_ENABLED && cartOnly && (
-        <div className="cart-bar">
-          <span className="cart-bar__label">담아둔 브랜드 {cart.size}개</span>
-          <button
-            type="button"
-            className="cart-bar__clear"
-            onClick={() => {
-              track('cart_clear', { count: cart.size })
-              setCart(new Set())
-            }}
-          >
-            비우기
-          </button>
-        </div>
-      )}
-
       {/* 0건일 때는 "없다"로 끝내지 않는다. 무엇이 걸려서 없는지와,
           거기서 빠져나가는 길을 같이 준다 — 실측에서 검색 제출의 절반이
           0건이었고, 그 화면에서 할 수 있는 일이 없었다. */}
       {visibleBrands && visibleBrands.length === 0 && (
         <div className="msg">
-          {cartOnly ? (
-            <p>담아둔 브랜드가 없습니다.</p>
-          ) : search.trim() ? (
+          {search.trim() ? (
             <>
               <p>&quot;{search}&quot;와 이름이 겹치는 브랜드가 없습니다.</p>
               {filters.platforms.size < PLATFORMS.length && (
@@ -1381,8 +1267,6 @@ export default function App() {
               position={index + 1}
               highlighted={linkedBrand === brandCardId(b.name)}
               onInteract={() => setLinkedBrand(null)}
-              checked={CART_ENABLED && cart.has(b.name)}
-              onToggleCheck={toggleCart}
             />
           ))}
         </div>

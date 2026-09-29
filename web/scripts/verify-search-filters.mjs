@@ -36,7 +36,7 @@ const filters = (over = {}) => ({
   sortKey: 'best', sortDir: 'desc', ...over,
 })
 
-const names = (f) => applyFilters(brands, f, { cart: new Set(), cartOnly: false }).map((b) => b.name)
+const names = (f) => applyFilters(brands, f).map((b) => b.name)
 
 // 분류만 — 그 분류만 남는다
 assert.deepEqual(names(filters({ categories: new Set(['chicken']) })), ['교촌치킨'])
@@ -56,10 +56,5 @@ assert.deepEqual(
 
 // 앱 필터는 검색과 별개로 남는다 — "요기요에서 피자헛"은 없는 것이 맞다.
 assert.deepEqual(names(filters({ platforms: new Set(['yogiyo']), search: '피자헛' })), [])
-
-// 담아보기는 여전히 다른 모든 조건을 이긴다(기존 규칙).
-const cartOnly = applyFilters(brands, filters({ categories: new Set(['pizza']) }),
-  { cart: new Set(['교촌치킨']), cartOnly: true }).map((b) => b.name)
-assert.deepEqual(cartOnly, ['교촌치킨'])
 
 console.log('search/filter interaction: PASS')

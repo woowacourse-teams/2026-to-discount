@@ -40,7 +40,6 @@ export const SORT_KEYS = [
   { key: 'popularity', label: '인기순', directional: false },
   { key: 'recent', label: '최신순', directional: false },
 ]
-export const SORT_LABEL = Object.fromEntries(SORT_KEYS.map((s) => [s.key, s.label]))
 
 /** 정렬 하나를 "amount_desc" 꼴로. 계측과 격자 키가 쓴다. */
 export function sortSignature(sorts) {
@@ -138,16 +137,6 @@ export function sortingAmount(offer) {
   if (c === 'menuOnly') return MENU_LIMITED_SORTING_AMOUNT
   if (c === 'capped' || c === 'random' || c === 'percent') return null
   return offer.amount ?? null
-}
-
-export const RANDOM_QUALIFIER = '랜덤'
-export function isRandom(offer) {
-  return certaintyOf(offer) === 'random'
-}
-
-export const MENU_QUALIFIER = '특정메뉴'
-export function isMenuOnly(offer) {
-  return certaintyOf(offer) === 'menuOnly'
 }
 
 /** 넣을 것. `true`는 예전 호출(랜덤만)과 같다. 객체면 {random, menu}. */
@@ -287,7 +276,7 @@ export function sortBrands(brands, { sorts, includeRandom = false, include = nul
  * 오퍼를 켜고 끈다 — 끈 앱 금액이 카드에 남아 있으면 토글이 무슨 일을
  * 했는지 알 수 없고 "최고 할인"도 끈 앱 값으로 잡힌다.
  */
-export function applyFilters(brands, filters, { cart, cartOnly } = {}) {
+export function applyFilters(brands, filters) {
   const q = filters.search.trim()
   const visible = brands
     .map((b) => {
@@ -297,9 +286,6 @@ export function applyFilters(brands, filters, { cart, cartOnly } = {}) {
     })
     .filter((b) => {
       if (b.offers.length === 0) return false
-      // 담아둔 것만 보기. 다른 조건보다 먼저 건다 — 담아둔 브랜드를
-      // 보러 왔는데 분류 필터에 걸려 안 보이면 담은 의미가 없다.
-      if (cartOnly) return cart.has(b.name)
       if (q !== '' && !b.name.includes(q)) return false
       // 아무 분류도 안 고르면 전체다.
       if (filters.categories.size === 0) return true

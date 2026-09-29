@@ -13,8 +13,6 @@ export { PLATFORMS, PLATFORM_BY_KEY }
 
 // 주소 계산은 logoSrc.js에 있다 — node --test가 .jsx를 못 읽어서
 // 순수 함수를 컴포넌트와 같은 파일에 두면 테스트를 못 붙인다.
-// 쓰던 쪽이 안 깨지게 여기서 그대로 다시 내보낸다.
-export { brandLogoSrc, logoFileName } from './logoSrc.js'
 
 // 아이콘 넷은 카드마다 붙어 방문당 4번의 요청이 됐다. 번들에 박으면
 // 요청이 0이 된다 — Edge Requests는 바이트가 아니라 **요청 수**로 세기

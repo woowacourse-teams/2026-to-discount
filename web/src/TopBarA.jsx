@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
-import { CATEGORIES, MEMBERSHIP_LABEL } from './filters.js'
+import { CATEGORIES } from './filters.js'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 
 /**
@@ -131,18 +131,12 @@ export default function TopBarA({
   search,
   onSearchSubmit,
   brands,
-  cart,
-  cartOnly,
-  setCartOnly,
-  cartEnabled,
   isFiltered,
   resetFilters,
   onOpenSheet,
   sheetOpen,
   onHome,
 }) {
-  const [membershipHint, setMembershipHint] = useState(null)
-
   // Set 하나짜리를 단일 선택처럼 읽는다. 비어 있으면 "전체"다.
   const selected = filters.categories.size === 1
     ? [...filters.categories][0]
@@ -167,26 +161,14 @@ export default function TopBarA({
     track('platform_filter_toggle', { platform: key, from: 'bar' })
   }
 
-  // 멤버십은 아직 계산 모델이 없다 — 눌러도 상태가 안 바뀌고, 왜 안
-  // 바뀌는지만 알린다.
-  const toggleMembership = (key) => {
-    setMembershipHint(key)
-    track('membership_toggle', { platform: key, state: 'soon', from: 'bar' })
-  }
-
   const tabs = [{ key: 'all', label: '전체' }, ...CATEGORIES]
-
-  // 멤버십 버튼(앱 로고 밑 "배민클럽" 등)은 계산 모델이 없어 눌러도 안내만
-  // 했다. 사용자 결정(2026-09-16): 숨긴다. 코드·이벤트·CSS는 그대로 두고
-  // 이 플래그 하나로 되살린다 — .page-head__apps의 아래 여백도 같이 걸린다.
-  const MEMBERSHIP_BUTTONS = false
 
   return (
     <div className="title-bar" ref={barRef}>
       <div className="title-bar__inner">
         <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
 
-        <div className={`page-head__apps${MEMBERSHIP_BUTTONS ? '' : ' page-head__apps--no-membership'}`} aria-label="비교 대상 배달앱">
+        <div className="page-head__apps page-head__apps--no-membership" aria-label="비교 대상 배달앱">
           {PLATFORMS.map((p) => (
             <span key={p.key} className="platform-badge-wrap">
               <PlatformBadge
@@ -197,53 +179,12 @@ export default function TopBarA({
                 }}
                 active={filters.platforms.has(p.key)}
               />
-
-              {/* 고른 앱에만 멤버십 버튼이 로고 밑에 붙는다. 위치로 어느
-                  앱 것인지 드러나므로 여러 앱을 한 줄로 묶지 않는다. */}
-              {MEMBERSHIP_BUTTONS && filters.platforms.has(p.key) && (
-                <button
-                  type="button"
-                  className="membership-btn membership-btn--soon"
-                  data-platform={p.key}
-                  data-hint={membershipHint === p.key ? 'on' : undefined}
-                  aria-disabled="true"
-                  title="구현 예정입니다"
-                  onClick={() => toggleMembership(p.key)}
-                >
-                  {MEMBERSHIP_LABEL[p.key]}
-                </button>
-              )}
             </span>
           ))}
         </div>
 
         <div className="title-bar__ops">
           <div className="title-bar__actions">
-            {/* 담아둔 브랜드만 모아 본다. 담은 게 없으면 누를 것이
-                없으므로 비활성이다.
-                2026-08-25 끔 — App.jsx의 CART_ENABLED 참고. */}
-            {cartEnabled && <button
-              type="button"
-              className={`cart-btn${cartOnly ? ' cart-btn--on' : ''}`}
-              aria-pressed={cartOnly}
-              disabled={cart.size === 0}
-              aria-label={cartOnly ? '전체 보기' : '담아둔 브랜드만 보기'}
-              title={cart.size === 0 ? '담아둔 브랜드가 없다' : (cartOnly ? '전체 보기' : '담아둔 것만 보기')}
-              onClick={() => {
-                setCartOnly((v) => {
-                  track('cart_view_toggle', { state: v ? 'off' : 'on', count: cart.size })
-                  return !v
-                })
-              }}
-            >
-              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="9" cy="20" r="1.4" />
-                <circle cx="18" cy="20" r="1.4" />
-                <path d="M2 3h3l2.4 12.2a1.6 1.6 0 0 0 1.6 1.3h8.6a1.6 1.6 0 0 0 1.6-1.3L21 7H6" />
-              </svg>
-              {cart.size > 0 && <span className="cart-btn__count">{cart.size}</span>}
-            </button>}
-
             <span id="push-toggle-slot" className="push-toggle-slot" />
 
             {/* 홈 — 첫 화면으로. 필터·검색을 풀고 맨 위로, /brand/<이름>에서

@@ -62,22 +62,6 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
 
-.update-notice {
-  position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 50;
-  max-width: min(70vw, 36rem);
-  padding: .8rem 1.4rem;
-  border-radius: 1rem;
-  background: rgba(149, 100, 0, 0.4);
-  color: #fff;
-  font-size: 1.5rem;
-  line-height: 1.4;
-  text-align: right;
-  pointer-events: none;
-}
-
 /* ?dev=1 표시. 코너에 접힌 리본처럼 걸어 둔다 — 다른 조작 요소와
    안 겹치는 유일하게 빈 자리라서다. 클릭할 일이 없으므로
    pointer-events:none으로 밑에 있는 것(검색·필터 버튼 등)이 눌리게
@@ -161,8 +145,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
   /* 위 여백은 선택 체크 라벨이 버튼 밖으로 나와도 잘리지 않게 둔다. */
   padding: 9px .5rem 0;
 }
-/* 검색은 오른쪽 끝에 붙인다 — 그 앞(초기화)까지가 필터 묶음이다. */
-.title-bar__inner .category-toggle { margin-left: auto; order: 0; }
+
 .title-bar__inner .search-control { order: 2; }
 .title-bar__inner .filter-reset-btn { order: 1; }
 
@@ -191,12 +174,6 @@ h1 {
    밀어내지 않는다. */
 /* 검색어는 분류와 성격이 달라 색으로 가른다 — 분류는 고르는 것이고
    검색어는 사람이 쓴 말이다. */
-
-/* 펼친 목록 — absolute라 카드 그리드를 밀어내지 않는다. */
-@keyframes category-panel-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: none; }
-}
 
 /* 밀착 — 서로 안 겹치되 최소 간격만 준다. */
 /* 밀려 들어오는 조작이 로고 뒤로 지나가야 한다 — 위 층에 두고 바탕색을
@@ -309,17 +286,6 @@ h1 {
 /* 고른 앱에만 로고 밑에 붙는 멤버십 버튼. 눌러서 켜고 끈다 —
    2초 뒤 사라지던 칸과 달리 언제든 다시 만질 수 있다. absolute라
    로고 줄 높이를 밀어내지 않는다. */
-
-/* 아직 안 만든 기능이다. 앱 색은 변수로 그대로 두고(--pc) 채도만 낮춘다 —
-   완전 무채색으로 죽이면 어느 앱 것인지가 안 읽히는데, 이 버튼은 수요를
-   재려고 둔 것이라 무엇을 누르는지는 보여야 한다. 구현되면 이 블록만
-   지우면 색이 돌아온다. 버튼을 감추지 않는 이유는 자리와 크기를 미리
-   잡아둬야 나중에 레이아웃이 안 흔들려서다. */
-/* 눌렀을 때(data-hint)와 올렸을 때 같은 말풍선을 띄운다 — 눌렀는데
-   아무 일도 안 일어나면 고장으로 읽힌다. */
-.membership-btn--soon:hover::after,
-.membership-btn--soon:focus-visible::after,
-/* 켜면 그 앱 색으로 채운다 — 테두리만 있는 꺼짐과 한눈에 갈린다. */
 
 /* ---------------------------------------------------------------------------
    당일 행사 배너 (EventBanner.jsx)
@@ -440,8 +406,6 @@ h1 {
   min-width: 0;
   width: 100%;
 }
-
-
 
 .banner-track > .banner {
   flex: 0 0 100%;
@@ -888,8 +852,6 @@ h1 {
   }
 }
 
-.sub { color: var(--text-muted); font-size: .9rem; margin: 0; text-align: center; }
-
 /* 0건 화면에서 빠져나가는 길. 안내문 안에 있으므로 판을 세우지 않고
    밑줄 글자로만 둔다 — 카드 그리드가 없는 화면이라 버튼이 커지면 그것만
    보인다. */
@@ -909,7 +871,6 @@ h1 {
 .msg__action:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); }
-.msg--error { color: #9f2f2d; }
 
 /* 실패는 문장 하나로 끝내지 않는다 — 사용자가 할 수 있는 행동(다시
    시도)을 같은 자리에 둔다. 원문 오류는 아래 작게 남긴다. */
@@ -1003,41 +964,6 @@ h1 {
 }
 .pill--pending { background: var(--pending-bg); color: var(--pending-text); }
 
-/* 옆으로 더 있다는 힌트 — 오른쪽으로 살짝 갔다가 돌아오길 반복한다. */
-/* 이제 버튼이다 — 눌러서 카테고리 줄을 펼치고 접는다. 화살표는 아래로
-   그려서 "펼쳐진다"는 방향을 그대로 보여주고, 펼친 상태에선 180도
-   돌려 "접는다" 쪽 방향으로 바꾼다. */
-.scroll-hint-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--text);
-  opacity: .55;
-  cursor: pointer;
-  transition: transform 200ms ease, opacity 150ms ease;
-  animation: scroll-hint-nudge 1.4s ease-in-out infinite;
-}
-.scroll-hint-arrow:hover { opacity: 1; }
-.scroll-hint-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.scroll-hint-arrow--open {
-  opacity: 1;
-  transform: rotate(180deg);
-  animation: none;
-}
-@keyframes scroll-hint-nudge {
-  0%, 100% { transform: translateY(0); opacity: .5; }
-  50% { transform: translateY(3px); opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .scroll-hint-arrow { animation: none; }
-}
-
 /* 필터가 하나라도 걸려 있으면 눈에 띄게 — 평소엔 존재감 없는 회색
    아이콘이다가, 걸리는 순간 진해지고 옅은 배경이 붙는다. */
 
@@ -1057,163 +983,6 @@ h1 {
    같은 상자인데 모양이 다르면 둘이 다른 기능처럼 보인다. */
 /* 열려 있는 동안 버튼은 색을 뒤집는다 — 접힌 입력창이 안 보여도 지금
    검색이 켜져 있다는 게 읽혀야 한다. */
-/* 카테고리와 같은 결 — 판 없이 밑줄만 있는 글자다. */
-
-/* 금액대 분류일 때 탭 대신 쓰는 스텝 슬라이더. 이퀄라이저처럼 정해진
-   값에서만 멈춘다 — <input type="range" step="1">이 브랜드마다 하나씩
-   있는 금액대 개수만큼의 정수 인덱스만 오간다. 현재 값은 썸 위치 위에
-   캡션으로 항상 뜬다(퍼센트로 계산해 left에 꽂는다). */
-.amount-slider {
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: min(240px, 66%);
-  padding: .3rem 0 0;
-}
-.amount-slider__mode {
-  text-align: right;
-  font-size: .72rem;
-  color: var(--text-muted);
-  margin-bottom: 1.4rem;
-}
-.amount-slider__track-wrap { position: relative; }
-.amount-slider__caption {
-  position: absolute;
-  top: -1.3rem;
-  transform: translateX(-50%);
-  font-size: .78rem;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-}
-.amount-slider__input {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--border);
-  outline: none;
-  margin: 0;
-  display: block;
-}
-.amount-slider__input::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--text);
-  cursor: pointer;
-  border: 2px solid var(--surface);
-  box-shadow: 0 0 0 1px var(--border);
-}
-.amount-slider__input::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--text);
-  cursor: pointer;
-  border: 2px solid var(--surface);
-  box-shadow: 0 0 0 1px var(--border);
-}
-.amount-slider__input::-moz-range-track {
-  height: 4px;
-  border-radius: 999px;
-  background: var(--border);
-}
-.amount-slider__ticks {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 8px; /* 썸 반지름만큼 안쪽으로 — 양 끝 눈금이 썸 중심과 맞도록 */
-  margin-top: .35rem;
-}
-.amount-slider__tick {
-  width: 2px;
-  height: 4px;
-  border-radius: 1px;
-  background: var(--border);
-}
-.amount-slider__range {
-  display: flex;
-  justify-content: space-between;
-  margin-top: .3rem;
-  font-size: .68rem;
-  color: var(--text-muted);
-  padding: 0 4px;
-}
-
-.category-bar {
-  /* 하이라이트(.category-bar__highlight)의 배치 기준을 이 상자 자신으로
-     못 박는다. 스크롤은 이제 바깥 래퍼(.title-bar__scroll)가 맡고, 이
-     상자는 자기 내용만큼만 폭을 차지한다(natural width) — offsetLeft가
-     이 상자(position:relative) 기준이라 바깥이 스크롤돼도 좌표는
-     안 어긋난다. */
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: .25rem;
-  flex: none;
-  margin: 0;
-}
-
-/* 세그먼트 컨트롤의 슬라이딩 하이라이트. 탭마다 배경을 따로 켜고 끄는
-   대신 배경 하나가 활성 탭 위치로 옮겨간다(위치·너비는 JS가 실측해서
-   인라인 스타일로 넣는다 — App.jsx CategoryBar). 기준은 위 .category-bar
-   (position:relative)다. */
-.category-bar__highlight {
-  position: absolute;
-  top: 0;
-  left: 0;
-  /* 버튼과 같은 폭, 위 두 모서리는 각지고 아래만 둥글다 — 판의 top이
-     바 천장(카테고리 줄과 배지 줄의 공통 윗선)이라 위가 각져 있어야
-     "천장에서 내려왔다"는 인상이 산다. */
-  border-radius: 0 0 14px 14px;
-  background: var(--text);
-  /* 첫 배치 전에는 안 미끄러진다 — 안 그러면 로드할 때마다 판이 0,0에서
-     선택 탭까지 날아오는 게 보인다. JS가 자리를 잡은 뒤 --animated를
-     붙인다(App.jsx CategoryBar). */
-  transition: none;
-  z-index: 0;
-}
-.category-bar__highlight--animated {
-  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), width 260ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-@media (prefers-reduced-motion: reduce) {
-  .category-bar__highlight--animated { transition: none; }
-}
-
-/* 테두리를 없애 탭 자체는 존재감을 지운다 — 어느 값이 선택됐는지는
-   슬라이딩 하이라이트 하나만 가리키면 된다. 탭끼리도 서로 붙여서
-   낱개 버튼이 아니라 하나의 트랙처럼 읽히게 한다. */
-.category-btn {
-  position: relative;
-  z-index: 1;
-  flex: none;
-  background: none;
-  border: none;
-  border-radius: 999px;
-  padding: .45rem .6rem;
-  font: inherit;
-  font-size: .85rem;
-  font-weight: 600;
-  /* 앱 배지와 같은 규칙 — 고르지 않은 쪽이 물러난다. 배지는 색을 빼고,
-     글자는 뺄 색이 없으니 대비를 낮춘다. */
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color 150ms ease, padding 120ms ease, font-size 120ms ease;
-}
-.category-btn:hover { color: var(--text); }
-.category-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.category-btn--active {
-  /* 색은 즉시 바뀐다(no transition) — 하이라이트 이동(260ms)과 맞춰
-     같이 움직이게 했더니 클릭 직후 한동안 글씨가 옅은 회색인 채로
-     남아 눌렀다는 게 바로 안 보였다. 배경이 늦게 따라오더라도 글씨
-     대비부터 확실한 쪽이 낫다. */
-  color: #fff;
-  font-weight: 600;
-}
-.category-btn--active:hover { color: #fff; }
-
 /* /brand/<이름>으로 들어왔을 때만 뜨는 탈출구. 카드 위에 한 줄로 앉는다.
    눈에 띄되 카드보다 앞서면 안 된다 — 보러 온 것은 그 브랜드다. */
 .route-back {
@@ -1351,10 +1120,6 @@ h1 {
 .brand-card--open .brand-card__chevron { transform: translateY(1px) rotate(-135deg); }
 
 @media (hover: hover) {
-  .brand-card__head:hover .brand-card__hover-hint {
-    opacity: 1;
-    transform: none;
-  }
   .brand-card__head:hover .brand-card__chevron {
     border-color: var(--text);
   }
@@ -1544,52 +1309,11 @@ h1 {
   /* 칩 위에 덮이는 층이라 누르는 것을 가로채면 안 된다. */
   pointer-events: none;
 }
-/* 최고 할인 라벨 — 금액 위 배지가 아니라 칩 왼쪽에 붙는 표식이다.
-   흰 글씨라 네온 배경 위에서 금액과 한 덩어리로 읽힌다. */
-/* 두 줄짜리 정사각 표식 — 칩 왼쪽 끄트머리에 로고처럼 앉는다. */
-.offer__best-label {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 49px;
-  height: 49px;
-  margin-right: .55rem;
-  /* 테두리는 두지 않는다. 표식 자체가 이미 진한 면이라 선을 더하면
-     그 선이 먼저 읽힌다. */
-  border: 0;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, .24);
-  color: #fff;
-  font-size: .93rem;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -.03em;
-}
-/* 최고 할인이 여럿이면 단독 줄과 차순위 줄에 같이 선다 — 크기를 나누면
-   같은 뜻의 표식이 두 종류로 보인다. 한 규격으로 통일한다. */
 /* 금액 줄을 가로로 세워 라벨이 왼쪽에 서게 한다. */
 /* 표식은 왼쪽 끄트머리에 고정하고 금액은 칩 가운데에 둔다 —
    라벨을 흐름에서 빼(absolute) 금액이 그 폭에 밀리지 않게 한다. */
 .offer--best .offer__amount { display: flex; align-items: center; justify-content: center; width: 100%; }
-/* 칩 모서리 밖으로 걸치는 표식이라 형제 요소에 가리면 안 된다 —
-   z-index로 칩 위에 올린다. 배경은 반투명 흰색 대신 제 색을 갖는다. */
-.offer--best .offer__best-label {
-  position: absolute;
-  left: -10px;
-  top: -10px;
-  transform: none;
-  margin: 0;
-  z-index: 3;
-  /* 네온 위에 광택 한 겹 — 위쪽에서 빛을 받은 것처럼 흰 하이라이트를
-     얹고 아래는 살짝 어둡게 깐다. 배경을 두 겹으로 쌓아 만든다. */
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, .45) 0%, rgba(255, 255, 255, .1) 42%,
-                    rgba(0, 0, 0, .06) 58%, rgba(0, 0, 0, .16) 100%),
-    linear-gradient(135deg, #00c8ff 0%, #4d6bff 55%, #ff3ec8 100%);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .6);
-}
+
 /* 배경이 본문색으로 돌아갔으니 품절도 일반 칩과 같은 눈칔을 쓴다. */
 .offer--best .offer__amount--soldout { color: color-mix(in srgb, var(--text) 45%, transparent); }
 
@@ -1886,12 +1610,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   vertical-align: middle;
   white-space: nowrap;
 }
-.detail__amount {
-  margin-left: auto;
-  font-size: .82rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
 
 .detail__rows {
   display: grid;
@@ -2072,14 +1790,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   line-height: 1;
   cursor: pointer;
 }
-.ios-push-guide__eyebrow {
-  margin: 0 0 .35rem;
-  color: var(--text-muted);
-  font-size: .72rem;
-  font-weight: 700;
-}
 .ios-push-guide h2 { margin: 0; padding-right: 2rem; font-size: 1.15rem; line-height: 1.4; }
-.ios-push-guide__description { margin: .55rem 0 0; color: var(--text-muted); font-size: .84rem; line-height: 1.55; }
 .ios-push-guide__steps {
   display: grid;
   gap: .8rem;
@@ -2179,7 +1890,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   .push-settings-feedback { animation: none; }
 }
 
-
 @media (max-width: 560px) {
   .push-setting {
     width: calc(100% - 2rem);
@@ -2253,47 +1963,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 배너는 이제 바 아래 흐름에 있다 — 바가 fixed라 흐름 맨 위에 두면
    그 자리를 덮어 스크롤 전에는 안 보였다. 메뉴바와 카드 사이 자리다. */
 .banner-slot { margin-top: 0; }
-
-.cart-btn {
-  position: relative;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  padding: .35rem;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-}
-.cart-btn:hover:not(:disabled) { color: var(--text); }
-.cart-btn:disabled { opacity: .35; cursor: default; }
-/* 켜져 있으면 목록 전체가 그 범위로 좁혀진 상태다 — 버튼 하나만 보고도
-   알 수 있게 반전한다. */
-/* 켜져 있으면 목록 전체가 그 범위로 좁혀진 상태다 — 버튼 하나만 보고도
-   알 수 있게 반전한다. 아이콘 stroke가 currentColor라 글자색이 곧 그림색이다.
-   hover 규칙이 더 구체적이라(:not 포함) 손이 올라가면 아이콘이 도로
-   검어졌다 — 켜진 동안에는 hover에서도 흰색을 지킨다. */
-.cart-btn--on,
-.cart-btn--on:hover:not(:disabled) { background: var(--text); color: #fff; }
-.cart-btn__count {
-  position: absolute;
-  top: -1px;
-  right: -1px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 999px;
-  background: #e5484d;
-  color: #fff;
-  font-size: .65rem;
-  font-weight: 700;
-  line-height: 16px;
-  text-align: center;
-}
-
-/* ── 브랜드 카드 담기 체크박스 ─────────────────────────────────────
-   카드 좌측 상단. 헤더 버튼의 형제로 두고 절대 배치한다 — 버튼 안에
-   넣으면 체크할 때마다 카드가 같이 펼쳐진다. */
+/* 카드 오른쪽 위 숨기기 버튼(.brand-card__hide)이 카드 기준으로 절대 배치된다. */
 .brand-card { position: relative; }
 
 .brand-suggestions {
@@ -2341,36 +2011,20 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 
    여기 모아 적는 건 "빠진 것을 채우는" 몫이고, 각 컴포넌트 고유의
    색·판은 그대로 자기 자리에 남는다. */
-.menu-bar__item,
-.cart-btn,
 .sheet__chip,
-.sheet__app,
 .sheet__reset,
 .sheet__apply,
 .banner__close {
   transition: color .16s ease, background .16s ease, opacity .16s ease, transform .12s ease;
 }
-.menu-bar__item:active:not(:disabled),
-.cart-btn:active:not(:disabled),
 .sheet__chip:active,
-.sheet__app:active,
 .sheet__reset:active,
 .sheet__apply:active,
 .banner__close:active { transform: scale(.96); }
 
-.menu-bar__item:focus-visible,
 .sheet__chip:focus-visible,
-.sheet__app:focus-visible,
 .sheet__reset:focus-visible,
-.sheet__apply:focus-visible,
-.cart-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* 카드 담기(+)는 키보드로 짚었을 때 표시가 없었다 — 카드마다 하나씩
-   있는 버튼이라, 지금 어느 카드에 서 있는지 안 보이면 순회가 불가능하다. */
-.brand-card__add:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* 못 누르는 상태의 명암을 하나로 맞춘다. 담기 버튼만 .35, 나머지는 .3
-   이었다 — 같은 뜻인데 밝기가 다르면 하나는 고장 난 것처럼 보인다. */
-.cart-btn:disabled { opacity: .3; }
+.sheet__apply:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ── 배너: 위아래 같은 플로팅 상자 ─────────────────────────────────
    전에는 위가 밝은 틴트, 아래가 진한 브랜드색이라 같은 배너가 자리에
@@ -2404,30 +2058,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   border-radius: 0 0 13px 13px;
   overflow: hidden;
 }
-.brand-card__save {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .4rem;
-  border: 0;
-  cursor: pointer;
-  padding: .75rem;
-  font-size: .95rem;
-  font-weight: 700;
-  color: #fff;
-  background: var(--save);
-  transition: background .16s ease, color .16s ease;
-}
-.brand-card__save:hover { background: var(--save-hover); }
-.brand-card__save:active { transform: scale(.99); }
-/* 담긴 뒤에는 같은 색을 옅게 깐다 — 색이 통째로 바뀌면 다른 버튼처럼
-   보이고, 그대로 두면 담기 전인지 후인지 구분이 안 된다. */
-.brand-card__save--on {
-  background: var(--save-soft);
-  color: var(--save-soft-ink);
-}
-.brand-card__save--on:hover { background: var(--save-soft); color: var(--save-soft-ink); }
 
 .brand-card__expand {
   flex: none;
@@ -2445,62 +2075,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 }
 .brand-card__expand:hover { color: var(--text); background: var(--bg); }
 
-/* 우측 상단 + 버튼 — 카드 아래까지 안 내려가도 담을 수 있는 지름길. */
-/* 카드 오른쪽 위 모서리에 맞닿는다 — 카드가 overflow:hidden이라 바깥
-   두 변은 카드 테두리가 대신하고, 안쪽 두 변만 그린다. */
-.brand-card__add {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 3;
-  width: 68px;
-  height: 64px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  /* 카드 오른쪽 위 모서리를 따른다(카드 반경 14px - 테두리 1px). */
-  border-radius: 0 13px 0 16px;
-  background: var(--save);
-  color: #fff;
-  cursor: pointer;
-  transition: background .16s ease;
-}
-.brand-card__add:hover { background: var(--save-hover); }
-.brand-card__add--on {
-  background: var(--save-soft);
-  color: var(--save-soft-ink);
-}
-.brand-card__add:active { transform: scale(.94); }
-
-/* ── 담아둔 것 보기 줄 ─────────────────────────────────────────────
-   비우기는 검색창 토큰의 X(모아보기 끄기)와 뜻이 다르다 — 한쪽은 보기를
-   되돌리고 한쪽은 담은 것을 지운다. 자리를 갈라 헷갈리지 않게 한다. */
-.cart-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-  margin-top: 12px;
-  padding: .6rem .9rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-}
-.cart-bar__label { font-size: .85rem; font-weight: 600; color: var(--text); }
-.cart-bar__clear {
-  flex: none;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: none;
-  cursor: pointer;
-  padding: .35rem .7rem;
-  font-size: .8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  transition: color .16s ease, border-color .16s ease;
-}
-.cart-bar__clear:hover { color: #9f2f2d; border-color: #9f2f2d; }
-
 /* 상단 배너 모서리를 직각으로 둔다 — 배너는 카드 격자 위를 가로지르는
    띠이지 카드와 같은 층의 상자가 아니다. 둥글리면 큰 카드처럼 보여
    목록의 일부로 읽힌다.
@@ -2509,9 +2083,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    목록 사이가 충분히 갈린다 — A안에만 14px을 준다. */
 .banner--top { border-radius: 0; }
 
-/* 브랜드 카드 + 버튼 75%(68x64 -> 51x48). 두 배는 카드에서 이름보다
-   먼저 눈에 들어왔다. 두 안 공통 규격이다. */
-.brand-card__add { width: 51px; height: 48px; border-radius: 0 13px 0 12px; }
 .brand-card__head { padding-right: 60px; }
 
 /* ══ 상단 바(옛 A안) ═════════════════════════════════════════════════
@@ -2524,34 +2095,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
    시트가 같은 앱 버튼을 쓰므로 갈래로 나누지 않는다. */
 .platform-badge-wrap { position: relative; }
 
-/* 멤버십 라벨은 앱 버튼 아래에 떠 있다. 흐름 안에 두면 라벨 글자 폭이
-   곧 버튼 폭이 되어("배민클럽" 등) 앱 넷이 269px을 차지했다 — 배지만
-   따지면 156px인데도 조작 셋이 밀려 바가 세 줄로 갈렸다. */
-[data-variant="a"] .membership-btn {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  /* 로고에 바싹 붙인다. 떨어져 있으면 아래 분류 줄과 어느 쪽에 딸린
-     라벨인지 헷갈렸다 — 위치가 곧 소속이다. */
-  margin-top: 2px;
-  padding: .05rem .35rem;
-  border: 1px solid var(--pc, var(--text));
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--pc, var(--text));
-  font: inherit;
-  font-size: .6rem;
-  font-weight: 700;
-  line-height: 1.6;
-  white-space: nowrap;
-  cursor: pointer;
-}
-[data-variant="a"] .membership-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-/* 아직 안 만든 기능이다. 앱 색은 그대로 두고 채도만 낮춘다 — 무채색으로
-   죽이면 어느 앱 것인지가 안 읽히는데, 이 버튼은 수요를 재려고 둔 것이라
-   무엇을 누르는지는 보여야 한다. */
-[data-variant="a"] .membership-btn--soon { filter: saturate(.4); }
 /* 라벨이 상자 밖에 떠 있어 레이아웃 높이에 안 잡힌다 — 아래로 오는 줄과
    반드시 겹친다. 라벨이 차지하는 만큼 자리를 비운다: 간격 2px + 라벨
    높이 19px = 21px(실측). 18px로 뒀더니 분류 줄을 3px 파고들었다. */
@@ -2575,14 +2118,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   display: flex;
   align-items: center;
   gap: .25rem;
-}
-/* 담기는 B에서 패딩으로 크기가 정해진다. A의 조작 줄에서는 옆의 둘과
-   같은 44px 상자여야 한다 — 셋이 한 벌인데 하나만 작으면 그것만 다른
-   기능처럼 보이고, 실측 29px은 손가락 최소치에도 못 미쳤다. */
-[data-variant="a"] .cart-btn {
-  width: 44px;
-  height: 44px;
-  padding: 0;
 }
 
 /* 초기화 — 판 없이 글자처럼 가볍게 두고, 조건이 걸릴 때만 진해진다.
@@ -3237,10 +2772,6 @@ html.has-bottom-banner .survey-dock {
   bottom: calc(var(--banner-dock-h) + .5rem);
 }
 
-/* 다음 묶음을 부르는 자리. 보이지 않지만 높이가 0이면 관찰이 안 걸린다. */
-.brand-grid__more { height: 1px; }
-
-
 /* ══ 필터 바텀시트 ═══════════════════════════════════════════════════
    옛 B안의 시트를 A 바에 붙였다(사용자 결정 2026-09-16: 기능 병합).
    바의 필터 버튼이 연다. 앱·분류·정렬을 한 자리에서 고른다. */
@@ -3316,12 +2847,11 @@ html.has-bottom-banner .survey-dock {
   font-weight: 600;
 }
 .sheet__chips + .sheet__chips { margin-top: .4rem; }
-.sheet__hint, .sheet__warn {
+.sheet__hint {
   font-size: .76rem;
   color: var(--text-muted);
   margin: .45rem 0 0;
 }
-.sheet__warn { color: var(--pending-text); }
 .sheet__actions {
   flex: none;
   display: flex;
@@ -3375,8 +2905,7 @@ html.has-bottom-banner .survey-dock {
 .sheet__chip--soon:hover { border-color: var(--border); color: var(--text-muted); }
 /* 손을 올렸을 때의 답. 시트 안 버튼들과 인디케이터가 통째로 빠져 있어,
    마우스로는 누를 수 있는 것인지 올려봐도 알 수 없었다. */
-.sheet__chip:hover:not(.sheet__chip--on),
-.sheet__app:hover:not(.sheet__app--on) { border-color: var(--text-muted); color: var(--text); }
+.sheet__chip:hover:not(.sheet__chip--on) { border-color: var(--text-muted); color: var(--text); }
 .sheet__reset:hover { background: var(--save-soft); }
 .sheet__apply:hover { background: var(--save-hover); }
 
@@ -3935,7 +3464,6 @@ html.has-bottom-banner .survey-dock {
   border: 0;
   font-weight: 600;
 }
-
 
 /* 숨긴 카드는 오른쪽 위로 쪼그라들며 사라진다. 방금 누른 버튼이 거기 있어서
    "저기로 들어갔다"로 읽힌다. 그냥 사라지면 무엇이 없어졌는지 안 남는다.

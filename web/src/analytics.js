@@ -12,8 +12,6 @@ import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
 import { uiVariant } from './variant.js'
 
-export { optedOut } from './privacy.js'
-
 const MAX_PENDING_POSTHOG_EVENTS = 100
 
 // 이벤트마다 한 번만 발급하는 UUID다. 이 객체가 메모리 큐에 남아 있는 동안
