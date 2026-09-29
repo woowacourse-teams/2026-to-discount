@@ -38,7 +38,7 @@ class PushStateStoreTest {
 
         PushStateStore restored = new PushStateStore(properties, mapper, clock);
         assertThat(restored.observe(Map.of("banner", true), Map.of("banner", false))).isEmpty();
-        assertThat(restored.pendingSince(clock.instant().minusSeconds(1))).hasSize(1);
+        assertThat(restored.pending()).hasSize(1);
     }
 
     @Test

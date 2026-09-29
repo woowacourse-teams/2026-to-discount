@@ -531,15 +531,4 @@ public record Banner(
             return null;
         }
     }
-
-    /**
-     * {@code startsOn() <= day <= endsOn()}. 경계일 자신도 포함이다.
-     *
-     * <p>Task 19 조정: {@code BannerCatalog}가 아직 이 이름으로 부른다 - 시각으로
-     * 옮긴 뒤에도 지우지 않고 파생 접근자로 다시 짠다. {@link #activeAt}로
-     * 바꾸는 일은 그 호출부를 고치는 Task 6이 한다.
-     */
-    boolean activeOn(LocalDate day) {
-        return !day.isBefore(startsOn()) && !day.isAfter(endsOn());
-    }
 }

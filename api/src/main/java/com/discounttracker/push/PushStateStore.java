@@ -115,14 +115,6 @@ public class PushStateStore {
         return activated;
     }
 
-    public synchronized List<BannerNotificationState> pendingSince(Instant since) {
-        return state.banners.values().stream()
-                .filter(BannerNotificationState::lastNotify)
-                .filter(value -> value.activatedAt() != null && !value.activatedAt().isBefore(since))
-                .filter(value -> value.immediateDispatchedAt() == null && value.digestDispatchedAt() == null)
-                .toList();
-    }
-
     public synchronized List<BannerNotificationState> pending() {
         return state.banners.values().stream()
                 .filter(BannerNotificationState::lastNotify)

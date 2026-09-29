@@ -58,12 +58,6 @@ public record DiscountTier(Integer minOrder, Integer amount, Integer percent, In
         this(minOrder, amount, percent, cap, channel, soldOut, expiresAt, null, null);
     }
 
-    /** 이 구간에 note를 붙인 사본. */
-    public DiscountTier withNote(String value) {
-        return new DiscountTier(minOrder, amount, percent, cap, channel, soldOut,
-                                expiresAt, value, membership);
-    }
-
     /** 구조화된 멤버십. 구간에 값이 없으면 UNKNOWN. */
     public Membership membershipTier() {
         return Membership.from(membership);
