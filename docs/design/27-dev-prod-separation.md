@@ -57,6 +57,15 @@
   문제는 프리뷰가 쏘는 `POST /api/events`가 운영 원장에 섞이는 것이다.
   `VITE_API_BASE`를 빌드 변수로 빼고, 프리뷰는 dev API를 보거나(갈래 C), A안대로
   `dev` 표시를 강제한다(`import.meta.env.MODE !== 'production'`이면 dev=true).
+- **프리뷰만 dev API로 보내기**: 지금 `web/src/api.js`의 `API_BASE`는 운영 주소로 고정된
+  상수다. `import.meta.env.VITE_API_BASE ?? 운영 주소`로 바꾸고, Vercel 환경 변수에서
+  `VITE_API_BASE`를 **Preview 환경에만** dev API 주소로 준다(Production에는 안 준다).
+  Vite는 빌드 때 값을 박으므로 프리뷰 빌드만 dev API를 부른다. 받을 dev API가 있어야
+  하니 갈래 C와 한 묶음이다. dev API의 CORS에는 프리뷰 주소 패턴만 넣는다.
+- **Hobby 요금제에서는 프리뷰를 본인만 본다**(2026-09-29 확인). 프리뷰에 Vercel
+  Authentication이 기본으로 켜져 있고 Hobby는 팀원이 없다. 팀원이 보려면 프로젝트
+  설정에서 프리뷰 보호를 끄면 된다(링크를 아는 사람은 누구나 본다. 주소는 추측하기
+  어렵다). 배포마다 공유 링크를 만드는 방법도 있다. 팀원 계정 관리가 필요하면 Pro 팀이다.
 - 2026-09-15 같은 "고쳤는데 안 보인다"는 프리뷰 URL에서 먼저 봤으면 끝났다.
 - 잃는 것: mirror 워크플로 복잡도, Vercel 빌드 분 소모(무료 한도 안).
 
