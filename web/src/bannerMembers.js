@@ -8,6 +8,9 @@
  *
  * 카드의 soldOut은 구성원 전원이 소진일 때만 참이라, 한 곳만 소진이면 그 이름만 흐리게 그린다(감사 #6).
  *
+ * 쿠팡이츠 선착순 오픈은 하루치를 한 장으로 묶는다(2026-09-30 사용자 결정). 구성원마다 여는 시각이
+ * 달라 members의 opensAt("09:00")을 이름 앞에 붙인다("9시 뚜레쥬르 최대 6,000원").
+ *
  * members가 없는 옛 묶음(brands 배열)은 구성원별 값을 모른다. 금액과 최소주문은 null, 소진은 false다.
  */
 export function bannerMemberLabels(banner) {
@@ -17,15 +20,28 @@ export function bannerMemberLabels(banner) {
       amount: m.amount ?? null,
       minOrder: m.minOrder ?? null,
       soldOut: !!m.soldOut,
+      opensAt: m.opensAt ?? null,
     }))
   }
   const names = banner.brandLabels ?? banner.brands ?? []
-  return names.map((label) => ({ label, amount: null, minOrder: null, soldOut: false }))
+  return names.map((label) => ({ label, amount: null, minOrder: null, soldOut: false, opensAt: null }))
 }
 
-/** 구성원 한 명의 글자. "청년피자 최대 10,000원 18,900원↑". 모르는 값은 뺀다. */
+/** "09:00" -> "9시", "09:30" -> "9시 30분". 못 읽으면 null. */
+export function openHourText(hhmm) {
+  const t = /^(\d{1,2}):(\d{2})$/.exec(hhmm ?? '')
+  if (!t) return null
+  const h = Number(t[1])
+  const min = Number(t[2])
+  return min ? `${h}시 ${min}분` : `${h}시`
+}
+
+/** 구성원 한 명의 글자. "9시 청년피자 최대 10,000원 18,900원↑". 모르는 값은 뺀다. */
 export function memberText(m) {
-  const parts = [m.label]
+  const parts = []
+  const at = openHourText(m.opensAt)
+  if (at) parts.push(at)
+  parts.push(m.label)
   if (m.amount) parts.push(m.amount)
   if (m.minOrder != null) parts.push(`${m.minOrder.toLocaleString('ko-KR')}원↑`)
   return parts.join(' ')

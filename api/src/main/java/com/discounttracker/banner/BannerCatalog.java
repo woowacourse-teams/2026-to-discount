@@ -201,9 +201,19 @@ public class BannerCatalog {
             List<Banner.Member> crew = mates.stream()
                     .map(m -> new Banner.Member(m.id(), m.brand(),
                             m.brand() == null ? null : brands.find(m.brand()).display(),
-                            m.amount(), m.minOrder(), Boolean.TRUE.equals(m.soldOut())))
+                            m.amount(), m.minOrder(), Boolean.TRUE.equals(m.soldOut()),
+                            m.spec() == null ? null : m.spec().opensAt()))
                     .toList();
-            out.add(lead.toBuilder()
+            // 구성원마다 여는 시각이 다르면(쿠팡이츠 하루치 선착순 묶음, 2026-09-30) 카드의 기간
+            // 문구는 대표 시각("오전 11시 오픈")이 아니라 시각을 뺀 하루 문구다. 시각은 members가 말한다.
+            Banner base = lead;
+            if (crew.stream().map(Banner.Member::opensAt).distinct().count() > 1 && lead.spec() != null) {
+                BannerSpec s = lead.spec();
+                BannerSpec noClock = new BannerSpec(null, s.channel(), s.membership(), s.event(), s.note());
+                base = lead.toBuilder().spec(noClock.isEmpty() ? null : noClock).build();
+                base = base.toBuilder().period(BannerText.period(base)).build();
+            }
+            out.add(base.toBuilder()
                     .brands(names)
                     .brandLabels(names.stream().map(n -> brands.find(n).display()).toList())
                     .amount(groupAmount(mates, lead))
@@ -218,7 +228,8 @@ public class BannerCatalog {
      * 묶음 규칙을 어긴 칸 이름. 지키면 null.
      *
      * <p>묶음은 링크(url), 기간(startsAt/endsAt), 플랫폼이 같은 배너들이다. 구성원마다 달라도
-     * 되는 것은 브랜드, 금액, 최소주문뿐이다(확정 규칙 4절, 2026-09-29 사용자 결정). 카드 한 장은
+     * 되는 것은 브랜드, 금액, 최소주문, 여는 시각(opensAt)이다(확정 규칙 4절, 2026-09-29/30 사용자
+     * 결정). 여는 시각은 그래서 견주지 않는다. 카드 한 장은
      * 링크 하나, 기간 하나를 보여 주므로 그래야 카드가 정직하다. 지금 살아 있는 구성원끼리만
      * 견준다 - 먼저 내린 구성원은 묶음에서 퇴장한 것이다.
      */

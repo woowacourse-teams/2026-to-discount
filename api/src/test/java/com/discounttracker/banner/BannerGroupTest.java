@@ -278,6 +278,54 @@ class BannerGroupTest {
     }
 
     @Test
+    void dailyOpenGroupKeepsEachMembersOpeningTime() {
+        // 2026-09-30 사용자 결정: 쿠팡이츠 선착순 오픈은 하루치를 한 장으로 묶는다. 구성원마다
+        // 여는 시각이 달라도 묶음이고, 시각은 구성원마다 members에 싣는다. 카드 기간 문구는
+        // 대표 시각이 아니라 하루 문구다 - 대표 시각을 쓰면 다른 구성원에 대해 거짓말을 한다.
+        String yml = """
+                banners:
+                  - id: coupangeats-open-20260922-9시-뚜레쥬르
+                    group: coupangeats-open-20260922
+                    brand: 뚜레쥬르
+                    platform: coupangeats
+                    url: "https://example.test/hub"
+                    amount: {won: 6000}
+                    startsAt: 2026-09-22T00:00:00
+                    endsAt: 2026-09-22T23:59:59
+                    opensAt: "09:00"
+                    firstCome: issue
+                    priority: 6
+                  - id: coupangeats-open-20260922-17시-두찜
+                    group: coupangeats-open-20260922
+                    brand: 두찜
+                    platform: coupangeats
+                    url: "https://example.test/hub"
+                    amount: {won: 7000}
+                    startsAt: 2026-09-22T00:00:00
+                    endsAt: 2026-09-22T23:59:59
+                    opensAt: "17:00"
+                    firstCome: issue
+                    priority: 7
+                """;
+        List<Banner> active = catalog(yml).active();
+        assertEquals(1, active.size(), "여는 시각이 달라도 한 장");
+        Banner card = active.get(0);
+        assertEquals(List.of("09:00", "17:00"), card.members().stream().map(Banner.Member::opensAt).toList());
+        assertEquals("9월 22일 하루", card.period());
+        assertEquals("발급 선착순", card.extra());
+        assertNull(BannerCatalog.groupRuleBreak(catalog(yml).activeMembers()));
+    }
+
+    @Test
+    void sameOpeningTimeGroupKeepsItsClockPeriod() {
+        String yml = TWO_IN_A_GROUP.replace("priority: 5", "priority: 5\n    opensAt: \"11:00\"")
+                .replace("priority: 2", "priority: 2\n    opensAt: \"11:00\"");
+        Banner card = catalog(yml).active().get(0);
+        assertEquals("오전 11시 오픈", card.period());
+        assertEquals(List.of("11:00", "11:00"), card.members().stream().map(Banner.Member::opensAt).toList());
+    }
+
+    @Test
     void cardIsSoldOutOnlyWhenEveryMemberIsSoldOut() {
         // 대표만 소진이면 카드 전체가 소진으로 뜨고, 다른 구성원만 소진이면 표시가 없었다
         // (감사 2026-09-29 #6). 카드는 전원일 때만, 누가 소진인지는 members가 말한다.

@@ -40,7 +40,8 @@
   "brandLabel",
   "amount",
   "minOrder",
-  "soldOut"
+  "soldOut",
+  "opensAt"
  ],
  "cases": [
   {
@@ -274,7 +275,8 @@
        "brandLabel": "청년피자",
        "amount": "최대 10,000원",
        "minOrder": null,
-       "soldOut": false
+       "soldOut": false,
+       "opensAt": null
       },
       {
        "id": "coupangeats-weekly-20260929-60계치킨",
@@ -282,7 +284,8 @@
        "brandLabel": "60계치킨",
        "amount": "최대 8,000원",
        "minOrder": null,
-       "soldOut": true
+       "soldOut": true,
+       "opensAt": null
       }
      ]
     }

@@ -86,12 +86,17 @@ public record Banner(
         Boolean untilSoldOut,
         // 묶음 카드의 구성원(2026-09-29). BannerCatalog.active()가 접은 카드에만 있다.
         // 묶음은 링크, 기간, 플랫폼이 같은 배너들이라(확정 규칙 4절) 그 셋은 카드의 것이고,
-        // 구성원마다 다른 브랜드, 금액, 최소주문, 소진만 여기 남긴다. 접지 않은 배너는 null이다.
+        // 구성원마다 다른 브랜드, 금액, 최소주문, 여는 시각, 소진만 여기 남긴다. 접지 않은 배너는 null이다.
         List<Member> members) {
 
-    /** 묶음 카드 구성원 한 명. 대표도 첫 자리에 들어간다. */
+    /**
+     * 묶음 카드 구성원 한 명. 대표도 첫 자리에 들어간다.
+     *
+     * <p>{@code opensAt}("HH:MM")은 그 구성원이 여는 시각이다. 쿠팡이츠 선착순 오픈은 하루치를
+     * 한 장으로 묶어(2026-09-30 사용자 결정) 구성원마다 시각이 다르다. 없으면 null.
+     */
     public record Member(String id, String brand, String brandLabel, String amount,
-                         Integer minOrder, Boolean soldOut) {
+                         Integer minOrder, Boolean soldOut, String opensAt) {
     }
 
     static final int DEFAULT_PRIORITY = 999;
