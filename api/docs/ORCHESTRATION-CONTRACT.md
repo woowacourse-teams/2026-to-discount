@@ -230,12 +230,11 @@ extra  "고정 6,000+선착순 4,000"  amount "10,000원"
 ## 4. 다른 레포가 의존하는 설정값
 
 - CORS 허용 origin (`WebConfig.java`, `/api/**`에 적용). 정확한 origin이 아니라 `allowedOriginPatterns`라 와일드카드가 들어간다(Vercel 프리뷰 배포마다 서브도메인이 바뀐다):
-  - `http://localhost:5173`
-  - `https://beggars-five.vercel.app`
-  - `https://beggars-five-*.vercel.app`
-  - `https://delivery-discount-web-*.vercel.app`
-  - 허용 메서드: `GET`, `POST`만 명시(정적으로 적어뒀지만 Spring 기본값도 어차피 GET/HEAD/POST).
-  - 코드에 `TODO`가 남아 있다. 실제 Vercel project slug를 확인해 안 맞는 패턴을 지워야 한다. 지금은 넉넉하게 열려 있는 상태다.
+  - 로컬: `http://localhost:5173`, 같은 망의 `http://192.168.*:5173`, `http://10.*:5173`
+  - 운영: `https://beggars-five.vercel.app`
+  - 프리뷰: `https://beggars-five-*.vercel.app`, `https://beggars-git-*-nn98s-projects.vercel.app`, `https://beggars-*-nn98s-projects.vercel.app`
+  - 옛 프로젝트 주소 `delivery-discount-web-*.vercel.app`은 2026-09-29에 뺐다.
+  - 허용 메서드: `GET`, `POST`, `DELETE`.
 - 서버 포트: `8080` (`application.yml`, `server.port`).
 - export.json 경로: 기본값은 `classpath:data/export.json`. 레포에 커밋된 픽스처다. 서버(systemd)는 `DISCOUNT_EXPORT_PATH`로 `file:<서버>/delivery-discount-api/data/export.json`을 가리킨다(ADR-001). 로컬에서 export.json을 고쳐도 안 보이는 것은 이 기본값 때문이다. 환경변수를 걸어야 한다.
 - 갱신 절차: 수집 PC의 예약 실행 8단계(`reflect_daily`)가 export를 만들고 tracker `scripts/deploy_export.py`가 서버로 올린 뒤 `POST /api/reload`를 부른다(사람 개입 없음, [ARCHITECTURE](../../docs/ARCHITECTURE.md) 2-1절). 올리기 전에 낡은 파일이 서버를 덮지 않는지 tracker `check_deploy.py`가 검사한다.
