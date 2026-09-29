@@ -131,23 +131,7 @@ Web Push 기능은 `DISCOUNT_PUSH_ENABLED=true`와 VAPID 키, 상태 파일 경�
 
 - 응답: `{"accepted": <int>}` (200) 또는 429(레이트리밋 초과, 바디 없음). 깨진/빈 본문은 에러 없이 `{"accepted": 0}`. `accepted`는 원본 `events.jsonl` 기록 건수이며 PostHog 도착을 의미하지 않는다.
 - 서버 측 정제: 배치 최대 20건, 문자열 필드 120자 컷, `props` 최대 18개 키(`EventController.java`의 `MAX_PROPS`), `event`가 화이트리스트 밖이면 그 항목만 조용히 버린다(배치 전체는 실패 안 함).
-- ALLOWED_EVENTS 목록 (`EventController.java`, 2026-08-01 기준. 현재 목록은 소스가 맞다):
-  - `page_view`
-  - `page_exit`
-  - `category_change`
-  - `brand_expand`
-  - `offer_link_click`
-  - `banner_click` (props `{brand, platform, position}`. `position`은 `top`/`bottom`)
-  - `platform_filter_toggle`
-  - `filters_reset`
-  - `brands_retry`
-  - `scroll_to_top`
-  - `membership_toggle`
-  - `filters_apply`
-  - `cart_toggle`
-  - `filter_sheet_open`
-  - `cart_view_toggle`
-  - `cart_clear`
+- 받는 이벤트 이름은 `api/src/main/java/com/discounttracker/analytics/EventController.java`의 `ALLOWED_EVENTS`가 정본이다. 여기에 목록을 따로 적지 않는다 — 사본은 코드와 어긋났다(2026-09-29 담기 이벤트를 지운 뒤에도 남아 있었다). 웹이 보내는 이벤트와 이 목록이 맞는지는 `web/scripts/verify-analytics-event-contract.mjs`가 CI에서 본다.
 - 서버는 클라이언트가 보낸 유효한 UUID 형식의 `eventId`를 JSONL에 그대로 기록한다. 값이 없거나 잘못된 구버전 요청만 서버 UUID로 보완한다. PostHog 전달이 활성화되면 이 값을 `$insert_id`로 사용하고 `page_view`를 `$pageview`로 바꾼다.
 - PostHog 전달은 영속 outbox를 거치는 비동기 부가 경로다. 외부 장애는 이 엔드포인트 응답에 전파하지 않는다. 실패는 1시간 간격, 최초 포함 최대 5회 시도 후 dead-letter로 이동한다.
 - `ipHash`와 `dev=true` 이벤트는 PostHog payload에 포함하지 않는다.

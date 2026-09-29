@@ -54,9 +54,8 @@ curl -X POST https://bebeggars.duckdns.org/api/reload
 - `web/`: 바깥과 닿는 부분
   - `BrandController`: GET /api/brands, POST /api/reload
   - `BannerController`: GET /api/banners
-  - `WebConfig`: CORS 허용 오리진. 현재 `http://localhost:5173`(로컬 프론트)
-    + `https://beggars-five.vercel.app`(delivery-discount-web 배포).
-    프론트를 다른 곳에 새로 배포하면 여기에 오리진을 추가해야 한다.
+  - `WebConfig`: CORS 허용 오리진의 정본. 로컬 개발 서버, 운영 `beggars-five.vercel.app`,
+    Vercel 프리뷰 주소를 패턴으로 연다. 프론트를 새 주소에 배포하면 여기에 더한다.
 - `analytics/`: 방문 이벤트 수집(아래 "방문 측정 (analytics)" 절 참고)
   - `EventController`: POST /api/events
   - `EventLog`: `data/events.jsonl`에 append

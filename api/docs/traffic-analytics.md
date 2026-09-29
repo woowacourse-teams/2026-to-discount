@@ -10,7 +10,7 @@
 프론트(`delivery-discount-web`)가 방문자 행동을 배치로 모아 `POST /api/events`에 보낸다(구현: `com.discounttracker.analytics.EventController`).
 
 - 요청 형식: JSON 배열. 각 원소는 `event, visitorId, sessionId, visitCount, path, referrer, device, viewport, dwellMs, props, clientTs` 필드를 가진 객체(전부 optional).
-- 허용 이벤트 화이트리스트(2026-08-21 기준. 현재 목록은 `EventController.ALLOWED_EVENTS`가 맞다): `page_view`, `page_exit`, `category_change`, `brand_expand`, `offer_link_click`, `banner_click`, `platform_filter_toggle`, `filters_reset`, `brands_retry`, `scroll_to_top`, `membership_toggle`, `filters_apply`, `cart_toggle`, `filter_sheet_open`, `cart_view_toggle`, `cart_clear`, `brand_search_submitted`. 목록에 없는 `event` 값은 조용히 버려진다.
+- 받는 이벤트 이름은 `EventController.ALLOWED_EVENTS`가 정본이다(목록 사본은 두지 않는다). 목록에 없는 `event` 값은 조용히 버려진다.
 - 배치 상한: 요청 하나당 최대 20건(넘으면 앞의 20건만 처리).
 - 필드 길이 제한: 문자열 필드는 120자로 잘리고, `props`는 키 18개까지만 유지된다(`EventController.MAX_PROPS`, 악성, 비대 payload 방어).
 - 레이트 리밋: 클라이언트(ipHash)당 분당 120개 이벤트. 초과 시 `429 Too Many Requests`.

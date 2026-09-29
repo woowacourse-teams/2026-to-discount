@@ -275,12 +275,8 @@ public class BrandComparisonService {
         };
     }
 
-    /**
-     * 원장 대신 넘겨받은 레코드로 비교한다 — 검수용 더미 데이터
-     * ({@code /api/test})가 운영과 똑같은 판정 규칙을 타게 하려고 열어둔다.
-     * 규칙을 따로 복사해두면 그 복사본이 먼저 낡는다.
-     */
-    public List<BrandComparison> compare(List<OfferRecord> records) {
+    /** 넘겨받은 레코드로 비교한다. 운영 경로는 원장 레코드로 {@link #compare()}가 부른다. */
+    List<BrandComparison> compare(List<OfferRecord> records) {
         // 원장은 tracker가 push할 때만 바뀌지만 오늘 날짜는 계속 바뀐다.
         // 그래서 만료 판정은 적재 시점이 아니라 요청을 처리하는 지금 한다.
         LocalDate today = LocalDate.now(clock);
