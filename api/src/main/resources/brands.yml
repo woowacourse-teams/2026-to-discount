@@ -32,14 +32,14 @@ brands:
     links:
       baemin: https://s.baemin.com/k7000Lprasbb2
   BBQ:
-    searchAliases: [비비큐, 비비큐치킨, bbq chicken, bbq치킨]
+    searchAliases: [비비큐, 비비큐치킨, bbq chicken, bbq치킨, BBQ치킨]
     category: chicken
     aliases: [BBQ, BBQ치킨]
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?i68GLcw
       baemin: https://s.baemin.com/f3e.6ibml
   bhc:
-    searchAliases: [비에이치씨, 비에이치씨치킨, bhc chicken, bhc치킨]
+    searchAliases: [비에이치씨, 비에이치씨치킨, bhc chicken, bhc치킨, BHC치킨]
     category: chicken
     aliases: [bhc, bhc치킨, BHC, BHC치킨]
     links:
