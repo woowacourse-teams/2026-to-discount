@@ -40,7 +40,8 @@ public enum Certainty {
     }
 
     /**
-     * 원장 {@code qualifier}에서 끌어낸다. 모르는 값은 {@link #EXACT}다.
+     * 원장 {@code qualifier}에서 끌어낸다. 비어 있으면 {@link #EXACT}, 모르는 값은
+     * {@link #CAPPED}다(가장 보수적 - 최고 후보도, 정렬 기여도 안 된다).
      *
      * <p>"최적"과 "최소"는 겹침 축({@code tierMode})이 이미 답하는 사실이라 확실성으로는
      * 그냥 확정이다. "행사"는 출처 축({@code fromBanner})이 답한다.
@@ -59,7 +60,7 @@ public enum Certainty {
      * 않고, 그래서 이 다리는 사실상 지울 조건이 없다(다른 셋과 다름).
      */
     public static Certainty fromQualifier(String qualifier) {
-        if (qualifier == null) return EXACT;
+        if (qualifier == null || qualifier.isBlank()) return EXACT;
         return switch (qualifier) {
             case "최대" -> CAPPED;
             case "랜덤" -> RANDOM;
@@ -68,13 +69,16 @@ public enum Certainty {
             // 사다리 꼭대기(최적)와 최저 문턱(최소)은 실제로 받는 값이다. 액면대로 견준다.
             // 원장 schema.py의 ALLOWED_QUALIFIERS 여섯 값이 여기에 하나씩 대응한다.
             case "최적", "최소" -> EXACT;
+            // "행사"는 출처 축(fromBanner)이 답한다. 확실성으로는 확정이다.
+            case "행사" -> EXACT;
             default -> {
                 // 모르는 값을 EXACT로 떨어뜨리면 견줄 수 없는 금액이 최고 할인 후보로
-                // 선다. 대응을 빠뜨린 쪽이 더 위험하므로 소리를 낸다 - 원장에 새 값이
-                // 늘면 여기도 늘려야 한다(2026-09-24).
-                log.warn("모르는 qualifier라 EXACT로 둔다: {} - Certainty.fromQualifier에 "
+                // 선다(백로그 #5, 2026-09-29). 확정 규칙 5절이 예외 경로를 금하므로
+                // 던지지 않고 CAPPED로 둔다 - 최고 후보도 정렬 기여도 아니고 화면은
+                // "불확정"이다. 원장에 새 값이 늘면 여기도 늘려야 한다.
+                log.warn("모르는 qualifier라 CAPPED로 둔다: {} - Certainty.fromQualifier에 "
                         + "대응을 넣을 것", qualifier);
-                yield EXACT;
+                yield CAPPED;
             }
         };
     }

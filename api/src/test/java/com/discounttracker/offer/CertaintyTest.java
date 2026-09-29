@@ -19,10 +19,18 @@ class CertaintyTest {
     }
 
     @Test
-    void unknownQualifierIsExactRatherThanNull() {
-        // 모르는 값에 null을 돌려주면 부르는 쪽마다 분기가 생긴다. 원장이 허용하는 값은
-        // schema.py의 ALLOWED_QUALIFIERS 다섯이고 그 밖은 들어올 일이 없다.
-        assertEquals(Certainty.EXACT, Certainty.fromQualifier("듣도보도못한값"));
+    void blankQualifierIsExact() {
+        // 확정 규칙 5절: null, 빈 문자열, 공백은 "조건 없음"이라 확정이다.
+        assertEquals(Certainty.EXACT, Certainty.fromQualifier(""));
+        assertEquals(Certainty.EXACT, Certainty.fromQualifier("  "));
+    }
+
+    @Test
+    void unknownQualifierIsNeverExact() {
+        // 2026-09-29 백로그 #5. 모르는 조건을 EXACT로 두면 견줄 수 없는 금액이 최고 할인
+        // 후보로 선다. 확정 규칙 5절이 예외 경로를 금하므로 던지지 않고, 가장 보수적인
+        // CAPPED(최고 후보 아님, 정렬 기여 없음, 화면 "불확정")로 둔다.
+        assertEquals(Certainty.CAPPED, Certainty.fromQualifier("듣도보도못한값"));
     }
 
     @Test
