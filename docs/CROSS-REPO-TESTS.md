@@ -135,3 +135,43 @@ bhc 배너는 이미 새 모양이다. 옛 모양 배너(`endsOn: 2026-09-30`)�
 웹의 `npm test`는 이제 `src/` 아래 `*.test.js`를 전부 `node --test`로 돈다. 파일을 package.json에 적는 걸 잊어도 빠지지 않고, `node:test`가 아닌 테스트 파일이 있으면 실패한다.
 
 계약을 고칠 때는 mono에서 고치고, beggars-ops `tests/fixtures/`에 그대로 복사한다. 응답 모양을 바꾸면 API 테스트와 웹 테스트가 같이 빨개져야 정상이다.
+
+## 배너 밖의 계약 셋(2026-09-29, 감사 R3)
+
+배너 계약과 같은 식이다. 정본은 mono `api/src/test/resources/contracts/`에 있고, 웹은
+`web/scripts/api-repo.mjs`로, tracker는 `ci_only` 테스트로, beggars-ops는 `tests/fixtures/` 사본과
+CI 바이트 비교로 읽는다.
+
+| 계약 | 무엇을 고정하나 | API | 웹 | 콘솔(beggars-ops) | 수집기(tracker) |
+| --- | --- | --- | --- | --- | --- |
+| `platforms.json` | 배달앱 키, 이름, 머리글자, 순서. `own`. 원장만 받는 키(`specialdelivery`). 콘솔 선택지 | `PlatformContractTest`(`Banner.OWN`, 배너 계약의 platform 값) | `platformsContract.test.js`(`PLATFORMS`, `OWN`) | `test_platform_and_alias_contract.py`(편집기 select, 대시보드 `B_PLATFORMS`) | `test_r3_contracts.py`(`schema.ALLOWED_PLATFORMS`, `banner_routine` 상수) |
+| `brand-alias-cases.json` | 이름 → 대표명, 아는 이름인가. 라이브 `brands.yml`에서 옮긴 표본 | `BrandAliasContractTest`(`canonical`, `knows`, 표본이 라이브 파일에 있는가) | — | 같은 파일(`unknown_brands`) | 같은 파일(`export_data.canon_table`, `check_brands.unknown_brands`) |
+| `offer-cases.json` | export.json 한 줄 → 응답 오퍼 JSON. 응답 칸(오퍼, 구간, 카드). 서버가 버리는 export 칸 | `OfferContractTest`(서버와 같은 설정으로 읽고 응답과 견줌) | `offerContract.test.js`(소스에서 `offer.X`로 읽는 칸이 응답 칸 안인가) | — | 같은 파일(export.json의 칸이 `exportKeys` 안인가) |
+
+### 별칭 해석 규칙
+
+1. 앞뒤 공백을 떼고 대소문자를 접어 대표명과 `aliases`에서 찾는다
+2. 없으면 모든 공백(탭 포함)을 지운 꼴로 한 번 더 찾는다. 사람이 적은 이름이 먼저다
+3. 그래도 없으면 모르는 이름이고 원래 표기를 돌려준다
+
+`searchAliases`는 검색창용이라 해석에 안 쓴다. `brands.yml` 머리말이 `aliases`를 "원장에 다른 이름으로
+찍히는 경우"로 정한다.
+
+### 계약을 만들며 찾은 어긋남
+
+| 어디 | 무엇 | 고친 쪽 |
+| --- | --- | --- |
+| API `BrandCatalog` | 띄어쓰기를 안 접었다. export는 접은 "반찬가게슈퍼키친"을 서버는 모른다고 했다 | API(규칙 2 추가) |
+| 콘솔 `known_brands` | `searchAliases`까지 아는 이름으로 쳤다. "비비큐"를 통과시키면 서버는 그 배너 브랜드를 `unknownBrands`로 올린다. 탭은 안 지웠다 | 콘솔 |
+| tracker `export_data`, `check_brands` | export는 대소문자를 안 접었고, check_brands는 글자 그대로 견줬다 | tracker. 09-29 원장 이름 220개로는 export 결과가 안 바뀐다 |
+| 웹 `App.jsx` | `offer.channel`, `offer.via`를 읽었는데 오퍼 응답에 없는 칸이다. 늘 undefined였다 | 웹(읽기를 지움). 화면은 그대로다 |
+
+아무도 안 읽는 칸: export의 `expiresAtEstimated`(서버가 버린다), 응답 카드의 `maxConfirmedAmount`(웹이 안 읽는다).
+계약의 `exportDropped`, `unreadByWeb`에 적어 두었다.
+
+### 알림 문구는 하나로 모으지 않았다
+
+감사 R3는 배너 푸시(`PushMessageFactory`)와 슬랙 알림이 같은 배너를 두 문구로 말한다고 적었다. 확인해 보니
+같은 것을 말하지 않는다. 푸시는 사용자에게 가고 브랜드 이름만 싣는다. 슬랙(`banner_routine.notify_slack`,
+문장은 `banner_ops.describe`)은 운영 채널에 가고 아직 반영 안 된 제안 op를 말한다. 제안은 서버에 없어
+API 응답을 인용할 수 없다. 사용자에게 가는 배너 문구는 푸시와 `BannerText` 둘뿐이다.
