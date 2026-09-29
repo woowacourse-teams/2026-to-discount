@@ -1,11 +1,12 @@
-<!-- 원본: tracker docs/public/archive/README.md — 여기서 고치지 않는다 -->
-# archive — 지금 기준이 아닌 기록
+# 남겨 둔 기록
 
-그때의 인수인계, 계획, 보고, 사례다. 지금 따라야 할 것은 팀 입구 `docs/WORKFLOW.md`부터 본다.
-여기 있는 것은 고치지 않는다. 틀린 게 보이면 지금 문서를 고친다.
+끝난 일의 기록은 2026-09-29에 지웠다. git 이력에 남는다. 여기에는 지금도 무언가가 가리키는 것만 둔다.
 
-| 무엇 | 언제 |
+| 문서 | 왜 남기나 |
 |---|---|
-| 인수인계(`HANDOFF-*`) | 2026-08-10 ~ 09-16 |
-| 완료된 계획과 명세(`superpowers/`) | 2026-07-27 ~ 09-29 |
-| 날짜 붙은 점검·보고 | 2026-09-17 ~ 09-19 |
+| `AB-SUMMARY-2026-09.md` | `scripts/organize_posthog.py`가 PostHog 대시보드 설명에 이 문서를 적는다 |
+| `superpowers/specs/2026-09-22-banner-model-design.md` | 배너 모델 설계. 이어지는 배너 이관이 따른다 |
+| `superpowers/plans/2026-09-22-banner-model.md` | 배너 모델 계획. 같은 이유 |
+| `superpowers/reports/2026-09-2*-banner-*.md` | 배너 모델 실행 보고 넷. 같은 이유 |
+
+확정 규칙은 [`../superpowers/decisions/2026-09-22-banner-model-rules.md`](../superpowers/decisions/2026-09-22-banner-model-rules.md)에 있다.
