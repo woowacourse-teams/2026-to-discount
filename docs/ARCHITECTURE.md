@@ -62,6 +62,8 @@ mono 자신에게는 배포 워크플로도 러너도 없다. 검사(`check-api`
 ### 2-3. 운영 콘솔: beggars-ops → 서버
 
 beggars-ops `main`에 push하면 그 저장소의 `deploy.yml`이 콘솔 파일을 서버에 올린다.
+배포는 CI에 막혀 있다: `deploy.yml`은 `workflow_run`으로 CI가 성공했을 때만 돈다.
+반면 mono 미러 배포(`mirror-deploy-repos.yml`)는 `push: main`에 바로 걸려 검사를 기다리지 않는다.
 서버에서는 현황 수집기가 5분마다 돌고, 배너 제안 승인이 `banners.yml`을 고친 뒤 API를 reload한다.
 콘솔 코드의 정본은 beggars-ops 하나다.
 
