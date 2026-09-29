@@ -1,67 +1,35 @@
 package com.discounttracker.banner;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * 배너의 구조 필드(설계 25, 2026-09-18 결정). 자유 문장 {@code amount}, {@code period},
- * {@code extra} 대신 이 값들에서 문구를 만든다({@link BannerText}).
+ * 배너의 구조 필드(설계 25, 2026-09-18 결정). 자유 문장 {@code period}, {@code extra} 대신
+ * 이 값들과 {@link Banner}의 칸에서 문구를 만든다({@link BannerText}).
  *
- * <p>전부 선택이다. 문장 칸이 적혀 있으면 그 문장이 우선한다(이행 기간 규칙). 필드 이름은
- * 오퍼 구간(tier)과 같은 어휘를 쓴다.
+ * <p>전부 선택이다. 필드 이름은 오퍼 구간(tier)과 같은 어휘를 쓴다.
  *
- * @param items       묶음 배너의 브랜드별 값. 브랜드마다 금액, 최소주문, 열림 시각이 다르다.
- *                    한 브랜드짜리도 원소 하나로 적을 수 있다.
- * @param amountRange 랜덤 쿠폰의 [최소, 최대]. 최소는 모를 때가 많아 null을 허용한다.
- * @param opensAt     매일 여는 시각 "HH:MM". 브랜드마다 다르면 items 쪽에 적는다.
- * @param limit       first_come, random, targeted, none
- * @param usage       use(사용 선착순), issue(발급 선착순). limit이 first_come일 때만 뜻이 있다.
- * @param channel     배달, 포장
- * @param membership  플랫폼 멤버십 키(예: coupangEats)
- * @param event       짧은 행사 제목(뚜쥬데이, 위클리 슈퍼딜)
- * @param note        위 칸에 안 담기는 나머지 한 줄
+ * <p>2026-09-29: 옛 칸 {@code items}, {@code amountRange}, {@code limit}, {@code usage}를 지웠다.
+ * 2026-09-22부터 {@link BannerCatalog}가 이 record를 다섯 칸으로만 만들어서 네 칸은 파일에
+ * 적혀 있어도 읽히지 않았고, 응답에는 늘 null로 실렸다(감사 2026-09-29 #5, #7). 확정 규칙은
+ * {@code items[]}를 없앤다고 정했고(설계 "없어지는 칸"), 옛 {@code limit}/{@code usage}는
+ * 파일을 읽을 때 {@code firstCome}/{@code targeted}/{@code amountSpec}으로 옮긴다.
+ *
+ * @param opensAt    매일 여는 시각 "HH:MM"
+ * @param channel    배달, 포장
+ * @param membership 플랫폼 멤버십 키(예: coupangEats)
+ * @param event      짧은 행사 제목(뚜쥬데이, 위클리 슈퍼딜)
+ * @param note       위 칸에 안 담기는 나머지 한 줄
  */
-// 2026-09-22 계획서(Task 5)는 이 record를 opensAt, channel, membership, event, note
-// 다섯 칸으로 줄이라고 했다. 그대로 하면 BannerCatalog와 BrandComparisonService가
-// 아직 읽는 items, amountRange, limit, usage가 사라져 컴파일이 깨진다 - 그 호출부를
-// 고치는 일은 Task 19다. 그래서 옛 아홉 칸은 그대로 두고, 다섯 칸짜리 생성자만 더한다.
 public record BannerSpec(
-        List<BannerItem> items,
-        List<Integer> amountRange,
         String opensAt,
-        String limit,
-        String usage,
         String channel,
         String membership,
         String event,
         String note) {
 
-    public record BannerItem(String brand, Integer amount, Integer minOrder, String opensAt) {
-    }
-
-    public BannerSpec {
-        if (amountRange != null && (amountRange.size() != 2 || amountRange.get(1) == null)) {
-            throw new IllegalArgumentException("amountRange는 [최소 또는 null, 최대] 두 칸이고 최대는 비울 수 없다");
-        }
-        if (items != null) {
-            for (BannerItem it : items) {
-                if (it == null || it.brand() == null || it.brand().isBlank()) {
-                    throw new IllegalArgumentException("items의 원소마다 brand가 있어야 한다");
-                }
-            }
-        }
-    }
-
-    /**
-     * Task 5가 쓰는 다섯 칸짜리 생성자. 금액과 기간과 한정은 이제 {@link Banner} 자신과
-     * {@link BannerAmount}가 가져가서, 새로 적는 배너는 items나 amountRange가 필요 없다.
-     */
-    public BannerSpec(String opensAt, String channel, String membership, String event, String note) {
-        this(null, null, opensAt, null, null, channel, membership, event, note);
-    }
-
+    /** 응답 계약에 없는 칸이다. getter 이름 때문에 JSON에 {@code empty}로 새어 나갔다. */
+    @JsonIgnore
     public boolean isEmpty() {
-        return (items == null || items.isEmpty()) && amountRange == null && opensAt == null
-                && limit == null && usage == null && channel == null && membership == null
-                && event == null && note == null;
+        return opensAt == null && channel == null && membership == null && event == null && note == null;
     }
 }

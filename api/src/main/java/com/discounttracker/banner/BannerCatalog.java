@@ -37,7 +37,8 @@ import java.util.Map;
  * 적혀 로고 파일(굽네치킨.png)을 못 찾고 폴백 글자만 떴다. brands.yml의
  * 별칭표가 이미 서버에 있으니 여기서 한 번 통과시킨다.
  *
- * <p><b>두 모양 읽기는 옛 모양 전용이다(RULES 11, Task 19).</b> {@link #toBanner}가
+ * <p><b>두 모양 읽기는 옛 모양 전용이다(RULES 11, Task 19).</b> 2026-09-29에 {@code items}와
+ * {@code amountRange}는 읽는 길에서 뺐다 - 이미 읽히지 않던 칸이다(감사 #5). {@link #toBanner}가
  * {@code amount}가 문자열인지 지도인지, {@code startsOn}/{@code endsOn}(날짜)인지
  * {@code startsAt}/{@code endsAt}(시각)인지를 매번 나눠 읽는다. 지울 수 있는 조건은
  * 라이브 {@code banners.yml}에 옛 모양(문자열 {@code amount}, 옛 {@code limit}/{@code usage}/
@@ -170,10 +171,21 @@ public class BannerCatalog {
                     .sorted(byOriginalPriority).toList();
             Banner lead = mates.get(0);
             List<String> names = mates.stream().map(Banner::brand).filter(java.util.Objects::nonNull).toList();
+            // 카드의 소진 표시는 구성원 전원이 소진일 때만 켠다. 대표 것 하나를 쓰면 대표만
+            // 소진이어도 카드 전체가 소진으로 뜨고, 다른 구성원만 소진이면 아무 표시도 없다.
+            // 누가 소진인지와 누구의 링크인지는 members에 구성원마다 남긴다(감사 2026-09-29 #6).
+            boolean allSoldOut = mates.stream().allMatch(m -> Boolean.TRUE.equals(m.soldOut()));
+            List<Banner.Member> crew = mates.stream()
+                    .map(m -> new Banner.Member(m.id(), m.brand(),
+                            m.brand() == null ? null : brands.find(m.brand()).display(),
+                            m.url(), m.amount(), m.minOrder(), Boolean.TRUE.equals(m.soldOut())))
+                    .toList();
             out.add(lead.toBuilder()
                     .brands(names)
                     .brandLabels(names.stream().map(n -> brands.find(n).display()).toList())
                     .amount(groupAmount(mates, lead))
+                    .soldOut(allSoldOut)
+                    .members(crew)
                     .build());
         }
         return List.copyOf(out);
@@ -195,7 +207,11 @@ public class BannerCatalog {
         }
         if (amounts.stream().distinct().count() <= 1) return lead.amount();
         String joined = BannerText.joinAmounts(amounts);
-        return joined != null ? joined : lead.amount();
+        if (joined == null) return lead.amount();
+        // 구성원 전원이 상한("최대 N원", won: [null, N])이면 나열도 상한이다. 앞말을 빼면
+        // 쿠팡이츠 뽑기 행사 묶음이 "10/8천원"으로 떠 확정 금액처럼 읽힌다(2026-09-29).
+        boolean allCaps = mates.stream().allMatch(m -> m.amountSpec().isRange() && m.amountSpec().wonMin() == null);
+        return allCaps ? "최대 " + joined : joined;
     }
 
     /** 묶음을 안 접은 구성원 전부. 오퍼는 브랜드마다 하나씩 서므로 이쪽을 쓴다. */
@@ -429,7 +445,9 @@ public class BannerCatalog {
         }
         LocalDate d = date(on);
         if (d == null) return null;
-        return endOfDay ? d.atTime(23, 59) : d.atStartOfDay();
+        // 그날 23:59:59까지 산다(확정 규칙 2절). 23:59로 채우면 마지막 59초가 잘린다 -
+        // Banner.Builder.endsOn은 이미 이 값이었는데 파일을 읽는 이 길만 23:59였다(감사 2026-09-29 #4).
+        return endOfDay ? d.atTime(23, 59, 59) : d.atStartOfDay();
     }
 
     /** 옛 칸과 새 칸을 같이 적었나. 어느 쪽이 이기는지 파일만 봐서는 모른다(드리프트 2). */

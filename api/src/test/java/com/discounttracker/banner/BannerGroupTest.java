@@ -271,4 +271,25 @@ class BannerGroupTest {
                         Banner::brand, m -> m.amountSpec().wonMax())),
                 "브랜드마다 제 금액을 갖는다 - 문장 amount로는 못 하던 것");
     }
+
+    @Test
+    void cardIsSoldOutOnlyWhenEveryMemberIsSoldOut() {
+        // 대표만 소진이면 카드 전체가 소진으로 뜨고, 다른 구성원만 소진이면 표시가 없었다
+        // (감사 2026-09-29 #6). 카드는 전원일 때만, 누가 소진인지는 members가 말한다.
+        String leadOnly = TWO_IN_A_GROUP.replace("minOrder: 18000", "minOrder: 18000\n    soldOut: true");
+        Banner card = catalog(leadOnly).active().get(0);
+        assertEquals(false, card.soldOut(), "구성원 하나만 소진이면 카드는 소진이 아니다");
+        assertEquals(List.of(true, false), card.members().stream().map(Banner.Member::soldOut).toList());
+
+        String both = leadOnly.replace("minOrder: 15000", "minOrder: 15000\n    soldOut: true");
+        assertEquals(true, catalog(both).active().get(0).soldOut(), "전원 소진이면 카드도 소진이다");
+    }
+
+    @Test
+    void membersKeepTheirOwnLinks() {
+        Banner card = catalog(TWO_IN_A_GROUP).active().get(0);
+        assertEquals(List.of("https://example.test/albolo", "https://example.test/dunkin"),
+                card.members().stream().map(Banner.Member::url).toList(),
+                "구성원 링크는 대표 것으로 덮이지 않는다");
+    }
 }

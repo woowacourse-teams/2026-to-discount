@@ -1,6 +1,6 @@
 package com.discounttracker.banner;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -64,8 +64,10 @@ public record Banner(
         List<String> brands,
         // 구조 필드(설계 25). 문장 칸이 비면 여기서 문구를 만든다. 응답에도 그대로 실린다.
         BannerSpec spec,
-        @JsonProperty("notify") Boolean notifyFlag,
-        Boolean notifyImmediately,
+        // 알림 두 칸은 서버 안에서만 쓴다(BannerNotificationService). 응답에 실리던 것을
+        // 뺐다 - 웹도 콘솔 수집기도 안 읽는다(감사 2026-09-29 #7).
+        @JsonIgnore Boolean notifyFlag,
+        @JsonIgnore Boolean notifyImmediately,
         // 화면에 쓸 짧은 이름. brands와 같은 순서다. 로고와 원장은 brands(대표명)를 쓰고,
         // 글자만 이쪽을 쓴다 — 배너 한 장에 브랜드가 넷이면 긴 이름이 줄을 넘긴다
         // (2026-09-22 사용자: 후라이드참잘하는집 -> 후참잘).
@@ -81,13 +83,23 @@ public record Banner(
         // 선착순 기준. issue(발급), use(사용), null
         String firstCome,
         // 소진되면 끝인가.
-        Boolean untilSoldOut) {
+        Boolean untilSoldOut,
+        // 묶음 카드의 구성원(2026-09-29). BannerCatalog.active()가 접은 카드에만 있다.
+        // 카드 한 장에는 링크와 소진 표시가 하나뿐이라, 구성원마다 다른 url과 soldOut을
+        // 여기 남긴다. 접지 않은 배너는 null이다.
+        List<Member> members) {
+
+    /** 묶음 카드 구성원 한 명. 대표도 첫 자리에 들어간다. */
+    public record Member(String id, String brand, String brandLabel, String url, String amount,
+                         Integer minOrder, Boolean soldOut) {
+    }
 
     static final int DEFAULT_PRIORITY = 999;
 
     /** 배달앱 밖, 브랜드 자체 앱이나 사이트의 행사. 앱 배지 없이 그리고 오퍼 비교에서 뺀다. */
     public static final String OWN = "own";
 
+    @JsonIgnore
     public boolean isOwn() {
         return platform == null || OWN.equals(platform);
     }
@@ -111,7 +123,8 @@ public record Banner(
                 .priority(priority).brands(brands).spec(spec)
                 .notify(notifyFlag).notifyImmediately(notifyImmediately).brandLabels(brandLabels)
                 .group(group).via(via).amountSpec(amountSpec)
-                .targeted(targeted).firstCome(firstCome).untilSoldOut(untilSoldOut);
+                .targeted(targeted).firstCome(firstCome).untilSoldOut(untilSoldOut)
+                .members(members);
     }
 
     public static final class Builder {
@@ -140,6 +153,7 @@ public record Banner(
         private Boolean targeted;
         private String firstCome;
         private Boolean untilSoldOut;
+        private List<Member> members;
 
         private Builder(String id, String url) {
             this.id = id;
@@ -179,12 +193,13 @@ public record Banner(
         public Builder targeted(Boolean v) { this.targeted = v; return this; }
         public Builder firstCome(String v) { this.firstCome = v; return this; }
         public Builder untilSoldOut(Boolean v) { this.untilSoldOut = v; return this; }
+        public Builder members(List<Member> v) { this.members = v; return this; }
 
         public Banner build() {
             return new Banner(id, brand, platform, url, amount, period, extra, minOrder, color,
                     startsAt, endsAt, soldOut, soldOutOn, priority, brands, spec,
                     notify, notifyImmediately, brandLabels,
-                    group, via, amountSpec, targeted, firstCome, untilSoldOut);
+                    group, via, amountSpec, targeted, firstCome, untilSoldOut, members);
         }
     }
 
@@ -266,8 +281,7 @@ public record Banner(
      *
      * <p><b>{@code effectiveMinOrder}/{@code minOrderFromExtra}/{@code compoundMinOrders}/
      * {@link #compoundTiers()}/{@link #brandAmounts()}는 옛 모양 전용이다(RULES 11,
-     * Task 19).</b> 전부 {@code extra} 문장을 정규식으로 되짚거나 {@code spec.items()}
-     * (BannerSpec의 옛 칸)를 읽는다 - 지울 수 있는 조건은 라이브 파일에 그 모양이 없을
+     * Task 19).</b> 전부 {@code extra} 문장을 정규식으로 되짚는다 - 지울 수 있는 조건은 라이브 파일에 그 모양이 없을
      * 때다. Task 19에서 {@code main} 트리를 찾아본 결과 이 다섯 메서드를 부르는 곳이
      * {@code BannerTextTest}/{@code BannerCatalogTest} 말고 없었다 - {@code BrandComparisonService}가
      * "아직 읽는다"(RULES 1)는 근거를 다시 확인 못 했다. 그래도 RULES 1이 명시적으로
@@ -468,19 +482,12 @@ public record Banner(
      * 묶음 배너에서 푸라닭 오퍼가 안 떴다).
      *
      * <ul>
-     *   <li>구조 필드 {@code items}가 있으면 그것이다.</li>
      *   <li>{@code brands}가 여럿이고 금액이 같은 개수로 나열("최대 10,000/8,000원")이면 순서대로 짝짓는다.</li>
      *   <li>아니면 대표 브랜드에 대표 금액 하나.</li>
      * </ul>
      */
     public List<java.util.Map.Entry<String, Integer>> brandAmounts() {
         List<java.util.Map.Entry<String, Integer>> out = new java.util.ArrayList<>();
-        if (spec != null && spec.items() != null && !spec.items().isEmpty()) {
-            for (BannerSpec.BannerItem it : spec.items()) {
-                if (it.brand() != null && it.amount() != null) out.add(java.util.Map.entry(it.brand(), it.amount()));
-            }
-            if (!out.isEmpty()) return out;
-        }
         if (brands != null && brands.size() > 1 && amount != null) {
             Matcher m = HEADLINE.matcher(amount);
             if (m.find()) {

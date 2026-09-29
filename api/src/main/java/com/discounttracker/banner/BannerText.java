@@ -2,10 +2,8 @@ package com.discounttracker.banner;
 
 import com.discounttracker.offer.AmountKind;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 구조 필드({@link BannerSpec})에서 화면 문구를 만든다(설계 25).
@@ -18,15 +16,9 @@ import java.util.Objects;
  * {@link #amount(BannerAmount)}, {@link #period(Banner)}, {@link #extra(Banner)},
  * {@link #conditions(Banner)}가 들어왔다.
  *
- * <p><b>{@link BannerSpec} 판 메서드는 옛 모양 전용이다(RULES 11, Task 19).</b>
- * {@code amount(BannerSpec)}, {@code period(BannerSpec, ...)}, {@code extra(BannerSpec, Integer)},
- * {@code minOrder(BannerSpec)}, {@code brands(BannerSpec)}가 그것이다. Task 19에서 실제
- * 호출부를 찾아봤는데 {@code main} 어디서도 이 다섯을 부르지 않았다 - {@code BannerCatalog}는
- * {@link #amount(BannerAmount)}/{@link #period(Banner)}/{@link #extra(Banner)}만 쓴다.
- * 지금은 {@code BannerTextTest}에서만 닿는 죽은 코드로 보이지만, RULES 1이 "손대면 안
- * 된다"고 못 박은 것과 같은 계열(BannerSpec 기반)이라 지우지 않고 그대로 둔다 - 실제로
- * 안 쓰이는지는 이 파일만 봐서 확신할 수 없고(리플렉션·향후 호출부 가능성), 지우는 결정은
- * 이 재설계의 범위 밖이다.
+ * <p>2026-09-29: {@link BannerSpec}의 옛 칸({@code items}, {@code amountRange}, {@code limit},
+ * {@code usage})에서 문구를 만들던 메서드를 지웠다. 파일을 읽는 길이 그 칸을 싣지 않아 어디서도
+ * 닿지 않는 코드였다(감사 2026-09-29 #5).
  */
 public final class BannerText {
 
@@ -104,21 +96,6 @@ public final class BannerText {
         return body.isEmpty() ? null : body;
     }
 
-    /** 금액 문구. 6,000/5,000/8,000 → "6/5/8천원", 하나면 "8,000원", 범위는 "최대 8,000원". */
-    static String amount(BannerSpec s) {
-        if (s.amountRange() != null) {
-            Integer lo = s.amountRange().get(0), hi = s.amountRange().get(1);
-            return lo == null ? "최대 " + won(hi) + "원" : won(lo) + "~" + won(hi) + "원";
-        }
-        List<Integer> amounts = new ArrayList<>();
-        if (s.items() != null) {
-            for (BannerSpec.BannerItem it : s.items()) {
-                if (it.amount() != null) amounts.add(it.amount());
-            }
-        }
-        return joinAmounts(amounts);
-    }
-
     /**
      * 금액 여럿을 한 줄로. {@code [7000, 6000, 6000, 5000]} -> {@code "7/6/6/5천원"}.
      *
@@ -135,80 +112,6 @@ public final class BannerText {
         return String.join("/", amounts.stream().map(BannerText::won).toList()) + "원";
     }
 
-    /** 기간 문구. 하루면 "9월 18일 하루", 매일 여는 시각이 있으면 "매일 오전 11시 오픈", 아니면 "~9/30". */
-    static String period(BannerSpec s, LocalDate startsOn, LocalDate endsOn) {
-        boolean oneDay = startsOn != null && startsOn.equals(endsOn);
-        if (s.opensAt() != null) {
-            String at = clock(s.opensAt()) + " 오픈";
-            return oneDay ? at : "매일 " + at;
-        }
-        if (oneDay) return startsOn.getMonthValue() + "월 " + startsOn.getDayOfMonth() + "일 하루";
-        if (endsOn != null) return "~" + endsOn.getMonthValue() + "/" + endsOn.getDayOfMonth();
-        return null;
-    }
-
-    /** 부가 문구. "[행사] / [최소주문↑], [한정], [채널], [비고]". 브랜드별 시각이 있으면 "10시~ 버거킹 · 11시~ 본도시락". */
-    static String extra(BannerSpec s, Integer minOrder) {
-        List<String> parts = new ArrayList<>();
-        if (s.items() != null && s.items().stream().anyMatch(it -> it.opensAt() != null)) {
-            parts.add(openBrands(s.items()));
-        }
-        List<String> tail = new ArrayList<>();
-        if (minOrder != null) tail.add(won(minOrder) + "원↑");
-        String limit = limitText(s.limit(), s.usage());
-        if (limit != null) tail.add(limit);
-        if (s.channel() != null) tail.add(s.channel() + " 한정");
-        if (s.note() != null) tail.add(s.note());
-        String rest = String.join(", ", tail);
-        String head = s.event();
-        String body = parts.isEmpty() ? rest : (rest.isEmpty() ? parts.get(0) : parts.get(0) + " / " + rest);
-        if (head != null && !body.isEmpty()) return head + " / " + body;
-        if (head != null) return head;
-        return body.isEmpty() ? null : body;
-    }
-
-    /** 배너 하나의 최소주문. items가 하나거나 전부 같으면 그 값, 아니면 null. */
-    static Integer minOrder(BannerSpec s) {
-        if (s.items() == null || s.items().isEmpty()) return null;
-        Integer first = s.items().get(0).minOrder();
-        for (BannerSpec.BannerItem it : s.items()) {
-            if (!Objects.equals(it.minOrder(), first)) return null;
-        }
-        return first;
-    }
-
-    static List<String> brands(BannerSpec s) {
-        if (s.items() == null || s.items().isEmpty()) return null;
-        return s.items().stream().map(BannerSpec.BannerItem::brand).toList();
-    }
-
-    private static String limitText(String limit, String usage) {
-        if (limit == null) return null;
-        return switch (limit) {
-            case "first_come" -> "issue".equals(usage) ? "발급 선착순" : "use".equals(usage) ? "사용(발급X) 선착순" : "선착순";
-            case "random" -> "랜덤쿠폰";
-            case "targeted" -> "타겟딜";
-            // 적립은 지금 깎는 것이 아니라 나중에 포인트로 돌아온다(2026-09-22 백억커피).
-            case "cashback" -> "적립";
-            default -> null;
-        };
-    }
-
-    private static String openBrands(List<BannerSpec.BannerItem> items) {
-        StringBuilder out = new StringBuilder();
-        String last = null;
-        for (BannerSpec.BannerItem it : items) {
-            if (out.length() > 0) out.append(" · ");
-            String at = it.opensAt() == null ? null : shortClock(it.opensAt());
-            if (at != null && !at.equals(last)) {
-                out.append(at).append("~ ");
-                last = at;
-            }
-            out.append(it.brand());
-        }
-        return out.toString();
-    }
-
     /** "11:00" → "오전 11시", "17:00" → "오후 5시", "17:30" → "오후 5시 30분". */
     static String clock(String hhmm) {
         int[] t = parse(hhmm);
@@ -216,13 +119,6 @@ public final class BannerText {
         String ampm = t[0] < 12 ? "오전" : "오후";
         int h = t[0] == 0 ? 12 : t[0] > 12 ? t[0] - 12 : t[0];
         return ampm + " " + h + "시" + (t[1] != 0 ? " " + t[1] + "분" : "");
-    }
-
-    /** "11:00" → "11시", "17:00" → "17시". 브랜드 나열에서 짧게 쓴다. */
-    static String shortClock(String hhmm) {
-        int[] t = parse(hhmm);
-        if (t == null) return hhmm;
-        return t[0] + "시" + (t[1] != 0 ? " " + t[1] + "분" : "");
     }
 
     private static int[] parse(String hhmm) {

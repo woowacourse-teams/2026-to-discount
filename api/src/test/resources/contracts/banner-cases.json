@@ -1,0 +1,513 @@
+{
+ "note": "배너 한 장이 수집기 제안, 콘솔 검증, banners.yml, API 응답, 웹을 지날 때의 모양. 정본은 이 파일이다. api BannerContractTest, web bannerContract.test.js, tracker tests/test_banner_contract.py, beggars-ops tests/test_banner_contract.py(사본, CI가 이 파일과 바이트 비교)가 같이 읽는다. 한 저장소만 고치면 다른 저장소 테스트가 빨개진다. 그게 목적이다(감사 2026-09-29).",
+ "now": "2026-09-29T12:00:00",
+ "responseKeys": [
+  "id",
+  "brand",
+  "platform",
+  "url",
+  "amount",
+  "period",
+  "extra",
+  "minOrder",
+  "color",
+  "startsAt",
+  "endsAt",
+  "soldOut",
+  "soldOutOn",
+  "priority",
+  "brands",
+  "spec",
+  "brandLabels",
+  "group",
+  "via",
+  "amountSpec",
+  "targeted",
+  "firstCome",
+  "untilSoldOut",
+  "members"
+ ],
+ "specKeys": [
+  "opensAt",
+  "channel",
+  "membership",
+  "event",
+  "note"
+ ],
+ "memberKeys": [
+  "id",
+  "brand",
+  "brandLabel",
+  "url",
+  "amount",
+  "minOrder",
+  "soldOut"
+ ],
+ "cases": [
+  {
+   "name": "new-single-open",
+   "why": "라이브 배너(2026-09-29 11시 릴레이 선착순, bhc 8,000원). 수집기 open 경로가 만드는 새 모양",
+   "banners": [
+    {
+     "id": "coupangeats-open-20260929-11시-릴레이",
+     "platform": "coupangeats",
+     "brand": "bhc",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": {
+      "won": 8000
+     },
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "opensAt": "11:00",
+     "priority": 6,
+     "minOrder": 18000,
+     "firstCome": "issue",
+     "notify": false,
+     "notifyImmediately": false
+    }
+   ],
+   "activeIds": [
+    "coupangeats-open-20260929-11시-릴레이"
+   ],
+   "tags": {
+    "coupangeats-open-20260929-11시-릴레이": "first-come"
+   },
+   "response": [
+    {
+     "id": "coupangeats-open-20260929-11시-릴레이",
+     "brand": "bhc",
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": "8,000원",
+     "period": "오전 11시 오픈",
+     "extra": "18,000원↑, 발급 선착순",
+     "minOrder": 18000,
+     "color": null,
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "soldOut": false,
+     "soldOutOn": null,
+     "priority": 6,
+     "brands": null,
+     "spec": {
+      "opensAt": "11:00",
+      "channel": null,
+      "membership": null,
+      "event": null,
+      "note": null
+     },
+     "brandLabels": null,
+     "group": null,
+     "via": null,
+     "amountSpec": {
+      "wonMin": 8000,
+      "wonMax": 8000,
+      "percent": null,
+      "random": false,
+      "kind": "discount",
+      "range": false
+     },
+     "targeted": false,
+     "firstCome": "issue",
+     "untilSoldOut": null,
+     "members": null
+    }
+   ]
+  },
+  {
+   "name": "legacy-dates",
+   "why": "옛 모양(startsOn/endsOn, 문장 amount, limit). 끝은 그날 23:59:59로 읽는다(확정 규칙 2절)",
+   "banners": [
+    {
+     "id": "gongcha-20260928",
+     "brand": "공차",
+     "platform": "own",
+     "url": "https://example.test/gongcha",
+     "amount": "최대 20,000원, 50% 적립",
+     "period": "9/28~9/30",
+     "extra": "5,000원↑",
+     "minOrder": 5000,
+     "limit": "cashback",
+     "startsOn": "2026-09-28",
+     "endsOn": "2026-09-30",
+     "priority": 2
+    }
+   ],
+   "activeIds": [
+    "gongcha-20260928"
+   ],
+   "tags": {
+    "gongcha-20260928": "cashback"
+   },
+   "response": [
+    {
+     "id": "gongcha-20260928",
+     "brand": "공차",
+     "platform": "own",
+     "url": "https://example.test/gongcha",
+     "amount": "최대 20,000원, 50% 적립",
+     "period": "9/28~9/30",
+     "extra": "5,000원↑",
+     "minOrder": 5000,
+     "color": null,
+     "startsAt": "2026-09-28T00:00:00",
+     "endsAt": "2026-09-30T23:59:59",
+     "soldOut": false,
+     "soldOutOn": null,
+     "priority": 2,
+     "brands": null,
+     "spec": null,
+     "brandLabels": null,
+     "group": null,
+     "via": null,
+     "amountSpec": {
+      "wonMin": null,
+      "wonMax": null,
+      "percent": null,
+      "random": false,
+      "kind": "cashback",
+      "range": false
+     },
+     "targeted": false,
+     "firstCome": null,
+     "untilSoldOut": null,
+     "members": null
+    }
+   ]
+  },
+  {
+   "name": "ce-event-group",
+   "why": "수집기가 만드는 쿠팡이츠 행사 제안(브랜드마다 한 장, 같은 group). 구성원 하나만 소진",
+   "banners": [
+    {
+     "id": "coupangeats-weekly-20260929-청년피자",
+     "group": "coupangeats-weekly-20260929",
+     "platform": "coupangeats",
+     "brand": "청년피자",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": {
+      "won": [
+       null,
+       10000
+      ],
+      "random": true
+     },
+     "event": "위클리 슈퍼딜",
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "priority": 6
+    },
+    {
+     "id": "coupangeats-weekly-20260929-60계치킨",
+     "group": "coupangeats-weekly-20260929",
+     "platform": "coupangeats",
+     "brand": "60계치킨",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": {
+      "won": [
+       null,
+       8000
+      ],
+      "random": true
+     },
+     "event": "위클리 슈퍼딜",
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "priority": 7,
+     "soldOutOn": "2026-09-29"
+    }
+   ],
+   "activeIds": [
+    "coupangeats-weekly-20260929-청년피자",
+    "coupangeats-weekly-20260929-60계치킨"
+   ],
+   "tags": {
+    "coupangeats-weekly-20260929-청년피자": "random"
+   },
+   "response": [
+    {
+     "id": "coupangeats-weekly-20260929-청년피자",
+     "brand": "청년피자",
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": "최대 10/8천원",
+     "period": "9월 29일 하루",
+     "extra": "위클리 슈퍼딜 / 랜덤쿠폰",
+     "minOrder": null,
+     "color": null,
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "soldOut": false,
+     "soldOutOn": null,
+     "priority": 6,
+     "brands": [
+      "청년피자",
+      "60계치킨"
+     ],
+     "spec": {
+      "opensAt": null,
+      "channel": null,
+      "membership": null,
+      "event": "위클리 슈퍼딜",
+      "note": null
+     },
+     "brandLabels": [
+      "청년피자",
+      "60계치킨"
+     ],
+     "group": "coupangeats-weekly-20260929",
+     "via": null,
+     "amountSpec": {
+      "wonMin": null,
+      "wonMax": 10000,
+      "percent": null,
+      "random": true,
+      "kind": "discount",
+      "range": true
+     },
+     "targeted": false,
+     "firstCome": null,
+     "untilSoldOut": null,
+     "members": [
+      {
+       "id": "coupangeats-weekly-20260929-청년피자",
+       "brand": "청년피자",
+       "brandLabel": "청년피자",
+       "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+       "amount": "최대 10,000원",
+       "minOrder": null,
+       "soldOut": false
+      },
+      {
+       "id": "coupangeats-weekly-20260929-60계치킨",
+       "brand": "60계치킨",
+       "brandLabel": "60계치킨",
+       "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+       "amount": "최대 8,000원",
+       "minOrder": null,
+       "soldOut": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "outside-window",
+   "why": "어제 끝난 옛 모양, 내일 시작하는 새 모양. 응답에 없다",
+   "banners": [
+    {
+     "id": "old-20260928",
+     "brand": "BBQ",
+     "platform": "baemin",
+     "url": "https://example.test/bbq",
+     "amount": "6,000원",
+     "period": "오늘",
+     "startsOn": "2026-09-28",
+     "endsOn": "2026-09-28"
+    },
+    {
+     "id": "new-20260930",
+     "brand": "BBQ",
+     "platform": "baemin",
+     "url": "https://example.test/bbq",
+     "amount": {
+      "won": 6000
+     },
+     "startsAt": "2026-09-30T00:00:00",
+     "endsAt": "2026-09-30T23:59:59"
+    }
+   ],
+   "activeIds": [],
+   "tags": {},
+   "response": []
+  }
+ ],
+ "console": [
+  {
+   "name": "ce-event-group-add",
+   "why": "수집기의 쿠팡이츠 행사 제안은 콘솔을 통과해야 한다(감사 #1)",
+   "file": [],
+   "ops": [
+    {
+     "op": "add",
+     "why": "쿠팡이츠 오늘 행사",
+     "auto": false,
+     "banner": "cases:ce-event-group:0"
+    },
+    {
+     "op": "add",
+     "why": "쿠팡이츠 오늘 행사",
+     "auto": false,
+     "banner": "cases:ce-event-group:1"
+    }
+   ],
+   "problem": null
+  },
+  {
+   "name": "legacy-limit-items-add",
+   "why": "옛 수집기가 내던 모양. 새로 쓰면 거부한다",
+   "file": [],
+   "ops": [
+    {
+     "op": "add",
+     "why": "옛 모양",
+     "auto": false,
+     "banner": {
+      "id": "coupangeats-weekly-20260929",
+      "platform": "coupangeats",
+      "brand": "청년피자",
+      "brands": [
+       "청년피자",
+       "60계치킨"
+      ],
+      "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+      "amount": "최대 10,000/8,000원",
+      "period": "오늘",
+      "extra": "청년피자 · 60계치킨",
+      "limit": "random",
+      "items": [
+       {
+        "brand": "청년피자",
+        "amount": 10000
+       },
+       {
+        "brand": "60계치킨",
+        "amount": 8000
+       }
+      ],
+      "startsOn": "2026-09-29",
+      "endsOn": "2026-09-29",
+      "priority": 6
+     }
+    }
+   ],
+   "problem": "옛 구조 칸"
+  },
+  {
+   "name": "expire-new-shape",
+   "why": "새 모양 배너를 내리면 endsAt이 바뀐다(감사 #3)",
+   "file": [
+    "cases:new-single-open:0"
+   ],
+   "ops": [
+    {
+     "op": "expire",
+     "why": "화면에 없다",
+     "auto": false,
+     "id": "coupangeats-open-20260929-11시-릴레이",
+     "endsOn": "2026-09-28"
+    }
+   ],
+   "problem": null,
+   "after": {
+    "id": "coupangeats-open-20260929-11시-릴레이",
+    "endsAt": "2026-09-28T23:59:59",
+    "endsOn": null
+   }
+  },
+  {
+   "name": "expire-legacy-shape",
+   "why": "옛 모양 배너를 내리면 endsOn이 바뀐다",
+   "file": [
+    "cases:legacy-dates:0"
+   ],
+   "ops": [
+    {
+     "op": "expire",
+     "why": "화면에 없다",
+     "auto": false,
+     "id": "gongcha-20260928",
+     "endsOn": "2026-09-28"
+    }
+   ],
+   "problem": null,
+   "after": {
+    "id": "gongcha-20260928",
+    "endsOn": "2026-09-28",
+    "endsAt": null
+   }
+  },
+  {
+   "name": "ends-at-minute",
+   "why": "T23:59는 23:59:00이다. 마지막 59초가 잘린다(확정 규칙 2절)",
+   "file": [],
+   "ops": [
+    {
+     "op": "add",
+     "why": "콘솔에서 추가",
+     "auto": true,
+     "banner": {
+      "id": "bbq-20260929",
+      "platform": "baemin",
+      "brand": "BBQ",
+      "url": "https://example.test/bbq",
+      "amount": {
+       "won": 6000
+      },
+      "startsAt": "2026-09-29T00:00",
+      "endsAt": "2026-09-29T23:59"
+     }
+    }
+   ],
+   "problem": "T23:59:59"
+  },
+  {
+   "name": "mixed-dates",
+   "why": "옛 날짜 칸과 새 시각 칸을 같이 적으면 거부한다",
+   "file": [],
+   "ops": [
+    {
+     "op": "add",
+     "why": "섞임",
+     "auto": true,
+     "banner": {
+      "id": "bbq-20260929",
+      "platform": "baemin",
+      "brand": "BBQ",
+      "url": "https://example.test/bbq",
+      "amount": {
+       "won": 6000
+      },
+      "startsOn": "2026-09-29",
+      "startsAt": "2026-09-29T00:00:00",
+      "endsAt": "2026-09-29T23:59:59"
+     }
+    }
+   ],
+   "problem": "섞였다"
+  }
+ ],
+ "consumers": {
+  "web": [
+   "id",
+   "brand",
+   "brands",
+   "brandLabels",
+   "platform",
+   "url",
+   "amount",
+   "amountSpec",
+   "period",
+   "extra",
+   "minOrder",
+   "color",
+   "soldOut",
+   "firstCome",
+   "targeted",
+   "members"
+  ],
+  "opsCollect": [
+   "id",
+   "brand",
+   "brands",
+   "amount",
+   "endsAt",
+   "soldOut",
+   "soldOutOn"
+  ]
+ },
+ "bannerOps": {
+  "note": "banner_ops.py(beggars-ops 정본, tracker 사본)의 머리말 docstring 뒤 본문 sha256. 두 사본이 바이트 단위로 같아야 한다. 정본을 고치면 여기도 고친다",
+  "bodySha256": "3a32915ec6a4e5e9c47cad759a7c8cc674da0337c76c9ffa621394cec06e3028"
+ }
+}
