@@ -95,11 +95,16 @@ bhc 배너는 이미 새 모양이다. 옛 모양 배너(`endsOn: 2026-09-30`)�
 
 행사 제안 두 장은 한 장으로 접힌다. `amount: "최대 10/8천원"`, 60계치킨만 소진이면 카드 `soldOut`은 거짓이고 `members[1].soldOut`만 참이다.
 
+묶음은 링크(`url`), 기간(`startsAt`/`endsAt`), 플랫폼이 같은 배너들이다. 구성원마다 달라도 되는 것은 브랜드, 금액, 최소주문뿐이다(2026-09-29 사용자 결정, 확정 규칙 4절). 카드 한 장은 링크 하나, 기간 하나를 보여 주므로 그래야 카드가 정직하다. 그래서 `members`에는 `url`이 없다(`id`, `brand`, `brandLabel`, `amount`, `minOrder`, `soldOut`). 이 규칙을 어긴 살아 있는 묶음은 서버가 접지 않고 경고를 남긴 뒤 구성원을 각자 한 장으로 띄운다(계약 `group-rule-broken`).
+
+쿠팡이츠 데일리 슈퍼딜(선착순, `coupangeats-open-...`)은 상한이다. 한 브랜드에 금액 단계가 여럿이고 수집기가 가장 큰 단계를 싣기 때문이다. 제안은 `amount: {won: [null, 10000]}`, 응답은 `"최대 10,000원"`이다(계약 `superdeal-capped`).
+
 ### 5. 웹
 
 | 칸 | 전 | 후 |
 | --- | --- | --- |
 | 묶음 소진 | 대표 것 하나. 다른 구성원만 소진이면 표시 없음 | 소진된 구성원 이름만 흐리게 |
+| 묶음 구성원 | 이름만 | 구성원마다 브랜드, 금액, 최소주문 |
 | 표식 | `bannerTag`가 `firstCome`, `amountSpec.random` | 같다. 계약 응답으로 시험한다 |
 
 ## 어디서 깨졌고 왜 초록이었나
@@ -123,6 +128,7 @@ bhc 배너는 이미 새 모양이다. 옛 모양 배너(`endsOn: 2026-09-30`)�
 | 콘솔 판정 = 계약 | 계약의 콘솔 사례를 `console_problem`과 `apply_proposal` 두 길로 | beggars-ops `test_banner_contract.py` |
 | yml → Java → JSON | 계약의 yml을 파싱, 직렬화해 응답 JSON이 글자까지 같음 | api `BannerContractTest` |
 | JSON → 웹 | 계약 응답으로 표식과 묶음 소진, 웹이 읽는 칸 = 계약 목록 | web `bannerContract.test.js` |
+| 묶음 규칙 | 링크, 기간, 플랫폼이 다르면 콘솔이 거부, 서버는 접지 않음 | beggars-ops `test_group_rule.py`, 계약 콘솔 사례, api `BannerGroupTest` |
 | 두 벌 `banner_ops.py` | 본문 해시 = 계약 값 | tracker, beggars-ops |
 | 계약 사본 | beggars-ops CI가 mono 정본과 바이트 비교 | beggars-ops CI |
 

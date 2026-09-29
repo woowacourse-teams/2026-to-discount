@@ -103,10 +103,9 @@ mono에 수집기 사본이 없는지, mono에 민감 정보가 없는지가 그
 |---|---|
 | 수집 PC 예약 실행 | 시작, 실패, 재시도, 완료 |
 | tracker CI(`tests.yml`, `weekly.yml`) | 실패 |
-| mono CI(`check-web`, `check-project-structure`, `mirror-deploy-repos`) | 실패 |
+| mono CI(`check-api`, `check-web`, `check-project-structure`, `mirror-deploy-repos`) | 실패 |
 | 서버의 현황 수집기(beggars-ops) | 새 ERROR, 배포 실패, 5xx 폭주, API 멈춤, 디스크, 인증서, 분석 이벤트 전달 실패 |
 
-mono `check-api`에는 아직 슬랙 단계가 없다. 실패는 GitHub에서만 보인다.
 미러 배포의 실패는 서버 현황 수집기가 "배포 실패"로 알린다.
 
 ## 6. 2026-09-29 결정과 이유
