@@ -101,6 +101,7 @@ api/src/test/java/com/discounttracker/analytics/TrafficStatsServiceTest.java
 api/src/test/java/com/discounttracker/banner/BannerAmountTest.java
 api/src/test/java/com/discounttracker/banner/BannerBuilderTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogTest.java
+api/src/test/java/com/discounttracker/banner/BannerContractTest.java
 api/src/test/java/com/discounttracker/banner/BannerFieldsTest.java
 api/src/test/java/com/discounttracker/banner/BannerGroupTest.java
 api/src/test/java/com/discounttracker/banner/BannerTextTest.java
@@ -124,6 +125,7 @@ api/src/test/java/com/discounttracker/testdata/TestDataCatalogTest.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
+api/src/test/resources/contracts/banner-cases.json
 api/src/test/resources/contracts/certainty-cases.json
 web/.env.example
 web/.env.production
@@ -143,6 +145,7 @@ web/scripts/dev/build-ui-kit.py
 web/scripts/dev/capture-dom.mjs
 web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
+web/scripts/run-node-tests.mjs
 web/scripts/verify-analytics-event-contract.mjs
 web/scripts/verify-analytics-event-id.mjs
 web/scripts/verify-api-base.mjs
@@ -163,6 +166,8 @@ web/src/TopBarA.jsx
 web/src/analytics-context.js
 web/src/analytics.js
 web/src/api.js
+web/src/bannerContract.test.js
+web/src/bannerMembers.js
 web/src/bannerScroll.js
 web/src/bannerScroll.test.js
 web/src/bannerTag.js
@@ -249,8 +254,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 124 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 77 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 126 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 80 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -307,6 +312,8 @@ HTTP 경계:
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
 | `api.js` | 브랜드와 배너 API 호출 |
+| `bannerContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `bannerMembers.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerScroll.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerScroll.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerTag.js` | 런타임 모듈, 세부 책임은 코드 확인 |
