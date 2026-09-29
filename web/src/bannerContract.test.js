@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { apiFile } from '../scripts/api-repo.mjs'
 import { bannerTag } from './bannerTag.js'
-import { bannerMemberLabels } from './bannerMembers.js'
+import { bannerMemberLabels, memberText } from './bannerMembers.js'
 
 const contract = JSON.parse(readFileSync(
   apiFile('src', 'test', 'resources', 'contracts', 'banner-cases.json'), 'utf8'))
@@ -36,10 +36,30 @@ test('표식은 계약이 말한 대로다', () => {
 test('묶음 카드는 구성원마다 소진을 따로 그린다', () => {
   const card = contract.cases.find((c) => c.name === 'ce-event-group').response[0]
   assert.equal(card.soldOut, false, '한 곳만 소진이면 카드는 소진이 아니다')
-  assert.deepEqual(bannerMemberLabels(card), [
+  assert.deepEqual(bannerMemberLabels(card).map(({ label, soldOut }) => ({ label, soldOut })), [
     { label: '청년피자', soldOut: false },
     { label: '60계치킨', soldOut: true },
   ])
+})
+
+test('묶음 카드는 구성원마다 브랜드, 금액, 최소주문을 그린다(확정 규칙 4절)', () => {
+  const card = contract.cases.find((c) => c.name === 'ce-event-group').response[0]
+  const members = bannerMemberLabels(card)
+  assert.deepEqual(members.map(memberText), ['청년피자 최대 10,000원', '60계치킨 최대 8,000원'])
+  assert.ok(!('url' in card.members[0]), '구성원에는 링크가 없다. 링크는 카드 하나다')
+  assert.equal(memberText({ label: '두찜', amount: '7,000원', minOrder: 18000 }), '두찜 7,000원 18,000원↑')
+})
+
+test('규칙을 어긴 묶음은 접히지 않은 카드로 온다', () => {
+  const items = contract.cases.find((c) => c.name === 'group-rule-broken').response
+  assert.equal(items.length, 2)
+  for (const item of items) assert.equal(item.members, null)
+})
+
+test('데일리 슈퍼딜은 최대 N원으로 온다', () => {
+  const item = contract.cases.find((c) => c.name === 'superdeal-capped').response[0]
+  assert.equal(item.amount, '최대 10,000원')
+  assert.deepEqual([item.amountSpec.wonMin, item.amountSpec.wonMax], [null, 10000])
 })
 
 test('웹이 읽는 배너 칸은 계약의 consumers.web과 같고 전부 응답에 있다', () => {

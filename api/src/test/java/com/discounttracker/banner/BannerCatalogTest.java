@@ -518,6 +518,8 @@ class BannerCatalogTest {
     void buildsTextFromStructuredFieldsWhenSentencesAreEmpty() {
         // Task 5/6 새 모양: 문장 칸 없이 amount(구조 필드)만 적어도 카드가 선다. 적힌 문장은
         // 이긴다. 옛 모양의 묶음(items)은 이제 여러 배너를 group으로 한 장에 접는다(Task 6).
+        // 묶음은 링크가 같아야 접힌다(확정 규칙 4절, 2026-09-29). 전에는 구성원 링크가 hub, hub2로
+        // 달랐는데 그러면 이제 접지 않고 따로 띄운다(BannerGroupTest가 그 동작을 본다).
         String yaml = """
                 banners:
                   - id: coupangeats-open-버거킹-20260918
@@ -533,7 +535,7 @@ class BannerCatalogTest {
                   - id: coupangeats-open-호식이-20260918
                     group: coupangeats-open-20260918
                     platform: coupangeats
-                    url: https://example.test/hub2
+                    url: https://example.test/hub
                     brand: 호식이두마리치킨
                     amount: {won: 6000}
                     firstCome: issue

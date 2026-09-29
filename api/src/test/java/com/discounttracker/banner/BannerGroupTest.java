@@ -32,7 +32,7 @@ class BannerGroupTest {
                 group: ddangyo-doubleday-0922
                 brand: 던킨
                 platform: ddangyo
-                url: "https://example.test/dunkin"
+                url: "https://example.test/doubleday"
                 amount: {won: 7000}
                 minOrder: 15000
                 startsAt: 2026-09-22T00:00
@@ -42,7 +42,7 @@ class BannerGroupTest {
                 group: ddangyo-doubleday-0922
                 brand: 피자알볼로
                 platform: ddangyo
-                url: "https://example.test/albolo"
+                url: "https://example.test/doubleday"
                 amount: {won: 8000}
                 minOrder: 18000
                 startsAt: 2026-09-22T00:00
@@ -134,7 +134,8 @@ class BannerGroupTest {
                 group: crossed-0922
                 brand: 지브랜드
                 platform: ddangyo
-                url: "https://example.test/zzz"
+                url: "https://example.test/crossed"
+                color: "#000001"
                 amount: {won: 1111}
                 startsAt: 2026-09-22T00:00
                 endsAt: 2026-09-22T23:59
@@ -143,7 +144,8 @@ class BannerGroupTest {
                 group: crossed-0922
                 brand: 에이브랜드
                 platform: ddangyo
-                url: "https://example.test/aaa"
+                url: "https://example.test/crossed"
+                color: "#000009"
                 amount: {won: 2222}
                 startsAt: 2026-09-22T00:00
                 endsAt: 2026-09-22T23:59
@@ -155,13 +157,14 @@ class BannerGroupTest {
         // 반례: id는 aaa가 zzz보다 앞서지만(알파벳 순) priority는 zzz가 더 작다.
         // activeMembers()가 그룹 구성원의 priority를 그룹 최솟값(1)으로 덮어써
         // 두 구성원이 동률이 되므로, 대표를 고를 때 그 전의 원래 값을 안 보면
-        // id가 앞선 aaa가 대표가 되어 버린다 - url로 zzz가 이겼는지 본다.
+        // id가 앞선 aaa가 대표가 되어 버린다 - 대표가 대는 color로 zzz가 이겼는지 본다.
+        // (2026-09-29부터 묶음은 링크가 같아야 해서 url로는 대표를 못 가른다.)
         //
         // 금액으로는 못 본다. 2026-09-24부터 구성원 금액이 다르면 묶음 한 장이 전부를
         // 적는다("1,111/2,222원") - 대표 것 하나만 찍으면 그 값이 아닌 브랜드를 누른
         // 사람이 속기 때문이다. 순서가 대표부터라는 것은 그 문구로도 확인된다.
         Banner card = catalog(CROSSED_PRIORITY_AND_ID).active().get(0);
-        assertEquals("https://example.test/zzz", card.url());
+        assertEquals("#000001", card.color());
         assertEquals("1,111/2,222원", card.amount(), "대표(zzz) 금액이 앞에 온다");
     }
 
@@ -174,7 +177,8 @@ class BannerGroupTest {
                     group: tied-0922
                     brand: 브랜드A
                     platform: ddangyo
-                    url: "https://example.test/a"
+                    url: "https://example.test/tied"
+                    color: "#00000a"
                     amount: {won: 3000}
                     startsAt: 2026-09-22T00:00
                     endsAt: 2026-09-22T23:59
@@ -185,7 +189,8 @@ class BannerGroupTest {
                     group: tied-0922
                     brand: 브랜드B
                     platform: ddangyo
-                    url: "https://example.test/b"
+                    url: "https://example.test/tied"
+                    color: "#00000b"
                     amount: {won: 4000}
                     startsAt: 2026-09-22T00:00
                     endsAt: 2026-09-22T23:59
@@ -193,8 +198,8 @@ class BannerGroupTest {
                 """;
         Banner aFirstInFile = catalog("banners:\n" + memberA + memberB).active().get(0);
         Banner bFirstInFile = catalog("banners:\n" + memberB + memberA).active().get(0);
-        assertEquals("https://example.test/a", aFirstInFile.url(), "id-a가 id-b보다 앞선다");
-        assertEquals(aFirstInFile.url(), bFirstInFile.url(), "파일 순서를 바꿔도 대표는 같다");
+        assertEquals("#00000a", aFirstInFile.color(), "id-a가 id-b보다 앞선다");
+        assertEquals(aFirstInFile.color(), bFirstInFile.color(), "파일 순서를 바꿔도 대표는 같다");
     }
 
     @Test
@@ -286,10 +291,51 @@ class BannerGroupTest {
     }
 
     @Test
-    void membersKeepTheirOwnLinks() {
+    void membersCarryOnlyWhatMayDifferBetweenThem() {
+        // 묶음은 링크, 기간, 플랫폼이 같다(확정 규칙 4절, 2026-09-29 사용자 결정). 그 셋은 카드의
+        // 것이고, 구성원은 브랜드, 금액, 최소주문(과 소진)만 따로 싣는다.
         Banner card = catalog(TWO_IN_A_GROUP).active().get(0);
-        assertEquals(List.of("https://example.test/albolo", "https://example.test/dunkin"),
-                card.members().stream().map(Banner.Member::url).toList(),
-                "구성원 링크는 대표 것으로 덮이지 않는다");
+        assertEquals("https://example.test/doubleday", card.url());
+        assertEquals(List.of("피자알볼로", "던킨"), card.members().stream().map(Banner.Member::brand).toList());
+        assertEquals(List.of("8,000원", "7,000원"), card.members().stream().map(Banner.Member::amount).toList());
+        assertEquals(List.of(18000, 15000), card.members().stream().map(Banner.Member::minOrder).toList());
+    }
+
+    @Test
+    void groupWithDifferentLinksIsNotMergedButShownSeparately() {
+        // 링크가 다른데 접으면 카드는 대표 링크 하나라 다른 브랜드를 누른 사람이 엉뚱한 곳으로
+        // 간다. 조용히 접지 않고 구성원을 각자 한 장으로 둔다(경고는 로그에 남는다).
+        String yml = TWO_IN_A_GROUP.replaceFirst("https://example.test/doubleday", "https://example.test/dunkin");
+        List<Banner> active = catalog(yml).active();
+        assertEquals(2, active.size(), "규칙을 어긴 묶음은 접지 않는다");
+        assertTrue(active.stream().allMatch(b -> b.members() == null), "접지 않은 카드에는 members가 없다");
+        assertEquals(java.util.Set.of("https://example.test/dunkin", "https://example.test/doubleday"),
+                active.stream().map(Banner::url).collect(java.util.stream.Collectors.toSet()));
+    }
+
+    @Test
+    void groupWithDifferentPeriodsIsNotMerged() {
+        String yml = TWO_IN_A_GROUP.replaceFirst("endsAt: 2026-09-22T23:59", "endsAt: 2026-09-23T23:59");
+        assertEquals(2, catalog(yml).active().size(), "기간이 다르면 접지 않는다");
+    }
+
+    @Test
+    void groupWithDifferentPlatformsIsNotMerged() {
+        String yml = TWO_IN_A_GROUP.replaceFirst("platform: ddangyo", "platform: baemin");
+        assertEquals(2, catalog(yml).active().size(), "플랫폼이 다르면 접지 않는다");
+    }
+
+    @Test
+    void groupRuleBreakNamesTheField() {
+        Banner a = Banner.of("a", "https://x").platform("baemin")
+                .startsAt(java.time.LocalDateTime.parse("2026-09-22T00:00"))
+                .endsAt(java.time.LocalDateTime.parse("2026-09-22T23:59:59")).build();
+        assertNull(BannerCatalog.groupRuleBreak(List.of(a, a.toBuilder().brand("다른").build())),
+                "브랜드만 다르면 지킨 것이다");
+        assertEquals("링크(url)", BannerCatalog.groupRuleBreak(List.of(a, Banner.of("b", "https://y")
+                .platform("baemin").startsAt(a.startsAt()).endsAt(a.endsAt()).build())));
+        assertEquals("기간(startsAt/endsAt)", BannerCatalog.groupRuleBreak(List.of(a,
+                a.toBuilder().startsAt(java.time.LocalDateTime.parse("2026-09-21T00:00")).build())));
+        assertEquals("플랫폼(platform)", BannerCatalog.groupRuleBreak(List.of(a, a.toBuilder().platform("yogiyo").build())));
     }
 }

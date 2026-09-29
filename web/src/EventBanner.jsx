@@ -11,7 +11,7 @@ import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
 import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
 import { bannerTag } from './bannerTag.js'
-import { bannerMemberLabels } from './bannerMembers.js'
+import { bannerMemberLabels, memberText } from './bannerMembers.js'
 import { OWN } from './platforms.js'
 
 // 넘어가는 간격. 4.3초에서 1초 늘렸다(사용자 결정 2026-09-16).
@@ -206,7 +206,7 @@ function BannerCard({ banner, position, onClose, onSeen }) {
                   ? bannerMemberLabels(banner).map((m, i) => (
                       <span key={m.label}>
                         {i > 0 ? ' · ' : ''}
-                        <span className={m.soldOut ? 'banner__member banner__member--soldout' : 'banner__member'}>{m.label}</span>
+                        <span className={m.soldOut ? 'banner__member banner__member--soldout' : 'banner__member'}>{memberText(m)}</span>
                       </span>
                     ))
                   : (banner.brandLabels?.[0] ?? banner.brand ?? platform?.label

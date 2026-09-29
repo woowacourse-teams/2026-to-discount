@@ -38,7 +38,6 @@
   "id",
   "brand",
   "brandLabel",
-  "url",
   "amount",
   "minOrder",
   "soldOut"
@@ -273,7 +272,6 @@
        "id": "coupangeats-weekly-20260929-청년피자",
        "brand": "청년피자",
        "brandLabel": "청년피자",
-       "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
        "amount": "최대 10,000원",
        "minOrder": null,
        "soldOut": false
@@ -282,7 +280,6 @@
        "id": "coupangeats-weekly-20260929-60계치킨",
        "brand": "60계치킨",
        "brandLabel": "60계치킨",
-       "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
        "amount": "최대 8,000원",
        "minOrder": null,
        "soldOut": true
@@ -320,6 +317,194 @@
    "activeIds": [],
    "tags": {},
    "response": []
+  },
+  {
+   "name": "superdeal-capped",
+   "why": "쿠팡이츠 데일리 슈퍼딜(선착순). 한 브랜드에 금액 단계가 여럿 걸리고(8,000/3,000/5,000원 실측) 수집기는 그중 가장 큰 값을 싣는다. 그래서 확정액이 아니라 상한이다: {won: [null, N]}, 화면은 '최대 N원'(2026-09-29 사용자 결정)",
+   "banners": [
+    {
+     "id": "coupangeats-open-20260929-11시-청년피자",
+     "platform": "coupangeats",
+     "brand": "청년피자",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": {
+      "won": [
+       null,
+       10000
+      ]
+     },
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "opensAt": "11:00",
+     "priority": 2,
+     "minOrder": 18900,
+     "firstCome": "issue",
+     "membership": "coupangEats"
+    }
+   ],
+   "activeIds": [
+    "coupangeats-open-20260929-11시-청년피자"
+   ],
+   "tags": {
+    "coupangeats-open-20260929-11시-청년피자": "first-come"
+   },
+   "response": [
+    {
+     "id": "coupangeats-open-20260929-11시-청년피자",
+     "brand": "청년피자",
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": "최대 10,000원",
+     "period": "오전 11시 오픈",
+     "extra": "18,900원↑, 발급 선착순",
+     "minOrder": 18900,
+     "color": null,
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "soldOut": false,
+     "soldOutOn": null,
+     "priority": 2,
+     "brands": null,
+     "spec": {
+      "opensAt": "11:00",
+      "channel": null,
+      "membership": "coupangEats",
+      "event": null,
+      "note": null
+     },
+     "brandLabels": null,
+     "group": null,
+     "via": null,
+     "amountSpec": {
+      "wonMin": null,
+      "wonMax": 10000,
+      "percent": null,
+      "random": false,
+      "kind": "discount",
+      "range": true
+     },
+     "targeted": false,
+     "firstCome": "issue",
+     "untilSoldOut": null,
+     "members": null
+    }
+   ]
+  },
+  {
+   "name": "group-rule-broken",
+   "why": "묶음은 링크, 기간, 플랫폼이 같아야 한다(확정 규칙 4절). 어긴 묶음을 서버는 조용히 접지 않고 구성원을 각자 한 장으로 띄운다(로그에 경고)",
+   "banners": [
+    {
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "firstCome": "issue",
+     "group": "coupangeats-open-20260929-17시",
+     "id": "coupangeats-open-20260929-17시-두찜",
+     "brand": "두찜",
+     "amount": {
+      "won": [
+       null,
+       7000
+      ]
+     },
+     "priority": 6
+    },
+    {
+     "platform": "coupangeats",
+     "url": "https://example.test/jadam",
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "firstCome": "issue",
+     "group": "coupangeats-open-20260929-17시",
+     "id": "coupangeats-open-20260929-17시-자담치킨",
+     "brand": "자담치킨",
+     "amount": {
+      "won": [
+       null,
+       6000
+      ]
+     },
+     "priority": 7
+    }
+   ],
+   "activeIds": [
+    "coupangeats-open-20260929-17시-두찜",
+    "coupangeats-open-20260929-17시-자담치킨"
+   ],
+   "tags": {
+    "coupangeats-open-20260929-17시-두찜": "first-come",
+    "coupangeats-open-20260929-17시-자담치킨": "first-come"
+   },
+   "response": [
+    {
+     "id": "coupangeats-open-20260929-17시-두찜",
+     "brand": "두찜",
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": "최대 7,000원",
+     "period": "9월 29일 하루",
+     "extra": "발급 선착순",
+     "minOrder": null,
+     "color": null,
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "soldOut": false,
+     "soldOutOn": null,
+     "priority": 6,
+     "brands": null,
+     "spec": null,
+     "brandLabels": null,
+     "group": "coupangeats-open-20260929-17시",
+     "via": null,
+     "amountSpec": {
+      "wonMin": null,
+      "wonMax": 7000,
+      "percent": null,
+      "random": false,
+      "kind": "discount",
+      "range": true
+     },
+     "targeted": false,
+     "firstCome": "issue",
+     "untilSoldOut": null,
+     "members": null
+    },
+    {
+     "id": "coupangeats-open-20260929-17시-자담치킨",
+     "brand": "자담치킨",
+     "platform": "coupangeats",
+     "url": "https://example.test/jadam",
+     "amount": "최대 6,000원",
+     "period": "9월 29일 하루",
+     "extra": "발급 선착순",
+     "minOrder": null,
+     "color": null,
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "soldOut": false,
+     "soldOutOn": null,
+     "priority": 6,
+     "brands": null,
+     "spec": null,
+     "brandLabels": null,
+     "group": "coupangeats-open-20260929-17시",
+     "via": null,
+     "amountSpec": {
+      "wonMin": null,
+      "wonMax": 6000,
+      "percent": null,
+      "random": false,
+      "kind": "discount",
+      "range": true
+     },
+     "targeted": false,
+     "firstCome": "issue",
+     "untilSoldOut": null,
+     "members": null
+    }
+   ]
   }
  ],
  "console": [
@@ -475,6 +660,209 @@
     }
    ],
    "problem": "섞였다"
+  },
+  {
+   "name": "superdeal-capped-add",
+   "why": "수집기의 데일리 슈퍼딜 제안(상한 모양)은 콘솔을 통과한다",
+   "file": [],
+   "ops": [
+    {
+     "op": "add",
+     "why": "선착순인데 배너에 없다",
+     "auto": false,
+     "banner": "cases:superdeal-capped:0"
+    }
+   ],
+   "problem": null
+  },
+  {
+   "name": "group-rule-url",
+   "why": "묶음 구성원의 링크가 다르면 거부한다(확정 규칙 4절). 날짜는 이 사례가 늙지 않게 먼 미래다",
+   "file": [
+    {
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "startsAt": "2030-01-02T00:00:00",
+     "endsAt": "2030-01-02T23:59:59",
+     "group": "g-2030",
+     "firstCome": "issue",
+     "id": "g-2030-a",
+     "brand": "두찜",
+     "amount": {
+      "won": [
+       null,
+       7000
+      ]
+     }
+    }
+   ],
+   "ops": [
+    {
+     "op": "add",
+     "why": "묶음에 더함",
+     "auto": false,
+     "banner": {
+      "platform": "coupangeats",
+      "url": "https://example.test/jadam",
+      "startsAt": "2030-01-02T00:00:00",
+      "endsAt": "2030-01-02T23:59:59",
+      "group": "g-2030",
+      "firstCome": "issue",
+      "id": "g-2030-b",
+      "brand": "자담치킨",
+      "amount": {
+       "won": [
+        null,
+        7000
+       ]
+      }
+     }
+    }
+   ],
+   "problem": "링크"
+  },
+  {
+   "name": "group-rule-period",
+   "why": "묶음 구성원의 기간이 다르면 거부한다",
+   "file": [
+    {
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "startsAt": "2030-01-02T00:00:00",
+     "endsAt": "2030-01-02T23:59:59",
+     "group": "g-2030",
+     "firstCome": "issue",
+     "id": "g-2030-a",
+     "brand": "두찜",
+     "amount": {
+      "won": [
+       null,
+       7000
+      ]
+     }
+    }
+   ],
+   "ops": [
+    {
+     "op": "add",
+     "why": "묶음에 더함",
+     "auto": false,
+     "banner": {
+      "platform": "coupangeats",
+      "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+      "startsAt": "2030-01-02T00:00:00",
+      "endsAt": "2030-01-03T23:59:59",
+      "group": "g-2030",
+      "firstCome": "issue",
+      "id": "g-2030-b",
+      "brand": "자담치킨",
+      "amount": {
+       "won": [
+        null,
+        7000
+       ]
+      }
+     }
+    }
+   ],
+   "problem": "기간"
+  },
+  {
+   "name": "group-rule-platform",
+   "why": "묶음 구성원의 플랫폼이 다르면 거부한다",
+   "file": [
+    {
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "startsAt": "2030-01-02T00:00:00",
+     "endsAt": "2030-01-02T23:59:59",
+     "group": "g-2030",
+     "firstCome": "issue",
+     "id": "g-2030-a",
+     "brand": "두찜",
+     "amount": {
+      "won": [
+       null,
+       7000
+      ]
+     }
+    },
+    {
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "startsAt": "2030-01-02T00:00:00",
+     "endsAt": "2030-01-02T23:59:59",
+     "group": "g-2030",
+     "firstCome": "issue",
+     "id": "g-2030-b",
+     "brand": "자담치킨",
+     "amount": {
+      "won": [
+       null,
+       7000
+      ]
+     }
+    }
+   ],
+   "ops": [
+    {
+     "op": "set",
+     "why": "플랫폼 고침",
+     "auto": false,
+     "id": "g-2030-b",
+     "fields": {
+      "platform": "baemin"
+     }
+    }
+   ],
+   "problem": "플랫폼"
+  },
+  {
+   "name": "group-rule-amount-differs",
+   "why": "브랜드, 금액, 최소주문은 달라도 된다",
+   "file": [
+    {
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "startsAt": "2030-01-02T00:00:00",
+     "endsAt": "2030-01-02T23:59:59",
+     "group": "g-2030",
+     "firstCome": "issue",
+     "id": "g-2030-a",
+     "brand": "두찜",
+     "amount": {
+      "won": [
+       null,
+       7000
+      ]
+     }
+    }
+   ],
+   "ops": [
+    {
+     "op": "add",
+     "why": "묶음에 더함",
+     "auto": false,
+     "banner": {
+      "platform": "coupangeats",
+      "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+      "startsAt": "2030-01-02T00:00:00",
+      "endsAt": "2030-01-02T23:59:59",
+      "group": "g-2030",
+      "firstCome": "issue",
+      "id": "g-2030-b",
+      "brand": "자담치킨",
+      "amount": {
+       "won": [
+        null,
+        6000
+       ]
+      },
+      "minOrder": 18000
+     }
+    }
+   ],
+   "problem": null
   }
  ],
  "consumers": {
@@ -508,6 +896,6 @@
  },
  "bannerOps": {
   "note": "banner_ops.py(beggars-ops 정본, tracker 사본)의 머리말 docstring 뒤 본문 sha256. 두 사본이 바이트 단위로 같아야 한다. 정본을 고치면 여기도 고친다",
-  "bodySha256": "3a32915ec6a4e5e9c47cad759a7c8cc674da0337c76c9ffa621394cec06e3028"
+  "bodySha256": "b9d00201f987310bf717a68d6716d75413c1f608b7f6f99b6eb269381cc8f9da"
  }
 }

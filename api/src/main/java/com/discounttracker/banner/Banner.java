@@ -85,12 +85,12 @@ public record Banner(
         // 소진되면 끝인가.
         Boolean untilSoldOut,
         // 묶음 카드의 구성원(2026-09-29). BannerCatalog.active()가 접은 카드에만 있다.
-        // 카드 한 장에는 링크와 소진 표시가 하나뿐이라, 구성원마다 다른 url과 soldOut을
-        // 여기 남긴다. 접지 않은 배너는 null이다.
+        // 묶음은 링크, 기간, 플랫폼이 같은 배너들이라(확정 규칙 4절) 그 셋은 카드의 것이고,
+        // 구성원마다 다른 브랜드, 금액, 최소주문, 소진만 여기 남긴다. 접지 않은 배너는 null이다.
         List<Member> members) {
 
     /** 묶음 카드 구성원 한 명. 대표도 첫 자리에 들어간다. */
-    public record Member(String id, String brand, String brandLabel, String url, String amount,
+    public record Member(String id, String brand, String brandLabel, String amount,
                          Integer minOrder, Boolean soldOut) {
     }
 

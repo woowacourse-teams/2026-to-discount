@@ -114,6 +114,7 @@ public class BannerCatalog {
     public final boolean reload() {
         try {
             all = read();
+            brokenGroupsLogged.clear();
             unknownBrands = all.stream()
                     .flatMap(b -> b.allBrands().stream())
                     .filter(b -> b != null && !brands.knows(b))
@@ -169,16 +170,29 @@ public class BannerCatalog {
             if (!seen.add(b.group())) continue;
             List<Banner> mates = members.stream().filter(m -> b.group().equals(m.group()))
                     .sorted(byOriginalPriority).toList();
+            String broken = groupRuleBreak(mates);
+            if (broken != null) {
+                // 묶음 규칙(확정 규칙 4절, 2026-09-29 사용자 결정)을 어긴 묶음은 조용히 접지 않는다.
+                // 접으면 카드의 링크와 기간이 대표 것 하나라 다른 구성원에 대해 거짓말을 한다.
+                // 구성원을 각자 한 장으로 두고 남긴다. 파일은 사람이 고친다.
+                if (brokenGroupsLogged.add(b.group())) {
+                    log.warn("묶음 {}의 {}가 구성원마다 달라 접지 않고 따로 띄운다: {}", b.group(), broken,
+                            mates.stream().map(Banner::id).toList());
+                }
+                out.addAll(mates);
+                continue;
+            }
             Banner lead = mates.get(0);
             List<String> names = mates.stream().map(Banner::brand).filter(java.util.Objects::nonNull).toList();
             // 카드의 소진 표시는 구성원 전원이 소진일 때만 켠다. 대표 것 하나를 쓰면 대표만
             // 소진이어도 카드 전체가 소진으로 뜨고, 다른 구성원만 소진이면 아무 표시도 없다.
-            // 누가 소진인지와 누구의 링크인지는 members에 구성원마다 남긴다(감사 2026-09-29 #6).
+            // 누가 소진인지는 members에 구성원마다 남긴다(감사 2026-09-29 #6). 링크, 기간, 플랫폼은
+            // 묶음 규칙상 모두 같으므로 대표 것이 곧 카드 것이다.
             boolean allSoldOut = mates.stream().allMatch(m -> Boolean.TRUE.equals(m.soldOut()));
             List<Banner.Member> crew = mates.stream()
                     .map(m -> new Banner.Member(m.id(), m.brand(),
                             m.brand() == null ? null : brands.find(m.brand()).display(),
-                            m.url(), m.amount(), m.minOrder(), Boolean.TRUE.equals(m.soldOut())))
+                            m.amount(), m.minOrder(), Boolean.TRUE.equals(m.soldOut())))
                     .toList();
             out.add(lead.toBuilder()
                     .brands(names)
@@ -190,6 +204,25 @@ public class BannerCatalog {
         }
         return List.copyOf(out);
     }
+
+    /**
+     * 묶음 규칙을 어긴 칸 이름. 지키면 null.
+     *
+     * <p>묶음은 링크(url), 기간(startsAt/endsAt), 플랫폼이 같은 배너들이다. 구성원마다 달라도
+     * 되는 것은 브랜드, 금액, 최소주문뿐이다(확정 규칙 4절, 2026-09-29 사용자 결정). 카드 한 장은
+     * 링크 하나, 기간 하나를 보여 주므로 그래야 카드가 정직하다. 지금 살아 있는 구성원끼리만
+     * 견준다 - 먼저 내린 구성원은 묶음에서 퇴장한 것이다.
+     */
+    static String groupRuleBreak(List<Banner> mates) {
+        if (mates.stream().map(Banner::url).distinct().count() > 1) return "링크(url)";
+        if (mates.stream().map(Banner::startsAt).distinct().count() > 1
+                || mates.stream().map(Banner::endsAt).distinct().count() > 1) return "기간(startsAt/endsAt)";
+        if (mates.stream().map(Banner::platform).distinct().count() > 1) return "플랫폼(platform)";
+        return null;
+    }
+
+    /** 경고를 한 번만 남기려고 본 묶음. 요청마다 같은 줄이 쌓이지 않게 한다. reload가 비운다. */
+    private final java.util.Set<String> brokenGroupsLogged = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     /**
      * 묶음 한 장에 찍을 금액 문구.
