@@ -447,6 +447,30 @@ class BannerCatalogTest {
     }
 
     @Test
+    void entryEndingBeforeItStartsIsDroppedWithoutKillingTheRest() {
+        // 2026-09-29 백로그 #5: Banner.build()가 기간을 검사한다. 끝이 시작보다 앞인
+        // 배너는 한 번도 뜰 수 없다. 예외가 reload 전체를 죽이지 않고 dropped로 가야 한다.
+        String yaml = """
+                banners:
+                  - id: ok-20260918
+                    platform: yogiyo
+                    url: https://example.test/a
+                    amount: "6,500원"
+                    startsOn: 2026-09-18
+                    endsOn: 2026-09-18
+                  - id: backwards-20260918
+                    platform: baemin
+                    url: https://example.test/b
+                    amount: "6,000원"
+                    startsAt: "2026-09-18T12:00:00"
+                    endsAt: "2026-09-18T11:00:00"
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-18");
+        assertEquals(1, catalog.active().size());
+        assertEquals(List.of("backwards-20260918"), catalog.dropped());
+    }
+
+    @Test
     void reportsBannersThatShareAnId() {
         // 파일을 손으로 고치면 적용 시점 검사(beggars-ops ops_apply.duplicate_id_problem)를 지나간다.
         // id가 겹치면 "이 id의 배너"가 파일 순서로 정해진다 - API는 맵을 id로 찾고

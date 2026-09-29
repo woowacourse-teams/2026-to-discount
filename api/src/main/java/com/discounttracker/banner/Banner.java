@@ -195,7 +195,20 @@ public record Banner(
         public Builder untilSoldOut(Boolean v) { this.untilSoldOut = v; return this; }
         public Builder members(List<Member> v) { this.members = v; return this; }
 
+        /**
+         * 기간 두 칸을 검사한다(백로그 #5, 2026-09-29). {@link #activeAt}, {@link #startsOn},
+         * {@link #endsOn}이 두 칸을 그대로 쓰므로 하나라도 비면 요청 처리 중에 NPE가 난다.
+         * 끝이 시작보다 앞이면 한 번도 뜨지 않는다. 파일을 읽는 {@code BannerCatalog}는
+         * 이 예외를 받아 그 한 장만 {@code dropped}로 돌린다.
+         */
         public Banner build() {
+            if (startsAt == null || endsAt == null) {
+                throw new IllegalArgumentException("배너 " + id + ": startsAt과 endsAt이 둘 다 있어야 한다");
+            }
+            if (endsAt.isBefore(startsAt)) {
+                throw new IllegalArgumentException("배너 " + id + ": endsAt(" + endsAt
+                        + ")이 startsAt(" + startsAt + ")보다 앞이다");
+            }
             return new Banner(id, brand, platform, url, amount, period, extra, minOrder, color,
                     startsAt, endsAt, soldOut, soldOutOn, priority, brands, spec,
                     notify, notifyImmediately, brandLabels,

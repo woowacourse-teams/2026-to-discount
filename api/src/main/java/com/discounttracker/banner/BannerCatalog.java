@@ -417,6 +417,8 @@ public class BannerCatalog {
         if (brand == null && many != null) brand = many.get(0);
         Integer minOrder = number(attrs.get("minOrder"));
         String extra = extraForLegacy;
+        // 끝이 시작보다 앞이면 build()가 던진다. 그 한 장만 건너뛴다(dropped).
+        if (endsAt.isBefore(startsAt)) return null;
         Banner banner = Banner.of(id, url)
                 .brand(brand == null ? null : brands.canonical(brand))
                 .platform(platform)
