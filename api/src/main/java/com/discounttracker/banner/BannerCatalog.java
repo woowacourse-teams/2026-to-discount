@@ -72,6 +72,15 @@ public class BannerCatalog {
      */
     private volatile List<String> dropped = List.of();
 
+    /**
+     * 버린 항목의 id별 사유. {@link #reload()}가 채운다.
+     *
+     * <p>2026-09-30에 쿠팡이츠 오픈 배너 3장이 {@code dropped}에만 이름을 남기고 사라졌다.
+     * 원인(내리기 op가 시작보다 앞선 끝을 적었다)을 찾으려고 파일을 다시 읽어 되짚어야 했다.
+     * reload 응답과 로그에 사유를 같이 싣는다.
+     */
+    private volatile Map<String, String> droppedReasons = Map.of();
+
     /** 옛 칸과 새 칸을 같이 적은 배너의 id. reload 응답에 실어 사람이 바로 안다. */
     private volatile List<String> mixed = List.of();
 
@@ -289,6 +298,11 @@ public class BannerCatalog {
      * <p>Task 6부터 amount·period는 더는 필수가 아니다 - 문장 칸이 비어도 구조 칸
      * ({@code amount:} 덩이)에서 만들 수 있기 때문이다.
      */
+    /** {@link #dropped()}의 id별 사유. 파일 순서를 지킨다. */
+    public Map<String, String> droppedReasons() {
+        return droppedReasons;
+    }
+
     /** 둘 이상이 나눠 쓴 id. 비어 있어야 정상이다. */
     public List<String> duplicateIds() {
         return duplicateIds;
@@ -314,18 +328,27 @@ public class BannerCatalog {
 
             List<Banner> parsed = new ArrayList<>();
             List<String> skipped = new ArrayList<>();
+            Map<String, String> reasons = new java.util.LinkedHashMap<>();
             List<String> mixedIds = new ArrayList<>();
             for (Object item : list) {
                 if (item instanceof Map<?, ?> map) {
                     if (mixedShape((Map<String, Object>) map)) {
                         mixedIds.add(map.get("id") == null ? "(id 없음)" : String.valueOf(map.get("id")));
                     }
-                    Banner banner = toBanner((Map<String, Object>) map, brands);
-                    if (banner != null) parsed.add(banner);
-                    else skipped.add(map.get("id") == null ? "(id 없음)" : String.valueOf(map.get("id")));
+                    String[] why = new String[1];
+                    Banner banner = toBanner((Map<String, Object>) map, brands, r -> why[0] = r);
+                    if (banner != null) {
+                        parsed.add(banner);
+                    } else {
+                        String bid = map.get("id") == null ? "(id 없음)" : String.valueOf(map.get("id"));
+                        skipped.add(bid);
+                        reasons.merge(bid, why[0] == null ? "사유 모름" : why[0], (a, b) -> a + "; " + b);
+                        log.warn("배너 {}를 건너뛴다: {}", bid, reasons.get(bid));
+                    }
                 }
             }
             dropped = List.copyOf(skipped);
+            droppedReasons = java.util.Collections.unmodifiableMap(reasons);
             mixed = List.copyOf(mixedIds);
             return List.copyOf(parsed);
         } catch (IOException e) {
@@ -342,7 +365,8 @@ public class BannerCatalog {
      * 기동을 막거나 reload를 500으로 만들면 나머지 배너까지 같이 죽는다.
      * 몇 건이 올라갔는지는 {@code POST /api/reload} 응답으로 확인한다.
      */
-    private static Banner toBanner(Map<String, Object> attrs, BrandCatalog brands) {
+    private static Banner toBanner(Map<String, Object> attrs, BrandCatalog brands,
+                                   java.util.function.Consumer<String> why) {
         String id = text(attrs.get("id"));
         // 비우면 "own"으로 통일한다 — 응답에서 null과 값을 섞지 않는다(2026-09-18 사용자 결정).
         String platform = text(attrs.get("platform"));
@@ -354,6 +378,7 @@ public class BannerCatalog {
         try {
             spec = spec(attrs);
         } catch (IllegalArgumentException e) {
+            why.accept("문구 칸을 못 읽었다: " + e.getMessage());
             return null;
         }
         java.time.LocalDateTime startsAt = moment(attrs.get("startsAt"), attrs.get("startsOn"), false);
@@ -362,6 +387,7 @@ public class BannerCatalog {
         try {
             amountSpec = BannerAmount.of(attrs.get("amount"));
         } catch (IllegalArgumentException e) {
+            why.accept("amount를 못 읽었다: " + e.getMessage());
             return null;
         }
         String amount = attrs.get("amount") instanceof String s ? s : null;
@@ -398,7 +424,15 @@ public class BannerCatalog {
         // platform은 선택이다(2026-09-18). 없거나 "own"이면 브랜드 자체 앱이나
         // 사이트의 행사다 — 뚜레쥬르 네이버페이 적립처럼 배달앱 밖에서 여는 행사가
         // 얼마든지 있다. 나중에 다른 플랫폼을 더할 때도 이 자리는 그대로다.
-        if (id == null || url == null || startsAt == null || endsAt == null) return null;
+        if (id == null || url == null || startsAt == null || endsAt == null) {
+            List<String> missing = new ArrayList<>();
+            if (id == null) missing.add("id");
+            if (url == null) missing.add("url");
+            if (startsAt == null) missing.add("startsAt(startsOn)");
+            if (endsAt == null) missing.add("endsAt(endsOn)");
+            why.accept("필수 칸이 비었거나 못 읽었다: " + String.join(", ", missing));
+            return null;
+        }
 
         Object priority = attrs.get("priority");
         // 별칭표에 없는 이름은 canonical이 그대로 돌려준다 — 대표명을 직접
@@ -418,7 +452,10 @@ public class BannerCatalog {
         Integer minOrder = number(attrs.get("minOrder"));
         String extra = extraForLegacy;
         // 끝이 시작보다 앞이면 build()가 던진다. 그 한 장만 건너뛴다(dropped).
-        if (endsAt.isBefore(startsAt)) return null;
+        if (endsAt.isBefore(startsAt)) {
+            why.accept("endsAt(" + endsAt + ")이 startsAt(" + startsAt + ")보다 앞이다");
+            return null;
+        }
         Banner banner = Banner.of(id, url)
                 .brand(brand == null ? null : brands.canonical(brand))
                 .platform(platform)

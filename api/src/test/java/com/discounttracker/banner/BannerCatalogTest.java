@@ -161,6 +161,38 @@ class BannerCatalogTest {
         assertEquals(1, catalog.active().size());
     }
 
+    @Test
+    void droppedBannerCarriesItsReason() {
+        // 2026-09-30: 내리기 op가 당일 시작 배너에 전날 끝(endsAt 09-29 23:59:59)을 적어
+        // 쿠팡이츠 오픈 3장이 dropped에 이름만 남기고 사라졌다. 사유를 같이 싣는다.
+        String yaml = """
+                banners:
+                  - id: coupangeats-open-20260930-9시
+                    platform: coupangeats
+                    url: https://example.test/a
+                    amount: {won: [null, 6000]}
+                    startsAt: '2026-09-30T00:00:00'
+                    endsAt: '2026-09-29T23:59:59'
+                  - id: 링크없음-20260930
+                    platform: baemin
+                    amount: {won: 5000}
+                    startsAt: '2026-09-30T00:00:00'
+                    endsAt: '2026-09-30T23:59:59'
+                  - id: 멀쩡-20260930
+                    platform: baemin
+                    url: https://example.test/b
+                    amount: {won: 5000}
+                    startsAt: '2026-09-30T00:00:00'
+                    endsAt: '2026-09-30T23:59:59'
+                """;
+        BannerCatalog catalog = catalogOn(yaml, "2026-09-30");
+        assertEquals(List.of("coupangeats-open-20260930-9시", "링크없음-20260930"), catalog.dropped());
+        assertTrue(catalog.droppedReasons().get("coupangeats-open-20260930-9시").contains("endsAt"),
+                catalog.droppedReasons().toString());
+        assertTrue(catalog.droppedReasons().get("링크없음-20260930").contains("url"),
+                catalog.droppedReasons().toString());
+    }
+
     private BannerCatalog catalogOn(String yaml, String isoDate) {
         Clock clock = Clock.fixed(Instant.parse(isoDate + "T00:00:00Z"), SEOUL);
         return new BannerCatalog(new ByteArrayResource(yaml.getBytes(StandardCharsets.UTF_8)),

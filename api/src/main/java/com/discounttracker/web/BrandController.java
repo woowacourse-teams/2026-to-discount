@@ -83,6 +83,7 @@ public class BrandController {
                 Map.entry("bannersParsed", parsed),
                 Map.entry("unknownBrands", unknown),
                 Map.entry("dropped", dropped),
+                Map.entry("droppedReasons", banners.droppedReasons()),
                 Map.entry("duplicateIds", duplicateIds),
                 Map.entry("mixedShape", mixed),
                 Map.entry("pushActivated", push.activated()),
