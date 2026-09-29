@@ -726,7 +726,7 @@ def main(argv=None):
         return 0
     os.makedirs(DOC_DIR, exist_ok=True)
     path = os.path.join(DOC_DIR, datetime.date.today().isoformat() + ".md")
-    with open(path, "w", encoding="utf-8") as fh:
+    with open(path, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(text)
     print(os.path.relpath(path))
     return 0

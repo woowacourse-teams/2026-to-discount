@@ -389,7 +389,7 @@ def main() -> int:
         print("프로젝트 구조 문서가 최신입니다.")
         return 0
 
-    OUTPUT.write_text(document, encoding="utf-8")
+    OUTPUT.write_text(document, encoding="utf-8", newline="\n")
     print(OUTPUT.relative_to(ROOT))
     return 0
 
