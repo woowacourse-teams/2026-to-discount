@@ -31,6 +31,8 @@ public class BrandCatalog {
 
     private final Resource source;
     private final Map<String, String> aliasToCanonical = new HashMap<>();
+    // 모든 공백을 지운 꼴 -> 대표명. aliasToCanonical에 없을 때만 본다(사람이 적은 이름이 먼저).
+    private final Map<String, String> squashedToCanonical = new HashMap<>();
     private final Map<String, Brand> byName = new HashMap<>();
 
     public BrandCatalog(@Value("${discount.brands-path:classpath:brands.yml}") Resource source) {
@@ -42,6 +44,7 @@ public class BrandCatalog {
     @SuppressWarnings("unchecked")
     void load() {
         aliasToCanonical.clear();
+        squashedToCanonical.clear();
         byName.clear();
         if (!source.exists()) return;
 
@@ -97,6 +100,7 @@ public class BrandCatalog {
      */
     private void putAlias(String alias, String canonical) {
         String key = alias.trim().toLowerCase(Locale.ROOT);
+        squashedToCanonical.putIfAbsent(squash(key), canonical);
         String prev = aliasToCanonical.putIfAbsent(key, canonical);
         if (prev != null && !prev.equals(canonical)) {
             log.warn("별칭 '{}'이(가) '{}'와 '{}' 둘에 걸린다. 먼저 온 '{}'를 쓴다 — "
@@ -116,10 +120,29 @@ public class BrandCatalog {
         return links;
     }
 
-    /** 원장에 찍힌 이름 -> 대표명. 모르는 이름은 그대로 돌려준다. */
+    /**
+     * 원장에 찍힌 이름 -> 대표명. 모르는 이름은 그대로 돌려준다.
+     *
+     * <p>앞뒤 공백을 떼고 대소문자를 접어 찾고, 없으면 모든 공백을 지운 꼴로 한 번 더 찾는다.
+     * 앱마다 같은 브랜드를 다르게 띄운다(쿠팡이츠 "스텔라 떡볶이", 배민 "스텔라떡볶이").
+     * tracker export_data._canon_brand와 콘솔이 같은 규칙을 쓴다 - 계약
+     * {@code contracts/brand-alias-cases.json}(2026-09-29 R3). 전에는 여기만 띄어쓰기를
+     * 안 접어서 export는 합친 이름을 서버가 unknownBrands로 올렸다.
+     */
     public String canonical(String rawBrand) {
         if (rawBrand == null) return null;
-        return aliasToCanonical.getOrDefault(rawBrand.trim().toLowerCase(Locale.ROOT), rawBrand);
+        String hit = lookup(rawBrand);
+        return hit == null ? rawBrand : hit;
+    }
+
+    private String lookup(String rawBrand) {
+        String key = rawBrand.trim().toLowerCase(Locale.ROOT);
+        String hit = aliasToCanonical.get(key);
+        return hit != null ? hit : squashedToCanonical.get(squash(key));
+    }
+
+    private static String squash(String s) {
+        return s.replaceAll("\\s+", "");
     }
 
     /**
@@ -131,7 +154,7 @@ public class BrandCatalog {
      */
     public boolean knows(String rawBrand) {
         if (rawBrand == null) return false;
-        return aliasToCanonical.containsKey(rawBrand.trim().toLowerCase(Locale.ROOT));
+        return lookup(rawBrand) != null;
     }
 
     /** 대표명 -> 브랜드 정보. 목록에 없으면 이름만 있는 빈 브랜드. */

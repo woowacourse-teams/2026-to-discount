@@ -1,0 +1,83 @@
+{
+  "note": "브랜드 별칭 해석 규칙(R3, 2026-09-29). Java BrandCatalog.canonical/knows, tracker export_data._canon_brand와 check_brands.unknown_brands, 콘솔 beggars-ops ops_apply.unknown_brands가 같은 표를 돈다. 규칙: (1) 앞뒤 공백을 떼고 대소문자를 접어 대표명과 aliases에서 찾는다. (2) 없으면 모든 공백을 지운 꼴로 한 번 더 찾는다(사람이 적은 이름이 먼저다). (3) 그래도 없으면 모르는 이름이고 원래 표기를 그대로 돌려준다. searchAliases는 검색창용이라 해석에 안 쓴다(brands.yml 머리말: aliases는 원장에 다른 이름으로 찍히는 경우). brandsYml은 라이브 brands.yml에서 그대로 옮긴 일부이고, Java 테스트가 라이브 파일에도 같은 값이 있는지 본다.",
+  "brandsYml": "brands:\n  BBQ:\n    searchAliases: [비비큐, 비비큐치킨, bbq chicken, bbq치킨]\n    aliases: [BBQ, BBQ치킨]\n  후라이드참잘하는집:\n    searchAliases: [후참잘]\n    aliases: [후라이드 참 잘하는집]\n  반찬가게 슈퍼키친:\n    searchAliases: [슈퍼키친]\n  스텔라떡볶이:\n    searchAliases: [스텔라]\n    aliases: [스텔라떡볶이, 스텔라 떡볶이]\n  기영이숯불두마리치킨:\n    searchAliases: [기영이]\n    aliases: [기영이숯불두마리치킨, 기영이치킨, 기영이 치킨, 기영이 숯불치킨, 기영이숯불치킨]\n",
+  "cases": [
+    {
+      "name": "대표명",
+      "raw": "BBQ",
+      "canonical": "BBQ",
+      "known": true,
+      "rule": "exact"
+    },
+    {
+      "name": "별칭",
+      "raw": "BBQ치킨",
+      "canonical": "BBQ",
+      "known": true,
+      "rule": "exact"
+    },
+    {
+      "name": "대소문자",
+      "raw": "bbq치킨",
+      "canonical": "BBQ",
+      "known": true,
+      "rule": "fold"
+    },
+    {
+      "name": "앞뒤 공백",
+      "raw": "  BBQ  ",
+      "canonical": "BBQ",
+      "known": true,
+      "rule": "fold"
+    },
+    {
+      "name": "searchAliases는 해석하지 않는다",
+      "raw": "비비큐",
+      "canonical": "비비큐",
+      "known": false,
+      "rule": "unknown"
+    },
+    {
+      "name": "띄어 쓴 별칭",
+      "raw": "후라이드 참 잘하는집",
+      "canonical": "후라이드참잘하는집",
+      "known": true,
+      "rule": "exact"
+    },
+    {
+      "name": "다르게 띄어 써도 접힌다",
+      "raw": "후라이드 참잘하는 집",
+      "canonical": "후라이드참잘하는집",
+      "known": true,
+      "rule": "squash"
+    },
+    {
+      "name": "대표명의 띄어쓰기를 빼도 접힌다",
+      "raw": "반찬가게슈퍼키친",
+      "canonical": "반찬가게 슈퍼키친",
+      "known": true,
+      "rule": "squash"
+    },
+    {
+      "name": "탭도 공백이다",
+      "raw": "스텔라\t떡볶이",
+      "canonical": "스텔라떡볶이",
+      "known": true,
+      "rule": "squash"
+    },
+    {
+      "name": "대표명과 별칭이 같아도 된다",
+      "raw": "기영이 숯불치킨",
+      "canonical": "기영이숯불두마리치킨",
+      "known": true,
+      "rule": "exact"
+    },
+    {
+      "name": "모르는 이름은 그대로",
+      "raw": "없는브랜드",
+      "canonical": "없는브랜드",
+      "known": false,
+      "rule": "unknown"
+    }
+  ]
+}
