@@ -111,13 +111,9 @@ python scripts/experiments.py --help                      # 나머지 명령
 포함될 수 있는 개인정보는 수집하지 않는다. 검색 사용 여부와 결과 유무를 분석하는 데
 필요한 길이와 결과 수만 기록한다.
 
-### 담아보기
+### 담아보기 (지움)
 
-| 이벤트 | 언제 | 붙는 값 |
-|---|---|---|
-| `cart_toggle` | 카드 담기/빼기 | `brand`, `state`(add/remove) |
-| `cart_view_toggle` | 담아둔 것만 보기 켜고 끔 | `state`, `count` |
-| `cart_clear` | 비우기 | `count` |
+2026-08-25에 끄고 2026-09-29에 웹과 API에서 지웠다. `cart_toggle`, `cart_view_toggle`, `cart_clear`는 더 오지 않는다. 지난 수치는 `docs/metrics/`에 있다.
 
 ---
 
@@ -156,7 +152,6 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `fCategory` | 고른 분류 (`all` 또는 `chicken+pizza`) |
 | `fPlatforms` | 켜둔 앱 개수 |
 | `fSearch` | 검색어가 있었나 |
-| `fCart` / `fSaved` | 담아보기 켜짐 / 담아둔 개수 |
 | `fSort` | 정렬 기준 (`best_desc` 등) |
 
 ---

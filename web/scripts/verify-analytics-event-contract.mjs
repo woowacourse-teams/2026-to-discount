@@ -60,11 +60,8 @@ const allowedBlock = controllerSource.match(/ALLOWED_EVENTS\s*=\s*Set\.of\(([\s\
 assert.ok(allowedBlock, 'EventController.ALLOWED_EVENTS를 찾을 수 없습니다.')
 const allowedEvents = new Set([...allowedBlock[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]))
 const missingEvents = [...emittedEvents].filter((event) => !allowedEvents.has(event)).sort()
-// 담기(cart)는 2026-08-25부터 꺼져 있다가 2026-09-29에 웹에서 지웠다. API 허용 목록에는
-// 아직 남아 있다 — API에서 지우면 이 목록도 비운다.
-const retiredOnWeb = new Set(['cart_clear', 'cart_toggle', 'cart_view_toggle'])
 const unusedAllowedEvents = [...allowedEvents]
-  .filter((event) => !emittedEvents.has(event) && !retiredOnWeb.has(event))
+  .filter((event) => !emittedEvents.has(event))
   .sort()
 
 assert.deepEqual(missingEvents, [], `API 허용 목록에서 빠진 이벤트: ${missingEvents.join(', ')}`)

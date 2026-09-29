@@ -78,7 +78,7 @@ class EventControllerTest {
                              "props":{"brand":"교촌치킨","position":"4",
                              "platforms":"baemin+ddangyo+yogiyo","category":"chicken",
                              "fCategory":"all","fPlatforms":"4","fSearch":"false",
-                             "fCart":"false","fSaved":"true","fSort":"discount_desc"}}
+                             "fSort":"discount_desc"}}
                             """)))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.accepted").value(1));
@@ -95,8 +95,6 @@ class EventControllerTest {
         assertTrue(loggedEvent.contains("\"fCategory\":\"all\""));
         assertTrue(loggedEvent.contains("\"fPlatforms\":\"4\""));
         assertTrue(loggedEvent.contains("\"fSearch\":\"false\""));
-        assertTrue(loggedEvent.contains("\"fCart\":\"false\""));
-        assertTrue(loggedEvent.contains("\"fSaved\":\"true\""));
         assertTrue(loggedEvent.contains("\"fSort\":\"discount_desc\""));
         assertTrue(loggedEvent.contains("\"variant\":\"b\""));
     }
