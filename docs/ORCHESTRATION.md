@@ -2,7 +2,7 @@
 
 세 층이 한 방향으로만 흐른다. 이 문서는 각 층이 무엇을 보장하고 무엇을 가정하는지 적는다. 층을 가로지르는 작업에서 반복해서 사고가 났던 지점도 적는다.
 
-앱 안에서 끝나는 세부는 각 디렉터리의 `docs/ORCHESTRATION-CONTRACT.md`에 있다(api, web). 수집기(tracker) 쪽 계약은 tracker 저장소(비공개)에 있다. 여기는 **층을 가로지를 때만** 필요한 것을 담는다.
+api 계약은 [`ORCHESTRATION-CONTRACT.md`](ORCHESTRATION-CONTRACT.md)(층을 가로지르는 계약이라 루트에 둔다), web 안에서 끝나는 세부는 `web/docs/ORCHESTRATION-CONTRACT.md`에 있다. 수집기(tracker) 쪽 계약은 tracker 저장소(비공개)에 있다. 여기는 **층을 가로지를 때만** 필요한 것을 담는다.
 
 ```
 화면(배달앱)  →  tracker(비공개)  →  서버(직접 배포)  →  api  →  /api/brands  →  web

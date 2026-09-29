@@ -286,7 +286,7 @@ AnalyticsEventService
   이벤트 ID 추가 후 기존 통계 회귀를 검증한다.
 - `api/docs/traffic-analytics.md`:
   자동 전달, 재시도와 dead-letter 운영 방법을 기록한다.
-- `api/docs/ORCHESTRATION-CONTRACT.md`:
+- `docs/ORCHESTRATION-CONTRACT.md`:
   `/api/events`의 원본 기록과 비동기 전달 경계를 반영한다.
 - `api/README.md`:
   systemd 환경변수와 런타임 경로를 기록한다.

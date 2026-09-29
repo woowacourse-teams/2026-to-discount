@@ -237,7 +237,7 @@ extra  "고정 6,000+선착순 4,000"  amount "10,000원"
   - 허용 메서드: `GET`, `POST`, `DELETE`.
 - 서버 포트: `8080` (`application.yml`, `server.port`).
 - export.json 경로: 기본값은 `classpath:data/export.json`. 레포에 커밋된 픽스처다. 서버(systemd)는 `DISCOUNT_EXPORT_PATH`로 `file:<서버>/delivery-discount-api/data/export.json`을 가리킨다(ADR-001). 로컬에서 export.json을 고쳐도 안 보이는 것은 이 기본값 때문이다. 환경변수를 걸어야 한다.
-- 갱신 절차: 수집 PC의 예약 실행 8단계(`reflect_daily`)가 export를 만들고 tracker `scripts/deploy_export.py`가 서버로 올린 뒤 `POST /api/reload`를 부른다(사람 개입 없음, [ARCHITECTURE](../../docs/ARCHITECTURE.md) 2-1절). 올리기 전에 낡은 파일이 서버를 덮지 않는지 tracker `check_deploy.py`가 검사한다.
+- 갱신 절차: 수집 PC의 예약 실행 8단계(`reflect_daily`)가 export를 만들고 tracker `scripts/deploy_export.py`가 서버로 올린 뒤 `POST /api/reload`를 부른다(사람 개입 없음, [ARCHITECTURE](ARCHITECTURE.md) 2-1절). 올리기 전에 낡은 파일이 서버를 덮지 않는지 tracker `check_deploy.py`가 검사한다.
 
 ## 5. 알려진 갭/WIP
 

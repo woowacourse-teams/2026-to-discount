@@ -8,5 +8,6 @@
 | `superpowers/specs/2026-09-22-banner-model-design.md` | 배너 모델 설계. 이어지는 배너 이관이 따른다 |
 | `superpowers/plans/2026-09-22-banner-model.md` | 배너 모델 계획. 같은 이유 |
 | `superpowers/reports/2026-09-2*-banner-*.md` | 배너 모델 실행 보고 넷. 같은 이유 |
+| `design/28·29·30-*.md` | 보관한 설계 문서. [`../design/README.md`](../design/README.md) 목록이 가리킨다 (2026-09-30에 `docs/design/archive/`에서 합침) |
 
 확정 규칙은 [`../superpowers/decisions/2026-09-22-banner-model-rules.md`](../superpowers/decisions/2026-09-22-banner-model-rules.md)에 있다.

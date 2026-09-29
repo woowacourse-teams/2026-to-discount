@@ -68,7 +68,7 @@
 
 ## API 문서화
 
-**선택.** 없다. 기획 문서(`api/docs/README.md`)와 계약 문서(`api/docs/ORCHESTRATION-CONTRACT.md`)가 산문으로 엔드포인트 동작을 설명한다. Swagger/OpenAPI 같은 기계가 읽는 스펙은 없다.
+**선택.** 없다. 기획 문서(`api/docs/README.md`)와 계약 문서(`docs/ORCHESTRATION-CONTRACT.md`)가 산문으로 엔드포인트 동작을 설명한다. Swagger/OpenAPI 같은 기계가 읽는 스펙은 없다.
 
 **고려한 대안.** springdoc-openapi 도입은 검토한 적 없다.
 
