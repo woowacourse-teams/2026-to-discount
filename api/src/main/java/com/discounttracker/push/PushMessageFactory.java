@@ -8,6 +8,16 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 배너 웹 푸시 문구.
+ *
+ * <p>감사 R3(2026-09-29)는 "같은 배너를 푸시와 슬랙이 두 문구로 말한다"고 적었다. 확인해 보니
+ * 같은 것을 말하지 않는다. 푸시는 사용자에게 가고 브랜드 이름만 싣는다(금액, 기간 없음 - 누르면
+ * 웹의 {@code BannerText} 문구를 본다). 슬랙(tracker banner_routine.notify_slack, 문장은
+ * banner_ops.describe)은 운영 채널에 가고 **아직 반영 안 된 제안 op**(올리기, 고치기, 내리기)를
+ * 말한다. 제안은 서버에 없으니 API 응답을 인용할 수 없다. 그래서 문구를 하나로 모으지 않는다.
+ * 사용자에게 가는 배너 문구는 여기와 {@code BannerText} 둘뿐이고 겹치지 않는다.
+ */
 @Component
 public class PushMessageFactory {
     private final ObjectMapper mapper;
