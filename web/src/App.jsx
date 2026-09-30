@@ -225,9 +225,13 @@ export default function App({ initial = null }) {
   useIsoLayoutEffect(() => {
     const el = titleBarRef.current
     if (!el) return
-    // 높이는 React 상태가 아니라 CSS 변수로 넘긴다. 서버 렌더 HTML에서는 api/ssr.js의 인라인
-    // 스크립트가 첫 페인트 전에 같은 변수를 채운다 — 상태였으면 하이드레이션 전 한 프레임이 0이었다.
-    const setBarHeight = (h) => document.documentElement.style.setProperty('--bar-h', `${h}px`)
+    // 높이는 React 상태가 아니라 CSS 변수로 넘긴다. 서버 렌더 HTML은 JS 전까지 바를 흐름 안에
+    // 두고(base.css :root:not([data-bar])), 여기서 높이와 data-bar를 같은 프레임에 넣어 fixed로
+    // 바꾼다. 바가 빠진 자리를 스페이서가 같은 높이로 받으므로 아래가 움직이지 않는다.
+    const setBarHeight = (h) => {
+      document.documentElement.style.setProperty('--bar-h', `${h}px`)
+      document.documentElement.dataset.bar = '1'
+    }
     const ro = new ResizeObserver(([entry]) => setBarHeight(entry.target.getBoundingClientRect().height))
     ro.observe(el)
     setBarHeight(el.getBoundingClientRect().height)

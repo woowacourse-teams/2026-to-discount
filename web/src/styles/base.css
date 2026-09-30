@@ -132,6 +132,10 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
 /* 고정된 바가 비운 자리를 대신 차지한다. 바가 갖고 있던 겹침
    (margin-bottom:-1rem)도 이제 여기가 들고 있다. */
 .title-bar-spacer { height: var(--bar-h, 0px); margin-bottom: calc(-1rem + 16px); }
+/* 서버 렌더(SSR) 첫 페인트: JS가 높이를 재기 전에는 바를 흐름 안에 둔다. fixed인 채 스페이서가
+   0이면 바가 배너를 덮고, 높이가 들어오는 순간 아래가 통째로 밀린다(프리뷰 CLS 0.13).
+   HTML이 커서 문서 끝의 인라인 스크립트보다 첫 페인트가 먼저 온다 — JS로 재는 방법은 안 된다. */
+:root:not([data-bar]) .title-bar { position: relative; }
 
 /* 앱 필터·분류·초기화·검색을 한 줄에 둔다. 별도 줄로 띄우면 같은 조작
    묶음인데도 따로 노는 것처럼 보였다. */

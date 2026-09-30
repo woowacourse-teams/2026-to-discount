@@ -9,16 +9,13 @@ import { loadData, render } from '../dist-server/entry-server.js'
 import template from '../dist-server/template.js'
 
 const ROOT_OPEN = '<div id="root">'
-// 고정 바가 비운 자리(.title-bar-spacer)의 높이. 첫 페인트 전에 재서 CSS 변수로 넣는다.
-// 하이드레이션 뒤에는 App.jsx가 같은 변수를 계속 갱신한다.
-const BAR_SCRIPT = "(function(){var b=document.querySelector('.title-bar');if(b)document.documentElement.style.setProperty('--bar-h',b.getBoundingClientRect().height+'px')})();"
 
 export function inject(html, appHtml, data) {
   const start = html.indexOf(ROOT_OPEN)
   const end = html.lastIndexOf('</div>', html.indexOf('</body>'))
   const json = JSON.stringify(data).replace(/</g, '\\u003c')
   const out = html.slice(0, start)
-    + `${ROOT_OPEN}${appHtml}</div>\n    <script>${BAR_SCRIPT}window.__SSR__=${json}</script>`
+    + `${ROOT_OPEN}${appHtml}</div>\n    <script>window.__SSR__=${json}</script>`
     + html.slice(end + '</div>'.length)
   return out
     // 배너는 이미 실려 있다. 먼저 보내던 fetch는 필요 없다.
