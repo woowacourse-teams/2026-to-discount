@@ -29,6 +29,9 @@ public record Offer(String platform, Integer amount, String qualifier,
                     // 배너에서 세운 오퍼인가. 출처 축이다 - qualifier의 "행사"가 같은 사실의
                     // 중복이었다. 웹이 읽어야 해서 이행 기간에 응답에 싣는다.
                     boolean fromBanner,
+                    // 선착순 배너에서 세운 오퍼인가. 상시 원장 오퍼와 다른 쿠폰이라 따로 된 칸에
+                    // 선다(2026-09-30). 웹이 오퍼 키를 서버 칸과 같게 만들려고 읽는다.
+                    boolean firstCome,
                     // 이 금액을 액면대로 견줄 수 있나. 원장 qualifier에서 끌어낸다.
                     Certainty certainty,
                     // 무엇을 주는가. 원장에서 온 오퍼는 전부 discount다.
@@ -36,6 +39,8 @@ public record Offer(String platform, Integer amount, String qualifier,
 
     /** 배너에서 세운 오퍼의 offerType. BrandComparisonService가 적는 값과 같다. */
     public static final String BANNER_OFFER_TYPE = "banner";
+    /** 선착순 배너에서 세운 오퍼의 offerType. 배너이기도 하다. */
+    public static final String BANNER_FIRST_COME_OFFER_TYPE = "banner-first-come";
     /** 쿠폰을 포개 쓴다는 뜻. OfferRecord.isCumulative와 같은 값이다. */
     private static final String CUMULATIVE_TIER_MODE = "cumulative";
 
@@ -51,7 +56,8 @@ public record Offer(String platform, Integer amount, String qualifier,
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
                 r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
                 Boolean.TRUE.equals(r.soldOut()), r.link(), r.membershipTier(),
-                BANNER_OFFER_TYPE.equals(r.offerType()),
+                BANNER_OFFER_TYPE.equals(r.offerType()) || BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType()),
+                BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType()),
                 Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()));
     }
 
@@ -169,7 +175,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         //
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, mergedBadge, soldOut,
-                link, mergedMembership, fromBanner, certainty, kind);
+                link, mergedMembership, fromBanner, firstCome, certainty, kind);
     }
 
     /**
@@ -226,6 +232,6 @@ public record Offer(String platform, Integer amount, String qualifier,
         }
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
-                soldOut, link, membership, fromBanner, certainty, kind);
+                soldOut, link, membership, fromBanner, firstCome, certainty, kind);
     }
 }

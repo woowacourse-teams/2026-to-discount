@@ -286,6 +286,39 @@ class BannerOfferCertaintyTest {
         assertEquals("8,000원", banners.active().get(0).amount());
     }
 
+    private static final String BHC_FIRST_COME_BANNER = """
+            banners:
+              - id: bhc-open-20260922
+                brand: bhc
+                platform: coupangeats
+                url: "https://example.test/f"
+                amount: {won: [null, 8000]}
+                firstCome: issue
+                startsAt: 2026-09-22T00:00
+                endsAt: 2026-09-22T23:59
+            """;
+
+    @Test
+    void firstComeBannerStandsBesideTheStandingLedgerOffer() {
+        // 2026-09-30 맘스터치: 선착순 최대 5,000원 배너가 같은 칸의 상시 3,000원을 밀어내 그날
+        // 카드에서 상시 할인이 사라졌다. 둘은 다른 쿠폰이라 둘 다 서야 하고, 어긋남 경고도 없다.
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource(BHC_FIRST_COME_BANNER.getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
+        OfferRepository repo = new OfferRepository(null) {
+            @Override public void reload() { }
+            @Override public List<OfferRecord> findAll() { return List.of(ledgerBhc(null)); }
+        };
+        var cards = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare();
+        List<Offer> offers = cards.get(0).offers();
+        assertEquals(2, offers.size(), offers.toString());
+        Offer first = offers.stream().filter(Offer::firstCome).findFirst().orElseThrow();
+        Offer standing = offers.stream().filter(o -> !o.firstCome()).findFirst().orElseThrow();
+        assertEquals(8000, first.amount());
+        assertTrue(first.fromBanner());
+        assertEquals(5000, standing.amount());
+        assertEquals(List.of(), warningMessages(BHC_FIRST_COME_BANNER, List.of(ledgerBhc(null))));
+    }
+
     private static final String BHC_EXACT_BANNER = """
             banners:
               - id: bhc-exact-20260922

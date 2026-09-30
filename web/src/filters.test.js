@@ -137,6 +137,15 @@ test('오퍼 키는 같은 앱의 확정과 랜덤을 가른다', () => {
   assert.notEqual(offerKey(exact), offerKey(random))
 })
 
+test('오퍼 키는 선착순 배너를 상시 할인과 가른다', () => {
+  // 2026-09-30: 서버가 선착순 배너를 platform#first-come 칸에 따로 세운다. 같은 키면 React가
+  // 둘 중 하나를 지우거나 엉뚱한 자리에 다시 그린다.
+  const standing = { platform: 'coupangeats', certainty: 'exact' }
+  const firstCome = { platform: 'coupangeats', certainty: 'capped', firstCome: true, fromBanner: true }
+  assert.equal(offerKey(firstCome), 'coupangeats#first-come')
+  assert.notEqual(offerKey(standing), offerKey(firstCome))
+})
+
 test('화면에 찍을 최고액은 특정메뉴 천장값(4,999원)을 쓰지 않는다', () => {
   // 정렬용 sortingAmount는 특정메뉴뿐인 브랜드에 4,999원을 끼운다. 그 값이 화면에
   // 가격처럼 찍히면 안 된다 - 토글이 꺼져 있으면 아예 없고, 켜면 액면이 나온다.

@@ -298,11 +298,13 @@ export function applyFilters(brands, filters) {
  * 오퍼 목록을 그릴 때 쓰는 React 키.
  *
  * 앱 이름만으로는 겹친다. 서버는 같은 (브랜드, 앱)에 확정 오퍼와 랜덤 오퍼를 따로
- * 세운다(BrandComparisonService의 slot이 `platform` 또는 `platform#random`이다).
+ * 세운다(BrandComparisonService의 slot이 `platform`, `platform#random`, `platform#first-come`이다).
+ * 선착순 배너는 같은 브랜드의 상시 할인과 다른 쿠폰이라 따로 선다(2026-09-30).
  * 둘이 함께 서면 키가 같아져 React가 한 줄을 지우거나 엉뚱한 자리에 다시 그린다.
  * 서버가 가르는 기준을 그대로 쓴다.
  */
 export function offerKey(offer) {
+  if (offer.firstCome) return `${offer.platform}#first-come`
   return certaintyOf(offer) === 'random' ? `${offer.platform}#random` : offer.platform
 }
 

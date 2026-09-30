@@ -136,7 +136,7 @@ public class BrandComparisonService {
                     // 표식은 칸에서 나온다. 타겟딜은 계정에 따라 갈리므로 상한과 같은 성질이다.
                     qualifierOf(banner),
                     false,
-                    "banner",
+                    banner.firstCome() != null ? Offer.BANNER_FIRST_COME_OFFER_TYPE : Offer.BANNER_OFFER_TYPE,
                     // section 자리는 원장에서는 화면 섹션 제목 그대로다(ADR-006). 배너
                     // 레코드에는 그 개념이 없고 tracker가 offerType="banner"인 행을 낼 일도
                     // 없어 두 뜻이 안 섞인다 - 여기서는 배너 id만 싣는다(확실성 경고 로그가
@@ -184,7 +184,7 @@ public class BrandComparisonService {
                     pair.getValue(),
                     qualifier,
                     false,
-                    "banner",
+                    banner.firstCome() != null ? Offer.BANNER_FIRST_COME_OFFER_TYPE : Offer.BANNER_OFFER_TYPE,
                     // 새 경로와 같이 배너 id를 싣는다 - 확실성 경고 로그가 이 값으로
                     // 어느 배너인지 찾는다(origin/main은 null이었다, 그때는 그 로그가 없었다).
                     banner.id(),
@@ -313,8 +313,11 @@ public class BrandComparisonService {
             // 앱마다 오퍼 하나가 대표다. 다만 뽑기 오퍼(랜덤)는 확정 오퍼와 **다른 자리**에 둔다 —
             // 같은 자리에 두면 확정액이 이겨 상한이 사라진다(2026-09-20 노모어·푸라닭). 원장
             // 쪽(store.offer_key)과 같은 규칙.
-            String slot = offer.certainty() == Certainty.RANDOM
-                    ? record.platform() + "#random" : record.platform();
+            // 선착순 배너도 따로 된 칸이다. 같은 브랜드의 상시 할인(원장)과 다른 쿠폰인데 한 칸에
+            // 두면 배너가 이겨 그날 상시 할인이 카드에서 사라졌고, 요청마다 확실성 경고가 찍혔다
+            // (2026-09-30 맘스터치: 상시 3,000원 대신 선착순 최대 5,000원만). 웹 offerKey와 같은 규칙.
+            String slot = offer.firstCome() ? record.platform() + "#first-come"
+                    : offer.certainty() == Certainty.RANDOM ? record.platform() + "#random" : record.platform();
             Map<String, Offer> offersOnPlatform = byBrand.computeIfAbsent(name, k -> new LinkedHashMap<>());
 
             // 배너와 원장이 같은 (브랜드, 앱)을 서로 다른 확실성으로 볼 수 있다 — 사람이
