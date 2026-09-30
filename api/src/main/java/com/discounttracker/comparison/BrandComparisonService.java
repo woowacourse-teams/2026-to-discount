@@ -34,6 +34,10 @@ public class BrandComparisonService {
 
     private static final Logger log = LoggerFactory.getLogger(BrandComparisonService.class);
 
+    // 이미 알린 어긋남. compare()는 요청마다 돌아 같은 경고가 하루 수백 번 찍혔다(2026-09-30).
+    // ponytail: 배너 id가 날마다 바뀌어 조금씩 쌓인다. 재기동 때 비워지고 하루 수십 건이라 둔다.
+    private final java.util.Set<String> warnedCertainty = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private final OfferRepository offers;
     private final BrandCatalog brands;
     private final BannerCatalog banners;
@@ -319,7 +323,9 @@ public class BrandComparisonService {
             Offer existing = offersOnPlatform.get(slot);
             Map<String, String> bannerIdsHere = bannerIdBySlot.computeIfAbsent(name, k -> new LinkedHashMap<>());
             if (existing != null && existing.fromBanner() != offer.fromBanner()
-                    && existing.certainty() != offer.certainty()) {
+                    && existing.certainty() != offer.certainty()
+                && warnedCertainty.add(bannerIdsHere.get(slot) + "|" + name + "|" + record.platform()
+                        + "|" + existing.certainty() + "|" + offer.certainty())) {
                 // 배너 레코드가 항상 원장보다 먼저 처리된다(compare()가 bannerRecords()를
                 // 원장 앞에 붙인다) - 그래서 어긋남이 걸리는 시점엔 existing이 배너, offer가
                 // 원장이다. offer가 배너인 경우는 실제 경로에서 안 나온다(2-인자 compare에

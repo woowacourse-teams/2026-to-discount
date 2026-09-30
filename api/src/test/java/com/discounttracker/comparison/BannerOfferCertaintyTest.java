@@ -305,6 +305,10 @@ class BannerOfferCertaintyTest {
 
     /** BrandComparisonService의 경고만 골라 문자열로 돌려준다. */
     private static List<String> warningMessages(String bannerYaml, List<OfferRecord> ledgerRecords) {
+        return warningMessages(bannerYaml, ledgerRecords, 1);
+    }
+
+    private static List<String> warningMessages(String bannerYaml, List<OfferRecord> ledgerRecords, int calls) {
         BannerCatalog banners = new BannerCatalog(
                 new ByteArrayResource(bannerYaml.getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
         OfferRepository repo = new OfferRepository(null) {
@@ -319,7 +323,7 @@ class BannerOfferCertaintyTest {
         appender.start();
         logger.addAppender(appender);
         try {
-            service.compare();
+            for (int i = 0; i < calls; i++) service.compare();
         } finally {
             logger.detachAppender(appender);
         }
@@ -339,6 +343,14 @@ class BannerOfferCertaintyTest {
         assertEquals(1, warnings.size(), warnings.toString());
         assertTrue(warnings.get(0).contains("bhc-exact-20260922"), warnings.get(0));
         assertTrue(warnings.get(0).contains("bhc"), warnings.get(0));
+    }
+
+    @Test
+    void sameDisagreementWarnsOnceNotOnEveryRequest() {
+        // 2026-09-30: compare()는 /api/brands 요청마다 돈다. 같은 어긋남이 요청마다 찍혀
+        // 한 시간에 수십, 하루 이백 건대로 쌓였고 콘솔 경고 수가 계속 올라 진짜 이상을 가렸다.
+        List<String> warnings = warningMessages(BHC_EXACT_BANNER, List.of(ledgerBhc("최대")), 5);
+        assertEquals(1, warnings.size(), warnings.toString());
     }
 
     @Test
