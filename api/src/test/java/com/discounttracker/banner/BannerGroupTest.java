@@ -386,4 +386,33 @@ class BannerGroupTest {
                 a.toBuilder().startsAt(java.time.LocalDateTime.parse("2026-09-21T00:00")).build())));
         assertEquals("플랫폼(platform)", BannerCatalog.groupRuleBreak(List.of(a, a.toBuilder().platform("yogiyo").build())));
     }
+
+    @Test
+    void samePriorityOpenersLineUpByOpeningTimeNotById() {
+        // 2026-09-30: 선착순 오픈이 전부 priority 6·종료 같음이라 id 글자 순으로 갈려
+        // "…-17시"가 "…-9시"보다 앞섰다(09시 오픈이 맨 뒤). 같으면 여는 시각 순이다.
+        String yml = """
+                banners:
+                  - id: coupangeats-open-20260922-17시-a
+                    brand: 맘스터치
+                    platform: coupangeats
+                    url: "https://example.test/hub"
+                    amount: {won: 5000}
+                    opensAt: "17:00"
+                    startsAt: 2026-09-22T00:00
+                    endsAt: 2026-09-22T23:59
+                    priority: 6
+                  - id: coupangeats-open-20260922-9시-b
+                    brand: 스타벅스
+                    platform: coupangeats
+                    url: "https://example.test/hub"
+                    amount: {won: 3500}
+                    opensAt: "09:00"
+                    startsAt: 2026-09-22T00:00
+                    endsAt: 2026-09-22T23:59
+                    priority: 6
+                """;
+        assertEquals(List.of("스타벅스", "맘스터치"),
+                catalog(yml).activeMembers().stream().map(Banner::brand).toList());
+    }
 }

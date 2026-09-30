@@ -167,6 +167,7 @@ public class BannerCatalog {
         Comparator<Banner> byOriginalPriority = Comparator
                 .comparingInt((Banner b) -> originalPriority.getOrDefault(b.id(), Banner.DEFAULT_PRIORITY))
                 .thenComparing(Banner::endsAt)
+                .thenComparing(BannerCatalog::opensAtKey)
                 .thenComparing(Banner::id);
 
         List<Banner> out = new ArrayList<>();
@@ -267,6 +268,22 @@ public class BannerCatalog {
         return allCaps ? "최대 " + joined : joined;
     }
 
+    /**
+     * 같은 priority·같은 종료 시각이면 여는 시각(opensAt "HH:MM") 순. 없으면 뒤로.
+     *
+     * <p>2026-09-30: 쿠팡이츠 선착순 오픈이 전부 priority 6, 종료 23:59:59라 id 글자 순으로 갈렸고
+     * `…-17시`가 `…-9시`보다 앞서 09시 오픈이 맨 뒤에 섰다(전날에도 같은 뒤집힘).
+     */
+    static String opensAtKey(Banner b) {
+        String at = b.spec() == null ? null : b.spec().opensAt();
+        if (at == null || at.isBlank()) return "99:99";
+        String[] hm = at.trim().split(":");
+        try {
+            return String.format("%02d:%02d", Integer.parseInt(hm[0]), hm.length > 1 ? Integer.parseInt(hm[1]) : 0);
+        } catch (NumberFormatException e) {
+            return "99:99";
+        }
+    }
     /** 묶음을 안 접은 구성원 전부. 오퍼는 브랜드마다 하나씩 서므로 이쪽을 쓴다. */
     public List<Banner> activeMembers() {
         java.time.LocalDateTime now = java.time.LocalDateTime.now(clock);
@@ -281,7 +298,7 @@ public class BannerCatalog {
                 .map(b -> b.group() == null ? b
                         : b.toBuilder().priority(groupPriority.get(b.group())).build())
                 .sorted(Comparator.comparingInt(Banner::priority).thenComparing(Banner::endsAt)
-                        .thenComparing(Banner::id))
+                        .thenComparing(BannerCatalog::opensAtKey).thenComparing(Banner::id))
                 .map(b -> b.resolvedFor(now.toLocalDate()))
                 .toList();
     }
