@@ -25,6 +25,17 @@ class CrawlerNameTest {
     }
 
     @Test
+    void namesPerformanceToolsAndHeadlessBrowsers() {
+        // 2026-09-30 Lighthouse 측정이 사람 방문자로 찍혔다. 실제 Lighthouse 12 모바일 UA 모양이다.
+        assertEquals("lighthouse", CrawlerName.of(
+                "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 "
+                        + "(KHTML, like Gecko) Chrome/134.0.0.0 Mobile Safari/537.36 Chrome-Lighthouse"));
+        assertEquals("headless", CrawlerName.of(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                        + "HeadlessChrome/140.0.0.0 Safari/537.36"));
+    }
+
+    @Test
     void fallsBackToOtherWhenItCallsItselfABot() {
         // 목록에 없어도 스스로 봇이라 밝혔으면 사람으로 세지 않는다.
         assertEquals("other", CrawlerName.of("SomeNewCrawler/1.0 (+http://example.test)"));

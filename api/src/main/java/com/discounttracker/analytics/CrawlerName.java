@@ -49,7 +49,11 @@ final class CrawlerName {
             Map.entry("twitterbot", "twitter"),
             Map.entry("slackbot", "slack"),
             Map.entry("telegrambot", "telegram"),
-            Map.entry("vercel", "vercel"));
+            Map.entry("vercel", "vercel"),
+            // 성능 측정 도구와 헤드리스 브라우저. 2026-09-30 Lighthouse 측정 수십 번이 사람 방문자로
+            // 찍혀 17~19시 방문자가 평소 세 배로 튀었다. 둘 다 UA에 스스로 이름을 적는다.
+            Map.entry("chrome-lighthouse", "lighthouse"),
+            Map.entry("headlesschrome", "headless"));
 
     /** 위 목록에 없지만 스스로 봇이라 밝힌 경우. 이름은 뭉뚱그린다. */
     private static final String[] GENERIC = {"bot", "crawler", "spider", "crawling"};
