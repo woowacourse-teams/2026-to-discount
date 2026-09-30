@@ -7,8 +7,8 @@
 입력
   PostHog banner_impression·banner_click (시간대별, position=top)
   beggars-ops/archive/banners-*.yml + 운영 /ops/banners (시간대별 순서 복원)
-인증은 posthog_dashboards.py와 같다(POSTHOG_PERSONAL_API_KEY 또는 ~/.posthog_key).
-운영 파일은 ~/.ops_auth(아이디:비밀번호)로 읽는다. 없으면 보관 파일만 쓴다.
+인증은 posthog_dashboards.py와 같다(POSTHOG_PERSONAL_API_KEY 또는 POSTHOG_KEY_FILE이 가리키는 파일).
+운영 배너는 OPS_AUTH_FILE(아이디:비밀번호 파일)이 있으면 읽는다. 없으면 보관 파일만 쓴다.
 
 세 가지를 잰다.
   1. 노출 도달: 같은 시각 1번 칸 대비 각 칸의 노출.
@@ -38,7 +38,7 @@ def bucket(s):
 
 def key():
     k = os.environ.get("POSTHOG_PERSONAL_API_KEY")
-    return k.strip() if k else open(os.path.expanduser("~/.posthog_key")).read().strip()
+    return k.strip() if k else open(os.environ["POSTHOG_KEY_FILE"]).read().strip()
 
 
 def pull(days):
@@ -58,8 +58,8 @@ def banners():
     for p in sorted(glob.glob(os.path.join(ARCHIVE, "banners-*.yml"))):
         for b in yaml.safe_load(open(p, encoding="utf-8"))["banners"] or []:
             by[b["id"]] = b
-    auth = os.path.expanduser("~/.ops_auth")
-    if os.path.exists(auth):
+    auth = os.environ.get("OPS_AUTH_FILE", "")
+    if auth and os.path.exists(auth):
         tok = base64.b64encode(open(auth).read().strip().encode()).decode()
         req = urllib.request.Request(OPS, headers={"Authorization": "Basic " + tok})
         for b in json.loads(urllib.request.urlopen(req, timeout=30).read())["banners"]:
