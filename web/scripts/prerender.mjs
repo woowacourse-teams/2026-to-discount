@@ -159,7 +159,7 @@ function bodyHtml(brands, today) {
 function description(brands) {
   // 날짜와 브랜드 나열은 뺐다(2026-09-30). 날짜는 검색 결과에서 금방 낡아 보이고, 원본 브랜드명
   // ("토핑몬스터피자TMPPIZZA")이 그대로 노출됐다. 대신 사람들이 실제로 찾는 말(배민 쿠폰, 치킨 할인)을 넣는다.
-  return `배민, 쿠팡이츠, 요기요, 땡겨요의 브랜드 할인 쿠폰을 하루 세 번 모아 비교합니다. 치킨, 피자, 카페 등 ${brands.length}개 브랜드의 최고 할인과 최소주문 금액을 앱마다 나란히 보여 주고, 배민클럽, 쿠팡와우, 요기패스 멤버십 할인까지 골라 최적의 할인을 찾을 수 있습니다.`
+  return `배민, 쿠팡이츠, 요기요, 땡겨요의 브랜드 할인 쿠폰을 매일 모아 비교합니다. 치킨, 피자, 카페 등 ${brands.length}개 브랜드의 최고 할인과 최소주문 금액을 앱마다 보여 주고, 당일 한정 특가와 선착순 쿠폰, 배민클럽, 쿠팡와우, 요기패스 멤버십 할인까지 한곳에서 찾을 수 있습니다.`
 }
 
 function metaTags(brands, today) {
@@ -167,6 +167,7 @@ function metaTags(brands, today) {
   const keywords = [
     '배달 할인', '배달앱 쿠폰', '배달 쿠폰 비교', '배달앱 최고 할인', '배민 쿠폰', '쿠팡이츠 쿠폰', '요기요 쿠폰', '땡겨요 쿠폰',
     '배민클럽 할인', '쿠팡와우 할인', '요기패스 할인', '치킨 할인', '피자 할인',
+    '오늘의 할인', '당일 할인', '한정 특가', '선착순 쿠폰', '특별 할인', '타겟 쿠폰', '최적 할인',
     ...brands.slice(0, 30).map((b) => `${b.name} 할인`),
   ].join(', ')
   return [
@@ -264,7 +265,7 @@ function brandPage(b, siblings, today, appTags) {
   // 제목에는 그 브랜드가 실제로 있는 앱만 적는다. 네 앱을 다 적으면 한 앱뿐인 브랜드에서 거짓이 된다.
   const title = appNames.length > 1 ? `${b.name} 최고 할인 쿠폰 - ${appList} 비교`
     : appNames.length === 1 ? `${b.name} ${appList} 최고 할인 쿠폰` : `${b.name} 최고 할인 쿠폰`
-  const desc = `${b.name}${cat ? ` ${cat}` : ''} 배달 할인 쿠폰을 ${appList ? `${appList}에서 ` : ''}모아 비교했습니다. 최고 할인은 ${won(best)}이고, 멤버십 할인과 최소주문 금액, 사용 기한까지 앱마다 비교할 수 있습니다.`
+  const desc = `${b.name}${cat ? ` ${cat}` : ''} 배달 할인 쿠폰을 ${appList ? `${appList}에서 ` : ''}모아 비교했습니다. 최고 할인은 ${won(best)}이고, 선착순과 멤버십 할인, 최소주문 금액, 사용 기한까지 앱마다 확인할 수 있습니다.`
   const url = `${SITE}/brand/${encodeURIComponent(slugOf(b.name))}`
   return `<!doctype html>
 <html lang="ko">
