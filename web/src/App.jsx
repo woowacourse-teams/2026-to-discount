@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
@@ -6,12 +6,12 @@ import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
 import TopBarA from './TopBarA.jsx'
-import FilterSheet from './FilterSheet.jsx'
+const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount } from './filters.js'
-import SurveyDock from './SurveyDock.jsx'
-import HiddenBrandsSheet from './HiddenBrandsSheet.jsx'
-import HideBrandAsk from './HideBrandAsk.jsx'
+const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
+const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
+const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
 import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import { captureRects, playShift, readCards } from './cardShift.js'
 
@@ -452,12 +452,14 @@ export default function App() {
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
+      <Suspense fallback={null}>
       <FilterSheet
         open={sheetOpen}
         filters={filters}
         onApply={applyFromSheet}
         onClose={() => setSheetOpen(false)}
       />
+      </Suspense>
 
       {/* 고정된 바가 문서 흐름에서 빠진 만큼을 대신 차지하는 자리. 높이는
           바를 실측해서 넣는다(폰트 로딩·줄바꿈으로 바뀔 수 있다). */}
@@ -532,17 +534,20 @@ export default function App() {
       )}
 
       {asking && (
+        <Suspense fallback={null}>
         <HideBrandAsk
           brand={asking.name}
           amount={asking.amount}
           onChoose={onHideChoose}
           onCancel={() => setAsking(null)}
         />
+        </Suspense>
       )}
 
       {/* 목록은 정렬바 바로 아래, 흐름 안에서 열린다. 화면 아래에 띄우면 하단 배너와
           겹치고 카드 위를 덮어 무엇이 사라졌는지 안 보인다(2026-09-24 사용자). */}
       {Object.keys(hidden).length > 0 && (
+        <Suspense fallback={null}>
         <HiddenBrandsSheet
           hidden={hidden}
           revived={revived}
@@ -557,6 +562,7 @@ export default function App() {
           })}
           onRule={(name, rule) => setHidden((prev) => setRule(prev, name, rule))}
         />
+        </Suspense>
       )}
 
       {error && (
@@ -654,9 +660,11 @@ export default function App() {
       )}
 
       {surveyOn && (
+        <Suspense fallback={null}>
         <SurveyDock open={surveyOpen} answered={Boolean(surveyCode)}
                     onOpen={() => setSurveyOpen(true)}
                     onDismiss={() => setSurveyOn(false)} />
+        </Suspense>
       )}
 
       <SiteFooter />

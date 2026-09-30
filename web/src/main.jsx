@@ -17,8 +17,16 @@ function configured(value) {
 }
 
 function startPostHog() {
-  // 실제 SDK는 별도 청크로 늦게 불러온다. 초기 화면의 JavaScript 비용을
-  // 키·호스트가 없는 환경과 첫 렌더링에서 늘리지 않는다.
+  // SDK(압축 85KB)는 페이지 로드가 끝나고 브라우저가 한가할 때 받는다. 그 전 이벤트는
+  // analytics.js가 쌓아 뒀다가 넘긴다(pendingPostHogEvents). 2026-09-30 Lighthouse: 첫 화면
+  // 동안 SDK를 받아 실행하느라 메인 스레드가 막혔다.
+  const later = (fn) => ('requestIdleCallback' in window ? window.requestIdleCallback(fn, { timeout: 4000 }) : setTimeout(fn, 1500))
+  const go = () => later(loadPostHog)
+  if (document.readyState === 'complete') go()
+  else window.addEventListener('load', go, { once: true })
+}
+
+function loadPostHog() {
   import('./posthog.js')
     .then(({ initPostHog, captureAnalyticsEvent, capturePostHogConnectionTest }) => {
       if (!initPostHog()) {
