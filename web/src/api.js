@@ -33,6 +33,13 @@ export async function fetchBrands() {
 // 오늘 띄울 배너만 내려온다 — 기간 판정은 서버(Asia/Seoul)가 하고 정렬도
 // 서버가 끝내 준다. 프론트는 받은 순서대로 돌리기만 한다.
 export async function fetchBanners() {
+  // index.html이 먼저 보낸 요청이 있으면 그 응답을 한 번만 쓴다. 실패했으면 여기서 다시 부른다.
+  const early = typeof window !== 'undefined' ? window.__bannersEarly : null
+  if (early) {
+    window.__bannersEarly = null
+    const got = await early
+    if (Array.isArray(got)) return got
+  }
   const res = await fetch(`${API_BASE}/api/banners`)
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json()

@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { comparable, displayBestAmount, offerKey } from './filters.js'
@@ -21,7 +21,7 @@ function captureBrandImpression(props) {
 // highlighted는 URL 해시(#brand-이름)로 이 카드를 콕 집어 공유했을 때만
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
-export default function BrandCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false }) {
+function BrandCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -202,3 +202,6 @@ export default function BrandCard({ brand, position, highlighted, onInteract, in
     </article>
   )
 }
+
+// 목록이 150ms마다 12장씩 늘 때 이미 그린 카드까지 다시 그리지 않게 한다(2026-09-30 홈 TBT 5.9초).
+export default memo(BrandCard)
