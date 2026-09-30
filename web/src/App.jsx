@@ -352,6 +352,9 @@ export default function App() {
   // 바로 숨기지 않는다. 어떻게 숨길지 물어본 뒤에 숨긴다.
   const [asking, setAsking] = useState(null)
   const onHide = useCallback((name, amount) => setAsking({ name, amount }), [])
+  // 카드 memo가 먹게 참조를 고정한다. 렌더마다 새 객체나 함수를 넘기면 memo가 소용없다.
+  const include = useMemo(() => includesFrom(filters), [filters])
+  const clearLinked = useCallback(() => setLinkedBrand(null), [])
   // 카드가 쪼그라들어 사라진 뒤에 목록에서 뺀다. 바로 빼면 아래 카드들이
   // 순간이동해서 무엇이 사라졌는지 눈이 못 따라간다.
   const gridRef = useRef(null)
@@ -637,11 +640,11 @@ export default function App() {
               key={b.name}
               leaving={leaving === b.name}
               onHide={onHide}
-              include={includesFrom(filters)}
+              include={include}
               brand={b}
               position={index + 1}
               highlighted={linkedBrand === brandCardId(b.name)}
-              onInteract={() => setLinkedBrand(null)}
+              onInteract={clearLinked}
             />
           ))}
         </div>

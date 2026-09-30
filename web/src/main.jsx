@@ -44,7 +44,9 @@ markVariantOnRoot()
 // StrictMode가 컴포넌트를 두 번 마운트하므로 page_view가 두 번 찍히지
 // 않도록 React 밖에서 한 번만 시작한다.
 startAnalyticsDelivery({ postHogConfigured, startPostHog })
-startGa4() // 임시 — ADR-002 참고
+// GA4는 첫 화면을 그린 뒤에 띄운다. 첫 렌더 전에 동기로 시작해 메인 스레드를 막았다(2026-09-30 Lighthouse).
+if (document.readyState === 'complete') setTimeout(startGa4, 0)
+else window.addEventListener('load', () => setTimeout(startGa4, 0), { once: true }) // 임시, ADR-002 참고
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
