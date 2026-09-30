@@ -239,7 +239,7 @@
   top: 50px;
   right: 8px;
   left: 48px;
-  z-index: 4;
+  z-index: 20; /* 최고 할인 상자의 플랫폼 로고보다 위 */
   display: flex;
   flex-direction: column;
   align-items: flex-end;
