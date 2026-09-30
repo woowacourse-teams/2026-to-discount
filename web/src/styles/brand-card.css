@@ -60,9 +60,6 @@
 /* 상세를 펼친 상태가 기본이라 카드 하나가 담는 양이 늘었다 — 여백을
    키워 핵심(브랜드·최고 할인)과 그 외(차순위·상세)가 눌리지 않게 한다. */
 .brand-card {
-  /* 화면 밖 카드는 배치와 그리기를 미룬다(2026-09-30, 홈 요소 6,480개). 높이는 접힌 카드 기준 추정치다. */
-  content-visibility: auto;
-  contain-intrinsic-size: auto 260px;
   display: flex;
   flex-direction: column;
   gap: .8rem;
@@ -685,4 +682,12 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
      길면(아주 긴 숫자 등) 그때만 단어 중간에서 끊는다. */
   word-break: keep-all;
   overflow-wrap: break-word;
+}
+
+/* 화면 밖 카드는 배치와 그리기를 미룬다(2026-09-30, 홈 요소 6,480개). 첫 화면에 드는 앞쪽 카드에는
+   걸지 않는다. 걸면 첫 칠 때 추정 높이(260px)로 그렸다가 실제 높이로 바뀌어 아래가 밀린다
+   (브랜드 페이지 푸터 CLS 0.45, 2026-09-30 운영 실측). */
+.brand-grid > .brand-card:nth-child(n+7) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 260px;
 }
