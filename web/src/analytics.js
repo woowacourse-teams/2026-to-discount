@@ -37,7 +37,9 @@ function referrerKind() {
   }
 }
 
-const context = {
+// 처음 이벤트를 만들 때 읽는다. 모듈을 읽는 순간 window를 만지면 서버 렌더(SSR)에서 죽는다.
+let context = null
+const makeContext = () => ({
   ...getAnalyticsContext(),
   device: window.matchMedia('(hover: hover)').matches ? 'desktop' : 'mobile',
   viewport: `${window.innerWidth}x${window.innerHeight}`,
@@ -45,7 +47,7 @@ const context = {
   // 어느 화면 안을 보고 있었는지. 안 붙이면 클릭 수만 쌓이고 "어느
   // 화면에서 눌렀나"를 되짚을 수 없다.
   variant: uiVariant,
-}
+})
 
 // 지금 걸려 있는 조건. 링크를 누른 순간 어떤 필터 상태였는지가 "분류를
 // 설정한 사람이 실제로 이동까지 하는가"의 답이라, 이벤트마다 실어 보낸다.
@@ -128,7 +130,7 @@ function createAnalyticsEvent(event, additions = {}) {
   return {
     eventId: createEventId(),
     event,
-    ...context,
+    ...(context ??= makeContext()),
     path: location.pathname,
     ...eventFields,
     // 이벤트 고유 값이 먼저다. 서버가 props를 앞에서부터 세어 자르는데
@@ -196,7 +198,7 @@ export function track(event, props) {
 
 // 체류 시간은 "보고 있던 시간"이어야 한다. 탭을 백그라운드로 돌린 시간은
 // 빼야 실제로 읽은 시간에 가까워진다.
-let visibleSince = document.visibilityState === 'visible' ? Date.now() : null
+let visibleSince = typeof document !== 'undefined' && document.visibilityState === 'visible' ? Date.now() : null
 let activeMs = 0
 let exitSent = false
 

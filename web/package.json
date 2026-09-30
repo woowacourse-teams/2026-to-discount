@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/build-logo-manifest.mjs && vite build && node scripts/prerender.mjs",
+    "build": "node scripts/build-logo-manifest.mjs && vite build && node scripts/prerender.mjs && vite build --ssr src/entry-server.jsx --outDir dist-server && node scripts/ssr-template.mjs",
     "preview": "vite preview",
     "test": "node scripts/run-node-tests.mjs && npm run test:analytics && npm run test:posthog && npm run test:event-contract && node scripts/verify-search-filters.mjs && npm run test:brand-route && npm run test:api-base && npm run test:copy",
     "test:autocomplete": "node --test src/brandAutocomplete.test.js",

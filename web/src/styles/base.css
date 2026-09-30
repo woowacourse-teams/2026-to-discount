@@ -131,7 +131,7 @@ main { max-width: 880px; margin: 0 auto; padding: 0 1.25rem 4rem; }
    왼쪽 위 끝에 그대로 붙는다. */
 /* 고정된 바가 비운 자리를 대신 차지한다. 바가 갖고 있던 겹침
    (margin-bottom:-1rem)도 이제 여기가 들고 있다. */
-.title-bar-spacer { margin-bottom: calc(-1rem + 16px); }
+.title-bar-spacer { height: var(--bar-h, 0px); margin-bottom: calc(-1rem + 16px); }
 
 /* 앱 필터·분류·초기화·검색을 한 줄에 둔다. 별도 줄로 띄우면 같은 조작
    묶음인데도 따로 노는 것처럼 보였다. */

@@ -34,8 +34,13 @@ function storePushEnabled(enabled) {
 }
 
 export default function PushNotificationSetting() {
-  const [availability, setAvailability] = useState(() => pushAvailability())
-  const [enabled, setEnabled] = useState(storedPushEnabled)
+  // 서버(SSR)와 첫 렌더를 맞춘다. 실제 값은 하이드레이션 뒤 effect에서 읽는다.
+  const [availability, setAvailability] = useState('unsupported')
+  const [enabled, setEnabled] = useState(false)
+  useEffect(() => {
+    setAvailability(pushAvailability())
+    setEnabled(storedPushEnabled())
+  }, [])
   const [failed, setFailed] = useState(false)
   const [toggleSlot, setToggleSlot] = useState(null)
   const [showPrompt, setShowPrompt] = useState(false)

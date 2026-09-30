@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
@@ -28,6 +28,9 @@ import BrandCard, { brandCardId } from './BrandCard.jsx'
 import BrandGridSkeleton from './BrandGridSkeleton.jsx'
 import { setHubLinks } from './OfferChip.jsx'
 import SiteFooter from './SiteFooter.jsx'
+
+// 서버 렌더에서는 layout effect가 돌지 않고 경고만 남긴다. 서버에선 그냥 effect로 둔다.
+const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 // 한 번에 그리는 브랜드 카드 수. 화면에 두 줄쯤 들어간다.
 const BRAND_PAGE = 12
@@ -74,10 +77,13 @@ function routeFilters() {
   return brand ? { ...defaultFilters(), search: brand } : defaultFilters()
 }
 
-export default function App() {
-  const [brands, setBrands] = useState(null)
+// initial은 서버 렌더(SSR, api/ssr.js)가 요청 시점에 받은 데이터다. 있으면 첫 화면을 그걸로
+// 그리고 같은 값을 다시 부르지 않는다. 첫 렌더는 서버와 같아야 하므로 브라우저에만 있는 값
+// (localStorage, 시각, 화면 폭)은 전부 effect에서 읽는다.
+export default function App({ initial = null }) {
+  const [brands, setBrands] = useState(initial?.brands ?? null)
   // null은 아직 못 받음(자리만 잡는다), []는 받았는데 0건.
-  const [banners, setBanners] = useState(null)
+  const [banners, setBanners] = useState(initial?.banners ?? null)
   const [error, setError] = useState(null)
   // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
   const [surveyOn, setSurveyOn] = useState(false)
@@ -175,13 +181,17 @@ export default function App() {
   ))
 
   const { search } = filters
+  const [dev, setDev] = useState(false)
+  useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
 
 
   // 새벽(00~07시) 안내. 수집이 00:01에 돌아 그 사이 값이 지난주 것일 수 있다 — 화면에 그렇다고
   // 말해 둔다. 시각은 1분마다 다시 본다(열어 둔 채 07시를 넘기면 사라져야 한다).
-  const [isNight, setIsNight] = useState(() => new Date().getHours() < 7)
+  // 서버 시계는 UTC라 첫 렌더에 쓰면 하이드레이션이 어긋난다. 브라우저에서 곧바로 다시 본다.
+  const [isNight, setIsNight] = useState(false)
   useEffect(() => {
+    startTransition(() => setIsNight(new Date().getHours() < 7))
     const id = setInterval(() => setIsNight(new Date().getHours() < 7), 60_000)
     return () => clearInterval(id)
   }, [])
@@ -210,11 +220,13 @@ export default function App() {
   // 스크롤 지연에 함께 밀렸다. 흐름에서 빠진 높이는 스페이서가 대신 차지하고,
   // 그 높이는 바를 실측해 따라간다.
   const titleBarRef = useRef(null)
-  const [barHeight, setBarHeight] = useState(0)
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const el = titleBarRef.current
     if (!el) return
-    const ro = new ResizeObserver(([entry]) => setBarHeight(entry.contentRect.height))
+    // 높이는 React 상태가 아니라 CSS 변수로 넘긴다. 서버 렌더 HTML에서는 api/ssr.js의 인라인
+    // 스크립트가 첫 페인트 전에 같은 변수를 채운다 — 상태였으면 하이드레이션 전 한 프레임이 0이었다.
+    const setBarHeight = (h) => document.documentElement.style.setProperty('--bar-h', `${h}px`)
+    const ro = new ResizeObserver(([entry]) => setBarHeight(entry.target.getBoundingClientRect().height))
     ro.observe(el)
     setBarHeight(el.getBoundingClientRect().height)
     return () => ro.disconnect()
@@ -255,6 +267,7 @@ export default function App() {
   // reloadKey를 올리면 다시 부른다 — 실패 화면의 "다시 시도" 버튼용.
   const [reloadKey, setReloadKey] = useState(0)
   useEffect(() => {
+    if (reloadKey === 0 && initial?.brands) return
     let alive = true
     setError(null)
     setBrands(null)
@@ -267,6 +280,8 @@ export default function App() {
   // 배너 실패는 삼킨다. 카드 그리드와 달리 배너는 부가 정보라, 못 불러왔다는
   // 사실을 화면에 띄울 이유가 없다 — 빈 목록과 같게 다룬다.
   useEffect(() => {
+    // SSR이 실어 준 배너는 main.jsx가 하이드레이션 전에 허브 주소까지 반영했다.
+    if (initial?.banners) return
     // 배너를 받으면 허브 주소도 같이 갱신한다 — 브랜드별 링크가 없는
     // 칩이 그 주소로 간다(setHubLinks 주석 참고).
     fetchBanners()
@@ -346,7 +361,10 @@ export default function App() {
 
   // 필터·정렬 규칙은 filters.js가 단일 출처다(시트·메뉴바와 같은 규칙).
   // 싫은 브랜드는 목록에서 걷어낸다. 브라우저에만 남는다(hiddenBrands.js).
-  const [hidden, setHidden] = useState(() => readHidden())
+  const [hidden, setHidden] = useState({})
+  // startTransition: 하이드레이션이 덜 끝난 Suspense(필터 시트 등)에 급한 갱신이 닿으면
+  // React가 그 경계를 버리고 다시 그린다(#421). 브라우저 값 반영은 급하지 않다.
+  useEffect(() => { startTransition(() => setHidden(readHidden())) }, [])
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const bestOf = useCallback(
     (b) => displayBestAmount(b.offers, includesFrom(filters)), [filters])
@@ -447,7 +465,7 @@ export default function App() {
           구분이 안 된다. 2026-09-02에 이걸 몰라서 테스트 흔적을 실사용
           방문으로 착각한 사고가 있었다(원장·PostHog는 이미 걸러내지만,
           "지금 이 화면이 안 잡힌다"는 눈으로 바로 확인돼야 한다). */}
-      {getAnalyticsContext().dev && <span className="dev-badge">dev</span>}
+      {dev && <span className="dev-badge">dev</span>}
 
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
@@ -463,7 +481,7 @@ export default function App() {
 
       {/* 고정된 바가 문서 흐름에서 빠진 만큼을 대신 차지하는 자리. 높이는
           바를 실측해서 넣는다(폰트 로딩·줄바꿈으로 바뀔 수 있다). */}
-      <div className="title-bar-spacer" style={{ height: `${barHeight}px` }} aria-hidden="true" />
+      <div className="title-bar-spacer" aria-hidden="true" />
 
       {/* A/B 실험 종료(2026-09-15): 한 줄 바 + 분류 캐러셀(a안)로 통일.
           결론은 docs/HANDOFF-20260914.md §4 — b(시트)는 내렸다. */}

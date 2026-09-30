@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
+import { setHubLinks } from './OfferChip.jsx'
 import {
   disablePostHogFanout,
   registerPostHogSink,
@@ -62,13 +63,20 @@ if (!quiet) {
   else window.addEventListener('load', () => setTimeout(startGa4, 0), { once: true }) // 임시, ADR-002 참고
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+// 홈은 서버가 요청 시점 데이터로 그린 HTML을 보낸다(api/ssr.js). 그 데이터가 실려 있으면
+// 버리지 않고 하이드레이션한다. 없으면(브랜드 페이지, SSR 실패) 예전처럼 통째로 그린다.
+const ssr = window.__SSR__
+if (ssr) setHubLinks(ssr.banners)
+const tree = (
   <React.StrictMode>
-    <App />
+    <App initial={ssr} />
     {/* Vercel 배포 트래픽 집계. /react 엔트리를 쓴다 — Next.js가 아니라
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
         별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면
         컴포넌트를 마운트하지 않아 전송도 하지 않는다. */}
     {!optedOut() && !quiet && <Analytics />}
-  </React.StrictMode>,
+  </React.StrictMode>
 )
+const rootEl = document.getElementById('root')
+if (ssr) ReactDOM.hydrateRoot(rootEl, tree)
+else ReactDOM.createRoot(rootEl).render(tree)

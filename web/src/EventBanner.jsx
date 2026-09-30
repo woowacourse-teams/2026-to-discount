@@ -48,10 +48,12 @@ function writeDismissed() {
 }
 
 function useMediaQuery(query) {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
+  // 첫 렌더는 서버(SSR)와 같아야 한다 — 하이드레이션 뒤 effect에서 실제 값을 읽는다.
+  const [matches, setMatches] = useState(false)
   useEffect(() => {
     const mq = window.matchMedia(query)
     const on = () => setMatches(mq.matches)
+    on()
     mq.addEventListener('change', on)
     return () => mq.removeEventListener('change', on)
   }, [query])
@@ -59,9 +61,10 @@ function useMediaQuery(query) {
 }
 
 function usePageHidden() {
-  const [hidden, setHidden] = useState(() => document.hidden)
+  const [hidden, setHidden] = useState(false)
   useEffect(() => {
     const on = () => setHidden(document.hidden)
+    on()
     document.addEventListener('visibilitychange', on)
     return () => document.removeEventListener('visibilitychange', on)
   }, [])
@@ -341,7 +344,8 @@ export default function EventBanner({ banners }) {
   const [held, setHeld] = useState(false)
   const [focused, setFocused] = useState(false)
   const [topVisible, setTopVisible] = useState(true)
-  const [dismissed, setDismissed] = useState(readDismissed)
+  const [dismissed, setDismissed] = useState(false)
+  useEffect(() => { setDismissed(readDismissed()) }, [])
   const topRef = useRef(null)
   const dockRef = useRef(null)
   // 같은 장을 한 번만 센다. 캐러셀은 앞뒤로 오갈 수 있고 하단 배너는
@@ -370,9 +374,10 @@ export default function EventBanner({ banners }) {
   const canHover = useMediaQuery('(hover: hover)')
   const pageHidden = usePageHidden()
   // 창 폭이 바뀌면 바 높이도 바뀐다 — 관찰자를 다시 세우는 트리거.
-  const [viewportW, setViewportW] = useState(() => (typeof window === 'undefined' ? 0 : window.innerWidth))
+  const [viewportW, setViewportW] = useState(0)
   useEffect(() => {
     const onResize = () => setViewportW(window.innerWidth)
+    onResize()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
