@@ -10,6 +10,7 @@ import {
 import { startGa4 } from './ga4.js'
 import { optedOut } from './privacy.js'
 import { markVariantOnRoot } from './variant.js'
+import { getAnalyticsContext } from './analytics-context.js'
 import './App.css'
 
 function configured(value) {
@@ -53,8 +54,13 @@ markVariantOnRoot()
 // 않도록 React 밖에서 한 번만 시작한다.
 startAnalyticsDelivery({ postHogConfigured, startPostHog })
 // GA4는 첫 화면을 그린 뒤에 띄운다. 첫 렌더 전에 동기로 시작해 메인 스레드를 막았다(2026-09-30 Lighthouse).
-if (document.readyState === 'complete') setTimeout(startGa4, 0)
-else window.addEventListener('load', () => setTimeout(startGa4, 0), { once: true }) // 임시, ADR-002 참고
+// 개발 트래픽(?dev=1, 운영 밖 주소)과 측정 도구는 외부 분석(GA4, Vercel Analytics)에도 안 보낸다.
+// ?dev=1은 우리 서버가 PostHog로 넘기는 것만 막아, 2026-09-30 성능 측정이 GA4에 그대로 찍혔다.
+const quiet = getAnalyticsContext().dev || /Chrome-Lighthouse|HeadlessChrome/.test(navigator.userAgent)
+if (!quiet) {
+  if (document.readyState === 'complete') setTimeout(startGa4, 0)
+  else window.addEventListener('load', () => setTimeout(startGa4, 0), { once: true }) // 임시, ADR-002 참고
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -63,6 +69,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
         별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면
         컴포넌트를 마운트하지 않아 전송도 하지 않는다. */}
-    {!optedOut() && <Analytics />}
+    {!optedOut() && !quiet && <Analytics />}
   </React.StrictMode>,
 )
