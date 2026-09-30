@@ -166,7 +166,7 @@ export default function TopBarA({
   return (
     <div className="title-bar" ref={barRef}>
       <div className="title-bar__inner">
-        <h1 className="sr-only">오늘의할인 — 배달앱 브랜드 할인 비교</h1>
+        <h1 className="sr-only">배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 쿠폰 비교</h1>
 
         <div className="page-head__apps page-head__apps--no-membership" aria-label="비교 대상 배달앱">
           {PLATFORMS.map((p) => (

@@ -156,13 +156,14 @@ function bodyHtml(brands, today) {
 
 // 검색 결과에 뜨는 한 줄. 브랜드 몇 개를 앞세워 "여기 그 브랜드가 있다"를
 // 보이게 한다 — 이름만 적으면 이미 서비스를 아는 사람에게만 걸린다.
-function description(brands, today) {
-  const head = brands.slice(0, 6).map((b) => b.name).join(', ')
-  return `배달의민족·쿠팡이츠·요기요·땡겨요 브랜드 할인 쿠폰을 한 화면에서 비교합니다. ${today} 기준 ${brands.length}개 브랜드 — ${head} 등.`
+function description(brands) {
+  // 날짜와 브랜드 나열은 뺐다(2026-09-30). 날짜는 검색 결과에서 금방 낡아 보이고, 원본 브랜드명
+  // ("토핑몬스터피자TMPPIZZA")이 그대로 노출됐다. 대신 사람들이 실제로 찾는 말(배민 쿠폰, 치킨 할인)을 넣는다.
+  return `배민, 쿠팡이츠, 요기요, 땡겨요의 브랜드 할인 쿠폰을 매일 모아 한 화면에서 비교합니다. 치킨, 피자, 카페 등 ${brands.length}개 브랜드의 할인 금액과 최소주문 금액을 앱마다 나란히 보여 줍니다.`
 }
 
 function metaTags(brands, today) {
-  const desc = description(brands, today)
+  const desc = description(brands)
   const keywords = [
     '배달 할인', '배달앱 쿠폰', '배민 할인', '쿠팡이츠 할인', '요기요 할인', '땡겨요 할인',
     ...brands.slice(0, 30).map((b) => `${b.name} 할인`),
@@ -171,13 +172,13 @@ function metaTags(brands, today) {
     `    <link rel="canonical" href="${SITE}/" />`,
     `    <meta name="keywords" content="${esc(keywords)}" />`,
     '    <meta property="og:type" content="website" />',
-    '    <meta property="og:site_name" content="오늘의할인" />',
-    '    <meta property="og:title" content="오늘의할인 - 배달앱 브랜드 할인 한눈에" />',
+    '    <meta property="og:site_name" content="배달앱 할인모음" />',
+    '    <meta property="og:title" content="배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 쿠폰 비교" />',
     `    <meta property="og:description" content="${esc(desc)}" />`,
     `    <meta property="og:url" content="${SITE}/" />`,
     '    <meta property="og:locale" content="ko_KR" />',
     '    <meta name="twitter:card" content="summary" />',
-    '    <meta name="twitter:title" content="오늘의할인 - 배달앱 브랜드 할인 한눈에" />',
+    '    <meta name="twitter:title" content="배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 쿠폰 비교" />',
     `    <meta name="twitter:description" content="${esc(desc)}" />`,
   ].join('\n')
 }
@@ -255,8 +256,14 @@ function brandPage(b, siblings, today, appTags) {
   const cat = CATEGORY_LABEL[b.category]
   const apps = offers.map((o) => PLATFORM_LABEL[o.platform] ?? o.platform)
   const best = Math.max(...offers.map((o) => o.amount))
-  const title = `${b.name} 배달 할인 쿠폰 정리 (${today} 기준)`
-  const desc = `${b.name}${cat ? ` ${cat}` : ''} 배달 할인 — ${apps.join('·')}에서 확인한 쿠폰을 한자리에 모았습니다. 최대 ${won(best)}. 최소 주문 금액과 사용 기한까지 적어 뒀습니다.`
+  // 자사 배너(own)는 배달앱이 아니라 앱 이름에서 뺀다. 순서는 PLATFORM_LABEL 순서로 고정한다.
+  const order = Object.values(PLATFORM_LABEL)
+  const appNames = [...new Set(apps)].filter((a) => order.includes(a)).sort((x, y) => order.indexOf(x) - order.indexOf(y))
+  const appList = appNames.join(', ')
+  // 제목에는 그 브랜드가 실제로 있는 앱만 적는다. 네 앱을 다 적으면 한 앱뿐인 브랜드에서 거짓이 된다.
+  const title = appNames.length > 1 ? `${b.name} 할인 쿠폰 - ${appList} 비교`
+    : appNames.length === 1 ? `${b.name} ${appList} 할인 쿠폰` : `${b.name} 할인 쿠폰`
+  const desc = `${b.name}${cat ? ` ${cat}` : ''} 배달 할인 쿠폰을 ${appList ? `${appList}에서 ` : ''}모았습니다. 최대 ${won(best)}이고, 최소주문 금액과 사용 기한까지 앱마다 비교할 수 있습니다.`
   const url = `${SITE}/brand/${encodeURIComponent(slugOf(b.name))}`
   return `<!doctype html>
 <html lang="ko">
@@ -267,7 +274,7 @@ function brandPage(b, siblings, today, appTags) {
     <meta name="description" content="${esc(desc)}" />
     <link rel="canonical" href="${url}" />
     <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="오늘의할인" />
+    <meta property="og:site_name" content="배달앱 할인모음" />
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${url}" />
@@ -300,7 +307,7 @@ ${siblings.map((n) => `          <li><a href="${SITE}/brand/${encodeURIComponent
       </main>
       <footer class="seo footer">
         <p>${today} 기준. 개인이 만든 비영리 정보 제공 페이지입니다. 배달의민족·쿠팡이츠·요기요·땡겨요의 공식 서비스가 아니며 제휴 관계가 없습니다.</p>
-        <p><a href="${SITE}/">오늘의할인 홈</a></p>
+        <p><a href="${SITE}/">배달앱 할인모음 홈</a></p>
       </footer>
     </div>
   </body>
@@ -341,7 +348,7 @@ async function main() {
   // 예전 정적 설명은 브랜드가 안 들어간 문장이라 갈아 끼운다.
   html = html.replace(
     /<meta name="description" content="[^"]*" \/>/,
-    `<meta name="description" content="${esc(description(brands, today))}" />`,
+    `<meta name="description" content="${esc(description(brands))}" />`,
   )
   await writeFile(indexPath, html)
 
