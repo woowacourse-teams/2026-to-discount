@@ -36,6 +36,7 @@ brands:
     category: chicken
     aliases: [BBQ, BBQ치킨]
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=31
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?i68GLcw
       baemin: https://s.baemin.com/f3e.6ibml
   bhc:
@@ -43,6 +44,7 @@ brands:
     category: chicken
     aliases: [bhc, bhc치킨, BHC, BHC치킨]
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=37
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?OsP07Uu
       baemin: https://s.baemin.com/Rw000Lpq6OXca
   감탄계숯불치킨:
@@ -192,6 +194,7 @@ brands:
     searchAliases: [치킨 인류, 인류치킨, chicken inryu, chikin inryu]
     category: chicken
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=1398
       baemin: https://s.baemin.com/VQ000LpusVuS3
   치킨플러스:
     searchAliases: [치킨 플러스, 치플, chicken plus, chikin plus]
@@ -355,6 +358,7 @@ brands:
     category: fastfood
     aliases: [맘스터치피자앤치킨, 맘스터치 피자앤치킨, 맘스터치앤피자]
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=1477
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?ALSWdHv
       baemin: https://s.baemin.com/ND000LpqFoc7y
   맥도날드:
@@ -595,6 +599,8 @@ brands:
     searchAliases: [토핑몬스터피자, 토핑몬스터, 토핑 몬스터 피자, tmp pizza, tmppizza, topping monster pizza]
     aliases: [토핑몬스터피자, 토핑몬스터]
     category: pizza
+    links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=20105
   마라공방:
     searchAliases: [마라 공방, 마라탕공방, mala workshop, maragongbang]
     category: chinese
