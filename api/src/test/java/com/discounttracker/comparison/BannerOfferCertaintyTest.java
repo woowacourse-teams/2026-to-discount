@@ -445,4 +445,42 @@ class BannerOfferCertaintyTest {
         assertEquals(List.of(),
                 warningMessages("banners: []", List.of(ledgerBhc(null), ledgerBhc("최대"))));
     }
+
+    private static final String BHC_EXACT_FIRST_COME = """
+            banners:
+              - id: bhc-open-exact-20260922
+                brand: bhc
+                platform: coupangeats
+                url: "https://example.test/x"
+                amount: {won: 8000}
+                firstCome: issue
+                startsAt: 2026-09-22T00:00
+                endsAt: 2026-09-22T23:59
+            """;
+
+    private List<Offer> offersFor(String yaml) {
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource(yaml.getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
+        OfferRepository repo = new OfferRepository(null) {
+            @Override public void reload() { }
+            @Override public List<OfferRecord> findAll() { return List.of(ledgerBhc(null)); }
+        };
+        return new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers();
+    }
+
+    @Test
+    void biggerExactOfferWinsTheAppSlot() {
+        // 2026-09-30 사용자: 청년피자 쿠팡이츠 선착순 10,000원과 상시 7,000원이 둘 다 떴다 - 큰 쪽이 이겨야 한다.
+        List<Offer> offers = offersFor(BHC_EXACT_FIRST_COME);
+        assertEquals(1, offers.size(), offers.toString());
+        assertEquals(8000, offers.get(0).amount());
+    }
+
+    @Test
+    void soldOutFirstComeGivesTheSlotBackToTheStandingOffer() {
+        // 선착순이 소진되면 상시가 다시 선다(맘스터치 2026-09-30: 상시 할인이 카드에서 사라지면 안 된다).
+        List<Offer> offers = offersFor(BHC_EXACT_FIRST_COME.replace("firstCome: issue", "firstCome: issue\n    soldOutOn: 2026-09-22"));
+        assertEquals(1, offers.size(), offers.toString());
+        assertEquals(5000, offers.get(0).amount());
+    }
 }

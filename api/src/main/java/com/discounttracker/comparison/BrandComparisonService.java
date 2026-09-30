@@ -226,9 +226,15 @@ public class BrandComparisonService {
             String platform = slot.substring(0, slot.length() - "#first-come".length());
             Offer first = offersBySlot.get(slot);
             Offer standing = offersBySlot.get(platform);
-            if (standing != null && java.util.Objects.equals(first.amount(), standing.amount())
-                    && first.certainty() == standing.certainty()) {
-                offersBySlot.put(platform, first.preferredOver(standing));  // 예전 merge와 같은 순서(배너가 먼저)
+            // 같은 앱에 선착순과 상시가 같이 서면 금액이 큰 쪽 하나만 남긴다(2026-09-30 사용자:
+            // 청년피자 쿠팡이츠 선착순 10,000원과 상시 7,000원이 둘 다 떴다 - 큰 쪽이 이겨야 한다).
+            // 확실성이 다르면(랜덤·상한 대 확정) 금액으로 견줄 수 없어 둘 다 둔다.
+            if (standing != null && first.certainty() == standing.certainty()) {
+                int a = first.amount() == null ? 0 : first.amount();
+                int b = standing.amount() == null ? 0 : standing.amount();
+                // 선착순이 소진됐으면 상시가 선다 - 2026-09-30 맘스터치처럼 상시 할인이 카드에서 사라지면 안 된다.
+                boolean firstWins = !first.soldOut() && a >= b;   // 같으면 선착순(배너)이 먼저
+                offersBySlot.put(platform, firstWins ? first : standing);
                 offersBySlot.remove(slot);
             }
         }
