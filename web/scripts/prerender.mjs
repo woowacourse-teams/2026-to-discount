@@ -138,7 +138,7 @@ function bodyHtml(brands, today) {
   const names = brands.map((b) => b.name)
   return [
     '    <header class="seo">',
-    '      <h1>오늘의 배달앱 브랜드 할인 한눈에 비교</h1>',
+    '      <h1>배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 최고 할인 쿠폰 비교</h1>',
     `      <p>배달의민족·쿠팡이츠·요기요·땡겨요 네 앱의 브랜드 할인 쿠폰을 한 화면에서 견줍니다. ${today} 기준 ${blocks.length}개 브랜드.</p>`,
     '    </header>',
     '    <main class="seo">',
@@ -290,7 +290,7 @@ ${BOOT_STYLE}
   <body>
     <div id="root">
       <header class="seo">
-        <h1>${esc(b.name)} 배달 할인 쿠폰</h1>
+        <h1>${esc(b.name)} 최고 할인 쿠폰</h1>
         <p>${esc(desc)}</p>
         <!-- 전체 목록으로 나가는 길. 예전에는 /#브랜드명(해시)을 가리켰는데,
              그건 이 페이지가 앱 밖에 있던 시절 "앱에서 이 카드를 보는"
