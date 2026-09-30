@@ -220,6 +220,20 @@ public class BrandComparisonService {
      * {@link Certainty#fromQualifier}가 그것을 EXACT로 읽어 값이 같고, 겹침이라는 사실은
      * {@code tierMode}가 이미 답한다.
      */
+    private static void mergeSameFirstCome(Map<String, Offer> offersBySlot) {
+        for (String slot : List.copyOf(offersBySlot.keySet())) {
+            if (!slot.endsWith("#first-come")) continue;
+            String platform = slot.substring(0, slot.length() - "#first-come".length());
+            Offer first = offersBySlot.get(slot);
+            Offer standing = offersBySlot.get(platform);
+            if (standing != null && java.util.Objects.equals(first.amount(), standing.amount())
+                    && first.certainty() == standing.certainty()) {
+                offersBySlot.put(platform, first.preferredOver(standing));  // 예전 merge와 같은 순서(배너가 먼저)
+                offersBySlot.remove(slot);
+            }
+        }
+    }
+
     private static String legacyQualifier(Banner banner) {
         if (legacyRandom(banner)) return "랜덤";
         if (banner.amount() != null && banner.amount().contains("최대")) return "최대";
@@ -369,6 +383,10 @@ public class BrandComparisonService {
                 target.merge(name, forSorting, Math::max);
             }
         }
+
+        // 선착순 배너가 원장 오퍼와 같은 쿠폰이면(금액과 확실성이 같다) 따로 세우지 않고 예전처럼
+        // 한 칸으로 합친다. 2026-09-30 던킨 땡겨요: 배너와 원장이 같은 7,000원인데 두 번 떴다.
+        byBrand.values().forEach(BrandComparisonService::mergeSameFirstCome);
 
         List<BrandComparison> result = new ArrayList<>();
         byBrand.forEach((name, offersByPlatform) -> result.add(new BrandComparison(

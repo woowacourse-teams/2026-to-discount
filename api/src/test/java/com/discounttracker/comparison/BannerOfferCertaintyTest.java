@@ -319,6 +319,31 @@ class BannerOfferCertaintyTest {
         assertEquals(List.of(), warningMessages(BHC_FIRST_COME_BANNER, List.of(ledgerBhc(null))));
     }
 
+    @Test
+    void firstComeBannerForTheSameCouponStaysOneOffer() {
+        // 2026-09-30 던킨 땡겨요: 선착순 배너와 원장이 같은 7,000원 확정 쿠폰인데 칸을 가르자 두 번 떴다.
+        String yaml = """
+                banners:
+                  - id: bhc-open-same-20260922
+                    brand: bhc
+                    platform: coupangeats
+                    url: "https://example.test/g"
+                    amount: {won: 5000}
+                    firstCome: use
+                    startsAt: 2026-09-22T00:00
+                    endsAt: 2026-09-22T23:59
+                """;
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource(yaml.getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
+        OfferRepository repo = new OfferRepository(null) {
+            @Override public void reload() { }
+            @Override public List<OfferRecord> findAll() { return List.of(ledgerBhc(null)); }
+        };
+        var offers = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers();
+        assertEquals(1, offers.size(), offers.toString());
+        assertEquals(5000, offers.get(0).amount());
+    }
+
     private static final String BHC_EXACT_BANNER = """
             banners:
               - id: bhc-exact-20260922
