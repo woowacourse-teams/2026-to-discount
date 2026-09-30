@@ -182,6 +182,8 @@ export default function App({ initial = null }) {
 
   const { search } = filters
   const [dev, setDev] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
   useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
 
@@ -470,14 +472,17 @@ export default function App({ initial = null }) {
       {/* 배너가 0건이거나 호출이 실패하면 아무것도 그리지 않는다(EventBanner가
           null을 돌려준다). 카드 그리드의 "불러오기 실패"와 다르게 다룬다 —
           배너는 부가 정보라서 실패가 화면을 어지럽히면 안 된다. */}
-      <Suspense fallback={null}>
+      {/* 시트는 서버 렌더에 넣지 않는다(닫혀 있어 첫 화면에 안 보인다). 넣으면 지연 로드 청크가
+          오기 전 그 Suspense가 탈수 상태로 남고, 그사이 App이 한 번만 다시 그려져도 React가
+          경계를 버리고 다시 그리며 #421을 던진다(프리뷰 실측). */}
+      {mounted && <Suspense fallback={null}>
       <FilterSheet
         open={sheetOpen}
         filters={filters}
         onApply={applyFromSheet}
         onClose={() => setSheetOpen(false)}
       />
-      </Suspense>
+      </Suspense>}
 
       {/* 고정된 바가 문서 흐름에서 빠진 만큼을 대신 차지하는 자리. 높이는
           바를 실측해서 넣는다(폰트 로딩·줄바꿈으로 바뀔 수 있다). */}
