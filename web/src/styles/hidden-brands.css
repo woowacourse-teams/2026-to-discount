@@ -232,27 +232,28 @@
 .brand-card__hide:active { transform: scale(.94); }
 .brand-card__hide:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-/* 첫 방문 1회 안내. 숨기기 버튼 바로 아래에 붙는 말풍선. 360px에서 카드 폭을 넘지 않게
-   왼쪽 여백을 두고 오른쪽에 붙인다. */
+/* 첫 방문 1회 안내. 숨기기 버튼 바로 아래에 붙는 말풍선. 한 문장이라 폭을 좁혀
+   오른쪽 끝에만 붙인다 - 최고 할인 상자의 왼쪽(금액)이 보이게. */
 .hide-tip {
   position: absolute;
-  top: 50px;
-  right: 8px;
-  left: 48px;
+  top: 48px;
+  right: 6px;
+  max-width: calc(100% - 12px);
   z-index: 20; /* 최고 할인 상자의 플랫폼 로고보다 위 */
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: .4rem;
-  padding: .6rem .7rem;
+  align-items: flex-start;
+  gap: .35rem;
+  padding: .5rem .35rem .5rem .75rem;
   border-radius: 12px;
   background: var(--text, #171717);
   color: var(--surface, #fff);
-  font-size: .8rem;
-  line-height: 1.4;
+  font-size: .95rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  white-space: nowrap;
   box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
 }
-.hide-tip > span { align-self: stretch; }
 .hide-tip::before {
   content: '';
   position: absolute;
@@ -262,13 +263,21 @@
   border-top: 0;
   border-bottom-color: var(--text, #171717);
 }
+/* 닫기는 작은 X. 누르면 다시 안 뜬다. 손가락 자리는 28px 확보. */
 .hide-tip__close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -.2rem;
+  display: grid;
+  place-items: center;
   border: 0;
   border-radius: 8px;
-  padding: .3rem .6rem;
-  background: var(--surface, #fff);
-  color: var(--text, #171717);
+  background: none;
+  color: inherit;
+  opacity: .75;
   font: inherit;
-  font-weight: 600;
+  font-size: .85rem;
   cursor: pointer;
 }
+.hide-tip__close:hover { opacity: 1; background: rgba(255, 255, 255, .12); }

@@ -135,8 +135,8 @@ export default function BrandCard({ brand, position, highlighted, onInteract, in
       )}
       {onHide && hideTip && (
         <div className="hide-tip" role="note">
-          <span>안 쓰는 브랜드는 이 버튼으로 숨길 수 있어요. 숨긴 목록에서 언제든 되돌려요.</span>
-          <button type="button" className="hide-tip__close" onClick={onHideTipClose}>알겠어요</button>
+          <span>선호하지 않는 브랜드는<br />이 버튼으로 숨길 수 있어요</span>
+          <button type="button" className="hide-tip__close" aria-label="알겠어요" onClick={onHideTipClose}>✕</button>
         </div>
       )}
 
