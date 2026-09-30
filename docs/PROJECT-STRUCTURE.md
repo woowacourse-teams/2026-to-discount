@@ -128,6 +128,7 @@ web/.env.example
 web/.env.production
 web/.gitignore
 web/README.md
+web/api/ssr.js
 web/index.html
 web/package-lock.json
 web/package.json
@@ -143,6 +144,7 @@ web/scripts/dev/capture-dom.mjs
 web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
 web/scripts/run-node-tests.mjs
+web/scripts/ssr-template.mjs
 web/scripts/verify-analytics-event-contract.mjs
 web/scripts/verify-analytics-event-id.mjs
 web/scripts/verify-api-base.mjs
@@ -182,6 +184,7 @@ web/src/brandImpression.js
 web/src/brandImpression.test.js
 web/src/cardShift.js
 web/src/cardShift.test.js
+web/src/entry-server.jsx
 web/src/filters.js
 web/src/filters.test.js
 web/src/ga4.js
@@ -275,7 +278,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 123 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 103 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 106 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -347,6 +350,7 @@ HTTP 경계:
 | `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
 | `cardShift.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `entry-server.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `filters.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `ga4.js` | 임시 GA4 측정 |
