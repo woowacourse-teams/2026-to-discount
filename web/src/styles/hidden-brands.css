@@ -206,8 +206,9 @@
 
 /* 카드 오른쪽 위 숨기기. 옛 담기 버튼(.brand-card__add)이 쓰던 자리와 모양을
    그대로 쓴다 - 카드에서 이미 자리를 비워 둔 곳이고, 새 자리를 만들면 카드
-   머리가 또 복잡해진다. 색은 조용하게 둔다. 누르면 카드가 사라지는 동작이라
-   눈에 먼저 띄면 잘못 누른다. */
+   머리가 또 복잡해진다. 처음엔 --dim으로 흐리게 두었는데 있는지 모르고 지나쳤다.
+   눌러도 바로 사라지지 않고 어떻게 숨길지 먼저 묻기 때문에(HideBrandAsk)
+   잘못 눌러도 되돌릴 수 있다. 그래서 본문 보조색까지 올린다. */
 .brand-card__hide {
   position: absolute;
   top: 0;
@@ -220,7 +221,7 @@
   border: 0;
   border-radius: 0 13px 0 14px;
   background: none;
-  color: var(--dim, #b6bbc2);
+  color: var(--text-muted, #787774);
   cursor: pointer;
   transition: color .16s ease, background .16s ease;
 }
@@ -230,3 +231,44 @@
 }
 .brand-card__hide:active { transform: scale(.94); }
 .brand-card__hide:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* 첫 방문 1회 안내. 숨기기 버튼 바로 아래에 붙는 말풍선. 360px에서 카드 폭을 넘지 않게
+   왼쪽 여백을 두고 오른쪽에 붙인다. */
+.hide-tip {
+  position: absolute;
+  top: 50px;
+  right: 8px;
+  left: 48px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .4rem;
+  padding: .6rem .7rem;
+  border-radius: 12px;
+  background: var(--text, #171717);
+  color: var(--surface, #fff);
+  font-size: .8rem;
+  line-height: 1.4;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+}
+.hide-tip > span { align-self: stretch; }
+.hide-tip::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 20px;
+  border: 6px solid transparent;
+  border-top: 0;
+  border-bottom-color: var(--text, #171717);
+}
+.hide-tip__close {
+  border: 0;
+  border-radius: 8px;
+  padding: .3rem .6rem;
+  background: var(--surface, #fff);
+  color: var(--text, #171717);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

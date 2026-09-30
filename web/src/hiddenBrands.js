@@ -87,3 +87,23 @@ export function revivedNames(brands, hidden, amountOf) {
     .filter((b) => hidden[b.name] && !isHidden(hidden, b.name, amountOf(b)))
     .map((b) => b.name)
 }
+
+/**
+ * 숨기기 첫 안내(코치마크)를 봤는지. 한 번 닫거나 한 번 숨기면 다시 안 띄운다.
+ * 저장이 막힌 브라우저에서는 그 방문 동안만 기억한다(읽기 실패는 "봤다"로 친다 - 매번 뜨면 성가시다).
+ */
+const TIP_KEY = 'dk_hide_tip_seen'
+export function hideTipSeen(storage = globalThis.localStorage) {
+  try {
+    return storage?.getItem(TIP_KEY) === '1'
+  } catch {
+    return true
+  }
+}
+export function markHideTipSeen(storage = globalThis.localStorage) {
+  try {
+    storage?.setItem(TIP_KEY, '1')
+  } catch {
+    // 이번 방문 동안은 화면 상태로 닫혀 있다.
+  }
+}

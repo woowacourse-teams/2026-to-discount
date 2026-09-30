@@ -21,7 +21,7 @@ function captureBrandImpression(props) {
 // highlighted는 URL 해시(#brand-이름)로 이 카드를 콕 집어 공유했을 때만
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
-export default function BrandCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false }) {
+export default function BrandCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, hideTip = false, onHideTipClose }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -132,6 +132,12 @@ export default function BrandCard({ brand, position, highlighted, onInteract, in
             <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
           </svg>
         </button>
+      )}
+      {onHide && hideTip && (
+        <div className="hide-tip" role="note">
+          <span>안 쓰는 브랜드는 이 버튼으로 숨길 수 있어요. 숨긴 목록에서 언제든 되돌려요.</span>
+          <button type="button" className="hide-tip__close" onClick={onHideTipClose}>알겠어요</button>
+        </div>
       )}
 
       {/* 최고 할인을 단독 줄로 올리고 나머지는 아래 가로 그리드로

@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   NEVER, WHEN_BIGGER, applyHidden, hideBrand, isHidden, readHidden, revivedNames,
-  setRule, showBrand,
+  setRule, showBrand, hideTipSeen, markHideTipSeen,
 } from './hiddenBrands.js'
 
 /** localStorage 흉내. 실제 브라우저 저장소 없이 돌린다. */
@@ -87,4 +87,16 @@ test('깨진 값은 빈 목록으로 읽는다', () => {
   assert.deepEqual(readHidden(fakeStorage('{망가진')), {})
   assert.deepEqual(readHidden(fakeStorage('[1,2]')), {}, '배열은 우리 모양이 아니다')
   assert.deepEqual(readHidden(fakeStorage(null)), {})
+})
+
+test('숨기기 안내는 한 번 보면 다시 안 뜬다', () => {
+  const s = fakeStorage()
+  assert.equal(hideTipSeen(s), false)
+  markHideTipSeen(s)
+  assert.equal(hideTipSeen(s), true)
+})
+
+test('저장이 막힌 브라우저에서는 안내를 띄우지 않는다', () => {
+  assert.equal(hideTipSeen(blocked), true)
+  assert.doesNotThrow(() => markHideTipSeen(blocked))
 })

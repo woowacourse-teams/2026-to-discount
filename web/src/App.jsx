@@ -12,7 +12,7 @@ import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilter
 import SurveyDock from './SurveyDock.jsx'
 import HiddenBrandsSheet from './HiddenBrandsSheet.jsx'
 import HideBrandAsk from './HideBrandAsk.jsx'
-import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
+import { applyHidden, hideBrand, hideTipSeen, markHideTipSeen, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import { captureRects, playShift, readCards } from './cardShift.js'
 
 // 카드가 사라지는 시간(App.css의 brand-card-leave와 같은 값)과, 그 뒤 남은 카드가
@@ -351,7 +351,11 @@ export default function App() {
     (b) => displayBestAmount(b.offers, includesFrom(filters)), [filters])
   // 바로 숨기지 않는다. 어떻게 숨길지 물어본 뒤에 숨긴다.
   const [asking, setAsking] = useState(null)
-  const onHide = useCallback((name, amount) => setAsking({ name, amount }), [])
+  // 숨기기 버튼이 흐린 아이콘 하나라 모르고 지나친다. 아직 숨긴 게 없고 안내를 안 봤으면
+  // 첫 카드에 한 번만 말풍선을 띄운다. 닫거나 한 번 숨기면 다시 안 뜬다.
+  const [hideTip, setHideTip] = useState(() => Object.keys(hidden).length === 0 && !hideTipSeen())
+  const closeHideTip = useCallback(() => { setHideTip(false); markHideTipSeen() }, [])
+  const onHide = useCallback((name, amount) => { closeHideTip(); setAsking({ name, amount }) }, [closeHideTip])
   // 카드가 쪼그라들어 사라진 뒤에 목록에서 뺀다. 바로 빼면 아래 카드들이
   // 순간이동해서 무엇이 사라졌는지 눈이 못 따라간다.
   const gridRef = useRef(null)
@@ -637,6 +641,8 @@ export default function App() {
               key={b.name}
               leaving={leaving === b.name}
               onHide={onHide}
+              hideTip={hideTip && index === 0}
+              onHideTipClose={closeHideTip}
               include={includesFrom(filters)}
               brand={b}
               position={index + 1}
