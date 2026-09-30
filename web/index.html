@@ -31,6 +31,11 @@
     <link rel="stylesheet" as="style" crossorigin
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
     <title>배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 최고 할인 쿠폰 비교</title>
+    <script>
+      // 배너는 첫 화면에서 가장 늦게 뜨는 요소다. 앱 번들을 받고 실행한 뒤에야 요청하던 것을
+      // 여기서 먼저 보낸다(2026-09-30 Lighthouse LCP 8초대). 앱은 이 응답을 받아 쓴다(api.js).
+      window.__bannersEarly = fetch('https://bebeggars.duckdns.org/api/banners').then(function (r) { return r.ok ? r.json() : null }).catch(function () { return null })
+    </script>
   </head>
   <body>
     <div id="root"></div>

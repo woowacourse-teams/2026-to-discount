@@ -562,3 +562,7 @@
     transform: none;
   }
 }
+
+/* 배너를 받기 전 자리. 실측 높이(2026-09-30): 360px 폭 103px, 412px 폭 88px. */
+.banner-slot--pending { min-height: 103px; }
+@media (min-width: 400px) { .banner-slot--pending { min-height: 88px; } }

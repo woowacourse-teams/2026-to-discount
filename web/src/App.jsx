@@ -76,7 +76,8 @@ function routeFilters() {
 
 export default function App() {
   const [brands, setBrands] = useState(null)
-  const [banners, setBanners] = useState([])
+  // null은 아직 못 받음(자리만 잡는다), []는 받았는데 0건.
+  const [banners, setBanners] = useState(null)
   const [error, setError] = useState(null)
   // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
   const [surveyOn, setSurveyOn] = useState(false)
@@ -480,7 +481,9 @@ export default function App() {
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
-      <EventBanner banners={banners} />
+      {/* 배너를 받기 전에는 그 높이만큼 자리를 잡아 둔다. 늦게 끼어들면 아래 목록이 통째로 밀린다
+          (2026-09-30 브랜드 페이지 CLS 0.9). 받았는데 0건이면 자리를 거둔다. */}
+      {banners == null ? <div className="banner-slot banner-slot--pending" aria-hidden="true" /> : <EventBanner banners={banners} />}
       <PushNotificationSetting />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
