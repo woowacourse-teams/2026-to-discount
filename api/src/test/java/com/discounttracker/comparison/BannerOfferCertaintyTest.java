@@ -483,4 +483,25 @@ class BannerOfferCertaintyTest {
         assertEquals(1, offers.size(), offers.toString());
         assertEquals(5000, offers.get(0).amount());
     }
+
+    @Test
+    void ledgerFirstComeStandsApartAndTheBiggerWins() {
+        // 2026-10-01 KFC 배민: 배짱할인 선착순 5,000원(00:15)과 쿠폰함 3,000원(02:51). 한 칸이면 늦게 온
+        // 3,000원이 이겼다. 선착순은 따로 서고, 같은 앱에서는 큰 쪽 하나가 보인다.
+        OfferRecord first = new OfferRecord("coupangeats", "bhc", 8000, null, false,
+                "discount", "배짱할인 주말핫딜 선착순", "8,000원", "2026-09-22T00:15:00+09:00", null,
+                null, null, null, "오전 10시 오픈 선착순", null, null, null, null, false);
+        OfferRecord box = new OfferRecord("coupangeats", "bhc", 3000, null, false,
+                "discount", "쿠폰함 보유쿠폰", "3,000원", "2026-09-22T02:51:00+09:00", null,
+                null, null, null, null, null, null, null, null, false);
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource("banners: []\n".getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
+        OfferRepository repo = new OfferRepository(null) {
+            @Override public void reload() { }
+            @Override public List<OfferRecord> findAll() { return List.of(first, box); }
+        };
+        List<Offer> offers = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers();
+        assertEquals(1, offers.size(), offers.toString());
+        assertEquals(8000, offers.get(0).amount());
+    }
 }

@@ -41,6 +41,8 @@ public record Offer(String platform, Integer amount, String qualifier,
     public static final String BANNER_OFFER_TYPE = "banner";
     /** 선착순 배너에서 세운 오퍼의 offerType. 배너이기도 하다. */
     public static final String BANNER_FIRST_COME_OFFER_TYPE = "banner-first-come";
+    /** 원장 구역 이름에 이 말이 있으면 선착순 관측이다. 수집기 store.FIRST_COME_MARK와 같은 값. */
+    public static final String FIRST_COME_SECTION_MARK = "선착순";
     /** 쿠폰을 포개 쓴다는 뜻. OfferRecord.isCumulative와 같은 값이다. */
     private static final String CUMULATIVE_TIER_MODE = "cumulative";
 
@@ -57,7 +59,10 @@ public record Offer(String platform, Integer amount, String qualifier,
                 r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
                 Boolean.TRUE.equals(r.soldOut()), r.link(), r.membershipTier(),
                 BANNER_OFFER_TYPE.equals(r.offerType()) || BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType()),
-                BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType()),
+                // 원장의 선착순 관측(배짱할인 주말핫딜 선착순 등)도 선착순 칸에 선다. 소진 감시봇이 생기기 전까지는
+                // 상시와 별개 오퍼다(2026-10-01 사용자). 같은 앱에서 무엇을 보일지는 mergeSameFirstCome가 고른다.
+                BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType())
+                        || (r.section() != null && r.section().contains(FIRST_COME_SECTION_MARK)),
                 Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()));
     }
 
