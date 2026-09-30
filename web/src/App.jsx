@@ -429,28 +429,11 @@ export default function App() {
   // requestIdleCallback을 쓰다 접었다. 한가한 틈이 안 오면 영영 안 불려
   // 목록이 첫 묶음에서 멈춘다 — 실측에서 12장에 멈춘 채 끝났다. 타이머는
   // 반드시 돈다. 한 묶음씩이라 한 번에 몰아 그리지 않는 목적은 그대로다.
-  //
-  // 2026-09-30: 시한을 건 requestIdleCallback으로 다시 바꾼다. 예전에 멈춘 이유는 시한이 없어
-  // 한가한 틈이 안 오면 영영 안 불렸기 때문이다. timeout을 걸면 그 시간 안에 반드시 불린다.
-  // 첫 묶음은 페이지 로드(배너, 첫 화면 카드)가 끝난 뒤에 시작한다. 로드 중에 150ms마다 끼어들던
-  // 렌더가 첫 화면과 메인 스레드를 다퉜다(Lighthouse 모바일 TBT 1.9초).
-  const [loaded, setLoaded] = useState(() => typeof document !== 'undefined' && document.readyState === 'complete')
   useEffect(() => {
-    if (loaded) return
-    const on = () => setLoaded(true)
-    window.addEventListener('load', on, { once: true })
-    return () => window.removeEventListener('load', on)
-  }, [loaded])
-  useEffect(() => {
-    if (!loaded || !visibleBrands || shown >= visibleBrands.length) return
-    const next = () => setShown((n) => n + BRAND_PAGE)
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(next, { timeout: 300 })
-      return () => window.cancelIdleCallback(id)
-    }
-    const id = window.setTimeout(next, 150)
+    if (!visibleBrands || shown >= visibleBrands.length) return
+    const id = window.setTimeout(() => setShown((n) => n + BRAND_PAGE), 150)
     return () => window.clearTimeout(id)
-  }, [loaded, visibleBrands, shown])
+  }, [visibleBrands, shown])
 
 
   // A안은 조건을 바에 전부 펼쳐 두고, B안은 바텀시트에 감춘다. 바 아래는
