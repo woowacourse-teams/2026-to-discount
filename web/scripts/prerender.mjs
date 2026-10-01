@@ -131,6 +131,12 @@ const BOOT_STYLE = `
          브랜드 상세 페이지의 링크(형제 브랜드·홈 복귀)는 사람이 실제로
          누르는 것이라 그대로 둔다 — 거기엔 h3 안에 링크가 없다. */
       .seo h3 a { color: inherit; text-decoration: none; }
+      /* 홈 맨 아래 브랜드 목록(brandNav). 사람에게도 보이는 작은 바닥글이다. */
+      .brand-index { max-width: 720px; margin: 2rem auto 1.5rem; padding: 0 1rem; font-size: .8rem; color: #888; }
+      .brand-index h2 { font-size: .85rem; font-weight: 600; color: #666; margin: 0 0 .5rem; }
+      .brand-index ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .25rem .75rem; }
+      .brand-index a { color: #888; text-decoration: none; }
+      .brand-index a:hover { text-decoration: underline; }
     </style>`
 
 function bodyHtml(brands, today) {
@@ -151,6 +157,22 @@ function bodyHtml(brands, today) {
     `      <p>수록 브랜드: ${esc(names.join(', '))}</p>`,
     '      <p>개인이 만든 비영리 정보 제공 페이지입니다. 각 앱의 공식 서비스가 아니며 제휴 관계가 없습니다. 금액은 확인일 기준이며 주문 전에 각 앱에서 다시 확인하세요.</p>',
     '    </footer>',
+  ].join('\n')
+}
+
+// 홈 맨 아래 브랜드 페이지 목록. #root 밖에 두어 SSR(api/ssr.js)이 #root를 갈아 끼워도 남는다.
+// SSR 도입 뒤 홈에서 브랜드 페이지로 가는 링크가 0개가 됐다(2026-10-02 점검, 사이트맵으로만 발견).
+// div를 쓰지 않는다. api/ssr.js의 inject가 </body> 앞 마지막 </div>를 #root의 끝으로 본다.
+function brandNav(brands) {
+  const items = brands.map((b) =>
+    `        <li><a href="/brand/${encodeURIComponent(slugOf(b.name))}">${esc(b.name)} 할인</a></li>`)
+  return [
+    '    <nav class="brand-index" aria-label="브랜드별 할인 페이지">',
+    '      <h2>브랜드별 할인</h2>',
+    '      <ul>',
+    ...items,
+    '      </ul>',
+    '    </nav>',
   ].join('\n')
 }
 
@@ -179,9 +201,19 @@ function metaTags(brands, today) {
     `    <meta property="og:description" content="${esc(desc)}" />`,
     `    <meta property="og:url" content="${SITE}/" />`,
     '    <meta property="og:locale" content="ko_KR" />',
-    '    <meta name="twitter:card" content="summary" />',
+    `    <meta property="og:image" content="${SITE}/og-image.png" />`,
+    '    <meta property="og:image:width" content="1200" />',
+    '    <meta property="og:image:height" content="630" />',
+    '    <meta name="twitter:card" content="summary_large_image" />',
+    `    <meta name="twitter:image" content="${SITE}/og-image.png" />`,
     '    <meta name="twitter:title" content="배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 최고 할인 쿠폰 비교" />',
     `    <meta name="twitter:description" content="${esc(desc)}" />`,
+    // 사이트 이름을 검색엔진에 알린다(구조화 데이터, JSON-LD). 상품, 가격 마크업은 쓰지 않는다.
+    // 거래가 일어나는 페이지가 아니다(SEO-ACTIONS.md, ADR-015 고지).
+    `    <script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'WebSite',
+      name: '배달앱 할인모음', alternateName: '배달앱 할인 쿠폰 비교', url: `${SITE}/`, inLanguage: 'ko-KR',
+    })}</script>`,
   ].join('\n')
 }
 
@@ -283,7 +315,11 @@ function brandPage(b, siblings, today, appTags) {
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${url}" />
     <meta property="og:locale" content="ko_KR" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="${SITE}/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="${SITE}/og-image.png" />
 ${appTags}
 ${BOOT_STYLE}
   </head>
@@ -347,7 +383,7 @@ async function main() {
   let html = await readFile(indexPath, 'utf8')
 
   const body = bodyHtml(brands, today)
-  html = html.replace('<div id="root"></div>', `<div id="root">\n${body}\n    </div>`)
+  html = html.replace('<div id="root"></div>', `<div id="root">\n${body}\n    </div>\n${brandNav(brands)}`)
   html = html.replace('  </head>', `${metaTags(brands, today)}${BOOT_STYLE}\n  </head>`)
   // 예전 정적 설명은 브랜드가 안 들어간 문장이라 갈아 끼운다.
   html = html.replace(
