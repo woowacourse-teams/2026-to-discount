@@ -140,7 +140,7 @@
 
 **브랜드 딥링크가 `brands.yml` 하나로 모임.** 브랜드 추가와 수정이 가장 잦은 변경인데 예전에는 네 군데 수정 + 프론트 재배포가 필요했다. 지금은 이 파일 하나 고치고 `POST /api/reload`만 부르면 반영된다.
 
-**빌드 타임에 크롤러용 정적 페이지를 만든다.** Vite에는 프리렌더 API가 없다. `web/src`의 `variant.js`가 모듈 로드 시 `localStorage`를 읽어 SSR 자체가 불가능하다. SSR로 옮기는 것은 스택 전체를 바꾸는 값어치가 없다. 그래서 빌드 후 스크립트(`web/scripts/prerender.mjs`)로 `dist/`에 검색엔진용 본문을 따로 주입하는 절충을 택했다. `robots.txt`, `sitemap.xml`(111 URL), 브랜드별 정적 페이지(`/brand/*.html`, 110장)를 이 스크립트가 만든다. 검증 스크립트(`web/scripts/verify-search-filters.mjs`)는 `logos.jsx`의 JSX import를 인라인 스텁으로 바꿔치기해 node 환경에서도 필터 로직을 그대로 import해 테스트한다. 별도 프레임워크 없이 순수 스크립트로 회귀를 잡는다.
+**빌드 타임에 크롤러용 정적 페이지를 만든다.** Vite에는 프리렌더 API가 없다. `web/src`의 `variant.js`가 모듈 로드 시 `localStorage`를 읽어 SSR 자체가 불가능하다. SSR로 옮기는 것은 스택 전체를 바꾸는 값어치가 없다(2026-08 판단. 2026-10-01부터 홈만 Vercel 함수로 SSR한다, [web/ADR-003](../web/docs/decisions/ADR-003-home-ssr.md)). 그래서 빌드 후 스크립트(`web/scripts/prerender.mjs`)로 `dist/`에 검색엔진용 본문을 따로 주입하는 절충을 택했다. `robots.txt`, `sitemap.xml`(111 URL), 브랜드별 정적 페이지(`/brand/*.html`, 110장)를 이 스크립트가 만든다. 검증 스크립트(`web/scripts/verify-search-filters.mjs`)는 `logos.jsx`의 JSX import를 인라인 스텁으로 바꿔치기해 node 환경에서도 필터 로직을 그대로 import해 테스트한다. 별도 프레임워크 없이 순수 스크립트로 회귀를 잡는다.
 
 **일일 루틴을 OS 스케줄러로 돌린다.** 배너 갱신(`scripts/banner_routine.py`)은 CI 대신 로컬 기기의 Windows 작업 스케줄러(`schtasks`)가 돌린다. 실기 ADB 캡처라 CI 러너에 폰을 물릴 수 없어서다. 읽기 실패 시 아무것도 안 하는 안전장치(no-op)와 최대 3회 재시도를 붙여, 조용한 실패가 배너를 잘못 내리는 사고로 이어지지 않게 했다.
 

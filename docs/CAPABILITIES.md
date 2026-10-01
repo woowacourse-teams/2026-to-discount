@@ -97,7 +97,7 @@ Java 17 + Spring Boot 3.3, **DB 없음**(브랜드 137건 규모, 파일로 충�
 
 ## 4. 프론트 (web)
 
-React 18 + Vite 5, **정적 `dist/`**. 라우터, SSR, API 라우트 안 씀.
+React 18 + Vite 5, 정적 `dist/`. 라우터는 안 쓴다. **홈(`/`)만 Vercel 함수가 요청 시점 데이터로 SSR한다**(2026-10-01, [web/ADR-003](../web/docs/decisions/ADR-003-home-ssr.md)). 브랜드 페이지는 정적 HTML이다.
 
 | 무엇 | 어떻게 |
 |---|---|

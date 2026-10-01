@@ -158,8 +158,9 @@ Googlebot, AI 쪽은 GPTBot, ClaudeBot, PerplexityBot 등이 있다.
 **SSR / SSG**: SSR(Server-Side Rendering)은 요청이 올 때마다 서버가 HTML을
 만들어 주는 것, SSG(Static Site Generation)는 빌드할 때 미리 HTML을 만들어
 두는 것. 둘 다 크롤러가 자바스크립트 없이도 내용을 볼 수 있게 한다.
-*우리 프로젝트*: 둘 다 안 쓴다. Vite에 프리렌더 기능이 없고, `variant.js`가
-모듈을 불러오는 순간 `localStorage`를 읽어서 서버에서는 실행 자체가 안 된다.
+*우리 프로젝트*: 2026-09까지는 둘 다 안 썼다. Vite에 프리렌더 기능이 없고, `variant.js`가
+모듈을 불러오는 순간 `localStorage`를 읽어서 서버에서는 실행 자체가 안 됐다.
+2026-10-01부터 홈만 요청 시점 데이터로 SSR한다([web/ADR-003](../web/docs/decisions/ADR-003-home-ssr.md)). 브랜드 페이지는 그대로 프리렌더다.
 
 **프리렌더**: 우리가 택한 절충안. 빌드가 끝난 뒤 스크립트가 완성된 HTML
 파일에 검색엔진용 본문을 끼워 넣는다.
@@ -337,7 +338,7 @@ SEO 점수가 올라도 하지 않는다.
 지워진다. web은 Vercel이 자동 배포하고, api는 사람이 수동으로
 실행(`workflow_dispatch`)한다.
 
-**Vite에는 SSR/프리렌더 기능이 없다**: 그래서 빌드 후 스크립트로 HTML에
+**Vite에는 SSR/프리렌더 기능이 없다**(2026-10-01부터 홈은 Vercel 함수 SSR, [web/ADR-003](../web/docs/decisions/ADR-003-home-ssr.md)): 그래서 빌드 후 스크립트로 HTML에
 본문을 끼워 넣는 절충을 택했다. `web/src/variant.js`가 모듈 로드 시점에
 `localStorage`를 읽어서 서버 환경에서는 실행 자체가 안 되는 것도 이유다.
 Next(SSG)로 옮기는 건 `docs/TECH-CHOICES.md`가 플랜B로 적어 뒀지만, 아직

@@ -9,7 +9,7 @@
 | `docs/decisions/` (여기) | 오케스트레이션 층. 앱 하나로 끝나지 않는 결정 |
 | tracker 저장소(비공개) `docs/decisions/` | 판독, 캡처, 데이터 모델 (32건) |
 | `api/docs/decisions/` | 응답 계약, 중복 정리, 만료, 배포 경로 (9건) |
-| `web/docs/decisions/` | 화면, 백엔드 주소, 계측 (2건) |
+| `web/docs/decisions/` | 화면, 백엔드 주소, 계측, 홈 SSR (3건) |
 
 번호는 위치마다 1부터다. 저장소를 합치면서 번호를 통합하지 않았다. 앱 단위 결정은 그 디렉터리 안에서 완결되고, 상호 링크를 전부 고치는 비용이 이득보다 크기 때문이다([ADR-001](ADR-001-monorepo-consolidation.md)). 다른 앱의 ADR을 가리킬 때는 `api/docs/decisions/ADR-006-...`처럼 경로를 붙여 쓴다.
 
