@@ -18,13 +18,7 @@ export { PLATFORMS, PLATFORM_BY_KEY }
 // 요청이 0이 된다 — Edge Requests는 바이트가 아니라 **요청 수**로 세기
 // 때문에, 작은 자산일수록 파일로 두는 값이 비싸다(2026-09-07 한도 경고).
 // 넷을 합쳐 13KB다(WebP+base64). 파일이 없으면 예전 경로로 떨어진다.
-//
-// 서버 렌더(SSR) 홈은 예외다. 배지마다 base64가 반복돼 HTML이 약 260KB 불었다(첫 페인트가
-// 늦어짐). 그 페이지는 서버와 브라우저 첫 렌더가 같아야 하므로 둘 다 preferIconUrls()로 주소를 쓴다.
-let iconUrls = false
-export function preferIconUrls() { iconUrls = true }
 export function platformIconSrc(platformKey) {
-  if (iconUrls) return assetSrc('/platform-icons', platformKey)
   return PLATFORM_ICON_DATA[platformKey] || assetSrc('/platform-icons', platformKey)
 }
 
