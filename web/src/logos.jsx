@@ -44,8 +44,13 @@ function hideSiblingFallback(e) {
   hideFallbackOf(e.currentTarget)
 }
 
+// 깨졌을 때만 글자를 보인다. 글자는 처음부터 숨겨 둔다 — 로드될 때마다 글자가 먼저 비쳤다가 로고로
+// 바뀌는 깜빡임이 거슬렸다(2026-10-01 사용자). 로고 파일이 아예 없는 브랜드는 img가 없어 글자가 그대로 보인다.
 function hideBroken(e) {
-  e.currentTarget.style.display = 'none'
+  const img = e.currentTarget
+  img.style.display = 'none'
+  const fallback = img.nextElementSibling
+  if (fallback) fallback.style.display = ''
 }
 
 // 서버가 그린 HTML(SSR)에서는 React가 붙기 전에 이미지 로드가 끝난다. 그러면 onLoad·onError가
@@ -78,7 +83,7 @@ export function PlatformBadge({ platformKey, via = null, brand = null, onClick, 
         onLoad={hideSiblingFallback}
         onError={hideBroken}
       />
-      <span className="platform-badge__fallback" aria-hidden="true">{p.initial}</span>
+      <span className="platform-badge__fallback" aria-hidden="true" style={{ display: 'none' }}>{p.initial}</span>
       <span className="sr-only">{p.label}</span>
     </>
   )
@@ -117,7 +122,7 @@ export function BrandLogo({ name }) {
           onError={hideBroken}
         />
       )}
-      <span className="brand-logo__fallback" aria-hidden="true">{name.trim().charAt(0)}</span>
+      <span className="brand-logo__fallback" aria-hidden="true" style={src ? { display: 'none' } : undefined}>{name.trim().charAt(0)}</span>
     </span>
   )
 }
