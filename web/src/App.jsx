@@ -273,7 +273,15 @@ export default function App({ initial = null }) {
   // reloadKey를 올리면 다시 부른다 — 실패 화면의 "다시 시도" 버튼용.
   const [reloadKey, setReloadKey] = useState(0)
   useEffect(() => {
-    if (reloadKey === 0 && initial?.brands) return
+    if (reloadKey === 0 && initial?.brands) {
+      if (!initial.partial) return
+      // SSR은 첫 화면 카드만 실었다. 나머지를 받아 뒤에 잇는다 — 스켈레톤으로 되돌리지 않는다.
+      let alive = true
+      fetchBrands()
+        .then((v) => { if (alive) startTransition(() => setBrands(v)) })
+        .catch(() => {})
+      return () => { alive = false }
+    }
     let alive = true
     setError(null)
     setBrands(null)

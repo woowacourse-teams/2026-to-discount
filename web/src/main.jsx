@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
 import { setHubLinks } from './OfferChip.jsx'
+import { preferIconUrls } from './logos.jsx'
 import {
   disablePostHogFanout,
   registerPostHogSink,
@@ -66,7 +67,7 @@ if (!quiet) {
 // 홈은 서버가 요청 시점 데이터로 그린 HTML을 보낸다(api/ssr.js). 그 데이터가 실려 있으면
 // 버리지 않고 하이드레이션한다. 없으면(브랜드 페이지, SSR 실패) 예전처럼 통째로 그린다.
 const ssr = window.__SSR__
-if (ssr) setHubLinks(ssr.banners)
+if (ssr) { setHubLinks(ssr.banners); preferIconUrls() }
 const tree = (
   <React.StrictMode>
     <App initial={ssr} />

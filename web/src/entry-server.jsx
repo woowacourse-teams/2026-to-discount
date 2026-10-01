@@ -8,6 +8,11 @@ import { Writable } from 'node:stream'
 import App from './App.jsx'
 import { setHubLinks } from './OfferChip.jsx'
 import { API_BASE } from './api.js'
+import { preferIconUrls } from './logos.jsx'
+import { applyFilters, defaultFilters } from './filters.js'
+
+// 첫 화면에 그리는 카드 수(App.jsx BRAND_PAGE와 같다).
+const FIRST = 12
 
 async function get(path) {
   const res = await fetch(`${API_BASE}${path}`, { signal: AbortSignal.timeout(2500) })
@@ -20,12 +25,20 @@ async function get(path) {
 export async function loadData() {
   const [brands, banners] = await Promise.all([get('/api/brands'), get('/api/banners').catch(() => [])])
   if (!Array.isArray(brands)) throw new Error('brands 모양이 다르다')
-  return { brands, banners: Array.isArray(banners) ? banners : [] }
+  // 첫 화면 카드만 싣는다. 나머지는 브라우저가 /api/brands로 받는다(App.jsx partial).
+  // 원본 객체를 원래 순서대로 고른다 — App이 같은 규칙으로 다시 정렬해도 순서가 같다.
+  const top = new Set(applyFilters(brands, defaultFilters()).slice(0, FIRST).map((b) => b.name))
+  return {
+    brands: brands.filter((b) => top.has(b.name)),
+    partial: true,
+    banners: Array.isArray(banners) ? banners : [],
+  }
 }
 
 export function render(data) {
   // ponytail: 모듈 전역이라 요청끼리 공유된다. 같은 시각의 같은 API 값이라 괜찮다.
   setHubLinks(data.banners)
+  preferIconUrls()
   return new Promise((resolve, reject) => {
     let html = ''
     const sink = new Writable({

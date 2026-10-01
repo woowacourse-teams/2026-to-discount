@@ -248,7 +248,7 @@ function offerSection(o) {
 // 방법이다.
 function appAssetTags(indexHtml) {
   const tags = indexHtml.match(
-    /<script>[\s\S]*?__bannersEarly[\s\S]*?<\/script>|<script[^>]*type="module"[^>]*><\/script>|<link[^>]*rel="stylesheet"[^>]*>|<link[^>]*rel="preconnect"[^>]*>/g,
+    /<script>[\s\S]*?__bannersEarly[\s\S]*?<\/script>|<script[^>]*type="module"[^>]*><\/script>|<link[^>]*rel="stylesheet"[^>]*>|<link[^>]*rel="preload"[^>]*>|<link[^>]*rel="preconnect"[^>]*>/g,
   ) ?? []
   return tags.map((t) => `    ${t}`).join(String.fromCharCode(10))
 }

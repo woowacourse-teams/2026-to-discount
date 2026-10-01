@@ -5,8 +5,18 @@
 // 안 온다(파일이 rewrite보다 먼저다).
 import { readFile, writeFile, rm } from 'node:fs/promises'
 
+async function replaceAsync(s, re, fn) {
+  const parts = await Promise.all([...s.matchAll(re)].map((m) => fn(...m)))
+  let i = 0
+  return s.replace(re, () => parts[i++])
+}
+
 const src = new URL('../dist/index.html', import.meta.url)
-const html = await readFile(src, 'utf8')
+let html = await readFile(src, 'utf8')
+// 앱 CSS를 HTML에 넣는다. 서버 렌더 HTML은 CSS만 오면 바로 그릴 수 있는데, 따로 받으면
+// 왕복 한 번을 더 기다린다. 홈 전용이다(브랜드 페이지는 파일 그대로).
+html = await replaceAsync(html, /<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)">/g,
+  async (_m, href) => `<style>${await readFile(new URL(`../dist${href}`, import.meta.url), 'utf8')}</style>`)
 await writeFile(new URL('../dist-server/template.js', import.meta.url),
   `export default ${JSON.stringify(html)}\n`)
 await rm(src)

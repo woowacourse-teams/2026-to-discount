@@ -30,9 +30,9 @@ export default async function handler(req, res) {
     const data = await loadData()
     body = inject(template, await render(data), data)
     res.setHeader('x-ssr', '1')
-    // CDN이 60초 들고, 그 뒤 10분까지는 낡은 걸 주면서 뒤에서 새로 그린다.
-    // 데이터는 하루 세 번 바뀌므로 최대 ~11분 늦는다. 실패한 응답은 CDN에 안 둔다.
-    res.setHeader('CDN-Cache-Control', 'public, s-maxage=60, stale-while-revalidate=600')
+    // CDN이 60초 들고, 그 뒤 60초까지는 낡은 걸 주면서 뒤에서 새로 그린다.
+    // 하루 세 번 바뀌는 금액이 최대 약 2분 늦는다. 실패한 응답은 CDN에 안 둔다.
+    res.setHeader('CDN-Cache-Control', 'public, s-maxage=60, stale-while-revalidate=60')
   } catch (e) {
     console.error('[ssr] 실패, 사전 렌더링으로 대신한다:', e?.message)
     res.setHeader('x-ssr', '0')
