@@ -698,7 +698,7 @@ export default function App({ initial = null }) {
 
       {/* 새벽 안내 — 맨 위로 버튼 맞은편(왼쪽 아래), 하단 배너 위. */}
       {isNight && (
-        <div className="night-notice" role="status">새벽엔 정보가 틀릴 수 있어요!</div>
+        <div className="night-notice" role="status">새벽엔 데이터 최신화가 진행돼요.<br />정보가 틀릴 수 있으니 잠시만 기다려주세요!</div>
       )}
 
       {/* 한참 내려간 뒤 맨 위로 돌아가는 길. */}
