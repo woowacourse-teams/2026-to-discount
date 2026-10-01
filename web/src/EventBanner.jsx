@@ -11,7 +11,7 @@ import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
 import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
 import { bannerTag } from './bannerTag.js'
-import { bannerMemberLabels, memberText } from './bannerMembers.js'
+import { bannerMemberLabels, memberMinOrderText, memberText } from './bannerMembers.js'
 import { OWN } from './platforms.js'
 
 // 넘어가는 간격. 4.3초에서 1초 늘렸다(사용자 결정 2026-09-16).
@@ -222,7 +222,12 @@ function BannerCard({ banner, position, slot, onClose, onSeen }) {
               {banner.soldOut && <span className="banner__soldout">오늘 소진</span>}
             </span>
           </span>
-          {banner.extra && <span className="banner__extra">{banner.extra}</span>}
+          {/* 묶음이면 구성원 최소주문이 세 번째 줄에 선다(memberText 주석). */}
+          {(() => {
+            const line = [banner.brands?.length > 1 ? memberMinOrderText(bannerMemberLabels(banner)) : null, banner.extra]
+              .filter(Boolean).join(' · ')
+            return line && <span className="banner__extra">{line}</span>
+          })()}
         </span>
       </a>
 
