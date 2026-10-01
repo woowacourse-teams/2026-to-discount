@@ -42,12 +42,12 @@ test('묶음 카드는 구성원마다 소진을 따로 그린다', () => {
   ])
 })
 
-test('묶음 카드는 구성원마다 브랜드, 금액, 최소주문을 그린다(확정 규칙 4절)', () => {
+test('묶음 카드는 구성원 줄엔 이름만, 금액·최소주문은 제 줄에(2026-10-01 사용자)', () => {
   const card = contract.cases.find((c) => c.name === 'ce-event-group').response[0]
   const members = bannerMemberLabels(card)
-  assert.deepEqual(members.map(memberText), ['청년피자 최대 10,000원', '60계치킨 최대 8,000원'])
+  assert.deepEqual(members.map(memberText), ['청년피자', '60계치킨'])
   assert.ok(!('url' in card.members[0]), '구성원에는 링크가 없다. 링크는 카드 하나다')
-  assert.equal(memberText({ label: '두찜', amount: '7,000원', minOrder: 18000 }), '두찜 7,000원 18,000원↑')
+  assert.equal(memberText({ label: '두찜', amount: '7,000원', minOrder: 18000 }), '두찜', '금액은 금액 줄, 최소주문은 세 번째 줄(2026-10-01)')
 })
 
 test('규칙을 어긴 묶음은 접히지 않은 카드로 온다', () => {

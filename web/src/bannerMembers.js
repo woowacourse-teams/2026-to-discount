@@ -36,13 +36,23 @@ export function openHourText(hhmm) {
   return min ? `${h}시 ${min}분` : `${h}시`
 }
 
-/** 구성원 한 명의 글자. "9시 청년피자 최대 10,000원 18,900원↑". 모르는 값은 뺀다. */
+/** 구성원 한 명의 글자: 여는 시각과 이름뿐. "9시 청년피자".
+ *
+ * 금액과 최소주문까지 이름 줄에 넣으니 네 곳 묶음이 두세 줄로 터졌다(2026-10-01 사용자). 배열 묶음
+ * 때처럼 금액은 금액 줄(banner.amount)이, 최소주문은 세 번째 줄(memberMinOrderText)이 맡는다. */
 export function memberText(m) {
-  const parts = []
   const at = openHourText(m.opensAt)
-  if (at) parts.push(at)
-  parts.push(m.label)
-  if (m.amount) parts.push(m.amount)
-  if (m.minOrder != null) parts.push(`${m.minOrder.toLocaleString('ko-KR')}원↑`)
-  return parts.join(' ')
+  return at ? `${at} ${m.label}` : m.label
+}
+
+/** 묶음의 세 번째 줄(예전 extra 자리)에 둘 최소주문. 모두 같으면 "18,000원 이상 주문 시",
+ * 다르면 "BHC 18,000원↑ · 뚜레쥬르 15,000원↑", 아무도 모르면 null. */
+export function memberMinOrderText(members) {
+  const known = members.filter((m) => m.minOrder != null)
+  if (!known.length) return null
+  const won = (n) => `${n.toLocaleString('ko-KR')}원`
+  if (known.length === members.length && known.every((m) => m.minOrder === known[0].minOrder)) {
+    return `${won(known[0].minOrder)} 이상 주문 시`
+  }
+  return known.map((m) => `${m.label} ${won(m.minOrder)}↑`).join(' · ')
 }
