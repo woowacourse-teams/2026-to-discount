@@ -35,9 +35,26 @@ const LOGO_PX = 45
 // 숨기던 이전 방식은 "로드는 됐지만 저해상도라 흐릿한" 로고 위에 글자가 겹쳐
 // 보이는 문제가 있었다(예: 또래오래, 파파존스). 로드 성공 시 폴백을 직접
 // 숨겨서 이미지·글자 중 하나만 보이게 한다.
-function hideSiblingFallback(e) {
-  const fallback = e.currentTarget.nextElementSibling
+function hideFallbackOf(img) {
+  const fallback = img.nextElementSibling
   if (fallback) fallback.style.display = 'none'
+}
+
+function hideSiblingFallback(e) {
+  hideFallbackOf(e.currentTarget)
+}
+
+function hideBroken(e) {
+  e.currentTarget.style.display = 'none'
+}
+
+// 서버가 그린 HTML(SSR)에서는 React가 붙기 전에 이미지 로드가 끝난다. 그러면 onLoad·onError가
+// 이미 지나가 폴백 글자가 로고 위에 그대로 남는다(2026-10-01 SSR 도입 뒤). 붙는 순간(ref) 이미
+// 끝난 로드를 직접 보고 같은 처리를 한다. 아직 로딩 중이면 onLoad·onError가 맡는다.
+// 깨짐 판정(complete인데 naturalWidth 0)은 여기서 하지 않는다 — 지연 로딩(loading=lazy) 이미지는 아직 안 받은
+// 상태에서도 complete가 참으로 읽히는 브라우저가 있어, 멀쩡한 로고를 영영 숨길 수 있다.
+function settleIfLoaded(img) {
+  if (img && img.complete && img.naturalWidth > 0) hideFallbackOf(img)
 }
 
 // onClick이 있으면 버튼(플랫폼 필터 토글 등)으로, 없으면 예전처럼 순수
@@ -57,8 +74,9 @@ export function PlatformBadge({ platformKey, via = null, brand = null, onClick, 
         decoding="async"
         width={LOGO_PX}
         height={LOGO_PX}
+        ref={settleIfLoaded}
         onLoad={hideSiblingFallback}
-        onError={(e) => { e.currentTarget.style.display = 'none' }}
+        onError={hideBroken}
       />
       <span className="platform-badge__fallback" aria-hidden="true">{p.initial}</span>
       <span className="sr-only">{p.label}</span>
@@ -94,8 +112,9 @@ export function BrandLogo({ name }) {
           decoding="async"
           width={LOGO_PX}
           height={LOGO_PX}
+          ref={settleIfLoaded}
           onLoad={hideSiblingFallback}
-          onError={(e) => { e.currentTarget.style.display = 'none' }}
+          onError={hideBroken}
         />
       )}
       <span className="brand-logo__fallback" aria-hidden="true">{name.trim().charAt(0)}</span>
