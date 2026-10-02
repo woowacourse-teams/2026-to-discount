@@ -28,11 +28,11 @@
          빌드 시점 텍스트로 직접 서브셋하지 않는 이유: 브랜드가 매일
          바뀌어서 오늘 없는 글자가 내일 들어오면 두부(□)가 뜬다. 이 판은
          어떤 한글이든 어느 조각엔가 들어 있다. -->
-    <!-- 첫 페인트를 막지 않게 받는다(2026-10-01 Lighthouse: 렌더 차단 약 1.3초). 글꼴이 오기
-         전에는 시스템 글꼴로 그리고, 오면 바꾼다(이 CSS가 font-display: swap). -->
-    <link rel="preload" as="style" crossorigin onload="this.onload=null;this.rel='stylesheet'"
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
-    <noscript><link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" /></noscript>
+    <!-- 글꼴 표시 방식은 optional(2026-10-02). 첫 방문에 글꼴이 늦으면 그 방문은 기기 글꼴로 두고 화면
+         도중에 바꾸지 않는다. 받은 파일은 캐시해 다음 방문부터 Pretendard로 그린다. 설정 파일은 우리
+         도메인에 두고(jsdelivr 원본에서 display만 바꿈) 첫 페인트를 막지 않게 받는다. -->
+    <link rel="preload" as="style" href="/fonts/pretendard-optional.css" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="/fonts/pretendard-optional.css" /></noscript>
     <title>배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 최고 할인 쿠폰 비교</title>
     <script>
       // 배너는 첫 화면에서 가장 늦게 뜨는 요소다. 앱 번들을 받고 실행한 뒤에야 요청하던 것을
