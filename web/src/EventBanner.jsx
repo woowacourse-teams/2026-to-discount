@@ -11,6 +11,7 @@ import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
 import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
 import { bannerTag } from './bannerTag.js'
+import { bannerProps } from './bannerAnalytics.js'
 import { bannerMemberLabels, memberMinOrderText, memberText } from './bannerMembers.js'
 import { OWN } from './platforms.js'
 
@@ -135,17 +136,11 @@ function BannerCard({ banner, position, slot, onClose, onSeen }) {
         target={external ? '_blank' : undefined}
         rel={external ? 'noreferrer' : undefined}
         onClick={() => track('banner_click', {
-          banner: banner.id,
-          brand: banner.brand ?? 'none',
-          platform: banner.platform,
+          // 무엇이 눌렸는지 id 밖에서도 읽히게 — 배너는 날마다 새 id라 금액·묶음·매진 상태가 있어야
+          // 종류별로 모아 볼 수 있다(2026-09-17). 노출과 같은 속성(bannerProps)을 싣는다(2026-10-02).
+          ...bannerProps(banner),
           position,
           slot,
-          // 무엇이 눌렸는지 id 밖에서도 읽히게 — 배너는 날마다 새 id라
-          // 금액·묶음·매진 상태가 있어야 종류별로 모아 볼 수 있다(2026-09-17).
-          amount: banner.amount ?? 'none',
-          brands: banner.brands?.length > 1 ? banner.brands.join('/') : (banner.brand ?? 'none'),
-          minOrder: banner.minOrder ?? null,
-          soldOut: !!banner.soldOut,
           external,
         })}
       >
@@ -365,9 +360,8 @@ export default function EventBanner({ banners }) {
     if (seen.current.has(key)) return
     seen.current.add(key)
     track('banner_impression', {
-      banner: banner.id,
-      brand: banner.brand ?? 'none',
-      platform: banner.platform,
+      // 클릭과 같은 속성 — 금액·선착순·묶음이 노출에도 있어야 노출 대비 클릭률을 종류별로 본다(2026-10-02).
+      ...bannerProps(banner),
       position,
       // 캐러셀 몇 번째 칸인지. 앞칸일수록 많이 보여 클릭률을 칸끼리 비교해야 한다(2026-09-29).
       slot: slotOf(banner),

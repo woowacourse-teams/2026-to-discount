@@ -886,7 +886,7 @@
    "soldOut",
    "firstCome",
    "targeted",
-   "members"
+   "members", "group"
   ],
   "opsCollect": [
    "id",
