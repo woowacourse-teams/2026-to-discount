@@ -34,6 +34,8 @@ const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayout
 
 // 한 번에 그리는 브랜드 카드 수. 화면에 두 줄쯤 들어간다.
 const BRAND_PAGE = 12
+// 타이머로 바로 채우는 몫. 360px 화면 세 장 남짓이다. 그 뒤는 스크롤이 가까워질 때 채운다.
+const FIRST_FILL = 24
 
 function analyticsFilterContext(filters) {
   return {
@@ -453,10 +455,30 @@ export default function App({ initial = null }) {
   // requestIdleCallback을 쓰다 접었다. 한가한 틈이 안 오면 영영 안 불려
   // 목록이 첫 묶음에서 멈춘다 — 실측에서 12장에 멈춘 채 끝났다. 타이머는
   // 반드시 돈다. 한 묶음씩이라 한 번에 몰아 그리지 않는 목적은 그대로다.
+  //
+  // 2026-10-02: 처음부터 끝까지 타이머로 채우니 화면이 뜬 뒤 약 3초 동안 메인 스레드가 묶였다
+  // (총 차단 시간, 실제 속도 제한 측정). 첫 화면 몫(FIRST_FILL장)까지만 타이머로 채우고, 그다음은
+  // 목록 끝 표지가 화면 아래 1,500px 안에 들어올 때 한 묶음씩 더한다.
+  // 2026-09-01 실패 셋을 피하는 방법:
+  // - 콜백 되풀이: 관찰을 shown이 바뀔 때마다 새로 세우고, 콜백은 한 번 쓰면 끊는다(once).
+  // - scrollTo 반응: 스크롤 이벤트를 쓰지 않는다.
+  // - 렌더 멈춤: 거리 잠금 대신 관찰이 shown마다 다시 서므로 표지가 여전히 보이면 다음 묶음이 온다.
+  const sentinelRef = useRef(null)
   useEffect(() => {
     if (!visibleBrands || shown >= visibleBrands.length) return
-    const id = window.setTimeout(() => setShown((n) => n + BRAND_PAGE), 150)
-    return () => window.clearTimeout(id)
+    if (shown < FIRST_FILL || typeof IntersectionObserver === 'undefined') {
+      const id = window.setTimeout(() => setShown((n) => n + BRAND_PAGE), 150)
+      return () => window.clearTimeout(id)
+    }
+    const el = sentinelRef.current
+    if (!el) return
+    const io = new IntersectionObserver((entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return
+      io.disconnect()
+      setShown((n) => n + BRAND_PAGE)
+    }, { rootMargin: '0px 0px 1500px 0px' })
+    io.observe(el)
+    return () => io.disconnect()
   }, [visibleBrands, shown])
 
 
@@ -685,6 +707,8 @@ export default function App({ initial = null }) {
           ))}
         </div>
       )}
+      {/* 목록 끝 표지. 화면 아래 1,500px 안에 들어오면 카드를 한 묶음 더 그린다. */}
+      {visibleBrands && shown < visibleBrands.length && <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />}
 
       {surveyOn && (
         <Suspense fallback={null}>
