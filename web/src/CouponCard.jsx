@@ -5,7 +5,7 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
-import { amountText, badgesOf, formulaOf, minLabel, nameFontPx, splitOffers } from './couponModel.js'
+import { amountText, badgesOf, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { offerClickProps, offerLink } from './offerLink.js'
@@ -35,11 +35,11 @@ function Amt({ offer, small }) {
   )
 }
 
-function OfferLinkA({ offer, brand, position, best, className, children }) {
+function OfferLinkA({ offer, brand, position, best, className, children, ...rest }) {
   const href = offerLink(offer, brand.links, brand.name)
   const web = href.startsWith('http')
   return (
-    <a className={className} href={href}
+    <a className={className} href={href} {...rest}
        // 커스텀 스킴(coupangeats://, ddangyo://, baemin://)은 같은 탭에서 열어야 앱으로 간다(운영 칩과 같다).
        target={web ? '_blank' : undefined} rel={web ? 'noreferrer' : undefined}
        aria-label={`${brand.name} ${amountText(offer)}, 앱으로 이동`}
@@ -101,20 +101,26 @@ function Ticket({ brand, best, hasBest, position }) {
 
 function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false }) {
   const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
-  const [open, setOpen] = useState(false)
+  // false | 'open' | 'closing'. 접을 때는 펼칠 때와 같은 애니메이션을 거꾸로 틀고 animationend에서 내린다(폭·높이를 재지 않는다).
+  const [phase, setPhase] = useState(false)
+  const open = phase === 'open'
+  const shown = phase !== false
   const cardRef = useRef(null)
   const headRef = useRef(null)
   const toggle = () => {
     onInteract?.()
-    setOpen((v) => {
-      if (!v) track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
-      return !v
+    setPhase((v) => {
+      if (v !== 'open') track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
+      return v === 'open' ? 'closing' : 'open'
     })
   }
   // 딥링크(#brand-이름)로 들어오면 펼친 채로 그 카드로 스크롤한다(운영 카드와 같다).
   useEffect(() => {
-    if (highlighted) { setOpen(true); cardRef.current?.scrollIntoView({ block: 'center' }) }
+    if (highlighted) { setPhase('open'); cardRef.current?.scrollIntoView({ block: 'center' }) }
   }, [highlighted])
+  useEffect(() => { // 움직임을 줄인 환경은 애니메이션이 없어 animationend가 안 온다
+    if (phase === 'closing' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPhase(false)
+  }, [phase])
   useEffect(() => observeBrandImpression(headRef.current, brandImpressionProps(brand, position),
     (p) => track('brand_impression', p)), [brand, position])
 
@@ -124,16 +130,16 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name}
              className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}`}>
       <div className="cc-side" ref={headRef}>
-        <span className="cc-logo"><BrandLogo name={brand.name} /></span>
+        <span className="cc-logo"><BrandLogo name={brand.name} size={64} /></span>
         {/* 접힌 하위 라벨. 배지는 붙이지 않는다. 펼치면 앱별 쿠폰이 대신한다. */}
-        {!open && rest.map((o) => (
+        {rest.map((o) => (
           <span key={offerKey(o)} className={`cc-alt${o.soldOut ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
         ))}
       </div>
       <div className="cc-main">
         <div className="cc-name">
           <button type="button" aria-expanded={open} onClick={toggle}>
-            <span className="cc-nm" style={{ fontSize: `${nameFontPx(brand.name)}px` }}>{brand.name}</span>
+            <span className="cc-nm" style={{ '--cut': `${nameCutPx(brand.name)}px` }}>{brand.name}</span>
           </button>
           {single && badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}
         </div>
@@ -151,13 +157,14 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         </button>
       )}
       {/* 펼친 쿠폰은 펼쳤을 때만 그린다(접힌 동안 요소 수를 늘리지 않는다). */}
-      {open && (
+      {shown && (
         <div className="cc-more">
-          {[...best, ...rest].map((o) => {
+          {[...best, ...rest].map((o, i, all) => {
             const f = formulaOf(o)
             const tags = badgesOf(o)
             return (
-              <OfferLinkA key={offerKey(o)} offer={o} brand={brand} position={position} best={hasBest && best.includes(o)} className="cc-plat">
+              <OfferLinkA key={offerKey(o)} offer={o} brand={brand} position={position} best={hasBest && best.includes(o)} className="cc-plat" style={{ '--i': i }}
+                onAnimationEnd={i === all.length - 1 && phase === 'closing' ? () => setPhase(false) : undefined}>
                 <span className="cc-pi">
                   <PlatformBadge platformKey={o.platform} brand={brand.name} />
                   <span><Amt offer={o} small /><Min value={o.minOrderAmount} /></span>

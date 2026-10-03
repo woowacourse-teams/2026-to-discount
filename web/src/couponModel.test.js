@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { splitOffers, minLabel, formulaOf, badgesOf, nameFontPx, amountText } from './couponModel.js'
+import { splitOffers, minLabel, formulaOf, badgesOf, nameCutPx, amountText } from './couponModel.js'
 
 const o = (platform, amount, extra = {}) => ({ platform, amount, certainty: 'exact', kind: 'discount', ...extra })
 
@@ -84,12 +84,11 @@ test('배지 순서는 값의 성격, 멤버십, 한정', () => {
   assert.deepEqual(b.map((x) => x.kind), ['qualifier-random', 'membership', 'limited'])
 })
 
-test('이름 글자 크기: 8자까지 17, 한 자마다 0.7씩, 12 아래로 안 간다', () => {
-  assert.equal(nameFontPx('bhc'), 17)
-  assert.equal(nameFontPx('꾸브라꼬숯불치킨'), 17)
-  assert.equal(nameFontPx('호식이두마리치킨앤'), 16.3)
-  assert.equal(nameFontPx('토핑몬스터피자TMPPIZZA'), 12.1)
-  assert.equal(nameFontPx('가나다라마바사아자차카타파하가나다라마바사아'), 12)
+test('이름 깎을 크기: 8자까지 0, 한 자마다 0.7px', () => {
+  assert.equal(nameCutPx('bhc'), 0)
+  assert.equal(nameCutPx('꾸브라꼬숯불치킨'), 0)
+  assert.equal(nameCutPx('호식이두마리치킨앤'), 0.7)
+  assert.equal(nameCutPx('토핑몬스터피자TMPPIZZA'), 4.9)
 })
 
 test('금액 글자: 숫자가 없으면 원문', () => {

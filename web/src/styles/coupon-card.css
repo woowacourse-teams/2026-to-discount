@@ -3,16 +3,21 @@
 .cc {
   --cc-tk: color-mix(in srgb, var(--text) 6%, var(--surface));
   --cc-edge: color-mix(in srgb, var(--text) 22%, transparent);
+  --cc-tk2: #ebe8e2; --cc-cta: #3a3a3c; --logo: clamp(52px, 16vw, 64px);
+  --cc-fs-sm: clamp(10.5px, 3vw, 12px);
   position: relative; background: var(--surface); color: var(--text);
-  border: 1px solid var(--border); border-radius: 12px; padding: 12px;
-  display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 4px 12px;
+  border: 1px solid var(--border); border-radius: 12px; padding: clamp(10px, 3.3vw, 12px);
+  display: grid; grid-template-columns: var(--logo) minmax(0, 1fr); gap: 4px clamp(8px, 3vw, 12px);
   content-visibility: auto; contain-intrinsic-size: auto 170px;
 }
 .cc-side { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 /* 투명 로고가 다크 모드에서도 보이게 바탕은 늘 흰색 */
-.cc-logo { width: 64px; height: 64px; border-radius: 12px; background: #fff; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.cc-logo .brand-logo { width: 64px; height: 64px; border: 0; border-radius: 0; background: #fff; }
-.cc-alt { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-logo { width: var(--logo); height: var(--logo); border-radius: 12px; background: #fff; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.cc-logo .brand-logo { width: 100%; height: 100%; border: 0; border-radius: 0; background: #fff; }
+.cc-logo .brand-logo img { object-fit: contain; }
+/* 펼치면 로고 밑 하위 라벨을 CSS로만 숨긴다(요소는 그대로) */
+.cc--open .cc-alt { display: none; }
+.cc-alt { display: flex; align-items: center; gap: 4px; font-size: var(--cc-fs-sm); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cc-alt--sold { text-decoration: line-through; }
 .cc .platform-badge { width: var(--pb, 20px); height: var(--pb, 20px); border-radius: calc(var(--pb, 20px) * .28); flex: none; }
 .cc-alt { --pb: 16px; }
@@ -20,10 +25,10 @@
 .cc-name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; padding-right: 28px; }
 .cc-name button { all: unset; cursor: pointer; min-width: 0; max-width: 100%; }
 .cc-name button:focus-visible, .cc-hint:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.cc-nm { display: block; font-weight: 800; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-nm { display: block; font-size: max(12px, calc(clamp(14px, 4.4vw, 16px) - var(--cut, 0px))); font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* 배지 라벨. 색은 운영 칩과 같다 */
-.cc-tag { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; border-radius: 5px; padding: 1px 6px; white-space: nowrap; background: color-mix(in srgb, var(--text) 8%, var(--surface)); color: var(--text-muted); }
+.cc-tag { display: inline-flex; align-items: center; gap: 3px; font-size: clamp(10px, 2.9vw, 11px); font-weight: 600; border-radius: 5px; padding: 1px 6px; white-space: nowrap; background: color-mix(in srgb, var(--text) 8%, var(--surface)); color: var(--text-muted); }
 .cc-tag--qualifier-random { background: #333; color: #fff; }
 .cc-tag--best-fit { background: #edf3ec; color: #346538; }
 .cc-tag--rate { background: #e3f2fd; color: #0a72c4; }
@@ -32,27 +37,26 @@
 .cc-tag--membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
 .cc-tag--membership[data-platform="ddangyo"] { background: #f5a623; }
 .cc-tag--membership[data-platform="yogiyo"] { background: #fa0050; }
-.cc-fx { font-size: 11.5px; color: #346538; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cc-fx { font-size: var(--cc-fs-sm); color: #346538; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 :root[data-theme="dark"] .cc-fx { color: #7fc48a; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cc-fx { color: #7fc48a; } }
 
 .cc-deal { display: flex; }
-.cc-ticket { --stub: 58px; flex: 1; min-width: 0; min-height: 76px; display: grid; grid-template-columns: 1fr var(--stub); border-radius: 10px; background: var(--cc-tk); color: inherit; text-decoration: none;
+.cc-ticket { --stub: clamp(40px, 12vw, 52px); flex: 1; min-width: 0; min-height: clamp(62px, 19vw, 72px); display: grid; grid-template-columns: 1fr var(--stub); border-radius: 10px; background: var(--cc-tk); color: inherit; text-decoration: none;
   -webkit-mask: radial-gradient(circle 7px at calc(100% - var(--stub)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 7px at calc(100% - var(--stub)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat;
           mask: radial-gradient(circle 7px at calc(100% - var(--stub)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 7px at calc(100% - var(--stub)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat; }
 .cc-ticket:active { transform: scale(.985); }
 .cc-ticket--muted .cc-amt { color: var(--text-muted); }
-.cc-info { display: flex; align-items: center; gap: 12px; padding: 16px 14px; min-width: 0; --pb: 34px; }
+.cc-info { display: flex; align-items: center; gap: clamp(6px, 2.4vw, 10px); padding: clamp(10px, 3.4vw, 14px) clamp(8px, 2.8vw, 12px); min-width: 0; --pb: clamp(26px, 8vw, 32px); }
 .cc-info > span { min-width: 0; }
-.cc-amt { display: block; font-size: 25px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.cc-amt--sm { font-size: 18px; }
+.cc-amt { display: block; font-size: clamp(18px, 5.6vw, 22px); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-amt--sm { font-size: clamp(15px, 4.6vw, 17px); }
 .cc-amt s { text-decoration-thickness: 2px; }
-.cc-soldout { font-style: normal; font-size: 11px; font-weight: 700; margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--text) 10%, var(--surface)); color: var(--text-muted); letter-spacing: 0; vertical-align: middle; }
-.cc-min { display: flex; align-items: center; gap: 2px; font-size: 11.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cc-soldout { font-style: normal; font-size: var(--cc-fs-sm); font-weight: 600; margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--text) 10%, var(--surface)); color: var(--text-muted); letter-spacing: 0; vertical-align: middle; }
+.cc-min { display: flex; align-items: center; gap: 2px; font-size: var(--cc-fs-sm); color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .cc-min svg { width: 11px; height: 11px; flex: none; }
-.cc-stub { display: flex; align-items: center; justify-content: center; background: var(--text); color: var(--surface); border-left: 1.5px dashed var(--cc-edge); }
+.cc-stub { display: flex; align-items: center; justify-content: center; background: var(--cc-cta); color: #fff; border-left: 1.5px dashed var(--cc-edge); }
 .cc-stub svg, .cc-ps svg { width: 18px; height: 18px; }
-.cc-ps { color: var(--text); }
 
 /* 같은 금액이 여러 앱이면 우열을 꾸며내지 않는다: 쿠폰마다 하나씩 가로 캐러셀(CSS 스크롤 스냅). 옆 쿠폰이 조금 보인다 */
 .cc-carousel-wrap { flex: 1; min-width: 0; }
@@ -60,8 +64,6 @@
 .cc-carousel::-webkit-scrollbar { display: none; }
 .cc-slide { flex: 0 0 86%; scroll-snap-align: start; position: relative; display: flex; }
 .cc-slide .cc-ticket { flex: 1; }
-.cc-slide .cc-info { padding: 16px 10px; gap: 8px; --pb: 30px; }
-.cc-slide .cc-amt { font-size: 22px; }
 /* 쿠폰 오른쪽 위 포스트잇(오른쪽으로 기움). 마스크가 쿠폰 안쪽을 자르므로 형제로 둔다 */
 .cc-postit { position: absolute; top: -9px; right: 8px; display: flex; gap: 3px; transform: rotate(4deg); transform-origin: left bottom; pointer-events: none; }
 .cc-postit .cc-tag { box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
@@ -69,24 +71,33 @@
 .cc-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--cc-edge); }
 .cc-dots i.on { background: var(--text); }
 
-.cc-hint { all: unset; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
-.cc-hint svg { width: 12px; height: 12px; transition: transform .15s; }
+.cc-hint { all: unset; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; font-size: var(--cc-fs-sm); color: var(--text-muted); }
+.cc-hint svg { width: 12px; height: 12px; transition: transform .18s; }
 .cc--open .cc-hint svg { transform: rotate(180deg); }
 .cc-hide { position: absolute; top: 8px; right: 8px; background: none; border: 0; color: var(--text-muted); opacity: .7; padding: 4px; cursor: pointer; }
 
 /* 펼침: 앱별 쿠폰. 배지는 금액 오른쪽, 이동 꼭지 왼쪽의 남는 칸에 라벨로, 계산식은 그 배지 아래 한 줄 */
 .cc-more { grid-column: 1 / 3; min-width: 0; display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
-.cc-plat { display: grid; grid-template-columns: 1fr 40px; min-height: 52px; border-radius: 9px; background: var(--cc-tk); color: inherit; text-decoration: none;
+.cc-plat { display: grid; grid-template-columns: 1fr 40px; min-height: 52px; border-radius: 9px; background: var(--cc-tk2); color: inherit; text-decoration: none;
   -webkit-mask: radial-gradient(circle 5px at calc(100% - 40px) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 5px at calc(100% - 40px) 100%, #0000 98%, #000) bottom/100% 51% no-repeat;
           mask: radial-gradient(circle 5px at calc(100% - 40px) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 5px at calc(100% - 40px) 100%, #0000 98%, #000) bottom/100% 51% no-repeat; }
 .cc-plat:active { transform: scale(.985); }
-.cc-pi { display: flex; align-items: center; gap: 10px; padding: 8px 12px; min-width: 0; --pb: 26px; }
+.cc-pi { display: flex; align-items: center; gap: clamp(6px, 2.4vw, 10px); padding: 8px clamp(8px, 2.8vw, 12px); min-width: 0; --pb: clamp(22px, 7vw, 26px); }
 .cc-pi > span:nth-child(2) { min-width: 0; }
 .cc-side-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; margin-left: auto; min-width: 0; max-width: 55%; }
 .cc-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 3px; }
-.cc-ps { display: flex; align-items: center; justify-content: center; border-left: 1.5px dashed var(--cc-edge); }
+.cc-ps { display: flex; align-items: center; justify-content: center; background: var(--cc-cta); color: #fff; border-left: 1.5px dashed var(--cc-edge); }
 .cc--highlighted { outline: 2px solid #2f6fd1; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .cc-hint svg { transition: none; } .cc-ticket:active, .cc-plat:active { transform: none; } }
 /* 숨긴 카드가 오른쪽 위로 쪼그라들며 사라진다(운영 카드와 같은 모션, 시간은 App.jsx의 값과 맞춘다) */
 .cc--leaving { pointer-events: none; transform-origin: 100% 0; animation: brand-card-leave .1s cubic-bezier(.55, 0, 1, .45) both; }
 @media (prefers-reduced-motion: reduce) { .cc--leaving { animation: none; opacity: 0; } }
+
+/* 다크: 꼭지와 펼친 쿠폰 바탕 */
+:root[data-theme="dark"] .cc { --cc-tk2: #3a3936; --cc-cta: #4a4a4e; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cc { --cc-tk2: #3a3936; --cc-cta: #4a4a4e; } }
+/* 펼침/접기: 폭·높이를 재지 않고 keyframes만. 쿠폰마다 40ms씩 늦게 시작, 접을 때는 같은 애니메이션을 거꾸로(animationend에서 내린다) */
+@keyframes cc-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.cc-plat { animation: cc-in 180ms ease-out both; animation-delay: calc(var(--i, 0) * 40ms); }
+.cc:not(.cc--open) .cc-plat { animation-direction: reverse; animation-timing-function: ease-in; }
+@media (prefers-reduced-motion: reduce) { .cc-plat { animation: none; } }

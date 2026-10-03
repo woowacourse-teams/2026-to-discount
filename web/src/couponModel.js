@@ -63,11 +63,10 @@ export function badgesOf(offer, { showBestFit = true, shortTime = true } = {}) {
   return out
 }
 
-/** 이름 한 줄. 그린 뒤 폭을 재지 않고 글자 수로 정한다(배치 계산을 늘리지 않으려고). */
-export function nameFontPx(name) {
+/** 이름 한 줄. 상한은 CSS(clamp)가 화면 폭으로 정하고, 여기서는 글자 수만큼 깎을 px를 낸다(폭을 재지 않는다). 하한 12px는 CSS. */
+export function nameCutPx(name) {
   const len = [...name].length
-  const px = 17 - Math.max(0, len - 8) * 0.7
-  return Math.max(12, Math.round(px * 10) / 10)
+  return Math.round(Math.max(0, len - 8) * 0.7 * 10) / 10
 }
 
 export function amountText(offer) {

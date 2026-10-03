@@ -102,7 +102,7 @@ export function PlatformBadge({ platformKey, via = null, brand = null, onClick, 
   )
 }
 
-export function BrandLogo({ name }) {
+export function BrandLogo({ name, size = LOGO_PX }) {
   const src = brandLogoSrc(name)
   return (
     <span className="brand-logo">
@@ -115,8 +115,8 @@ export function BrandLogo({ name }) {
           alt={name}
           loading="lazy"
           decoding="async"
-          width={LOGO_PX}
-          height={LOGO_PX}
+          width={size}
+          height={size}
           ref={settleIfLoaded}
           onLoad={hideSiblingFallback}
           onError={hideBroken}
