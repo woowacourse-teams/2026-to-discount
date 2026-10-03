@@ -4,7 +4,7 @@
   --cc-tk: #fff;
   --cc-edge: color-mix(in srgb, var(--text) 22%, transparent);
   --cc-tk2: #ebe8e2; --cc-cta: #4a4a4e; --logo: clamp(52px, 16vw, 64px);
-  --cc-fs-sm: clamp(10.5px, 3vw, 12px); --cc-fs-min: clamp(11px, 3.1vw, 12.5px); --cc-strip: 28px;
+  --cc-fs-sm: clamp(10.5px, 3vw, 12px); --cc-fs-min: clamp(11px, 3.1vw, 12.5px); --ps: clamp(48px, 14vw, 56px);
   position: relative; background: var(--surface); color: var(--text);
   border: 1px solid var(--border); border-radius: 12px; padding: clamp(14px, 4.4vw, 18px);
   display: grid; grid-template-columns: var(--logo) minmax(0, 1fr); gap: 10px clamp(10px, 3.2vw, 14px);
@@ -35,12 +35,12 @@
 .cc-tag--membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
 .cc-tag--membership[data-platform="ddangyo"] { background: #f5a623; }
 .cc-tag--membership[data-platform="yogiyo"] { background: #fa0050; }
-.cc-fx { flex-basis: 100%; line-height: 1.3; font-size: var(--cc-fs-sm); color: #346538; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cc-fx { flex-basis: 100%; min-width: 0; max-width: 100%; line-height: 1.3; font-size: var(--cc-fs-sm); color: #346538; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 :root[data-theme="dark"] .cc-fx { color: #7fc48a; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cc-fx { color: #7fc48a; } }
 
 .cc-deal { grid-column: 1 / 3; display: flex; }
-.cc-ticket { --stub: clamp(40px, 12vw, 52px); flex: 1; min-width: 0; min-height: clamp(68px, 20.5vw, 78px); display: grid; grid-template-columns: 1fr var(--stub); border-radius: 10px; background: var(--cc-tk); color: inherit; text-decoration: none;
+.cc-ticket { --stub: clamp(60px, 18vw, 72px); flex: 1; min-width: 0; min-height: clamp(68px, 20.5vw, 78px); display: grid; grid-template-columns: 1fr var(--stub); border-radius: 10px; background: var(--cc-tk); color: inherit; text-decoration: none;
   -webkit-mask: radial-gradient(circle 7px at calc(100% - var(--stub)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 7px at calc(100% - var(--stub)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat;
           mask: radial-gradient(circle 7px at calc(100% - var(--stub)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 7px at calc(100% - var(--stub)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat; }
 .cc-ticket:active { transform: scale(.985); }
@@ -53,9 +53,6 @@
 .cc-soldout { font-style: normal; font-size: var(--cc-fs-sm); font-weight: 600; margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--text) 10%, var(--surface)); color: var(--text-muted); letter-spacing: 0; vertical-align: middle; }
 .cc-min { display: flex; align-items: center; gap: 2px; font-size: var(--cc-fs-min); line-height: 1.3; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .cc-min svg { width: 11px; height: 11px; flex: none; }
-.cc-stub { display: flex; flex-direction: column; gap: 5px; align-items: center; justify-content: center; --pb: 22px; background: var(--cc-cta); color: #fff; border-left: 1.5px dashed var(--cc-edge); }
-.cc-stub svg { width: 16px; height: 16px; }
-.cc-ps svg { width: 14px; height: 14px; }
 
 /* 같은 금액이 여러 앱이면 우열을 꾸며내지 않는다: 쿠폰마다 하나씩 가로 캐러셀(CSS 스크롤 스냅). 옆 쿠폰이 조금 보인다 */
 .cc-carousel-wrap { flex: 1; min-width: 0; }
@@ -78,19 +75,19 @@
 /* 펼침: 앱별 쿠폰. 배지는 금액 오른쪽, 이동 꼭지 왼쪽의 남는 칸에 라벨로, 계산식은 그 배지 아래 한 줄 */
 .cc-more { grid-column: 1 / 3; min-width: 0; display: flex; flex-direction: column; margin-top: 4px; }
 .cc-more > .cc-plat:not(:first-child), .cc-more > .cc-cond + .cc-plat { margin-top: 8px; }
-.cc-plat { display: grid; grid-template-columns: 1fr 40px; min-height: 60px; border-radius: 9px; background: var(--cc-tk2); color: inherit; text-decoration: none;
-  -webkit-mask: radial-gradient(circle 5px at calc(100% - 40px) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 5px at calc(100% - 40px) 100%, #0000 98%, #000) bottom/100% 51% no-repeat;
-          mask: radial-gradient(circle 5px at calc(100% - 40px) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 5px at calc(100% - 40px) 100%, #0000 98%, #000) bottom/100% 51% no-repeat; }
+.cc-plat { display: grid; grid-template-columns: 1fr var(--ps); min-height: 60px; border-radius: 9px; background: var(--cc-tk2); color: inherit; text-decoration: none;
+  -webkit-mask: radial-gradient(circle 5px at calc(100% - var(--ps)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 5px at calc(100% - var(--ps)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat;
+          mask: radial-gradient(circle 5px at calc(100% - var(--ps)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 5px at calc(100% - var(--ps)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat; }
 .cc-plat:active { transform: scale(.985); }
 /* 펼친 쿠폰: 금액과 최소주문은 왼쪽 정렬 두 줄, 배지와 계산식은 남는 칸 오른쪽 */
 .cc-pi { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 8px; row-gap: 3px; padding: 10px clamp(10px, 3.2vw, 14px); min-width: 0; }
 .cc-pi > .cc-amt, .cc-pi > .cc-min { grid-column: 1; }
 .cc-side-tags { grid-column: 2; grid-row: 1 / 3; display: flex; flex-wrap: wrap; justify-content: flex-end; align-content: center; gap: 3px; min-width: 0; max-width: 55vw; }
 .cc-side-tags .cc-fx { flex-basis: 100%; text-align: right; }
+.cc-side-tags { overflow: hidden; }
 .cc-cond { list-style: none; margin: 4px 2px 0; padding: 0; font-size: var(--cc-fs-min); line-height: 1.45; color: var(--text-muted); font-variant-numeric: tabular-nums; animation: cc-in 180ms ease-out both; animation-delay: calc(var(--i, 0) * 40ms); }
 .cc:not(.cc--open) .cc-cond { animation-direction: reverse; animation-timing-function: ease-in; }
 @media (prefers-reduced-motion: reduce) { .cc-cond { animation: none; } }
-.cc-ps { display: flex; flex-direction: column; gap: 3px; --pb: 20px; align-items: center; justify-content: center; background: var(--cc-cta); color: #fff; border-left: 1.5px dashed var(--cc-edge); }
 .cc--highlighted { outline: 2px solid #2f6fd1; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .cc-hint svg { transition: none; } .cc-ticket:active, .cc-plat:active { transform: none; } }
 /* 숨긴 카드가 오른쪽 위로 쪼그라들며 사라진다(운영 카드와 같은 모션, 시간은 App.jsx의 값과 맞춘다) */
@@ -115,17 +112,13 @@
 .cc [data-platform="coupangeats"] { --pc: #d62d34; }
 .cc [data-platform="ddangyo"] { --pc: #f5a623; }
 .cc [data-platform="yogiyo"] { --pc: #fa0050; }
-/* 앱 구분: 정보 칸 오른쪽 끝(이동 꼭지 바로 왼쪽)에 그 앱 색 세로 띠(::before, 요소 없음), 그 위에 흰 바탕 둥근 사각 앱 로고 */
+/* 이동 영역(링크): 앱 색 바탕, 가운데 흰 바탕 둥근 사각 앱 로고가 이동 버튼을 대신, 하단에 검은 띠(::after, 요소 없음) */
 .cc-ticket, .cc-plat { position: relative; }
-.cc-ticket::before, .cc-plat::before { content: ""; position: absolute; top: 0; bottom: 0; background: var(--pc, var(--text-muted)); pointer-events: none; }
-.cc-ticket::before { right: var(--stub); width: var(--cc-strip); }
-.cc-plat::before { right: 40px; width: 24px; }
-.cc-ticket > .platform-badge, .cc-plat > .platform-badge { position: absolute; z-index: 1; background: #fff; border-radius: 7px; box-shadow: 0 1px 2px rgba(0, 0, 0, .18); }
-.cc-ticket > .platform-badge { --pb: 22px; top: 8px; right: calc(var(--stub) + 3px); }
-.cc-plat > .platform-badge { --pb: 18px; top: 8px; right: 43px; }
-.cc-info { padding-right: calc(var(--cc-strip) + 10px); }
-.cc-pi { padding-right: 34px; }
-.cc-stub, .cc-ps { text-decoration: none; }
+.cc-stub, .cc-ps { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; text-decoration: none; background: var(--pc, var(--cc-cta)); border-left: 1.5px dashed var(--cc-edge); }
+.cc-stub { --pb: 28px; }
+.cc-ps { --pb: 24px; }
+.cc-stub::after, .cc-ps::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: #1f1f1f; }
+.cc-stub .platform-badge, .cc-ps .platform-badge { background: #fff; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, .2); margin-bottom: 4px; }
 .cc-plat:active, .cc-ticket:active { transform: none; }
 /* 캐러셀 마우스 드래그: 끄는 동안은 스냅을 끄고 글자 선택을 막는다 */
 .cc-carousel { cursor: grab; }

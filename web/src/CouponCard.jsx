@@ -11,9 +11,6 @@ import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { offerClickProps, offerLink } from './offerLink.js'
 import './styles/coupon-card.css'
 
-const Go = () => (
-  <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4h9v9M16 4L5 15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-)
 const Up = () => (
   <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2l4 5H7.2v3H4.8V7H2z" fill="currentColor" /></svg>
 )
@@ -54,9 +51,9 @@ function OfferLinkA({ offer, brand, position, best, className, children, ...rest
 function Coupon({ o, brand, position, best, muted }) {
   return (
     <div className={`cc-ticket${muted ? ' cc-ticket--muted' : ''}`} data-platform={o.platform}>
-      <PlatformBadge platformKey={o.platform} brand={brand.name} />
       <span className="cc-info"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
-      <OfferLinkA offer={o} brand={brand} position={position} best={best} className="cc-stub"><Go /></OfferLinkA>
+      {/* 이동 영역: 앱 색 바탕 + 가운데 앱 로고가 이동 버튼을 대신한다(링크는 여기만) */}
+      <OfferLinkA offer={o} brand={brand} position={position} best={best} className="cc-stub"><PlatformBadge platformKey={o.platform} brand={brand.name} /></OfferLinkA>
     </div>
   )
 }
@@ -188,7 +185,6 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             return (
               <Fragment key={offerKey(o)}>
                 <div className="cc-plat" data-platform={o.platform} style={anim} onAnimationEnd={lines.length ? undefined : end}>
-                  <PlatformBadge platformKey={o.platform} brand={brand.name} />
                   <span className="cc-pi">
                     <Amt offer={o} small />
                     <Min value={o.minOrderAmount} />
@@ -199,7 +195,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                       </span>
                     )}
                   </span>
-                  <OfferLinkA offer={o} brand={brand} position={position} best={hasBest && best.includes(o)} className="cc-ps"><Go /></OfferLinkA>
+                  <OfferLinkA offer={o} brand={brand} position={position} best={hasBest && best.includes(o)} className="cc-ps"><PlatformBadge platformKey={o.platform} brand={brand.name} /></OfferLinkA>
                 </div>
                 {/* 조건 요약은 쿠폰 밖, 쿠폰 아래(길면 줄바꿈) */}
                 {lines.length > 0 && (
