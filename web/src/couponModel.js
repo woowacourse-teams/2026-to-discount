@@ -63,6 +63,36 @@ export function badgesOf(offer, { showBestFit = true, shortTime = true } = {}) {
   return out
 }
 
+const won = (n) => `${n.toLocaleString('ko-KR')}원`
+
+/**
+ * 펼친 쿠폰 아래 조건 요약(운영 OfferDetail이 보이던 정보를 짧은 줄로). 쿠폰 밖에 그리므로 길면 줄바꿈해도 된다.
+ * 구간이 둘 이상이거나 구간에 채널, 멤버십, 조건, 기한이 붙었을 때만 구간 줄을 내고(구간 하나가 쿠폰과 같으면 중복), 조건 문장은 있으면 그대로 낸다.
+ * 계산식(최적)은 배지 아래 줄에 이미 있으니 뺀다.
+ */
+export function conditionLines(offer) {
+  const out = []
+  const tiers = Array.isArray(offer.tiers) ? [...offer.tiers].sort((a, b) => b.amount - a.amount) : []
+  const extra = (t) => t.channel || (t.membership && t.membership !== 'none') || t.note
+    || (t.expiresAt && t.expiresAt !== offer.expiresAt)
+  if (tiers.length > 1 || tiers.some(extra)) {
+    for (const t of tiers) {
+      const min = t.minOrder ?? (t.amount === offer.amount ? offer.minOrderAmount : null)
+      const parts = [
+        t.amount == null ? '금액 ?' : `${won(t.amount)}${t.soldOut ? ' 품절' : ''}${t.percent != null ? ` (${t.percent}%${t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''})` : ''}`,
+        t.channel,
+        t.membership && t.membership !== 'none' ? (MEMBERSHIP_LABEL[offer.platform] ?? t.membership) : null,
+        t.note,
+        t.expiresAt && t.expiresAt !== offer.expiresAt ? `~${t.expiresAt.slice(5).replace('-', '.')}` : null,
+        min != null ? `${won(min)}↑` : '최소주문 ?',
+      ].filter(Boolean)
+      out.push(parts.join(' · '))
+    }
+  }
+  if (offer.conditions && !formulaOf(offer)) out.push(offer.conditions)
+  return out
+}
+
 /** 이름 한 줄. 상한은 CSS(clamp)가 화면 폭으로 정하고, 여기서는 글자 수만큼 깎을 px를 낸다(폭을 재지 않는다). 하한 12px는 CSS. */
 export function nameCutPx(name) {
   const len = [...name].length

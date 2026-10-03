@@ -1,11 +1,11 @@
 // 메인 화면 A안 16차 브랜드 카드(쿠폰 티켓형). 표시 규칙: tracker docs/superpowers/specs/2026-10-03-home-a-display-model.md
 // 쿠폰 구조는 늘 같다(앱 아이콘, 금액, 최소주문, 이동 꼭지). 배지와 계산식은 쿠폰 밖(또는 남는 칸)에 둔다.
 // 폭을 재는 코드를 두지 않는다(총 차단 시간). 이름 크기는 글자 수로, 절취 홈은 CSS 마스크로 판다.
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
-import { amountText, badgesOf, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, badgesOf, conditionLines, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { offerClickProps, offerLink } from './offerLink.js'
@@ -52,11 +52,9 @@ function OfferLinkA({ offer, brand, position, best, className, children, ...rest
 function Coupon({ o, brand, position, best, muted }) {
   return (
     <OfferLinkA offer={o} brand={brand} position={position} best={best} className={`cc-ticket${muted ? ' cc-ticket--muted' : ''}`}>
-      <span className="cc-info">
-        <PlatformBadge platformKey={o.platform} brand={brand.name} />
-        <span><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
-      </span>
-      <span className="cc-stub"><Go /></span>
+      <span className="cc-info"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
+      {/* 어느 앱으로 가는지는 이동 꼭지가 말한다: 앱 아이콘 위, 화살표 아래 */}
+      <span className="cc-stub"><PlatformBadge platformKey={o.platform} brand={brand.name} /><Go /></span>
     </OfferLinkA>
   )
 }
@@ -130,7 +128,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name}
              className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}`}>
       <div className="cc-side" ref={headRef}>
-        <span className="cc-logo"><BrandLogo name={brand.name} size={64} /></span>
+        <BrandLogo name={brand.name} size={64} />
         {/* 접힌 하위 라벨. 배지는 붙이지 않는다. 펼치면 앱별 쿠폰이 대신한다. */}
         {rest.map((o) => (
           <span key={offerKey(o)} className={`cc-alt${o.soldOut ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
@@ -162,21 +160,31 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           {[...best, ...rest].map((o, i, all) => {
             const f = formulaOf(o)
             const tags = badgesOf(o)
+            const lines = conditionLines(o)
+            const anim = { '--i': i }
+            const end = i === all.length - 1 && phase === 'closing' ? () => setPhase(false) : undefined
             return (
-              <OfferLinkA key={offerKey(o)} offer={o} brand={brand} position={position} best={hasBest && best.includes(o)} className="cc-plat" style={{ '--i': i }}
-                onAnimationEnd={i === all.length - 1 && phase === 'closing' ? () => setPhase(false) : undefined}>
-                <span className="cc-pi">
-                  <PlatformBadge platformKey={o.platform} brand={brand.name} />
-                  <span><Amt offer={o} small /><Min value={o.minOrderAmount} /></span>
-                  {(tags.length > 0 || f) && (
-                    <span className="cc-side-tags">
-                      {tags.length > 0 && <span className="cc-tags">{tags.map((b) => <Tag key={b.kind} b={b} platform={o.platform} />)}</span>}
-                      {f && <span className="cc-fx">{f}</span>}
-                    </span>
-                  )}
-                </span>
-                <span className="cc-ps"><Go /></span>
-              </OfferLinkA>
+              <Fragment key={offerKey(o)}>
+                <OfferLinkA offer={o} brand={brand} position={position} best={hasBest && best.includes(o)} className="cc-plat" style={anim} onAnimationEnd={lines.length ? undefined : end}>
+                  <span className="cc-pi">
+                    <Amt offer={o} small />
+                    <Min value={o.minOrderAmount} />
+                    {(tags.length > 0 || f) && (
+                      <span className="cc-side-tags">
+                        {tags.map((b) => <Tag key={b.kind} b={b} platform={o.platform} />)}
+                        {f && <span className="cc-fx">{f}</span>}
+                      </span>
+                    )}
+                  </span>
+                  <span className="cc-ps"><PlatformBadge platformKey={o.platform} brand={brand.name} /><Go /></span>
+                </OfferLinkA>
+                {/* 조건 요약은 쿠폰 밖, 쿠폰 아래(길면 줄바꿈) */}
+                {lines.length > 0 && (
+                  <ul className="cc-cond" style={anim} onAnimationEnd={end}>
+                    {lines.map((t) => <li key={t}>{t}</li>)}
+                  </ul>
+                )}
+              </Fragment>
             )
           })}
         </div>
