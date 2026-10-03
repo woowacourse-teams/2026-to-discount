@@ -1,0 +1,91 @@
+/* 메인 화면 A안 16차 쿠폰 브랜드 카드. 시안 9차 값과 같다. 색은 운영과 같은 변수(--surface, --text ...)를 써서 다크 모드를 따른다.
+   절취 홈은 mask(이미지 없음, 요소 추가 없음). 폭을 재는 코드는 없다. */
+.cc {
+  --cc-tk: color-mix(in srgb, var(--text) 6%, var(--surface));
+  --cc-edge: color-mix(in srgb, var(--text) 22%, transparent);
+  position: relative; background: var(--surface); color: var(--text);
+  border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+  display: grid; grid-template-columns: 64px 1fr; gap: 4px 12px;
+  content-visibility: auto; contain-intrinsic-size: auto 170px;
+}
+.cc-side { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+/* 투명 로고가 다크 모드에서도 보이게 바탕은 늘 흰색 */
+.cc-logo { width: 64px; height: 64px; border-radius: 12px; background: #fff; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.cc-logo .brand-logo { width: 64px; height: 64px; border: 0; border-radius: 0; background: #fff; }
+.cc-alt { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-alt--sold { text-decoration: line-through; }
+.cc .platform-badge { width: var(--pb, 20px); height: var(--pb, 20px); border-radius: calc(var(--pb, 20px) * .28); flex: none; }
+.cc-alt { --pb: 16px; }
+.cc-main { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.cc-name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; padding-right: 28px; }
+.cc-name button { all: unset; cursor: pointer; min-width: 0; max-width: 100%; }
+.cc-name button:focus-visible, .cc-hint:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cc-nm { display: block; font-weight: 800; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 배지 라벨. 색은 운영 칩과 같다 */
+.cc-tag { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; border-radius: 5px; padding: 1px 6px; white-space: nowrap; background: color-mix(in srgb, var(--text) 8%, var(--surface)); color: var(--text-muted); }
+.cc-tag--qualifier-random { background: #333; color: #fff; }
+.cc-tag--best-fit { background: #edf3ec; color: #346538; }
+.cc-tag--rate { background: #e3f2fd; color: #0a72c4; }
+.cc-tag--limited { background: #fff3da; color: #9a5b00; }
+.cc-tag--membership { background: #333; color: #fff; }
+.cc-tag--membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
+.cc-tag--membership[data-platform="ddangyo"] { background: #f5a623; }
+.cc-tag--membership[data-platform="yogiyo"] { background: #fa0050; }
+.cc-fx { font-size: 11.5px; color: #346538; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+:root[data-theme="dark"] .cc-fx { color: #7fc48a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cc-fx { color: #7fc48a; } }
+
+.cc-deal { display: flex; }
+.cc-ticket { --stub: 58px; flex: 1; min-width: 0; min-height: 76px; display: grid; grid-template-columns: 1fr var(--stub); border-radius: 10px; background: var(--cc-tk); color: inherit; text-decoration: none;
+  -webkit-mask: radial-gradient(circle 7px at calc(100% - var(--stub)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 7px at calc(100% - var(--stub)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat;
+          mask: radial-gradient(circle 7px at calc(100% - var(--stub)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 7px at calc(100% - var(--stub)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat; }
+.cc-ticket:active { transform: scale(.985); }
+.cc-ticket--muted .cc-amt { color: var(--text-muted); }
+.cc-ticket--tie { --stub: 132px; }
+.cc-info { display: flex; align-items: center; gap: 12px; padding: 16px 14px; min-width: 0; --pb: 34px; }
+.cc-info > span { min-width: 0; }
+.cc-amt { display: block; font-size: 25px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-ticket--tie .cc-amt { font-size: 22px; }
+.cc-amt--sm { font-size: 18px; }
+.cc-amt s { text-decoration-thickness: 2px; }
+.cc-soldout { font-style: normal; font-size: 11px; font-weight: 700; margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--text) 10%, var(--surface)); color: var(--text-muted); letter-spacing: 0; vertical-align: middle; }
+.cc-min { display: flex; align-items: center; gap: 2px; font-size: 11.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cc-min svg { width: 11px; height: 11px; flex: none; }
+.cc-stub { display: flex; align-items: center; justify-content: center; background: var(--text); color: var(--surface); border-left: 1.5px dashed var(--cc-edge); }
+.cc-stub svg, .cc-ps svg { width: 18px; height: 18px; }
+.cc-ps { color: var(--text); }
+
+/* 같은 금액이 여러 앱이면 우열을 꾸며내지 않는다: 금액은 한 번, 앱마다 한 줄씩 각자 이동 */
+.cc-ticket-wrap { flex: 1; min-width: 0; position: relative; display: flex; }
+.cc-apps { display: flex; flex-direction: column; border-left: 1.5px dashed var(--cc-edge); }
+.cc-app { flex: 1; min-width: 0; display: grid; grid-template-columns: 20px 1fr 14px; align-items: center; gap: 6px; padding: 6px 10px; background: var(--text); color: var(--surface); text-decoration: none; --pb: 20px; }
+.cc-app + .cc-app { border-top: 1px solid color-mix(in srgb, var(--surface) 18%, transparent); }
+.cc-app .cc-min { color: inherit; opacity: .85; }
+.cc-app svg { width: 14px; height: 14px; }
+.cc-app:active { filter: brightness(1.25); }
+/* 복수 최고의 배지: 쿠폰 오른쪽 위 포스트잇(오른쪽으로 기움). 앱마다 다르면 배지 앞에 그 앱 아이콘 12px */
+.cc-postit { position: absolute; top: -9px; right: 8px; display: flex; gap: 3px; transform: rotate(4deg); transform-origin: left bottom; pointer-events: none; --pb: 12px; }
+.cc-postit .cc-tag { box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+
+.cc-hint { all: unset; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
+.cc-hint svg { width: 12px; height: 12px; transition: transform .15s; }
+.cc--open .cc-hint svg { transform: rotate(180deg); }
+.cc-hide { position: absolute; top: 8px; right: 8px; background: none; border: 0; color: var(--text-muted); opacity: .7; padding: 4px; cursor: pointer; }
+
+/* 펼침: 앱별 쿠폰. 배지는 금액 오른쪽, 이동 꼭지 왼쪽의 남는 칸에 라벨로, 계산식은 그 배지 아래 한 줄 */
+.cc-more { grid-column: 1 / 3; display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.cc-plat { display: grid; grid-template-columns: 1fr 40px; min-height: 52px; border-radius: 9px; background: var(--cc-tk); color: inherit; text-decoration: none;
+  -webkit-mask: radial-gradient(circle 5px at calc(100% - 40px) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 5px at calc(100% - 40px) 100%, #0000 98%, #000) bottom/100% 51% no-repeat;
+          mask: radial-gradient(circle 5px at calc(100% - 40px) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 5px at calc(100% - 40px) 100%, #0000 98%, #000) bottom/100% 51% no-repeat; }
+.cc-plat:active { transform: scale(.985); }
+.cc-pi { display: flex; align-items: center; gap: 10px; padding: 8px 12px; min-width: 0; --pb: 26px; }
+.cc-pi > span:nth-child(2) { min-width: 0; }
+.cc-side-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; margin-left: auto; min-width: 0; max-width: 55%; }
+.cc-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 3px; }
+.cc-ps { display: flex; align-items: center; justify-content: center; border-left: 1.5px dashed var(--cc-edge); }
+.cc--highlighted { outline: 2px solid #2f6fd1; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .cc-hint svg { transition: none; } .cc-ticket:active, .cc-plat:active { transform: none; } }
+/* 숨긴 카드가 오른쪽 위로 쪼그라들며 사라진다(운영 카드와 같은 모션, 시간은 App.jsx의 값과 맞춘다) */
+.cc--leaving { pointer-events: none; transform-origin: 100% 0; animation: brand-card-leave .1s cubic-bezier(.55, 0, 1, .45) both; }
+@media (prefers-reduced-motion: reduce) { .cc--leaving { animation: none; opacity: 0; } }
