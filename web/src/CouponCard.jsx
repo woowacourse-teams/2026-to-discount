@@ -117,7 +117,7 @@ function Ticket({ brand, best, hasBest, position, }) {
   return <Carousel brand={brand} best={best} position={position} />
 }
 
-function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, band = 'left', logo = 'tl', full = false }) {
+function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, mark = 'band' }) {
   const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   // false | 'open' | 'closing'. 접을 때는 펼칠 때와 같은 애니메이션을 거꾸로 틀고 animationend에서 내린다(폭·높이를 재지 않는다).
   const [phase, setPhase] = useState(false)
@@ -146,28 +146,29 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const fx = single && formulaOf(single)
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name}
-             className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''} cc--b${band} cc--l${logo}${full ? ' cc--full' : ''}`}>
-      <div className="cc-side" ref={headRef}>
-        <BrandLogo name={brand.name} size={64} />
-        {/* 접힌 하위 라벨. 배지는 붙이지 않는다. 펼치면 앱별 쿠폰이 대신한다. */}
-        {rest.map((o) => (
-          <span key={offerKey(o)} className={`cc-alt${o.soldOut ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
-        ))}
-      </div>
-      <div className="cc-main">
-        <div className={`cc-name${fx ? '' : ' cc-name--nofx'}`}>
-          <button type="button" aria-expanded={open} onClick={toggle}>
-            <span className="cc-nm" style={{ '--cut': `${nameCutPx(brand.name)}px` }}>{brand.name}</span>
-          </button>
-          {single && badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}
-        </div>
-        {fx && <div className="cc-fx">{fx}</div>}
-        <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} /></div>
-        <button type="button" className="cc-hint" aria-expanded={open} onClick={toggle}>
-          {open ? '접기' : '눌러서 자세히 보기'}
-          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+             className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''} cc--m${mark}`}>
+      {/* 두 줄 카드: 1줄 = 로고 + 이름·배지(+계산식 자리), 2줄 = 쿠폰 전체 폭, 그 아래 하위 라벨 한 줄, 그 아래 펼침 버튼 */}
+      <BrandLogo name={brand.name} size={64} />
+      <div className={`cc-name${fx ? '' : ' cc-name--nofx'}`} ref={headRef}>
+        <button type="button" aria-expanded={open} onClick={toggle}>
+          <span className="cc-nm" style={{ '--cut': `${nameCutPx(brand.name)}px` }}>{brand.name}</span>
         </button>
+        {single && badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}
       </div>
+      {fx && <div className="cc-fx">{fx}</div>}
+      <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} /></div>
+      {/* 접힌 하위 라벨(쿠폰 아래 한 줄, 최대 3개). 배지는 붙이지 않는다. 펼치면 앱별 쿠폰이 대신해 CSS로 숨긴다. */}
+      {rest.length > 0 && (
+        <div className="cc-alts">
+          {rest.slice(0, 3).map((o) => (
+            <span key={offerKey(o)} className={`cc-alt${o.soldOut ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
+          ))}
+        </div>
+      )}
+      <button type="button" className="cc-hint" aria-expanded={open} onClick={toggle}>
+        {open ? '접기' : '눌러서 자세히 보기'}
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
       {onHide && (
         <button type="button" className="cc-hide" aria-label={`${brand.name} 숨기기`} title="숨기기"
                 onClick={() => onHide(brand.name, hasBest ? best[0].amount : null)}>
