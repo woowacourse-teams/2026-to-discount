@@ -5,7 +5,7 @@
   --cc-fs-sm: clamp(10.5px, 3vw, 12px); --cc-fs-min: clamp(11px, 3.1vw, 12.5px);
   position: relative; background: var(--surface); color: var(--text);
   border: 1px solid var(--border); border-radius: 12px; padding: clamp(14px, 4.4vw, 18px);
-  display: grid; grid-template-columns: var(--logo) minmax(0, 1fr); gap: 12px clamp(10px, 3.2vw, 14px);
+  display: grid; grid-template-columns: var(--logo) minmax(0, 1fr); gap: 0 clamp(10px, 3.2vw, 14px); /* 세로 간격은 gap이 아니라 아래 항목의 margin-top으로(0높이 래퍼가 간격을 남기지 않게) */
   content-visibility: auto; contain-intrinsic-size: auto 200px;
 }
 /* 투명 로고가 다크 모드에서도 보이게 바탕은 늘 흰색. 래퍼 없이 brand-logo가 곧 로고 칸 */
@@ -91,10 +91,10 @@
 .cc-dots i.on { background: var(--text); }
 
 /* 하위 라벨 한 줄(쿠폰 아래). 펼치면 앱별 쿠폰이 대신하므로 CSS로만 숨긴다 */
-.cc-alts { grid-column: 1 / 3; display: grid; grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows 220ms cubic-bezier(.3, 0, .8, .15) 110ms, opacity 160ms ease 110ms; }
+.cc-alts { grid-column: 1 / 3; display: grid; grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows 260ms cubic-bezier(.4, 0, .2, 1) 120ms, opacity 200ms ease 120ms; }
 .cc-alts-in { display: flex; gap: clamp(9px, 3.3vw, 15.5px); min-width: 0; min-height: 0; overflow: hidden; }
 /* 펼칠 때 하위 라벨이 먼저 사라지고(같은 grid 기법), 접을 때는 펼친 영역이 닫힌 뒤 다시 나타난다(위 transition의 110ms 지연) */
-.cc--open .cc-alts { grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 280ms cubic-bezier(.2, 0, 0, 1), opacity 140ms ease; }
+.cc--open .cc-alts { grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 280ms cubic-bezier(.4, 0, .2, 1), opacity 140ms ease; }
 .cc-alt { display: flex; align-items: center; gap: 5.5px; font-size: clamp(12.8px, 3.7vw, 14.4px); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; --pb: 20px; }
 .cc-alt--sold { text-decoration: line-through; }
 .cc-hint { all: unset; grid-column: 1 / 3; cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: 14px; color: var(--text-muted); }
@@ -103,7 +103,7 @@
 .cc-hide { position: absolute; top: 8px; right: 8px; background: none; border: 0; color: var(--text-muted); opacity: .7; padding: 4px; cursor: pointer; }
 
 /* 펼침: 앱별 쿠폰(메인과 같은 꼴) + 바로 아래 작은 표 */
-.cc-more { grid-column: 1 / 3; min-width: 0; display: flex; flex-direction: column; margin-top: 6px; }
+.cc-more { grid-column: 1 / 3; min-width: 0; display: flex; flex-direction: column; }
 .cc-more > .cc-deal--more:not(:first-child) { margin-top: 14px; }
 .cc-tbl { grid-column: 1 / 3; width: var(--tk-w); margin-top: 6px; padding: 0 4px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 10px; font-size: 11.5px; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .cc-tbl > span { padding: 4px 0; border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent); min-width: 0; }
@@ -124,13 +124,15 @@
 .cc--photo .cc-ticket::before { content: ""; position: absolute; top: 0; bottom: 0; right: var(--stub); width: 52%; background: url("/sample/menu-sample.jpg") center / cover; -webkit-mask-image: linear-gradient(to right, transparent, #000 70%); mask-image: linear-gradient(to right, transparent, #000 70%); pointer-events: none; }
 .cc--photo .cc-info { position: relative; z-index: 1; }
 
-/* 펼침/접힘: grid 0fr 1fr 기법(CSS-Tricks, animationpatterns grid-row-accordion). 펼칠 때 280ms emphasized, 접을 때 220ms.
-   닫힌 상태(0fr)로 DOM에 먼저 들어가고 두 프레임 뒤 1fr로 바뀐다. 카드 gap(12px)이 0높이 때 안 튀도록 margin-top -12px에서 0으로 같이 움직인다. */
-.cc-x { grid-column: 1 / 3; display: grid; grid-template-rows: 0fr; margin-top: -12px; transition: grid-template-rows 220ms cubic-bezier(.3, 0, .8, .15), margin-top 220ms cubic-bezier(.3, 0, .8, .15); }
-.cc--open .cc-x { grid-template-rows: 1fr; margin-top: 0; transition: grid-template-rows 280ms cubic-bezier(.2, 0, 0, 1) 120ms, margin-top 280ms cubic-bezier(.2, 0, 0, 1) 120ms; }
+/* 펼침/접힘: grid 0fr 1fr 기법(CSS-Tricks, animationpatterns grid-row-accordion). 닫힌 상태(0fr)로 DOM에 먼저 들어가고 두 프레임 뒤 1fr로 바뀐다.
+   곡선은 높이가 한 프레임에 크게 뛰지 않도록 시작과 끝이 모두 완만한 곡선을 쓴다(M3 emphasized 곡선은 끝 프레임에서 200px 넘게 뛰었다, 실측). */
+.cc > .cc-deal, .cc > .cc-alts, .cc > .cc-hint { margin-top: 12px; }
+.cc-x { grid-column: 1 / 3; display: grid; grid-template-rows: 0fr; transition: grid-template-rows 260ms cubic-bezier(.4, 0, .2, 1); }
+.cc--open .cc-x { grid-template-rows: 1fr; transition: grid-template-rows 320ms cubic-bezier(.3, 0, .1, 1) 60ms; }
 .cc-x-in { min-height: 0; overflow: hidden; }
 .cc--settled .cc-x-in { overflow: visible; }
+.cc-x-in > .cc-tbl:first-child, .cc-more > .cc-deal--more:first-child { margin-top: 12px; }
 /* 안의 쿠폰과 표는 투명도와 6px 이동, 40ms씩 늦게 시작(끝날 때도 지연) */
 .cc-deal--more, .cc-tbl { opacity: 0; transform: translateY(-6px); transition: opacity 160ms ease calc(var(--i, 0) * 40ms), transform 160ms ease calc(var(--i, 0) * 40ms); }
-.cc--open .cc-deal--more, .cc--open .cc-tbl { opacity: 1; transform: none; transition: opacity 220ms ease calc(160ms + var(--i, 0) * 40ms), transform 260ms cubic-bezier(.2, 0, 0, 1) calc(160ms + var(--i, 0) * 40ms); }
+.cc--open .cc-deal--more, .cc--open .cc-tbl { opacity: 1; transform: none; transition: opacity 220ms ease calc(120ms + var(--i, 0) * 40ms), transform 260ms cubic-bezier(.2, 0, 0, 1) calc(120ms + var(--i, 0) * 40ms); }
 @media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
