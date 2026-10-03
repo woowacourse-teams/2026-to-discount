@@ -187,9 +187,9 @@ export default function App({ initial = null }) {
   const [dev, setDev] = useState(false)
   // 서버 렌더링 첫 화면은 늘 운영 카드다(하이드레이션 일치). 마운트 뒤 주소에 ?home=a가 있으면 쿠폰 카드로 바꾼다. 반반 배정은 5단계.
   const [homeA, setHomeA] = useState(false)
-  const [homeIcon, setHomeIcon] = useState('a') // 앱 아이콘 자리 비교용 ?icon=a|b|c
+  const [homeVar, setHomeVar] = useState({}) // 시안 비교용 ?band=top|bottom|left&logo=tl|bl&full=1
   useEffect(() => {
-    try { const q = new URLSearchParams(window.location.search); if (q.get('home') === 'a') startTransition(() => { setHomeA(true); if (['b', 'c'].includes(q.get('icon'))) setHomeIcon(q.get('icon')) }) } catch { /* 주소를 못 읽으면 운영 카드 */ }
+    try { const q = new URLSearchParams(window.location.search); if (q.get('home') === 'a') startTransition(() => { setHomeA(true); setHomeVar({ band: ['top', 'bottom'].includes(q.get('band')) ? q.get('band') : 'left', logo: q.get('logo') === 'bl' ? 'bl' : 'tl', full: q.get('full') === '1' }) }) } catch { /* 주소를 못 읽으면 운영 카드 */ }
   }, [])
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
@@ -716,7 +716,7 @@ export default function App({ initial = null }) {
             const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name), onInteract: clearLinked }
             return homeA
-              ? <Suspense key={b.name} fallback={<BrandCard {...props} />}><CouponCard {...props} icon={homeIcon} /></Suspense>
+              ? <Suspense key={b.name} fallback={<BrandCard {...props} />}><CouponCard {...props} {...homeVar} /></Suspense>
               : <BrandCard key={b.name} {...props} />
           })}
         </div>
