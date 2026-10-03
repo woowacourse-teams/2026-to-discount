@@ -49,19 +49,21 @@ function OfferLinkA({ offer, brand, position, best, className, children, ...rest
   )
 }
 
-function Coupon({ o, brand, position, best, muted }) {
+function Coupon({ o, brand, position, best, muted, icon }) {
+  const badge = <PlatformBadge platformKey={o.platform} brand={brand.name} />
   return (
     <OfferLinkA offer={o} brand={brand} position={position} best={best} className={`cc-ticket${muted ? ' cc-ticket--muted' : ''}`}>
+      {/* 앱 아이콘 자리 비교(?icon=a|b|c): a 꼭지 안 화살표 위, b 왼쪽 위 모서리, c 금액 왼쪽 */}
+      {icon !== 'a' && badge}
       <span className="cc-info"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
-      {/* 어느 앱으로 가는지는 이동 꼭지가 말한다: 앱 아이콘 위, 화살표 아래 */}
-      <span className="cc-stub"><PlatformBadge platformKey={o.platform} brand={brand.name} /><Go /></span>
+      <span className="cc-stub">{icon === 'a' && badge}<Go /></span>
     </OfferLinkA>
   )
 }
 
 // 동점 최고: 오퍼마다 단독 쿠폰과 같은 쿠폰 하나, 가로 캐러셀(CSS 스크롤 스냅)에 나란히. 배지는 그 쿠폰 오른쪽 위 포스트잇.
 // 현재 위치 점은 IntersectionObserver로만 갱신한다(스크롤 이벤트, 폭 재기 없음). 서버 렌더와 마운트 전에는 첫 점이 켜져 있다.
-function Carousel({ brand, best, position }) {
+function Carousel({ brand, best, position, icon }) {
   const [idx, setIdx] = useState(0)
   const ref = useRef(null)
   useEffect(() => {
@@ -81,7 +83,7 @@ function Carousel({ brand, best, position }) {
           const tags = badgesOf(o)
           return (
             <div key={offerKey(o)} className="cc-slide">
-              <Coupon o={o} brand={brand} position={position} best />
+              <Coupon o={o} brand={brand} position={position} best icon={icon} />
               {tags.length > 0 && <span className="cc-postit">{tags.map((x) => <Tag key={x.kind} b={x} platform={o.platform} />)}</span>}
             </div>
           )
@@ -92,12 +94,12 @@ function Carousel({ brand, best, position }) {
   )
 }
 
-function Ticket({ brand, best, hasBest, position }) {
-  if (best.length === 1) return <Coupon o={best[0]} brand={brand} position={position} best={hasBest} muted={!hasBest} />
-  return <Carousel brand={brand} best={best} position={position} />
+function Ticket({ brand, best, hasBest, position, icon }) {
+  if (best.length === 1) return <Coupon o={best[0]} brand={brand} position={position} best={hasBest} muted={!hasBest} icon={icon} />
+  return <Carousel brand={brand} best={best} position={position} icon={icon} />
 }
 
-function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false }) {
+function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, icon = 'a' }) {
   const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   // false | 'open' | 'closing'. 접을 때는 펼칠 때와 같은 애니메이션을 거꾸로 틀고 animationend에서 내린다(폭·높이를 재지 않는다).
   const [phase, setPhase] = useState(false)
@@ -126,7 +128,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const fx = single && formulaOf(single)
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name}
-             className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}`}>
+             className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''} cc--i${icon}`}>
       <div className="cc-side" ref={headRef}>
         <BrandLogo name={brand.name} size={64} />
         {/* 접힌 하위 라벨. 배지는 붙이지 않는다. 펼치면 앱별 쿠폰이 대신한다. */}
@@ -135,14 +137,14 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         ))}
       </div>
       <div className="cc-main">
-        <div className="cc-name">
+        <div className={`cc-name${fx ? '' : ' cc-name--nofx'}`}>
           <button type="button" aria-expanded={open} onClick={toggle}>
             <span className="cc-nm" style={{ '--cut': `${nameCutPx(brand.name)}px` }}>{brand.name}</span>
           </button>
           {single && badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}
         </div>
         {fx && <div className="cc-fx">{fx}</div>}
-        <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} /></div>
+        <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} icon={icon} /></div>
         <button type="button" className="cc-hint" aria-expanded={open} onClick={toggle}>
           {open ? '접기' : '눌러서 자세히 보기'}
           <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -166,6 +168,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             return (
               <Fragment key={offerKey(o)}>
                 <OfferLinkA offer={o} brand={brand} position={position} best={hasBest && best.includes(o)} className="cc-plat" style={anim} onAnimationEnd={lines.length ? undefined : end}>
+                  {icon !== 'a' && <PlatformBadge platformKey={o.platform} brand={brand.name} />}
                   <span className="cc-pi">
                     <Amt offer={o} small />
                     <Min value={o.minOrderAmount} />
@@ -176,7 +179,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                       </span>
                     )}
                   </span>
-                  <span className="cc-ps"><PlatformBadge platformKey={o.platform} brand={brand.name} /><Go /></span>
+                  <span className="cc-ps">{icon === 'a' && <PlatformBadge platformKey={o.platform} brand={brand.name} />}<Go /></span>
                 </OfferLinkA>
                 {/* 조건 요약은 쿠폰 밖, 쿠폰 아래(길면 줄바꿈) */}
                 {lines.length > 0 && (
