@@ -158,6 +158,12 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   useEffect(() => {
     if (highlighted) { setPhase('open'); cardRef.current?.scrollIntoView({ block: 'center' }) }
   }, [highlighted])
+  // 접는 중에 animationend가 안 와도(움직임 줄임, 탭이 가려짐) 카드가 펼친 채 남지 않게 시간 안전장치를 둔다
+  useEffect(() => {
+    if (phase !== 'closing') return undefined
+    const t = setTimeout(() => setPhase(false), 160 + 40 * (rest.length + best.length) + 150)
+    return () => clearTimeout(t)
+  }, [phase, rest.length, best.length])
   useEffect(() => { // 움직임을 줄인 환경은 애니메이션이 없어 animationend가 안 온다
     if (phase === 'closing' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPhase(false)
   }, [phase])

@@ -115,7 +115,9 @@
 /* 펼침/접기: 폭·높이를 재지 않고 keyframes만. 쿠폰마다 40ms씩 늦게 시작, 접을 때는 같은 애니메이션을 거꾸로(animationend에서 내린다) */
 @keyframes cc-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 .cc-deal--more, .cc-tbl { animation: cc-in 180ms ease-out both; animation-delay: calc(var(--i, 0) * 40ms); }
-.cc:not(.cc--open) .cc-deal--more, .cc:not(.cc--open) .cc-tbl { animation-direction: reverse; animation-timing-function: ease-in; }
+@keyframes cc-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-6px); } }
+/* 접을 때는 다른 이름의 keyframes로 새로 시작한다(animation-direction만 바꾸면 끝난 애니메이션이 다시 안 돈다) */
+.cc:not(.cc--open) .cc-deal--more, .cc:not(.cc--open) .cc-tbl { animation: cc-out 160ms ease-in both; animation-delay: calc(var(--i, 0) * 40ms); }
 .cc--highlighted { outline: 2px solid #2f6fd1; outline-offset: 2px; }
 /* 숨긴 카드가 오른쪽 위로 쪼그라들며 사라진다(운영 카드와 같은 모션, 시간은 App.jsx의 값과 맞춘다) */
 .cc--leaving { pointer-events: none; transform-origin: 100% 0; animation: brand-card-leave .1s cubic-bezier(.55, 0, 1, .45) both; }
