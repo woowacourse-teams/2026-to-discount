@@ -564,6 +564,18 @@ export default function App({ initial = null }) {
               </button>
             )
           })}
+          {/* 5천원 이상만(2026-10-03, 사용자). 시트의 같은 칸과 한 상태다. 기본은 켜짐. */}
+          <button
+            type="button"
+            className={`quick-bar__chip${filters.minAmount5k ? ' quick-bar__chip--on' : ''}`}
+            aria-pressed={filters.minAmount5k}
+            onClick={() => {
+              setFilters((f) => ({ ...f, minAmount5k: !f.minAmount5k }))
+              track('quick_filter', { key: 'min5k', on: !filters.minAmount5k })
+            }}
+          >
+            5천원 이상만
+          </button>
         </div>
         {/* 숨긴 목록은 정렬과 다른 일이라 오른쪽에 따로 선다. 떠 있는 알약으로 두었더니
             하단 배너와 겹쳤다(2026-09-24 사용자). 숨긴 것이 없으면 안 그린다. */}

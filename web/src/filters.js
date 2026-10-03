@@ -65,7 +65,9 @@ const DEFAULT_SCALARS = {
   // 특정 메뉴 한정 쿠폰(qualifier "특정메뉴")을 "최고 할인" 산정과 정렬에 넣을지(2026-09-19).
   includeMenu: false,
   // 5,000원 이상 할인만(2026-09-19). 그 아래 오퍼를 카드에서 빼고, 남는 오퍼가 없는 카드는 숨긴다.
-  minAmount5k: false,
+  // 2026-10-03부터 기본으로 켠다(사용자): 최소주문 낮은순으로 보면 너무 작은 할인이 앞을 채웠다.
+  // 배너 분석(docs/metrics/BANNER-TYPES-20261003.md)에서도 5천원 미만은 클릭률이 0.7% 안팎이었다.
+  minAmount5k: true,
   // 정렬은 하나다(2026-09-19). 처음은 할인액 높은 순.(2026-09-19, 사용자: 우선순위 개념 제거). 처음은 할인액 높은 순 하나.
   sorts: [{ key: 'amount', dir: 'desc' }],
   search: '',
@@ -281,7 +283,8 @@ export function applyFilters(brands, filters) {
   const visible = brands
     .map((b) => {
       const offers = b.offers.filter((o) => (o.platform === OWN || filters.platforms.has(o.platform))
-        && (!filters.minAmount5k || (o.amount ?? 0) >= 5000))
+        // 검색 중에는 금액으로 거르지 않는다. 브랜드를 이름으로 찾았는데 5천원 미만이라 안 보이면 없는 줄 안다.
+        && (!filters.minAmount5k || q !== '' || (o.amount ?? 0) >= 5000))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
     .filter((b) => {

@@ -59,11 +59,12 @@ test('자사 오퍼는 플랫폼 필터 밖이다 - 배달앱을 다 꺼도 남�
       { platform: 'baemin', amount: 3000, certainty: 'exact', kind: 'discount' },
     ],
   }]
-  const all = defaultFilters()
+  // 이 테스트는 플랫폼 필터만 본다. 5천원 이상만(2026-10-03부터 기본 켜짐)은 끈다.
+  const all = { ...defaultFilters(), minAmount5k: false }
   assert.equal(applyFilters(brands, all)[0].offers.length, 2)
 
   // 필터가 고르는 것은 "어느 배달앱으로 시킬까"다. 자사 행사는 그 질문의 답이 아니다.
-  const none = { ...defaultFilters(), platforms: new Set() }
+  const none = { ...defaultFilters(), minAmount5k: false, platforms: new Set() }
   const left = applyFilters(brands, none)
   assert.equal(left.length, 1)
   assert.deepEqual(left[0].offers.map((o) => o.platform), ['own'])
@@ -153,4 +154,18 @@ test('화면에 찍을 최고액은 특정메뉴 천장값(4,999원)을 쓰지 �
   assert.equal(displayBestAmount(menuOnly, false), null)
   assert.equal(displayBestAmount(menuOnly, { menu: true }), 12100)
   assert.equal(displayBestAmount([{ platform: 'baemin', certainty: 'exact', amount: 8000, soldOut: true }]), null)
+})
+
+
+test('5천원 이상만은 기본으로 켜져 있고, 검색 중에는 금액으로 거르지 않는다', () => {
+  // 2026-10-03 사용자: 최소주문 낮은순으로 보면 너무 작은 할인이 앞을 채웠다.
+  const brands = [
+    { name: '디디치킨', category: 'chicken', offers: [{ platform: 'baemin', amount: 2000, certainty: 'exact', kind: 'discount' }] },
+    { name: '청년피자', category: 'pizza', offers: [{ platform: 'baemin', amount: 7500, certainty: 'exact', kind: 'discount' }] },
+  ]
+  const f = defaultFilters()
+  assert.equal(f.minAmount5k, true)
+  assert.deepEqual(applyFilters(brands, f).map((b) => b.name), ['청년피자'])
+  // 이름으로 찾았는데 금액 때문에 안 보이면 없는 줄 안다.
+  assert.deepEqual(applyFilters(brands, { ...f, search: '디디' }).map((b) => b.name), ['디디치킨'])
 })
