@@ -63,17 +63,6 @@ export function badgesOf(offer, { showBestFit = true, shortTime = true } = {}) {
   return out
 }
 
-/**
- * 복수 최고 쿠폰의 포스트잇 배지. 모든 앱의 배지가 같으면 앱 표시 없이(platform null),
- * 다르면 배지마다 그 앱을 붙여 어느 앱 것인지 밝힌다. 배지가 없으면 빈 배열.
- */
-export function postitOf(offers) {
-  const lists = offers.map((x) => badgesOf(x))
-  const key = (l) => JSON.stringify(l)
-  if (lists.every((l) => key(l) === key(lists[0]))) return lists[0].map((b) => ({ platform: null, ...b }))
-  return offers.flatMap((x, i) => lists[i].map((b) => ({ platform: x.platform, ...b })))
-}
-
 /** 이름 한 줄. 그린 뒤 폭을 재지 않고 글자 수로 정한다(배치 계산을 늘리지 않으려고). */
 export function nameFontPx(name) {
   const len = [...name].length

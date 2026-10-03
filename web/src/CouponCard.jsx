@@ -5,7 +5,7 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
-import { amountText, badgesOf, formulaOf, minLabel, nameFontPx, postitOf, splitOffers } from './couponModel.js'
+import { amountText, badgesOf, formulaOf, minLabel, nameFontPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { offerClickProps, offerLink } from './offerLink.js'
@@ -49,46 +49,54 @@ function OfferLinkA({ offer, brand, position, best, className, children }) {
   )
 }
 
-function Ticket({ brand, best, hasBest, position }) {
-  if (best.length === 1) {
-    const o = best[0]
-    return (
-      <OfferLinkA offer={o} brand={brand} position={position} best={hasBest} className={`cc-ticket${hasBest ? '' : ' cc-ticket--muted'}`}>
-        <span className="cc-info">
-          <PlatformBadge platformKey={o.platform} brand={brand.name} />
-          <span><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
-        </span>
-        <span className="cc-stub"><Go /></span>
-      </OfferLinkA>
-    )
-  }
-  // 동점 최고: 금액은 한 번, 앱마다 한 줄씩 각자 이동. 배지는 오른쪽 위 포스트잇.
-  const postit = postitOf(best)
+function Coupon({ o, brand, position, best, muted }) {
   return (
-    <div className="cc-ticket-wrap">
-      <div className="cc-ticket cc-ticket--tie">
-        <span className="cc-info"><Amt offer={best[0]} /></span>
-        <span className="cc-apps">
-          {best.map((o) => (
-            <OfferLinkA key={offerKey(o)} offer={o} brand={brand} position={position} best className="cc-app">
-              <PlatformBadge platformKey={o.platform} brand={brand.name} />
-              <Min value={o.minOrderAmount} />
-              <Go />
-            </OfferLinkA>
-          ))}
-        </span>
+    <OfferLinkA offer={o} brand={brand} position={position} best={best} className={`cc-ticket${muted ? ' cc-ticket--muted' : ''}`}>
+      <span className="cc-info">
+        <PlatformBadge platformKey={o.platform} brand={brand.name} />
+        <span><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
+      </span>
+      <span className="cc-stub"><Go /></span>
+    </OfferLinkA>
+  )
+}
+
+// 동점 최고: 오퍼마다 단독 쿠폰과 같은 쿠폰 하나, 가로 캐러셀(CSS 스크롤 스냅)에 나란히. 배지는 그 쿠폰 오른쪽 위 포스트잇.
+// 현재 위치 점은 IntersectionObserver로만 갱신한다(스크롤 이벤트, 폭 재기 없음). 서버 렌더와 마운트 전에는 첫 점이 켜져 있다.
+function Carousel({ brand, best, position }) {
+  const [idx, setIdx] = useState(0)
+  const ref = useRef(null)
+  useEffect(() => {
+    const root = ref.current
+    if (!root || typeof IntersectionObserver === 'undefined') return undefined
+    const slides = [...root.children]
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) setIdx(slides.indexOf(e.target))
+    }, { root, threshold: 0.6 })
+    slides.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [best.length])
+  return (
+    <div className="cc-carousel-wrap">
+      <div className="cc-carousel" ref={ref}>
+        {best.map((o) => {
+          const tags = badgesOf(o)
+          return (
+            <div key={offerKey(o)} className="cc-slide">
+              <Coupon o={o} brand={brand} position={position} best />
+              {tags.length > 0 && <span className="cc-postit">{tags.map((x) => <Tag key={x.kind} b={x} platform={o.platform} />)}</span>}
+            </div>
+          )
+        })}
       </div>
-      {postit.length > 0 && (
-        <span className="cc-postit">
-          {postit.map((b) => (
-            <span key={`${b.platform}${b.kind}`} className={`cc-tag cc-tag--${b.kind}`} data-platform={b.platform}>
-              {b.platform && <PlatformBadge platformKey={b.platform} brand={brand.name} />}{b.text}
-            </span>
-          ))}
-        </span>
-      )}
+      <div className="cc-dots" aria-hidden="true">{best.map((o, i) => <i key={offerKey(o)} className={i === idx ? 'on' : undefined} />)}</div>
     </div>
   )
+}
+
+function Ticket({ brand, best, hasBest, position }) {
+  if (best.length === 1) return <Coupon o={best[0]} brand={brand} position={position} best={hasBest} muted={!hasBest} />
+  return <Carousel brand={brand} best={best} position={position} />
 }
 
 function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false }) {

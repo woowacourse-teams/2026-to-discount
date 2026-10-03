@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { splitOffers, minLabel, formulaOf, badgesOf, postitOf, nameFontPx, amountText } from './couponModel.js'
+import { splitOffers, minLabel, formulaOf, badgesOf, nameFontPx, amountText } from './couponModel.js'
 
 const o = (platform, amount, extra = {}) => ({ platform, amount, certainty: 'exact', kind: 'discount', ...extra })
 
@@ -82,13 +82,6 @@ test('배지 3: 한정은 원문, 시각 꼴만 N시로 줄인다', () => {
 test('배지 순서는 값의 성격, 멤버십, 한정', () => {
   const b = badgesOf(o('coupangeats', 10000, { qualifier: '랜덤', membership: 'coupangEats', badge: '오전 11시 오픈' }))
   assert.deepEqual(b.map((x) => x.kind), ['qualifier-random', 'membership', 'limited'])
-})
-
-test('포스트잇: 모두 같으면 아이콘 없이, 다르면 배지마다 앱을 붙인다', () => {
-  const t = { badge: '오전 11시 오픈' }
-  assert.deepEqual(postitOf([o('baemin', 7000, t), o('ddangyo', 7000, t)]), [{ platform: null, kind: 'limited', text: '11시' }])
-  assert.deepEqual(postitOf([o('yogiyo', 5000, { qualifier: '최적' }), o('ddangyo', 5000)]), [{ platform: 'yogiyo', kind: 'best-fit', text: '최적' }])
-  assert.deepEqual(postitOf([o('yogiyo', 5000), o('ddangyo', 5000)]), [])
 })
 
 test('이름 글자 크기: 8자까지 17, 한 자마다 0.7씩, 12 아래로 안 간다', () => {

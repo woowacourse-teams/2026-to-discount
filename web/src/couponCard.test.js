@@ -38,9 +38,10 @@ for (const [label, brand] of Object.entries(BRANDS)) {
   })
 }
 
-test('최적 계산식은 이름 줄 아래, 동점 포스트잇은 같은 배지면 앱 아이콘 없이', () => {
+test('최적 계산식은 이름 줄 아래, 동점은 쿠폰마다 캐러셀 슬라이드와 점', () => {
   assert.match(render(Coupon, BRANDS.최적), /class="cc-fx">25,000원 × 5% \+ 4,000원</)
   const tie = render(Coupon, BRANDS.동점셋)
-  assert.match(tie, /class="cc-postit"/)
+  assert.equal((tie.match(/class="cc-slide"/g) ?? []).length, 3)
+  assert.match(tie, /class="cc-dots"[^>]*><i class="on"><\/i><i><\/i><i><\/i>/)
   assert.doesNotMatch(tie, /class="cc-fx"/)
 })

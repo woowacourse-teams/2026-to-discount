@@ -42,11 +42,9 @@
           mask: radial-gradient(circle 7px at calc(100% - var(--stub)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 7px at calc(100% - var(--stub)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat; }
 .cc-ticket:active { transform: scale(.985); }
 .cc-ticket--muted .cc-amt { color: var(--text-muted); }
-.cc-ticket--tie { --stub: 132px; }
 .cc-info { display: flex; align-items: center; gap: 12px; padding: 16px 14px; min-width: 0; --pb: 34px; }
 .cc-info > span { min-width: 0; }
 .cc-amt { display: block; font-size: 25px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.cc-ticket--tie .cc-amt { font-size: 22px; }
 .cc-amt--sm { font-size: 18px; }
 .cc-amt s { text-decoration-thickness: 2px; }
 .cc-soldout { font-style: normal; font-size: 11px; font-weight: 700; margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--text) 10%, var(--surface)); color: var(--text-muted); letter-spacing: 0; vertical-align: middle; }
@@ -56,17 +54,18 @@
 .cc-stub svg, .cc-ps svg { width: 18px; height: 18px; }
 .cc-ps { color: var(--text); }
 
-/* 같은 금액이 여러 앱이면 우열을 꾸며내지 않는다: 금액은 한 번, 앱마다 한 줄씩 각자 이동 */
-.cc-ticket-wrap { flex: 1; min-width: 0; position: relative; display: flex; }
-.cc-apps { display: flex; flex-direction: column; border-left: 1.5px dashed var(--cc-edge); }
-.cc-app { flex: 1; min-width: 0; display: grid; grid-template-columns: 20px 1fr 14px; align-items: center; gap: 6px; padding: 6px 10px; background: var(--text); color: var(--surface); text-decoration: none; --pb: 20px; }
-.cc-app + .cc-app { border-top: 1px solid color-mix(in srgb, var(--surface) 18%, transparent); }
-.cc-app .cc-min { color: inherit; opacity: .85; }
-.cc-app svg { width: 14px; height: 14px; }
-.cc-app:active { filter: brightness(1.25); }
-/* 복수 최고의 배지: 쿠폰 오른쪽 위 포스트잇(오른쪽으로 기움). 앱마다 다르면 배지 앞에 그 앱 아이콘 12px */
-.cc-postit { position: absolute; top: -9px; right: 8px; display: flex; gap: 3px; transform: rotate(4deg); transform-origin: left bottom; pointer-events: none; --pb: 12px; }
+/* 같은 금액이 여러 앱이면 우열을 꾸며내지 않는다: 쿠폰마다 하나씩 가로 캐러셀(CSS 스크롤 스냅). 옆 쿠폰이 조금 보인다 */
+.cc-carousel-wrap { flex: 1; min-width: 0; }
+.cc-carousel { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; padding-top: 10px; scrollbar-width: none; -ms-overflow-style: none; }
+.cc-carousel::-webkit-scrollbar { display: none; }
+.cc-slide { flex: 0 0 86%; scroll-snap-align: start; position: relative; display: flex; }
+.cc-slide .cc-ticket { flex: 1; }
+/* 쿠폰 오른쪽 위 포스트잇(오른쪽으로 기움). 마스크가 쿠폰 안쪽을 자르므로 형제로 둔다 */
+.cc-postit { position: absolute; top: -9px; right: 8px; display: flex; gap: 3px; transform: rotate(4deg); transform-origin: left bottom; pointer-events: none; }
 .cc-postit .cc-tag { box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+.cc-dots { display: flex; justify-content: center; gap: 5px; margin-top: 6px; }
+.cc-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--cc-edge); }
+.cc-dots i.on { background: var(--text); }
 
 .cc-hint { all: unset; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; font-size: 12px; color: var(--text-muted); }
 .cc-hint svg { width: 12px; height: 12px; transition: transform .15s; }
