@@ -1,7 +1,7 @@
 /* 메인 화면 A안 쿠폰 브랜드 카드. 절취 홈은 mask(요소 추가 없음), 그림자는 감싸는 .cc-deal의 drop-shadow. 폭을 재는 코드는 없다. */
 .cc {
   --cc-edge: color-mix(in srgb, var(--text) 22%, transparent);
-  --logo: clamp(52px, 16vw, 64px); --tk-h: clamp(88px, 25vw, 100px); --tk-w: calc(100% - 20px); /* 캐러셀에서 다음 쿠폰이 오른쪽 끝 12px만 보인다(12px + 간격 8px) */ --stub: clamp(60px, 18vw, 72px);
+  --logo: clamp(52px, 16vw, 64px); --tk-h: clamp(116px, 33vw, 128px); --tk-w: calc(100% - 20px); /* 캐러셀에서 다음 쿠폰이 오른쪽 끝 12px만 보인다(12px + 간격 8px) */ --stub: clamp(60px, 18vw, 72px);
   --cc-fs-sm: clamp(10.5px, 3vw, 12px); --cc-fs-min: clamp(11px, 3.1vw, 12.5px);
   position: relative; background: var(--surface); color: var(--text);
   border: 1px solid var(--border); border-radius: 12px; padding: clamp(14px, 4.4vw, 18px);
@@ -14,14 +14,15 @@
 .cc .platform-badge { width: var(--pb, 20px); height: var(--pb, 20px); border-radius: calc(var(--pb, 20px) * .28); flex: none; }
 
 /* 머리: 로고 오른쪽 고정 크기 블록(높이 = 로고). 세 줄 고정 칸: 이름, 배지, 설명/계산식. 비어도 자리 유지, 넘치면 말줄임 */
-.cc-head { grid-column: 2; grid-row: 1; height: var(--logo); min-width: 0; padding-right: 28px; display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); grid-template-rows: 55% 45%; column-gap: 8px; align-items: center; overflow: hidden; }
-.cc-head button { all: unset; cursor: pointer; min-width: 0; display: block; grid-column: 1; grid-row: 1; }
-.cc-head .cc-tags { grid-column: 2; grid-row: 1; }
-.cc-head .cc-fx { grid-column: 1 / -1; grid-row: 2; }
-.cc-head .cc-tag { font-size: clamp(10px, 2.9vw, 11px); padding: 3px 8px; }
-.cc-head button:focus-visible, .cc-hint:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cc-head { grid-column: 2; grid-row: 1; height: var(--logo); min-width: 0; padding-right: 28px; display: grid; grid-template-rows: 58% 42%; align-items: center; overflow: hidden; }
+.cc-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cc-head button { all: unset; cursor: pointer; flex: 0 1 auto; min-width: 0; display: block; }
+.cc-head button:focus-visible, .cc-hint:focus-visible, .cc-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cc-head .cc-tags { flex: none; }
+.cc-head .cc-fx { grid-row: 2; }
+.cc-head .cc-tag { font-size: clamp(10px, 2.9vw, 11px); padding: 5px 8px; }
 .cc-nm { display: block; font-size: max(14px, calc(clamp(18px, 5.4vw, 20px) - var(--cut, 0px))); font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cc-tags { display: flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+.cc-tags { display: flex; align-items: center; gap: 4px; }
 
 /* 배지 라벨. 색은 운영 칩과 같다 */
 .cc-tag { display: inline-flex; align-items: center; justify-content: center; gap: 3px; font-size: clamp(10px, 2.9vw, 11px); font-weight: 600; line-height: 1; border-radius: 5px; padding: 1px 6px; white-space: nowrap; background: color-mix(in srgb, var(--text) 8%, var(--surface)); color: var(--text-muted); }
@@ -46,27 +47,26 @@
 .cc-ticket--muted .cc-amt { color: #6b6a66; }
 /* 하단 검은 띠: 이동 영역을 뺀 정보 칸 아래(::after, 요소 없음) */
 .cc-ticket::after { content: ""; position: absolute; left: 0; bottom: 0; width: calc(100% - var(--stub)); height: 7px; background: #1f1f1f; border-bottom-left-radius: inherit; pointer-events: none; }
+.cc-info { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: 20px auto auto; align-content: center; column-gap: 8px; row-gap: 3px; padding: 20px clamp(10px, 3.2vw, 14px) 28px; min-width: 0; overflow: hidden; }
+.cc-info > .cc-amt, .cc-info > .cc-min { grid-column: 1; }
+.cc-chrow { grid-column: 1 / -1; grid-row: 1; display: flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+.cc-chrow .cc-tag { padding: 3px 6px; }
+.cc-amt { color: #6b6a66; }
+/* 하단 검은 띠: 이동 영역을 뺀 정보 칸 아래(::after, 요소 없음) */
+.cc-ticket::after { content: ""; position: absolute; left: 0; bottom: 0; width: calc(100% - var(--stub)); height: 7px; background: #1f1f1f; border-bottom-left-radius: inherit; pointer-events: none; }
 .cc-info { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; align-content: center; column-gap: 8px; row-gap: 3px; padding: 16px clamp(10px, 3.2vw, 14px) 22px; min-width: 0; overflow: hidden; }
 .cc-info > .cc-amt, .cc-info > .cc-min { grid-column: 1; }
-.cc-amt { display: flex; align-items: baseline; font-size: clamp(21px, 6.4vw, 26px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-amt { grid-row: 2; display: flex; align-items: baseline; font-size: clamp(21px, 6.4vw, 26px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cc-amt small { font-size: .6em; font-weight: 700; margin-left: 1px; }
 .cc-amt s { text-decoration-thickness: 2px; }
 /* 채널 칩(포장/배달): 금액 옆, 금액과의 간격 8px */
-.cc-ch { font-style: normal; line-height: 1; padding: 3px 6px !important; align-self: center; margin-left: 8px; font-size: clamp(10px, 2.9vw, 11px); font-weight: 600; letter-spacing: 0; padding: 1px 6px; border-radius: 4px; background: #eceae6; color: #4a4a47; }
+.cc-ch { font-style: normal; font-size: clamp(10px, 2.9vw, 11px); font-weight: 600; line-height: 1; letter-spacing: 0; padding: 3px 6px; border-radius: 5px; background: #eceae6; color: #4a4a47; white-space: nowrap; }
 .cc-soldout { font-style: normal; font-size: var(--cc-fs-sm); font-weight: 600; margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: #eceae6; color: #6b6a66; letter-spacing: 0; vertical-align: middle; }
-.cc-min { display: flex; align-items: center; gap: 2px; font-size: clamp(12px, 3.4vw, 13.5px); line-height: 1.3; color: #6b6a66; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cc-min { grid-row: 3; display: flex; align-items: center; gap: 2px; font-size: clamp(12px, 3.4vw, 13.5px); line-height: 1.3; color: #6b6a66; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .cc-min svg { width: 11px; height: 11px; flex: none; }
 /* 펼친 쿠폰의 배지: 금액 오른쪽, 이동 영역 왼쪽 빈칸에 라벨(쿠폰 높이를 밀지 않는다) */
-.cc-side-tags { grid-column: 2; grid-row: 1 / 3; align-self: center; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 0; max-width: 92px; overflow: hidden; }
+.cc-side-tags { grid-column: 2; grid-row: 2 / 4; align-self: center; display: flex; justify-content: flex-end; min-width: 0; max-width: 120px; overflow: hidden; }
 .cc-side-tags .cc-fx { max-width: 100%; text-align: right; }
-.cc-side-tags .cc-tag { background-color: #f1efeb; color: #6b6a66; }
-.cc-side-tags .cc-tag--qualifier-random, .cc-side-tags .cc-tag--membership { background-color: #333; color: #fff; }
-.cc-side-tags .cc-tag--membership[data-platform="baemin"] { background-color: #0cefd3; color: #06382f; }
-.cc-side-tags .cc-tag--membership[data-platform="ddangyo"] { background-color: #f5a623; }
-.cc-side-tags .cc-tag--membership[data-platform="yogiyo"] { background-color: #fa0050; }
-.cc-side-tags .cc-tag--best-fit { background-color: #edf3ec; color: #346538; }
-.cc-side-tags .cc-tag--limited { background-color: #fff3da; color: #9a5b00; }
-.cc-side-tags .cc-tag--rate { background-color: #e3f2fd; color: #0a72c4; }
 /* 이동 영역(링크): 앱 색 바탕, 가운데 흰 바탕 둥근 사각 앱 로고가 이동 버튼을 대신. 테두리 없음 */
 .cc [data-platform="baemin"] { --pc: #2ac1bc; }
 .cc [data-platform="coupangeats"] { --pc: #d62d34; }
@@ -77,10 +77,8 @@
 
 /* 같은 금액이 여러 앱이면 우열을 꾸며내지 않는다: 쿠폰마다 하나씩 가로 캐러셀(CSS 스크롤 스냅). 그림자가 잘리지 않게 안쪽 여백을 둔다 */
 .cc-carousel-wrap { flex: 1; min-width: 0; }
-.cc-carousel { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 18px 18px 28px; margin: -18px -18px -28px; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; }
+.cc-carousel { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline-start: 18px; padding: 18px 38px 28px 18px; margin: -18px -18px -28px; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; }
 .cc-carousel::-webkit-scrollbar { display: none; }
-.cc-carousel--3 { padding-inline: 32px; scroll-snap-type: x mandatory; }
-.cc-carousel--3 .cc-slide { flex-basis: calc(100% - 28px); scroll-snap-align: center; }
 .cc-carousel.cc-dragging { scroll-snap-type: none; cursor: grabbing; user-select: none; }
 .cc-slide { flex: 0 0 var(--tk-w); scroll-snap-align: start; position: relative; display: flex; }
 .cc-slide .cc-ticket { width: 100%; }
@@ -91,13 +89,17 @@
 .cc-dots i.on { background: var(--text); }
 
 /* 하위 라벨 한 줄(쿠폰 아래). 펼치면 앱별 쿠폰이 대신하므로 CSS로만 숨긴다 */
-.cc-alts { grid-column: 1 / 3; display: grid; grid-template-rows: 1fr; opacity: 1; transition: grid-template-rows 260ms cubic-bezier(.4, 0, .2, 1) 120ms, opacity 200ms ease 120ms; }
+.cc-alts { grid-column: 1 / 3; opacity: 1; visibility: visible; transition: opacity 240ms ease 280ms, visibility 0s 280ms; }
 .cc-alts-in { display: flex; gap: clamp(9px, 3.3vw, 15.5px); min-width: 0; min-height: 0; overflow: hidden; }
-/* 펼칠 때 하위 라벨이 먼저 사라지고(같은 grid 기법), 접을 때는 펼친 영역이 닫힌 뒤 다시 나타난다(위 transition의 110ms 지연) */
-.cc--open .cc-alts { grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 280ms cubic-bezier(.4, 0, .2, 1), opacity 140ms ease; }
+/* 펼치면 하위 라벨 줄은 높이를 그대로 두고 보이지만 않게 한다(카드가 줄었다 늘지 않게). 접을 때는 펼친 영역이 다 닫힌 뒤 240ms 페이드인 */
+.cc--open .cc-alts { opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 0s 140ms; }
 .cc-alt { display: flex; align-items: center; gap: 5.5px; font-size: clamp(12.8px, 3.7vw, 14.4px); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; --pb: 20px; }
 .cc-alt--sold { text-decoration: line-through; }
 .cc-hint { all: unset; grid-column: 1 / 3; cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: 14px; color: var(--text-muted); }
+.cc--open .cc-hint { opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 0s 140ms; }
+.cc-hint { transition: opacity 240ms ease 280ms, visibility 0s 280ms; }
+.cc-fold { all: unset; cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 12px; font-size: 14px; color: var(--text-muted); }
+.cc-fold svg { width: 16px; height: 16px; }
 .cc-hint svg { width: 16px; height: 16px; transition: transform .28s cubic-bezier(.2, 0, 0, 1); }
 .cc--open .cc-hint svg { transform: rotate(180deg); }
 .cc-hide { position: absolute; top: 8px; right: 8px; background: none; border: 0; color: var(--text-muted); opacity: .7; padding: 4px; cursor: pointer; }
@@ -120,19 +122,6 @@
 /* 숨긴 카드가 오른쪽 위로 쪼그라들며 사라진다(운영 카드와 같은 모션, 시간은 App.jsx의 값과 맞춘다) */
 .cc--leaving { pointer-events: none; transform-origin: 100% 0; animation: brand-card-leave .1s cubic-bezier(.55, 0, 1, .45) both; }
 @media (prefers-reduced-motion: reduce) { .cc--leaving { animation: none; opacity: 0; } }
-/* ?photo=1 시안: 이동 영역에 붙은 배경처럼 음식 사진이 이어지고 정보 칸 쪽으로 흰색으로 사라진다. 사진은 표본 하나(모든 쿠폰 같음, 브랜드별 실제 사진은 나중) */
-.cc--photo .cc-ticket::before { content: ""; position: absolute; top: 0; bottom: 0; right: var(--stub); width: 52%; background: url("/sample/menu-sample.jpg") center / cover; -webkit-mask-image: linear-gradient(to right, transparent, #000 70%); mask-image: linear-gradient(to right, transparent, #000 70%); pointer-events: none; }
+/* ?photo=1 시안: 정보 칸 오른쪽 빈 여백(금액 오른쪽, 이동 영역 왼쪽)에 음식 사진이 들어가고 왼쪽으로 흰색에 녹는다. 사진은 표본 하나(모든 쿠폰 같음, 브랜드별 실제 사진은 나중) */
+.cc--photo .cc-ticket::before { content: ""; position: absolute; top: 0; bottom: 7px; right: var(--stub); width: 34%; background: url("/sample/menu-sample.jpg") center / cover; -webkit-mask-image: linear-gradient(to right, transparent, #000 55%); mask-image: linear-gradient(to right, transparent, #000 55%); pointer-events: none; }
 .cc--photo .cc-info { position: relative; z-index: 1; }
-
-/* 펼침/접힘: grid 0fr 1fr 기법(CSS-Tricks, animationpatterns grid-row-accordion). 닫힌 상태(0fr)로 DOM에 먼저 들어가고 두 프레임 뒤 1fr로 바뀐다.
-   곡선은 높이가 한 프레임에 크게 뛰지 않도록 시작과 끝이 모두 완만한 곡선을 쓴다(M3 emphasized 곡선은 끝 프레임에서 200px 넘게 뛰었다, 실측). */
-.cc > .cc-deal, .cc > .cc-alts, .cc > .cc-hint { margin-top: 12px; }
-.cc-x { grid-column: 1 / 3; display: grid; grid-template-rows: 0fr; transition: grid-template-rows 260ms cubic-bezier(.4, 0, .2, 1); }
-.cc--open .cc-x { grid-template-rows: 1fr; transition: grid-template-rows 320ms cubic-bezier(.3, 0, .1, 1) 60ms; }
-.cc-x-in { min-height: 0; overflow: hidden; }
-.cc--settled .cc-x-in { overflow: visible; }
-.cc-x-in > .cc-tbl:first-child, .cc-more > .cc-deal--more:first-child { margin-top: 12px; }
-/* 안의 쿠폰과 표는 투명도와 6px 이동, 40ms씩 늦게 시작(끝날 때도 지연) */
-.cc-deal--more, .cc-tbl { opacity: 0; transform: translateY(-6px); transition: opacity 160ms ease calc(var(--i, 0) * 40ms), transform 160ms ease calc(var(--i, 0) * 40ms); }
-.cc--open .cc-deal--more, .cc--open .cc-tbl { opacity: 1; transform: none; transition: opacity 220ms ease calc(120ms + var(--i, 0) * 40ms), transform 260ms cubic-bezier(.2, 0, 0, 1) calc(120ms + var(--i, 0) * 40ms); }
-@media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }

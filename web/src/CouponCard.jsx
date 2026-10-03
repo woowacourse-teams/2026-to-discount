@@ -25,14 +25,12 @@ function Min({ value }) {
 
 // 품절은 운영 칩과 같다: 금액에 취소선, 옆에 "품절" 라벨.
 function Amt({ offer }) {
-  const ch = channelOf(offer)
-  const won = offer.amount != null
-  const num = won ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
+  const hasNum = offer.amount != null
+  const num = hasNum ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
   return (
     <span className="cc-amt">
-      {offer.soldOut ? <s>{num}{won && <small>원</small>}</s> : <>{num}{won && <small>원</small>}</>}
+      {offer.soldOut ? <s>{num}{hasNum && <small>원</small>}</s> : <>{num}{hasNum && <small>원</small>}</>}
       {offer.soldOut && <em className="cc-soldout">품절</em>}
-      {ch && <em className="cc-ch">{ch}</em>}
     </span>
   )
 }
@@ -53,10 +51,18 @@ function OfferLinkA({ offer, brand, position, best, className, children, ...rest
 
 // 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기): 흰 정보 칸(금액, 최소주문, 펼친 쿠폰은 오른쪽 빈칸에 배지 라벨),
 // 하단 검은 띠, 오른쪽 앱 색 이동 영역(링크는 여기만, 앱 로고가 이동 버튼을 대신한다).
-function Coupon({ o, brand, position, best, muted, side, ...rest }) {
+function Coupon({ o, brand, position, best, muted, tags = [], side, ...rest }) {
+  const ch = channelOf(o)
   return (
     <div className={`cc-ticket${muted ? ' cc-ticket--muted' : ''}`} data-platform={o.platform} {...rest}>
       <span className="cc-info">
+        {/* 금액 위 줄: 채널(포장/배달)과 배지. 왼쪽 시작은 금액과 같다. 없어도 한 줄 높이를 비워 금액 자리를 맞춘다 */}
+        {(ch || tags.length > 0) && (
+          <span className="cc-chrow">
+            {ch && <em className="cc-ch">{ch}</em>}
+            {tags.map((b) => <Tag key={b.kind} b={b} platform={o.platform} />)}
+          </span>
+        )}
         <Amt offer={o} />
         <Min value={o.minOrderAmount} />
         {side}
@@ -101,7 +107,7 @@ function Carousel({ brand, best, position, }) {
   }, [best.length])
   return (
     <div className="cc-carousel-wrap">
-      <div className={`cc-carousel${best.length >= 3 ? ' cc-carousel--3' : ''}`} ref={ref} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onClickCapture={onClickCapture}>
+      <div className="cc-carousel" ref={ref} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onClickCapture={onClickCapture}>
         {best.map((o) => {
           const tags = badgesOf(o)
           return (
@@ -188,6 +194,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   useEffect(() => observeBrandImpression(headRef.current, brandImpressionProps(brand, position),
     (p) => track('brand_impression', p)), [brand, position])
 
+  const shownName = brand.shortName || brand.name
   const single = best.length === 1 ? best[0] : null
   const fx = single && formulaOf(single)
   const bestTables = shown ? best.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
@@ -197,10 +204,13 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>
-        <button type="button" aria-expanded={open}>
-          <span className="cc-nm" style={{ '--cut': `${nameCutPx(brand.name)}px` }}>{brand.name}</span>
-        </button>
-        {single && <div className="cc-tags">{badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}</div>}
+        {/* 1줄: 이름(줄어듦, 말줄임) + 배지(안 줄어듦). brands.yml의 shortName이 응답에 오면 그 이름을 쓴다 */}
+        <div className="cc-line">
+          <button type="button" aria-expanded={open}>
+            <span className="cc-nm" style={{ '--cut': `${nameCutPx(shownName)}px` }}>{shownName}</span>
+          </button>
+          {single && <div className="cc-tags">{badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}</div>}
+        </div>
         {fx && <div className="cc-fx">{fx}</div>}
       </div>
       <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} /></div>
@@ -221,7 +231,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         </div></div>
       )}
       <button type="button" className="cc-hint" aria-expanded={open}>
-        {open ? '접기' : '자세히 보기'}
+        자세히 보기
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       {onHide && (
@@ -239,16 +249,11 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             const t = conditionTable(o)
             const hasTbl = t.rows.length > 0 || t.note
             const anim = { '--i': i + bestTables.length }
-            const side = (tags.length > 0 || f) && (
-              <span className="cc-side-tags">
-                {tags.map((b) => <Tag key={b.kind} b={b} platform={o.platform} />)}
-                {f && <span className="cc-fx">{f}</span>}
-              </span>
-            )
+            const side = f && <span className="cc-side-tags"><span className="cc-fx">{f}</span></span>
             return (
               <Fragment key={offerKey(o)}>
                 <div className="cc-deal cc-deal--more" style={anim}>
-                  <Coupon o={o} brand={brand} position={position} best={false} side={side} />
+                  <Coupon o={o} brand={brand} position={position} best={false} tags={tags} side={side} />
                 </div>
                 {hasTbl && <DetailTable t={t} i={i + bestTables.length} />}
               </Fragment>
@@ -256,6 +261,8 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           })}
         </div></div></div>
       )}
+      {/* 접기: 펼친 영역 맨 아래. 위의 "자세히 보기" 줄은 펼친 동안 높이만 두고 보이지 않게 한다 */}
+      {shown && <div className="cc-x"><div className="cc-x-in"><button type="button" className="cc-fold" aria-expanded={open}>접기<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button></div></div>}
     </article>
   )
 }
