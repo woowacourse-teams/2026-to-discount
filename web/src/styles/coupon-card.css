@@ -125,3 +125,16 @@
 /* ?photo=1 시안: 정보 칸 오른쪽 빈 여백(금액 오른쪽, 이동 영역 왼쪽)에 음식 사진이 들어가고 왼쪽으로 흰색에 녹는다. 사진은 표본 하나(모든 쿠폰 같음, 브랜드별 실제 사진은 나중) */
 .cc--photo .cc-ticket::before { content: ""; position: absolute; top: 0; bottom: 7px; right: var(--stub); width: 34%; background: url("/sample/menu-sample.jpg") center / cover; -webkit-mask-image: linear-gradient(to right, transparent, #000 55%); mask-image: linear-gradient(to right, transparent, #000 55%); pointer-events: none; }
 .cc--photo .cc-info { position: relative; z-index: 1; }
+
+/* 펼침/접힘: grid 0fr 1fr 기법(CSS-Tricks, animationpatterns grid-row-accordion). 닫힌 상태(0fr)로 DOM에 먼저 들어가고 두 프레임 뒤 1fr로 바뀐다.
+   곡선은 높이가 한 프레임에 크게 뛰지 않도록 시작과 끝이 모두 완만한 곡선을 쓴다(M3 emphasized 곡선은 끝 프레임에서 200px 넘게 뛰었다, 실측). */
+.cc > .cc-deal, .cc > .cc-alts, .cc > .cc-hint { margin-top: 12px; }
+.cc-x { grid-column: 1 / 3; display: grid; grid-template-rows: 0fr; transition: grid-template-rows 260ms cubic-bezier(.4, 0, .2, 1); }
+.cc--open .cc-x { grid-template-rows: 1fr; transition: grid-template-rows 320ms cubic-bezier(.3, 0, .1, 1) 60ms; }
+.cc-x-in { min-height: 0; overflow: hidden; }
+.cc--settled .cc-x-in { overflow: visible; }
+.cc-x-in > .cc-tbl:first-child, .cc-more > .cc-deal--more:first-child { margin-top: 12px; }
+/* 안의 쿠폰과 표는 투명도와 6px 이동, 40ms씩 늦게 시작(끝날 때도 지연) */
+.cc-deal--more, .cc-tbl { opacity: 0; transform: translateY(-6px); transition: opacity 160ms ease calc(var(--i, 0) * 40ms), transform 160ms ease calc(var(--i, 0) * 40ms); }
+.cc--open .cc-deal--more, .cc--open .cc-tbl { opacity: 1; transform: none; transition: opacity 220ms ease calc(120ms + var(--i, 0) * 40ms), transform 260ms cubic-bezier(.2, 0, 0, 1) calc(120ms + var(--i, 0) * 40ms); }
+@media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-hint, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
