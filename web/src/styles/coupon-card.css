@@ -4,7 +4,7 @@
   --cc-tk: #fff;
   --cc-edge: color-mix(in srgb, var(--text) 22%, transparent);
   --cc-tk2: #ebe8e2; --cc-cta: #4a4a4e; --logo: clamp(52px, 16vw, 64px);
-  --cc-fs-sm: clamp(10.5px, 3vw, 12px); --cc-fs-min: clamp(10px, 2.8vw, 11.5px);
+  --cc-fs-sm: clamp(10.5px, 3vw, 12px); --cc-fs-min: clamp(11px, 3.1vw, 12.5px); --cc-strip: 28px;
   position: relative; background: var(--surface); color: var(--text);
   border: 1px solid var(--border); border-radius: 12px; padding: clamp(14px, 4.4vw, 18px);
   display: grid; grid-template-columns: var(--logo) minmax(0, 1fr); gap: 10px clamp(10px, 3.2vw, 14px);
@@ -16,12 +16,12 @@
 /* 하위 라벨 한 줄(쿠폰 아래). 펼치면 앱별 쿠폰이 대신하므로 CSS로만 숨긴다 */
 .cc-alts { grid-column: 1 / 3; display: flex; gap: clamp(8px, 3vw, 14px); min-width: 0; overflow: hidden; }
 .cc--open .cc-alts { display: none; }
-.cc-alt { display: flex; align-items: center; gap: 4px; font-size: var(--cc-fs-sm); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-alt { display: flex; align-items: center; gap: 5px; font-size: clamp(11.5px, 3.3vw, 13px); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cc-alt--sold { text-decoration: line-through; }
 .cc .platform-badge { width: var(--pb, 20px); height: var(--pb, 20px); border-radius: calc(var(--pb, 20px) * .28); flex: none; }
-.cc-alt { --pb: 16px; }
-.cc-name { grid-column: 2; grid-row: 1; align-self: end; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; padding-right: 28px; }
-.cc-name button { all: unset; cursor: pointer; min-width: 0; max-width: 100%; }
+.cc-alt { --pb: 18px; }
+.cc-name { grid-column: 2; grid-row: 1 / 3; align-self: center; align-content: center; min-height: calc(var(--logo) + 8px); min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; padding-right: 28px; }
+.cc-name button { all: unset; cursor: pointer; min-width: 0; max-width: 100%; flex-basis: 100%; }
 .cc-name button:focus-visible, .cc-hint:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .cc-nm { display: block; font-size: max(12px, calc(clamp(14px, 4.4vw, 16px) - var(--cut, 0px))); font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -35,21 +35,20 @@
 .cc-tag--membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
 .cc-tag--membership[data-platform="ddangyo"] { background: #f5a623; }
 .cc-tag--membership[data-platform="yogiyo"] { background: #fa0050; }
-.cc > .cc-fx { grid-column: 2; grid-row: 2; align-self: start; }
-.cc-fx { line-height: 1.3; font-size: var(--cc-fs-sm); color: #346538; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.cc-fx { flex-basis: 100%; line-height: 1.3; font-size: var(--cc-fs-sm); color: #346538; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 :root[data-theme="dark"] .cc-fx { color: #7fc48a; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cc-fx { color: #7fc48a; } }
 
 .cc-deal { grid-column: 1 / 3; display: flex; }
-.cc-ticket { --stub: clamp(40px, 12vw, 52px); flex: 1; min-width: 0; min-height: clamp(60px, 18vw, 68px); display: grid; grid-template-columns: 1fr var(--stub); border-radius: 10px; background: var(--cc-tk); color: inherit; text-decoration: none;
+.cc-ticket { --stub: clamp(40px, 12vw, 52px); flex: 1; min-width: 0; min-height: clamp(68px, 20.5vw, 78px); display: grid; grid-template-columns: 1fr var(--stub); border-radius: 10px; background: var(--cc-tk); color: inherit; text-decoration: none;
   -webkit-mask: radial-gradient(circle 7px at calc(100% - var(--stub)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 7px at calc(100% - var(--stub)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat;
           mask: radial-gradient(circle 7px at calc(100% - var(--stub)) 0, #0000 98%, #000) top/100% 51% no-repeat, radial-gradient(circle 7px at calc(100% - var(--stub)) 100%, #0000 98%, #000) bottom/100% 51% no-repeat; }
 .cc-ticket:active { transform: scale(.985); }
 .cc-ticket--muted .cc-amt { color: var(--text-muted); }
 /* 정보 칸은 금액과 최소주문만, 왼쪽 가장자리를 맞춘다 */
 .cc-info { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 3px; padding: clamp(10px, 3.2vw, 14px); min-width: 0; }
-.cc-amt { display: block; font-size: clamp(16px, 5vw, 20px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.cc-amt--sm { font-size: clamp(14px, 4.2vw, 16px); }
+.cc-amt { display: block; font-size: clamp(18px, 5.5vw, 22px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-amt--sm { font-size: clamp(15.5px, 4.7vw, 18px); }
 .cc-amt s { text-decoration-thickness: 2px; }
 .cc-soldout { font-style: normal; font-size: var(--cc-fs-sm); font-weight: 600; margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--text) 10%, var(--surface)); color: var(--text-muted); letter-spacing: 0; vertical-align: middle; }
 .cc-min { display: flex; align-items: center; gap: 2px; font-size: var(--cc-fs-min); line-height: 1.3; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
@@ -107,7 +106,6 @@
 .cc:not(.cc--open) .cc-plat { animation-direction: reverse; animation-timing-function: ease-in; }
 @media (prefers-reduced-motion: reduce) { .cc-plat { animation: none; } }
 
-.cc-name--nofx { grid-row: 1 / 3; align-self: center; }
 
 /* 쿠폰: 흰 바탕 정보 칸 + 은은한 그림자. 마스크가 box-shadow를 자르므로 감싸는 .cc-deal에 drop-shadow */
 .cc-deal { filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .10)) drop-shadow(0 4px 12px rgba(0, 0, 0, .08)); }
@@ -117,18 +115,16 @@
 .cc [data-platform="coupangeats"] { --pc: #d62d34; }
 .cc [data-platform="ddangyo"] { --pc: #f5a623; }
 .cc [data-platform="yogiyo"] { --pc: #fa0050; }
-/* 앱 구분 비교(?mark=band|corner). band: 좌측 띠 9px(::before, 요소 없음) + 로고 왼쪽 위. corner: 띠 없이 정보 칸 오른쪽 위에 로고 */
+/* 앱 구분: 정보 칸 오른쪽 끝(이동 꼭지 바로 왼쪽)에 그 앱 색 세로 띠(::before, 요소 없음), 그 위에 흰 바탕 둥근 사각 앱 로고 */
 .cc-ticket, .cc-plat { position: relative; }
-.cc-ticket > .platform-badge, .cc-plat > .platform-badge { position: absolute; --pb: 19px; z-index: 1; }
-.cc--mband .cc-ticket::before, .cc--mband .cc-plat::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; background: var(--pc, var(--text-muted)); pointer-events: none; }
-.cc--mband .cc-ticket::before { width: 9px; }
-.cc--mband .cc-plat::before { width: 7px; }
-.cc--mband .cc-ticket > .platform-badge { left: 17px; top: 8px; }
-.cc--mband .cc-plat > .platform-badge { left: 15px; top: 8px; }
-.cc--mband .cc-info { padding: 32px clamp(10px, 3.2vw, 14px) clamp(10px, 3.2vw, 14px) calc(clamp(10px, 3.2vw, 14px) + 9px); }
-.cc--mband .cc-pi { padding: 30px clamp(10px, 3.2vw, 14px) 8px calc(clamp(10px, 3.2vw, 14px) + 7px); }
-.cc--mcorner .cc-ticket > .platform-badge { right: calc(var(--stub) + 10px); top: 8px; }
-.cc--mcorner .cc-plat > .platform-badge { right: 50px; top: 7px; }
+.cc-ticket::before, .cc-plat::before { content: ""; position: absolute; top: 0; bottom: 0; background: var(--pc, var(--text-muted)); pointer-events: none; }
+.cc-ticket::before { right: var(--stub); width: var(--cc-strip); }
+.cc-plat::before { right: 40px; width: 24px; }
+.cc-ticket > .platform-badge, .cc-plat > .platform-badge { position: absolute; z-index: 1; background: #fff; border-radius: 7px; box-shadow: 0 1px 2px rgba(0, 0, 0, .18); }
+.cc-ticket > .platform-badge { --pb: 22px; top: 8px; right: calc(var(--stub) + 3px); }
+.cc-plat > .platform-badge { --pb: 18px; top: 8px; right: 43px; }
+.cc-info { padding-right: calc(var(--cc-strip) + 10px); }
+.cc-pi { padding-right: 34px; }
 .cc-stub, .cc-ps { text-decoration: none; }
 .cc-plat:active, .cc-ticket:active { transform: none; }
 /* 캐러셀 마우스 드래그: 끄는 동안은 스냅을 끄고 글자 선택을 막는다 */
