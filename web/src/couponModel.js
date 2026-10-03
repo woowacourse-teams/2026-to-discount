@@ -97,6 +97,14 @@ export function nameCutPx(name) {
   return Math.round(Math.max(0, len - 8) * 0.7 * 10) / 10
 }
 
+/** 쿠폰 금액 옆 채널 칩("포장", "배달"). 금액이 같은 구간의 채널, 없으면 badge 글자에서. 모르면 null(있을 때만 그린다). */
+export function channelOf(offer) {
+  const tier = (offer.tiers ?? []).find((t) => t.channel && t.amount === offer.amount)
+  if (tier) return tier.channel
+  const m = /포장|배달/.exec(offer.badge ?? '')
+  return m ? m[0] : null
+}
+
 export function amountText(offer) {
   return offer.amount != null ? `${offer.amount.toLocaleString('ko-KR')}원` : (offer.rawText ?? '')
 }

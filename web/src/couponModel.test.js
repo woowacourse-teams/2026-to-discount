@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { splitOffers, minLabel, formulaOf, badgesOf, conditionTable, nameCutPx, amountText } from './couponModel.js'
+import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, conditionTable, nameCutPx, amountText } from './couponModel.js'
 
 const o = (platform, amount, extra = {}) => ({ platform, amount, certainty: 'exact', kind: 'discount', ...extra })
 
@@ -117,3 +117,9 @@ test('금액 글자: 숫자가 없으면 원문', () => {
   assert.equal(amountText({ platform: 'own', amount: null, rawText: '1+1' }), '1+1')
 })
 
+
+test('채널 칩: 같은 금액 구간의 채널, 없으면 badge, 모르면 null', () => {
+  assert.equal(channelOf(o('baemin', 7000, { tiers: [{ amount: 7000, channel: '포장' }, { amount: 3000, channel: '배달' }] })), '포장')
+  assert.equal(channelOf(o('baemin', 7000, { badge: '배달 전용' })), '배달')
+  assert.equal(channelOf(o('baemin', 7000)), null)
+})

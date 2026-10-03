@@ -5,7 +5,7 @@ import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
-import { amountText, badgesOf, conditionTable, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, badgesOf, channelOf, conditionTable, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { offerClickProps, offerLink } from './offerLink.js'
@@ -24,10 +24,15 @@ function Min({ value }) {
 }
 
 // 품절은 운영 칩과 같다: 금액에 취소선, 옆에 "품절" 라벨.
-function Amt({ offer, small }) {
+function Amt({ offer }) {
+  const ch = channelOf(offer)
+  const won = offer.amount != null
+  const num = won ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
   return (
-    <span className={`cc-amt${small ? ' cc-amt--sm' : ''}`}>
-      {offer.soldOut ? <><s>{amountText(offer)}</s><em className="cc-soldout">품절</em></> : amountText(offer)}
+    <span className="cc-amt">
+      {offer.soldOut ? <s>{num}{won && <small>원</small>}</s> : <>{num}{won && <small>원</small>}</>}
+      {offer.soldOut && <em className="cc-soldout">품절</em>}
+      {ch && <em className="cc-ch">{ch}</em>}
     </span>
   )
 }
@@ -134,7 +139,7 @@ function Ticket({ brand, best, hasBest, position, }) {
   return <Carousel brand={brand} best={best} position={position} />
 }
 
-function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false }) {
+function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false }) {
   const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   // false | 'open' | 'closing'. 접을 때는 펼칠 때와 같은 애니메이션을 거꾸로 틀고 animationend에서 내린다(폭·높이를 재지 않는다).
   const [phase, setPhase] = useState(false)
@@ -163,7 +168,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const fx = single && formulaOf(single)
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name}
-             className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}`}>
+             className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}`}>
       {/* 두 줄 카드: 1줄 = 로고 + 이름·배지(+계산식 자리), 2줄 = 쿠폰 전체 폭, 그 아래 하위 라벨 한 줄, 그 아래 펼침 버튼 */}
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름, 2줄 배지, 3줄 설명/계산식. 줄 높이는 CSS 고정, 비어도 자리 유지 */}
