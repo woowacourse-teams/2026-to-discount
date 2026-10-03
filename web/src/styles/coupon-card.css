@@ -117,8 +117,11 @@
 .cc-stub, .cc-ps { position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; text-decoration: none; background: var(--pc, var(--cc-cta)); border-left: 1.5px dashed var(--cc-edge); }
 .cc-stub { --pb: 28px; }
 .cc-ps { --pb: 24px; }
-.cc-stub::after, .cc-ps::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: #1f1f1f; }
-.cc-stub .platform-badge, .cc-ps .platform-badge { background: #fff; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, .2); margin-bottom: 4px; }
+/* 검은 띠는 이동 영역을 뺀 정보 칸 하단(::after) */
+.cc-ticket::after, .cc-plat::after { content: ""; position: absolute; left: 0; bottom: 0; height: 7px; background: #1f1f1f; border-bottom-left-radius: inherit; pointer-events: none; }
+.cc-ticket::after { width: calc(100% - var(--stub)); }
+.cc-plat::after { width: calc(100% - var(--ps)); }
+.cc-stub .platform-badge, .cc-ps .platform-badge { background: #fff; border-radius: 8px; box-shadow: 0 1px 2px rgba(0, 0, 0, .2); }
 .cc-plat:active, .cc-ticket:active { transform: none; }
 /* 캐러셀 마우스 드래그: 끄는 동안은 스냅을 끄고 글자 선택을 막는다 */
 .cc-carousel { cursor: grab; }
