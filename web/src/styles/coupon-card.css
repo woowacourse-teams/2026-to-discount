@@ -101,7 +101,7 @@
 /* 펼침: 앱별 쿠폰(메인과 같은 꼴) + 바로 아래 작은 표 */
 .cc-more { grid-column: 1 / 3; min-width: 0; display: flex; flex-direction: column; margin-top: 6px; }
 .cc-more > .cc-deal--more:not(:first-child) { margin-top: 14px; }
-.cc-tbl { width: var(--tk-w); margin-top: 6px; padding: 0 4px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 10px; font-size: 11.5px; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.cc-tbl { grid-column: 1 / 3; width: var(--tk-w); margin-top: 6px; padding: 0 4px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 10px; font-size: 11.5px; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .cc-tbl > span { padding: 4px 0; border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent); min-width: 0; }
 .cc-tbl > span:first-child, .cc-tbl > span:nth-child(2), .cc-tbl > span:nth-child(3) { border-top: 0; }
 .cc-t-amt { color: var(--text); font-weight: 600; white-space: nowrap; }
