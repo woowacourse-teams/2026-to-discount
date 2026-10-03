@@ -51,8 +51,8 @@
 .cc-min { display: flex; align-items: center; gap: 2px; font-size: var(--cc-fs-min); line-height: 1.3; color: #6b6a66; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .cc-min svg { width: 11px; height: 11px; flex: none; }
 /* 펼친 쿠폰의 배지: 금액 오른쪽, 이동 영역 왼쪽 빈칸에 라벨(쿠폰 높이를 밀지 않는다) */
-.cc-side-tags { grid-column: 2; grid-row: 1 / 3; align-self: center; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 3px; min-width: 0; max-width: 46%; overflow: hidden; }
-.cc-side-tags .cc-fx { flex-basis: 100%; text-align: right; }
+.cc-side-tags { grid-column: 2; grid-row: 1 / 3; align-self: center; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 0; max-width: 92px; overflow: hidden; }
+.cc-side-tags .cc-fx { max-width: 100%; text-align: right; }
 .cc-side-tags .cc-tag { background-color: #f1efeb; color: #6b6a66; }
 .cc-side-tags .cc-tag--qualifier-random, .cc-side-tags .cc-tag--membership { background-color: #333; color: #fff; }
 .cc-side-tags .cc-tag--membership[data-platform="baemin"] { background-color: #0cefd3; color: #06382f; }
