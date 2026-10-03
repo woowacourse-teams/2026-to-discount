@@ -12,6 +12,7 @@ import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilter
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
+const CouponCard = lazy(() => import('./CouponCard.jsx'))
 import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import { captureRects, playShift, readCards } from './cardShift.js'
 
@@ -184,6 +185,11 @@ export default function App({ initial = null }) {
 
   const { search } = filters
   const [dev, setDev] = useState(false)
+  // 서버 렌더링 첫 화면은 늘 운영 카드다(하이드레이션 일치). 마운트 뒤 주소에 ?home=a가 있으면 쿠폰 카드로 바꾼다. 반반 배정은 5단계.
+  const [homeA, setHomeA] = useState(false)
+  useEffect(() => {
+    try { if (new URLSearchParams(window.location.search).get('home') === 'a') startTransition(() => setHomeA(true)) } catch { /* 주소를 못 읽으면 운영 카드 */ }
+  }, [])
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
   useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
@@ -705,18 +711,13 @@ export default function App({ initial = null }) {
               }}
             />
           )}
-          {visibleBrands.slice(0, shown).map((b, index) => (
-            <BrandCard
-              key={b.name}
-              leaving={leaving === b.name}
-              onHide={onHide}
-              include={include}
-              brand={b}
-              position={index + 1}
-              highlighted={linkedBrand === brandCardId(b.name)}
-              onInteract={clearLinked}
-            />
-          ))}
+          {visibleBrands.slice(0, shown).map((b, index) => {
+            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
+              highlighted: linkedBrand === brandCardId(b.name), onInteract: clearLinked }
+            return homeA
+              ? <Suspense key={b.name} fallback={<BrandCard {...props} />}><CouponCard {...props} /></Suspense>
+              : <BrandCard key={b.name} {...props} />
+          })}
         </div>
       )}
       {/* 목록 끝 표지. 화면 아래 1,500px 안에 들어오면 카드를 한 묶음 더 그린다. */}
