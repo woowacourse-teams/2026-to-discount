@@ -26,7 +26,7 @@ import { getAnalyticsContext } from './analytics-context.js'
 import PushNotificationSetting from './PushNotificationSetting.jsx'
 import BrandCard, { brandCardId } from './BrandCard.jsx'
 import BrandGridSkeleton from './BrandGridSkeleton.jsx'
-import { setHubLinks } from './OfferChip.jsx'
+import { setHubLinks } from './offerLink.js'
 import SiteFooter from './SiteFooter.jsx'
 
 // 서버 렌더에서는 layout effect가 돌지 않고 경고만 남긴다. 서버에선 그냥 effect로 둔다.

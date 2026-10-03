@@ -6,7 +6,7 @@ import { StrictMode } from 'react'
 import { renderToPipeableStream } from 'react-dom/server'
 import { Writable } from 'node:stream'
 import App from './App.jsx'
-import { setHubLinks } from './OfferChip.jsx'
+import { setHubLinks } from './offerLink.js'
 import { API_BASE } from './api.js'
 
 async function get(path) {

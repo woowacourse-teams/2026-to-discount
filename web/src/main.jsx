@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
-import { setHubLinks } from './OfferChip.jsx'
+import { setHubLinks } from './offerLink.js'
 import {
   disablePostHogFanout,
   registerPostHogSink,
