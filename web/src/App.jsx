@@ -722,6 +722,16 @@ export default function App({ initial = null }) {
       )}
       {/* 목록 끝 표지. 화면 아래 1,500px 안에 들어오면 카드를 한 묶음 더 그린다. */}
       {visibleBrands && shown < visibleBrands.length && <div ref={sentinelRef} aria-hidden="true" style={{ height: 1 }} />}
+      {/* "5천원 이상만"이 켜져 있으면 목록 끝에서 한 번에 풀 수 있다(시트, 빠른 칩과 같은 상태). */}
+      {visibleBrands && shown >= visibleBrands.length && filters.minAmount5k && (
+        <button type="button" className="list-end-more"
+                onClick={() => {
+                  setFilters((f) => ({ ...f, minAmount5k: false }))
+                  track('quick_filter', { key: 'min5k', on: false, from: 'list_end' })
+                }}>
+          5천원 미만도 보기
+        </button>
+      )}
 
       {surveyOn && (
         <Suspense fallback={null}>

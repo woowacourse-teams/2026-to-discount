@@ -5,7 +5,7 @@ import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
-import { amountText, badgesOf, conditionLines, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, badgesOf, conditionTable, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { offerClickProps, offerLink } from './offerLink.js'
@@ -46,13 +46,16 @@ function OfferLinkA({ offer, brand, position, best, className, children, ...rest
   )
 }
 
-// 쿠폰: 정보 칸(금액, 최소주문)은 링크가 아니다. 이동은 오른쪽 꼭지(링크)만 한다.
-// 앱 구분은 그 앱 색 띠(::before)와 작은 앱 로고로 한다(?band=top|bottom|left, ?logo=tl|bl 비교).
-function Coupon({ o, brand, position, best, muted }) {
+// 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기): 흰 정보 칸(금액, 최소주문, 펼친 쿠폰은 오른쪽 빈칸에 배지 라벨),
+// 하단 검은 띠, 오른쪽 앱 색 이동 영역(링크는 여기만, 앱 로고가 이동 버튼을 대신한다).
+function Coupon({ o, brand, position, best, muted, side, ...rest }) {
   return (
-    <div className={`cc-ticket${muted ? ' cc-ticket--muted' : ''}`} data-platform={o.platform}>
-      <span className="cc-info"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
-      {/* 이동 영역: 앱 색 바탕 + 가운데 앱 로고가 이동 버튼을 대신한다(링크는 여기만) */}
+    <div className={`cc-ticket${muted ? ' cc-ticket--muted' : ''}`} data-platform={o.platform} {...rest}>
+      <span className="cc-info">
+        <Amt offer={o} />
+        <Min value={o.minOrderAmount} />
+        {side}
+      </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} className="cc-stub"><PlatformBadge platformKey={o.platform} brand={brand.name} /></OfferLinkA>
     </div>
   )
@@ -146,13 +149,13 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
              className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}`}>
       {/* 두 줄 카드: 1줄 = 로고 + 이름·배지(+계산식 자리), 2줄 = 쿠폰 전체 폭, 그 아래 하위 라벨 한 줄, 그 아래 펼침 버튼 */}
       <BrandLogo name={brand.name} size={64} />
-      {/* 이름 아래에 배지 줄, 그 다음 계산식 줄(같은 flex 묶음, 이름 버튼이 한 줄을 다 차지해 아래로 내려간다). 높이는 CSS min-height로 맞춘다. */}
-      <div className="cc-name" ref={headRef}>
+      {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름, 2줄 배지, 3줄 설명/계산식. 줄 높이는 CSS 고정, 비어도 자리 유지 */}
+      <div className="cc-head" ref={headRef}>
         <button type="button" aria-expanded={open} onClick={toggle}>
           <span className="cc-nm" style={{ '--cut': `${nameCutPx(brand.name)}px` }}>{brand.name}</span>
         </button>
-        {single && badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}
-        {fx && <span className="cc-fx">{fx}</span>}
+        {single && <div className="cc-tags">{badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}</div>}
+        {fx && <div className="cc-fx">{fx}</div>}
       </div>
       <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} /></div>
       {/* 접힌 하위 라벨(쿠폰 아래 한 줄, 최대 3개). 배지는 붙이지 않는다. 펼치면 앱별 쿠폰이 대신해 CSS로 숨긴다. */}
@@ -179,29 +182,33 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           {[...best, ...rest].map((o, i, all) => {
             const f = formulaOf(o)
             const tags = badgesOf(o)
-            const lines = conditionLines(o)
+            const { rows, note } = conditionTable(o)
+            const hasTbl = rows.length > 0 || note
             const anim = { '--i': i }
             const end = i === all.length - 1 && phase === 'closing' ? () => setPhase(false) : undefined
+            const side = (tags.length > 0 || f) && (
+              <span className="cc-side-tags">
+                {tags.map((b) => <Tag key={b.kind} b={b} platform={o.platform} />)}
+                {f && <span className="cc-fx">{f}</span>}
+              </span>
+            )
             return (
               <Fragment key={offerKey(o)}>
-                <div className="cc-plat" data-platform={o.platform} style={anim} onAnimationEnd={lines.length ? undefined : end}>
-                  <span className="cc-pi">
-                    <Amt offer={o} small />
-                    <Min value={o.minOrderAmount} />
-                    {(tags.length > 0 || f) && (
-                      <span className="cc-side-tags">
-                        {tags.map((b) => <Tag key={b.kind} b={b} platform={o.platform} />)}
-                        {f && <span className="cc-fx">{f}</span>}
-                      </span>
-                    )}
-                  </span>
-                  <OfferLinkA offer={o} brand={brand} position={position} best={hasBest && best.includes(o)} className="cc-ps"><PlatformBadge platformKey={o.platform} brand={brand.name} /></OfferLinkA>
+                <div className="cc-deal cc-deal--more" style={anim} onAnimationEnd={hasTbl ? undefined : end}>
+                  <Coupon o={o} brand={brand} position={position} best={hasBest && best.includes(o)} side={side} />
                 </div>
-                {/* 조건 요약은 쿠폰 밖, 쿠폰 아래(길면 줄바꿈) */}
-                {lines.length > 0 && (
-                  <ul className="cc-cond" style={anim} onAnimationEnd={end}>
-                    {lines.map((t) => <li key={t}>{t}</li>)}
-                  </ul>
+                {/* 상세: 쿠폰 바로 아래 작은 표(구간마다 한 줄), 조건 문장은 표 아래 한 줄 */}
+                {hasTbl && (
+                  <div className="cc-tbl" style={anim} onAnimationEnd={end}>
+                    {rows.map((r, k) => (
+                      <Fragment key={k}>
+                        <span className="cc-t-amt">{r.amount}{r.extra && <small>{r.extra}</small>}</span>
+                        <span className="cc-t-chips">{r.chips.map((c) => <em key={c}>{c}</em>)}</span>
+                        <span className="cc-t-min">{r.min}</span>
+                      </Fragment>
+                    ))}
+                    {note && <span className="cc-t-note">{note}</span>}
+                  </div>
                 )}
               </Fragment>
             )
