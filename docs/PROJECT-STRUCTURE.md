@@ -157,6 +157,7 @@ web/src/App.jsx
 web/src/BrandCard.jsx
 web/src/BrandGridSkeleton.jsx
 web/src/BrandSuggestions.jsx
+web/src/CouponCard.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
 web/src/HiddenBrandsSheet.jsx
@@ -187,6 +188,9 @@ web/src/brandImpression.js
 web/src/brandImpression.test.js
 web/src/cardShift.js
 web/src/cardShift.test.js
+web/src/couponCard.test.js
+web/src/couponModel.js
+web/src/couponModel.test.js
 web/src/entry-server.jsx
 web/src/filters.js
 web/src/filters.test.js
@@ -198,7 +202,11 @@ web/src/logoManifest.test.js
 web/src/logoSrc.js
 web/src/logos.jsx
 web/src/main.jsx
+web/src/offerChip.snapshot.json
+web/src/offerChip.test.js
 web/src/offerContract.test.js
+web/src/offerLink.js
+web/src/offerLink.test.js
 web/src/platformBadge.test.js
 web/src/platformIcons.js
 web/src/platforms.js
@@ -216,6 +224,7 @@ web/src/styles/base.css
 web/src/styles/brand-card.css
 web/src/styles/card-foot-bar.css
 web/src/styles/cat-bar.css
+web/src/styles/coupon-card.css
 web/src/styles/filter-sheet.css
 web/src/styles/footer-push.css
 web/src/styles/hidden-brands.css
@@ -281,7 +290,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 123 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 109 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 118 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -325,6 +334,7 @@ HTTP 경계:
 | `BrandCard.jsx` | 브랜드 카드 한 장 |
 | `BrandGridSkeleton.jsx` | 로딩 중 카드 자리지킴 |
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `CouponCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합) |
 | `HiddenBrandsSheet.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -355,6 +365,9 @@ HTTP 경계:
 | `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
 | `cardShift.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `couponCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `couponModel.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `couponModel.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `entry-server.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `filters.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -366,7 +379,11 @@ HTTP 경계:
 | `logoSrc.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logos.jsx` | 브랜드와 플랫폼 로고 |
 | `main.jsx` | React와 분석 도구 진입점 |
+| `offerChip.snapshot.json` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `offerChip.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `offerContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `offerLink.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `offerLink.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformBadge.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
