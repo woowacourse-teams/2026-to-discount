@@ -112,6 +112,23 @@ function Carousel({ brand, best, position, }) {
   )
 }
 
+// 상세 표: 구간마다 한 줄(금액, 조건 칩, 최소주문), 조건 문장은 표 아래 한 줄. head는 복수 최고일 때 어느 앱 표인지 밝히는 아이콘.
+function DetailTable({ t, i, head, onEnd }) {
+  return (
+    <div className="cc-tbl" style={{ '--i': i }} onAnimationEnd={onEnd}>
+      {head && <span className="cc-t-head">{head}</span>}
+      {t.rows.map((r, k) => (
+        <Fragment key={k}>
+          <span className="cc-t-amt">{r.amount}{r.extra && <small>{r.extra}</small>}</span>
+          <span className="cc-t-chips">{r.chips.map((c) => <em key={c}>{c}</em>)}</span>
+          <span className="cc-t-min">{r.min}</span>
+        </Fragment>
+      ))}
+      {t.note && <span className="cc-t-note">{t.note}</span>}
+    </div>
+  )
+}
+
 function Ticket({ brand, best, hasBest, position, }) {
   if (best.length === 1) return <Coupon o={best[0]} brand={brand} position={position} best={hasBest} muted={!hasBest} />
   return <Carousel brand={brand} best={best} position={position} />
@@ -158,6 +175,13 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         {fx && <div className="cc-fx">{fx}</div>}
       </div>
       <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} /></div>
+      {/* 최고 오퍼는 메인 쿠폰에 이미 있으니 쿠폰으로 다시 그리지 않고, 상세 표만 메인 쿠폰 바로 아래에 둔다 */}
+      {shown && best.map((o, i) => {
+        const t = conditionTable(o)
+        if (!t.rows.length && !t.note) return null
+        return <DetailTable key={offerKey(o)} t={t} i={i} head={best.length > 1 ? <PlatformBadge platformKey={o.platform} brand={brand.name} /> : null}
+                            onEnd={rest.length === 0 && i === best.length - 1 && phase === 'closing' ? () => setPhase(false) : undefined} />
+      })}
       {/* 접힌 하위 라벨(쿠폰 아래 한 줄, 최대 3개). 배지는 붙이지 않는다. 펼치면 앱별 쿠폰이 대신해 CSS로 숨긴다. */}
       {rest.length > 0 && (
         <div className="cc-alts">
@@ -167,7 +191,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         </div>
       )}
       <button type="button" className="cc-hint" aria-expanded={open} onClick={toggle}>
-        {open ? '접기' : '눌러서 자세히 보기'}
+        {open ? '접기' : '자세히 보기'}
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       {onHide && (
@@ -177,15 +201,15 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         </button>
       )}
       {/* 펼친 쿠폰은 펼쳤을 때만 그린다(접힌 동안 요소 수를 늘리지 않는다). */}
-      {shown && (
+      {shown && rest.length > 0 && (
         <div className="cc-more">
-          {[...best, ...rest].map((o, i, all) => {
+          {rest.map((o, i) => {
             const f = formulaOf(o)
             const tags = badgesOf(o)
-            const { rows, note } = conditionTable(o)
-            const hasTbl = rows.length > 0 || note
-            const anim = { '--i': i }
-            const end = i === all.length - 1 && phase === 'closing' ? () => setPhase(false) : undefined
+            const t = conditionTable(o)
+            const hasTbl = t.rows.length > 0 || t.note
+            const end = i === rest.length - 1 && phase === 'closing' ? () => setPhase(false) : undefined
+            const anim = { '--i': i + best.length }
             const side = (tags.length > 0 || f) && (
               <span className="cc-side-tags">
                 {tags.map((b) => <Tag key={b.kind} b={b} platform={o.platform} />)}
@@ -195,21 +219,9 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             return (
               <Fragment key={offerKey(o)}>
                 <div className="cc-deal cc-deal--more" style={anim} onAnimationEnd={hasTbl ? undefined : end}>
-                  <Coupon o={o} brand={brand} position={position} best={hasBest && best.includes(o)} side={side} />
+                  <Coupon o={o} brand={brand} position={position} best={false} side={side} />
                 </div>
-                {/* 상세: 쿠폰 바로 아래 작은 표(구간마다 한 줄), 조건 문장은 표 아래 한 줄 */}
-                {hasTbl && (
-                  <div className="cc-tbl" style={anim} onAnimationEnd={end}>
-                    {rows.map((r, k) => (
-                      <Fragment key={k}>
-                        <span className="cc-t-amt">{r.amount}{r.extra && <small>{r.extra}</small>}</span>
-                        <span className="cc-t-chips">{r.chips.map((c) => <em key={c}>{c}</em>)}</span>
-                        <span className="cc-t-min">{r.min}</span>
-                      </Fragment>
-                    ))}
-                    {note && <span className="cc-t-note">{note}</span>}
-                  </div>
-                )}
+                {hasTbl && <DetailTable t={t} i={i + best.length} onEnd={end} />}
               </Fragment>
             )
           })}
