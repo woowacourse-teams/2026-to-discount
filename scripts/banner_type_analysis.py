@@ -1,37 +1,56 @@
-"""배너 유형별 클릭률(최근 N일, 사람 기준)과 저조한 유형 판별.
+"""배너 유형별 클릭률(최근 N일)과 배너를 세울 기준의 근거.
 
-PostHog 인사이트 "배너 — 장별 노출·클릭·클릭률 (최근 14일, 일별)"과 같은 집계(그날 그 배너를
-본 사람, 누른 사람)를 유형으로 묶고, 9/29부터 찍히는 칸(slot)으로 위치 효과를 덜어 낸 배수를 낸다.
-결과 해석은 docs/metrics/BANNER-TYPES-20261003.md.
+두 갈래로 센다.
+  - 사람 기준: 기간 전체에서 그 배너(또는 그 유형의 배너)를 본 고유 사용자와 누른 고유 사용자.
+    날짜별로 더하지 않으므로 같은 사람이 여러 날 봐도 한 번이다. 고유 사용자가 --min-users
+    미만인 배너는 판정에서 뺀다.
+  - 위치 보정: 시간대별 노출, 클릭(이벤트 수)에 그 시각의 칸을 붙여 칸별 평균 클릭률로 기대
+    클릭을 내고, 실제를 기대로 나눈다. 칸은 9/29부터 찍힌 `slot`을 쓰고, 그 전은 배너 보관
+    파일과 운영 파일로 그 시각의 순서를 복원한다(banner_order_analysis.order_at, 9/29~30 실측
+    대조 72% 일치, 어긋나면 1칸).
+
+금액대 비교에서는 원 단위가 아닌 금액("1+1", "n%")을 뺀다. 결과 해석은
+docs/metrics/BANNER-TYPES-20261003.md.
 
 인증과 배너 메타는 banner_order_analysis.py와 같다(POSTHOG_PERSONAL_API_KEY 또는 POSTHOG_KEY_FILE,
 운영 배너는 OPS_AUTH_FILE이 있으면 읽는다).
 
-    python scripts/banner_type_analysis.py --days 14
+    python scripts/banner_type_analysis.py --days 14 --min-users 100
 """
 from __future__ import annotations
 
-import argparse, collections, math, os, re, sys
+import argparse, collections, datetime, json, math, os, re, sys, urllib.request
 
 sys.path.insert(0, os.path.dirname(__file__))
-from banner_order_analysis import HOST, PEOPLE, banners, key  # noqa: E402
-
-import json, urllib.request  # noqa: E402
+from banner_order_analysis import HOST, PEOPLE, banners, bucket, key, order_at, BUCKETS  # noqa: E402
 
 
-def pull(days: int) -> list:
-    sql = f"""SELECT toDate(timestamp) d, toString(properties.banner) b, any(toString(properties.platform)) p,
-      min(toInt(properties.slot)) slot,
-      count(DISTINCT if(event='banner_impression', distinct_id, NULL)) imp,
-      count(DISTINCT if(event='banner_click', distinct_id, NULL)) clk
-      FROM events WHERE event IN ('banner_impression','banner_click') AND toString(properties.position)='top'
-      AND timestamp >= now() - INTERVAL {days} DAY AND {PEOPLE}
-      GROUP BY d, b HAVING imp >= 5 LIMIT 100000"""
+def hogql(sql: str) -> list:
     req = urllib.request.Request(
         f"{HOST}/api/projects/@current/query/",
         data=json.dumps({"query": {"kind": "HogQLQuery", "query": sql}}, ensure_ascii=False).encode(),
         headers={"Authorization": "Bearer " + key(), "Content-Type": "application/json; charset=utf-8"})
-    return json.loads(urllib.request.urlopen(req, timeout=180).read())["results"]
+    return json.loads(urllib.request.urlopen(req, timeout=300).read())["results"]
+
+
+TOP = "event IN ('banner_impression','banner_click') AND toString(properties.position)='top'"
+
+
+def pull_people(days: int) -> list:
+    """(사용자, 배너, 플랫폼, 봤나, 눌렀나)."""
+    return hogql(f"""SELECT distinct_id, toString(properties.banner) b, any(toString(properties.platform)) p,
+      max(event='banner_impression') seen, max(event='banner_click') hit
+      FROM events WHERE {TOP} AND timestamp >= now() - INTERVAL {days} DAY AND {PEOPLE}
+      GROUP BY distinct_id, b LIMIT 1000000""")
+
+
+def pull_hours(days: int) -> list:
+    """(한국 시각 정시, 배너, 플랫폼, 찍힌 칸, 노출 수, 클릭 수)."""
+    return hogql(f"""SELECT toStartOfHour(toTimeZone(timestamp,'Asia/Seoul')) h, toString(properties.banner) b,
+      any(toString(properties.platform)) p, min(toInt(properties.slot)) slot,
+      countIf(event='banner_impression') imp, countIf(event='banner_click') clk
+      FROM events WHERE {TOP} AND timestamp >= now() - INTERVAL {days} DAY AND {PEOPLE}
+      GROUP BY h, b LIMIT 1000000""")
 
 
 def kind(bid: str, platform: str, meta: dict) -> str:
@@ -52,16 +71,27 @@ def kind(bid: str, platform: str, meta: dict) -> str:
 
 
 def won(meta: dict) -> int | None:
-    """배너 금액(원). 옛 모양 문장 금액("6/5천원")은 가장 큰 값."""
+    """배너 금액(원). 원 단위가 아닌 값("1+1", "n%")은 None — 금액대 비교에서 뺀다."""
     a = meta.get("amount")
     if isinstance(a, dict):
-        a = a.get("won") or a.get("max")
+        return a.get("won") if isinstance(a.get("won"), int) else None
+    if isinstance(a, int):
+        return a
     if isinstance(a, str):
+        if "+" in a or "%" in a:
+            return None
         nums = [int(x.replace(",", "")) for x in re.findall(r"\d[\d,]*", a)]
-        a = max(nums) if nums else None
-        if a is not None and a < 100:
-            a *= 1000
-    return a if isinstance(a, int) else None
+        if not nums:
+            return None
+        v = max(nums)
+        return v * 1000 if v < 100 and "천" in a else v
+    return None
+
+
+def band(a: int | None) -> str:
+    if a is None:
+        return "원 단위 아님·모름"
+    return "5천원 미만" if a < 5000 else "5천~7천원 미만" if a < 7000 else "7천~1만원 미만" if a < 10000 else "1만원 이상"
 
 
 def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
@@ -77,50 +107,87 @@ def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--days", type=int, default=14)
+    ap.add_argument("--min-users", type=int, default=100, help="판정에 넣을 배너의 최소 고유 사용자(본 사람)")
     args = ap.parse_args()
-    rows, meta = pull(args.days), banners()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    meta = banners()
 
-    # 칸 클릭률: 1~5번은 그대로, 6번부터는 한 칸으로 묶는다(표본이 작다).
-    slot = collections.defaultdict(lambda: [0, 0])
-    for _d, _b, _p, s, imp, clk in rows:
-        if s is not None:
-            slot[min(int(s), 6)][0] += imp
-            slot[min(int(s), 6)][1] += clk
-    rate = {s: c / i for s, (i, c) in slot.items() if i}
+    # ---- 사람 기준 -------------------------------------------------------
+    people = pull_people(args.days)
+    seen, hit, plat = collections.defaultdict(set), collections.defaultdict(set), {}
+    for u, b, p, s, h in people:
+        plat[b] = p
+        if s:
+            seen[b].add(u)
+        if h:
+            hit[b].add(u)
+    keep = {b for b in seen if len(seen[b]) >= args.min_users}
+    kinds = {b: kind(b, plat[b], meta.get(b, {})) for b in seen}
 
-    t = collections.defaultdict(lambda: {"ban": set(), "imp": 0, "clk": 0, "exp": 0.0, "simp": 0, "sclk": 0})
-    per = collections.defaultdict(lambda: [0, 0, "", None])
-    for _d, b, p, s, imp, clk in rows:
-        m = meta.get(b, {})
-        k = kind(b, p, m)
-        x = t[k]
-        x["ban"].add(b); x["imp"] += imp; x["clk"] += clk
-        if s is not None:
-            x["exp"] += imp * rate[min(int(s), 6)]; x["simp"] += imp; x["sclk"] += clk
-        per[b][0] += imp; per[b][1] += clk; per[b][2] = k; per[b][3] = won(m)
+    # ---- 위치 보정(칸이 없으면 복원) -------------------------------------
+    hours = pull_hours(args.days)
+    cache, cell = {}, []
+    real = rebuilt = lost = 0
+    for h, b, p, slot, imp, clk in hours:
+        if slot is not None:
+            s = int(slot); real += imp
+        else:
+            k = h[:19]
+            if k not in cache:
+                cache[k] = order_at(meta, datetime.datetime.fromisoformat(k))
+            s = cache[k].get(b)
+            if not s:
+                lost += imp
+                continue
+            rebuilt += imp
+        cell.append((b, bucket(s), imp, clk))
+    tot = {s: [0, 0] for s in BUCKETS}
+    for _b, s, imp, clk in cell:
+        tot[s][0] += imp; tot[s][1] += clk
+    rate = {s: (c / i if i else 0) for s, (i, c) in tot.items()}
+    exp_b, clk_b = collections.defaultdict(float), collections.defaultdict(int)
+    for b, s, imp, clk in cell:
+        exp_b[b] += imp * rate[s]; clk_b[b] += clk
 
-    all_imp = sum(x["imp"] for x in t.values())
-    all_clk = sum(x["clk"] for x in t.values())
-    print(f"최근 {args.days}일, 배너-일 {len(rows)}행, 전체 클릭률 {all_clk / all_imp * 100:.2f}%")
-    print("칸별 클릭률:", {s: f"{r * 100:.1f}%" for s, r in sorted(rate.items())})
-    print("| 유형 | 배너 | 본 사람 | 누른 사람 | 클릭률 [95% 구간] | 칸 보정 배수(칸 있는 날만) |")
-    print("|---|---|---|---|---|---|")
-    for k, x in sorted(t.items(), key=lambda kv: -kv[1]["clk"] / max(kv[1]["imp"], 1)):
-        lo, hi = wilson(x["clk"], x["imp"])
-        adj = f"{x['sclk'] / x['exp']:.2f} (본 사람 {x['simp']})" if x["exp"] else "-"
-        print(f"| {k} | {len(x['ban'])} | {x['imp']} | {x['clk']} | "
-              f"{x['clk'] / x['imp'] * 100:.2f}% [{lo * 100:.1f}~{hi * 100:.1f}] | {adj} |")
-    bands = collections.defaultdict(lambda: [0, 0, 0])
-    for imp, clk, _k, a in per.values():
-        band = ("금액 모름" if a is None else "5천원 미만" if a < 5000 else
-                "5천~7천원 미만" if a < 7000 else "7천원 이상")
-        bands[band][0] += imp; bands[band][1] += clk; bands[band][2] += 1
-    for band, (imp, clk, n) in bands.items():
-        print(f"금액 {band}: 배너 {n}장, {clk}/{imp} = {clk / imp * 100:.2f}%")
-    print("본 사람 100명 이상 중 클릭률 하위 10장:")
-    low = sorted((kv for kv in per.items() if kv[1][0] >= 100), key=lambda kv: kv[1][1] / kv[1][0])[:10]
-    for b, (imp, clk, k, a) in low:
-        print(f"  {b} [{k}] {clk}/{imp} = {clk / imp * 100:.2f}% 금액 {a}")
+    print(f"최근 {args.days}일. 고유 사용자 {args.min_users}명 이상 배너 {len(keep)}장 / 전체 {len(seen)}장")
+    print(f"칸: 찍힌 칸 노출 {real}, 복원한 칸 노출 {rebuilt}, 복원 못 해 뺀 노출 {lost}")
+    print("칸별 클릭률(이벤트):", {s: f"{rate[s] * 100:.2f}%" for s in BUCKETS})
+
+    def summary(group: dict[str, set]) -> None:
+        print("| 묶음 | 배너 | 본 고유 사용자 | 누른 고유 사용자 | 클릭률 [95% 구간] | 위치 보정 배수 |")
+        print("|---|---|---|---|---|---|")
+        rows = []
+        for name, bs in group.items():
+            v = set().union(*(seen[b] for b in bs))
+            c = set().union(*(hit[b] for b in bs)) & v
+            e = sum(exp_b[b] for b in bs)
+            k = sum(clk_b[b] for b in bs)
+            rows.append((name, len(bs), len(v), len(c), (k / e) if e else None))
+        for name, nb, nv, nc, adj in sorted(rows, key=lambda r: -(r[3] / max(r[2], 1))):
+            lo, hi = wilson(nc, nv)
+            a = f"{adj:.2f}" if adj is not None else "-"
+            print(f"| {name} | {nb} | {nv} | {nc} | {nc / nv * 100:.2f}% [{lo * 100:.1f}~{hi * 100:.1f}] | {a} |")
+
+    allv = set().union(*(seen[b] for b in keep))
+    allc = set().union(*(hit[b] for b in keep)) & allv
+    print(f"\n전체(판정 대상): {len(allc)}/{len(allv)} = {len(allc) / len(allv) * 100:.2f}%")
+    print("\n## 유형별")
+    by_kind = collections.defaultdict(set)
+    for b in keep:
+        by_kind[kinds[b]].add(b)
+    summary(by_kind)
+    print("\n## 금액대별(원 단위 아닌 금액 제외)")
+    by_band = collections.defaultdict(set)
+    for b in keep:
+        by_band[band(won(meta.get(b, {})))].add(b)
+    summary(by_band)
+    print("\n## 배너별 하위 10장")
+    rows = sorted(keep, key=lambda b: len(hit[b] & seen[b]) / len(seen[b]))[:10]
+    for b in rows:
+        e = exp_b[b]
+        print(f"  {b} [{kinds[b]}] {len(hit[b] & seen[b])}/{len(seen[b])} = "
+              f"{len(hit[b] & seen[b]) / len(seen[b]) * 100:.2f}%, 위치 보정 {clk_b[b] / e:.2f}" if e else "")
 
 
 if __name__ == "__main__":
