@@ -101,7 +101,7 @@ function Carousel({ brand, best, position, }) {
   }, [best.length])
   return (
     <div className="cc-carousel-wrap">
-      <div className="cc-carousel" ref={ref} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onClickCapture={onClickCapture}>
+      <div className={`cc-carousel${best.length >= 3 ? ' cc-carousel--3' : ''}`} ref={ref} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onClickCapture={onClickCapture}>
         {best.map((o) => {
           const tags = badgesOf(o)
           return (
@@ -118,9 +118,9 @@ function Carousel({ brand, best, position, }) {
 }
 
 // 상세 표: 구간마다 한 줄(금액, 조건 칩, 최소주문), 조건 문장은 표 아래 한 줄. head는 복수 최고일 때 어느 앱 표인지 밝히는 아이콘.
-function DetailTable({ t, i, head, onEnd }) {
+function DetailTable({ t, i, head }) {
   return (
-    <div className="cc-tbl" style={{ '--i': i }} onAnimationEnd={onEnd}>
+    <div className="cc-tbl" style={{ '--i': i }}>
       {head && <span className="cc-t-head">{head}</span>}
       {t.rows.map((r, k) => (
         <Fragment key={k}>
@@ -139,47 +139,65 @@ function Ticket({ brand, best, hasBest, position, }) {
   return <Carousel brand={brand} best={best} position={position} />
 }
 
+// 펼침/접힘(CSS grid 0fr 1fr 기법, M3 확장 250ms 안팎, emphasized easing). 폭·높이를 재지 않는다.
+// phase: false(접힘, DOM에 없음) → 'enter'(내용을 0fr로 먼저 DOM에 넣음) → 'open'(두 프레임 뒤 1fr) → 'leave'(0fr로 닫는 중) → false.
+const OPEN_MS = 280
+const LEAVE_MS = 220
 function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false }) {
   const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
-  // false | 'open' | 'closing'. 접을 때는 펼칠 때와 같은 애니메이션을 거꾸로 틀고 animationend에서 내린다(폭·높이를 재지 않는다).
   const [phase, setPhase] = useState(false)
+  const [settled, setSettled] = useState(false) // 다 열린 뒤에는 overflow를 풀어 쿠폰 그림자가 잘리지 않게 한다
   const open = phase === 'open'
   const shown = phase !== false
   const cardRef = useRef(null)
   const headRef = useRef(null)
+  const reduce = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const toggle = () => {
     onInteract?.()
-    setPhase((v) => {
-      if (v !== 'open') track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
-      return v === 'open' ? 'closing' : 'open'
-    })
+    if (phase === false) { track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' }); setPhase('enter') }
+    else if (phase === 'open' || phase === 'enter') { setSettled(false); setPhase('leave') }
+    else if (phase === 'leave') setPhase('open')
+  }
+  // 카드 아무 곳이나 누르면 펼치기/접기. 링크, 숨기기 버튼, 캐러셀 끌기는 제외한다.
+  const onCardClick = (e) => {
+    if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging')) return
+    toggle()
   }
   // 딥링크(#brand-이름)로 들어오면 펼친 채로 그 카드로 스크롤한다(운영 카드와 같다).
   useEffect(() => {
-    if (highlighted) { setPhase('open'); cardRef.current?.scrollIntoView({ block: 'center' }) }
+    if (highlighted) { setPhase('enter'); cardRef.current?.scrollIntoView({ block: 'center' }) }
   }, [highlighted])
-  // 접는 중에 animationend가 안 와도(움직임 줄임, 탭이 가려짐) 카드가 펼친 채 남지 않게 시간 안전장치를 둔다
+  // 보이지 않는 영역에 먼저 배치(0fr)한 뒤 두 프레임 뒤에 1fr로 바꿔 커지는 도중 레이아웃이 튀지 않게 한다.
   useEffect(() => {
-    if (phase !== 'closing') return undefined
-    const t = setTimeout(() => setPhase(false), 160 + 40 * (rest.length + best.length) + 150)
+    if (phase !== 'enter') return undefined
+    let r2
+    const r1 = requestAnimationFrame(() => { r2 = requestAnimationFrame(() => setPhase('open')) })
+    return () => { cancelAnimationFrame(r1); cancelAnimationFrame(r2) }
+  }, [phase])
+  useEffect(() => {
+    if (phase !== 'open') return undefined
+    const t = setTimeout(() => setSettled(true), reduce() ? 0 : OPEN_MS + 120)
+    return () => clearTimeout(t)
+  }, [phase])
+  // 접기 끝(transitionend 또는 시간 안전장치)에 DOM에서 내린다.
+  useEffect(() => {
+    if (phase !== 'leave') return undefined
+    const t = setTimeout(() => setPhase(false), reduce() ? 0 : LEAVE_MS + 40 * (rest.length + best.length) + 140)
     return () => clearTimeout(t)
   }, [phase, rest.length, best.length])
-  useEffect(() => { // 움직임을 줄인 환경은 애니메이션이 없어 animationend가 안 온다
-    if (phase === 'closing' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) setPhase(false)
-  }, [phase])
   useEffect(() => observeBrandImpression(headRef.current, brandImpressionProps(brand, position),
     (p) => track('brand_impression', p)), [brand, position])
 
   const single = best.length === 1 ? best[0] : null
   const fx = single && formulaOf(single)
+  const bestTables = shown ? best.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
   return (
-    <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name}
-             className={`cc${open ? ' cc--open' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}`}>
-      {/* 두 줄 카드: 1줄 = 로고 + 이름·배지(+계산식 자리), 2줄 = 쿠폰 전체 폭, 그 아래 하위 라벨 한 줄, 그 아래 펼침 버튼 */}
+    <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name} onClick={onCardClick}
+             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}`}>
       <BrandLogo name={brand.name} size={64} />
-      {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름, 2줄 배지, 3줄 설명/계산식. 줄 높이는 CSS 고정, 비어도 자리 유지 */}
+      {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>
-        <button type="button" aria-expanded={open} onClick={toggle}>
+        <button type="button" aria-expanded={open}>
           <span className="cc-nm" style={{ '--cut': `${nameCutPx(brand.name)}px` }}>{brand.name}</span>
         </button>
         {single && <div className="cc-tags">{badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}</div>}
@@ -187,21 +205,22 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       </div>
       <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} /></div>
       {/* 최고 오퍼는 메인 쿠폰에 이미 있으니 쿠폰으로 다시 그리지 않고, 상세 표만 메인 쿠폰 바로 아래에 둔다 */}
-      {shown && best.map((o, i) => {
-        const t = conditionTable(o)
-        if (!t.rows.length && !t.note) return null
-        return <DetailTable key={offerKey(o)} t={t} i={i} head={best.length > 1 ? <PlatformBadge platformKey={o.platform} brand={brand.name} /> : null}
-                            onEnd={rest.length === 0 && i === best.length - 1 && phase === 'closing' ? () => setPhase(false) : undefined} />
-      })}
-      {/* 접힌 하위 라벨(쿠폰 아래 한 줄, 최대 3개). 배지는 붙이지 않는다. 펼치면 앱별 쿠폰이 대신해 CSS로 숨긴다. */}
+      {bestTables.length > 0 && (
+        <div className="cc-x"><div className="cc-x-in">
+          {bestTables.map(({ o, t }, i) => (
+            <DetailTable key={offerKey(o)} t={t} i={i} head={best.length > 1 ? <PlatformBadge platformKey={o.platform} brand={brand.name} /> : null} />
+          ))}
+        </div></div>
+      )}
+      {/* 접힌 하위 라벨(쿠폰 아래 한 줄, 최대 3개). 펼칠 때 먼저 사라지고(같은 grid 기법), 접으면 다시 나타난다. */}
       {rest.length > 0 && (
-        <div className="cc-alts">
+        <div className="cc-alts"><div className="cc-alts-in">
           {rest.slice(0, 3).map((o) => (
             <span key={offerKey(o)} className={`cc-alt${o.soldOut ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
           ))}
-        </div>
+        </div></div>
       )}
-      <button type="button" className="cc-hint" aria-expanded={open} onClick={toggle}>
+      <button type="button" className="cc-hint" aria-expanded={open}>
         {open ? '접기' : '자세히 보기'}
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
@@ -213,14 +232,13 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       )}
       {/* 펼친 쿠폰은 펼쳤을 때만 그린다(접힌 동안 요소 수를 늘리지 않는다). */}
       {shown && rest.length > 0 && (
-        <div className="cc-more">
+        <div className="cc-x cc-x--rest"><div className="cc-x-in"><div className="cc-more">
           {rest.map((o, i) => {
             const f = formulaOf(o)
             const tags = badgesOf(o)
             const t = conditionTable(o)
             const hasTbl = t.rows.length > 0 || t.note
-            const end = i === rest.length - 1 && phase === 'closing' ? () => setPhase(false) : undefined
-            const anim = { '--i': i + best.length }
+            const anim = { '--i': i + bestTables.length }
             const side = (tags.length > 0 || f) && (
               <span className="cc-side-tags">
                 {tags.map((b) => <Tag key={b.kind} b={b} platform={o.platform} />)}
@@ -229,14 +247,14 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             )
             return (
               <Fragment key={offerKey(o)}>
-                <div className="cc-deal cc-deal--more" style={anim} onAnimationEnd={hasTbl ? undefined : end}>
+                <div className="cc-deal cc-deal--more" style={anim}>
                   <Coupon o={o} brand={brand} position={position} best={false} side={side} />
                 </div>
-                {hasTbl && <DetailTable t={t} i={i + best.length} onEnd={end} />}
+                {hasTbl && <DetailTable t={t} i={i + bestTables.length} />}
               </Fragment>
             )
           })}
-        </div>
+        </div></div></div>
       )}
     </article>
   )

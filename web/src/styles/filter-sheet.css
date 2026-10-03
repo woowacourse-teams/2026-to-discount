@@ -146,7 +146,7 @@
   gap: 6px;
   /* main의 좌우 여백(1.25rem) 일부를 되가져와 왼쪽에 더 붙인다. 정렬 칩은 카드보다
      작아서 카드 선에 맞추면 그 위가 휑하다(2026-09-24 사용자). */
-  margin: 0 -.65rem;
+  margin: 0;
   padding: 6px 0 2px;
 }
 /* 정렬 둘은 "하나 고르기"다. 홈 하나에 넣어 그 뜻을 형태로 보여 준다(B안). */
@@ -189,3 +189,12 @@
 /* 오른쪽 위 닫기. 그립을 끌거나 배경을 누르는 길이 안 보이는 사람을 위한 것. */
 .sheet__close { position: absolute; top: .55rem; right: .8rem; width: 32px; height: 32px; border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .sheet__close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 5천원 이상만: 같은 줄 오른쪽 끝 ON/OFF 스위치. 정렬 칩 묶음과 카드의 왼쪽 선은 같다(margin 0). */
+.quick-bar__switch { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: .78rem; color: var(--text); background: none; border: 0; padding: 4px 0 4px 6px; cursor: pointer; white-space: nowrap; }
+.quick-bar__switch-track { position: relative; width: 34px; height: 20px; border-radius: 999px; background: color-mix(in srgb, var(--text) 25%, var(--surface)); transition: background .2s ease; flex: none; }
+.quick-bar__switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .3); transition: transform .2s cubic-bezier(.2, 0, 0, 1); }
+.quick-bar__switch[aria-checked="true"] .quick-bar__switch-track { background: var(--accent, #171717); }
+.quick-bar__switch[aria-checked="true"] .quick-bar__switch-track::after { transform: translateX(14px); }
+.quick-bar__switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .quick-bar__switch-track, .quick-bar__switch-track::after { transition: none; } }
