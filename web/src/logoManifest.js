@@ -11,6 +11,7 @@ export const LOGO_MANIFEST = {
   "GS25": "63731fc6",
   "KFC": "dce2058f",
   "bhc": "78343a38",
+  "가마치통닭": "caa13dbf",
   "감탄계숯불치킨": "fb81dacd",
   "갓튀긴후라이드": "5608e644",
   "강다짐_삼각김밥": "ea9fd0ca",
