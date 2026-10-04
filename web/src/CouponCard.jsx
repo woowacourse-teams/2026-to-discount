@@ -53,34 +53,40 @@ function OfferLinkA({ offer, brand, position, best, className, children, ...rest
   )
 }
 
-// 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기): 흰 정보 칸(금액, 최소주문, 펼친 쿠폰은 오른쪽 빈칸에 배지 라벨),
-// 하단 검은 띠, 오른쪽 앱 색 이동 영역(링크는 여기만, 앱 로고가 이동 버튼을 대신한다).
-function Coupon({ o, brand, position, best, tags = [], ...rest }) {
-  const ch = channelOf(o)
+const LinkIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4l-1.1 1.1" /><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.1-1.1" /></svg>
+)
+
+// 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기, 17차 시안): 왼쪽 앱 로고, 금액과 최소주문, 오른쪽 앱 색 이동 꼭지(링크 아이콘).
+// 배지는 쿠폰 안에 두지 않는다(브랜드명 옆, 캐러셀이면 보이는 쿠폰 것).
+function Coupon({ o, brand, position, best, ...rest }) {
   return (
     <div className="cc-ticket" data-platform={o.platform} {...rest}>
       <span className="cc-info">
-        {/* 금액 위 줄: 채널(포장/배달)과 배지. 왼쪽 시작은 금액과 같다. 없어도 한 줄 높이를 비워 금액 자리를 맞춘다 */}
-        {(ch || tags.length > 0) && (
-          <span className="cc-chrow offer--hero">
-            <span className="chip-tags">
-              {ch && <span className="offer__status-badge">{ch}</span>}
-              {tags.map((b) => <OpBadge key={b.kind} b={b} platform={o.platform} />)}
-            </span>
-          </span>
-        )}
-        <Amt offer={o} />
-        <Min value={o.minOrderAmount} />
+        <PlatformBadge platformKey={o.platform} brand={brand.name} />
+        <span className="cc-num"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
       </span>
-      <OfferLinkA offer={o} brand={brand} position={position} best={best} className="cc-stub"><PlatformBadge platformKey={o.platform} brand={brand.name} /></OfferLinkA>
+      <OfferLinkA offer={o} brand={brand} position={position} best={best} className="cc-stub"><LinkIcon /></OfferLinkA>
     </div>
+  )
+}
+
+// 배지 묶음(채널 + 배지). 운영 탭 마크업, 쿠폰 배지 규격 하나(coupon-card.css .cc-tags)
+function Tags({ o }) {
+  const ch = channelOf(o)
+  const tags = badgesOf(o)
+  if (!ch && tags.length === 0) return null
+  return (
+    <span className="cc-tags"><span className="chip-tags">
+      {ch && <span className="offer__status-badge">{ch}</span>}
+      {tags.map((b) => <OpBadge key={b.kind} b={b} platform={o.platform} />)}
+    </span></span>
   )
 }
 
 // 동점 최고: 오퍼마다 단독 쿠폰과 같은 쿠폰 하나, 가로 캐러셀(CSS 스크롤 스냅)에 나란히. 배지는 그 쿠폰 오른쪽 위 포스트잇.
 // 현재 위치 점은 IntersectionObserver로만 갱신한다(스크롤 이벤트, 폭 재기 없음). 서버 렌더와 마운트 전에는 첫 점이 켜져 있다.
-function Carousel({ brand, best, position, }) {
-  const [idx, setIdx] = useState(0)
+function Carousel({ brand, best, position, idx, setIdx }) {
   const ref = useRef(null)
   const drag = useRef(null)
   // 마우스로 끌어 넘기기. 끄는 동안만 scrollLeft를 갱신하고(폭을 재지 않는다), 끝나면 스냅이 맞춘다. 끌었으면 그 뒤 클릭은 막는다.
@@ -113,14 +119,11 @@ function Carousel({ brand, best, position, }) {
   return (
     <div className="cc-carousel-wrap">
       <div className="cc-carousel" ref={ref} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onClickCapture={onClickCapture}>
-        {best.map((o) => {
-          const tags = badgesOf(o)
-          return (
-            <div key={offerKey(o)} className="cc-slide">
-              <Coupon o={o} brand={brand} position={position} best tags={tags} />
-            </div>
-          )
-        })}
+        {best.map((o) => (
+          <div key={offerKey(o)} className="cc-slide">
+            <Coupon o={o} brand={brand} position={position} best />
+          </div>
+        ))}
       </div>
       <div className="cc-dots" aria-hidden="true">{best.map((o, i) => <i key={offerKey(o)} className={i === idx ? 'on' : undefined} />)}</div>
     </div>
@@ -145,9 +148,9 @@ function DetailTable({ t, i, head, fx }) {
   )
 }
 
-function Ticket({ brand, best, hasBest, position, }) {
-  if (best.length === 1) return <Coupon o={best[0]} brand={brand} position={position} best={hasBest} tags={badgesOf(best[0])} />
-  return <Carousel brand={brand} best={best} position={position} />
+function Ticket({ brand, best, hasBest, position, idx, setIdx }) {
+  if (best.length === 1) return <Coupon o={best[0]} brand={brand} position={position} best={hasBest} />
+  return <Carousel brand={brand} best={best} position={position} idx={idx} setIdx={setIdx} />
 }
 
 // 펼침/접힘(CSS grid 0fr 1fr 기법, M3 확장 250ms 안팎, emphasized easing). 폭·높이를 재지 않는다.
@@ -157,6 +160,7 @@ const LEAVE_MS = 220
 function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false }) {
   const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   const [phase, setPhase] = useState(false)
+  const [cur, setCur] = useState(0) // 캐러셀에서 보이는 쿠폰. 브랜드명 옆 배지가 이걸 따른다
   const [settled, setSettled] = useState(false) // 다 열린 뒤에는 overflow를 풀어 쿠폰 그림자가 잘리지 않게 한다
   const open = phase === 'open'
   const shown = phase !== false
@@ -209,15 +213,16 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>
-        {/* 1줄: 이름(안 들어가면 searchAliases의 가장 짧은 한글 별칭, 그래도 넘치면 말줄임). 배지는 쿠폰 안 금액 위 줄로 옮겼다 */}
+        {/* 1줄: 이름(안 들어가면 searchAliases의 가장 짧은 한글 별칭, 그래도 넘치면 말줄임) + 보이는 최고 쿠폰의 배지 */}
         <div className="cc-line">
           <button type="button" aria-expanded={open}>
             <span className="cc-nm" style={{ '--cut': `${nameCutPx(shownName)}px` }}>{shownName}</span>
           </button>
+          {best[cur] && <Tags o={best[cur]} />}
         </div>
         {fx && <div className="cc-fx">{fx}</div>}
       </div>
-      <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} /></div>
+      <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
       {/* 최고 오퍼는 메인 쿠폰에 이미 있으니 쿠폰으로 다시 그리지 않고, 상세 표만 메인 쿠폰 바로 아래에 둔다 */}
       {bestTables.length > 0 && (
         <div className="cc-x"><div className="cc-x-in">
@@ -249,14 +254,16 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         <div className="cc-x cc-x--rest"><div className="cc-x-in"><div className="cc-more">
           {rest.map((o, i) => {
             const f = formulaOf(o)
-            const tags = badgesOf(o)
             const t = conditionTable(o)
             const hasTbl = t.rows.length > 0 || t.note || f
             const anim = { '--i': i + bestTables.length }
             return (
               <Fragment key={offerKey(o)}>
                 <div className="cc-deal cc-deal--more" style={anim}>
-                  <Coupon o={o} brand={brand} position={position} best={false} tags={tags} />
+                  <div className="cc-deal-col">
+                    <Tags o={o} />
+                    <Coupon o={o} brand={brand} position={position} best={false} />
+                  </div>
                 </div>
                 {hasTbl && <DetailTable t={t} i={i + bestTables.length} fx={f} />}
               </Fragment>
