@@ -157,7 +157,7 @@ function Ticket({ brand, best, hasBest, position, idx, setIdx }) {
 // phase: false(접힘, DOM에 없음) → 'enter'(내용을 0fr로 먼저 DOM에 넣음) → 'open'(두 프레임 뒤 1fr) → 'leave'(0fr로 닫는 중) → false.
 const OPEN_MS = 280
 const LEAVE_MS = 220
-function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false }) {
+function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false, compact = false }) {
   const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   const [phase, setPhase] = useState(false)
   const [cur, setCur] = useState(0) // 캐러셀에서 보이는 쿠폰. 브랜드명 옆 배지가 이걸 따른다
@@ -209,7 +209,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const bestTables = shown ? best.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name} onClick={onCardClick}
-             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}`}>
+             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}`}>
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>

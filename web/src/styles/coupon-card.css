@@ -145,3 +145,21 @@
 .cc-deal--more, .cc-tbl { opacity: 0; transform: translateY(-6px); transition: opacity 160ms ease calc(var(--i, 0) * 40ms), transform 160ms ease calc(var(--i, 0) * 40ms); }
 .cc--open .cc-deal--more, .cc--open .cc-tbl { opacity: 1; transform: none; transition: opacity 220ms ease calc(120ms + var(--i, 0) * 40ms), transform 260ms cubic-bezier(.2, 0, 0, 1) calc(120ms + var(--i, 0) * 40ms); }
 @media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-hint, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
+
+/* ?compact=1 시안: 17차 시안처럼 낮고 촘촘한 쿠폰(높이 76px 안팎, 앱 로고 34px, 금액 25px, 꼭지 58px, 아래 띠 없음) */
+.cc--compact { --tk-h: 76px; --stub: 58px; }
+.cc--compact .cc-info { --pb: 34px; gap: 10px; padding: 0 14px; }
+.cc--compact .cc-ticket::after { display: none; }
+.cc--compact .cc-ticket { border-radius: 10px; }
+.cc--compact .cc-amt { font-size: 25px; line-height: 1.1; }
+.cc--compact .cc-min { font-size: 13px; }
+.cc--compact .cc-stub svg { width: 20px; height: 20px; }
+.cc--compact .cc-carousel { padding-top: 12px; padding-bottom: 18px; margin: -12px 0 -18px; }
+.cc--compact > .cc-deal, .cc--compact > .cc-alts, .cc--compact > .cc-hint { margin-top: 10px; }
+.cc--compact { --logo: 48px; --pad: 14px; }
+.cc--compact > .brand-logo { border-radius: 10px; }
+.cc--compact .cc-nm { font-size: max(14px, calc(17px - var(--cut, 0px))); }
+.cc--compact > .cc-hint { font-size: 12.5px; margin-top: 6px; }
+.cc--compact .cc-hint svg { width: 13px; height: 13px; }
+.cc--compact .cc-alt { font-size: 13px; --pb: 18px; }
+.cc--compact .cc-dots { margin-top: 6px; }
