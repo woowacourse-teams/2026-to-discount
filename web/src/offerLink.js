@@ -1,3 +1,4 @@
+import { isUpdated } from './filters.js'
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
 //
@@ -91,7 +92,7 @@ export function offerLink(offer, brandLinks, brandName) {
 }
 
 /** offer_link_click 속성. 운영 카드와 쿠폰 카드가 같은 키로 남긴다(PostHog 대시보드가 이 키로 가른다). */
-export function offerClickProps({ offer, brandName, position, best }) {
+export function offerClickProps({ offer, brandName, position, best, where, slot, expanded }) {
   return {
     brand: brandName,
     platform: offer.platform,
@@ -107,5 +108,11 @@ export function offerClickProps({ offer, brandName, position, best }) {
     held: offer.status === 'held',
     soldOut: !!offer.soldOut,
     fromBanner: !!offer.link,
+    // 2026-10-05 추가: 신규(오늘 새로 생겼거나 금액이 커짐)였는지, 선착순 칸인지, 카드 어디서 눌렀는지.
+    isNew: isUpdated(offer),
+    firstCome: !!offer.firstCome,
+    ...(where ? { where } : {}),          // main(대표 쿠폰) | carousel | expanded(펼친 목록) | chip(운영 카드)
+    ...(slot != null ? { slot } : {}),    // 캐러셀이나 펼친 목록에서 몇 번째(1부터)
+    ...(expanded != null ? { expanded } : {}),
   }
 }

@@ -76,7 +76,7 @@ public class EventController {
     // 이벤트 값을 앞에 두므로, 그래도 넘치면 맥락이 먼저 떨어진다.
     // 2026-09-17: offer_link_click이 어느 오퍼인지(금액·구간·멤버십·최고·보류…)
     // 12개를 싣게 되어 10이면 맥락이 통째로 떨어졌다 — 18로.
-    private static final int MAX_PROPS = 18;
+    private static final int MAX_PROPS = 28; // 2026-10-05: 클릭 오퍼 정보(신규, 선착순, 위치) + A/B + 필터 맥락 7종을 다 담는다
 
     private final AnalyticsEventService events;
     private final ClientFingerprint fingerprint;

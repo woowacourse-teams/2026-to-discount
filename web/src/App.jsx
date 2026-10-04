@@ -46,6 +46,10 @@ function analyticsFilterContext(filters) {
     fPlatforms: filters.platforms.size,
     fSearch: filters.search.trim() !== '' || undefined,
     fSort: sortSignature(filters.sorts),
+    // 2026-10-05 추가: 신규 보기, 5천원 이상만, 꺼 둔 멤버십(없으면 빈 값)
+    fNew: !!filters.updatedOnly,
+    fMin5k: !!filters.minAmount5k,
+    fMemberOff: ['baemin', 'coupangeats'].filter((k) => !(filters.memberships?.has(k) ?? true)).join('+') || 'none',
   }
 }
 
@@ -174,6 +178,8 @@ export default function App({ initial = null }) {
       random: draft.includeRandom,
       menu: draft.includeMenu,
       min5k: draft.minAmount5k,
+      memberships: [...(draft.memberships ?? [])].sort().join('+') || 'none',
+      updatedOnly: !!draft.updatedOnly,
     })
   }
   // /brand/<이름>으로 들어왔을 때만 값이 있다. 검색으로 들어온 사람에게

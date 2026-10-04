@@ -97,7 +97,7 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
           rel={link.startsWith('http') ? 'noreferrer' : undefined}
           // 어느 오퍼를 눌렀는지까지 남긴다 — brand·platform만으로는 "bhc 배민"에
           // 여러 구간·멤버십 오퍼가 있을 때 무엇이 눌렸는지 못 본다(2026-09-17).
-          onClick={() => track('offer_link_click', offerClickProps({ offer, brandName, position, best }))}
+          onClick={() => track('offer_link_click', offerClickProps({ offer, brandName, position, best, where: 'chip' }))}
         >
           {content}
         </a>

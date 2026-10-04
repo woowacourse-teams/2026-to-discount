@@ -1,3 +1,4 @@
+import { isUpdated } from './filters.js'
 import { OWN } from './platforms.js'
 const STORAGE_KEY = 'dk_brand_impressions'
 const IMPRESSION_MS = 1000
@@ -32,6 +33,8 @@ export function brandImpressionProps(brand, position) {
     platforms: [...new Set(brand.offers.map((offer) => offer.platform))]
       .filter((key) => key !== OWN).sort().join('+'),
     category: brand.category ?? 'none',
+    // 신규 오퍼가 있는 카드였는지(2026-10-05). 신규 표시가 노출, 클릭에 주는 차이를 본다.
+    hasNew: brand.offers.some((o) => isUpdated(o)),
   }
 }
 

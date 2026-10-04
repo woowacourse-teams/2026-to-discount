@@ -39,7 +39,7 @@ function Amt({ offer }) {
   )
 }
 
-function OfferLinkA({ offer, brand, position, best, className, children, ...rest }) {
+function OfferLinkA({ offer, brand, position, best, where, slot, expanded, className, children, ...rest }) {
   const href = offerLink(offer, brand.links, brand.name)
   const web = href.startsWith('http')
   return (
@@ -47,7 +47,7 @@ function OfferLinkA({ offer, brand, position, best, className, children, ...rest
        // 커스텀 스킴(coupangeats://, ddangyo://, baemin://)은 같은 탭에서 열어야 앱으로 간다(운영 칩과 같다).
        target={web ? '_blank' : undefined} rel={web ? 'noreferrer' : undefined}
        aria-label={`${brand.name} ${amountText(offer)}, 앱으로 이동`}
-       onClick={() => track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best }))}>
+       onClick={() => track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best, where, slot, expanded }))}>
       {children}
     </a>
   )
@@ -59,7 +59,7 @@ const LinkIcon = () => (
 
 // 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기, 17차 시안): 왼쪽 앱 로고, 금액과 최소주문, 오른쪽 앱 색 이동 꼭지(링크 아이콘).
 // 배지는 쿠폰 안에 두지 않는다(브랜드명 옆, 캐러셀이면 보이는 쿠폰 것).
-function Coupon({ o, brand, position, best, ...rest }) {
+function Coupon({ o, brand, position, best, where = 'main', slot, expanded, ...rest }) {
   return (
     // 감싸개: 쿠폰(마스크로 홈을 판다)은 바깥으로 삐져나온 것을 잘라서, 업데이트 탭은 감싸개에 단다
     <div className="cc-tkw">
@@ -69,7 +69,7 @@ function Coupon({ o, brand, position, best, ...rest }) {
         <PlatformBadge platformKey={o.platform} brand={brand.name} />
         <span className="cc-num"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
       </span>
-      <OfferLinkA offer={o} brand={brand} position={position} best={best} className="cc-stub"><LinkIcon /></OfferLinkA>
+      <OfferLinkA offer={o} brand={brand} position={position} best={best} where={where} slot={slot} expanded={expanded} className="cc-stub"><LinkIcon /></OfferLinkA>
     </div>
     </div>
   )
@@ -132,7 +132,7 @@ function Carousel({ brand, best, position, idx, setIdx }) {
       <div className="cc-carousel" ref={ref} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onClickCapture={onClickCapture}>
         {best.map((o, i) => (
           <div key={offerKey(o)} className={`cc-slide${i === idx ? ' cc-slide--cur' : ''}`}>
-            <Coupon o={o} brand={brand} position={position} best />
+            <Coupon o={o} brand={brand} position={position} best where="carousel" slot={i + 1} />
           </div>
         ))}
       </div>
@@ -283,7 +283,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                 <div className="cc-deal cc-deal--more" style={anim}>
                   <div className="cc-deal-col">
                     <Tags o={o} />
-                    <Coupon o={o} brand={brand} position={position} best={stack && i < best.length - 1} />
+                    <Coupon o={o} brand={brand} position={position} best={stack && i < best.length - 1} where="expanded" slot={i + 1} expanded />
                   </div>
                 </div>
                 {hasTbl && <DetailTable t={t} i={i + bestTables.length} fx={f} />}

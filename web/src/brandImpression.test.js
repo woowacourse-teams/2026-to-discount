@@ -82,6 +82,7 @@ test('브랜드 노출 props를 화면 상태에서 정규화한다', () => {
     position: '4',
     platforms: 'baemin+yogiyo',
     category: 'chicken',
+    hasNew: false,
   })
   assert.equal(brandImpressionProps({ name: '미분류', category: null, offers: [] }, 1).category, 'none')
 })
