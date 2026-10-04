@@ -11,6 +11,7 @@ import { API_BASE } from './api.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
 import { uiVariant } from './variant.js'
+import { currentHomeArm } from './homeExperiment.js'
 
 const MAX_PENDING_POSTHOG_EVENTS = 100
 
@@ -54,6 +55,11 @@ const makeContext = () => ({
 // 화면이 바꿔주고 여기서는 들고만 있는다 — 이벤트를 쏘는 자리마다 상태를
 // prop으로 끌고 다니면 새 필터가 늘 때 빠뜨린다.
 let filterContext = {}
+let homeCtx = null
+const homeContext = () => {
+  const { arm, forced } = currentHomeArm(getAnalyticsContext().visitorId)
+  return forced ? { home: arm, home_forced: '1' } : { home: arm }
+}
 
 export function setFilterContext(next) {
   filterContext = next
@@ -138,9 +144,9 @@ function createAnalyticsEvent(event, additions = {}) {
     // 그 이벤트가 말하려던 값이었다 — banner_impression의 position이
     // 통째로 유실돼 상단/하단 구분이 안 됐다(2026-08-22). 넘치면 맥락이
     // 먼저 떨어져야 한다.
-    props: (props || Object.keys(filterContext).length)
-      ? { ...props, ...filterContext }
-      : undefined,
+    // 메인 화면 A/B 안(homeExperiment.js)은 모든 이벤트에 싣는다. 서버가 18개에서 자르므로(EventController.MAX_PROPS)
+    // 필터 맥락보다 앞에 둔다: 링크 클릭은 고유 13 + A/B 1 + 필터 4 = 18이라 넘치면 필터가 먼저 떨어진다.
+    props: { ...props, ...(homeCtx ??= homeContext()), ...filterContext },
     clientTs: new Date().toISOString(),
   }
 }
