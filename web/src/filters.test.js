@@ -182,3 +182,13 @@ test('멤버십: 끄면 그 멤버십 전용 오퍼만 빠지고, 기본(둘 다
   assert.deepEqual(noClub[0].offers.map((o) => o.amount).sort(), [6000, 8000])
   assert.equal(isDefaultFilters({ ...defaultFilters(), memberships: new Set(['coupangeats']) }), false)
 })
+
+test('업데이트만: 오늘 처음 본 오퍼가 있는 브랜드만 남긴다', () => {
+  const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10)
+  const brands = [
+    { name: 'A', category: 'pizza', offers: [{ platform: 'baemin', amount: 7000, firstSeenAt: `${today}T00:30:00+09:00` }] },
+    { name: 'B', category: 'pizza', offers: [{ platform: 'baemin', amount: 7000, firstSeenAt: '2026-09-01T00:30:00+09:00' }] },
+  ]
+  assert.deepEqual(applyFilters(brands, { ...defaultFilters(), updatedOnly: true }).map((b) => b.name), ['A'])
+  assert.equal(applyFilters(brands, defaultFilters()).length, 2)
+})

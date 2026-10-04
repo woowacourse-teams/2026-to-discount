@@ -192,3 +192,4 @@
 .cc-tkw > .cc-ticket { width: 100%; }
 .cc-upd { position: absolute; top: -9px; right: calc(var(--stub) - 10px); z-index: 2; box-sizing: border-box; height: 20px; display: inline-flex; align-items: center; padding: 0 .45rem; font-size: .66rem; font-weight: 800; line-height: 1; color: #fff; background: #2f6fd1; border-radius: 3px 3px 5px 3px; box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28); transform: rotate(5deg); transform-origin: right top; white-space: nowrap; pointer-events: none; }
 .cc-upd::after { content: ''; position: absolute; right: 0; bottom: 0; width: 6px; height: 6px; background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, .18) 50%); border-bottom-right-radius: 3px; }
+
