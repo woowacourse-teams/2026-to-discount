@@ -196,3 +196,8 @@
 .cc-upd { position: absolute; top: -9px; right: calc(var(--stub) - 10px); z-index: 2; box-sizing: border-box; height: 20px; display: inline-flex; align-items: center; padding: 0 .45rem; font-size: .66rem; font-weight: 800; line-height: 1; color: #fff; background: #2f6fd1; border-radius: 3px 3px 5px 3px; box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28); transform: rotate(5deg); transform-origin: right top; white-space: nowrap; pointer-events: none; }
 .cc-upd::after { content: ''; position: absolute; right: 0; bottom: 0; width: 6px; height: 6px; background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, .18) 50%); border-bottom-right-radius: 3px; }
 
+/* 촘촘한 안의 펼친 상세 표: 120% 때 키운 글자(13.8px)가 76px 쿠폰보다 커 보였다. 쿠폰 최소주문 글자(13px)보다 한 단계 아래로 */
+.cc--compact .cc-tbl { font-size: 12.5px; column-gap: 8px; }
+.cc--compact .cc-tbl > span { padding: 4px 0; }
+.cc--compact .cc-t-amt small, .cc--compact .cc-t-chips .detail__channel { font-size: 11.5px; }
+.cc--compact .cc-tbl .cc-t-chips .detail__channel { font-size: 11px; line-height: 1.3; padding: 1px 6px; }
