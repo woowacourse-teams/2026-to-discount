@@ -80,7 +80,8 @@
 .cc-carousel { display: flex; gap: 8px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline-start: 18px; padding: 18px 38px 28px 18px; margin: -18px -18px -28px; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; }
 .cc-carousel::-webkit-scrollbar { display: none; }
 .cc-carousel.cc-dragging { scroll-snap-type: none; cursor: grabbing; user-select: none; }
-.cc-slide { flex: 0 0 var(--tk-w); scroll-snap-align: start; position: relative; display: flex; }
+/* 캐러셀 안쪽 폭(오른쪽 38px 여백을 뺀 값)이 곧 쿠폰 폭 = 카드 안쪽 폭 - 12px - 간격 8px */
+.cc-slide { flex: 0 0 100%; scroll-snap-align: start; position: relative; display: flex; }
 .cc-slide .cc-ticket { width: 100%; }
 .cc-postit { position: absolute; top: -9px; right: 8px; display: flex; gap: 3px; transform: rotate(4deg); transform-origin: left bottom; pointer-events: none; }
 .cc-postit .cc-tag { box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
