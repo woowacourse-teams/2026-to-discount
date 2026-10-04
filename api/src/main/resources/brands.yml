@@ -309,6 +309,11 @@ brands:
   오구쌀피자:
     searchAliases: [오구 피자, 오구쌀 피자, 59 pizza, ogu rice pizza]
     category: pizza
+  서오릉피자:
+    searchAliases: [서오릉 피자, 서오릉, seooreung pizza]
+    aliases: [서오릉피자]
+    category: pizza
+    # 자사 포장할인 배너(오릉이날, 2026-10-05)로 처음 들어왔다. 배달앱 링크는 아직 없다.
   청년피자:
     searchAliases: [청년 피자, 청피, youngman pizza, youth pizza]
     aliases: [청년피자, youngmanpizza]
