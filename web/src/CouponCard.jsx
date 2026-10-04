@@ -15,8 +15,12 @@ const Up = () => (
   <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2l4 5H7.2v3H4.8V7H2z" fill="currentColor" /></svg>
 )
 
-function Tag({ b, platform }) {
-  return <span className={`cc-tag cc-tag--${b.kind}`} data-platform={platform}>{b.text}</span>
+// 배지: 운영 화면(OfferChip)의 배지 마크업과 클래스를 그대로 쓴다(chip-tags 안 offer__range-badge, offer__status-badge). 새로 그리지 않는다.
+const RANGE_CLASS = { 'qualifier-plain': 'plain', 'qualifier-random': 'random', rate: 'rate', 'best-fit': 'optimal' }
+function OpBadge({ b, platform }) {
+  if (b.kind === 'membership') return <span className="offer__status-badge offer__status-badge--membership" data-platform={platform}>{b.text}</span>
+  if (b.kind === 'limited') return <span className="offer__status-badge">{b.text}</span>
+  return <span className={`offer__range-badge offer__range-badge--${RANGE_CLASS[b.kind] ?? 'plain'}`}>{b.text}</span>
 }
 
 function Min({ value }) {
@@ -51,21 +55,22 @@ function OfferLinkA({ offer, brand, position, best, className, children, ...rest
 
 // 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기): 흰 정보 칸(금액, 최소주문, 펼친 쿠폰은 오른쪽 빈칸에 배지 라벨),
 // 하단 검은 띠, 오른쪽 앱 색 이동 영역(링크는 여기만, 앱 로고가 이동 버튼을 대신한다).
-function Coupon({ o, brand, position, best, tags = [], side, ...rest }) {
+function Coupon({ o, brand, position, best, tags = [], ...rest }) {
   const ch = channelOf(o)
   return (
     <div className="cc-ticket" data-platform={o.platform} {...rest}>
       <span className="cc-info">
         {/* 금액 위 줄: 채널(포장/배달)과 배지. 왼쪽 시작은 금액과 같다. 없어도 한 줄 높이를 비워 금액 자리를 맞춘다 */}
         {(ch || tags.length > 0) && (
-          <span className="cc-chrow">
-            {ch && <em className="cc-ch">{ch}</em>}
-            {tags.map((b) => <Tag key={b.kind} b={b} platform={o.platform} />)}
+          <span className="cc-chrow offer--hero">
+            <span className="chip-tags">
+              {ch && <span className="offer__status-badge">{ch}</span>}
+              {tags.map((b) => <OpBadge key={b.kind} b={b} platform={o.platform} />)}
+            </span>
           </span>
         )}
         <Amt offer={o} />
         <Min value={o.minOrderAmount} />
-        {side}
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} className="cc-stub"><PlatformBadge platformKey={o.platform} brand={brand.name} /></OfferLinkA>
     </div>
@@ -123,17 +128,18 @@ function Carousel({ brand, best, position, }) {
 }
 
 // 상세 표: 구간마다 한 줄(금액, 조건 칩, 최소주문), 조건 문장은 표 아래 한 줄. head는 복수 최고일 때 어느 앱 표인지 밝히는 아이콘.
-function DetailTable({ t, i, head }) {
+function DetailTable({ t, i, head, fx }) {
   return (
     <div className="cc-tbl" style={{ '--i': i }}>
       {head && <span className="cc-t-head">{head}</span>}
       {t.rows.map((r, k) => (
         <Fragment key={k}>
           <span className="cc-t-amt">{r.amount}{r.extra && <small>{r.extra}</small>}</span>
-          <span className="cc-t-chips">{r.chips.map((c) => <em key={c.text} className={`cc-tc cc-tc--${c.kind}`} data-platform={c.platform}>{c.text}</em>)}</span>
+          <span className="cc-t-chips">{r.chips.map((c) => <span key={c.text} className={`detail__channel${c.kind === 'membership' ? ' detail__tier-membership' : ''}`} data-platform={c.platform}>{c.text}</span>)}</span>
           <span className="cc-t-min">{r.min}</span>
         </Fragment>
       ))}
+      {fx && <span className="cc-t-note cc-t-fx">{fx}</span>}
       {t.note && <span className="cc-t-note">{t.note}</span>}
     </div>
   )
@@ -245,15 +251,14 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             const f = formulaOf(o)
             const tags = badgesOf(o)
             const t = conditionTable(o)
-            const hasTbl = t.rows.length > 0 || t.note
+            const hasTbl = t.rows.length > 0 || t.note || f
             const anim = { '--i': i + bestTables.length }
-            const side = f && <span className="cc-side-tags"><span className="cc-fx">{f}</span></span>
             return (
               <Fragment key={offerKey(o)}>
                 <div className="cc-deal cc-deal--more" style={anim}>
-                  <Coupon o={o} brand={brand} position={position} best={false} tags={tags} side={side} />
+                  <Coupon o={o} brand={brand} position={position} best={false} tags={tags} />
                 </div>
-                {hasTbl && <DetailTable t={t} i={i + bestTables.length} />}
+                {hasTbl && <DetailTable t={t} i={i + bestTables.length} fx={f} />}
               </Fragment>
             )
           })}
