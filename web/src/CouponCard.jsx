@@ -176,7 +176,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   // 카드 아무 곳이나 누르면 펼치기/접기. 링크, 숨기기 버튼, 캐러셀 끌기는 제외한다.
   const onCardClick = (e) => {
     if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging')) return
-    toggle()
+    if (canExpand) toggle()
   }
   // 딥링크(#brand-이름)로 들어오면 펼친 채로 그 카드로 스크롤한다(운영 카드와 같다).
   useEffect(() => {
@@ -206,10 +206,16 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const shownName = shortBrandName(brand)
   const single = best.length === 1 ? best[0] : null
   const fx = single && formulaOf(single)
-  const bestTables = shown ? best.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
+  // 동점 최고(캐러셀)는 펼치면 캐러셀이 접히고 그 쿠폰들이 하위 오퍼처럼 아래로 늘어선다
+  const stack = best.length > 1
+  const hasTbl = (o) => { const t = conditionTable(o); return t.rows.length > 0 || !!t.note }
+  // 펼칠 게 없으면(하위 오퍼도, 최고 쿠폰의 상세 표도 없음) 자세히 보기를 숨기고 자리만 둔다
+  const canExpand = rest.length > 0 || stack || best.some(hasTbl)
+  const bestTables = shown && !stack ? best.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
+  const listed = stack ? [...best, ...rest] : rest
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name} onClick={onCardClick}
-             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}`}>
+             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}${stack ? ' cc--stack' : ''}`}>
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>
@@ -222,7 +228,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         </div>
         {fx && <div className="cc-fx">{fx}</div>}
       </div>
-      <div className="cc-deal"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
+      <div className="cc-deal cc-deal--main"><div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div></div>
       {/* 최고 오퍼는 메인 쿠폰에 이미 있으니 쿠폰으로 다시 그리지 않고, 상세 표만 메인 쿠폰 바로 아래에 둔다 */}
       {bestTables.length > 0 && (
         <div className="cc-x"><div className="cc-x-in">
@@ -239,7 +245,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           ))}
         </div></div>
       )}
-      <button type="button" className="cc-hint" aria-expanded={open}>
+      <button type="button" className="cc-hint" aria-expanded={open} style={canExpand ? undefined : { visibility: "hidden" }} aria-hidden={canExpand ? undefined : true} tabIndex={canExpand ? undefined : -1}>
         자세히 보기
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
@@ -252,7 +258,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       {/* 펼친 쿠폰은 펼쳤을 때만 그린다(접힌 동안 요소 수를 늘리지 않는다). */}
       {shown && (
         <div className="cc-x cc-x--rest"><div className="cc-x-in"><div className="cc-more">
-          {rest.map((o, i) => {
+          {listed.map((o, i) => {
             const f = formulaOf(o)
             const t = conditionTable(o)
             const hasTbl = t.rows.length > 0 || t.note || f
@@ -262,7 +268,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                 <div className="cc-deal cc-deal--more" style={anim}>
                   <div className="cc-deal-col">
                     <Tags o={o} />
-                    <Coupon o={o} brand={brand} position={position} best={false} />
+                    <Coupon o={o} brand={brand} position={position} best={stack && i < best.length} />
                   </div>
                 </div>
                 {hasTbl && <DetailTable t={t} i={i + bestTables.length} fx={f} />}
