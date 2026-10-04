@@ -1,7 +1,7 @@
 /* 메인 화면 A안 쿠폰 브랜드 카드. 절취 홈은 mask(요소 추가 없음), 그림자는 감싸는 .cc-deal의 drop-shadow. 폭을 재는 코드는 없다. */
 .cc {
   --cc-edge: color-mix(in srgb, var(--text) 22%, transparent);
-  --logo: clamp(52px, 16vw, 64px); --tk-h: clamp(92px, 26vw, 104px); --tk-w: calc(100% - 30px); /* 쿠폰 폭 = 쿠폰 줄 폭 - 2 x (이웃 8px + 간격 7px), 가운데 */ --stub: clamp(72px, 21vw, 84px);
+  --logo: clamp(52px, 16vw, 64px); --tk-h: clamp(128px, 36vw, 140px); /* 위아래 여백 각 18px 늘림 */ --tk-w: calc(100% - 30px); /* 쿠폰 폭 = 쿠폰 줄 폭 - 2 x (이웃 8px + 간격 7px), 가운데 */ --stub: clamp(72px, 21vw, 84px);
   --cc-fs-sm: clamp(10.5px, 3vw, 12px); --cc-fs-min: clamp(11px, 3.1vw, 12.5px);
   position: relative; background: var(--surface); color: var(--text);
   border: 1px solid var(--border); border-radius: 12px;
@@ -51,7 +51,7 @@
 /* 하단 검은 띠: 이동 영역을 뺀 정보 칸 아래(::after, 요소 없음) */
 .cc-ticket::after { content: ""; position: absolute; left: 0; bottom: 0; width: calc(100% - var(--stub)); height: 8px; background: #1f1f1f; border-bottom-left-radius: inherit; pointer-events: none; }
 /* 17차 시안: 왼쪽 앱 로고, 오른쪽에 금액과 최소주문 묶음. 아래 검은 띠 8px 위 영역에서 세로 가운데 */
-.cc-info { --ix: clamp(12px, 3.8vw, 16px); --pb: 34px; display: flex; align-items: center; gap: 12px; padding: 0 var(--ix) 8px; min-width: 0; overflow: hidden; }
+.cc-info { --ix: clamp(12px, 3.8vw, 16px); --pb: 53px; /* 로고 = 금액+최소주문 묶음 높이(360px 실측 53px) */ display: flex; align-items: center; gap: 12px; padding: 0 var(--ix) 8px; min-width: 0; overflow: hidden; }
 .cc-num { display: grid; row-gap: 2px; min-width: 0; }
 /* 배지: 브랜드명 옆(캐러셀이면 보이는 쿠폰 것), 펼친 쿠폰은 쿠폰 바로 위. 운영 탭 마크업, 규격은 멤버십 포스트잇 하나로 통일 */
 .cc-tags { display: inline-flex; flex: none; min-width: 0; }
