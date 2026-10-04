@@ -1,4 +1,4 @@
-import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
@@ -7,6 +7,7 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
 import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
+import EventStrip from './EventStrip.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount } from './filters.js'
@@ -567,7 +568,8 @@ export default function App({ initial = null }) {
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
       {/* 배너를 받기 전에는 그 높이만큼 자리를 잡아 둔다. 늦게 끼어들면 아래 목록이 통째로 밀린다
           (2026-09-30 브랜드 페이지 CLS 0.9). 받았는데 0건이면 자리를 거둔다. */}
-      {banners == null ? <div className="banner-slot banner-slot--pending" aria-hidden="true" /> : <EventBanner banners={banners} />}
+      {/* 쿠폰 카드 쪽은 위 배너 캐러셀 대신 목록 4번째 자리의 행사 한 줄(EventStrip, 설계 4단계) */}
+      {homeA ? null : banners == null ? <div className="banner-slot banner-slot--pending" aria-hidden="true" /> : <EventBanner banners={banners} />}
       <PushNotificationSetting />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
@@ -760,9 +762,13 @@ export default function App({ initial = null }) {
           {visibleBrands.slice(0, shown).map((b, index) => {
             const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name), onInteract: clearLinked }
-            return homeA
-              ? <Suspense key={b.name} fallback={<BrandCard {...props} />}><CouponCard {...props} photo={homePhoto} compact={homeCompact} /></Suspense>
-              : <BrandCard key={b.name} {...props} />
+            if (!homeA) return <BrandCard key={b.name} {...props} />
+            const card = <Suspense key={b.name} fallback={<BrandCard {...props} />}><CouponCard {...props} photo={homePhoto} compact={homeCompact} /></Suspense>
+            // 행사 한 줄은 4번째 자리(3장 뒤). 목록이 3장 이하면 맨 끝.
+            const stripAt = Math.min(2, Math.min(shown, visibleBrands.length) - 1)
+            return index === stripAt && banners?.length
+              ? <Fragment key={b.name}>{card}<EventStrip banners={banners} /></Fragment>
+              : card
           })}
         </div>
       )}
