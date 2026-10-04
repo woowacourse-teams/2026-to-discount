@@ -5,7 +5,7 @@ import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
-import { amountText, badgesOf, channelOf, conditionTable, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, badgesOf, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { offerClickProps, offerLink } from './offerLink.js'
@@ -51,10 +51,10 @@ function OfferLinkA({ offer, brand, position, best, className, children, ...rest
 
 // 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기): 흰 정보 칸(금액, 최소주문, 펼친 쿠폰은 오른쪽 빈칸에 배지 라벨),
 // 하단 검은 띠, 오른쪽 앱 색 이동 영역(링크는 여기만, 앱 로고가 이동 버튼을 대신한다).
-function Coupon({ o, brand, position, best, muted, tags = [], side, ...rest }) {
+function Coupon({ o, brand, position, best, tags = [], side, ...rest }) {
   const ch = channelOf(o)
   return (
-    <div className={`cc-ticket${muted ? ' cc-ticket--muted' : ''}`} data-platform={o.platform} {...rest}>
+    <div className="cc-ticket" data-platform={o.platform} {...rest}>
       <span className="cc-info">
         {/* 금액 위 줄: 채널(포장/배달)과 배지. 왼쪽 시작은 금액과 같다. 없어도 한 줄 높이를 비워 금액 자리를 맞춘다 */}
         {(ch || tags.length > 0) && (
@@ -112,8 +112,7 @@ function Carousel({ brand, best, position, }) {
           const tags = badgesOf(o)
           return (
             <div key={offerKey(o)} className="cc-slide">
-              <Coupon o={o} brand={brand} position={position} best />
-              {tags.length > 0 && <span className="cc-postit">{tags.map((x) => <Tag key={x.kind} b={x} platform={o.platform} />)}</span>}
+              <Coupon o={o} brand={brand} position={position} best tags={tags} />
             </div>
           )
         })}
@@ -131,7 +130,7 @@ function DetailTable({ t, i, head }) {
       {t.rows.map((r, k) => (
         <Fragment key={k}>
           <span className="cc-t-amt">{r.amount}{r.extra && <small>{r.extra}</small>}</span>
-          <span className="cc-t-chips">{r.chips.map((c) => <em key={c}>{c}</em>)}</span>
+          <span className="cc-t-chips">{r.chips.map((c) => <em key={c.text} className={`cc-tc cc-tc--${c.kind}`} data-platform={c.platform}>{c.text}</em>)}</span>
           <span className="cc-t-min">{r.min}</span>
         </Fragment>
       ))}
@@ -141,7 +140,7 @@ function DetailTable({ t, i, head }) {
 }
 
 function Ticket({ brand, best, hasBest, position, }) {
-  if (best.length === 1) return <Coupon o={best[0]} brand={brand} position={position} best={hasBest} muted={!hasBest} />
+  if (best.length === 1) return <Coupon o={best[0]} brand={brand} position={position} best={hasBest} tags={badgesOf(best[0])} />
   return <Carousel brand={brand} best={best} position={position} />
 }
 
@@ -194,7 +193,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   useEffect(() => observeBrandImpression(headRef.current, brandImpressionProps(brand, position),
     (p) => track('brand_impression', p)), [brand, position])
 
-  const shownName = brand.shortName || brand.name
+  const shownName = shortBrandName(brand)
   const single = best.length === 1 ? best[0] : null
   const fx = single && formulaOf(single)
   const bestTables = shown ? best.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
@@ -204,12 +203,11 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>
-        {/* 1줄: 이름(줄어듦, 말줄임) + 배지(안 줄어듦). brands.yml의 shortName이 응답에 오면 그 이름을 쓴다 */}
+        {/* 1줄: 이름(안 들어가면 searchAliases의 가장 짧은 한글 별칭, 그래도 넘치면 말줄임). 배지는 쿠폰 안 금액 위 줄로 옮겼다 */}
         <div className="cc-line">
           <button type="button" aria-expanded={open}>
             <span className="cc-nm" style={{ '--cut': `${nameCutPx(shownName)}px` }}>{shownName}</span>
           </button>
-          {single && <div className="cc-tags">{badgesOf(single).map((b) => <Tag key={b.kind} b={b} platform={single.platform} />)}</div>}
         </div>
         {fx && <div className="cc-fx">{fx}</div>}
       </div>
@@ -241,7 +239,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         </button>
       )}
       {/* 펼친 쿠폰은 펼쳤을 때만 그린다(접힌 동안 요소 수를 늘리지 않는다). */}
-      {shown && rest.length > 0 && (
+      {shown && (
         <div className="cc-x cc-x--rest"><div className="cc-x-in"><div className="cc-more">
           {rest.map((o, i) => {
             const f = formulaOf(o)
@@ -259,10 +257,10 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
               </Fragment>
             )
           })}
+          {/* 접기: 펼친 영역 맨 아래. 위의 "자세히 보기" 줄은 펼친 동안 보이지 않게만 한다 */}
+          <button type="button" className="cc-fold" aria-expanded={open}>접기<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
         </div></div></div>
       )}
-      {/* 접기: 펼친 영역 맨 아래. 위의 "자세히 보기" 줄은 펼친 동안 높이만 두고 보이지 않게 한다 */}
-      {shown && <div className="cc-x"><div className="cc-x-in"><button type="button" className="cc-fold" aria-expanded={open}>접기<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button></div></div>}
     </article>
   )
 }

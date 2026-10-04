@@ -72,23 +72,42 @@ const won = (n) => `${n.toLocaleString('ko-KR')}원`
  */
 export function conditionTable(offer) {
   const tiers = Array.isArray(offer.tiers) ? [...offer.tiers].sort((a, b) => b.amount - a.amount) : []
-  const extra = (t) => t.channel || (t.membership && t.membership !== 'none') || t.note
-    || (t.expiresAt && t.expiresAt !== offer.expiresAt)
+  // 구간이 자기 멤버십을 말하지 않으면 오퍼 전체의 값을 따른다(운영 OfferDetail과 같다). 필드가 없는 옛 행은 badge 끝말로.
+  const offerMem = offer.membership && offer.membership !== 'none' ? offer.membership : (offer.badge?.endsWith('전용쿠폰') ? 'badge' : null)
+  const memOf = (t) => (t.membership && t.membership !== 'none' ? t.membership : offerMem)
+  const extra = (t) => t.channel || memOf(t) || t.note || (t.expiresAt && t.expiresAt !== offer.expiresAt)
   const rows = []
-  if (tiers.length > 1 || tiers.some(extra)) {
-    for (const t of tiers) {
-      const min = t.minOrder ?? (t.amount === offer.amount ? offer.minOrderAmount : null)
-      rows.push({
-        amount: t.amount == null ? '금액 ?' : `${won(t.amount)}${t.soldOut ? ' 품절' : ''}`,
-        extra: t.percent != null ? `${t.percent}%${t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''}` : '',
-        chips: [t.channel, t.membership && t.membership !== 'none' ? (MEMBERSHIP_LABEL[offer.platform] ?? t.membership) : null, t.note,
-          t.expiresAt && t.expiresAt !== offer.expiresAt ? `~${t.expiresAt.slice(5).replace('-', '.')}` : null].filter(Boolean),
-        min: min != null ? `${won(min)}↑` : '최소주문 ?',
-      })
+  const rowOf = (t) => {
+    const min = t.minOrder ?? (t.amount === offer.amount ? offer.minOrderAmount : null)
+    const mem = memOf(t)
+    return {
+      amount: t.amount == null ? '금액 ?' : `${won(t.amount)}${t.soldOut ? ' 품절' : ''}`,
+      extra: t.percent != null ? `${t.percent}%${t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''}` : '',
+      chips: [t.channel && { kind: 'channel', text: t.channel },
+        mem && { kind: 'membership', text: MEMBERSHIP_LABEL[offer.platform] ?? (offer.badge ?? mem), platform: offer.platform },
+        t.note && { kind: 'note', text: t.note },
+        t.expiresAt && t.expiresAt !== offer.expiresAt && { kind: 'until', text: `~${t.expiresAt.slice(5).replace('-', '.')}` }].filter(Boolean),
+      min: min != null ? `${won(min)}↑` : '최소주문 ?',
     }
   }
+  if (tiers.length > 1 || tiers.some(extra)) for (const t of tiers) rows.push(rowOf(t))
+  else if (offerMem) rows.push(rowOf({ amount: offer.amount, minOrder: offer.minOrderAmount }))
   const note = offer.conditions && !formulaOf(offer) ? offer.conditions : ''
   return { rows, note }
+}
+
+/** 글자 폭 추정(렌더 중 측정 없이): 한글 등 전각은 1, 영문, 숫자, 기호는 0.6. */
+const weight = (t) => [...t].reduce((n, ch) => n + (/[ᄀ-ᇿ㄰-㆏가-힯一-鿿]/.test(ch) ? 1 : 0.6), 0)
+
+/**
+ * 머리 줄에 이름이 안 들어가면(추정 폭이 limit 초과) API가 이미 내려주는 searchAliases에서 고른다:
+ * 공백을 뺀 한글 포함 별칭 중 가장 짧은 것. 별칭이 없거나 더 길면 원래 이름(넘치면 CSS 말줄임).
+ */
+export function shortBrandName(brand, limit = 10) {
+  if (weight(brand.name) <= limit) return brand.name
+  const cand = (brand.searchAliases ?? []).map((a) => a.replace(/\s+/g, '')).filter((a) => /[가-힣]/.test(a) && weight(a) < weight(brand.name))
+  cand.sort((a, b) => weight(a) - weight(b))
+  return cand[0] ?? brand.name
 }
 
 /** 이름 한 줄. 상한은 CSS(clamp)가 화면 폭으로 정하고, 여기서는 글자 수만큼 깎을 px를 낸다(폭을 재지 않는다). 하한 12px는 CSS. */

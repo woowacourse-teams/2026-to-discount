@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, conditionTable, nameCutPx, amountText } from './couponModel.js'
+import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, shortBrandName, conditionTable, nameCutPx, amountText } from './couponModel.js'
 
 const o = (platform, amount, extra = {}) => ({ platform, amount, certainty: 'exact', kind: 'discount', ...extra })
 
@@ -96,15 +96,40 @@ test('금액 글자: 숫자가 없으면 원문', () => {
   assert.equal(amountText({ platform: 'own', amount: null, rawText: '1+1' }), '1+1')
 })
 
-test('조건 표: 구간마다 한 줄, 조건 문장은 note, 계산식은 뺀다', () => {
+test('조건 표: 구간마다 한 줄, 멤버십은 오퍼 값을 이어받아 색 칩으로, 조건 문장은 note, 계산식은 뺀다', () => {
   const x = o('baemin', 7500, { expiresAt: '2026-10-31', conditions: '1일 1회', tiers: [
     { amount: 3000, minOrder: 12000 }, { amount: 7500, minOrder: 25000, membership: 'baeminClub', percent: 5, cap: 9000, channel: '배달', expiresAt: '2026-10-05' }] })
   assert.deepEqual(conditionTable(x), { note: '1일 1회', rows: [
-    { amount: '7,500원', extra: '5%, 최대 9,000원', chips: ['배달', '배민클럽', '~10.05'], min: '25,000원↑' },
+    { amount: '7,500원', extra: '5%, 최대 9,000원', chips: [{ kind: 'channel', text: '배달' }, { kind: 'membership', text: '배민클럽', platform: 'baemin' }, { kind: 'until', text: '~10.05' }], min: '25,000원↑' },
     { amount: '3,000원', extra: '', chips: [], min: '12,000원↑' }] })
   assert.deepEqual(conditionTable(o('baemin', 7500, { tiers: [{ amount: 7500, minOrder: 18000 }] })), { rows: [], note: '' })
   assert.deepEqual(conditionTable(o('yogiyo', 5250, { qualifier: '최적', conditions: '25,000원 × 5% + 4,000원' })), { rows: [], note: '' })
+  // 구간 없는 멤버십 오퍼도 표가 선다(멤버십이 오퍼 전체에만 있던 경우)
+  const m = conditionTable(o('coupangeats', 7000, { membership: 'coupangEats', minOrderAmount: 18000 }))
+  assert.deepEqual(m.rows, [{ amount: '7,000원', extra: '', chips: [{ kind: 'membership', text: '쿠팡와우', platform: 'coupangeats' }], min: '18,000원↑' }])
+  // 구간이 있어도 구간에 멤버십이 없으면 오퍼 값을 이어받는다
+  assert.equal(conditionTable(o('baemin', 7000, { membership: 'baeminClub', tiers: [{ amount: 7000, minOrder: 1 }] })).rows[0].chips[0].text, '배민클럽')
 })
+
+test('긴 이름은 별칭에서 가장 짧은 한글 이름으로, 짧으면 그대로', () => {
+  const tmp = { name: '토핑몬스터피자TMPPIZZA', searchAliases: ['토핑몬스터피자', '토핑몬스터', '토핑 몬스터 피자', 'tmp pizza'] }
+  assert.equal(shortBrandName(tmp), '토핑몬스터')
+  assert.equal(shortBrandName({ name: '청년피자', searchAliases: ['청피'] }), '청년피자')
+  assert.equal(shortBrandName({ name: '아주아주긴이름의브랜드명입니다', searchAliases: [] }), '아주아주긴이름의브랜드명입니다')
+})
+
+test('이름 깎을 크기: 8자까지 0, 한 자마다 0.7px', () => {
+  assert.equal(nameCutPx('bhc'), 0)
+  assert.equal(nameCutPx('꾸브라꼬숯불치킨'), 0)
+  assert.equal(nameCutPx('호식이두마리치킨앤'), 0.7)
+  assert.equal(nameCutPx('토핑몬스터피자TMPPIZZA'), 4.9)
+})
+
+test('금액 글자: 숫자가 없으면 원문', () => {
+  assert.equal(amountText(o('baemin', 11000)), '11,000원')
+  assert.equal(amountText({ platform: 'own', amount: null, rawText: '1+1' }), '1+1')
+})
+
 test('이름 깎을 크기: 8자까지 0, 한 자마다 0.7px', () => {
   assert.equal(nameCutPx('bhc'), 0)
   assert.equal(nameCutPx('꾸브라꼬숯불치킨'), 0)
