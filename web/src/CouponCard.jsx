@@ -5,7 +5,7 @@ import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
-import { amountText, badgesOf, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { offerClickProps, offerLink } from './offerLink.js'
@@ -61,12 +61,16 @@ const LinkIcon = () => (
 // 배지는 쿠폰 안에 두지 않는다(브랜드명 옆, 캐러셀이면 보이는 쿠폰 것).
 function Coupon({ o, brand, position, best, ...rest }) {
   return (
+    // 감싸개: 쿠폰(마스크로 홈을 판다)은 바깥으로 삐져나온 것을 잘라서, 업데이트 탭은 감싸개에 단다
+    <div className="cc-tkw">
+    {isUpdated(o) && <span className="cc-upd">업데이트</span>}
     <div className="cc-ticket" data-platform={o.platform} {...rest}>
       <span className="cc-info">
         <PlatformBadge platformKey={o.platform} brand={brand.name} />
         <span className="cc-num"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} className="cc-stub"><LinkIcon /></OfferLinkA>
+    </div>
     </div>
   )
 }

@@ -148,3 +148,12 @@ test('채널 칩: 같은 금액 구간의 채널, 없으면 badge, 모르면 nul
   assert.equal(channelOf(o('baemin', 7000, { badge: '배달 전용' })), '배달')
   assert.equal(channelOf(o('baemin', 7000)), null)
 })
+
+test('업데이트: 오늘(한국 시각) 처음 본 오퍼만', async () => {
+  const { isUpdated } = await import('./couponModel.js')
+  const now = Date.parse('2026-10-05T00:30:00+09:00')
+  assert.equal(isUpdated({ firstSeenAt: '2026-10-05T00:01:00+09:00' }, now), true)
+  assert.equal(isUpdated({ firstSeenAt: '2026-10-04T23:59:00+09:00' }, now), false)
+  assert.equal(isUpdated({ firstSeenAt: null }, now), false)
+  assert.equal(isUpdated({}, now), false)
+})

@@ -127,3 +127,11 @@ export function channelOf(offer) {
 export function amountText(offer) {
   return offer.amount != null ? `${offer.amount.toLocaleString('ko-KR')}원` : (offer.rawText ?? '')
 }
+
+// 업데이트: 이 오퍼(앱, 브랜드, 금액)를 오늘(한국 시각) 처음 봤다 = 어제와 다르다(새로 생겼거나 금액이 바뀌었다).
+// 방문자별 판정은 하지 않는다(2026-10-04 사용자). firstSeenAt은 tracker export_data.first_seen이 채운다.
+const kstDay = (t) => new Date(t + 9 * 3600e3).toISOString().slice(0, 10)
+export function isUpdated(offer, now = Date.now()) {
+  const t = offer?.firstSeenAt ? Date.parse(offer.firstSeenAt) : NaN
+  return Number.isFinite(t) && kstDay(t) === kstDay(now)
+}
