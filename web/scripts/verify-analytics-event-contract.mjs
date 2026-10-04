@@ -24,6 +24,8 @@ const appSource = await source('src/App.jsx')
 // App.jsx에서 떼어 낸 카드와 칩. offer_link_click·brand_expand·brand_impression을 여기서 쏜다.
 const brandCardSource = await source('src/BrandCard.jsx')
 const offerChipSource = await source('src/OfferChip.jsx')
+// 메인 화면 A/B의 쿠폰 카드(2026-10-04). 목록에서 빠져 있어 이 카드가 쏘는 이벤트는 대조되지 않았다.
+const couponCardSource = await source('src/CouponCard.jsx')
 const bannerSource = await source('src/EventBanner.jsx')
 // 상단 바(옛 A안 — 2026-09-15 B를 내리고 하나로 통일). 이 파일이 목록에서 빠져 있으면 A안에서만 쏘는 이벤트가
 // 허용 목록에 없어도 검사를 통과한다 — 정확히 그렇게 여섯 종이 서버에서
@@ -51,6 +53,7 @@ const emittedEvents = new Set([
   ...staticTrackEvents('src/App.jsx', appSource),
   ...staticTrackEvents('src/BrandCard.jsx', brandCardSource),
   ...staticTrackEvents('src/OfferChip.jsx', offerChipSource),
+  ...staticTrackEvents('src/CouponCard.jsx', couponCardSource),
   ...staticTrackEvents('src/EventBanner.jsx', bannerSource),
   ...staticTrackEvents('src/TopBarA.jsx', topBarASource),
   ...staticTrackEvents('src/SurveyCard.jsx', surveyCardSource),

@@ -81,6 +81,7 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
     onInteract?.()
     setPinned((v) => {
       if (!v) track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
+      else track('brand_collapse', { brand: brand.name, category: brand.category ?? 'none' })
       return !v
     })
   }

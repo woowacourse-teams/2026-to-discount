@@ -60,7 +60,9 @@ public class EventController {
             "survey_impression", "survey_open", "survey_dismiss",
             // 싫은 브랜드 숨기기(2026-09-24). 브랜드 이름은 brand 칸으로 이미 오는 값이라
             // 새로 여는 것이 없다. 어떤 브랜드가 얼마나 숨겨지는지가 목록 품질의 신호다.
-            "brand_hide", "hidden_open");
+            "brand_hide", "hidden_open",
+            // 메인 화면 A/B(2026-10-05): 접기(두 안 모두)와 쿠폰 카드 캐러셀 넘기기.
+            "brand_collapse", "coupon_carousel_swipe");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
             "inputLength", "resultCount", "submitMethod",
             "fCategory", "fPlatforms", "fSearch", "fSort",

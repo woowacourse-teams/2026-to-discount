@@ -106,6 +106,13 @@ function Carousel({ brand, best, position, idx, setIdx }) {
     else drag.current = null
   }
   const onClickCapture = (e) => { if (drag.current?.moved) { e.preventDefault(); e.stopPropagation() } }
+  // 캐러셀을 넘겼다(사람이 넘긴 것만: 지금 쿠폰이 바뀐 때). 첫 그리기는 세지 않는다.
+  const shownIdx = useRef(idx)
+  useEffect(() => {
+    if (shownIdx.current === idx) return
+    track('coupon_carousel_swipe', { brand: brand.name, from: shownIdx.current, to: idx, count: best.length, platform: best[idx]?.platform ?? 'none' })
+    shownIdx.current = idx
+  }, [idx])
   useEffect(() => {
     const root = ref.current
     if (!root || typeof IntersectionObserver === 'undefined') return undefined
@@ -170,7 +177,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const toggle = () => {
     onInteract?.()
     if (phase === false) { track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' }); setPhase('enter') }
-    else if (phase === 'open' || phase === 'enter') { setSettled(false); setPhase('leave') }
+    else if (phase === 'open' || phase === 'enter') { track('brand_collapse', { brand: brand.name, category: brand.category ?? 'none' }); setSettled(false); setPhase('leave') }
     else if (phase === 'leave') setPhase('open')
   }
   // 카드 아무 곳이나 누르면 펼치기/접기. 링크, 숨기기 버튼, 캐러셀 끌기는 제외한다.
