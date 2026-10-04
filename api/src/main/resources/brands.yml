@@ -355,6 +355,11 @@ brands:
   노브랜드버거:
     searchAliases: [노브랜드 버거, 노브랜드, no brand burger, nbb]
     category: fastfood
+  롯데리아:
+    searchAliases: [롯데 리아, lotteria]
+    aliases: [롯데리아]
+    category: fastfood
+    # 쿠팡이츠 반짝핫딜(2026-10-05)로 처음 들어왔다. 배달앱 링크와 로고는 아직 없다.
   맘스터치:
     searchAliases: [맘스 터치, 맘터, mom's touch, momstouch]
     # 부모 브랜드. 맘스터치피자앤치킨(버거 제외 피자·치킨 파생)과는 행사가
