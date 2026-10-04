@@ -337,13 +337,15 @@ function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, 
 
 
 // 배너 로고 오른쪽 위 스티키 탭. 구조 필드(limit)가 있으면 그것, 없으면 기간·조건 문구에서 짐작.
-export default function EventBanner({ banners }) {
+// dockOnly: 위 캐러셀 없이 처음부터 하단 도크로만(메인 화면 A/B 쿠폰 카드 쪽, 2026-10-05). 노출은 position 'bottom'으로 센다.
+export default function EventBanner({ banners, dockOnly = false }) {
   const [index, setIndex] = useState(0)
   const [hovered, setHovered] = useState(false)
   // 사용자가 멈춤 버튼으로 세운 상태. 손을 올린 것과 달리 다시 누를 때까지 간다.
   const [held, setHeld] = useState(false)
   const [focused, setFocused] = useState(false)
-  const [topVisible, setTopVisible] = useState(true)
+  const [topSeen, setTopVisible] = useState(true)
+  const topVisible = dockOnly ? false : topSeen
   const [dismissed, setDismissed] = useState(false)
   useEffect(() => { setDismissed(readDismissed()) }, [])
   const topRef = useRef(null)
@@ -561,6 +563,7 @@ export default function EventBanner({ banners }) {
 
   return (
     <>
+      {!dockOnly && (
       <div className="banner-slot" ref={topRef} style={currentPalette} {...hoverProps}>
         {/* 전부 한 줄에 깔고 가로로 넘긴다. 자동 전환만 있으면 지나간
             배너를 다시 볼 길이 손가락에 없고, 점을 정확히 눌러야 했다. */}
@@ -582,6 +585,7 @@ export default function EventBanner({ banners }) {
         </div>
         {chrome}
       </div>
+      )}
 
       {/* 하단 배너는 항상 DOM에 있고 보임 상태만 토글한다 — 언마운트하면
           되돌아올 때 내려가는 전환이 안 보인다. 안 보일 때는
@@ -636,6 +640,8 @@ export default function EventBanner({ banners }) {
               held={held}
               runId={index % count}
               paused={paused}
+              // 도크만 쓸 때는 위 막대가 없으니 넘김 타이머를 도크 링이 맡는다.
+              onDone={dockOnly ? advance : undefined}
               onToggleHold={() => setHeld((h) => { track('banner_autoplay_toggle', { state: h ? 'play' : 'pause' }); return !h })}
             />
           )}
