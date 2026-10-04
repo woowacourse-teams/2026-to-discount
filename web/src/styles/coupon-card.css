@@ -186,14 +186,8 @@
 .cc--stack.cc--open .cc-carousel { overflow: hidden; touch-action: pan-y; }
 .cc--stack .cc-dots { transition: opacity 200ms ease; }
 .cc--stack.cc--open .cc-dots { opacity: 0; }
-/* 링크 꼭지: 앱 색 위에 옅은 그라데이션과, 오른쪽 아래가 종이처럼 접혀 올라간 귀.
-   모서리를 대각선으로 잘라내고(clip-path) 그 안쪽에 같은 크기의 이등변삼각형 날개(종이 뒷면, 앱 색을 밝힌 것)를
-   겹치고 접힌 선에 그림자를 준다(참고: kittygiraudel.com folded corner, css-tricks corner-shape folded corners). */
-.cc-stub { --fold: 18px; position: relative; background: linear-gradient(165deg, color-mix(in srgb, var(--pc, #4a4a4e) 84%, #fff) 0%, var(--pc, #4a4a4e) 48%, color-mix(in srgb, var(--pc, #4a4a4e) 86%, #000) 100%); box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .2);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--fold)), calc(100% - var(--fold)) 100%, 0 100%); }
-.cc-stub::after { content: ''; position: absolute; right: 0; bottom: 0; width: var(--fold); height: var(--fold); pointer-events: none;
-  background: linear-gradient(315deg, transparent 50%, color-mix(in srgb, var(--pc, #4a4a4e) 55%, #fff) 50%);
-  filter: drop-shadow(-1px -1px 1.5px rgba(0, 0, 0, .28)); }
+/* 링크 꼭지: 앱 색 위에 옅은 그라데이션(위 살짝 밝게, 아래 살짝 어둡게). 접힌 귀는 넣지 않는다(2026-10-05 사용자). */
+.cc-stub { background: linear-gradient(165deg, color-mix(in srgb, var(--pc, #4a4a4e) 84%, #fff) 0%, var(--pc, #4a4a4e) 48%, color-mix(in srgb, var(--pc, #4a4a4e) 86%, #000) 100%); box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .2); }
 .cc-stub svg { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
 
 /* 쿠폰 감싸개(폭은 감싸개가 갖고 쿠폰은 꽉 채운다)와 업데이트 탭: 쿠폰 오른쪽 위에 걸쳐 오른쪽으로 기운 포스트잇 */
