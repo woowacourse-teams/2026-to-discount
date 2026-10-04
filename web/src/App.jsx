@@ -6,6 +6,7 @@ import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
 import TopBarA from './TopBarA.jsx'
+import TopBarB from './TopBarB.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount } from './filters.js'
@@ -251,7 +252,9 @@ export default function App({ initial = null }) {
     ro.observe(el)
     setBarHeight(el.getBoundingClientRect().height)
     return () => ro.disconnect()
-  }, [])
+    // 메인 화면 A/B로 바가 바뀌면(운영 바 -> B안 바) 새 바를 다시 잰다. 안 그러면 떼어 낸 옛 바를 재
+    // 높이 0이 되고, 행사 배너가 바 밑에 깔린다(2026-10-04 실측).
+  }, [homeA])
 
   const isFiltered = !isDefaultFilters(filters)
   const resetFilters = () => {
@@ -529,6 +532,22 @@ export default function App({ initial = null }) {
 
       {/* A/B 실험 종료(2026-09-15): 한 줄 바 + 분류 캐러셀(a안)로 통일.
           결론은 docs/HANDOFF-20260914.md §4 — b(시트)는 내렸다. */}
+      {/* 메인 화면 A/B: 쿠폰 카드 쪽은 9월 실험의 B안 상단 바(검색 + 분류 메뉴 바, 앱·정렬은 시트) */}
+      {homeA ? (
+        <TopBarB
+          barRef={titleBarRef}
+          filters={filters}
+          setFilters={setFilters}
+          search={search}
+          setSearch={setSearch}
+          onSearchSubmit={submitSearch}
+          brands={brands}
+          isFiltered={isFiltered}
+          resetFilters={resetFilters}
+          sheetOpen={sheetOpen}
+          onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
+        />
+      ) : (
       <TopBarA
         barRef={titleBarRef}
         filters={filters}
@@ -542,6 +561,7 @@ export default function App({ initial = null }) {
         onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
         onHome={goHome}
       />
+      )}
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
