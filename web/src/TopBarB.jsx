@@ -6,7 +6,7 @@ import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import MenuBar from './MenuBar.jsx'
 import { PLATFORMS } from './logos.jsx'
-import { CATEGORIES } from './filters.js'
+import { CATEGORIES, applyFilters } from './filters.js'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import './styles/topbar-b.css'
 
@@ -89,11 +89,13 @@ export default function TopBarB({ barRef, filters, setFilters, search, setSearch
     track('category_change', { category: key, from: 'menu-bar' })
   }
   const menuSelected = filters.categories
+  const newCount = brands ? applyFilters(brands, { ...filters, categories: new Set(), updatedOnly: true }).length : 0
   // 전체 / 신규(2026-10-05): 분류 바 맨 앞. 기본은 전체. 신규 = 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
   const leading = [
     { key: 'all', label: '전체', on: filters.categories.size === 0 && !filters.updatedOnly,
       onClick: () => { setFilters((f) => ({ ...f, updatedOnly: false, categories: new Set() })); track('category_change', { category: 'all', from: 'menu-bar' }) } },
-    { key: 'new', label: '신규', on: !!filters.updatedOnly,
+    // 개수는 지금 조건(앱, 5천원 이상만 등)에서 신규만 켰을 때 남는 브랜드 수(설계의 "New N")
+    { key: 'new', label: newCount ? `신규 ${newCount}` : '신규', on: !!filters.updatedOnly,
       onClick: () => { setFilters((f) => ({ ...f, updatedOnly: !f.updatedOnly, categories: new Set() })); track('quick_filter', { key: 'updated', on: !filters.updatedOnly }) } },
   ]
   return (
