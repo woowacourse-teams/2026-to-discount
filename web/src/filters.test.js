@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { apiFile } from '../scripts/api-repo.mjs'
 import {
-  applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate,
+  applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
 } from './filters.js'
 
@@ -168,4 +168,17 @@ test('5천원 이상만은 기본으로 켜져 있고, 검색 중에는 금액�
   assert.deepEqual(applyFilters(brands, f).map((b) => b.name), ['청년피자'])
   // 이름으로 찾았는데 금액 때문에 안 보이면 없는 줄 안다.
   assert.deepEqual(applyFilters(brands, { ...f, search: '디디' }).map((b) => b.name), ['디디치킨'])
+})
+
+test('멤버십: 끄면 그 멤버십 전용 오퍼만 빠지고, 기본(둘 다 켜짐)은 그대로', () => {
+  const brands = [{ name: 'BBQ', category: 'chicken', offers: [
+    { platform: 'baemin', amount: 7000, membership: 'baeminClub' },
+    { platform: 'baemin', amount: 6000, membership: 'none' },
+    { platform: 'coupangeats', amount: 8000, membership: 'coupangEats' },
+  ] }]
+  const all = applyFilters(brands, defaultFilters())
+  assert.equal(all[0].offers.length, 3)
+  const noClub = applyFilters(brands, { ...defaultFilters(), memberships: new Set(['coupangeats']) })
+  assert.deepEqual(noClub[0].offers.map((o) => o.amount).sort(), [6000, 8000])
+  assert.equal(isDefaultFilters({ ...defaultFilters(), memberships: new Set(['coupangeats']) }), false)
 })

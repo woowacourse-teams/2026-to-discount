@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
-import { CATEGORIES, MEMBERSHIP_OPTIONS, SORT_KEYS, defaultFilters, isDefaultFilters } from './filters.js'
+import { CATEGORIES, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, defaultFilters, isDefaultFilters } from './filters.js'
 
 /**
  * 아래에서 올라오는 필터 시트. 앱·분류·정렬을 한 자리에서 고르고
@@ -183,25 +183,27 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             </span>
           </div>
 
-          {/* 멤버십 반영 로직은 아직 없다. 자리와 이름만 두고 수요를 집계한다. 맨 아래(2026-09-19). */}
-          <h2 className="sheet__title">
-            멤버십 <span className="sheet__soon">구현 예정</span>
-          </h2>
+          {/* 멤버십: 배민클럽, 쿠팡와우는 실제로 거른다(끄면 그 전용 오퍼를 뺀다). 요기패스는 식별을 못 해 구현 예정(2026-10-04). */}
+          <h2 className="sheet__title">멤버십</h2>
           <div className="sheet__chips">
-            {MEMBERSHIP_OPTIONS.map((m) => (
-              <button
-                key={m.key}
-                type="button"
-                className="sheet__chip sheet__chip--soon"
-                aria-disabled="true"
-                title="구현 예정입니다"
-                onClick={() => {
-                  track('membership_toggle', { platform: m.key, state: 'soon', from: 'sheet' })
-                }}
-              >
-                {m.label}
-              </button>
-            ))}
+            {MEMBERSHIP_OPTIONS.map((m) => {
+              const works = Object.values(MEMBERSHIP_FILTERABLE).includes(m.key)
+              if (!works) {
+                return (
+                  <button key={m.key} type="button" className="sheet__chip sheet__chip--soon" aria-disabled="true" title="구현 예정입니다"
+                    onClick={() => track('membership_toggle', { platform: m.key, state: 'soon', from: 'sheet' })}>
+                    {m.label} <span className="sheet__soon">구현 예정</span>
+                  </button>
+                )
+              }
+              const on = draft.memberships?.has(m.key) ?? true
+              return (
+                <button key={m.key} type="button" className={`sheet__chip${on ? ' sheet__chip--on' : ''}`} aria-pressed={on}
+                  onClick={() => { toggleIn('memberships', m.key); track('membership_toggle', { platform: m.key, state: on ? 'off' : 'on', from: 'sheet' }) }}>
+                  {m.label}
+                </button>
+              )
+            })}
           </div>
         </div>
 
