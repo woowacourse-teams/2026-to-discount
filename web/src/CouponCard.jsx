@@ -119,8 +119,8 @@ function Carousel({ brand, best, position, idx, setIdx }) {
   return (
     <div className="cc-carousel-wrap">
       <div className="cc-carousel" ref={ref} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onClickCapture={onClickCapture}>
-        {best.map((o) => (
-          <div key={offerKey(o)} className="cc-slide">
+        {best.map((o, i) => (
+          <div key={offerKey(o)} className={`cc-slide${i === idx ? ' cc-slide--cur' : ''}`}>
             <Coupon o={o} brand={brand} position={position} best />
           </div>
         ))}
@@ -206,13 +206,14 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const shownName = shortBrandName(brand)
   const single = best.length === 1 ? best[0] : null
   const fx = single && formulaOf(single)
-  // 동점 최고(캐러셀)는 펼치면 캐러셀이 접히고 그 쿠폰들이 하위 오퍼처럼 아래로 늘어선다
+  // 동점 최고(캐러셀)는 펼쳐도 지금 보이는 쿠폰은 제자리에 두고, 나머지 최고 쿠폰만 하위 오퍼처럼 아래로 늘어선다(카드가 줄었다 늘지 않게)
   const stack = best.length > 1
   const hasTbl = (o) => { const t = conditionTable(o); return t.rows.length > 0 || !!t.note }
   // 펼칠 게 없으면(하위 오퍼도, 최고 쿠폰의 상세 표도 없음) 자세히 보기를 숨기고 자리만 둔다
   const canExpand = rest.length > 0 || stack || best.some(hasTbl)
-  const bestTables = shown && !stack ? best.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
-  const listed = stack ? [...best, ...rest] : rest
+  const top = stack ? [best[cur] ?? best[0]] : best
+  const bestTables = shown ? top.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
+  const listed = stack ? [...best.filter((o) => o !== top[0]), ...rest] : rest
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name} onClick={onCardClick}
              className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}${stack ? ' cc--stack' : ''}`}>
@@ -233,7 +234,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       {bestTables.length > 0 && (
         <div className="cc-x"><div className="cc-x-in">
           {bestTables.map(({ o, t }, i) => (
-            <DetailTable key={offerKey(o)} t={t} i={i} head={best.length > 1 ? <PlatformBadge platformKey={o.platform} brand={brand.name} /> : null} />
+            <DetailTable key={offerKey(o)} t={t} i={i} />
           ))}
         </div></div>
       )}
@@ -268,7 +269,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                 <div className="cc-deal cc-deal--more" style={anim}>
                   <div className="cc-deal-col">
                     <Tags o={o} />
-                    <Coupon o={o} brand={brand} position={position} best={stack && i < best.length} />
+                    <Coupon o={o} brand={brand} position={position} best={stack && i < best.length - 1} />
                   </div>
                 </div>
                 {hasTbl && <DetailTable t={t} i={i + bestTables.length} fx={f} />}
