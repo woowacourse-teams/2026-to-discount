@@ -63,7 +63,9 @@ public class EventController {
             "brand_hide", "hidden_open");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
             "inputLength", "resultCount", "submitMethod",
-            "fCategory", "fPlatforms", "fSearch", "fSort");
+            "fCategory", "fPlatforms", "fSearch", "fSort",
+            // 메인 화면 A/B 안(web/src/homeExperiment.js). 모든 이벤트에 실리는데 검색만 이 목록이 걸러 빠졌다(2026-10-04).
+            "home", "home_forced");
 
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;

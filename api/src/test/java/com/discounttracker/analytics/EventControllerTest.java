@@ -106,7 +106,7 @@ class EventControllerTest {
                             {"event":"brand_search_submitted","visitorId":"v_search",
                              "sessionId":"s_search","props":{"inputLength":"4",
                              "resultCount":"2","submitMethod":"enter","fSearch":"true",
-                             "query":"010-1234-5678","unexpected":"raw"}}
+                             "query":"010-1234-5678","unexpected":"raw","home":"coupon"}}
                             """)))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.accepted").value(1));
@@ -119,6 +119,7 @@ class EventControllerTest {
         assertTrue(loggedEvent.contains("\"resultCount\":\"2\""));
         assertTrue(loggedEvent.contains("\"submitMethod\":\"enter\""));
         assertTrue(loggedEvent.contains("\"fSearch\":\"true\""));
+        assertTrue(loggedEvent.contains("\"home\":\"coupon\"")); // 메인 화면 A/B 안은 검색에서도 남는다
         assertFalse(loggedEvent.contains("query"));
         assertFalse(loggedEvent.contains("010-1234-5678"));
         assertFalse(loggedEvent.contains("unexpected"));
