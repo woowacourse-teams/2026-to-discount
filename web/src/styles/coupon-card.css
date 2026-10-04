@@ -163,3 +163,16 @@
 .cc--compact .cc-hint svg { width: 13px; height: 13px; }
 .cc--compact .cc-alt { font-size: 13px; --pb: 18px; }
 .cc--compact .cc-dots { margin-top: 6px; }
+/* 촘촘한 안 2차: 운영 브랜드 카드와 같은 테두리와 그림자, 꼭지 +8px, 접힌 하위 라벨 키움 */
+.cc--compact { --stub: 66px; border: 1px solid color-mix(in srgb, var(--text) 14%, transparent); border-radius: 14px; box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(0, 0, 0, .06); }
+.cc--compact .cc-alt { font-size: 14.5px; gap: 6px; --pb: 21px; }
+.cc--compact .cc-alts-in { gap: 14px; }
+/* 펼친 쿠폰의 배지는 쿠폰 위 모서리에 걸쳐 겹친다(운영 칩 탭처럼). 줄을 따로 쓰지 않는다 */
+.cc--compact .cc-deal-col { position: relative; }
+.cc--compact .cc-deal-col > .cc-tags { position: absolute; top: -10px; left: 8px; z-index: 2; }
+.cc--compact .cc-more > .cc-deal--more { margin-top: 18px; }
+/* 자리 미리 확보: 캐러셀(쿠폰 + 점 줄)과 하위 라벨 줄 높이를 고정해 뒤늦게 그려져도 밀리지 않는다 */
+.cc--compact .cc-carousel-wrap { min-height: calc(var(--tk-h) + 16px); }
+.cc--compact .cc-alts-in { min-height: 24px; align-items: center; }
+.cc--compact > .cc-deal { min-height: calc(var(--tk-h) + 16px); align-items: flex-start; } /* 단독 쿠폰도 캐러셀 점 줄만큼 자리를 둬 카드 높이를 맞춘다 */
+.cc--compact { grid-template-rows: auto auto auto minmax(34px, auto) auto; } /* 하위 라벨이 없는 카드도 그 줄 자리를 둔다 */
