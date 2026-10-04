@@ -88,6 +88,7 @@ const DEFAULT_SCALARS = {
 export function isDefaultFilters(f) {
   return f.platforms.size === PLATFORMS.length
     && f.categories.size === 0
+    && !f.updatedOnly
     && (f.memberships?.size ?? ALL_MEMBERSHIPS().size) === ALL_MEMBERSHIPS().size
     && f.includeRandom === DEFAULT_SCALARS.includeRandom
     && f.includeMenu === DEFAULT_SCALARS.includeMenu

@@ -85,10 +85,17 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
 export default function TopBarB({ barRef, filters, setFilters, search, setSearch, onSearchSubmit, brands, isFiltered, resetFilters, sheetOpen, onOpenSheet }) {
   // 지금 상단 바(TopBarA)와 같은 규칙: 분류는 하나만, '전체'나 같은 분류를 다시 누르면 전체로. 계측도 같은 이벤트.
   const toggleCategory = (key) => {
-    setFilters((f) => ({ ...f, categories: key === 'all' || f.categories.has(key) ? new Set() : new Set([key]) }))
+    setFilters((f) => ({ ...f, updatedOnly: false, categories: key === 'all' || f.categories.has(key) ? new Set() : new Set([key]) }))
     track('category_change', { category: key, from: 'menu-bar' })
   }
-  const menuSelected = filters.categories.size === 0 ? new Set(['all']) : filters.categories
+  const menuSelected = filters.categories
+  // 전체 / 신규(2026-10-05): 분류 바 맨 앞. 기본은 전체. 신규 = 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
+  const leading = [
+    { key: 'all', label: '전체', on: filters.categories.size === 0 && !filters.updatedOnly,
+      onClick: () => { setFilters((f) => ({ ...f, updatedOnly: false, categories: new Set() })); track('category_change', { category: 'all', from: 'menu-bar' }) } },
+    { key: 'new', label: '신규', on: !!filters.updatedOnly,
+      onClick: () => { setFilters((f) => ({ ...f, updatedOnly: !f.updatedOnly, categories: new Set() })); track('quick_filter', { key: 'updated', on: !filters.updatedOnly }) } },
+  ]
   return (
     <div className="title-bar title-bar--b" ref={barRef}>
       <div className="title-bar__top">
@@ -129,7 +136,7 @@ export default function TopBarB({ barRef, filters, setFilters, search, setSearch
           </button>
         </div>
       </div>
-      <MenuBar selected={menuSelected} onToggle={toggleCategory} />
+      <MenuBar selected={menuSelected} onToggle={toggleCategory} leading={leading} />
     </div>
   )
 }

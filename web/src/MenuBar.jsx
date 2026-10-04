@@ -3,7 +3,7 @@ import { CATEGORIES } from './filters.js'
 
 // 분류 메뉴 바(상단 바 B안의 2줄). 2026-09 화면 실험 B안에서 되살림(1e9a40f에서 지운 파일).
 // 누르면 바로 반영한다. 고른 분류는 버튼마다 자기 배경을 그린다.
-export default function MenuBar({ selected, onToggle }) {
+export default function MenuBar({ selected, onToggle, leading = [] }) {
   const listRef = useRef(null)
   // 어느 쪽으로 더 갈 수 있는지. 양쪽 화살표를 늘 켜두면 끝에 닿았는데도
   // 더 있는 것처럼 보인다.
@@ -34,6 +34,14 @@ export default function MenuBar({ selected, onToggle }) {
         <span className={`menu-bar__more menu-bar__more--left${more.left ? ' menu-bar__more--on' : ''}`} aria-hidden="true">‹</span>
         <span className={`menu-bar__more menu-bar__more--right${more.right ? ' menu-bar__more--on' : ''}`} aria-hidden="true">›</span>
         <ul className="menu-bar__list" ref={listRef}>
+          {/* 분류 앞에 서는 보기(전체, 신규). 분류와 같은 꼴이고 하나만 켜진다 */}
+          {leading.map((l) => (
+            <li key={l.key}>
+              <button type="button" className={`menu-bar__item${l.on ? ' menu-bar__item--on' : ''}`} aria-pressed={l.on} onClick={l.onClick}>
+                {l.label}
+              </button>
+            </li>
+          ))}
           {CATEGORIES.map((c) => {
             const on = selected.has(c.key)
             return (

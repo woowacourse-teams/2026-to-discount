@@ -630,22 +630,8 @@ export default function App({ initial = null }) {
         </div>
       )}
 
-      {/* 메인 화면 A/B 쿠폰 카드 쪽: 전체 / 업데이트 N곳(오늘 처음 본 오퍼가 있는 브랜드). 설계의 "전체 / New N" 자리.
-          N은 지금 조건에서 업데이트만 켰을 때 남는 브랜드 수다. 없으면 칸을 그리지 않는다. */}
-      {brands && homeA && (() => {
-        const n = applyFilters(brands, { ...filters, updatedOnly: true }).length
-        if (n === 0 && !filters.updatedOnly) return null
-        const pick = (on) => {
-          setFilters((f) => ({ ...f, updatedOnly: on }))
-          track('quick_filter', { key: 'updated', on })
-        }
-        return (
-          <div className="update-tabs" role="group" aria-label="업데이트만 보기">
-            <button type="button" className={`update-tabs__tab${!filters.updatedOnly ? ' update-tabs__tab--on' : ''}`} aria-pressed={!filters.updatedOnly} onClick={() => pick(false)}>전체</button>
-            <button type="button" className={`update-tabs__tab${filters.updatedOnly ? ' update-tabs__tab--on' : ''}`} aria-pressed={!!filters.updatedOnly} onClick={() => pick(true)}>업데이트 {n}곳</button>
-          </div>
-        )
-      })()}
+      {/* 신규를 고르면 정렬 줄 아래 한 줄 안내(2026-10-05 사용자 문구) */}
+      {brands && homeA && filters.updatedOnly && <p className="update-note">새로 추가되거나 금액이 커진 할인들이에요.</p>}
 
       {asking && (
         <Suspense fallback={null}>
