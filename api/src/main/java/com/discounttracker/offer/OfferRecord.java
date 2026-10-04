@@ -50,8 +50,22 @@ public record OfferRecord(
         // 키다 — 수집기가 적은 적이 없어 전부 discount다. 배너의 구조 필드
         // (amount.kind)에서만 채운다(Task 8 fix round). Offer.from이
         // AmountKind.from으로 정규화한다 — 비어 있으면 discount다.
-        String kind
+        String kind,
+        // 이 오퍼(앱, 브랜드, 금액)를 처음 본 시각. tracker export_data.first_seen이 채운다(메인 화면 2단계 New).
+        // 옛 export.json과 배너에서 세운 오퍼에는 없다(null). API는 해석하지 않고 넘긴다.
+        String firstSeenAt
 ) {
+    /** 처음 본 시각 없이 만드는 20칸 호출부 호환용(배너 오퍼, 테스트). */
+    public OfferRecord(String platform, String brand, Integer amount, String qualifier,
+            boolean needsReview, String offerType, String section, String rawText,
+            String capturedAt, String screenshotPath, Integer minOrderAmount, String tierMode,
+            List<DiscountTier> tiers, String conditions, String expiresAt, String badge,
+            String link, String membership, Boolean soldOut, String kind) {
+        this(platform, brand, amount, qualifier, needsReview, offerType, section, rawText,
+                capturedAt, screenshotPath, minOrderAmount, tierMode, tiers, conditions,
+                expiresAt, badge, link, membership, soldOut, kind, null);
+    }
+
     /**
      * 옛 19칸 호출부 호환용. {@code kind} 없이 만들면 원장 레코드처럼 discount로
      * 읽힌다 — 기존 호출부(테스트 포함)를 전부 고치지 않아도 되게 남겨둔다.
@@ -63,7 +77,7 @@ public record OfferRecord(
             String link, String membership, Boolean soldOut) {
         this(platform, brand, amount, qualifier, needsReview, offerType, section, rawText,
                 capturedAt, screenshotPath, minOrderAmount, tierMode, tiers, conditions,
-                expiresAt, badge, link, membership, soldOut, null);
+                expiresAt, badge, link, membership, soldOut, null, null);
     }
 
     /**

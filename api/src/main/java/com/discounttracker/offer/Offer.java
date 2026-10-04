@@ -35,7 +35,9 @@ public record Offer(String platform, Integer amount, String qualifier,
                     // 이 금액을 액면대로 견줄 수 있나. 원장 qualifier에서 끌어낸다.
                     Certainty certainty,
                     // 무엇을 주는가. 원장에서 온 오퍼는 전부 discount다.
-                    AmountKind kind) {
+                    AmountKind kind,
+                    // 이 오퍼를 처음 본 시각(OfferRecord.firstSeenAt 그대로). 웹이 방문자 기준으로 New를 판정한다.
+                    String firstSeenAt) {
 
     /** 배너에서 세운 오퍼의 offerType. BrandComparisonService가 적는 값과 같다. */
     public static final String BANNER_OFFER_TYPE = "banner";
@@ -63,7 +65,7 @@ public record Offer(String platform, Integer amount, String qualifier,
                 // 상시와 별개 오퍼다(2026-10-01 사용자). 같은 앱에서 무엇을 보일지는 mergeSameFirstCome가 고른다.
                 BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType())
                         || (r.section() != null && r.section().contains(FIRST_COME_SECTION_MARK)),
-                Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()));
+                Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()), r.firstSeenAt());
     }
 
     @JsonProperty("status")
@@ -180,7 +182,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         //
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, mergedBadge, soldOut,
-                link, mergedMembership, fromBanner, firstCome, certainty, kind);
+                link, mergedMembership, fromBanner, firstCome, certainty, kind, earlier(firstSeenAt, other.firstSeenAt));
     }
 
     /**
@@ -237,6 +239,13 @@ public record Offer(String platform, Integer amount, String qualifier,
         }
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
-                soldOut, link, membership, fromBanner, firstCome, certainty, kind);
+                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt);
+    }
+
+    /** 둘 중 이른 시각. 같은 쿠폰을 두 출처에서 합칠 때 처음 본 시각은 더 이른 쪽이다. 하나가 없으면 다른 쪽. */
+    private static String earlier(String a, String b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        return a.compareTo(b) <= 0 ? a : b;
     }
 }
