@@ -24,6 +24,7 @@ function OpBadge({ b, platform }) {
 }
 
 function Min({ value }) {
+  if (value == null) return null
   return <span className="cc-min">{value > 0 && <Up />}{minLabel(value)}</span>
 }
 

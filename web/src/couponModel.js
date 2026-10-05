@@ -30,7 +30,7 @@ export function splitOffers(offers, include) {
 
 export function minLabel(m) {
   if (m === 0) return '최소주문 없음'
-  if (m == null) return '최소주문 ?'
+  if (m == null) return null // 모르면 비운다(docs/COPY-STYLE.md)
   return m.toLocaleString('ko-KR')
 }
 
@@ -88,7 +88,7 @@ export function conditionTable(offer) {
         mem && { kind: 'membership', text: MEMBERSHIP_LABEL[offer.platform] ?? (offer.badge ?? mem), platform: offer.platform },
         t.note && { kind: 'note', text: t.note },
         t.expiresAt && t.expiresAt !== offer.expiresAt && { kind: 'until', text: `~${t.expiresAt.slice(5).replace('-', '.')}` }].filter(Boolean),
-      min: min != null ? `${won(min)}↑` : '최소주문 ?',
+      min: min != null ? `${won(min)}↑` : '',
     }
   }
   if (tiers.length > 1 || tiers.some(extra)) for (const t of tiers) rows.push(rowOf(t))

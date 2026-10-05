@@ -36,8 +36,8 @@ test('견줄 수 없는 오퍼만 있으면 맨 앞 하나를 대표로, hasBest
 test('최소주문 표기', () => {
   assert.equal(minLabel(18900), '18,900')
   assert.equal(minLabel(0), '최소주문 없음')
-  assert.equal(minLabel(null), '최소주문 ?')
-  assert.equal(minLabel(undefined), '최소주문 ?')
+  assert.equal(minLabel(null), null)
+  assert.equal(minLabel(undefined), null)
 })
 
 test('계산식은 최적이고 식 기호가 있을 때만', () => {
