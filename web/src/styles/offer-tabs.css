@@ -206,3 +206,6 @@
   transform: rotate(-4deg);
   transform-origin: center;
 }
+
+/* 신규 탭(OfferChip): 오늘 새로 생겼거나 금액이 커진 오퍼. 쿠폰 카드 신규 배지(.cc-upd)와 같은 파랑 */
+.offer__range-badge--new { color: #fff; background: #2f6fd1; }
