@@ -78,17 +78,22 @@ export function conditionTable(offer) {
   const memOf = (t) => (t.membership && t.membership !== 'none' ? t.membership : offerMem)
   const extra = (t) => t.channel || memOf(t) || t.note || (t.expiresAt && t.expiresAt !== offer.expiresAt)
   const rows = []
+  // 최적(기본 할인 + 쿠폰을 겹친 값)은 겹친 구간마다 계산식을 붙인다: 30,000원↑ 7,000원 (5,000+2,000).
+  // 기본 할인 = 채널이 없는 구간. 사용자 2026-10-05: 출처 말고 구간과 계산식만.
+  const base = offer.qualifier === '최적' ? tiers.filter((t) => !t.channel && t.amount != null).sort((a, b) => a.amount - b.amount)[0] : null
+  const sumOf = (t) => (base && t !== base && t.channel && t.percent == null && t.amount > base.amount
+    ? `${base.amount.toLocaleString('ko-KR')}+${(t.amount - base.amount).toLocaleString('ko-KR')}` : '')
   const rowOf = (t) => {
     const min = t.minOrder ?? (t.amount === offer.amount ? offer.minOrderAmount : null)
     const mem = memOf(t)
     return {
       amount: t.amount == null ? '금액 ?' : `${won(t.amount)}${t.soldOut ? ' 품절' : ''}`,
-      extra: t.percent != null ? `${t.percent}%${t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''}` : '',
+      extra: t.percent != null ? `${t.percent}%${t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''}` : sumOf(t),
       chips: [t.channel && { kind: 'channel', text: t.channel },
         mem && { kind: 'membership', text: MEMBERSHIP_LABEL[offer.platform] ?? (offer.badge ?? mem), platform: offer.platform },
         t.note && { kind: 'note', text: t.note },
         t.expiresAt && t.expiresAt !== offer.expiresAt && { kind: 'until', text: `~${t.expiresAt.slice(5).replace('-', '.')}` }].filter(Boolean),
-      min: min != null ? `${won(min)}↑` : '',
+      min: min != null ? `${won(min)}↑` : '최소주문 미확인', // 펼친 상세에서만(사용자 2026-10-05). 대표 줄은 비운다
     }
   }
   if (tiers.length > 1 || tiers.some(extra)) for (const t of tiers) rows.push(rowOf(t))

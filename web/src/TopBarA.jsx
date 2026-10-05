@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
-import { CATEGORIES } from './filters.js'
+import { CATEGORIES, applyFilters } from './filters.js'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 
 /**
@@ -138,13 +138,21 @@ export default function TopBarA({
   onHome,
 }) {
   // Set 하나짜리를 단일 선택처럼 읽는다. 비어 있으면 "전체"다.
-  const selected = filters.categories.size === 1
+  // 신규(2026-10-05): 쿠폰 카드 쪽과 같은 규칙. 켜면 분류를 풀고 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
+  const selected = filters.updatedOnly ? 'new' : filters.categories.size === 1
     ? [...filters.categories][0]
     : 'all'
+  const newCount = brands ? applyFilters(brands, { ...filters, categories: new Set(), updatedOnly: true }).length : 0
 
   const selectCategory = (key) => {
+    if (key === 'new') {
+      setFilters((f) => ({ ...f, updatedOnly: !f.updatedOnly, categories: new Set() }))
+      track('quick_filter', { key: 'updated', on: !filters.updatedOnly, from: 'bar' })
+      return
+    }
     setFilters((f) => ({
       ...f,
+      updatedOnly: false,
       categories: key === 'all' ? new Set() : new Set([key]),
     }))
     track('category_change', { category: key, from: 'bar' })
@@ -161,7 +169,7 @@ export default function TopBarA({
     track('platform_filter_toggle', { platform: key, from: 'bar' })
   }
 
-  const tabs = [{ key: 'all', label: '전체' }, ...CATEGORIES]
+  const tabs = [{ key: 'all', label: '전체' }, { key: 'new', label: newCount ? `신규 ${newCount}` : '신규' }, ...CATEGORIES]
 
   return (
     <div className="title-bar" ref={barRef}>

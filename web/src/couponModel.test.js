@@ -157,3 +157,12 @@ test('업데이트: 오늘(한국 시각) 처음 본 오퍼만', async () => {
   assert.equal(isUpdated({ firstSeenAt: null }, now), false)
   assert.equal(isUpdated({}, now), false)
 })
+
+test('최적 상세 표: 겹친 구간에 계산식, 최소주문 모르면 미확인', () => {
+  const offer = { platform: 'yogiyo', amount: 7000, qualifier: '최적', conditions: '30,000원↑ 5,000+2,000=7,000원',
+    tiers: [{ minOrder: 21000, amount: 5000 }, { minOrder: 30000, amount: 7000, channel: '배달' }, { minOrder: null, amount: 7000, channel: '포장' }] }
+  const { rows } = conditionTable(offer)
+  assert.equal(rows[0].extra, '5,000+2,000')
+  assert.equal(rows[1].min, '최소주문 미확인')
+  assert.equal(rows[2].extra, '')
+})
