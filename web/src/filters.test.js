@@ -5,6 +5,7 @@ import { apiFile } from '../scripts/api-repo.mjs'
 import {
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
+  hasNewBest,
 } from './filters.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
@@ -191,4 +192,12 @@ test('업데이트만: 오늘 처음 본 오퍼가 있는 브랜드만 남긴다
   ]
   assert.deepEqual(applyFilters(brands, { ...defaultFilters(), updatedOnly: true }).map((b) => b.name), ['A'])
   assert.equal(applyFilters(brands, defaultFilters()).length, 2)
+})
+
+test('신규 탭: 최고 오퍼가 신규일 때만', () => {
+  const now = new Date().toISOString()
+  const old = { platform: 'baemin', amount: 9000, firstSeenAt: '2026-01-01T00:00:00+09:00', capturedAt: now }
+  const fresh = { platform: 'yogiyo', amount: 2000, firstSeenAt: now, capturedAt: now }
+  assert.equal(hasNewBest([old, fresh]), false)
+  assert.equal(hasNewBest([{ ...fresh, amount: 9500 }, old]), true)
 })

@@ -642,7 +642,6 @@ export default function App({ initial = null }) {
       )}
 
       {/* 신규를 고르면 정렬 줄 아래 한 줄 안내(2026-10-05 사용자 문구) */}
-      {brands && filters.updatedOnly && <p className="update-note">새로 추가되거나 금액이 커진 할인들이에요.</p>}
 
       {asking && (
         <Suspense fallback={null}>

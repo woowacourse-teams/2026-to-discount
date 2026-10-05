@@ -35,6 +35,12 @@ export const MEMBERSHIP_OPTIONS = [
 // 업데이트: 이 오퍼(앱, 브랜드, 금액)를 오늘(한국 시각) 처음 봤다 = 어제와 다르다(새로 생겼거나 금액이 바뀌었다).
 // 방문자별 판정은 하지 않는다(2026-10-04 사용자). firstSeenAt은 tracker export_data.first_seen이 채운다.
 const kstDay = (t) => new Date(t + 9 * 3600e3).toISOString().slice(0, 10)
+/** 최고 확정 할인액을 내는 오퍼 중 신규가 있나. 신규 탭과 그 개수가 쓴다. */
+export function hasNewBest(offers, include = false) {
+  const best = bestConfirmedAmount(offers, include)
+  return best != null && offers.some((o) => isUpdated(o) && comparisonAmount(o, include) === best)
+}
+
 export function isUpdated(offer, now = Date.now()) {
   const t = offer?.firstSeenAt ? Date.parse(offer.firstSeenAt) : NaN
   return Number.isFinite(t) && kstDay(t) === kstDay(now)
@@ -306,7 +312,8 @@ export function applyFilters(brands, filters) {
     .filter((b) => {
       if (b.offers.length === 0) return false
       // 업데이트만(메인 화면 쿠폰 카드 쪽 "업데이트 N곳" 칸): 오늘 처음 본 오퍼가 하나라도 있는 브랜드만.
-      if (filters.updatedOnly && !b.offers.some((o) => isUpdated(o))) return false
+      // 2026-10-05 사용자: 신규 탭은 최고 오퍼가 신규인 브랜드만(배지는 모든 신규 오퍼에 붙는다).
+      if (filters.updatedOnly && !hasNewBest(b.offers, includesFrom(filters))) return false
       if (q !== '' && !b.name.includes(q)) return false
       // 아무 분류도 안 고르면 전체다.
       if (filters.categories.size === 0) return true
