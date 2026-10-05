@@ -28,6 +28,8 @@ export default async function handler(req, res) {
   let body = template
   try {
     const data = await loadData()
+    // 미들웨어가 쿠키(dk_home=coupon)를 보고 붙인 내부 표시. 쿠폰 카드 쪽이면 처음부터 그 안으로 그린다.
+    if (new URL(req.url, 'http://x').searchParams.get('__arm') === 'coupon') data.arm = 'coupon'
     body = inject(template, await render(data), data)
     res.setHeader('x-ssr', '1')
     // CDN이 60초 들고, 그 뒤 60초까지는 낡은 걸 주면서 뒤에서 새로 그린다.

@@ -194,14 +194,18 @@ export default function App({ initial = null }) {
   const { search } = filters
   const [dev, setDev] = useState(false)
   // 서버 렌더링 첫 화면은 늘 운영 카드다(하이드레이션 일치). 마운트 뒤 A/B 배정이 쿠폰 카드면 바꾼다.
-  const [homeA, setHomeA] = useState(false)
+  // 서버가 쿠키(dk_home)로 쿠폰 카드 쪽을 알아 처음부터 그렸으면(initial.arm) 그대로 이어받는다 — 깜빡임이 없다.
+  const [homeA, setHomeA] = useState(initial?.arm === 'coupon')
   const [homePhoto, setHomePhoto] = useState(false) // 시안 비교용 ?photo=1
-  const [homeCompact, setHomeCompact] = useState(false) // 시안 비교용 ?compact=1(17차 시안 크기)
+  const [homeCompact, setHomeCompact] = useState(initial?.arm === 'coupon') // 쿠폰 카드는 촘촘한 안이 기본
     useEffect(() => {
     // 메인 화면 A/B(homeExperiment.js): 2026-10-05 00:00부터 방문자 반반. 쿠폰 카드는 촘촘한 안이 기본(?compact=0이면 큰 안).
     try {
       const q = new URLSearchParams(window.location.search)
-      if (currentHomeArm(getAnalyticsContext().visitorId).arm === 'coupon') startTransition(() => { setHomeA(true); setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
+      const { arm } = currentHomeArm(getAnalyticsContext().visitorId)
+      if (arm === 'coupon') startTransition(() => { setHomeA(true); setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
+      // 서버가 쿠폰 카드로 그렸는데 배정이 운영 카드면(쿠키가 낡음) 운영 카드로 돌린다.
+      else if (initial?.arm === 'coupon') startTransition(() => { setHomeA(false); setHomeCompact(false) })
     } catch { /* 주소를 못 읽으면 운영 카드 */ }
   }, [])
   const [mounted, setMounted] = useState(false)

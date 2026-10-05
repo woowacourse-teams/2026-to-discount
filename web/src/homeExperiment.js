@@ -18,9 +18,15 @@ export function homeArm(visitorId, now = Date.now()) {
   return (h >>> 31) === 1 ? 'coupon' : 'old'
 }
 
-// 브라우저에서만 부른다(서버 렌더 첫 화면은 늘 운영 카드).
+// 브라우저에서만 부른다. 배정 결과를 쿠키(dk_home)에 적어 다음 방문부터 서버가 그 안으로 첫 화면을 그린다
+// (web/middleware.js가 쿠키를 보고 캐시 키를 가른다). 강제(?home=)는 적지 않는다.
+export const ARM_COOKIE = 'dk_home'
 export function currentHomeArm(visitorId) {
   let forced = null
   try { const h = new URLSearchParams(window.location.search).get('home'); forced = h === 'a' ? 'coupon' : h === 'old' ? 'old' : null } catch { /* 주소를 못 읽으면 배정대로 */ }
-  return { arm: forced ?? homeArm(visitorId), forced: forced != null }
+  const arm = forced ?? homeArm(visitorId)
+  if (!forced && Date.now() >= HOME_AB_START) {
+    try { document.cookie = `${ARM_COOKIE}=${arm}; path=/; max-age=31536000; samesite=lax` } catch { /* 쿠키를 못 쓰면 매번 마운트 뒤 바뀐다 */ }
+  }
+  return { arm, forced: forced != null }
 }
