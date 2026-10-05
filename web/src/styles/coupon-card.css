@@ -78,10 +78,10 @@
 /* 같은 금액이 여러 앱이면 우열을 꾸며내지 않는다: 쿠폰마다 하나씩 가로 캐러셀(CSS 스크롤 스냅). 그림자가 잘리지 않게 안쪽 여백을 둔다 */
 .cc-carousel-wrap { flex: 1; min-width: 0; container-type: inline-size; }
 /* 가운데 정렬 캐러셀: 간격 7px, 트랙 좌우 15px, 쿠폰 = 줄 폭 - 30px. 어느 쿠폰을 가운데 둬도 양쪽 15px, 이웃이 있으면 간격 7px 뒤 끝 8px만 보인다 */
-.cc-carousel { display: flex; gap: 7px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 18px 15px 28px; margin: -18px 0 -28px; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; }
+.cc-carousel { display: flex; gap: 7px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 18px calc(5cqw + 15px) 28px; margin: -18px 0 -28px; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; }
 .cc-carousel::-webkit-scrollbar { display: none; }
 .cc-carousel.cc-dragging { scroll-snap-type: none; cursor: grabbing; user-select: none; }
-.cc-slide { flex: 0 0 calc(100cqw - 30px); scroll-snap-align: center; position: relative; display: flex; }
+.cc-slide { flex: 0 0 calc(90cqw - 30px); /* 2026-10-05 사용자: 10% 줄여 양옆 노출을 5%씩 늘림 */ scroll-snap-align: center; position: relative; display: flex; }
 .cc-slide .cc-tkw { width: 100%; }
 .cc-dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
 /* 선 모양 점: 지금 쿠폰은 길게 */
