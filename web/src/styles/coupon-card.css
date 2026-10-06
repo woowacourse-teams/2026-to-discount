@@ -260,7 +260,8 @@
 .menu-bar__item--on::after { background: var(--sale); }
 
 /* 하단 시트(상세): 어두운 막 + 아래에서 올라오는 흰 판, 윗모서리 20px, 손잡이 36x4 */
-.cc-sheet-dim { position: fixed; inset: 0; z-index: 90; background: rgba(0, 0, 0, .5); display: flex; align-items: flex-end; justify-content: center; animation: ce-dim-in 150ms ease; }
+.cc-sheet-dim { position: fixed; inset: -120px 0 0; z-index: 90; background: rgba(0, 0, 0, .5); animation: ce-dim-in 150ms ease; }
+.cc-sheet-wrap { position: fixed; inset: 0; z-index: 91; display: flex; align-items: flex-end; justify-content: center; }
 .cc-sheet { position: relative; width: 100%; max-width: 560px; max-height: 88vh; display: flex; flex-direction: column; background: var(--surface); border-radius: 20px 20px 0 0; padding: 8px 0 calc(16px + env(safe-area-inset-bottom, 0px)); animation: cc-sheet-up 220ms cubic-bezier(.2, 0, 0, 1); }
 @keyframes cc-sheet-up { from { transform: translateY(100%); } }
 .cc-sheet__grip { width: 36px; height: 4px; border-radius: 2px; background: #d1d6db; margin: 0 auto 8px; flex: none; }
@@ -290,6 +291,12 @@
 .cc-sheet .cc-tkw { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .08)) drop-shadow(0 4px 12px rgba(0, 0, 0, .08)); }
 .cc-sheet__body { background: var(--bg); padding-top: 12px; }
 /* 휴대폰에서 시트를 열 때 스크롤을 막으면 주소창 높이가 바뀌어 화면 위쪽이 막 밖으로 드러날 수 있다 — 막을 위로 넉넉히 늘린다 */
-.cc-sheet-dim { top: -120px; padding-top: 120px; }
 /* 중복 할인 배지 글자: 옅은 주황 바탕 위 주황은 대비 기준 미달 — 진한 주황으로(2026-10-07 Lighthouse) */
 .cc .offer__range-badge--optimal, .cc-sheet .offer__range-badge--optimal { color: #a83a00; }
+.cc-sheet { touch-action: none; }
+.cc-sheet__body { touch-action: pan-y; }
+.cc-sheet__grip { cursor: grab; padding: 6px 0; background-clip: content-box; }
+/* 시트 상단 흰 막의 원인: 중복 할인 배지의 윤기(::before, absolute)가 배지가 static이라 시트 전체 기준으로 그려져
+   시트 위쪽 55%를 흰 반투명으로 덮었다(2026-10-07). 배지를 기준점으로 두고, 납작한 배지에는 윤기를 뺀다. */
+.cc-sheet .cc-tags .chip-tags > * { position: relative; }
+.cc .offer__range-badge--optimal::before, .cc-sheet .offer__range-badge--optimal::before { content: none; }

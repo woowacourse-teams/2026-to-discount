@@ -236,6 +236,34 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   // 카드 아무 곳이나 누르면 펼치기/접기. 링크, 숨기기 버튼, 캐러셀 끌기는 제외한다.
   // 하단 시트 안(2026-10-06 시안): 카드 안에서 펼치지 않고 아래에서 올라오는 시트로 상세를 연다. 카드 높이는 그대로.
   const [sheet, setSheet] = useState(false)
+  // 시트 끌기: 손잡이·머리는 언제나, 본문은 맨 위까지 스크롤된 상태에서 아래로 끌 때만 시트를 끈다.
+  // 아래로 120px 넘게(또는 빠르게) 끌면 닫고, 아니면 제자리로. 위로 끌면 최대 높이까지 늘린다.
+  const sheetRef = useRef(null)
+  const sdrag = useRef(null)
+  const onSheetDown = (e) => {
+    const body = e.target.closest('.cc-sheet__body')
+    if (body && body.scrollTop > 0) return
+    sdrag.current = { y: e.clientY, t: Date.now(), dy: 0, fromBody: !!body }
+  }
+  const onSheetMove = (e) => {
+    const d = sdrag.current
+    if (!d || !sheetRef.current) return
+    d.dy = e.clientY - d.y
+    if (d.fromBody && d.dy < 0) { sdrag.current = null; return } // 본문에서 위로는 스크롤
+    if (Math.abs(d.dy) > 4) e.currentTarget.setPointerCapture?.(e.pointerId)
+    sheetRef.current.style.transition = 'none'
+    sheetRef.current.style.transform = `translateY(${Math.max(-40, d.dy)}px)`
+  }
+  const onSheetUp = () => {
+    const d = sdrag.current
+    sdrag.current = null
+    const el = sheetRef.current
+    if (!d || !el) return
+    el.style.transition = 'transform 200ms cubic-bezier(.2, 0, 0, 1)'
+    const fast = d.dy > 40 && Date.now() - d.t < 250
+    if (d.dy > 120 || fast) { el.style.transform = 'translateY(100%)'; setTimeout(() => setSheet(false), 180) }
+    else el.style.transform = ''
+  }
   const onCardClick = (e) => {
     if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging, .cc-combo__btn')) return
     if (!canExpand) return
@@ -357,8 +385,13 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         </div></div></div>
       )}
       {sheet && createPortal(
-        <div className="cc-sheet-dim" onClick={() => setSheet(false)}>
-          <div className="cc-sheet" role="dialog" aria-modal="true" aria-label={`${brand.name} 할인 자세히`} onClick={(e) => e.stopPropagation()}>
+        <>
+        {/* 막과 시트를 형제로 둔다 — 시트가 막 안에 있으면 막의 투명도·페이드를 같이 받아 흐려 보였다(2026-10-07) */}
+        {/* 포털이라도 React 이벤트는 카드(article)로 올라가 카드 클릭이 시트를 다시 연다 — 여기서 끊는다 */}
+        <div className="cc-sheet-dim" onClick={(e) => { e.stopPropagation(); setSheet(false) }} />
+        <div className="cc-sheet-wrap" onClick={(e) => { e.stopPropagation(); if (e.target === e.currentTarget) setSheet(false) }}>
+          <div className="cc-sheet" role="dialog" aria-modal="true" aria-label={`${brand.name} 할인 자세히`} ref={sheetRef}
+               onPointerDown={onSheetDown} onPointerMove={onSheetMove} onPointerUp={onSheetUp} onPointerCancel={onSheetUp}>
             <div className="cc-sheet__grip" aria-hidden="true" />
             <div className="cc-sheet__head">
               <BrandLogo name={brand.name} size={40} />
@@ -380,7 +413,8 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
               })}
             </div>
           </div>
-        </div>, document.body)}
+        </div>
+        </>, document.body)}
     </article>
   )
 }
