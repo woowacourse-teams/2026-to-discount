@@ -137,7 +137,7 @@
   padding: .55rem .5rem;
   font-size: .88rem;
   font-weight: 500;
-  color: #64635f; /* --text-muted(#787774)는 흰 바탕 대비 4.47:1로 기준(4.5:1) 아래였다(2026-10-06 Lighthouse) */
+  color: var(--text-muted);
   transition: color .18s ease;
 }
 

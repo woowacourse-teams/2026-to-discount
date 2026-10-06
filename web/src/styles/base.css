@@ -4,7 +4,7 @@
   --surface: #ffffff;
   --border: #eaeaea;
   --text: #171717;
-  --text-muted: #787774;
+  --text-muted: #64635f; /* #787774는 흰 바탕 대비 4.47:1로 기준(4.5:1) 아래였다(2026-10-06 Lighthouse) */
   --accent: #171717;
   --pending-bg: #fbf3db;
   --pending-text: #956400;
