@@ -22,7 +22,8 @@ import { captureRects, playShift, readCards } from './cardShift.js'
 // 한 박자 쉬고 밀어 올린다(2026-09-25 사용자).
 const LEAVE_MS = 100
 const SHIFT_PAUSE_MS = 400
-import SurveyCard from './SurveyCard.jsx'
+// 설문 카드는 누른 뒤에만 열린다 — 첫 화면 묶음에서 뺀다(2026-10-06 성능).
+const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { currentHomeArm } from './homeExperiment.js'
@@ -741,7 +742,7 @@ export default function App({ initial = null }) {
               발급된 코드는 App이 들고 있어(surveyCode) 다시 열면 그대로
               보인다 — 잃는 건 아직 안 고른 진행 중 선택뿐이다. */}
           {surveyOn && surveyOpen && (
-            <SurveyCard
+            <Suspense fallback={null}><SurveyCard
               visitorId={getAnalyticsContext().visitorId}
               code={surveyCode}
               onCode={setSurveyCode}
@@ -752,7 +753,7 @@ export default function App({ initial = null }) {
                 // 또는 재고 없음 화면)만 세션에서 완전히 내린다.
                 if (!surveyCode) setSurveyOn(false)
               }}
-            />
+            /></Suspense>
           )}
           {visibleBrands.slice(0, shown).map((b, index) => {
             const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
