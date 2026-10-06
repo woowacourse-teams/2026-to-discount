@@ -24,7 +24,10 @@ export const ARM_COOKIE = 'dk_home'
 export function currentHomeArm(visitorId) {
   let forced = null
   try { const h = new URLSearchParams(window.location.search).get('home'); forced = h === 'a' ? 'coupon' : h === 'old' ? 'old' : null } catch { /* 주소를 못 읽으면 배정대로 */ }
-  const arm = forced ?? homeArm(visitorId)
+  // 배정은 쿠키가 정본이다(미들웨어가 첫 방문에 심는다). 쿠키가 없을 때만 방문자 해시로.
+  let cookieArm = null
+  try { cookieArm = /(?:^|;\s*)dk_home=(coupon|old)(?:;|$)/.exec(document.cookie)?.[1] ?? null } catch { /* 쿠키를 못 읽으면 해시로 */ }
+  const arm = forced ?? cookieArm ?? homeArm(visitorId)
   if (!forced && Date.now() >= HOME_AB_START) {
     try { document.cookie = `${ARM_COOKIE}=${arm}; path=/; max-age=31536000; samesite=lax` } catch { /* 쿠키를 못 쓰면 매번 마운트 뒤 바뀐다 */ }
   }

@@ -11,8 +11,14 @@ export default function middleware(req) {
   for (const k of drop) u.searchParams.delete(k)
   const cookie = req.headers.get('cookie') || ''
   const home = u.searchParams.get('home')
-  const coupon = home === 'a' || (home !== 'old' && /(?:^|;\s*)dk_home=coupon(?:;|$)/.test(cookie))
+  // 첫 방문(쿠키 없음)은 여기서 반반 배정해 쿠키를 심는다. 예전엔 서버가 운영 카드로 그리고 화면이 마운트 뒤
+  // 배정을 계산해 쿠폰 카드로 통째로 다시 그려, 그 방문의 최대 콘텐츠 표시 시간이 6초대가 됐다(2026-10-06 실측).
+  const had = /(?:^|;\s*)dk_home=(coupon|old)(?:;|$)/.exec(cookie)?.[1]
+  const assigned = had ?? (Math.random() < 0.5 ? 'coupon' : 'old')
+  const coupon = home === 'a' || (home !== 'old' && assigned === 'coupon')
   if (coupon) u.searchParams.set('__arm', 'coupon')
-  if (drop.length === 0 && !coupon) return
-  return new Response(null, { headers: { 'x-middleware-rewrite': u.toString() } })
+  const headers = { 'x-middleware-rewrite': u.toString() }
+  if (!had && !home) headers['set-cookie'] = `dk_home=${assigned}; Path=/; Max-Age=31536000; SameSite=Lax`
+  if (drop.length === 0 && !coupon && !headers['set-cookie']) return
+  return new Response(null, { headers })
 }
