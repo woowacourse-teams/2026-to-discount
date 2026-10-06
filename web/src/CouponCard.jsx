@@ -37,7 +37,8 @@ function Amt({ offer }) {
   const num = hasNum ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
   return (
     <span className="cc-amt">
-      {offer.soldOut ? <s>{num}{hasNum && <small>원</small>}</s> : <>{num}{hasNum && <small>원</small>}</>}
+      {/* 상위 오퍼 금액은 '원 할인'으로 끝낸다(2026-10-06 사용자) */}
+      {offer.soldOut ? <s>{num}{hasNum && <small>원 할인</small>}</s> : <>{num}{hasNum && <small>원 할인</small>}</>}
       {offer.soldOut && <em className="cc-soldout">품절</em>}
     </span>
   )

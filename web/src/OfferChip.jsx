@@ -8,8 +8,9 @@ export function won(value) {
   return `${value.toLocaleString()}원`
 }
 
-function offerAmountText(offer) {
-  return offer.amount != null ? won(offer.amount) : offer.rawText
+// 상위 오퍼(큰 칸)는 '원 할인'으로 끝낸다(2026-10-06 사용자). 아래 작은 칩은 자리가 좁아 그대로.
+function offerAmountText(offer, hero = false) {
+  return offer.amount != null ? `${won(offer.amount)}${hero ? ' 할인' : ''}` : offer.rawText
 }
 
 // 배지 계산(값의 성격, 멤버십, 한정)은 couponModel.badgesOf가 한다 — 쿠폰 카드와 같은 함수다.
@@ -76,10 +77,10 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
         </span>
         {offer.soldOut ? (
           <>
-            <s className="offer__amount--soldout">{offerAmountText(offer)}</s>
+            <s className="offer__amount--soldout">{offerAmountText(offer, hero)}</s>
             <span className="offer__soldout-label">품절</span>
           </>
-        ) : offerAmountText(offer)}
+        ) : offerAmountText(offer, hero)}
       </span>
       <span className="offer__icon-badge">
         <PlatformBadge platformKey={offer.platform} brand={brandName} />
