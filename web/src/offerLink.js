@@ -76,24 +76,28 @@ let hubLinks = {}
 export const COUPANGEATS_LINK = 'https://share.coupangeats.com/VzILg2hUX6b'
 
 // 쿠팡이츠 허브 쿠폰은 앱에서 '쿠폰 받기'를 눌러야 적용된다(2026-10-06 사용자 확인).
-// ponytail: 누르기 전에 보이는 한 줄 안내. 탭을 가로채는 시트는 iOS 유니버설 링크가 사용자 제스처 밖에서 웹으로 새서 뺐다.
-// 쿠팡이츠 행사 허브는 브랜드를 골라 '쿠폰 받기'를 눌러야 할인이 붙는다. 바로 보내기 전에 1초 안내(2026-10-06 사용자).
+// 위험: 1.5초 뒤 이동은 사용자 제스처 밖이라 iOS 사파리가 앱 대신 웹을 열 수 있다. 실기 확인 필요.
+// 쿠팡이츠 행사 허브는 브랜드를 골라 '쿠폰 받기'를 눌러야 할인이 붙는다. 바로 보내기 전에 1.5초 안내(2026-10-06 사용자).
 export const COUPANGEATS_NOTICE = '행사 페이지에서\n해당 브랜드를 클릭해주세요!'
 // 쿠팡이츠 쿠폰 아래 고정 안내(2026-10-06 사용자 문구)
 export const COUPANGEATS_HINT = '앱에서 "브랜드 할인 버튼"을 눌러야 할인이 적용돼요.'
-const NOTICE_MS = 1000
+const NOTICE_MS = 1500 // 2026-10-06 사용자: 1초 -> 1.5초
 
-/** 쿠팡이츠 링크면 기본 이동을 막고 1초 안내를 띄운 뒤 같은 탭에서 연다. 그 밖의 링크는 손대지 않는다. */
+/** 쿠팡이츠 링크면 기본 이동을 막고 화면을 어둡게 깔아 안내를 1.5초 띄운 뒤 같은 탭에서 연다. 그 밖의 링크는 손대지 않는다. */
 export function openWithNotice(e, href) {
   if (href !== COUPANGEATS_LINK || typeof document === 'undefined') return
   e.preventDefault()
-  document.querySelector('.ce-toast')?.remove()
+  document.querySelector('.ce-dim')?.remove()
+  // 바텀시트처럼 화면을 어둡게 깔고 그 위에 안내를 띄운다(2026-10-06 사용자)
+  const dim = document.createElement('div')
+  dim.className = 'ce-dim'
   const el = document.createElement('div')
   el.className = 'ce-toast'
   el.setAttribute('role', 'status')
   el.textContent = COUPANGEATS_NOTICE
-  document.body.appendChild(el)
-  setTimeout(() => { el.remove(); window.location.href = href }, NOTICE_MS)
+  dim.appendChild(el)
+  document.body.appendChild(dim)
+  setTimeout(() => { dim.remove(); window.location.href = href }, NOTICE_MS)
 }
 
 export function setHubLinks(banners) {

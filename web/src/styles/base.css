@@ -293,6 +293,8 @@ h1 {
    로고 줄 높이를 밀어내지 않는다. */
 
 /* 쿠팡이츠로 보내기 전 1초 안내(offerLink.openWithNotice) */
-.ce-toast { position: fixed; left: 50%; top: 42%; transform: translateX(-50%); z-index: 100; width: max-content; max-width: calc(100vw - 48px); padding: 12px 18px; border-radius: 12px; background: rgba(28, 28, 31, .92); color: #fff; font-size: 15px; font-weight: 600; text-align: center; word-break: keep-all; white-space: pre-line; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); }
+.ce-dim { position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, .65); animation: ce-dim-in 150ms ease; }
+@keyframes ce-dim-in { from { opacity: 0; } }
+.ce-toast { position: fixed; left: 50%; top: 42%; transform: translateX(-50%); z-index: 101; width: max-content; max-width: calc(100vw - 48px); padding: 12px 18px; border-radius: 12px; background: rgba(28, 28, 31, .92); color: #fff; font-size: 15px; font-weight: 600; text-align: center; word-break: keep-all; white-space: pre-line; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); }
 /* 쿠팡이츠 쿠폰 아래 고정 안내(두 안 공통) */
 .ce-note { margin: 6px 2px 0; list-style: none; text-align: right; width: 100%; align-self: stretch; box-sizing: border-box; font-size: 12.5px; line-height: 1.4; color: var(--text-muted); word-break: keep-all; }
