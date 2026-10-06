@@ -308,4 +308,8 @@
 .cc-sheet__body { gap: 0; }
 .cc-sheet__item { padding: 14px 0; }
 .cc-sheet__item + .cc-sheet__item { border-top: 1px solid #dfe3e8; }
-.cc-sheet .offer__status-badge:not(.offer__status-badge--membership) { background: #fff; color: #4e5968; box-shadow: inset 0 0 0 1px #d6dbe1; }
+.cc-sheet .offer__status-badge:not(.offer__status-badge--membership) { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text-muted); box-shadow: none; } /* 상세 표 줄의 채널 배지와 같은 색 */
+/* 시트 배지도 카드 펼친 목록처럼 쿠폰 왼쪽 위에 걸친다(따로 한 줄로 뜬 것은 의도가 아니었다, 2026-10-07) */
+.cc-sheet__item { position: relative; }
+.cc-sheet__item > .cc-tags { position: absolute; top: 4px; left: 10px; z-index: 2; }
+.cc-sheet__item > .cc-tkw { margin-top: 6px; }
