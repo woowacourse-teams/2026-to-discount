@@ -234,10 +234,23 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
     else if (phase === 'leave') setPhase('open')
   }
   // 카드 아무 곳이나 누르면 펼치기/접기. 링크, 숨기기 버튼, 캐러셀 끌기는 제외한다.
+  // 하단 시트 안(2026-10-06 시안): 카드 안에서 펼치지 않고 아래에서 올라오는 시트로 상세를 연다. 카드 높이는 그대로.
+  const [sheet, setSheet] = useState(false)
   const onCardClick = (e) => {
-    if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging')) return
-    if (canExpand) toggle()
+    if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging, .cc-combo__btn')) return
+    if (!canExpand) return
+    onInteract?.()
+    track('brand_expand', { brand: brand.name, category: brand.category ?? 'none', via: 'sheet' })
+    setSheet(true)
   }
+  useEffect(() => {
+    if (!sheet) return undefined
+    const esc = (e) => { if (e.key === 'Escape') setSheet(false) }
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', esc)
+    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', esc) }
+  }, [sheet])
   // 딥링크(#brand-이름)로 들어오면 펼친 채로 그 카드로 스크롤한다(운영 카드와 같다).
   useEffect(() => {
     if (highlighted) { setPhase('enter'); cardRef.current?.scrollIntoView({ block: 'center' }) }
@@ -309,7 +322,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           ))}
         </div></div>
       )}
-      {canExpand && <button type="button" className="cc-hint" aria-expanded={open}>
+      {canExpand && <button type="button" className="cc-hint" aria-haspopup="dialog" aria-expanded={sheet}>
         자세히 보기
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>}
@@ -343,6 +356,31 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           <button type="button" className="cc-fold" aria-expanded={open}>접기<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 7.5L6 4l3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
         </div></div></div>
       )}
+      {sheet && createPortal(
+        <div className="cc-sheet-dim" onClick={() => setSheet(false)}>
+          <div className="cc-sheet" role="dialog" aria-modal="true" aria-label={`${brand.name} 할인 자세히`} onClick={(e) => e.stopPropagation()}>
+            <div className="cc-sheet__grip" aria-hidden="true" />
+            <div className="cc-sheet__head">
+              <BrandLogo name={brand.name} size={40} />
+              <strong>{brand.name}</strong>
+              <button type="button" className="cc-sheet__close" aria-label="닫기" onClick={() => setSheet(false)}>×</button>
+            </div>
+            <div className="cc-sheet__body">
+              {[...best, ...rest].map((o, i) => {
+                const f = formulaOf(o)
+                const tb = conditionTable(o)
+                const hasTbl = tb.rows.length > 0 || tb.note || f
+                return (
+                  <div key={offerKey(o)} className="cc-sheet__item">
+                    <Tags o={o} />
+                    <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded />
+                    {hasTbl && <DetailTable t={tb} i={0} fx={f} />}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>, document.body)}
     </article>
   )
 }

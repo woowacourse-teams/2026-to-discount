@@ -258,3 +258,31 @@
 /* 포인트 색(--sale)을 몇 곳에만 절제해서(2026-10-06 사용자): 5천원 이상만 스위치 켜짐, 고른 분류 밑줄, 신규 탭 개수 */
 .quick-bar__switch[aria-checked="true"] .quick-bar__switch-track { background: var(--sale); }
 .menu-bar__item--on::after { background: var(--sale); }
+
+/* 하단 시트(상세): 어두운 막 + 아래에서 올라오는 흰 판, 윗모서리 20px, 손잡이 36x4 */
+.cc-sheet-dim { position: fixed; inset: 0; z-index: 90; background: rgba(0, 0, 0, .5); display: flex; align-items: flex-end; justify-content: center; animation: ce-dim-in 150ms ease; }
+.cc-sheet { position: relative; width: 100%; max-width: 560px; max-height: 88vh; display: flex; flex-direction: column; background: var(--surface); border-radius: 20px 20px 0 0; padding: 8px 0 calc(16px + env(safe-area-inset-bottom, 0px)); animation: cc-sheet-up 220ms cubic-bezier(.2, 0, 0, 1); }
+@keyframes cc-sheet-up { from { transform: translateY(100%); } }
+.cc-sheet__grip { width: 36px; height: 4px; border-radius: 2px; background: #d1d6db; margin: 0 auto 8px; flex: none; }
+.cc-sheet__head { display: flex; align-items: center; gap: 10px; padding: 4px 20px 12px; flex: none; }
+.cc-sheet__head strong { font-size: 17px; font-weight: 700; flex: 1; min-width: 0; }
+.cc-sheet__head .brand-logo { width: 40px; height: 40px; border-radius: 10px; }
+.cc-sheet__close { all: unset; cursor: pointer; width: 32px; height: 32px; display: grid; place-items: center; font-size: 24px; line-height: 1; color: #6b7684; }
+.cc-sheet__body { overflow-y: auto; padding: 4px 16px 8px; display: flex; flex-direction: column; gap: 16px; }
+.cc-sheet__item { display: flex; flex-direction: column; gap: 6px; container-type: inline-size; }
+.cc-sheet__item .cc-tkw { width: 100%; }
+.cc-sheet__item .cc-ticket { width: 100%; height: auto; aspect-ratio: 37 / 11; grid-template-columns: 1fr 29.4%; --stub: 29.4%; container-type: inline-size; }
+.cc-sheet__item .cc-amt { font-size: 7.62cqw; color: var(--sale); }
+.cc-sheet__item .cc-min { font-size: 3.96cqw; color: #6b7684; }
+.cc-sheet__item .cc-info { --pb: 12.45cqw; gap: 10px; padding: 0 14px; }
+.cc-sheet__item .cc-stub svg { width: 8.08cqw; height: 8.08cqw; }
+.cc-sheet__item .cc-tbl { margin: 4px 4px 0; }
+/* 시트 안은 카드(.cc) 밖이라 카드 안에서만 걸리던 규칙을 채운다 */
+.cc-sheet .cc-tbl { opacity: 1; transform: none; margin: 2px 4px 0; }
+.cc-sheet .cc-ticket::after { display: none; }
+.cc-sheet .platform-badge { width: var(--pb, 20px); height: var(--pb, 20px); border-radius: calc(var(--pb, 20px) * .28); flex: none; }
+.cc-sheet .cc-tags .chip-tags { position: static; display: flex; gap: 4px; padding: 0; transform: none; }
+.cc-sheet .cc-tags .chip-tags > * { position: static; height: 22px; display: inline-flex; align-items: center; padding: 0 7px; border-radius: 6px; font-size: 12px; font-weight: 600; transform: none; box-shadow: none; }
+.cc-sheet .cc-tags .chip-tags > *::after { content: none; }
+.cc-sheet .offer__status-badge:not(.offer__status-badge--membership) { background: var(--bg); color: #4e5968; }
+.cc-sheet .cc-item-gap, .cc-sheet__item > .cc-deal { margin: 0; }
