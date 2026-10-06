@@ -126,7 +126,7 @@ function ComboInfo({ o, text }) {
     // (i)는 배지 안에 둔다(2026-10-06 사용자)
     <span className="offer__range-badge offer__range-badge--optimal cc-combo" onMouseEnter={show} onMouseLeave={hide}>
       {text}
-      <button type="button" ref={btn} className="cc-combo__btn" aria-label="복합 할인 설명" aria-expanded={!!pos}
+      <button type="button" ref={btn} className="cc-combo__btn" aria-label="중복 할인 설명" aria-expanded={!!pos}
               onClick={(e) => { e.stopPropagation(); pos ? hide() : show() }}>i</button>
       {pos && createPortal(
         <span ref={pop} className="cc-info__pop" role="tooltip" style={{ top: pos.top, right: pos.right }}>

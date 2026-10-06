@@ -402,7 +402,8 @@
   padding: calc(.05rem - 1px) calc(.3rem - 1px);
   overflow: hidden;
 }
-.offer__range-badge.offer__range-badge--optimal::after {
+/* 윤기(위쪽 밝은 띠)는 ::before로. ::after는 다른 배지와 같은 오른쪽 아래 접힌 귀로 둔다(2026-10-06 통일) */
+.offer__range-badge.offer__range-badge--optimal::before {
   content: '';
   position: absolute;
   inset: 0 0 auto;

@@ -214,7 +214,7 @@
 .cc-tags .chip-tags > * { height: 23px; font-size: .8rem; padding: 0 .46rem; }
 .cc .cc-combo__btn { width: 15px; height: 15px; font-size: 10px; color: inherit; }
 /* 이름과 배지를 위로 붙여 쌓는다(쿠폰과는 간격이 생긴다, 2026-10-06 사용자) */
-.cc-head { grid-template-rows: auto auto; align-content: space-between; padding-top: 4px; box-sizing: border-box; } /* 이름은 위, 배지 아래 끝은 로고 아래 끝에 맞춘다 */ /* 로고·이름·배지를 한 머리로 묶어 세로 가운데(2026-10-06 사용자) */
+.cc-head { grid-template-rows: auto auto; align-content: center; row-gap: 2px; padding-top: 0; box-sizing: border-box; } /* 이름과 배지 간격 2px, 세로 가운데(2026-10-06) */ /* 로고·이름·배지를 한 머리로 묶어 세로 가운데(2026-10-06 사용자) */
 
 /* 쿠폰 영역을 비율로(폭이 달라도 모양 유지, 2026-10-06 사용자): 가로:세로 = 37:12, 이동 영역 = 쿠폰 폭의 1/3 */
 .cc--compact .cc-ticket { height: auto; aspect-ratio: 37 / 11; grid-template-columns: 1fr 29.4%; --stub: 29.4%; } /* 높이 -8px, 이동 영역 33.4 -> 29.4% */
@@ -223,9 +223,8 @@
 .cc-slide { align-items: flex-start; }
 /* 쿠폰 안 크기를 쿠폰 폭 비율로(캐러셀처럼 쿠폰이 작아져도 모양이 같다, 2026-10-06 사용자). 기준: 폭 296px일 때 지금 크기 */
 .cc--compact .cc-ticket { container-type: inline-size; }
-.cc--compact .cc-amt { font-size: 8.45cqw; }
-.cc--compact .cc-min { font-size: 4.4cqw; }
-.cc--compact .cc-info { --pb: 13.85cqw; }
+.cc--compact .cc-amt { font-size: 6.35cqw; } /* 0.75배(2026-10-06) */
+.cc--compact .cc-min { font-size: 3.3cqw; }
+.cc--compact .cc-info { --pb: 12.45cqw; } /* 로고 0.9배 */
 .cc--compact .cc-stub svg { width: 10.1cqw; height: 10.1cqw; }
 /* 배지 줄 아래 끝을 로고 아래 끝에 맞춘다(배지 묶음 안쪽 여백 3px 몫) */
-.cc--compact .cc-badges { margin-bottom: -3px; }

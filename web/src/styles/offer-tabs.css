@@ -121,7 +121,7 @@
   /* 왼쪽 위 — 옛 라벨 자리. 왼쪽으로 기울여 오른쪽 묶음과 대칭. */
   right: auto;
   left: -7px;
-  transform: rotate(-5deg);
+  transform: rotate(4deg); /* 모든 배지는 오른쪽으로 기운다(왼쪽 기울기가 뒤집혀 보였다, 2026-10-06) */
   transform-origin: left top;
 }
 
@@ -144,7 +144,7 @@
   gap: 5px;
   /* 포스트잇 기울기는 탭마다가 아니라 줄 전체에 한 번 준다 — 탭마다 돌리면
      이웃과 모서리가 겹친다. */
-  transform: rotate(-4deg);
+  transform: rotate(4deg);
   transform-origin: left bottom;
   /* 탭이 서넛까지 늘어나면 좁은 화면에서 칩 오른쪽 밖으로 나간다. 줄을 접지
      않고 넘치게 두되 잘리지는 않는다.
@@ -203,7 +203,7 @@
 .offer--hero .chip-tags > .offer__status-badge,
 .offer--hero .chip-tags > .offer__range-badge--best-tab,
 .offer--hero .chip-tags > .offer__status-badge--membership {
-  transform: rotate(-4deg);
+  transform: rotate(4deg);
   transform-origin: center;
 }
 
