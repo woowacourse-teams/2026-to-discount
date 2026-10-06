@@ -187,8 +187,8 @@
 .cc--stack .cc-dots { transition: opacity 200ms ease; }
 .cc--stack.cc--open .cc-dots { opacity: 0; }
 /* 링크 꼭지: 앱 색 위에 옅은 그라데이션(위 살짝 밝게, 아래 살짝 어둡게). 접힌 귀는 넣지 않는다(2026-10-05 사용자). */
-/* 이동 영역: 검회색 그라데이션 + 흰 아이콘(2026-10-06 사용자 시안) */
-.cc-stub { background: linear-gradient(165deg, #4a4a4f 0%, #2b2b2f 55%, #1c1c1f 100%); color: #fff; box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .12); }
+/* 이동 영역: 로고 색을 파스텔로 낮춘 바탕 + 로고 색 아이콘(2026-10-06 사용자) */
+.cc-stub { background: linear-gradient(165deg, color-mix(in srgb, var(--pc, #4a4a4e) 18%, #fff) 0%, color-mix(in srgb, var(--pc, #4a4a4e) 30%, #fff) 100%); color: color-mix(in srgb, var(--pc, #4a4a4e) 88%, #000); box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .5); }
 .cc-stub svg { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
 
 /* 쿠폰 감싸개(폭은 감싸개가 갖고 쿠폰은 꽉 채운다)와 업데이트 탭: 쿠폰 오른쪽 위에 걸쳐 오른쪽으로 기운 포스트잇 */
