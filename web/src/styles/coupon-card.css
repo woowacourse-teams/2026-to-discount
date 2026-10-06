@@ -147,7 +147,7 @@
 @media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-hint, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
 
 /* ?compact=1 시안: 17차 시안처럼 낮고 촘촘한 쿠폰(높이 76px 안팎, 앱 로고 34px, 금액 25px, 꼭지 58px, 아래 띠 없음) */
-.cc--compact { --tk-h: 84px; --stub: 87px; } /* 이동 영역 58->87px(1.5배, 2026-10-06 사용자) */ /* 위아래 4px씩 늘림(2026-10-06 사용자) */
+.cc--compact { --tk-h: 84px; } /* 위아래 4px씩 늘림(2026-10-06 사용자) */
 .cc--compact .cc-info { --pb: 34px; gap: 10px; padding: 0 14px; }
 .cc--compact .cc-ticket::after { display: none; }
 .cc--compact .cc-ticket { border-radius: 10px; }
@@ -165,7 +165,7 @@
 .cc--compact .cc-alt { font-size: 13px; --pb: 18px; }
 
 /* 촘촘한 안 2차: 운영 브랜드 카드와 같은 테두리와 그림자, 꼭지 +8px, 접힌 하위 라벨 키움 */
-.cc--compact { --stub: 66px; border: 1px solid color-mix(in srgb, var(--text) 14%, transparent); border-radius: 14px; box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(0, 0, 0, .06); }
+.cc--compact { --stub: 99px; /* 66->99px(1.5배, 2026-10-06 사용자) */ border: 1px solid color-mix(in srgb, var(--text) 14%, transparent); border-radius: 14px; box-shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 6px 16px rgba(0, 0, 0, .06); }
 .cc--compact .cc-alt { font-size: 14.5px; gap: 6px; --pb: 21px; }
 .cc--compact .cc-alts-in { gap: 14px; }
 /* 펼친 쿠폰의 배지는 쿠폰 위 모서리에 걸쳐 겹친다(운영 칩 탭처럼). 줄을 따로 쓰지 않는다 */

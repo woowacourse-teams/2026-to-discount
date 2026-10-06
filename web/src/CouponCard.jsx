@@ -1,7 +1,7 @@
 // 메인 화면 A안 16차 브랜드 카드(쿠폰 티켓형). 표시 규칙: tracker docs/superpowers/specs/2026-10-03-home-a-display-model.md
 // 쿠폰 구조는 늘 같다(앱 아이콘, 금액, 최소주문, 이동 꼭지). 배지와 계산식은 쿠폰 밖(또는 남는 칸)에 둔다.
 // 폭을 재는 코드를 두지 않는다(총 차단 시간). 이름 크기는 글자 수로, 절취 홈은 CSS 마스크로 판다.
-import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
@@ -104,7 +104,16 @@ function ComboInfo({ o, text }) {
   const [pos, setPos] = useState(null)
   const btn = useRef(null)
   const fx = formulaOf(o)
-  const show = () => { const r = btn.current?.getBoundingClientRect(); if (r) setPos({ top: r.bottom + 6, right: Math.max(8, window.innerWidth - r.right - 8) }) }
+  const pop = useRef(null)
+  const show = () => { const r = btn.current?.getBoundingClientRect(); if (r) setPos({ top: r.bottom + 6, right: Math.max(8, window.innerWidth - r.right - 8), above: r.top }) }
+  // 창이 화면 밖으로 나가지 않게: 좌우는 8px 안쪽으로, 아래가 모자라면 단추 위로 올린다
+  useLayoutEffect(() => {
+    const el = pop.current
+    if (!el || !pos) return
+    const r = el.getBoundingClientRect()
+    if (r.left < 8) el.style.right = `${Math.max(8, window.innerWidth - 8 - r.width)}px`
+    if (r.bottom > window.innerHeight - 8) el.style.top = `${Math.max(8, pos.above - 6 - r.height)}px`
+  }, [pos])
   const hide = () => setPos(null)
   useEffect(() => {
     if (!pos) return undefined
@@ -120,7 +129,7 @@ function ComboInfo({ o, text }) {
       <button type="button" ref={btn} className="cc-combo__btn" aria-label="복합 할인 설명" aria-expanded={!!pos}
               onClick={(e) => { e.stopPropagation(); pos ? hide() : show() }}>i</button>
       {pos && createPortal(
-        <span className="cc-info__pop" role="tooltip" style={{ top: pos.top, right: pos.right }}>
+        <span ref={pop} className="cc-info__pop" role="tooltip" style={{ top: pos.top, right: pos.right }}>
           고정 할인 쿠폰과 중복 할인 쿠폰을 합쳐<br />최적의 할인을 계산한 결과입니다.
           {fx && <><br /><b>{fx}</b></>}
         </span>, document.body)}
