@@ -100,9 +100,17 @@ export function openWithNotice(e, href) {
   document.body.appendChild(dim)
   setTimeout(() => {
     dim.remove()
+    // 앱 링크(탭)는 앱이 없으면 아무 일도 안 일어난다 — 그때만 공유 링크로 다시 보낸다. 앱이 뜨는 동안에도
+    // 크롬은 잠시 visible이라(2026-10-07 실기) 상태가 아니라 "떠났다" 신호(blur, hidden, pagehide)로 가른다.
+    let left = false
+    const mark = () => { left = true }
+    if (tab) {
+      window.addEventListener('blur', mark, { once: true })
+      window.addEventListener('pagehide', mark, { once: true })
+      document.addEventListener('visibilitychange', mark, { once: true })
+    }
     window.location.href = href
-    // 앱 링크(탭)는 앱이 없으면 아무 일도 안 일어난다 — 화면이 그대로 보이면 공유 링크로 다시 보낸다
-    if (tab) setTimeout(() => { if (document.visibilityState === 'visible') window.location.href = COUPANGEATS_LINK }, 1200)
+    if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') window.location.href = COUPANGEATS_LINK }, 2500)
   }, NOTICE_MS)
 }
 
