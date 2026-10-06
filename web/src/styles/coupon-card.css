@@ -213,5 +213,3 @@
 /* 브랜드 카드 상단 배지 1.3배(2026-10-06 사용자) */
 .cc-tags .chip-tags > * { height: 23px; font-size: .8rem; padding: 0 .46rem; }
 .cc-head .cc-combo__btn { width: 15px; height: 15px; font-size: 10px; color: inherit; }
-/* 쿠팡이츠 쿠폰 아래 고정 안내 */
-.ce-note { margin: 6px 2px 0; font-size: 12.5px; line-height: 1.4; color: var(--text-muted); word-break: keep-all; }

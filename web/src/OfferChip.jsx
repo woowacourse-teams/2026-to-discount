@@ -118,7 +118,8 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
           <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
         </button>
       )}
-      {link && offer.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
+      {/* 운영 카드: 큰 칸(메인 오퍼)에만 한 줄, 아래 작은 칩에는 안 붙인다(2026-10-06 사용자) */}
+      {hero && link && offer.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
     </li>
   )
 }
