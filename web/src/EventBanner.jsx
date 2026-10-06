@@ -6,7 +6,7 @@
 // 다시 배포할 필요가 없다 — api의 banners.yml만 고치면 된다.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { COUPANGEATS_LINK } from './offerLink.js'
+import { COUPANGEATS_LINK, openWithNotice } from './offerLink.js'
 import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
@@ -137,14 +137,14 @@ function BannerCard({ banner, position, slot, onClose, onSeen }) {
         href={url}
         target={external ? '_blank' : undefined}
         rel={external ? 'noreferrer' : undefined}
-        onClick={() => track('banner_click', {
+        onClick={(ev) => { openWithNotice(ev, url); track('banner_click', {
           // 무엇이 눌렸는지 id 밖에서도 읽히게 — 배너는 날마다 새 id라 금액·묶음·매진 상태가 있어야
           // 종류별로 모아 볼 수 있다(2026-09-17). 노출과 같은 속성(bannerProps)을 싣는다(2026-10-02).
           ...bannerProps(banner),
           position,
           slot,
           external,
-        })}
+        }) }}
       >
         {/* 로고와 플랫폼 배지는 한 덩어리다 — 배지가 로고 위에 얹혀야
             "이 브랜드를 이 앱에서"가 한 눈에 읽힌다. 앱 전체 행사면

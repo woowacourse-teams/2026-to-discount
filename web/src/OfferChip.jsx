@@ -1,7 +1,7 @@
 import { isUpdated } from './filters.js'
 import { track } from './analytics.js'
 import { badgesOf } from './couponModel.js'
-import { COUPANGEATS_NOTICE, offerClickProps, offerLink } from './offerLink.js'
+import { offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import { PlatformBadge } from './logos.jsx'
 
 export function won(value) {
@@ -101,7 +101,7 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
           rel={link.startsWith('http') ? 'noreferrer' : undefined}
           // 어느 오퍼를 눌렀는지까지 남긴다 — brand·platform만으로는 "bhc 배민"에
           // 여러 구간·멤버십 오퍼가 있을 때 무엇이 눌렸는지 못 본다(2026-09-17).
-          onClick={() => track('offer_link_click', offerClickProps({ offer, brandName, position, best, where: 'chip' }))}
+          onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName, position, best, where: 'chip' })); openWithNotice(e, link) }}
         >
           {content}
         </a>
@@ -118,7 +118,6 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
           <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
         </button>
       )}
-      {link && offer.platform === 'coupangeats' && <p className="cc-hint">{COUPANGEATS_NOTICE}</p>}
     </li>
   )
 }

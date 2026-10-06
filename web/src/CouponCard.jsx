@@ -9,7 +9,7 @@ import { brandCardId } from './BrandCard.jsx'
 import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
-import { offerClickProps, offerLink, COUPANGEATS_NOTICE } from './offerLink.js'
+import { offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import './styles/coupon-card.css'
 
 const Up = () => (
@@ -52,7 +52,7 @@ function OfferLinkA({ offer, brand, position, best, where, slot, expanded, class
        // 커스텀 스킴(coupangeats://, ddangyo://, baemin://)은 같은 탭에서 열어야 앱으로 간다(운영 칩과 같다).
        target={web ? '_blank' : undefined} rel={web ? 'noreferrer' : undefined}
        aria-label={`${brand.name} ${amountText(offer)}, 앱으로 이동`}
-       onClick={() => track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best, where, slot, expanded }))}>
+       onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best, where, slot, expanded })); openWithNotice(e, href) }}>
       {children}
     </a>
   )
@@ -77,7 +77,6 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, ...r
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} where={where} slot={slot} expanded={expanded} className="cc-stub"><LinkIcon /></OfferLinkA>
     </div>
-    {o.platform === 'coupangeats' && <p className="cc-hint">{COUPANGEATS_NOTICE}</p>}
     </div>
   )
 }

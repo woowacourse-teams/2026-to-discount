@@ -291,3 +291,6 @@ h1 {
 /* 고른 앱에만 로고 밑에 붙는 멤버십 버튼. 눌러서 켜고 끈다 —
    2초 뒤 사라지던 칸과 달리 언제든 다시 만질 수 있다. absolute라
    로고 줄 높이를 밀어내지 않는다. */
+
+/* 쿠팡이츠로 보내기 전 1초 안내(offerLink.openWithNotice) */
+.ce-toast { position: fixed; left: 50%; top: 42%; transform: translateX(-50%); z-index: 100; max-width: calc(100% - 48px); padding: 12px 18px; border-radius: 12px; background: rgba(28, 28, 31, .92); color: #fff; font-size: 15px; font-weight: 600; text-align: center; word-break: keep-all; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); }
