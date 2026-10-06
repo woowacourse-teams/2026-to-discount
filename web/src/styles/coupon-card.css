@@ -300,3 +300,8 @@
    시트 위쪽 55%를 흰 반투명으로 덮었다(2026-10-07). 배지를 기준점으로 두고, 납작한 배지에는 윤기를 뺀다. */
 .cc-sheet .cc-tags .chip-tags > * { position: relative; }
 .cc .offer__range-badge--optimal::before, .cc-sheet .offer__range-badge--optimal::before { content: none; }
+/* 머리: 이름·배지 각 2px 키우고 간격 2px 더(2026-10-07 사용자) — 로고(72px)보다 조금 작은 묶음 */
+.cc--compact .cc-nm { font-size: max(16px, calc(22px - var(--cut, 0px))); }
+.cc--compact .cc-head { row-gap: 4px; }
+.cc .cc-tags .chip-tags > *, .cc--compact .cc-tags .chip-tags > * { height: 24px; font-size: 14px; }
+.cc .offer__range-badge--optimal::before { content: none; }
