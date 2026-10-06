@@ -1,7 +1,7 @@
 import { isUpdated } from './filters.js'
 import { track } from './analytics.js'
 import { badgesOf } from './couponModel.js'
-import { offerClickProps, offerLink } from './offerLink.js'
+import { COUPANGEATS_NOTICE, offerClickProps, offerLink } from './offerLink.js'
 import { PlatformBadge } from './logos.jsx'
 
 export function won(value) {
@@ -118,6 +118,7 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
           <span className="sr-only">상세 조건 {open ? '접기' : '펼치기'}</span>
         </button>
       )}
+      {link && offer.platform === 'coupangeats' && <p className="cc-hint">{COUPANGEATS_NOTICE}</p>}
     </li>
   )
 }
