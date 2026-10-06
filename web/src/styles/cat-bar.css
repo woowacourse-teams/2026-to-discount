@@ -38,7 +38,7 @@
   padding: 0 .55rem;
   font-size: .88rem;
   font-weight: 500;
-  color: var(--text-muted);
+  color: #64635f; /* 대비 4.5:1 이상(2026-10-06, 메뉴 바와 같은 값) */
   transition: color .16s ease, transform .12s ease;
 }
 [data-variant="a"] .cat-bar__item:hover { color: var(--text); }
