@@ -78,7 +78,9 @@ export const COUPANGEATS_LINK = 'https://share.coupangeats.com/VzILg2hUX6b'
 // 쿠팡이츠 허브 쿠폰은 앱에서 '쿠폰 받기'를 눌러야 적용된다(2026-10-06 사용자 확인).
 // ponytail: 누르기 전에 보이는 한 줄 안내. 탭을 가로채는 시트는 iOS 유니버설 링크가 사용자 제스처 밖에서 웹으로 새서 뺐다.
 // 쿠팡이츠 행사 허브는 브랜드를 골라 '쿠폰 받기'를 눌러야 할인이 붙는다. 바로 보내기 전에 1초 안내(2026-10-06 사용자).
-export const COUPANGEATS_NOTICE = '행사 페이지에서 브랜드를 선택해주세요!'
+export const COUPANGEATS_NOTICE = '행사 페이지에서\n해당 브랜드를 클릭해주세요!'
+// 쿠팡이츠 쿠폰 아래 고정 안내(2026-10-06 사용자 문구)
+export const COUPANGEATS_HINT = '앱에서 "브랜드 할인 버튼"을 눌러야 할인이 적용돼요.'
 const NOTICE_MS = 1000
 
 /** 쿠팡이츠 링크면 기본 이동을 막고 1초 안내를 띄운 뒤 같은 탭에서 연다. 그 밖의 링크는 손대지 않는다. */

@@ -147,7 +147,7 @@
 @media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-hint, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
 
 /* ?compact=1 시안: 17차 시안처럼 낮고 촘촘한 쿠폰(높이 76px 안팎, 앱 로고 34px, 금액 25px, 꼭지 58px, 아래 띠 없음) */
-.cc--compact { --tk-h: 76px; --stub: 58px; }
+.cc--compact { --tk-h: 84px; --stub: 58px; } /* 위아래 4px씩 늘림(2026-10-06 사용자) */
 .cc--compact .cc-info { --pb: 34px; gap: 10px; padding: 0 14px; }
 .cc--compact .cc-ticket::after { display: none; }
 .cc--compact .cc-ticket { border-radius: 10px; }
@@ -157,7 +157,7 @@
 .cc--compact .cc-carousel { padding-top: 12px; padding-bottom: 18px; margin: -12px 0 -18px; }
 .cc--compact > .cc-deal, .cc--compact > .cc-hint { margin-top: 10px; }
 .cc--compact > .cc-alts { margin-top: 18px; } /* 점(쿠폰 아래 11px)이 들어갈 틈 */
-.cc--compact { --logo: 62px; --pad: 14px; } /* 배지 1.3배에 맞춰 로고도 키워 머리 블록 높이를 맞춘다(2026-10-06 사용자) */
+.cc--compact { --logo: 72px; --pad: 14px; } /* 배지 1.3배에 맞춰 로고도 키워 머리 블록 높이를 맞춘다(2026-10-06 사용자) */
 .cc--compact > .brand-logo { border-radius: 10px; }
 .cc--compact .cc-nm { font-size: max(14px, calc(17px - var(--cut, 0px))); }
 .cc--compact > .cc-hint { font-size: 12.5px; margin-top: 6px; }
@@ -204,13 +204,14 @@
 .cc--compact .cc-tbl .cc-t-chips .detail__channel { font-size: 11px; line-height: 1.3; padding: 1px 6px; }
 
 /* 복합 배지 설명(i) */
-.cc-tags .chip-tags > .cc-info { display: inline-flex; align-items: center; padding: 0; height: auto; background: none; box-shadow: none; transform: none; border-radius: 0; margin-left: -2px; }
-.cc-tags .chip-tags > .cc-info::after { display: none; }
-.cc-head .cc-info__btn { box-sizing: border-box; width: 16px; height: 16px; border-radius: 50%; border: 1.3px solid currentColor; background: none; color: var(--text-muted); font: italic 700 10px/1 Georgia, serif; display: inline-flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+.cc-combo { gap: 4px; }
+.cc-head .cc-combo__btn { box-sizing: border-box; width: 16px; height: 16px; border-radius: 50%; border: 1.3px solid currentColor; background: none; color: var(--text-muted); font: italic 700 10px/1 Georgia, serif; display: inline-flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
 .cc-info__pop { position: fixed; z-index: 20; width: max-content; max-width: 240px; padding: 8px 10px; border-radius: 8px; background: #2b2b2f; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.45; white-space: normal; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
 .cc-info__pop b { display: inline-block; margin-top: 4px; color: #b9f0c2; font-weight: 600; font-variant-numeric: tabular-nums; }
 .cc-fx.cc-badges { overflow: visible; color: inherit; display: flex; align-items: center; }
 
 /* 브랜드 카드 상단 배지 1.3배(2026-10-06 사용자) */
 .cc-tags .chip-tags > * { height: 23px; font-size: .8rem; padding: 0 .46rem; }
-.cc-head .cc-info__btn { width: 21px; height: 21px; font-size: 13px; }
+.cc-head .cc-combo__btn { width: 15px; height: 15px; font-size: 10px; color: inherit; }
+/* 쿠팡이츠 쿠폰 아래 고정 안내 */
+.ce-note { margin: 6px 2px 0; font-size: 12.5px; line-height: 1.4; color: var(--text-muted); word-break: keep-all; }

@@ -9,7 +9,7 @@ import { brandCardId } from './BrandCard.jsx'
 import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
-import { offerClickProps, offerLink, openWithNotice } from './offerLink.js'
+import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import './styles/coupon-card.css'
 
 const Up = () => (
@@ -77,6 +77,7 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, ...r
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} where={where} slot={slot} expanded={expanded} className="cc-stub"><LinkIcon /></OfferLinkA>
     </div>
+    {o.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
     </div>
   )
 }
@@ -90,18 +91,15 @@ function Tags({ o }) {
   return (
     <span className="cc-tags"><span className="chip-tags">
       {ch && <span className="offer__status-badge">{ch}</span>}
-      {tags.map((b) => (
-        <Fragment key={b.kind}>
-          <OpBadge b={b} platform={o.platform} />
-          {b.kind === 'best-fit' && <ComboInfo o={o} />}
-        </Fragment>
-      ))}
+      {tags.map((b) => (b.kind === 'best-fit'
+        ? <ComboInfo key={b.kind} o={o} text={b.text} />
+        : <OpBadge key={b.kind} b={b} platform={o.platform} />))}
     </span></span>
   )
 }
 
 // 복합 배지 옆 (i): 올리면(데스크톱) 또는 누르면(모바일) 무엇을 합친 값인지와 계산식을 띄운다.
-function ComboInfo({ o }) {
+function ComboInfo({ o, text }) {
   // 카드 머리줄은 넘치는 것을 자른다(overflow hidden) — 설명 창은 화면 기준(fixed)으로 단추 아래에 띄운다.
   const [pos, setPos] = useState(null)
   const btn = useRef(null)
@@ -116,8 +114,10 @@ function ComboInfo({ o }) {
     return () => { window.removeEventListener('scroll', hide); document.removeEventListener('pointerdown', outside) }
   }, [pos])
   return (
-    <span className="cc-info" onMouseEnter={show} onMouseLeave={hide}>
-      <button type="button" ref={btn} className="cc-info__btn" aria-label="복합 할인 설명" aria-expanded={!!pos}
+    // (i)는 배지 안에 둔다(2026-10-06 사용자)
+    <span className="offer__range-badge offer__range-badge--optimal cc-combo" onMouseEnter={show} onMouseLeave={hide}>
+      {text}
+      <button type="button" ref={btn} className="cc-combo__btn" aria-label="복합 할인 설명" aria-expanded={!!pos}
               onClick={(e) => { e.stopPropagation(); pos ? hide() : show() }}>i</button>
       {pos && createPortal(
         <span className="cc-info__pop" role="tooltip" style={{ top: pos.top, right: pos.right }}>
