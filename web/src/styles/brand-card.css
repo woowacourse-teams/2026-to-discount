@@ -462,6 +462,7 @@
   background: none;
 }
 .offer--hero .offer__icon-badge .platform-badge img { padding: 0; }
+.offer--hero .offer__icon-badge .platform-badge .pi { inset: 0; }
 /* 오른쪽은 로고 폭(42) + 여백만큼 비워 둔다 — 가운데 정렬된 금액이
    로고에 닿지 않게. */
 .offer--hero .offer__chip { justify-content: center; gap: 0; padding-right: 66px; padding-left: 66px; }

@@ -268,4 +268,5 @@
   background: none;
 }
 .offer:not(.offer--hero) .offer__icon-badge .platform-badge img { padding: 0; }
+.offer:not(.offer--hero) .offer__icon-badge .platform-badge .pi { inset: 0; }
 .detail__head .platform-badge { width: 40px; height: 40px; border-radius: 9px; }

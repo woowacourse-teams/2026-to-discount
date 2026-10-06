@@ -1,5 +1,6 @@
 import { assetSrc, brandLogoSrc } from './logoSrc.js'
 import { PLATFORM_ICON_DATA } from './platformIcons.js'
+import './styles/platform-icons.css'
 
 // 브랜드·플랫폼 로고 조각. App.jsx에서 끌어냈다.
 //
@@ -72,17 +73,22 @@ export function PlatformBadge({ platformKey, via = null, brand = null, onClick, 
   if (!p) return brand ? <BrandLogo name={brand} /> : null
   const content = (
     <>
-      <img
-        src={platformIconSrc(p.key)}
-        alt=""
-        loading="lazy"
-        decoding="async"
-        width={LOGO_PX}
-        height={LOGO_PX}
-        ref={settleIfLoaded}
-        onLoad={hideSiblingFallback}
-        onError={hideBroken}
-      />
+      {PLATFORM_ICON_DATA[p.key] ? (
+        // 아이콘은 CSS 배경(styles/platform-icons.css)으로. 카드마다 base64를 박지 않는다.
+        <i className={`pi pi--${p.key}`} aria-hidden="true" />
+      ) : (
+        <img
+          src={platformIconSrc(p.key)}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          width={LOGO_PX}
+          height={LOGO_PX}
+          ref={settleIfLoaded}
+          onLoad={hideSiblingFallback}
+          onError={hideBroken}
+        />
+      )}
       <span className="platform-badge__fallback" aria-hidden="true" style={{ display: 'none' }}>{p.initial}</span>
       <span className="sr-only">{p.label}</span>
     </>

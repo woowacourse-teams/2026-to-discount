@@ -234,13 +234,14 @@ h1 {
    옅은 회색을 깔아 어떤 로고든 형태가 남게 한다. */
 /* 로고를 그 앱 색 그라데이션 테두리로 감싼다 — 흰 로고(쿠팡이츠)도
    테두리가 형태를 잡아줘서 밝은 배경에서 사라지지 않는다. */
-.page-head__apps .platform-badge img {
+.page-head__apps .platform-badge img,
+.page-head__apps .platform-badge .pi {
   width: 100%; height: 100%;
   position: static;
   padding: 0;
   transform: none;
   border-radius: 10px;
-  background: #fff;
+  background-color: #fff;
 }
 /* 고른 앱 — 글자로 알리는 대신 그 앱 색 테두리를 두른다. 그라데이션은
    걷었다. 앱 아이콘 자체가 이미 색이 많은 그림이라, 그 둘레에 색이 변하는
