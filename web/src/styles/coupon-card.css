@@ -148,12 +148,12 @@
 
 /* ?compact=1 시안: 17차 시안처럼 낮고 촘촘한 쿠폰(높이 76px 안팎, 앱 로고 34px, 금액 25px, 꼭지 58px, 아래 띠 없음) */
 .cc--compact { --tk-h: 96px; } /* 76 -> 84 -> 96px(2026-10-06 사용자: 이동 영역 99px와 비율) */
-.cc--compact .cc-info { --pb: 34px; gap: 10px; padding: 0 14px; }
+.cc--compact .cc-info { --pb: 41px; /* 쿠폰 안 플랫폼 로고 34 -> 41px(1.2배) */ gap: 10px; padding: 0 14px; }
 .cc--compact .cc-ticket::after { display: none; }
 .cc--compact .cc-ticket { border-radius: 10px; }
 .cc--compact .cc-amt { font-size: 25px; line-height: 1.1; }
 .cc--compact .cc-min { font-size: 13px; }
-.cc--compact .cc-stub svg { width: 40px; height: 40px; } /* 20 -> 40px(2배, 2026-10-06 사용자) */
+.cc--compact .cc-stub svg { width: 30px; height: 30px; } /* 20 -> 30px(1.5배, 2026-10-06 사용자) */
 .cc--compact .cc-carousel { padding-top: 12px; padding-bottom: 18px; margin: -12px 0 -18px; }
 .cc--compact > .cc-deal, .cc--compact > .cc-hint { margin-top: 10px; }
 .cc--compact > .cc-alts { margin-top: 18px; } /* 점(쿠폰 아래 11px)이 들어갈 틈 */
@@ -187,14 +187,14 @@
 .cc--stack .cc-dots { transition: opacity 200ms ease; }
 .cc--stack.cc--open .cc-dots { opacity: 0; }
 /* 링크 꼭지: 앱 색 위에 옅은 그라데이션(위 살짝 밝게, 아래 살짝 어둡게). 접힌 귀는 넣지 않는다(2026-10-05 사용자). */
-/* 이동 영역: 거의 검정 바탕에 플랫폼 색을 아주 옅게(어렴풋이 구분만) 섞은 그라데이션 + 흰 아이콘(2026-10-06 사용자) */
-.cc-stub { background: linear-gradient(165deg, color-mix(in srgb, var(--pc, #4a4a4e) 9%, #1a1a1d) 0%, color-mix(in srgb, var(--pc, #4a4a4e) 4%, #0f0f11) 100%); color: #fff; box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .12); }
+/* 이동 영역: 검정에 아주 옅은 흰 광원(왼쪽 위)만(2026-10-06 사용자) */
+.cc-stub { background: radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 60%), #0c0c0d; color: #fff; box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .08); }
 .cc-stub svg { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .25)); }
 
 /* 쿠폰 감싸개(폭은 감싸개가 갖고 쿠폰은 꽉 채운다)와 업데이트 탭: 쿠폰 오른쪽 위에 걸쳐 오른쪽으로 기운 포스트잇 */
 .cc-tkw { position: relative; display: flex; flex-wrap: wrap; width: var(--tk-w); flex: none; }
 .cc-tkw > .cc-ticket { width: 100%; }
-.cc-upd { position: absolute; top: -9px; right: -6px; /* 링크 영역 오른쪽 위 모서리에 걸친다 */ z-index: 2; box-sizing: border-box; height: 20px; display: inline-flex; align-items: center; padding: 0 .45rem; font-size: .66rem; font-weight: 800; line-height: 1; color: #fff; background: #2f6fd1; border-radius: 3px 3px 5px 3px; box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28); transform: rotate(5deg); transform-origin: right top; white-space: nowrap; pointer-events: none; }
+.cc-upd { position: absolute; top: -9px; right: -6px; /* 링크 영역 오른쪽 위 모서리에 걸친다 */ z-index: 2; box-sizing: border-box; height: 26px; display: inline-flex; align-items: center; padding: 0 .58rem; font-size: .86rem; font-weight: 800; line-height: 1; color: #fff; background: #2f6fd1; border-radius: 3px 3px 5px 3px; box-shadow: 0 1px 1.5px rgba(0, 0, 0, .28); white-space: nowrap; pointer-events: none; }
 .cc-upd::after { content: ''; position: absolute; right: 0; bottom: 0; width: 6px; height: 6px; background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, .18) 50%); border-bottom-right-radius: 3px; }
 
 /* 촘촘한 안의 펼친 상세 표: 120% 때 키운 글자(13.8px)가 76px 쿠폰보다 커 보였다. 쿠폰 최소주문 글자(13px)보다 한 단계 아래로 */
@@ -214,8 +214,18 @@
 .cc-tags .chip-tags > * { height: 23px; font-size: .8rem; padding: 0 .46rem; }
 .cc .cc-combo__btn { width: 15px; height: 15px; font-size: 10px; color: inherit; }
 /* 이름과 배지를 위로 붙여 쌓는다(쿠폰과는 간격이 생긴다, 2026-10-06 사용자) */
-.cc-head { grid-template-rows: auto auto; align-content: center; row-gap: 6px; } /* 로고·이름·배지를 한 머리로 묶어 세로 가운데(2026-10-06 사용자) */
+.cc-head { grid-template-rows: auto auto; align-content: space-between; padding-top: 4px; box-sizing: border-box; } /* 이름은 위, 배지 아래 끝은 로고 아래 끝에 맞춘다 */ /* 로고·이름·배지를 한 머리로 묶어 세로 가운데(2026-10-06 사용자) */
 
 /* 쿠폰 영역을 비율로(폭이 달라도 모양 유지, 2026-10-06 사용자): 가로:세로 = 37:12, 이동 영역 = 쿠폰 폭의 1/3 */
-.cc--compact .cc-ticket { height: auto; aspect-ratio: 37 / 12; grid-template-columns: 1fr 33.4%; --stub: 33.4%; }
-.cc--compact .cc-tags .chip-tags > * { height: 26px; font-size: .88rem; padding: 0 .52rem; }
+.cc--compact .cc-ticket { height: auto; aspect-ratio: 37 / 11; grid-template-columns: 1fr 29.4%; --stub: 29.4%; } /* 높이 -8px, 이동 영역 33.4 -> 29.4% */
+.cc--compact .cc-tags .chip-tags > * { height: 25px; transform: none; font-size: .88rem; padding: 0 .52rem; }
+/* 캐러셀 슬라이드는 서로 키를 맞추지 않는다(안내 줄 있는 쿠팡이츠 슬라이드 때문에 옆 쿠폰이 늘어났다, 2026-10-06) */
+.cc-slide { align-items: flex-start; }
+/* 쿠폰 안 크기를 쿠폰 폭 비율로(캐러셀처럼 쿠폰이 작아져도 모양이 같다, 2026-10-06 사용자). 기준: 폭 296px일 때 지금 크기 */
+.cc--compact .cc-ticket { container-type: inline-size; }
+.cc--compact .cc-amt { font-size: 8.45cqw; }
+.cc--compact .cc-min { font-size: 4.4cqw; }
+.cc--compact .cc-info { --pb: 13.85cqw; }
+.cc--compact .cc-stub svg { width: 10.1cqw; height: 10.1cqw; }
+/* 배지 줄 아래 끝을 로고 아래 끝에 맞춘다(배지 묶음 안쪽 여백 3px 몫) */
+.cc--compact .cc-badges { margin-bottom: -3px; }

@@ -209,3 +209,8 @@
 
 /* 신규 탭(OfferChip): 오늘 새로 생겼거나 금액이 커진 오퍼. 쿠폰 카드 신규 배지(.cc-upd)와 같은 파랑 */
 .offer__range-badge--new { color: #fff; background: #2f6fd1; }
+
+/* 작은 칩: 신규 할인은 왼쪽 위로. 멤버십(쿠팡와우 등)과 둘 다 오른쪽 위라 겹쳐 신규 할인 가장자리만 보였다(2026-10-06 사용자) */
+.offer:not(.offer--hero) .offer__range-badge--new { left: -6px; right: auto; }
+/* 작은 칩은 폭이 좁아 위 두 모서리 배지가 겹친다 — 작은 칩 배지만 줄인다 */
+.offer:not(.offer--hero) .offer__range-badge--new, .offer:not(.offer--hero) .offer__status-badge--membership { font-size: .62rem; padding: 2px 5px; }
