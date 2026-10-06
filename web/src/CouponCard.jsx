@@ -236,34 +236,44 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   // 카드 아무 곳이나 누르면 펼치기/접기. 링크, 숨기기 버튼, 캐러셀 끌기는 제외한다.
   // 하단 시트 안(2026-10-06 시안): 카드 안에서 펼치지 않고 아래에서 올라오는 시트로 상세를 연다. 카드 높이는 그대로.
   const [sheet, setSheet] = useState(false)
-  // 시트 끌기: 손잡이·머리는 언제나, 본문은 맨 위까지 스크롤된 상태에서 아래로 끌 때만 시트를 끈다.
-  // 아래로 120px 넘게(또는 빠르게) 끌면 닫고, 아니면 제자리로. 위로 끌면 최대 높이까지 늘린다.
+  // 시트 끌기(2026-10-07 사용자): 시트 어디를 잡아도 아래로 끌면 시트 전체가 따라 내려온다.
+  // 본문이 스크롤된 상태면 먼저 본문을 맨 위까지 올린 뒤부터 시트가 움직인다. 놓았을 때 120px(또는 빠르게 40px)을
+  // 넘었으면 닫고, 아니면 제자리로. 손가락은 터치 이벤트로 받는다 — 포인터 이벤트는 브라우저가 스크롤로 가져가며
+  // 중간에 취소돼 시트가 저절로 돌아갔다.
   const sheetRef = useRef(null)
   const sdrag = useRef(null)
-  const onSheetDown = (e) => {
-    const body = e.target.closest('.cc-sheet__body')
-    if (body && body.scrollTop > 0) return
-    sdrag.current = { y: e.clientY, t: Date.now(), dy: 0, fromBody: !!body }
-  }
-  const onSheetMove = (e) => {
-    const d = sdrag.current
-    if (!d || !sheetRef.current) return
-    d.dy = e.clientY - d.y
-    if (d.fromBody && d.dy < 0) { sdrag.current = null; return } // 본문에서 위로는 스크롤
-    if (Math.abs(d.dy) > 4) e.currentTarget.setPointerCapture?.(e.pointerId)
-    sheetRef.current.style.transition = 'none'
-    sheetRef.current.style.transform = `translateY(${Math.max(-40, d.dy)}px)`
-  }
-  const onSheetUp = () => {
-    const d = sdrag.current
-    sdrag.current = null
+  const settleSheet = (dy, fast) => {
     const el = sheetRef.current
-    if (!d || !el) return
-    el.style.transition = 'transform 200ms cubic-bezier(.2, 0, 0, 1)'
-    const fast = d.dy > 40 && Date.now() - d.t < 250
-    if (d.dy > 120 || fast) { el.style.transform = 'translateY(100%)'; setTimeout(() => setSheet(false), 180) }
+    if (!el) return
+    el.style.transition = 'transform 220ms cubic-bezier(.2, 0, 0, 1)'
+    if (dy > 120 || (fast && dy > 40)) { el.style.transform = 'translateY(100%)'; setTimeout(() => setSheet(false), 200) }
     else el.style.transform = ''
   }
+  const dragStart = (y, target) => { const body = target.closest?.('.cc-sheet__body'); sdrag.current = { y0: y, t: Date.now(), dy: 0, body, active: false } }
+  const dragMove = (y) => {
+    const d = sdrag.current
+    const el = sheetRef.current
+    if (!d || !el) return false
+    const raw = y - d.y0
+    if (!d.active) {
+      if (raw <= 4) return false                        // 위로 끌기나 작은 떨림은 본문 스크롤에 맡긴다
+      if (d.body && d.body.scrollTop > 0) { d.y0 = y; return false } // 본문을 먼저 맨 위까지
+      d.active = true; d.y0 = y
+    }
+    d.dy = Math.max(0, y - d.y0)
+    el.style.transition = 'none'
+    el.style.transform = `translateY(${d.dy}px)`
+    return true
+  }
+  const dragEnd = () => {
+    const d = sdrag.current
+    sdrag.current = null
+    if (d?.active) settleSheet(d.dy, Date.now() - d.t < 300)
+  }
+  // 마우스(데스크톱)
+  const onSheetDown = (e) => { if (e.pointerType === 'mouse' && e.button === 0) dragStart(e.clientY, e.target) }
+  const onSheetMove = (e) => { if (e.pointerType === 'mouse' && dragMove(e.clientY)) e.currentTarget.setPointerCapture?.(e.pointerId) }
+  const onSheetUp = (e) => { if (e.pointerType === 'mouse') dragEnd() }
   const onCardClick = (e) => {
     if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging, .cc-combo__btn')) return
     if (!canExpand) return
@@ -271,6 +281,19 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
     track('brand_expand', { brand: brand.name, category: brand.category ?? 'none', via: 'sheet' })
     setSheet(true)
   }
+  // 손가락: 끄는 동안 기본 스크롤을 막아야 하므로 passive가 아닌 네이티브 리스너
+  useEffect(() => {
+    const el = sheetRef.current
+    if (!sheet || !el) return undefined
+    const ts = (e) => dragStart(e.touches[0].clientY, e.target)
+    const tm = (e) => { if (dragMove(e.touches[0].clientY)) e.preventDefault() }
+    const te = () => dragEnd()
+    el.addEventListener('touchstart', ts, { passive: true })
+    el.addEventListener('touchmove', tm, { passive: false })
+    el.addEventListener('touchend', te)
+    el.addEventListener('touchcancel', te)
+    return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
+  }, [sheet])
   useEffect(() => {
     if (!sheet) return undefined
     const esc = (e) => { if (e.key === 'Escape') setSheet(false) }
