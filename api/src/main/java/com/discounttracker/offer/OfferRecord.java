@@ -34,8 +34,8 @@ public record OfferRecord(
         String conditions,
         String expiresAt,
         String badge,
-        // 이 오퍼만 가리키는 곳. 원장(export.json)에는 없는 키다 — 배너에서
-        // 세운 오퍼만 채운다. 브랜드 링크(brands.yml)를 대체하지 않는다.
+        // 이 오퍼만 가리키는 곳. 배너에서 세운 오퍼와, 쿠팡이츠 허브 고정 쿠폰(그 쿠폰이 있는 허브 탭을 여는
+        // 앱 링크, export.json "link", 2026-10-07)이 채운다. 브랜드 링크(brands.yml)를 대체하지 않는다.
         String link,
         // tracker의 camelCase 원문("none"/"baeminClub"/"coupangEats"/"yogiPass").
         // 필드 자체가 없는 옛 export.json 행도 있어 nullable — membership()이
