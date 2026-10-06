@@ -6,6 +6,7 @@
 // 다시 배포할 필요가 없다 — api의 banners.yml만 고치면 된다.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { COUPANGEATS_LINK } from './offerLink.js'
 import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
@@ -122,7 +123,8 @@ function BannerCard({ banner, position, slot, onClose, onSeen }) {
   }, [])
   // 커스텀 스킴(baemin://, ddangyo:// ...)은 새 탭에서 열면 브라우저가
   // about:blank만 띄우고 인텐트를 넘기지 않는다 — 오퍼 칩과 같은 규칙이다.
-  const external = banner.url.startsWith('http')
+  const url = banner.platform === 'coupangeats' ? COUPANGEATS_LINK : banner.url
+  const external = url.startsWith('http')
 
   return (
     <div
@@ -132,7 +134,7 @@ function BannerCard({ banner, position, slot, onClose, onSeen }) {
     >
       <a
         className="banner__link"
-        href={banner.url}
+        href={url}
         target={external ? '_blank' : undefined}
         rel={external ? 'noreferrer' : undefined}
         onClick={() => track('banner_click', {

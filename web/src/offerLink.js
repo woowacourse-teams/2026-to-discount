@@ -72,6 +72,9 @@ const HUB_LINK_MARKERS = { coupangeats: 'V5_HUB_' }
 
 let hubLinks = {}
 
+// 쿠팡이츠는 오퍼와 배너 모두 이 링크(와우 라운지)로 보낸다(2026-10-06 사용자). 수집이 매일 받는 허브 공유 링크보다 우선.
+export const COUPANGEATS_LINK = 'https://share.coupangeats.com/VzILg2hUX6b'
+
 export function setHubLinks(banners) {
   const next = {}
   for (const banner of banners ?? []) {
@@ -84,6 +87,7 @@ export function setHubLinks(banners) {
 
 /** 오퍼 링크 사다리. 오퍼 자신의 링크 → 브랜드 링크 → 앱 안 브랜드 검색 → 허브 → 앱 열기. */
 export function offerLink(offer, brandLinks, brandName) {
+  if (offer.platform === 'coupangeats') return COUPANGEATS_LINK
   return offer.link
     ?? brandLinks?.[offer.platform]
     ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
