@@ -228,3 +228,30 @@
 .cc--compact .cc-info { --pb: 12.45cqw; } /* 로고 0.9배 */
 .cc--compact .cc-stub svg { width: 10.1cqw; height: 10.1cqw; }
 /* 배지 줄 아래 끝을 로고 아래 끝에 맞춘다(배지 묶음 안쪽 여백 3px 몫) */
+
+/* ---- 토스 요소 가져오기(2026-10-06 사용자): 영역별 바탕색 차이, 납작한 배지, 금액 강조색, 카드 테두리 대신 아주 얕은 그림자 ---- */
+.cc, .cc--compact { border: 0; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 2px 8px rgba(0, 0, 0, .03); }
+.cc .cc-tags .chip-tags { padding: 0; gap: 4px; }
+.cc .cc-tags .chip-tags > *, .cc--compact .cc-tags .chip-tags > * { height: 22px; padding: 0 7px; border-radius: 6px; font-size: 12px; font-weight: 600; line-height: 16px; letter-spacing: 0; transform: none; box-shadow: none; }
+.cc .cc-tags .chip-tags > *::after, .cc .cc-tags .chip-tags > *::before { content: none; }
+.cc .offer__status-badge:not(.offer__status-badge--membership) { background: var(--bg); color: #4e5968; }
+.cc .offer__range-badge--optimal { background: var(--sale-weak); color: var(--sale); border: 0; }
+.cc .cc-combo__btn { width: 14px; height: 14px; font-size: 9px; border-width: 1.2px; color: inherit; }
+.cc-upd { height: 22px; padding: 0 7px; border-radius: 6px; font-size: 12px; font-weight: 600; background: var(--sale); box-shadow: none; transform: none; }
+.cc-upd::after { content: none; }
+/* 금액만 강조색, 할인·최소주문 글자 1.2배, 이동 아이콘 0.8배 */
+.cc--compact .cc-amt { font-size: 7.62cqw; color: var(--sale); }
+.cc--compact .cc-amt small { color: var(--ink); }
+.cc--compact .cc-min { font-size: 3.96cqw; color: #6b7684; }
+.cc--compact .cc-stub svg { width: 8.08cqw; height: 8.08cqw; }
+/* 자세히 보기: 창의 최소화/최대화/닫기 묶음처럼 카드 오른쪽 아래 모서리에 붙은 검은 영역(2026-10-06 사용자).
+   왼쪽 끝은 쿠폰의 쿠폰/이동 구분선과 같은 x: 쿠폰 폭(카드 폭 - 30px)의 29.4% + 쿠폰 오른쪽 여백 15px */
+.cc--compact > .cc-hint { grid-column: 1 / 3; justify-self: end; box-sizing: border-box; width: calc((100% - 30px) * .294 + 15px); height: 34px; margin: 10px 0 calc(-1 * var(--pad)); justify-content: center; gap: 4px; padding-right: 0; background: #111; color: #fff; font-size: 12.5px; font-weight: 600; border-radius: 12px 0 12px 0; }
+.cc--compact > .cc-hint svg { color: #fff; }
+/* 카드 높이를 모두 같게(2026-10-06 사용자): 가장 큰 경우(캐러셀 + 쿠팡이츠 안내 + 하위 오퍼)로 고정한다.
+   쿠폰 높이가 폭 비율이라 목록 폭(100cqw) 기준으로 계산: 쿠폰 = (카드 폭 - 30px) x 11/37, 나머지 고정 214px(360px 실측).
+   남는 공간은 자세히 보기 위에 둔다. 펼친 카드는 높이 고정을 푼다. */
+.brand-grid { container-type: inline-size; }
+.cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * 11 / 37 + 214px); grid-template-rows: auto auto auto auto 1fr; }
+.cc--compact > .cc-hint { align-self: end; }
+.ce-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

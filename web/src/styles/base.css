@@ -1,11 +1,14 @@
 :root {
   color-scheme: light dark;
-  --bg: #fbfbfa;
+  --bg: #f2f4f6; /* 토스처럼 바탕은 옅은 회색, 카드·상단은 흰색(2026-10-06) */
   --surface: #ffffff;
   --border: #eaeaea;
   --text: #171717;
   --text-muted: #64635f; /* #787774는 흰 바탕 대비 4.47:1로 기준(4.5:1) 아래였다(2026-10-06 Lighthouse) */
   --accent: #171717;
+  --sale: #dd4b02; /* 할인 강조색: 파비콘 주황 하나(2026-10-06) */
+  --sale-weak: #fdf0e9;
+  --ink: #171717;
   --pending-bg: #fbf3db;
   --pending-text: #956400;
   /* 담기 버튼. 브랜드마다 플랫폼 색을 돌려 쓰다가 검정으로 통일했다 —
@@ -298,3 +301,5 @@ h1 {
 .ce-toast { position: fixed; left: 50%; top: 42%; transform: translateX(-50%); z-index: 101; width: max-content; max-width: calc(100vw - 48px); padding: 12px 18px; border-radius: 12px; background: rgba(28, 28, 31, .92); color: #fff; font-size: 15px; font-weight: 600; text-align: center; word-break: keep-all; white-space: pre-line; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); }
 /* 쿠팡이츠 쿠폰 아래 고정 안내(두 안 공통) */
 .ce-note { margin: 6px 2px 0; list-style: none; text-align: right; width: 100%; align-self: stretch; box-sizing: border-box; font-size: 12.5px; line-height: 1.4; color: var(--text-muted); word-break: keep-all; }
+/* 영역별 바탕색 차이(토스처럼, 2026-10-06): 상단(검색·분류)은 흰 판, 본문 바탕은 옅은 회색, 카드는 흰 판 */
+[data-variant="a"] .title-bar { background: var(--surface); }
