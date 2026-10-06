@@ -291,3 +291,5 @@
 .cc-sheet__body { background: var(--bg); padding-top: 12px; }
 /* 휴대폰에서 시트를 열 때 스크롤을 막으면 주소창 높이가 바뀌어 화면 위쪽이 막 밖으로 드러날 수 있다 — 막을 위로 넉넉히 늘린다 */
 .cc-sheet-dim { top: -120px; padding-top: 120px; }
+/* 중복 할인 배지 글자: 옅은 주황 바탕 위 주황은 대비 기준 미달 — 진한 주황으로(2026-10-07 Lighthouse) */
+.cc .offer__range-badge--optimal, .cc-sheet .offer__range-badge--optimal { color: #a83a00; }
