@@ -85,7 +85,8 @@ const NOTICE_MS = 1500 // 2026-10-06 사용자: 1초 -> 1.5초
 
 /** 쿠팡이츠 링크면 기본 이동을 막고 화면을 어둡게 깔아 안내를 1.5초 띄운 뒤 같은 탭에서 연다. 그 밖의 링크는 손대지 않는다. */
 export function openWithNotice(e, href) {
-  if (href !== COUPANGEATS_LINK || typeof document === 'undefined') return
+  const tab = typeof href === 'string' && href.startsWith('coupangeats://')
+  if ((href !== COUPANGEATS_LINK && !tab) || typeof document === 'undefined') return
   e.preventDefault()
   document.querySelector('.ce-dim')?.remove()
   // 바텀시트처럼 화면을 어둡게 깔고 그 위에 안내를 띄운다(2026-10-06 사용자)
@@ -97,7 +98,12 @@ export function openWithNotice(e, href) {
   el.textContent = COUPANGEATS_NOTICE
   dim.appendChild(el)
   document.body.appendChild(dim)
-  setTimeout(() => { dim.remove(); window.location.href = href }, NOTICE_MS)
+  setTimeout(() => {
+    dim.remove()
+    window.location.href = href
+    // 앱 링크(탭)는 앱이 없으면 아무 일도 안 일어난다 — 화면이 그대로 보이면 공유 링크로 다시 보낸다
+    if (tab) setTimeout(() => { if (document.visibilityState === 'visible') window.location.href = COUPANGEATS_LINK }, 1200)
+  }, NOTICE_MS)
 }
 
 export function setHubLinks(banners) {
@@ -112,7 +118,8 @@ export function setHubLinks(banners) {
 
 /** 오퍼 링크 사다리. 오퍼 자신의 링크 → 브랜드 링크 → 앱 안 브랜드 검색 → 허브 → 앱 열기. */
 export function offerLink(offer, brandLinks, brandName) {
-  if (offer.platform === 'coupangeats') return COUPANGEATS_LINK
+  // 쿠팡이츠: 수집이 그 쿠폰이 있는 허브 탭 링크(coupangeats://…anchorTabNo=N)를 실었으면 그 탭으로, 아니면 공유 링크(2026-10-07)
+  if (offer.platform === 'coupangeats') return offer.link?.startsWith('coupangeats://') ? offer.link : COUPANGEATS_LINK
   return offer.link
     ?? brandLinks?.[offer.platform]
     ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)

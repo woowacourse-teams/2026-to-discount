@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { offerLink, offerClickProps } from './offerLink.js'
+import { offerLink, offerClickProps, COUPANGEATS_LINK } from './offerLink.js'
 
 test('오퍼 자신의 링크가 먼저, 그다음 브랜드 링크', () => {
   assert.equal(offerLink({ platform: 'baemin', link: 'https://a' }, { baemin: 'https://b' }, 'BBQ'), 'https://a')
@@ -21,4 +21,11 @@ test('클릭 속성은 운영 카드와 같은 키', () => {
   const q = offerClickProps({ offer: { platform: 'baemin', amount: 7000 }, brandName: 'BBQ', position: 3, best: true, where: 'carousel', slot: 2 })
   assert.equal(q.where, 'carousel'); assert.equal(q.slot, 2); assert.equal(q.isNew, false)
   assert.equal(p.brand, 'BBQ'); assert.equal(p.best, true); assert.equal(p.minOrder, 18000)
+})
+
+test('쿠팡이츠: 탭 앱 링크가 있으면 그 탭, 없으면 공유 링크', () => {
+  const tab = 'coupangeats://Web?url=x%26anchorTabNo%3D4&navType=push'
+  assert.equal(offerLink({ platform: 'coupangeats', link: tab }, {}, 'BBQ'), tab)
+  assert.equal(offerLink({ platform: 'coupangeats' }, {}, 'BBQ'), COUPANGEATS_LINK)
+  assert.equal(offerLink({ platform: 'coupangeats', link: 'https://share.coupangeats.com/old' }, {}, 'BBQ'), COUPANGEATS_LINK)
 })
