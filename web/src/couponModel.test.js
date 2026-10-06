@@ -55,7 +55,7 @@ test('배지 1: 최대는 불확정, 랜덤, 특정메뉴', () => {
 
 test('배지 1: 최적은 새 카드에서만, 운영 칩은 showBestFit false', () => {
   const x = o('yogiyo', 5000, { qualifier: '최적' })
-  assert.deepEqual(badgesOf(x), [{ kind: 'best-fit', text: '최적' }])
+  assert.deepEqual(badgesOf(x), [{ kind: 'best-fit', text: '복합' }])
   assert.deepEqual(badgesOf(x, { showBestFit: false }), [])
 })
 

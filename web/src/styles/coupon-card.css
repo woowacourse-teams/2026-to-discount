@@ -202,3 +202,10 @@
 .cc--compact .cc-tbl > span { padding: 4px 0; }
 .cc--compact .cc-t-amt small, .cc--compact .cc-t-chips .detail__channel { font-size: 11.5px; }
 .cc--compact .cc-tbl .cc-t-chips .detail__channel { font-size: 11px; line-height: 1.3; padding: 1px 6px; }
+
+/* 복합 배지 설명(i) */
+.cc-tags .chip-tags > .cc-info { display: inline-flex; align-items: center; padding: 0; height: auto; background: none; box-shadow: none; transform: none; border-radius: 0; margin-left: -2px; }
+.cc-tags .chip-tags > .cc-info::after { display: none; }
+.cc-head .cc-info__btn { box-sizing: border-box; width: 16px; height: 16px; border-radius: 50%; border: 1.3px solid currentColor; background: none; color: var(--text-muted); font: italic 700 10px/1 Georgia, serif; display: inline-flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
+.cc-info__pop { position: fixed; z-index: 20; width: max-content; max-width: 240px; padding: 8px 10px; border-radius: 8px; background: #2b2b2f; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.45; white-space: normal; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
+.cc-info__pop b { display: inline-block; margin-top: 4px; color: #b9f0c2; font-weight: 600; font-variant-numeric: tabular-nums; }

@@ -51,7 +51,7 @@ export function badgesOf(offer, { showBestFit = true, shortTime = true } = {}) {
   const badge = offer.badge ?? ''
   const q = QUALIFIER_BADGE[offer.qualifier]
   if (q) out.push(q)
-  else if (showBestFit && offer.qualifier === '최적') out.push({ kind: 'best-fit', text: '최적' })
+  else if (showBestFit && offer.qualifier === '최적') out.push({ kind: 'best-fit', text: '복합' }) // '최적'은 무엇을 합친 값인지 안 읽혔다(2026-10-06 사용자)
   else if (RATE.test(badge)) out.push({ kind: 'rate', text: badge })
   // 구조화된 membership이 먼저, 필드가 없는 옛 행은 badge 끝말로(운영 칩 규칙)
   if ((offer.membership && offer.membership !== 'none') || badge.endsWith('전용쿠폰')) {

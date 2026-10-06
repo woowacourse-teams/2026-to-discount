@@ -2,6 +2,7 @@
 // 쿠폰 구조는 늘 같다(앱 아이콘, 금액, 최소주문, 이동 꼭지). 배지와 계산식은 쿠폰 밖(또는 남는 칸)에 둔다.
 // 폭을 재는 코드를 두지 않는다(총 차단 시간). 이름 크기는 글자 수로, 절취 홈은 CSS 마스크로 판다.
 import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
@@ -87,8 +88,41 @@ function Tags({ o }) {
   return (
     <span className="cc-tags"><span className="chip-tags">
       {ch && <span className="offer__status-badge">{ch}</span>}
-      {tags.map((b) => <OpBadge key={b.kind} b={b} platform={o.platform} />)}
+      {tags.map((b) => (
+        <Fragment key={b.kind}>
+          <OpBadge b={b} platform={o.platform} />
+          {b.kind === 'best-fit' && <ComboInfo o={o} />}
+        </Fragment>
+      ))}
     </span></span>
+  )
+}
+
+// 복합 배지 옆 (i): 올리면(데스크톱) 또는 누르면(모바일) 무엇을 합친 값인지와 계산식을 띄운다.
+function ComboInfo({ o }) {
+  // 카드 머리줄은 넘치는 것을 자른다(overflow hidden) — 설명 창은 화면 기준(fixed)으로 단추 아래에 띄운다.
+  const [pos, setPos] = useState(null)
+  const btn = useRef(null)
+  const fx = formulaOf(o)
+  const show = () => { const r = btn.current?.getBoundingClientRect(); if (r) setPos({ top: r.bottom + 6, right: Math.max(8, window.innerWidth - r.right - 8) }) }
+  const hide = () => setPos(null)
+  useEffect(() => {
+    if (!pos) return undefined
+    const outside = (e) => { if (!btn.current?.contains(e.target)) hide() }
+    window.addEventListener('scroll', hide, { passive: true, once: true })
+    document.addEventListener('pointerdown', outside)
+    return () => { window.removeEventListener('scroll', hide); document.removeEventListener('pointerdown', outside) }
+  }, [pos])
+  return (
+    <span className="cc-info" onMouseEnter={show} onMouseLeave={hide}>
+      <button type="button" ref={btn} className="cc-info__btn" aria-label="복합 할인 설명" aria-expanded={!!pos}
+              onClick={(e) => { e.stopPropagation(); pos ? hide() : show() }}>i</button>
+      {pos && createPortal(
+        <span className="cc-info__pop" role="tooltip" style={{ top: pos.top, right: pos.right }}>
+          고정 할인 쿠폰과 중복 할인 쿠폰을 합쳐<br />최적의 할인을 계산한 결과입니다.
+          {fx && <><br /><b>{fx}</b></>}
+        </span>, document.body)}
+    </span>
   )
 }
 
