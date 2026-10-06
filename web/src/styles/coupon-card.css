@@ -147,7 +147,7 @@
 @media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-hint, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
 
 /* ?compact=1 시안: 17차 시안처럼 낮고 촘촘한 쿠폰(높이 76px 안팎, 앱 로고 34px, 금액 25px, 꼭지 58px, 아래 띠 없음) */
-.cc--compact { --tk-h: 84px; } /* 위아래 4px씩 늘림(2026-10-06 사용자) */
+.cc--compact { --tk-h: 96px; } /* 76 -> 84 -> 96px(2026-10-06 사용자: 이동 영역 99px와 비율) */
 .cc--compact .cc-info { --pb: 34px; gap: 10px; padding: 0 14px; }
 .cc--compact .cc-ticket::after { display: none; }
 .cc--compact .cc-ticket { border-radius: 10px; }
