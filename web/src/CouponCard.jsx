@@ -25,7 +25,9 @@ function OpBadge({ b, platform }) {
 
 function Min({ value }) {
   if (value == null) return null
-  return <span className="cc-min">{value > 0 && <Up />}{minLabel(value)}</span>
+  // 최소주문금액 + n원 + 화살표(2026-10-06 사용자). 0이면 '최소주문 없음' 그대로.
+  if (!(value > 0)) return <span className="cc-min">{minLabel(value)}</span>
+  return <span className="cc-min">최소주문금액 {minLabel(value)}원<Up /></span>
 }
 
 // 품절은 운영 칩과 같다: 금액에 취소선, 옆에 "품절" 라벨.
