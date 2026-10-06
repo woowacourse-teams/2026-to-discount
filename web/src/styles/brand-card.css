@@ -519,7 +519,7 @@
 }
 .offer__status-badge--membership[data-platform="coupangeats"] { background: #333; }
 .offer__status-badge--membership[data-platform="ddangyo"] { background: #f5a623; }
-.offer__status-badge--membership[data-platform="yogiyo"] { background: #fa0050; }
+.offer__status-badge--membership[data-platform="yogiyo"] { background: #d6004a; } /* #fa0050은 흰 글자 대비 4.0:1(2026-10-06) */
 
 .platform-badge {
   position: relative;
@@ -659,7 +659,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 .detail__tier-membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
 .detail__tier-membership[data-platform="coupangeats"] { background: #333; }
 .detail__tier-membership[data-platform="ddangyo"] { background: #f5a623; }
-.detail__tier-membership[data-platform="yogiyo"] { background: #fa0050; }
+.detail__tier-membership[data-platform="yogiyo"] { background: #d6004a; } /* #fa0050은 흰 글자 대비 4.0:1(2026-10-06) */
 .detail__tier-min { color: var(--text-muted); text-align: right; white-space: nowrap; }
 /* 금액 뒤에 이어 붙이면 "3,000원(5%, 최대 3,000원)"이 한 줄로 길어져
    좁은 화면에서 잘렸다. 조건은 금액을 설명하는 딸린 값이라 아래 줄로
