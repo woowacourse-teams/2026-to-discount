@@ -209,3 +209,4 @@
 .cc-head .cc-info__btn { box-sizing: border-box; width: 16px; height: 16px; border-radius: 50%; border: 1.3px solid currentColor; background: none; color: var(--text-muted); font: italic 700 10px/1 Georgia, serif; display: inline-flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
 .cc-info__pop { position: fixed; z-index: 20; width: max-content; max-width: 240px; padding: 8px 10px; border-radius: 8px; background: #2b2b2f; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.45; white-space: normal; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
 .cc-info__pop b { display: inline-block; margin-top: 4px; color: #b9f0c2; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cc-fx.cc-badges { overflow: visible; color: inherit; display: flex; align-items: center; }

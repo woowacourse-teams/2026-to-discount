@@ -83,7 +83,8 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, ...r
 // 배지 묶음(채널 + 배지). 운영 탭 마크업, 쿠폰 배지 규격 하나(coupon-card.css .cc-tags)
 function Tags({ o }) {
   const ch = channelOf(o)
-  const tags = badgesOf(o)
+  // 복합은 늘 맨 오른쪽(사용자 2026-10-06)
+  const tags = [...badgesOf(o)].sort((x, y) => (x.kind === 'best-fit') - (y.kind === 'best-fit'))
   if (!ch && tags.length === 0) return null
   return (
     <span className="cc-tags"><span className="chip-tags">
@@ -277,9 +278,9 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           <button type="button" aria-expanded={open}>
             <span className="cc-nm" style={{ '--cut': `${nameCutPx(shownName)}px` }}>{shownName}</span>
           </button>
-          {best[cur] && <Tags o={best[cur]} />}
         </div>
-        {fx && <div className="cc-fx">{fx}</div>}
+        {/* 2줄: 배지(예전 계산식 자리). 계산식은 복합 배지의 (i) 설명으로 옮겼다(2026-10-06 사용자) */}
+        {best[cur] && <div className="cc-fx cc-badges"><Tags o={best[cur]} /></div>}
       </div>
       <div className="cc-deal cc-deal--main"><div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div></div>
       {/* 최고 오퍼는 메인 쿠폰에 이미 있으니 쿠폰으로 다시 그리지 않고, 상세 표만 메인 쿠폰 바로 아래에 둔다 */}
