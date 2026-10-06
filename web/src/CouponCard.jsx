@@ -68,7 +68,7 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, ...r
   return (
     // 감싸개: 쿠폰(마스크로 홈을 판다)은 바깥으로 삐져나온 것을 잘라서, 업데이트 탭은 감싸개에 단다
     <div className="cc-tkw">
-    {isUpdated(o) && <span className="cc-upd">신규</span>}
+    {isUpdated(o) && <span className="cc-upd">신규 할인</span>}
     <div className="cc-ticket" data-platform={o.platform} {...rest}>
       <span className="cc-info">
         <PlatformBadge platformKey={o.platform} brand={brand.name} />

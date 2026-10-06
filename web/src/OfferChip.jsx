@@ -65,7 +65,7 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
           <span className="offer__range-badge offer__range-badge--best-tab" aria-label="최고 할인">최고</span>
         )}
         {/* 신규(2026-10-05): 오늘 새로 생겼거나 금액이 커진 오퍼. 쿠폰 카드의 신규 배지와 같은 파랑 탭 */}
-        {isUpdated(offer) && <span className="offer__range-badge offer__range-badge--new" aria-label="신규 할인">신규</span>}
+        {isUpdated(offer) && <span className="offer__range-badge offer__range-badge--new" aria-label="신규 할인">신규 할인</span>}
         {/* 멤버십 라벨은 앱별 이름 하나("배민클럽 전용쿠폰" 원문 대신). 멤버십은 membership 필드(ADR-029)로 판단한다.
             기간·시각 배지는 멤버십과 별개로 늘 그린다(2026-09-21). */}
         {badges.map((x) => (x.kind === 'membership'
