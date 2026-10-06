@@ -38,8 +38,10 @@ for (const [label, brand] of Object.entries(BRANDS)) {
   })
 }
 
-test('최적 계산식은 이름 줄 아래, 동점은 쿠폰마다 캐러셀 슬라이드와 점', () => {
-  assert.match(render(Coupon, BRANDS.최적), /class="cc-fx">25,000원 × 5% \+ 4,000원</)
+test('배지는 이름 아래 줄, 복합은 맨 끝에 (i). 동점은 쿠폰마다 캐러셀 슬라이드와 점', () => {
+  const combo = render(Coupon, BRANDS.최적)
+  assert.match(combo, /class="cc-fx cc-badges">.*>복합<\/span><span class="cc-info">/)
+  assert.doesNotMatch(combo, /class="cc-fx">25,000원/) // 계산식은 (i) 설명으로 옮겼다
   const tie = render(Coupon, BRANDS.동점셋)
   assert.equal((tie.match(/class="cc-slide[ "]/g) ?? []).length, 3)
   assert.equal((tie.match(/cc-slide--cur/g) ?? []).length, 1) // 서버 렌더에서는 첫 쿠폰이 지금 쿠폰
