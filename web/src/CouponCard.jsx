@@ -65,7 +65,7 @@ const LinkIcon = () => (
 
 // 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기, 17차 시안): 왼쪽 앱 로고, 금액과 최소주문, 오른쪽 앱 색 이동 꼭지(링크 아이콘).
 // 배지는 쿠폰 안에 두지 않는다(브랜드명 옆, 캐러셀이면 보이는 쿠폰 것).
-function Coupon({ o, brand, position, best, where = 'main', slot, expanded, ...rest }) {
+function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags = null, ...rest }) {
   return (
     // 감싸개: 쿠폰(마스크로 홈을 판다)은 바깥으로 삐져나온 것을 잘라서, 업데이트 탭은 감싸개에 단다
     <div className="cc-tkw">
@@ -73,7 +73,8 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, ...r
     <div className="cc-ticket" data-platform={o.platform} {...rest}>
       <span className="cc-info">
         <PlatformBadge platformKey={o.platform} brand={brand.name} />
-        <span className="cc-num"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
+        {/* tags: 하단 시트에서는 배지를 쿠폰 안 금액 위에 둔다(2026-10-07 사용자) */}
+        <span className="cc-num">{tags}<Amt offer={o} /><Min value={o.minOrderAmount} /></span>
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} where={where} slot={slot} expanded={expanded} className="cc-stub"><LinkIcon /></OfferLinkA>
     </div>
@@ -428,8 +429,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                 const hasTbl = tb.rows.length > 0 || tb.note || f
                 return (
                   <div key={offerKey(o)} className="cc-sheet__item">
-                    <Tags o={o} />
-                    <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded />
+                    <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded tags={<Tags o={o} />} />
                     {hasTbl && <DetailTable t={tb} i={0} fx={f} />}
                   </div>
                 )
