@@ -325,16 +325,11 @@
 .cc-sheet__body { scrollbar-width: none; }
 .cc-sheet__body::-webkit-scrollbar { display: none; }
 /* 2026-10-07 사용자: 쿠폰 아래 글자와 배지 1.4배(서브 오퍼 14.5 -> 20.3px, 배지 21 -> 29.4px, 쿠팡이츠 안내 12.5 -> 17.5px) */
-.cc--compact .cc-alt { font-size: 20.3px; gap: 8.4px; --pb: 29.4px; }
 .cc .ce-note { font-size: 17.5px; }
 /* 2026-10-07 사용자: 모바일과 PC가 같은 비율로. 카드 폭 기준(cqw, 360px 화면의 카드 328px에서 위 px 값과 같다) */
 .cc--compact { container-type: inline-size; }
-.cc--compact .cc-alt { font-size: 6.19cqw; gap: 2.56cqw; --pb: 8.96cqw; }
-.cc--compact .cc-alts-in { gap: 4.27cqw; }
 .cc .ce-note { font-size: 5.34cqw; }
 /* 2026-10-07 사용자: 1.4배는 카드 폭을 넘어 1.2배로(서브 오퍼 17.4px, 배지 25.2px, 안내 15px 상당, 카드 폭 비율) */
-.cc--compact .cc-alt { font-size: 5.3cqw; gap: 2.2cqw; --pb: 7.68cqw; }
-.cc--compact .cc-alts-in { gap: 2.8cqw; }
 .cc .ce-note { font-size: 4.57cqw; }
 .cc .ce-note { font-size: 4.1cqw; } /* 안내 한 줄이 다 보이게(4.57cqw는 끝 몇 글자가 잘렸다) */
 .cc .ce-note { font-size: 3.75cqw; } /* 4.1cqw도 '돼요.'가 잘렸다 */
