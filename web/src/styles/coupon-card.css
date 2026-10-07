@@ -336,3 +336,4 @@
 .cc--compact .cc-alt { font-size: 5.3cqw; gap: 2.2cqw; --pb: 7.68cqw; }
 .cc--compact .cc-alts-in { gap: 2.8cqw; }
 .cc .ce-note { font-size: 4.57cqw; }
+.cc .ce-note { font-size: 4.1cqw; } /* 안내 한 줄이 다 보이게(4.57cqw는 끝 몇 글자가 잘렸다) */
