@@ -373,3 +373,5 @@
 .cc--compact > .cc-deal { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 7px); }
 .cc--compact:not(.cc--open)::after { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 198px - 2 * var(--pad)); }
 @container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 198px); } }
+/* 2026-10-07 사용자: 버튼 조금 더 어둡게, 그라데이션은 더 희미하게 */
+.cc-stub, .cc--compact > .cc-hint { background: radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, .11), rgba(255, 255, 255, 0) 62%), #36383c; }
