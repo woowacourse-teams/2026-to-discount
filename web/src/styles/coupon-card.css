@@ -60,7 +60,8 @@
 .cc-tags .chip-tags > *::after { content: ''; position: absolute; right: 0; bottom: 0; width: 6px; height: 6px; background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, .18) 50%); border-bottom-right-radius: 3px; }
 .cc-deal-col { width: var(--tk-w); display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .cc-deal-col .cc-tkw { width: 100%; }
-.cc-amt { display: flex; align-items: baseline; font-size: clamp(25px, 7.7vw, 31px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* 2026-10-07: flex였을 때 iOS 사파리가 글꼴 로딩 뒤 금액 글자 칸 폭을 다시 안 재서 "원 할인"과 겹쳤다. 줄글 흐름으로 둔다 */
+.cc-amt { display: block; font-size: clamp(25px, 7.7vw, 31px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cc-amt small { font-size: .6em; font-weight: 700; margin-left: 1px; }
 .cc-amt s { text-decoration-thickness: 2px; }
 .cc-soldout { font-style: normal; font-size: clamp(12.6px, 3.6vw, 14.4px); font-weight: 600; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #eceae6; color: #6b6a66; letter-spacing: 0; vertical-align: middle; }
