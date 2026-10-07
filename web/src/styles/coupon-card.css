@@ -348,3 +348,5 @@
 .cc > .brand-logo, .cc-ticket { background: #fdfdfc; }
 .cc-stub, .cc--compact > .cc-hint { background: radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, .2), rgba(255, 255, 255, 0) 62%), #44474c; color: #f6f6f4; box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .1); }
 .cc--compact > .cc-hint svg { color: #f6f6f4; }
+/* 모바일은 서브 오퍼 없는 카드에 그 줄 자리(42px)를 두지 않는다 */
+@media (max-width: 639px) { .cc--compact { grid-template-rows: auto auto auto auto auto; } }
