@@ -375,3 +375,8 @@
 @container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 198px); } }
 /* 2026-10-07 사용자: 버튼 조금 더 어둡게, 그라데이션은 더 희미하게 */
 .cc-stub, .cc--compact > .cc-hint { background: radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, .11), rgba(255, 255, 255, 0) 62%), #36383c; }
+/* 2026-10-07 사용자: 시트 쿠폰도 카드 쿠폰과 같은 비율(37:11). 오퍼 사이 구분선은 빼고 간격으로 가른다. 쿠팡이츠 안내는 시트에서만 */
+.cc-sheet .cc-ticket { aspect-ratio: 37 / 11; }
+.cc-sheet__item { padding: 10px 0; }
+.cc-sheet__item + .cc-sheet__item { border-top: 0; margin-top: 16px; }
+.cc-sheet .ce-note { font-size: 3.75cqw; }
