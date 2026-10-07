@@ -140,7 +140,7 @@ function ComboInfo({ o, text }) {
 >i</button>
       {pos && createPortal(
         <span ref={pop} className="cc-info__pop" role="tooltip" style={{ top: pos.top, right: pos.right }}>
-          고정 할인 쿠폰과 중복 할인 쿠폰을 합쳐<br />최적의 할인을 계산한 결과입니다.
+          요기요는 기본할인과 추가할인을 모두 받는<br />최소주문금액 기준으로 할인을 계산해요.
           {fx && <><br /><b>{fx}</b></>}
         </span>, document.body)}
     </span>
