@@ -380,3 +380,6 @@
 .cc-sheet__item { padding: 10px 0; }
 .cc-sheet__item + .cc-sheet__item { border-top: 0; margin-top: 16px; }
 .cc-sheet .ce-note { font-size: 3.75cqw; }
+/* 2026-10-07 사용자: 시트 쿠폰은 카드 쿠폰과 같은 크기와 모양(폭 - 30px의 96%, 37:11). 배지는 쿠폰 밖 위 한 줄 */
+.cc-sheet__item .cc-tkw { width: calc((100% - 30px) * .96); align-self: center; row-gap: 6px; }
+.cc-sheet .cc-ticket__tags { position: static; transform: none; width: 100%; }
