@@ -1,3 +1,4 @@
+import { useBackClose } from './backClose.js'
 // 메인 화면 A/B 쿠폰 카드 쪽 상단 바: 2026-09 화면 실험의 B안(두 줄 바)을 되살렸다(1e9a40f에서 지운 코드).
 // 1줄: 검색(걸린 조건 칩이 입력 안에) + 초기화·필터 버튼, 2줄: 분류 메뉴 바. 앱·정렬은 필터 시트에.
 // 9월 판정은 "클릭률 차이 없음"이었고, 핵심(검색과 분류)을 앞에 두는 쪽으로 다시 쓴다(2026-10-04 사용자).
@@ -12,6 +13,8 @@ import './styles/topbar-b.css'
 
 function SearchControl({ value, onChange, onSubmit, chips, brands }) {
   const [draft, setDraft] = useState(value)
+  // 검색 결과를 보는 중이면 뒤로 버튼이 검색을 풀고 첫 목록으로 돌아온다(2026-10-07 사용자)
+  useBackClose(!!value, () => { setDraft(''); onSubmit('', 'back'); window.scrollTo(0, 0) })
   const rootRef = useRef(null)
   const listboxId = useId()
   const autocomplete = useBrandAutocomplete({
