@@ -1,4 +1,4 @@
-name: Build API development artifact
+name: Deploy API development
 
 on:
   push:
@@ -14,11 +14,11 @@ permissions:
 
 concurrency:
   group: build-api-dev-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
-    # 수동 실행도 dev만 허용한다. 배포 연결 전에는 산출물 생성까지만 수행한다.
+    # 수동 실행도 dev만 허용한다.
     if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -34,6 +34,8 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
+      - name: Test deployment recovery
+        run: python3 -m unittest discover -s deploy/dev -p "test_*.py"
       - name: Test
         run: ./gradlew test
       - name: Build executable JAR
@@ -71,3 +73,45 @@ jobs:
           path: ${{ runner.temp }}/api-dev-artifact/
           retention-days: 14
           if-no-files-found: error
+
+  deploy:
+    needs: build
+    environment: development
+    if: github.ref == 'refs/heads/dev'
+    runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check latest dev commit
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, urllib.request
+          url = os.environ['GITHUB_API_URL'] + '/repos/' + os.environ['GITHUB_REPOSITORY'] + '/git/ref/heads/dev'
+          request = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN']})
+          with urllib.request.urlopen(request, timeout=15) as response:
+              latest = json.load(response)['object']['sha']
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('current=' + str(latest == os.environ['EXPECTED_SHA']).lower() + '\n')
+          PYTHON
+      - name: Download artifact
+        if: steps.latest.outputs.current == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: api-dev-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/api-dev-artifact
+      - name: Deploy and verify
+        if: steps.latest.outputs.current == 'true'
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/api-dev-artifact
+        run: sudo /usr/local/sbin/todiscount-deploy-dev "$ARTIFACT_DIR" "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+      - name: Clean downloaded files
+        if: always()
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/api-dev-artifact
+        run: rm -rf -- "$ARTIFACT_DIR"
