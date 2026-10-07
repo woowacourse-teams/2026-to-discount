@@ -6,7 +6,7 @@
 //
 // 실패하면(API 장애, 렌더 오류) 사전 렌더링 HTML을 그대로 보낸다 — 예전 CSR과 같다.
 import { loadData, render } from '../dist-server/entry-server.js'
-import template from '../dist-server/template.js'
+import template, { couponCss } from '../dist-server/template.js'
 
 const ROOT_OPEN = '<div id="root">'
 
@@ -32,6 +32,8 @@ export default async function handler(req, res) {
     // 미들웨어가 쿠키(dk_home=coupon)를 보고 붙인 내부 표시. 쿠폰 카드 쪽이면 처음부터 그 안으로 그린다.
     if (new URL(req.url, 'http://x').searchParams.get('__arm') === 'coupon') data.arm = 'coupon'
     body = inject(template, await render(data), data)
+    // 쿠폰 카드 CSS를 첫 페인트 전에 받는다. 지연 로드 조각이 나중에 같은 주소를 보면 다시 받지 않는다.
+    if (data.arm === 'coupon') body = body.replace('</head>', `<link rel="stylesheet" href="${couponCss}"></head>`)
     res.setHeader('x-ssr', '1')
     // CDN이 60초 들고, 그 뒤 60초까지는 낡은 걸 주면서 뒤에서 새로 그린다.
     // 하루 세 번 바뀌는 금액이 최대 약 2분 늦는다. 실패한 응답은 CDN에 안 둔다.
