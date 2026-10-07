@@ -254,7 +254,7 @@
    남는 공간은 자세히 보기 위에 둔다. 펼친 카드는 높이 고정을 푼다. */
 .brand-grid { container-type: inline-size; }
 /* 한 줄에 카드 하나일 때만(목록 폭 = 카드 폭). PC 여러 열에서 100cqw는 목록 전체 폭이라 카드가 두 배로 커졌다(2026-10-07) — 여러 열은 grid 행이 높이를 맞춘다 */
-@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * 11 / 37 + 0px); grid-template-rows: auto auto auto auto 1fr; } }
+@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 191px); grid-template-rows: auto auto auto auto 1fr; } }
 .cc--compact > .cc-hint { align-self: end; }
 .ce-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 포인트 색(--sale)을 몇 곳에만 절제해서(2026-10-06 사용자): 5천원 이상만 스위치 켜짐, 고른 분류 밑줄, 신규 탭 개수 */
