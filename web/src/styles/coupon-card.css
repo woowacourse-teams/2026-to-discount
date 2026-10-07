@@ -389,3 +389,6 @@
 .cc-sheet .ce-note { margin-top: 2px; font-size: calc(3.75cqw - 1px); font-weight: 600; }
 /* 2026-10-07 사용자: 시트 쿠팡이츠 안내는 작게, 굵기는 보통 */
 .cc-sheet .ce-note { font-size: 10.5px; font-weight: 400; }
+/* 2026-10-07 사용자: 시트 금액만 강조색('원 할인'은 기본 글자색). 쿠폰 위 배달/포장 배지는 상세 조건 칩과 같은 색 */
+.cc-sheet__item .cc-amt small { color: var(--ink); }
+.cc-sheet .cc-ticket__tags .offer__status-badge:not(.offer__status-badge--membership) { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text-muted); }
