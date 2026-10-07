@@ -1,3 +1,4 @@
+import { useBackClose } from './backClose.js'
 import { useEffect, useId, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
@@ -17,6 +18,7 @@ import { useBrandAutocomplete } from './useBrandAutocomplete.js'
  */
 function SearchControlA({ value, onSubmit, brands }) {
   const [open, setOpen] = useState(false)
+  useBackClose(open, () => setOpen(false))
   const [draft, setDraft] = useState(value)
   const inputRef = useRef(null)
   const listboxId = useId()

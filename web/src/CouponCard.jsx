@@ -1,3 +1,4 @@
+import { useBackClose } from './backClose.js'
 // 메인 화면 A안 16차 브랜드 카드(쿠폰 티켓형). 표시 규칙: tracker docs/superpowers/specs/2026-10-03-home-a-display-model.md
 // 쿠폰 구조는 늘 같다(앱 아이콘, 금액, 최소주문, 이동 꼭지). 배지와 계산식은 쿠폰 밖(또는 남는 칸)에 둔다.
 // 폭을 재는 코드를 두지 않는다(총 차단 시간). 이름 크기는 글자 수로, 절취 홈은 CSS 마스크로 판다.
@@ -241,6 +242,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   // 카드 아무 곳이나 누르면 펼치기/접기. 링크, 숨기기 버튼, 캐러셀 끌기는 제외한다.
   // 하단 시트 안(2026-10-06 시안): 카드 안에서 펼치지 않고 아래에서 올라오는 시트로 상세를 연다. 카드 높이는 그대로.
   const [sheet, setSheet] = useState(false)
+  useBackClose(sheet, () => setSheet(false))
   // 시트 끌기(2026-10-07 사용자): 시트 어디를 잡아도 아래로 끌면 시트 전체가 따라 내려온다.
   // 본문이 스크롤된 상태면 먼저 본문을 맨 위까지 올린 뒤부터 시트가 움직인다. 놓았을 때 120px(또는 빠르게 40px)을
   // 넘었으면 닫고, 아니면 제자리로. 손가락은 터치 이벤트로 받는다 — 포인터 이벤트는 브라우저가 스크롤로 가져가며

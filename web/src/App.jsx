@@ -1,3 +1,4 @@
+import { useBackClose } from './backClose.js'
 import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
@@ -169,6 +170,7 @@ export default function App({ initial = null }) {
   // 필터 시트(옛 B안을 A 바에 병합, 2026-09-16). 시트가 draft를 만들어
   // 통째로 돌려주므로 "적용" 한 번에 setFilters 한 번이다.
   const [sheetOpen, setSheetOpen] = useState(false)
+  useBackClose(sheetOpen, () => setSheetOpen(false))
   const applyFromSheet = (draft) => {
     setFilters(draft)
     setSheetOpen(false)
