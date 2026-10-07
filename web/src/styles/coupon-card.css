@@ -317,3 +317,5 @@
 .cc-sheet .cc-tags .chip-tags > * { height: 20px; padding: 0 6px; font-size: 11.5px; }
 .cc-sheet .offer__status-badge:not(.offer__status-badge--membership) { background: #ebedf0; color: var(--text-muted); }
 .cc-combo { cursor: pointer; }
+/* 쿠폰 카드 쪽만 토스처럼 옅은 회색 바탕. 이 파일은 쿠폰 카드 쪽에서만 불린다 */
+:root { --bg: #f2f4f6; }

@@ -1,6 +1,6 @@
 :root {
   color-scheme: light dark;
-  --bg: #f2f4f6; /* 토스처럼 바탕은 옅은 회색, 카드·상단은 흰색(2026-10-06) */
+  --bg: #fbfbfa; /* 운영 카드 기준. 쿠폰 카드 쪽 회색 바탕은 coupon-card.css가 덮는다(2026-10-07: 전역으로 바꿨다가 운영 카드 대표 오퍼가 회색이 됐다) */
   --surface: #ffffff;
   --border: #eaeaea;
   --text: #171717;
