@@ -302,7 +302,7 @@
 .cc .offer__range-badge--optimal::before, .cc-sheet .offer__range-badge--optimal::before { content: none; }
 /* 머리: 이름·배지 각 2px 키우고 간격 2px 더(2026-10-07 사용자) — 로고(72px)보다 조금 작은 묶음 */
 .cc--compact .cc-nm { font-size: max(16px, calc(22px - var(--cut, 0px))); }
-.cc--compact .cc-head { row-gap: 4px; }
+.cc--compact .cc-head { row-gap: 6px; }
 .cc .cc-tags .chip-tags > *, .cc--compact .cc-tags .chip-tags > * { height: 24px; font-size: 14px; }
 .cc .offer__range-badge--optimal::before { content: none; }
 /* 시트: 오퍼마다 구분선(배지 줄 + 쿠폰 + 표가 한 묶음임을 보이게), 채널 배지는 회색 시트 바탕과 구분되게 흰 바탕+테두리(2026-10-07 사용자) */
