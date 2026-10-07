@@ -387,3 +387,5 @@
 .cc-sheet__item .cc-tbl { box-sizing: border-box; width: calc((100% - 30px) * .96); align-self: center; margin: 4px 0 0; }
 /* 2026-10-07 사용자: 시트 쿠팡이츠 안내는 쿠폰에 더 붙이고, 1px 작게, 두껍게 */
 .cc-sheet .ce-note { margin-top: 2px; font-size: calc(3.75cqw - 1px); font-weight: 600; }
+/* 2026-10-07 사용자: 시트 쿠팡이츠 안내는 작게, 굵기는 보통 */
+.cc-sheet .ce-note { font-size: 10.5px; font-weight: 400; }

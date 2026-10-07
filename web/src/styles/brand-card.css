@@ -693,3 +693,6 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
   content-visibility: auto;
   contain-intrinsic-size: auto 260px;
 }
+/* 2026-10-07 사용자: 계산식, 정률 괄호는 금액 옆 한 줄로 작게 붙인다(배지 칸은 그만큼 오른쪽으로 밀린다) */
+.detail__tier-amount { white-space: nowrap; }
+.detail__tier-percent { display: inline; margin-left: 2px; font-size: .78em; font-weight: 500; }
