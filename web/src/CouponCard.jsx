@@ -123,17 +123,19 @@ function ComboInfo({ o, text }) {
   const hide = () => setPos(null)
   useEffect(() => {
     if (!pos) return undefined
-    const outside = (e) => { if (!btn.current?.contains(e.target)) hide() }
+    const outside = (e) => { if (!btn.current?.parentElement?.contains(e.target)) hide() }
     window.addEventListener('scroll', hide, { passive: true, once: true })
     document.addEventListener('pointerdown', outside)
     return () => { window.removeEventListener('scroll', hide); document.removeEventListener('pointerdown', outside) }
   }, [pos])
   return (
     // (i)는 배지 안에 둔다(2026-10-06 사용자)
-    <span className="offer__range-badge offer__range-badge--optimal cc-combo" onMouseEnter={show} onMouseLeave={hide}>
+    // 배지 어디를 눌러도 설명이 열린다(2026-10-07 사용자)
+    <span className="offer__range-badge offer__range-badge--optimal cc-combo" onMouseEnter={show} onMouseLeave={hide}
+          onClick={(e) => { e.stopPropagation(); pos ? hide() : show() }}>
       {text}
       <button type="button" ref={btn} className="cc-combo__btn" aria-label="중복 할인 설명" aria-expanded={!!pos}
-              onClick={(e) => { e.stopPropagation(); pos ? hide() : show() }}>i</button>
+>i</button>
       {pos && createPortal(
         <span ref={pop} className="cc-info__pop" role="tooltip" style={{ top: pos.top, right: pos.right }}>
           고정 할인 쿠폰과 중복 할인 쿠폰을 합쳐<br />최적의 할인을 계산한 결과입니다.

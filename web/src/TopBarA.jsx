@@ -18,7 +18,8 @@ import { useBrandAutocomplete } from './useBrandAutocomplete.js'
  */
 function SearchControlA({ value, onSubmit, brands }) {
   const [open, setOpen] = useState(false)
-  useBackClose(open, () => setOpen(false))
+  // 검색창이 열렸거나 검색 결과를 보는 중이면 뒤로 버튼이 검색을 풀고 첫 목록으로 돌아온다(2026-10-07 사용자)
+  useBackClose(open || !!value, () => { setOpen(false); onSubmit('', 'back'); window.scrollTo(0, 0) })
   const [draft, setDraft] = useState(value)
   const inputRef = useRef(null)
   const listboxId = useId()

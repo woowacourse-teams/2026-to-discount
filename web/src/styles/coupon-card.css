@@ -316,3 +316,4 @@
 .cc-ticket__tags { position: absolute; top: calc((100% - 12.45cqw) / 4); left: 14px; transform: translateY(-50%); z-index: 1; pointer-events: none; }
 .cc-sheet .cc-tags .chip-tags > * { height: 20px; padding: 0 6px; font-size: 11.5px; }
 .cc-sheet .offer__status-badge:not(.offer__status-badge--membership) { background: #ebedf0; color: var(--text-muted); }
+.cc-combo { cursor: pointer; }
