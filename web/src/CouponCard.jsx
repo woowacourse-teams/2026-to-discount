@@ -10,7 +10,7 @@ import { brandCardId } from './BrandCard.jsx'
 import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
-import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
+import { offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import './styles/coupon-card.css'
 
 const Up = () => (
@@ -83,7 +83,7 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} where={where} slot={slot} expanded={expanded} className="cc-stub"><LinkIcon /></OfferLinkA>
     </div>
-    {o.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
+    {/* 쿠팡이츠 안내는 이동 전 토스트로 한다(2026-10-07 사용자: 하단 문구 뺌) */}
     </div>
   )
 }

@@ -334,3 +334,7 @@
 .cc .ce-note { font-size: 4.57cqw; }
 .cc .ce-note { font-size: 4.1cqw; } /* 안내 한 줄이 다 보이게(4.57cqw는 끝 몇 글자가 잘렸다) */
 .cc .ce-note { font-size: 3.75cqw; } /* 4.1cqw도 '돼요.'가 잘렸다 */
+/* 2026-10-07 사용자: 카드 안쪽 여백을 조금 넓히고, 단일 쿠폰만 96%(캐러셀 쿠폰은 그대로). 자세히 보기 왼쪽 끝은 줄어든 쿠폰의 구분선에 다시 맞춘다 */
+.cc--compact { --pad: 17px; }
+.cc--compact .cc-main-in > .cc-tkw { width: calc((100% - 30px) * .96); }
+.cc--compact > .cc-hint { width: calc((100% - 30px) * .96 * .294 + (100% - (100% - 30px) * .96) / 2); }
