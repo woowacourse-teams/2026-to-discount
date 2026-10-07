@@ -10,13 +10,18 @@ import template, { couponCss } from '../dist-server/template.js'
 
 const ROOT_OPEN = '<div id="root">'
 
+// iOS WebKit은 서버가 그린 쿠폰의 컨테이너 단위(cqw) 글자를 처음 한 번 잘못 배치해 금액과 '원 할인'이 겹친다
+// (2026-10-07 실기). 앱 JS를 기다리면 그 사이 겹친 화면이 보이므로, 마크업 바로 뒤에서 컨테이너를 껐다 켜
+// 첫 페인트 전에 다시 배치하게 한다. main.jsx도 붙인 뒤 한 번 더 한다.
+const RELAYOUT = "(function(){var e=document.querySelectorAll('#root .cc-ticket,#root .cc--compact,#root .cc-carousel-wrap'),i;for(i=0;i<e.length;i++)e[i].style.containerType='normal';document.body.offsetWidth;for(i=0;i<e.length;i++)e[i].style.containerType=''})()"
+
 export function inject(html, appHtml, data) {
   const start = html.indexOf(ROOT_OPEN)
   const end = html.lastIndexOf('</div>', html.indexOf('</body>'))
   // null 칸은 싣지 않는다. 화면은 null과 없는 칸을 같게 다룬다(!= null, ??). 실린 데이터가 약 20% 준다(2026-10-06).
   const json = JSON.stringify(data, (_k, v) => (v === null ? undefined : v)).replace(/</g, '\\u003c')
   const out = html.slice(0, start)
-    + `${ROOT_OPEN}${appHtml}</div>\n    <script>window.__SSR__=${json}</script>`
+    + `${ROOT_OPEN}${appHtml}</div>\n    <script>${RELAYOUT}</script><script>window.__SSR__=${json}</script>`
     + html.slice(end + '</div>'.length)
   return out
     // 배너는 이미 실려 있다. 먼저 보내던 fetch는 필요 없다.
