@@ -332,3 +332,7 @@
 .cc--compact .cc-alt { font-size: 6.19cqw; gap: 2.56cqw; --pb: 8.96cqw; }
 .cc--compact .cc-alts-in { gap: 4.27cqw; }
 .cc .ce-note { font-size: 5.34cqw; }
+/* 2026-10-07 사용자: 1.4배는 카드 폭을 넘어 1.2배로(서브 오퍼 17.4px, 배지 25.2px, 안내 15px 상당, 카드 폭 비율) */
+.cc--compact .cc-alt { font-size: 5.3cqw; gap: 2.2cqw; --pb: 7.68cqw; }
+.cc--compact .cc-alts-in { gap: 2.8cqw; }
+.cc .ce-note { font-size: 4.57cqw; }
