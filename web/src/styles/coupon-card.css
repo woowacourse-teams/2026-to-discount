@@ -252,7 +252,8 @@
    쿠폰 높이가 폭 비율이라 목록 폭(100cqw) 기준으로 계산: 쿠폰 = (카드 폭 - 30px) x 11/37, 나머지 고정 214px(360px 실측).
    남는 공간은 자세히 보기 위에 둔다. 펼친 카드는 높이 고정을 푼다. */
 .brand-grid { container-type: inline-size; }
-.cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * 11 / 37 + 214px); grid-template-rows: auto auto auto auto 1fr; }
+/* 한 줄에 카드 하나일 때만(목록 폭 = 카드 폭). PC 여러 열에서 100cqw는 목록 전체 폭이라 카드가 두 배로 커졌다(2026-10-07) — 여러 열은 grid 행이 높이를 맞춘다 */
+@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * 11 / 37 + 214px); grid-template-rows: auto auto auto auto 1fr; } }
 .cc--compact > .cc-hint { align-self: end; }
 .ce-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 포인트 색(--sale)을 몇 곳에만 절제해서(2026-10-06 사용자): 5천원 이상만 스위치 켜짐, 고른 분류 밑줄, 신규 탭 개수 */
@@ -314,7 +315,8 @@
 .cc-ticket { cursor: pointer; }
 /* 배지는 쿠폰 위 끝과 로고 위 끝의 가운데(로고 12.45cqw가 세로 가운데라 (높이-로고)/4) */
 .cc-ticket__tags { position: absolute; top: calc((100% - 12.45cqw) / 4); left: 14px; transform: translateY(-50%); z-index: 1; pointer-events: none; }
-.cc-sheet .cc-tags .chip-tags > * { height: 20px; padding: 0 6px; font-size: 11.5px; }
+/* 시트 배지는 쿠폰 폭 비율(모바일 360px에서 쿠폰 약 328px일 때 20px, 11.5px) — PC 넓은 시트에서 같이 커진다 */
+.cc-sheet .cc-tags .chip-tags > * { height: 6.1cqw; padding: 0 1.83cqw; font-size: 3.5cqw; border-radius: 1.83cqw; }
 .cc-sheet .offer__status-badge:not(.offer__status-badge--membership) { background: #ebedf0; color: var(--text-muted); }
 .cc-combo { cursor: pointer; }
 /* 쿠폰 카드 쪽만 토스처럼 옅은 회색 바탕. 이 파일은 쿠폰 카드 쪽에서만 불린다 */
