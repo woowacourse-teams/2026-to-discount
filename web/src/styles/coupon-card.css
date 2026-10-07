@@ -327,3 +327,8 @@
 /* 2026-10-07 사용자: 쿠폰 아래 글자와 배지 1.4배(서브 오퍼 14.5 -> 20.3px, 배지 21 -> 29.4px, 쿠팡이츠 안내 12.5 -> 17.5px) */
 .cc--compact .cc-alt { font-size: 20.3px; gap: 8.4px; --pb: 29.4px; }
 .cc .ce-note { font-size: 17.5px; }
+/* 2026-10-07 사용자: 모바일과 PC가 같은 비율로. 카드 폭 기준(cqw, 360px 화면의 카드 328px에서 위 px 값과 같다) */
+.cc--compact { container-type: inline-size; }
+.cc--compact .cc-alt { font-size: 6.19cqw; gap: 2.56cqw; --pb: 8.96cqw; }
+.cc--compact .cc-alts-in { gap: 4.27cqw; }
+.cc .ce-note { font-size: 5.34cqw; }
