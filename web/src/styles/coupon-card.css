@@ -365,3 +365,11 @@
    모든 줄에 걸쳐 세워 같은 높이를 만든다(카드 테두리 높이 = 쿠폰 높이 + 198px, 위아래 여백 몫을 뺀다) */
 .cc--compact:not(.cc--open) { grid-template-rows: auto auto auto auto 1fr; }
 .cc--compact:not(.cc--open)::after { content: ''; grid-column: 1; grid-row: 1 / -1; width: 0; min-height: calc((90cqw - 30px) * 11 / 37 + 198px - 2 * var(--pad)); }
+/* 2026-10-07 사용자: 캐러셀이 작아 보여 반대로 캐러셀 쿠폰을 단일 쿠폰(카드 폭 - 30px의 96%) 크기에 맞춘다 */
+.cc--compact .cc-main-in > .cc-tkw { width: calc((100% - 30px) * .96); }
+.cc--compact > .cc-hint { width: calc((100% - 30px) * .96 * .294 + (100% - (100% - 30px) * .96) / 2); }
+.cc--compact .cc-slide { flex-basis: calc((100cqw - 30px) * .96); }
+.cc--compact .cc-carousel { padding-inline: calc(2cqw + 14.4px); }
+.cc--compact > .cc-deal { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 7px); }
+.cc--compact:not(.cc--open)::after { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 198px - 2 * var(--pad)); }
+@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 198px); } }
