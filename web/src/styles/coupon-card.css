@@ -254,7 +254,7 @@
    남는 공간은 자세히 보기 위에 둔다. 펼친 카드는 높이 고정을 푼다. */
 .brand-grid { container-type: inline-size; }
 /* 한 줄에 카드 하나일 때만(목록 폭 = 카드 폭). PC 여러 열에서 100cqw는 목록 전체 폭이라 카드가 두 배로 커졌다(2026-10-07) — 여러 열은 grid 행이 높이를 맞춘다 */
-@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * 11 / 37 + 214px); grid-template-rows: auto auto auto auto 1fr; } }
+@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * 11 / 37 + 0px); grid-template-rows: auto auto auto auto 1fr; } }
 .cc--compact > .cc-hint { align-self: end; }
 .ce-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 포인트 색(--sale)을 몇 곳에만 절제해서(2026-10-06 사용자): 5천원 이상만 스위치 켜짐, 고른 분류 밑줄, 신규 탭 개수 */
@@ -338,3 +338,7 @@
 .cc--compact { --pad: 17px; }
 .cc--compact .cc-main-in > .cc-tkw { width: calc((100% - 30px) * .96); }
 .cc--compact > .cc-hint { width: calc((100% - 30px) * .96 * .294 + (100% - (100% - 30px) * .96) / 2); }
+/* 2026-10-07 사용자: 머리와 쿠폰 사이는 넓히고, 서브 오퍼와 자세히 보기 사이 빈칸은 줄인다.
+   빈칸은 쿠폰 줄이 예전 쿠폰 키(--tk-h)만큼 자리를 잡던 몫이었다. 카드 키 맞춤(최소 높이)은 그만큼 낮춘다 */
+.cc--compact > .cc-deal { margin-top: 16px; }
+.cc--compact > .cc-deal, .cc--compact .cc-carousel-wrap { min-height: 0; }
