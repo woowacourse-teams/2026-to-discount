@@ -359,3 +359,5 @@
 /* 쿠폰 줄 높이를 캐러셀(쿠폰 + 아래 점 자리 7px)과 같게 */
 .cc--compact > .cc-deal { min-height: calc((90cqw - 30px) * 11 / 37 + 7px); }
 @media (min-width: 640px) { @container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((90cqw - 30px) * 11 / 37 + 198px); } } }
+/* 2026-10-07 사용자: 카드 높이는 서브 오퍼와 자세히 보기가 다 있는 카드 높이로 고정(모바일, 데스크톱 모두) */
+@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((90cqw - 30px) * 11 / 37 + 198px); grid-template-rows: auto auto auto auto 1fr; } }
