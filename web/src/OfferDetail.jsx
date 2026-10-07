@@ -1,4 +1,5 @@
 import { MEMBERSHIP_LABEL } from './filters.js'
+import { formulaOf } from './couponModel.js'
 import { PlatformBadge, PLATFORM_BY_KEY } from './logos.jsx'
 import { OWN, OWN_LABEL } from './platforms.js'
 import { won } from './OfferChip.jsx'
@@ -35,6 +36,10 @@ function detailRows(offer) {
 export default function OfferDetail({ offer, brandName }) {
   const platform = PLATFORM_BY_KEY[offer.platform]
   const rows = detailRows(offer)
+  // 중복 할인(최적): 겹친 구간 금액 옆에 계산식(기본 할인 + 쿠폰)을 붙이고, 맨 아래 조건 문장은 뺀다(쿠폰 카드와 같다, 2026-10-07 사용자)
+  const base = offer.qualifier === '최적' ? rows.filter((t) => !t.channel && t.amount != null).sort((a, b) => a.amount - b.amount)[0] : null
+  const sumOf = (t) => (base && t !== base && t.channel && t.percent == null && t.amount > base.amount
+    ? `(${base.amount.toLocaleString('ko-KR')}+${(t.amount - base.amount).toLocaleString('ko-KR')})` : null)
 
   return (
     <div className="detail">
@@ -68,6 +73,7 @@ export default function OfferDetail({ offer, brandName }) {
                   ) : won(t.amount)}
                   {/* percent가 있으면 이 금액이 정률 계산 결과다(요기요
                       cumulative 실측 2026-08-19). %와 상한을 병기한다. */}
+                  {sumOf(t) && <span className="detail__tier-percent">{sumOf(t)}</span>}
                   {t.percent != null && (
                     <span className="detail__tier-percent">
                       ({t.percent}%{t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''})
@@ -101,7 +107,7 @@ export default function OfferDetail({ offer, brandName }) {
               </li>
             ))}
           </ul>
-          {offer.conditions && <p className="detail__condition-note">{offer.conditions}</p>}
+          {offer.conditions && !formulaOf(offer) && <p className="detail__condition-note">{offer.conditions}</p>}
         </dd>
       </dl>
     </div>

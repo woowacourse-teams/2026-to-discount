@@ -81,7 +81,17 @@ export const COUPANGEATS_LINK = 'https://share.coupangeats.com/VzILg2hUX6b'
 export const COUPANGEATS_NOTICE = '행사 페이지에서\n해당 브랜드를 클릭해주세요!'
 // 쿠팡이츠 쿠폰 아래 고정 안내(2026-10-06 사용자 문구)
 export const COUPANGEATS_HINT = '앱에서 "브랜드 할인 버튼"을 눌러야 할인이 적용돼요.'
-const NOTICE_MS = 1500 // 2026-10-06 사용자: 1초 -> 1.5초
+// 2026-10-07 사용자: 처음 누를 때 3.5초, 한 번 본 뒤로는 1초(본 적 있는지는 이 브라우저의 localStorage에 남긴다)
+const NOTICE_FIRST_MS = 3500
+const NOTICE_MS = 1000
+const NOTICE_SEEN_KEY = 'dk_ce_notice_seen'
+function noticeMs() {
+  try {
+    if (localStorage.getItem(NOTICE_SEEN_KEY)) return NOTICE_MS
+    localStorage.setItem(NOTICE_SEEN_KEY, '1')
+  } catch { /* 저장소가 막혀 있으면 매번 처음처럼 */ }
+  return NOTICE_FIRST_MS
+}
 
 /** 쿠팡이츠 링크면 기본 이동을 막고 화면을 어둡게 깔아 안내를 1.5초 띄운 뒤 같은 탭에서 연다. 그 밖의 링크는 손대지 않는다. */
 export function openWithNotice(e, href) {
@@ -110,8 +120,8 @@ export function openWithNotice(e, href) {
       document.addEventListener('visibilitychange', mark, { once: true })
     }
     window.location.href = href
-    if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') window.location.href = COUPANGEATS_LINK }, 2500)
-  }, NOTICE_MS)
+    if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') window.location.href = COUPANGEATS_LINK }, 4000) // 앱이 안 열리면 4초 뒤 허브(2026-10-07 사용자: 2.5초 -> 4초)
+  }, noticeMs())
 }
 
 export function setHubLinks(banners) {
