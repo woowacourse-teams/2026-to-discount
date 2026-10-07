@@ -108,6 +108,18 @@ class OfferRecordTest {
     }
 
     @Test
+    void yogiyoPercentDeliveryAndTakeoutTotalsAreExclusiveChoices() {
+        // tracker RULE-AUDIT-2026-10-08 7번(미친피자 2026-10-04): 기본 7,000 + 배달 정률(5%, 최대 3,000)
+        // + 포장 2,000을 채널별 합계 구간으로 싣는다. 택일이라 더하지 않고 큰 쪽(포장 9,000)이 대표다.
+        OfferRecord r = record(9000, "exclusive", List.of(
+                fixed(19000, 7000),
+                new DiscountTier(25000, 8250, 5, 10000, "배달", null, "2026-10-04", null),
+                new DiscountTier(20000, 9000, null, null, "포장", null, "2026-10-04", null)));
+        assertFalse(r.isCumulative());
+        assertEquals(9000, r.amountAsOf(LocalDate.parse("2026-10-04")));
+    }
+
+    @Test
     void missingMembershipIsUnknownNotNone() {
         // 필드가 없으면 "그 화면에선 안 보였다"다 — 허브 카드·브랜드관엔
         // 멤버십 표시가 없다. "none"은 쿠폰함에서 본 관측이라 따로 간다.

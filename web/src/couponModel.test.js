@@ -166,3 +166,15 @@ test('최적 상세 표: 겹친 구간에 계산식, 최소주문 모르면 미�
   assert.equal(rows[1].min, '최소주문 미확인')
   assert.equal(rows[2].extra, '')
 })
+
+test('요기요 정률 배달 + 정액 포장 합계 구간: 포장은 계산식, 배달은 정률 표기(tracker RULE-AUDIT 7번)', () => {
+  const x = o('yogiyo', 9000, { qualifier: '최적', minOrderAmount: 20000, expiresAt: '2026-10-04', conditions: '포장 20,000원↑ 7,000+2,000=9,000원',
+    tiers: [{ minOrder: 19000, amount: 7000 }, { minOrder: 25000, amount: 8250, percent: 5, cap: 10000, channel: '배달', expiresAt: '2026-10-04' },
+      { minOrder: 20000, amount: 9000, channel: '포장', expiresAt: '2026-10-04' }] })
+  assert.equal(formulaOf(x), '포장 20,000원↑ 7,000+2,000=9,000원')
+  assert.deepEqual(conditionTable(x).rows.map((r) => [r.amount, r.extra, r.chips.map((c) => c.text).join(), r.min]), [
+    ['9,000원', '7,000+2,000', '포장', '20,000원↑'],
+    ['8,250원', '5%, 최대 10,000원', '배달', '25,000원↑'],
+    ['7,000원', '', '', '19,000원↑'],
+  ])
+})
