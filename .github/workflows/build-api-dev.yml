@@ -1,0 +1,73 @@
+name: Build API development artifact
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'api/**'
+      - 'docs/contracts/**'
+      - '.github/workflows/build-api-dev.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-api-dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # 수동 실행도 dev만 허용한다. 배포 연결 전에는 산출물 생성까지만 수행한다.
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Test
+        run: ./gradlew test
+      - name: Build executable JAR
+        run: ./gradlew bootJar -x test
+      - name: Prepare artifact
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/api-dev-artifact
+        run: |
+          python3 - <<'PYTHON'
+          import hashlib, json, os, shutil
+          from pathlib import Path
+          jars = [p for p in Path("build/libs").glob("*.jar") if not p.name.endswith("-plain.jar")]
+          if len(jars) != 1:
+              raise SystemExit(f"Expected exactly one executable JAR, found {len(jars)}")
+          target = Path(os.environ["ARTIFACT_DIR"])
+          target.mkdir(parents=True, exist_ok=True)
+          jar = target / "app.jar"
+          shutil.copy2(jars[0], jar)
+          digest = hashlib.sha256(jar.read_bytes()).hexdigest()
+          (target / "app.jar.sha256").write_text(f"{digest}  app.jar\n")
+          manifest = {
+              "commit": os.environ["GITHUB_SHA"],
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "ref": os.environ["GITHUB_REF"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "sha256": digest,
+          }
+          (target / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          PYTHON
+      - name: Upload development artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-dev-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/api-dev-artifact/
+          retention-days: 14
+          if-no-files-found: error
