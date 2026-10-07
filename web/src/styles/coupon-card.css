@@ -385,3 +385,5 @@
 .cc-sheet .cc-ticket__tags { position: static; transform: none; width: 100%; }
 /* 2026-10-07 사용자: 시트 상세 조건 표 폭을 쿠폰 폭과 같게 */
 .cc-sheet__item .cc-tbl { box-sizing: border-box; width: calc((100% - 30px) * .96); align-self: center; margin: 4px 0 0; }
+/* 2026-10-07 사용자: 시트 쿠팡이츠 안내는 쿠폰에 더 붙이고, 1px 작게, 두껍게 */
+.cc-sheet .ce-note { margin-top: 2px; font-size: calc(3.75cqw - 1px); font-weight: 600; }

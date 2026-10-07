@@ -434,13 +434,13 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             </div>
             <div className="cc-sheet__body">
               {[...best, ...rest].map((o, i) => {
-                const f = formulaOf(o)
+                // 중복 할인 계산식은 시트에서 뺐다(2026-10-07 사용자: 표 첫 줄에 이미 계산이 보인다)
                 const tb = conditionTable(o)
-                const hasTbl = tb.rows.length > 0 || tb.note || f
+                const hasTbl = tb.rows.length > 0 || tb.note
                 return (
                   <div key={offerKey(o)} className="cc-sheet__item">
                     <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded tags={<Tags o={o} />} />
-                    {hasTbl && <DetailTable t={tb} i={0} fx={f} />}
+                    {hasTbl && <DetailTable t={tb} i={0} />}
                   </div>
                 )
               })}
