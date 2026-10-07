@@ -254,7 +254,8 @@
    남는 공간은 자세히 보기 위에 둔다. 펼친 카드는 높이 고정을 푼다. */
 .brand-grid { container-type: inline-size; }
 /* 한 줄에 카드 하나일 때만(목록 폭 = 카드 폭). PC 여러 열에서 100cqw는 목록 전체 폭이라 카드가 두 배로 커졌다(2026-10-07) — 여러 열은 grid 행이 높이를 맞춘다 */
-@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 191px); grid-template-rows: auto auto auto auto 1fr; } }
+/* 2026-10-07 사용자: 높이 맞춤은 여러 열인 데스크톱에서만. 모바일은 한 줄이라 카드마다 제 높이 */
+@media (min-width: 640px) { @container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 191px); grid-template-rows: auto auto auto auto 1fr; } } }
 .cc--compact > .cc-hint { align-self: end; }
 .ce-note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 포인트 색(--sale)을 몇 곳에만 절제해서(2026-10-06 사용자): 5천원 이상만 스위치 켜짐, 고른 분류 밑줄, 신규 탭 개수 */
@@ -342,3 +343,8 @@
    빈칸은 쿠폰 줄이 예전 쿠폰 키(--tk-h)만큼 자리를 잡던 몫이었다. 카드 키 맞춤(최소 높이)은 그만큼 낮춘다 */
 .cc--compact > .cc-deal { margin-top: 16px; }
 .cc--compact > .cc-deal, .cc--compact .cc-carousel-wrap { min-height: 0; }
+/* 2026-10-07 사용자: 순수 흰색, 검정 대신 살짝 섞은 색. 이동 영역과 자세히 보기는 옅은 광원 그라데이션을 얹은 회색 */
+:root { --surface: #fdfdfc; --ink: #1c1d1f; --text: #1c1d1f; }
+.cc > .brand-logo, .cc-ticket { background: #fdfdfc; }
+.cc-stub, .cc--compact > .cc-hint { background: radial-gradient(120% 90% at 18% 0%, rgba(255, 255, 255, .2), rgba(255, 255, 255, 0) 62%), #44474c; color: #f6f6f4; box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .1); }
+.cc--compact > .cc-hint svg { color: #f6f6f4; }
