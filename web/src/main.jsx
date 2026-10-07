@@ -82,5 +82,16 @@ const rootEl = document.getElementById('root')
 // 첫 렌더에는 영향이 없다(App은 마운트 뒤에 주소를 읽는다).
 try { if (ssr?.arm === 'coupon' || new URLSearchParams(window.location.search).get('home') === 'a') import('./CouponCard.jsx') } catch { /* 미리 받기는 덤이다 */ }
 
-if (ssr) ReactDOM.hydrateRoot(rootEl, tree)
+if (ssr) {
+  ReactDOM.hydrateRoot(rootEl, tree)
+  // iOS WebKit(사파리, 카카오톡 인앱)은 서버가 그린 쿠폰의 컨테이너 단위(cqw) 글자를 처음 한 번 잘못 배치한다.
+  // 금액 위에 '원 할인'이 겹치고 최소주문 글자가 사라진 채 남았다(2026-10-07 실기). 다시 그리면 풀리므로
+  // 컨테이너를 한 번 껐다 켜 배치를 새로 하게 한다.
+  requestAnimationFrame(() => {
+    const els = rootEl.querySelectorAll('.cc-ticket, .cc--compact, .cc-carousel-wrap')
+    els.forEach((el) => { el.style.containerType = 'normal' })
+    void rootEl.offsetWidth
+    els.forEach((el) => { el.style.containerType = '' })
+  })
+}
 else ReactDOM.createRoot(rootEl).render(tree)
