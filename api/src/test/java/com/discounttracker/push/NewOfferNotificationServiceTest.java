@@ -66,7 +66,8 @@ class NewOfferNotificationServiceTest {
         when(sender.send(any(), any())).thenReturn(201, 500);
         service(store, sender, comparisons).sendDueOffer();
         assertThat(store.dailyOffer("2026-10-08", 0).complete()).isFalse();
-
+        assertThatThrownBy(() -> service(store, sender, comparisons).update(LocalDate.parse("2026-10-08"), "exclude", null))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
 
         var restored = store();
         var retrySender = mock(WebPushSender.class);
@@ -99,6 +100,67 @@ class NewOfferNotificationServiceTest {
         service(store, sender, comparisons).sendDueOffer();
         assertThat(store.dailyOffer("2026-10-08", 0).complete()).isTrue();
         verifyNoInteractions(sender);
+    }
+
+    @Test
+    void manualReplacementPersistsAndIsUsedByActualSend() throws Exception {
+        var store = store();
+        store.dailyOffer("2026-10-08", clock.instant().getEpochSecond());
+        store.upsert("https://fcm.googleapis.com/fcm/send/one", "key", "auth", "one", true);
+        var comparisons = mock(BrandComparisonService.class);
+        var high = brand("최고", offer(12000, "2026-10-08T01:00:00Z"));
+        var low = brand("BHC", offer(8000, "2026-10-08T01:00:00Z"));
+        when(comparisons.compare()).thenReturn(List.of(high, low));
+        var sender = mock(WebPushSender.class);
+        when(sender.send(any(), any())).thenReturn(201);
+        var service = service(store, sender, comparisons);
+        var preview = service.next(null);
+        assertThat(preview.selected().offer().brand()).isEqualTo("최고");
+        String id = preview.candidates().stream().filter(value -> value.offer().brand().equals("BHC")).findFirst().orElseThrow().offerId();
+        var selected = service.update(null, "replace", id);
+        assertThat(selected.mode()).isEqualTo("replace");
+        assertThat(selected.selected().offer().brand()).isEqualTo("BHC");
+        var restored = store();
+        assertThat(restored.dailyOffer("2026-10-08", 0).overridden()).isTrue();
+        service(restored, sender, comparisons).sendDueOffer();
+        var payload = org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(sender).send(any(), payload.capture());
+        assertThat(mapper.readTree(payload.getValue()).get("title").asText()).isEqualTo("BHC 8,000원 할인");
+    }
+
+    @Test
+    void exclusionIsPersistentAndCanBeRestoredToAutoBeforeSending() {
+        var store = store();
+        store.dailyOffer("2026-10-08", clock.instant().getEpochSecond());
+        var comparisons = mock(BrandComparisonService.class);
+        var bhc = brand("BHC", offer(8000, "2026-10-08T01:00:00Z"));
+        when(comparisons.compare()).thenReturn(List.of(bhc));
+        var sender = mock(WebPushSender.class);
+        var service = service(store, sender, comparisons);
+        var excluded = service.update(null, "exclude", null);
+        assertThat(excluded.selected()).isNull();
+        assertThat(excluded.automatic().offer().brand()).isEqualTo("BHC");
+        var restored = store();
+        service(restored, sender, comparisons).sendDueOffer();
+        verifyNoInteractions(sender);
+        assertThat(restored.dailyOffer("2026-10-08", 0).excluded()).isTrue();
+        var reset = service(restored, sender, comparisons).update(null, "auto", null);
+        assertThat(reset.mode()).isEqualTo("auto");
+        assertThat(reset.selected().offer().brand()).isEqualTo("BHC");
+        assertThat(reset.scheduledAt()).isEqualTo(excluded.scheduledAt());
+    }
+
+    @Test
+    void rejectsInvalidReplacementAndPastDateWithoutOverwritingSelection() {
+        var comparisons = mock(BrandComparisonService.class);
+        when(comparisons.compare()).thenReturn(List.of());
+        var store = store();
+        var service = service(store, mock(WebPushSender.class), comparisons);
+        assertThatThrownBy(() -> service.update(null, "replace", "not-an-offer"))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+        assertThat(store.dailyOffer("2026-10-08", 0).overridden()).isFalse();
+        assertThatThrownBy(() -> service.next(LocalDate.parse("2026-10-07")))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
     }
 
     @Test
