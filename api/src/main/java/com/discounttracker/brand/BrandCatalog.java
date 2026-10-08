@@ -64,7 +64,8 @@ public class BrandCatalog {
                         readStringList(attrs.get("searchAliases")),
                         (String) attrs.get("shortName"),
                         Category.from((String) attrs.get("category")),
-                        readLinks(attrs)));
+                        readLinks(attrs),
+                        readStringList(attrs.get("menus"))));
 
                 // 대표명 자신도 별칭으로 넣어야 원장에 대표명 그대로 찍힌 경우도 걸린다.
                 putAlias(name, name);

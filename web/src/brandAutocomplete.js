@@ -90,11 +90,10 @@ function matchBrands(brands, query, limit) {
   const choseongOnly = isChoseongQuery(query)
   return brands
     .map((brand, originalIndex) => {
-      const targets = [brand.name, ...(brand.searchAliases ?? [])]
-        .map(normalize)
-        .map((target) => choseongOnly ? toChoseong(target) : target)
-        .filter(Boolean)
-      const ranks = targets.map((target) => matchRank(target, query)).filter((rank) => rank != null)
+      const prepare = (list) => list.map(normalize).map((target) => choseongOnly ? toChoseong(target) : target).filter(Boolean)
+      const rankIn = (list, offset) => prepare(list).map((target) => matchRank(target, query)).filter((rank) => rank != null).map((rank) => rank + offset)
+      // 메뉴명은 이름·별칭보다 아래 순위다. "치즈"가 치즈 들어간 메뉴의 브랜드보다 이름에 치즈가 든 브랜드를 먼저 보인다.
+      const ranks = [...rankIn([brand.name, ...(brand.searchAliases ?? [])], 0), ...rankIn(brand.menus ?? [], 3)]
       return ranks.length === 0 ? null : { brand, rank: Math.min(...ranks), originalIndex }
     })
     .filter(Boolean)
@@ -103,7 +102,7 @@ function matchBrands(brands, query, limit) {
     .map(({ brand }) => brand)
 }
 
-/** 대표명과 검색 별칭에서 안정된 순서의 자동완성 후보를 만든다. */
+/** 대표명, 검색 별칭, 대표 메뉴명에서 안정된 순서의 자동완성 후보를 만든다. */
 export function findBrandSuggestions(brands, input, limit = 10) {
   const query = normalize(input)
   if (!Array.isArray(brands) || query === '' || limit <= 0) return []

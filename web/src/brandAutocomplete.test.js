@@ -67,3 +67,13 @@ test('빈 입력, 브랜드 미로딩, 변환 결과도 없는 입력은 후보�
   assert.deepEqual(findBrandSuggestions(null, '굽네'), [])
   assert.deepEqual(findBrandSuggestions(brands, 'zzzzzz'), [])
 })
+
+test('메뉴명으로도 브랜드를 찾되 이름·별칭 일치보다 뒤에 둔다', () => {
+  const brands = [
+    { name: 'bhc', searchAliases: ['비에이치씨'], menus: ['뿌링클'] },
+    { name: '뿌링치킨', searchAliases: [] },
+  ]
+  assert.deepEqual(findBrandSuggestions(brands, '뿌링클').map((b) => b.name), ['bhc'])
+  assert.deepEqual(findBrandSuggestions(brands, '뿌링').map((b) => b.name), ['뿌링치킨', 'bhc'])
+  assert.deepEqual(findBrandSuggestions(brands, 'ㅃㄹㅋ').map((b) => b.name), ['bhc'])
+})

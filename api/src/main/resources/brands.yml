@@ -15,6 +15,8 @@
 # shortName: 자리가 좁은 곳(배너)에서 쓰는 짧은 이름 (생략 = 대표명 그대로).
 #           로고 파일명과 원장은 **대표명**을 쓴다 — 짧은 이름은 보여 주는 자리에만 쓴다.
 # aliases:  원장에 다른 이름으로 찍히는 경우만 (생략 가능)
+# menus:    그 브랜드에만 있는 대표 메뉴명 (생략 가능). 메뉴로 검색해도 브랜드가 나온다.
+#           "후라이드", "양념"처럼 여러 브랜드에 있는 이름은 넣지 않는다.
 # links:    앱별 브랜드 쿠폰 공유링크(앱 전용 딥링크, 생략 가능).
 #           키는 원장 platform 값과 맞춘다 — ddangyo, baemin, ...
 #
@@ -35,6 +37,7 @@ brands:
       baemin: https://s.baemin.com/k7000Lprasbb2
   BBQ:
     searchAliases: [비비큐, 비비큐치킨, bbq chicken, bbq치킨, BBQ치킨]
+    menus: [황금올리브, 황올, 자메이카 통다리]
     category: chicken
     aliases: [BBQ, BBQ치킨, 비비큐, 비비큐치킨, bbq chicken]
     links:
@@ -43,6 +46,7 @@ brands:
       baemin: https://s.baemin.com/f3e.6ibml
   bhc:
     searchAliases: [비에이치씨, 비에이치씨치킨, bhc chicken, bhc치킨, BHC치킨]
+    menus: [뿌링클, 맛초킹, 골드킹, 콰삭킹, 뿌링뿌링]
     category: chicken
     aliases: [bhc, bhc치킨, BHC, BHC치킨, 비에이치씨, 비에이치씨치킨, bhc chicken]
     links:
@@ -61,6 +65,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=4723
   굽네치킨:
     searchAliases: [굽네, 굽네 치킨, goobne, goobne chicken, gubne]
+    menus: [고추바사삭, 볼케이노, 갈비천왕]
     category: chicken
     aliases: [굽네, 굽네치킨, goobne, goobnechicken, 굽네치킨&피자, gubne]
     links:
@@ -90,6 +95,7 @@ brands:
       baemin: https://s.baemin.com/aou.816hq
   네네치킨:
     searchAliases: [네네, 네네 치킨, nene, nene chicken]
+    menus: [스노윙, 오리엔탈파닭, 청양마요]
     aliases: [네네, nene, nene chicken]
     category: chicken
     links:
@@ -98,6 +104,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=7
   노랑통닭:
     searchAliases: [노랑 통닭, 노랑치킨, norang tongdak, norang chicken]
+    menus: [알싸한마늘치킨]
     aliases: [노랑치킨, norang tongdak, norang chicken]
     category: chicken
   두찜:
@@ -137,6 +144,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?cnxTN1J
   멕시카나:
     searchAliases: [멕시카나치킨, 멕시카나 치킨, mexicana, mexicana chicken]
+    menus: [땡초치킨]
     category: chicken
     aliases: [멕시카나, 멕시카나치킨, mexicana, mexicana chicken]
     links:
@@ -193,6 +201,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?pDyQrYd
   자담치킨:
     searchAliases: [자담, 자담 치킨, jadam, jadam chicken]
+    menus: [맵슐랭]
     aliases: [자담, jadam, jadam chicken]
     category: chicken
     links:
@@ -201,6 +210,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=418
   처갓집양념치킨:
     searchAliases: [처갓집, 처갓집 치킨, cheogatjip, cheogatjip chicken]
+    menus: [슈프림양념, 슈프림골드]
     aliases: [처갓집, 처갓집 치킨, cheogatjip, cheogatjip chicken]
     category: chicken
     links:
@@ -232,6 +242,7 @@ brands:
     category: chicken
   푸라닭:
     searchAliases: [푸라닭치킨, 푸라닭 치킨, puradak, puradak chicken]
+    menus: [블랙알리오, 고추마요, 파불로]
     aliases: [푸라닭, 푸라닭치킨, 푸라닭 치킨, puradak, puradak chicken]
     category: chicken
     links:
@@ -271,10 +282,12 @@ brands:
 
   60계치킨:
     searchAliases: [육십계, 육십계치킨, 60gye, 60gye chicken]
+    menus: [간지치킨, 크크크치킨]
     aliases: [육십계, 육십계치킨, 60gye, 60gye chicken]
     category: chicken
   교촌치킨:
     searchAliases: [교촌, 교촌 치킨, kyochon, kyochon chicken]
+    menus: [허니콤보, 레드콤보, 반반콤보, 교촌오리지날, 살살치킨]
     category: chicken
     aliases: [교촌치킨, 교촌, kyochon, kyochon chicken]
 
@@ -298,6 +311,7 @@ brands:
       baemin: https://s.baemin.com/J2000LpsYkPN5
   도미노피자:
     searchAliases: [도미노, 도미노 피자, domino's, dominos pizza]
+    menus: [블랙타이거슈림프]
     aliases: [도미노, domino's, dominos pizza]
     category: pizza
     links:
@@ -357,6 +371,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=821
   파파존스:
     searchAliases: [파파 존스, 파존, papa johns, papa john's]
+    menus: [수퍼파파스]
     aliases: [파존, papa johns, papa john's]
     category: pizza
     links:
@@ -364,6 +379,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=41
   피자알볼로:
     searchAliases: [알볼로, 알볼로 피자, pizza alvolo, alvolo pizza]
+    menus: [어깨피자]
     aliases: [알볼로, 알볼로 피자, pizza alvolo, alvolo pizza]
     category: pizza
     links:
@@ -396,11 +412,13 @@ brands:
     category: fastfood
   롯데리아:
     searchAliases: [롯데 리아, lotteria]
+    menus: [데리버거, 모짜렐라인더버거, 한우불고기버거]
     aliases: [롯데리아, lotteria]
     category: fastfood
     # 쿠팡이츠 반짝핫딜(2026-10-05)로 처음 들어왔다. 배달앱 링크와 로고는 아직 없다.
   맘스터치:
     searchAliases: [맘스 터치, 맘터, mom's touch, momstouch]
+    menus: [싸이버거, 딥치즈버거, 휠렛버거]
     aliases: [맘터, mom's touch, momstouch]
     # 부모 브랜드. 맘스터치피자앤치킨(버거 제외 피자·치킨 파생)과는 행사가
     # 별개라 alias로 합치지 않는다.
@@ -417,6 +435,7 @@ brands:
       baemin: https://s.baemin.com/ND000LpqFoc7y
   맥도날드:
     searchAliases: [맥날, 맥도날드 코리아, mcdonald's, mcdonalds]
+    menus: [빅맥, 상하이 스파이시, 맥스파이시, 맥너겟, 맥모닝, 맥플러리, 1955버거, 맥크리스피]
     aliases: [맥날, 맥도날드 코리아, mcdonald's, mcdonalds]
     category: fastfood
     links:
@@ -424,6 +443,7 @@ brands:
       baemin: https://s.baemin.com/UP000LqnwTZ3d
   버거킹:
     searchAliases: [버거 킹, 버킹, burger king, burgerking]
+    menus: [와퍼, 콰트로치즈와퍼, 통새우와퍼, 몬스터와퍼]
     aliases: [버킹]
     category: fastfood
     links:
@@ -432,16 +452,19 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=75
   써브웨이:
     searchAliases: [서브웨이, 섭웨, 써브 웨이, subway, subway korea]
+    menus: [이탈리안 비엠티, 써브웨이 클럽]
     aliases: [서브웨이, 섭웨, subway, subway korea]
     category: fastfood
   KFC:
     # 2026-09-16 쿠팡이츠 선착순(오전 11시 8,000원) 배너에 올리며 추가. 원장엔
     # 08-17부터 11행이 있었는데 표에 없어 API가 모르는 브랜드로 봤다.
     searchAliases: [케이에프씨, 케이 에프 씨, 켄터키, kfc, kentucky fried chicken]
+    menus: [징거버거, 타워버거, 핫크리스피]
     category: fastfood
     aliases: [KFC, 케이에프씨, 켄터키, kentucky fried chicken]
   쉐이크쉑:
     searchAliases: [쉑쉑, 쉐이크 쉑, shake shack, shakeshack]
+    menus: [쉑버거, 스모크쉑]
     aliases: [쉑쉑]
     category: fastfood
     links:
@@ -516,6 +539,7 @@ brands:
     category: cafe
   던킨:
     searchAliases: [던킨도너츠, 던킨 도너츠, dunkin, dunkin donuts]
+    menus: [먼치킨]
     aliases: [던킨, 던킨도너츠, dunkin, dunkindonuts]
     category: cafe
     links:
@@ -532,18 +556,21 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=606
   배스킨라빈스:
     searchAliases: [베스킨라빈스, 배라, 베라, baskin robbins, baskinrobbins]
+    menus: [엄마는외계인, 아몬드봉봉, 이상한나라의솜사탕]
     aliases: [베스킨라빈스, 배라, 베라]
     category: cafe
     links:
       baemin: https://s.baemin.com/NO000LpqLSTKN
   설빙:
     searchAliases: [설빙 빙수, 설빙코리아, sulbing, sulbing korea]
+    menus: [인절미설빙]
     aliases: [설빙 빙수, 설빙코리아, sulbing, sulbing korea]
     category: cafe
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?EE7GifX
   스타벅스:
     searchAliases: [스벅, 스타벅스커피, 스타벅수, starbucks, starbucks coffee]
+    menus: [자바칩 프라푸치노, 돌체라떼, 슈크림라떼]
     aliases: [스벅, 스타벅스커피, 스타벅수, starbucks, starbucks coffee]
     category: cafe
     links:
@@ -556,6 +583,7 @@ brands:
       baemin: https://s.baemin.com/7oa.rgaxn
   팀홀튼:
     searchAliases: [팀 홀튼, 팀홀튼커피, 팀홀든, tim hortons, timhortons]
+    menus: [팀빗, 더블더블]
     aliases: [팀홀튼커피, 팀홀든]
     category: cafe
   파스쿠찌:
@@ -568,6 +596,7 @@ brands:
 
   메가MGC커피:
     searchAliases: [메가커피, 메가 엠지씨 커피, 메가, mega mgc coffee, mega coffee]
+    menus: [메가리카노, 왕메가]
     category: cafe
     aliases: [메가MGC커피, 메가커피, 메가 엠지씨 커피, 메가, mega mgc coffee, mega coffee]
 
@@ -575,6 +604,7 @@ brands:
   # 브랜드 카드가 행사 페이지로 나가므로 비워 둔다(ADR-016 취지).
   빽다방:
     searchAliases: [백다방, 빽다방 커피, 백종원 커피, paiks coffee, paik's coffee, ppaekdabang]
+    menus: [앗메리카노, 빽스치노]
     aliases: [백다방, 빽다방 커피, 백종원 커피, paiks coffee, paik's coffee, ppaekdabang]
     category: cafe
 
@@ -975,6 +1005,7 @@ brands:
       baemin: https://s.baemin.com/D1000Lpsf91Gr
   할리스:
     searchAliases: [할리스커피, 할리스 커피, hollys, hollys coffee]
+    menus: [바닐라딜라이트]
     aliases: [hollys, hollys coffee]
     category: cafe
     links:
@@ -1117,6 +1148,7 @@ brands:
   # 2026-10-08 원장에 들어왔는데 별칭표에 없던 브랜드(reflect_daily [suspect] 8)
   이삭토스트:
     searchAliases: [이삭토스트]
+    menus: [햄스페셜, 베이컨베스트]
     category: snack
   슈퍼크리스피:
     searchAliases: [슈퍼크리스피]
@@ -1129,6 +1161,7 @@ brands:
     category: chicken
   크리스피크림도넛:
     searchAliases: [크리스피크림도넛]
+    menus: [오리지널 글레이즈드]
     category: cafe
   엔제리너스:
     searchAliases: [엔제리너스]

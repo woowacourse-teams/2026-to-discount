@@ -73,7 +73,7 @@ class OfferContractTest {
         JsonNode c = contract();
         OfferRecord r = READ.treeToValue(c.get("cases").get(0).get("record"), OfferRecord.class);
         Offer offer = Offer.from(r, LocalDate.parse(c.get("asOf").asText()));
-        BrandComparison card = new BrandComparison(new com.discounttracker.brand.Brand("bhc", List.of(), null, null, java.util.Map.of()),
+        BrandComparison card = new BrandComparison(new com.discounttracker.brand.Brand("bhc", List.of(), null, null, java.util.Map.of(), List.of()),
                 offer.amount(), null, List.of(offer), 0);
         assertEquals(list(c.get("brandKeys")), keys(JSON.readTree(JSON.writeValueAsString(card))));
     }

@@ -51,6 +51,12 @@ public record BrandComparison(
         return brand.searchAliases();
     }
 
+    /** 그 브랜드에만 있는 대표 메뉴명. 메뉴로 검색해도 브랜드가 나오게 한다. */
+    @JsonProperty("menus")
+    public List<String> menus() {
+        return brand.menus();
+    }
+
     /** 앱별 브랜드 쿠폰 바로가기. 플랫폼 키(ddangyo, baemin, ...) -> 링크. */
     @JsonProperty("links")
     public Map<String, String> links() {
