@@ -201,3 +201,15 @@ test('신규 탭: 최고 오퍼가 신규일 때만', () => {
   assert.equal(hasNewBest([old, fresh]), false)
   assert.equal(hasNewBest([{ ...fresh, amount: 9500 }, old]), true)
 })
+
+test('목록 검색은 대표명 밖에 별칭, 메뉴명, 초성으로도 찾는다', () => {
+  const brands = [
+    { name: 'bhc', searchAliases: ['비에이치씨'], menus: ['뿌링클'], offers: [{ platform: 'baemin', amount: 6000 }] },
+    { name: 'BBQ', searchAliases: ['비비큐'], offers: [{ platform: 'baemin', amount: 5000 }] },
+  ]
+  const f = (search) => applyFilters(brands, { ...defaultFilters(), search }).map((b) => b.name)
+  assert.deepEqual(f('뿌링클'), ['bhc'])
+  assert.deepEqual(f('비비큐'), ['BBQ'])
+  assert.deepEqual(f('BHC'), ['bhc'])
+  assert.deepEqual(f('ㅂㅂㅋ'), ['BBQ'])
+})

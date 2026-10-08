@@ -1,3 +1,4 @@
+import { findBrandSuggestions } from './brandAutocomplete.js'
 // 필터·정렬 규칙. 상단 바(TopBarA)와 목록(App)이 같은
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
 // "화면에 뜬 것"이 어긋난다. (B안 시트·메뉴바는 2026-09-15에 지웠다.)
@@ -314,7 +315,9 @@ export function applyFilters(brands, filters) {
       // 업데이트만(메인 화면 쿠폰 카드 쪽 "업데이트 N곳" 칸): 오늘 처음 본 오퍼가 하나라도 있는 브랜드만.
       // 2026-10-05 사용자: 신규 탭은 최고 오퍼가 신규인 브랜드만(배지는 모든 신규 오퍼에 붙는다).
       if (filters.updatedOnly && !hasNewBest(b.offers, includesFrom(filters))) return false
-      if (q !== '' && !b.name.includes(q)) return false
+      // 목록 검색도 자동완성과 같은 규칙으로 찾는다: 별칭, 메뉴명, 초성, 한영 전환(2026-10-08).
+      // 전에는 대표명 포함만 봐서 "비비큐", "뿌링클", 소문자 "bhc"가 0건이었다.
+      if (q !== '' && findBrandSuggestions([b], q, 1).length === 0) return false
       // 아무 분류도 안 고르면 전체다.
       if (filters.categories.size === 0) return true
       return filters.categories.has(b.category)
