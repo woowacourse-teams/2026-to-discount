@@ -94,7 +94,10 @@ function noticeMs() {
 }
 
 /** 쿠팡이츠 링크면 기본 이동을 막고 화면을 어둡게 깔아 안내를 1.5초 띄운 뒤 같은 탭에서 연다. 그 밖의 링크는 손대지 않는다. */
-export function openWithNotice(e, href) {
+export function openWithNotice(e, href, { offerPrompt = false } = {}) {
+  if (offerPrompt && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('discount-offer-prompt', { detail: { href } }))
+  }
   const tab = typeof href === 'string' && href.startsWith('coupangeats://')
   if ((href !== COUPANGEATS_LINK && !tab) || typeof document === 'undefined') return
   e.preventDefault()

@@ -53,7 +53,7 @@ function OfferLinkA({ offer, brand, position, best, where, slot, expanded, class
        // 커스텀 스킴(coupangeats://, ddangyo://, baemin://)은 같은 탭에서 열어야 앱으로 간다(운영 칩과 같다).
        target={web ? '_blank' : undefined} rel={web ? 'noreferrer' : undefined}
        aria-label={`${brand.name} ${amountText(offer)}, 앱으로 이동`}
-       onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best, where, slot, expanded })); openWithNotice(e, href) }}>
+       onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best, where, slot, expanded })); openWithNotice(e, href, { offerPrompt: true }) }}>
       {children}
     </a>
   )

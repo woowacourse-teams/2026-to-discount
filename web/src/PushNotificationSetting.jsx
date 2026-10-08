@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
-import { declinePrompt, recordPromptVisit } from './pushPrompt.js'
+import { hasSeenOfferPrompt, recordOfferPromptSeen } from './pushPrompt.js'
 import {
   disablePush,
   deletePushSubscription,
@@ -43,13 +43,128 @@ export default function PushNotificationSetting() {
   }, [])
   const [failed, setFailed] = useState(false)
   const [toggleSlot, setToggleSlot] = useState(null)
-  const [showPrompt, setShowPrompt] = useState(false)
+  const [previewPrompt, setPreviewPrompt] = useState(false)
+  const [promptSource, setPromptSource] = useState('preview')
+  const [changing, setChanging] = useState(false)
   const [showIosGuide, setShowIosGuide] = useState(false)
   const [iosGuideClosing, setIosGuideClosing] = useState(false)
   const [feedback, setFeedback] = useState('')
   const changingRef = useRef(false)
   const syncRetryRef = useRef(null)
   const iosGuideCloseTimerRef = useRef(null)
+  const offerPromptSeenRef = useRef(false)
+  const promptImpressionRef = useRef(false)
+  const previousDialogFocusRef = useRef(null)
+  const promptDialogRef = useRef(null)
+  const iosGuideDialogRef = useRef(null)
+  const promptOpen = previewPrompt
+  const dialogOpen = promptOpen || showIosGuide
+
+  const closePrompt = useCallback((reason) => {
+    if (promptImpressionRef.current) track('push_prompt_closed', { source: promptSource, reason })
+    promptImpressionRef.current = false
+    setPreviewPrompt(false)
+  }, [promptSource])
+
+  useEffect(() => {
+    const showOfferPrompt = () => {
+      if (enabled || !['ready', 'ios-install'].includes(availability)
+          || offerPromptSeenRef.current || hasSeenOfferPrompt()) return
+      setPromptSource('offer')
+      setPreviewPrompt(true)
+    }
+    window.addEventListener('discount-offer-prompt', showOfferPrompt)
+    return () => window.removeEventListener('discount-offer-prompt', showOfferPrompt)
+  }, [enabled, availability])
+
+  useEffect(() => {
+    if (!promptOpen) { promptImpressionRef.current = false; return }
+    let frame = null
+    let active = true
+    const recordVisiblePrompt = () => {
+      if (!active || promptImpressionRef.current || document.visibilityState !== 'visible' || !document.hasFocus()) return
+      if (promptSource === 'offer') {
+        if (!recordOfferPromptSeen({ visible: true, focused: true })) return
+        offerPromptSeenRef.current = true
+      }
+      promptImpressionRef.current = true
+      track('push_prompt_viewed', { source: promptSource })
+    }
+    const afterPaint = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => { frame = requestAnimationFrame(recordVisiblePrompt) })
+    }
+    afterPaint()
+    window.addEventListener('focus', afterPaint)
+    document.addEventListener('visibilitychange', afterPaint)
+    return () => {
+      active = false
+      cancelAnimationFrame(frame)
+      window.removeEventListener('focus', afterPaint)
+      document.removeEventListener('visibilitychange', afterPaint)
+    }
+  }, [promptOpen, promptSource])
+
+  useEffect(() => {
+    if (!promptOpen || showIosGuide) return
+    const closeOnEscape = (event) => { if (event.key === 'Escape') closePrompt('escape') }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [promptOpen, showIosGuide, closePrompt])
+
+  useEffect(() => {
+    if (!dialogOpen) return
+    if (!previousDialogFocusRef.current) previousDialogFocusRef.current = document.activeElement
+    const dialog = showIosGuide ? iosGuideDialogRef.current : promptDialogRef.current
+    if (!dialog) return
+    const focusable = () => [...dialog.querySelectorAll(
+      'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
+    )].filter((element) => element.getClientRects().length > 0)
+    const focusFirst = () => {
+      const primary = dialog.querySelector('.push-setting__cta:not(:disabled), .ios-push-guide__confirm')
+      ;(primary || focusable()[0] || dialog).focus({ preventScroll: true })
+    }
+    focusFirst()
+    const containFocus = (event) => {
+      if (!dialog.contains(event.target)) focusFirst()
+    }
+    const trapTab = (event) => {
+      if (event.key !== 'Tab') return
+      const elements = focusable()
+      const current = elements.indexOf(document.activeElement)
+      if (!elements.length) {
+        event.preventDefault()
+        dialog.focus({ preventScroll: true })
+      } else if (current < 0 || (event.shiftKey && current === 0) || (!event.shiftKey && current === elements.length - 1)) {
+        event.preventDefault()
+        elements[event.shiftKey ? elements.length - 1 : 0].focus({ preventScroll: true })
+      }
+    }
+    document.addEventListener('focusin', containFocus)
+    document.addEventListener('keydown', trapTab)
+    return () => {
+      document.removeEventListener('focusin', containFocus)
+      document.removeEventListener('keydown', trapTab)
+    }
+  }, [dialogOpen, showIosGuide])
+
+  useEffect(() => {
+    if (!dialogOpen) return
+    return () => {
+      const previousFocus = previousDialogFocusRef.current
+      previousDialogFocusRef.current = null
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) {
+        previousFocus.focus({ preventScroll: true })
+      }
+    }
+  }, [dialogOpen])
+
+  useEffect(() => {
+    if (!promptOpen && !showIosGuide) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previousOverflow }
+  }, [promptOpen, showIosGuide])
 
   const closeIosGuide = useCallback(() => {
     if (iosGuideClosing) return
@@ -66,10 +181,10 @@ export default function PushNotificationSetting() {
   }, [])
 
   useEffect(() => {
-    if (!feedback) return
+    if (!feedback || changing || promptOpen) return
     const id = window.setTimeout(() => setFeedback(''), 1000)
     return () => window.clearTimeout(id)
-  }, [feedback])
+  }, [feedback, changing, promptOpen])
 
   useEffect(() => {
     if (!showIosGuide) return
@@ -113,7 +228,6 @@ export default function PushNotificationSetting() {
         storePushEnabled(Boolean(subscription))
         if (!initialize) return
         if (!subscription) {
-          setShowPrompt(recordPromptVisit())
           return
         }
         syncRetryRef.current?.start(() => syncPushSubscription({
@@ -142,10 +256,10 @@ export default function PushNotificationSetting() {
   async function toggle(source) {
     if (changingRef.current) return
     changingRef.current = true
+    setChanging(true)
     setFailed(false)
     const previous = enabled
-    setEnabled(!previous)
-    setFeedback(previous ? '할인 알림이 꺼졌습니다' : '할인 알림이 켜졌습니다')
+    setFeedback(previous ? '할인 알림을 끄는 중입니다' : '할인 알림을 켜는 중입니다')
     try {
       if (previous) {
         const result = await disablePush()
@@ -155,6 +269,8 @@ export default function PushNotificationSetting() {
           setFailed(true)
           setFeedback('알림을 끄지 못했습니다')
         } else {
+          setEnabled(false)
+          setFeedback('할인 알림이 꺼졌습니다')
           syncRetryRef.current?.stop()
           storePushEnabled(false)
           if (!result.serverDeleted) {
@@ -170,13 +286,15 @@ export default function PushNotificationSetting() {
         const { visitorId } = getAnalyticsContext()
         const subscribed = await enablePush({ visitorId, analyticsEnabled: !optedOut() })
         if (subscribed) {
+          setEnabled(true)
+          setFeedback('할인 알림이 켜졌습니다')
           storePushEnabled(true)
-          setShowPrompt(false)
           track('push_subscription_enabled', { source })
         } else {
           setEnabled(false)
           storePushEnabled(false)
           setFeedback('알림이 켜지지 않았습니다')
+          setFailed(true)
           if (globalThis.Notification?.permission === 'denied') {
             track('push_permission_denied', { source })
           }
@@ -190,6 +308,7 @@ export default function PushNotificationSetting() {
       setFeedback('알림 설정을 변경하지 못했습니다')
     } finally {
       changingRef.current = false
+      setChanging(false)
     }
   }
 
@@ -203,6 +322,7 @@ export default function PushNotificationSetting() {
         aria-label={enabled ? '할인 알림 끄기' : '할인 알림 켜기'}
         title={enabled ? '할인 알림 끄기' : '할인 알림 켜기'}
         aria-pressed={enabled}
+        disabled={changing}
         onClick={() => {
           if (availability === 'ready') toggle('header')
           else if (availability === 'ios-install') {
@@ -231,21 +351,57 @@ export default function PushNotificationSetting() {
   return (
     <>
       {toggleSlot && createPortal(toggleControl, toggleSlot)}
-      {showPrompt && availability === 'ready' && !enabled && (
-        <section className="push-setting" aria-label="새 할인 알림 안내">
-          <button type="button" className="push-setting__close" aria-label="알림 안내 닫기" onClick={() => setShowPrompt(false)}>×</button>
-          <p>할인 정보를 빠르게 받아보시겠어요?</p>
-          {failed && <p className="push-setting__error" role="status">알림 설정을 변경하지 못했습니다. 잠시 뒤 다시 시도해 주세요.</p>}
+      {import.meta.env.DEV && (
+        <button
+          type="button"
+          className="push-prompt-preview-toggle"
+          aria-pressed={previewPrompt}
+          onClick={() => {
+            if (previewPrompt) closePrompt('preview_toggle')
+            else { setPromptSource('preview'); setFeedback(''); setPreviewPrompt(true) }
+          }}
+        >
+          알림 안내 {previewPrompt ? '끄기' : '켜기'}
+        </button>
+      )}
+      {promptOpen && (
+        <div className="push-setting-preview-backdrop" onClick={(event) => { if (event.target === event.currentTarget) closePrompt('backdrop') }}>
+        <section ref={promptDialogRef} className="push-setting push-setting--preview" role="dialog" aria-modal="true" aria-label="새 할인 알림 안내" tabIndex={-1}>
+          <button type="button" className="push-setting__close" aria-label="알림 안내 닫기" onClick={() => closePrompt('close_button')}>×</button>
+          <p>새로운 배달 할인이 올라오면<br />알림을 보내드릴게요</p>
+            <div className="push-notification-example" aria-label="푸시 알림 예시">
+              <div className="push-notification-example__sender">
+                <img src="/favicon-192.png" width="24" height="24" alt="" />
+                <span>배달앱 할인모음</span>
+              </div>
+              <strong className="push-notification-example__title">BHC 8,000원 할인이 시작되었어요!</strong>
+              <p>알림을 눌러 확인하기 {'>'}</p>
+            </div>
+          {failed && feedback && <p className="push-setting__error" role="status">{feedback}</p>}
+          {failed && !feedback && <p className="push-setting__error" role="status">알림 설정을 변경하지 못했습니다. 잠시 뒤 다시 시도해 주세요.</p>}
           <div className="push-setting__actions">
-            <button type="button" className="push-setting__cta" onClick={() => toggle('prompt')}>
+            <button type="button" className="push-setting__cta" disabled={changing || enabled} onClick={() => {
+              track('push_prompt_enable_clicked', { source: promptSource })
+              setPreviewPrompt(false)
+              if (enabled) {
+                setFeedback('이미 알림이 켜져 있습니다')
+              } else if (availability === 'denied') {
+                setFeedback('브라우저 설정에서 알림을 허용해 주세요')
+              } else if (availability === 'ios-install') {
+                setIosGuideClosing(false)
+                setShowIosGuide(true)
+              } else {
+                toggle('prompt')
+              }
+            }}>
               알림 켜기
             </button>
             <button type="button" className="push-setting__decline" onClick={() => {
-              declinePrompt()
-              setShowPrompt(false)
+              closePrompt('decline_button')
             }}>아니요, 괜찮아요</button>
           </div>
         </section>
+        </div>
       )}
 
       {showIosGuide && createPortal(
@@ -255,6 +411,8 @@ export default function PushNotificationSetting() {
           onClick={closeIosGuide}
         >
           <section
+            ref={iosGuideDialogRef}
+            tabIndex={-1}
             className={`ios-push-guide${iosGuideClosing ? ' ios-push-guide--closing' : ''}`}
             role="dialog"
             aria-modal="true"
