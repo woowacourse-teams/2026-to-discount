@@ -336,8 +336,8 @@ export default function App({ initial = null }) {
   //
   // 오퍼를 걷어내고 나서 남는 게 없는 카드는 뺀다. 그 브랜드에서 볼
   // 것이 하나도 없는데 이름만 남기면 빈 카드가 격자를 채운다.
-  // 입력 중인 문자열이 아니라 사용자가 확정한 검색만 센다. 원문은 보내지
-  // 않고 길이만 남겨, 검색 행동은 분석하되 자유 입력 개인정보는 수집하지 않는다.
+  // 입력 중인 문자열이 아니라 사용자가 확정한 검색만 센다. 검색 개선(메뉴명, 미등록 브랜드 파악)을 위해
+  // 확정한 검색어(40자까지)와 앞쪽 결과 브랜드 5개를 남긴다(2026-10-08 사용자). 하단 안내 문구에 적혀 있다.
   const submitSearch = (raw, submitMethod) => {
     const query = raw.trim()
     // 검색을 확정하면 켜둔 분류를 푼다.
@@ -358,11 +358,13 @@ export default function App({ initial = null }) {
     // 상태 반영 뒤 effect를 기다리면 이 이벤트만 이전 검색 맥락을 가진다.
     // 제출로 확정한 조건을 먼저 알려 같은 이벤트에도 최신 fSearch를 싣는다.
     setFilterContext(analyticsFilterContext(nextFilters))
+    const results = brands ? applyFilters(brands, nextFilters) : null
     track('brand_search_submitted', {
       inputLength: query.length,
-      resultCount: brands
-        ? applyFilters(brands, nextFilters).length
-        : undefined,
+      resultCount: results ? results.length : undefined,
+      // 전화번호 같은 긴 숫자열은 가린다. 서버(EventController.maskDigits)와 같은 규칙.
+      query: query.replace(/\d[\d\s-]{4,}\d/g, '#').slice(0, 40),
+      results: results ? results.slice(0, 5).map((b) => b.name).join(',') : undefined,
       submitMethod,
     })
   }

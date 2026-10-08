@@ -64,7 +64,7 @@ public class EventController {
             // 메인 화면 A/B(2026-10-05): 접기(두 안 모두)와 쿠폰 카드 캐러셀 넘기기.
             "brand_collapse", "coupon_carousel_swipe");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
-            "inputLength", "resultCount", "submitMethod",
+            "inputLength", "resultCount", "submitMethod", "query", "results",
             "fCategory", "fPlatforms", "fSearch", "fSort",
             // 메인 화면 A/B 안(web/src/homeExperiment.js). 모든 이벤트에 실리는데 검색만 이 목록이 걸러 빠졌다(2026-10-04).
             "home", "home_forced");
@@ -168,6 +168,11 @@ public class EventController {
         return VARIANT_TOKEN.matcher(t).matches() ? t : null;
     }
 
+    /** 검색어 속 전화번호, 카드번호 같은 긴 숫자열(숫자 6개 이상)을 #으로 가린다. */
+    static String maskDigits(String v) {
+        return v == null ? null : v.replaceAll("\\d[\\d\\s-]{4,}\\d", "#");
+    }
+
     private static String trim(String v) {
         if (v == null) return null;
         return v.length() <= MAX_TEXT ? v : v.substring(0, MAX_TEXT);
@@ -180,7 +185,8 @@ public class EventController {
             if ("brand_search_submitted".equals(event)
                     && !BRAND_SEARCH_PROPS.contains(e.getKey())) continue;
             if (out.size() >= MAX_PROPS) break;
-            out.put(trim(e.getKey()), trim(e.getValue()));
+            String value = "query".equals(e.getKey()) ? maskDigits(e.getValue()) : e.getValue();
+            out.put(trim(e.getKey()), trim(value));
         }
         return out;
     }

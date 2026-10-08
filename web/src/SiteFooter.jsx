@@ -23,6 +23,7 @@ export default function SiteFooter() {
         분석을 위해 브라우저에서 <strong>PostHog</strong>로 직접 전달합니다.
         자체 서버에는 IP 원본을 저장하지 않고, PostHog에는 이름·연락처를
         보내지 않으며 쿠키도 사용하지 않습니다.
+        검색을 개선하려고 <strong>검색창에 입력한 검색어와 그 결과</strong>도 함께 기록합니다.
         브라우저의 <strong>추적 안 함(DNT/GPC)</strong> 설정이 켜져 있으면 아무것도 보내지 않습니다.
         배포 플랫폼의 <strong>쿠키 없는 집계형 통계</strong>(Vercel Analytics)도 페이지뷰 수준으로 사용하며,
         이 통계들은 광고 목적으로 쓰지 않습니다.
