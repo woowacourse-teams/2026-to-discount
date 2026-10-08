@@ -178,6 +178,8 @@
   gap: .35rem;
 }
 
+.title-bar--b .push-toggle-slot { order: 0; }
+
 /* 로고가 체크박스 자리까지 오지 않게 헤더 왼쪽을 비운다. */
 
 

@@ -92,6 +92,7 @@ function routeFilters() {
 // 그리고 같은 값을 다시 부르지 않는다. 첫 렌더는 서버와 같아야 하므로 브라우저에만 있는 값
 // (localStorage, 시각, 화면 폭)은 전부 effect에서 읽는다.
 export default function App({ initial = null }) {
+  const [pushToggleSlot, setPushToggleSlot] = useState(null)
   const [brands, setBrands] = useState(initial?.brands ?? null)
   // null은 아직 못 받음(자리만 잡는다), []는 받았는데 0건.
   const [banners, setBanners] = useState(initial?.banners ?? null)
@@ -551,6 +552,7 @@ export default function App({ initial = null }) {
       {homeA ? (
         <TopBarB
           barRef={titleBarRef}
+          pushToggleRef={setPushToggleSlot}
           filters={filters}
           setFilters={setFilters}
           search={search}
@@ -565,6 +567,7 @@ export default function App({ initial = null }) {
       ) : (
       <TopBarA
         barRef={titleBarRef}
+        pushToggleRef={setPushToggleSlot}
         filters={filters}
         setFilters={setFilters}
         search={search}
@@ -585,7 +588,7 @@ export default function App({ initial = null }) {
       {/* 쿠폰 카드 쪽은 위 배너 캐러셀 없이 처음부터 하단 도크로만(2026-10-05 사용자: 목록 안 한 줄은 별로) */}
       {/* 2026-10-05 사용자: 운영 카드 쪽도 하단 도크로 */}
       {banners ? <EventBanner banners={banners} dockOnly /> : null}
-      <PushNotificationSetting />
+      <PushNotificationSetting toggleSlot={pushToggleSlot} />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
           높은순, 최소주문 낮은순. 랜덤쿠폰 토글은 2026-09-21에 여기서 뺐다(사용자) — 뽑기

@@ -85,7 +85,7 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
   )
 }
 
-export default function TopBarB({ barRef, filters, setFilters, search, setSearch, onSearchSubmit, brands, isFiltered, resetFilters, sheetOpen, onOpenSheet }) {
+export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, search, setSearch, onSearchSubmit, brands, isFiltered, resetFilters, sheetOpen, onOpenSheet }) {
   // 지금 상단 바(TopBarA)와 같은 규칙: 분류는 하나만, '전체'나 같은 분류를 다시 누르면 전체로. 계측도 같은 이벤트.
   const toggleCategory = (key) => {
     setFilters((f) => ({ ...f, updatedOnly: false, categories: key === 'all' || f.categories.has(key) ? new Set() : new Set([key]) }))
@@ -131,6 +131,7 @@ export default function TopBarB({ barRef, filters, setFilters, search, setSearch
           )}
         />
         <div className="title-bar__tools">
+          <span ref={pushToggleRef} id="push-toggle-slot" className="push-toggle-slot" />
           <button type="button" className={`icon-btn${isFiltered ? ' icon-btn--active' : ''}`} disabled={!isFiltered}
             onClick={resetFilters} aria-label="필터 초기화" title={isFiltered ? '필터 초기화' : '되돌릴 필터가 없습니다'}>
             <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><polyline points="21 3 21 9 15 9" /></svg>
