@@ -392,3 +392,6 @@
 /* 2026-10-07 사용자: 시트 금액만 강조색('원 할인'은 기본 글자색). 쿠폰 위 배달/포장 배지는 상세 조건 칩과 같은 색 */
 .cc-sheet__item .cc-amt small { color: var(--ink); }
 .cc-sheet .cc-ticket__tags .offer__status-badge:not(.offer__status-badge--membership) { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text-muted); }
+/* 중복 할인 설명 창은 하단 시트(z-index 91) 위에도 떠야 한다(2026-10-08 사용자: 시트에서 안 뜸) */
+.cc-info__pop { z-index: 95; }
+.cc-sheet .cc-combo { pointer-events: auto; }

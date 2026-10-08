@@ -8,7 +8,7 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import MenuBar from './MenuBar.jsx'
 import { PLATFORMS } from './logos.jsx'
 import { CATEGORIES, applyFilters } from './filters.js'
-import { useBrandAutocomplete } from './useBrandAutocomplete.js'
+import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 import './styles/topbar-b.css'
 
 function SearchControl({ value, onChange, onSubmit, chips, brands }) {
@@ -22,12 +22,15 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
     input: draft,
     onSelect: (brand) => {
       setDraft(brand.name)
+      markSent(brand.name)
       onSubmit(brand.name, 'autocomplete')
     },
   })
 
-  // 바깥에서 검색어를 지우면(칩의 X, 초기화) 입력창도 따라 비어야 한다.
-  useEffect(() => { setDraft(value) }, [value])
+  // 바깥에서 검색어를 지우면(칩의 X, 초기화, 분류 선택) 입력창도 따라 비어야 한다.
+  // 입력 중 실시간 반영은 앞뒤 공백을 떼고 걸리므로, 같은 말이면 입력창(띄어쓰기 중인 글자)을 그대로 둔다.
+  useEffect(() => { setDraft((d) => (d.trim() === value ? d : value)) }, [value])
+  const markSent = useSearchPauseTrack(draft, onSubmit)
 
   useEffect(() => {
     const close = (event) => {
@@ -39,6 +42,7 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
 
   const submit = (method) => {
     autocomplete.close()
+    markSent(draft)
     onSubmit(draft, method)
   }
 
@@ -59,7 +63,7 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
           aria-activedescendant={autocomplete.activeIndex >= 0 ? `${listboxId}-option-${autocomplete.activeIndex}` : undefined}
           value={draft}
           onFocus={autocomplete.open}
-          onChange={(e) => { setDraft(e.target.value); autocomplete.inputChanged() }}
+          onChange={(e) => { setDraft(e.target.value); onSubmit(e.target.value, 'live'); autocomplete.inputChanged() }}
           onKeyDown={(e) => {
             if (autocomplete.handleKeyDown(e)) return
             if (e.key === 'Enter' && !e.repeat) submit('enter')
@@ -88,7 +92,7 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
 export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, search, setSearch, onSearchSubmit, brands, isFiltered, resetFilters, sheetOpen, onOpenSheet }) {
   // 지금 상단 바(TopBarA)와 같은 규칙: 분류는 하나만, '전체'나 같은 분류를 다시 누르면 전체로. 계측도 같은 이벤트.
   const toggleCategory = (key) => {
-    setFilters((f) => ({ ...f, updatedOnly: false, categories: key === 'all' || f.categories.has(key) ? new Set() : new Set([key]) }))
+    setFilters((f) => ({ ...f, search: '', updatedOnly: false, categories: key === 'all' || f.categories.has(key) ? new Set() : new Set([key]) }))
     track('category_change', { category: key, from: 'menu-bar' })
   }
   const menuSelected = filters.categories
@@ -96,10 +100,10 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
   // 전체 / 신규(2026-10-05): 분류 바 맨 앞. 기본은 전체. 신규 = 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
   const leading = [
     { key: 'all', label: '전체', on: filters.categories.size === 0 && !filters.updatedOnly,
-      onClick: () => { setFilters((f) => ({ ...f, updatedOnly: false, categories: new Set() })); track('category_change', { category: 'all', from: 'menu-bar' }) } },
+      onClick: () => { setFilters((f) => ({ ...f, search: '', updatedOnly: false, categories: new Set() })); track('category_change', { category: 'all', from: 'menu-bar' }) } },
     // 개수는 지금 조건(앱, 5천원 이상만 등)에서 신규만 켰을 때 남는 브랜드 수(설계의 "New N")
     { key: 'new', label: newCount ? `신규 ${newCount}` : '신규', on: !!filters.updatedOnly,
-      onClick: () => { setFilters((f) => ({ ...f, updatedOnly: !f.updatedOnly, categories: new Set() })); track('quick_filter', { key: 'updated', on: !filters.updatedOnly }) } },
+      onClick: () => { setFilters((f) => ({ ...f, search: '', updatedOnly: !f.updatedOnly, categories: new Set() })); track('quick_filter', { key: 'updated', on: !filters.updatedOnly }) } },
   ]
   return (
     <div className="title-bar title-bar--b" ref={barRef}>

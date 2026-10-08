@@ -24,9 +24,53 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
     if (open) setDraft(filters)
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 본문 스크롤은 잠그지 않는다(2026-09-18). 잠그면 스크롤바가 생겼다 사라지며
-  // 화면 폭이 바뀌어 목록이 좌우로 흔들렸다. 시트 자체가 스크롤을 먹고,
-  // 배경은 그대로 둔다 — 닫았을 때 위치가 바뀌는 것보다 그쪽이 덜 거슬린다.
+  // 열려 있는 동안 뒤 목록은 스크롤되지 않는다(2026-10-08 사용자, 쿠폰 카드 시트와 같게).
+  // 2026-09-18에는 스크롤바가 사라지며 폭이 흔들려 잠그지 않았다. 사라진 스크롤바 폭만큼 오른쪽 여백을 채워 막는다.
+  const sheetRef = useRef(null)
+  const bodyRef = useRef(null)
+  useEffect(() => {
+    if (!open) return undefined
+    const s = document.body.style
+    const prev = { overflow: s.overflow, paddingRight: s.paddingRight }
+    const bar = window.innerWidth - document.documentElement.clientWidth
+    s.overflow = 'hidden'
+    if (bar > 0) s.paddingRight = `${bar}px`
+    return () => { s.overflow = prev.overflow; s.paddingRight = prev.paddingRight }
+  }, [open])
+
+  // 끌어내려 닫기. 본문이 맨 위일 때 아래로 끌면 시트가 따라 내려오고, 놓을 때 120px을 넘었거나 빠르게 튕겼으면 닫는다.
+  useEffect(() => {
+    const el = sheetRef.current
+    if (!open || !el) return undefined
+    let d = null
+    const start = (e) => { d = { y0: e.touches[0].clientY, t: Date.now(), dy: 0, active: false } }
+    const move = (e) => {
+      if (!d) return
+      const y = e.touches[0].clientY
+      if (!d.active) {
+        if (y - d.y0 <= 4) return
+        if ((bodyRef.current?.scrollTop ?? 0) > 0) { d.y0 = y; return }
+        d.active = true; d.y0 = y
+      }
+      d.dy = Math.max(0, y - d.y0)
+      el.style.transition = 'none'
+      el.style.transform = `translateY(${d.dy}px)`
+      e.preventDefault()
+    }
+    const end = () => {
+      if (!d?.active) { d = null; return }
+      const close = d.dy > 120 || (d.dy > 40 && Date.now() - d.t < 300)
+      el.style.transition = 'transform .18s ease'
+      el.style.transform = close ? 'translateY(100%)' : ''
+      d = null
+      if (close) setTimeout(onClose, 160)
+    }
+    el.addEventListener('touchstart', start, { passive: true })
+    el.addEventListener('touchmove', move, { passive: false })
+    el.addEventListener('touchend', end)
+    el.addEventListener('touchcancel', end)
+    return () => { el.removeEventListener('touchstart', start); el.removeEventListener('touchmove', move); el.removeEventListener('touchend', end); el.removeEventListener('touchcancel', end) }
+  }, [open, onClose])
 
   // ESC로 닫는다. 키보드만 쓰는 사용자에게 닫을 길이 배경 클릭뿐이면 안 된다.
   useEffect(() => {
@@ -59,7 +103,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
         onClose()
       }}
     >
-      <section className="sheet" role="dialog" aria-modal="true" aria-label="필터">
+      <section ref={sheetRef} className="sheet" role="dialog" aria-modal="true" aria-label="필터">
         <div className="sheet__grip" aria-hidden="true" />
         <button type="button" className="sheet__close" aria-label="닫기" onClick={onClose}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -67,7 +111,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
           </svg>
         </button>
 
-        <div className="sheet__body">
+        <div ref={bodyRef} className="sheet__body">
           <h2 className="sheet__title">플랫폼{draft.platforms.size === 0 && <span className="sheet__hint sheet__hint--warn">하나 이상 선택해 주세요</span>}</h2>
           {/* A안 바의 앱 버튼을 그대로 쓴다. 배지 자체가 버튼이어야
               aria-pressed가 붙고, 거기 걸린 A안 규칙(체크 배지·안 고른 앱

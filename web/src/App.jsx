@@ -354,7 +354,7 @@ export default function App({ initial = null }) {
       ? { ...filters, search: query }
       : { ...filters, search: query, categories: new Set() }
     setFilters(nextFilters)
-    if (query === '') return
+    if (query === '' || submitMethod === 'live') return
 
     // 상태 반영 뒤 effect를 기다리면 이 이벤트만 이전 검색 맥락을 가진다.
     // 제출로 확정한 조건을 먼저 알려 같은 이벤트에도 최신 fSearch를 싣는다.

@@ -206,3 +206,8 @@
   .quick-bar__switch-track { width: 30px; height: 18px; }
   .quick-bar__switch-track::after { width: 14px; height: 14px; }
 }
+
+/* 시트 본문 끝까지 스크롤해도 뒤 목록으로 넘어가지 않는다. 배경에서 끌어도 뒤가 안 움직인다(2026-10-08 사용자) */
+.sheet__body { overscroll-behavior: contain; }
+.sheet-scrim { touch-action: none; }
+.sheet { touch-action: pan-y; }

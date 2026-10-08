@@ -4,7 +4,7 @@ import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
 import { CATEGORIES, applyFilters } from './filters.js'
-import { useBrandAutocomplete } from './useBrandAutocomplete.js'
+import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 
 /**
  * A안 검색 — 접힌 원형 버튼, 누르면 입력칸이 펼쳐진다.
@@ -23,11 +23,13 @@ function SearchControlA({ value, onSubmit, brands }) {
   const [draft, setDraft] = useState(value)
   const inputRef = useRef(null)
   const listboxId = useId()
+  const markSent = useSearchPauseTrack(draft, onSubmit)
   const autocomplete = useBrandAutocomplete({
     brands,
     input: draft,
     onSelect: (brand) => {
       setDraft(brand.name)
+      markSent(brand.name)
       onSubmit(brand.name, 'autocomplete')
       setOpen(false)
     },
@@ -35,7 +37,7 @@ function SearchControlA({ value, onSubmit, brands }) {
 
   useEffect(() => {
     if (open) {
-      setDraft(value)
+      setDraft((d) => (d.trim() === value ? d : value))
       inputRef.current?.focus()
     }
   }, [open, value])
@@ -52,6 +54,7 @@ function SearchControlA({ value, onSubmit, brands }) {
 
   const submit = (method) => {
     autocomplete.close()
+    markSent(draft)
     onSubmit(draft, method)
     setOpen(false)
   }
@@ -86,7 +89,7 @@ function SearchControlA({ value, onSubmit, brands }) {
             aria-activedescendant={autocomplete.activeIndex >= 0 ? `${listboxId}-option-${autocomplete.activeIndex}` : undefined}
             value={draft}
             onFocus={autocomplete.open}
-            onChange={(e) => { setDraft(e.target.value); autocomplete.inputChanged() }}
+            onChange={(e) => { setDraft(e.target.value); onSubmit(e.target.value, 'live'); autocomplete.inputChanged() }}
             onKeyDown={(e) => {
               if (autocomplete.handleKeyDown(e)) return
               if (e.key === 'Enter' && !e.repeat) submit('enter')
@@ -150,12 +153,14 @@ export default function TopBarA({
 
   const selectCategory = (key) => {
     if (key === 'new') {
-      setFilters((f) => ({ ...f, updatedOnly: !f.updatedOnly, categories: new Set() }))
+      setFilters((f) => ({ ...f, search: '', updatedOnly: !f.updatedOnly, categories: new Set() }))
       track('quick_filter', { key: 'updated', on: !filters.updatedOnly, from: 'bar' })
       return
     }
     setFilters((f) => ({
       ...f,
+      // 검색 중에 분류를 누르면 검색어를 푼다. 둘이 같이 걸리면 대개 0건이다(2026-10-08 사용자)
+      search: '',
       updatedOnly: false,
       categories: key === 'all' ? new Set() : new Set([key]),
     }))
