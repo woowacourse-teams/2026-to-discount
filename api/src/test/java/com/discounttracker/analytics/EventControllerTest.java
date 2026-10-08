@@ -69,6 +69,25 @@ class EventControllerTest {
     }
 
     @Test
+    void acceptsPushPromptFunnelEvents() throws Exception {
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            [
+                              {"event":"push_prompt_viewed","visitorId":"v_prompt","props":{"source":"offer"}},
+                              {"event":"push_prompt_enable_clicked","visitorId":"v_prompt","props":{"source":"offer"}},
+                              {"event":"push_prompt_closed","visitorId":"v_prompt","props":{"source":"offer","reason":"escape"}}
+                            ]
+                            """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accepted").value(3));
+        String logged = Files.readString(Path.of(logPath));
+        assertTrue(logged.contains("\"event\":\"push_prompt_viewed\""));
+        assertTrue(logged.contains("\"event\":\"push_prompt_enable_clicked\""));
+        assertTrue(logged.contains("\"event\":\"push_prompt_closed\""));
+        assertTrue(logged.contains("\"reason\":\"escape\""));
+    }
+
+    @Test
     void acceptsBrandImpressionWithApprovedPropertiesAndContext() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content(batch("""
