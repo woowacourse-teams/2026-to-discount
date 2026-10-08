@@ -17,7 +17,11 @@ import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.HexFormat;
+import java.security.MessageDigest;
 import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class NewOfferNotificationService {
@@ -53,7 +57,7 @@ public class NewOfferNotificationService {
         // 재시작 시 기존 예약을 사용한다. 11시 이후 처음 켜진 서버는 남은 구간에서 예약한다.
         String date = day.toString();
         DailyOfferNotification state = plan(day);
-        if (state.complete() || now.toEpochSecond() < state.scheduledEpochSecond()) return;
+        if (state.complete() || state.excluded() || now.toEpochSecond() < state.scheduledEpochSecond()) return;
         List<BrandComparison> current = comparisons.compare();
         if (state.target() == null) {
             var target = candidates(current, day).stream().findFirst().orElse(null);
@@ -71,6 +75,8 @@ public class NewOfferNotificationService {
             return;
         }
         String notificationId = UUID.nameUUIDFromBytes(("new_offer:" + date).getBytes(StandardCharsets.UTF_8)).toString();
+        state = state.begin();
+        store.saveDailyOffer(date, state);
         boolean complete = true;
         for (PushSubscription subscription : subscriptions) {
             String deliveryKey = "new_offer:" + date + ":" + subscription.id();
@@ -104,6 +110,72 @@ public class NewOfferNotificationService {
         long end = day.atTime(11, 30).atZone(KST).toEpochSecond();
         long earliest = Math.min(end - 1, Math.max(start, clock.instant().getEpochSecond()));
         return store.dailyOffer(day.toString(), ThreadLocalRandom.current().nextLong(earliest, end));
+    }
+
+    public synchronized ManagementView next(LocalDate requestedDate) {
+        LocalDate day = managementDay(requestedDate);
+        return view(day, plan(day));
+    }
+
+    public synchronized ManagementView update(LocalDate requestedDate, String mode, String offerId) {
+        LocalDate day = managementDay(requestedDate);
+        DailyOfferNotification state = plan(day);
+        if (!editable(day, state)) throw new ResponseStatusException(HttpStatus.CONFLICT, "발송이 시작되었거나 발송 시간이 종료되었습니다.");
+        DailyOfferNotification next;
+        if ("replace".equals(mode)) {
+            var target = replacementCandidates(comparisons.compare(), day).stream()
+                    .filter(value -> offerId(value).equals(offerId)).findFirst()
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효한 신규 할인 후보가 아닙니다."));
+            next = new DailyOfferNotification(state.scheduledEpochSecond(), target, false, true, false, false);
+        } else if ("exclude".equals(mode)) {
+            next = new DailyOfferNotification(state.scheduledEpochSecond(), null, false, false, true, false);
+        } else if ("auto".equals(mode)) {
+            next = new DailyOfferNotification(state.scheduledEpochSecond(), null, false, false, false, false);
+        } else throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "mode는 auto, replace, exclude 중 하나여야 합니다.");
+        store.saveDailyOffer(day.toString(), next);
+        return view(day, next);
+    }
+
+    private LocalDate managementDay(LocalDate requested) {
+        if (properties.statePath() == null) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Push 상태 저장 경로가 설정되지 않았습니다.");
+        LocalDate today = clock.instant().atZone(KST).toLocalDate();
+        if (requested == null) {
+            if (!clock.instant().isBefore(today.atTime(11, 30).atZone(KST).toInstant()) || plan(today).complete()) return today.plusDays(1);
+            return today;
+        }
+        if (requested.isBefore(today) || requested.isAfter(today.plusDays(1)))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "오늘 또는 내일의 알림만 조회할 수 있습니다.");
+        return requested;
+    }
+
+    private boolean editable(LocalDate day, DailyOfferNotification state) {
+        return !state.complete() && !state.started()
+                && clock.instant().isBefore(day.atTime(11, 30).atZone(KST).toInstant());
+    }
+
+    private ManagementView view(LocalDate day, DailyOfferNotification state) {
+        List<BrandComparison> current = comparisons.compare();
+        var automatic = candidates(current, day).stream().findFirst().orElse(null);
+        var selected = state.excluded() ? null : state.target() == null ? automatic : state.target();
+        var choices = replacementCandidates(current, day).stream().map(value -> new Candidate(offerId(value), value)).toList();
+        return new ManagementView(day.toString(), Instant.ofEpochSecond(state.scheduledEpochSecond()).atZone(KST).toString(),
+                state.excluded() ? "exclude" : state.overridden() ? "replace" : "auto",
+                selected == null ? null : new Candidate(offerId(selected), selected),
+                automatic == null ? null : new Candidate(offerId(automatic), automatic), choices,
+                editable(day, state), state.started(), state.complete(), properties.configured());
+    }
+
+    public record Candidate(String offerId, DailyOfferNotification.Target offer) {}
+    public record ManagementView(String date, String scheduledAt, String mode, Candidate selected,
+            Candidate automatic, List<Candidate> candidates, boolean editable,
+            boolean started, boolean complete, boolean pushConfigured) {}
+
+    public static String offerId(DailyOfferNotification.Target target) {
+        try {
+            String seed = String.join("\u0000", target.brand(), target.platform(), Integer.toString(target.amount()),
+                    Boolean.toString(target.firstCome()), target.firstSeenAt());
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(seed.getBytes(StandardCharsets.UTF_8)));
+        } catch (java.security.NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
     }
 
     static List<DailyOfferNotification.Target> replacementCandidates(List<BrandComparison> brands, LocalDate day) {

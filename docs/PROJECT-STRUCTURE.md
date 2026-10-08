@@ -67,6 +67,7 @@ api/src/main/java/com/discounttracker/push/WebPushSender.java
 api/src/main/java/com/discounttracker/web/BannerController.java
 api/src/main/java/com/discounttracker/web/BrandController.java
 api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
+api/src/main/java/com/discounttracker/web/PushAdminController.java
 api/src/main/java/com/discounttracker/web/PushSubscriptionController.java
 api/src/main/java/com/discounttracker/web/PushTrackingController.java
 api/src/main/java/com/discounttracker/web/WebConfig.java
@@ -121,6 +122,7 @@ api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
 api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
+api/src/test/java/com/discounttracker/web/PushAdminControllerTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
 api/src/test/resources/contracts/banner-cases.json
 api/src/test/resources/contracts/brand-alias-cases.json
@@ -299,7 +301,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 126 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 128 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 125 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -318,13 +320,14 @@ flowchart TB
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 11 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
-| `web/` | HTTP 엔드포인트와 CORS | 6 |
+| `web/` | HTTP 엔드포인트와 CORS | 7 |
 
 HTTP 경계:
 
 - `DELETE /api/push/subscriptions`
 - `GET /api/banners`
 - `GET /api/brands`
+- `GET /api/push/admin/next`
 - `GET /api/push/click/{token}`
 - `GET /api/push/public-key`
 - `GET /api/survey`
@@ -334,6 +337,7 @@ HTTP 경계:
 - `POST /api/push/subscriptions`
 - `POST /api/reload`
 - `POST /api/survey`
+- `PUT /api/push/admin/next`
 
 ### Web
 
