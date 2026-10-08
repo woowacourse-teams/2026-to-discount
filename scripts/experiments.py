@@ -120,6 +120,12 @@ def load(src):
                 e = json.loads(line)
             except ValueError:
                 continue
+            # 미리보기는 원장에 남기되 실험 방문자와 이벤트 집계에는 포함하지 않는다.
+            props = e.get("props")
+            if (e.get("event") in {
+                    "push_prompt_viewed", "push_prompt_enable_clicked", "push_prompt_closed",
+                } and isinstance(props, dict) and props.get("source") == "preview"):
+                continue
             vid = e.get("visitorId")
             if not vid or vid in SYNTHETIC:
                 continue
