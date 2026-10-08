@@ -377,18 +377,17 @@ export default function PushNotificationSetting() {
               <strong className="push-notification-example__title">BHC 8,000원 할인이 시작되었어요!</strong>
               <p>알림을 눌러 확인하기 {'>'}</p>
             </div>
-          {feedback && <p className={failed ? 'push-setting__error' : 'push-setting__status'} role="status">{feedback}</p>}
+          {failed && feedback && <p className="push-setting__error" role="status">{feedback}</p>}
           {failed && !feedback && <p className="push-setting__error" role="status">알림 설정을 변경하지 못했습니다. 잠시 뒤 다시 시도해 주세요.</p>}
           <div className="push-setting__actions">
             <button type="button" className="push-setting__cta" disabled={changing || enabled} onClick={() => {
               track('push_prompt_enable_clicked', { source: promptSource })
+              setPreviewPrompt(false)
               if (enabled) {
                 setFeedback('이미 알림이 켜져 있습니다')
-                setPreviewPrompt(false)
               } else if (availability === 'denied') {
                 setFeedback('브라우저 설정에서 알림을 허용해 주세요')
               } else if (availability === 'ios-install') {
-                setPreviewPrompt(false)
                 setIosGuideClosing(false)
                 setShowIosGuide(true)
               } else {
