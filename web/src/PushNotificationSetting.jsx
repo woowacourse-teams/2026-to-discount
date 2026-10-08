@@ -33,7 +33,7 @@ function storePushEnabled(enabled) {
   }
 }
 
-export default function PushNotificationSetting() {
+export default function PushNotificationSetting({ toggleSlot }) {
   // 서버(SSR)와 첫 렌더를 맞춘다. 실제 값은 하이드레이션 뒤 effect에서 읽는다.
   const [availability, setAvailability] = useState('unsupported')
   const [enabled, setEnabled] = useState(false)
@@ -42,7 +42,6 @@ export default function PushNotificationSetting() {
     setEnabled(storedPushEnabled())
   }, [])
   const [failed, setFailed] = useState(false)
-  const [toggleSlot, setToggleSlot] = useState(null)
   const [previewPrompt, setPreviewPrompt] = useState(false)
   const [promptSource, setPromptSource] = useState('preview')
   const [changing, setChanging] = useState(false)
@@ -175,10 +174,6 @@ export default function PushNotificationSetting() {
       iosGuideCloseTimerRef.current = null
     }, 200)
   }, [iosGuideClosing])
-
-  useEffect(() => {
-    setToggleSlot(document.getElementById('push-toggle-slot'))
-  }, [])
 
   useEffect(() => {
     if (!feedback || changing || promptOpen) return
