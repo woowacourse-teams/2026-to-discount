@@ -52,13 +52,15 @@ public class PushTrackingController {
             var tracked = context.token();
             String seed = tracked.notificationId() + ":" + tracked.subscriptionId() + ":" + eventName;
             String eventId = UUID.nameUUIDFromBytes(seed.getBytes(StandardCharsets.UTF_8)).toString();
+            Map<String, String> details = "new_offer".equals(tracked.deliveryType())
+                    ? Map.of("notificationId", tracked.notificationId(), "deliveryType", tracked.deliveryType(), "offerCount", "1")
+                    : Map.of("notificationId", tracked.notificationId(), "deliveryType", tracked.deliveryType(),
+                            "bannerCount", String.valueOf(tracked.bannerIds().size()),
+                            "bannerIds", String.join(",", tracked.bannerIds()));
             analytics.append(List.of(new VisitEvent(
                     OffsetDateTime.now(clock).toString(), eventName, context.visitorId(), null,
                     null, "/", "internal", null, null, null,
-                    Map.of("notificationId", tracked.notificationId(),
-                            "deliveryType", tracked.deliveryType(),
-                            "bannerCount", String.valueOf(tracked.bannerIds().size()),
-                            "bannerIds", String.join(",", tracked.bannerIds())),
+                    details,
                     OffsetDateTime.now(clock).toString(), null, false, null, eventId, null)));
         });
     }

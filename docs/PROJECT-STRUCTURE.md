@@ -55,6 +55,8 @@ api/src/main/java/com/discounttracker/offer/OfferStartupLoader.java
 api/src/main/java/com/discounttracker/offer/OfferStatus.java
 api/src/main/java/com/discounttracker/push/BannerNotificationService.java
 api/src/main/java/com/discounttracker/push/BannerNotificationState.java
+api/src/main/java/com/discounttracker/push/DailyOfferNotification.java
+api/src/main/java/com/discounttracker/push/NewOfferNotificationService.java
 api/src/main/java/com/discounttracker/push/PushEndpointPolicy.java
 api/src/main/java/com/discounttracker/push/PushMessageFactory.java
 api/src/main/java/com/discounttracker/push/PushProperties.java
@@ -113,6 +115,7 @@ api/src/test/java/com/discounttracker/offer/OfferConvergenceTest.java
 api/src/test/java/com/discounttracker/offer/OfferRecordTest.java
 api/src/test/java/com/discounttracker/offer/OfferRepositoryTest.java
 api/src/test/java/com/discounttracker/push/BannerNotificationServiceTest.java
+api/src/test/java/com/discounttracker/push/NewOfferNotificationServiceTest.java
 api/src/test/java/com/discounttracker/push/PushEndpointPolicyTest.java
 api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
 api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
@@ -296,7 +299,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 123 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 126 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 125 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -314,7 +317,7 @@ flowchart TB
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 11 |
-| `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 9 |
+| `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
 | `web/` | HTTP 엔드포인트와 CORS | 6 |
 
 HTTP 경계:
