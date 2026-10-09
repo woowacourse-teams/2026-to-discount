@@ -47,7 +47,7 @@ public final class OfferHistory {
     }
 
     public List<Point> bestSeries(String brand, LocalDate from, LocalDate to) {
-        if (coverage.isEmpty()) return List.of();
+        if (coverage.isEmpty() || to.isBefore(coverage.firstKey())) return List.of();
         NavigableMap<LocalDate, List<BrandDay>> mine = byBrand.getOrDefault(brand, new TreeMap<>());
         List<Point> out = new ArrayList<>();
         Integer lastSolid = null;

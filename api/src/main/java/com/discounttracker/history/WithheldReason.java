@@ -15,7 +15,12 @@ public enum WithheldReason {
     public boolean countsAsCollected() { return trusts; }
 
     public static WithheldReason of(String s) {
-        return s == null ? null : valueOf(s.toUpperCase(Locale.ROOT));
+        if (s == null || s.isBlank()) return null;
+        try {
+            return valueOf(s.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            return null; // 모르는 사유는 사유 없음으로 둔다
+        }
     }
 
     public String key() { return name().toLowerCase(Locale.ROOT); }

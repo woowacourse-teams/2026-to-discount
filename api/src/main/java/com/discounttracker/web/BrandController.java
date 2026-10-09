@@ -22,10 +22,13 @@ public class BrandController {
     private final BannerCatalog banners;
     private final com.discounttracker.analytics.PopularityIndex popularity;
     private final BannerNotificationService notifications;
+    private final com.discounttracker.history.HistoryRepository history;
 
     public BrandController(BrandComparisonService service, OfferRepository offers,
                            BannerCatalog banners, com.discounttracker.analytics.PopularityIndex popularity,
-                           BannerNotificationService notifications) {
+                           BannerNotificationService notifications,
+                           com.discounttracker.history.HistoryRepository history) {
+        this.history = history;
         this.service = service;
         this.offers = offers;
         this.banners = banners;
@@ -50,6 +53,7 @@ public class BrandController {
     @PostMapping("/reload")
     public Map<String, Object> reload() {
         offers.reload();
+        boolean historyOk = history.reload();
         popularity.reload();
         // 배너 파일이 깨져도 200을 돌려준다 — 오퍼는 멀쩡히 다시 읽혔고,
         // 배너는 부가 정보다. 대신 깨졌다는 사실을 응답에 실어 보낸다.
@@ -78,6 +82,7 @@ public class BrandController {
                 : new BannerNotificationService.ReloadResult(0, 0, false, 0);
         return Map.ofEntries(
                 Map.entry("reloaded", offers.findAll().size()),
+                Map.entry("historyOk", historyOk),
                 Map.entry("banners", banners.active().size()),
                 Map.entry("bannersOk", bannersOk),
                 Map.entry("bannersParsed", parsed),

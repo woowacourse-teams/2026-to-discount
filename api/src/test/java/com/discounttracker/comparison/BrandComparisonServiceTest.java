@@ -58,6 +58,43 @@ class BrandComparisonServiceTest {
         return new BrandComparisonService(repositoryWith(records), brands, banners, clock);
     }
 
+    private BrandComparisonService serviceWithHistory(List<OfferRecord> records, String yaml, Clock clock,
+                                                      com.discounttracker.history.OfferHistory history) {
+        BrandCatalog brands = catalogWith(yaml);
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource("banners: []".getBytes(StandardCharsets.UTF_8)), clock, brands);
+        return new BrandComparisonService(repositoryWith(records), brands, banners, clock,
+                com.discounttracker.history.HistoryRepository.of(history));
+    }
+
+    @Test
+    void offersCarryNoveltyFromHistory() {
+        String brands = """
+                brands:
+                  청년피자:
+                    category: pizza
+                """;
+        var history = new com.discounttracker.history.OfferHistory(
+                List.of(new com.discounttracker.history.BrandDay(java.time.LocalDate.parse("2026-08-19"),
+                        "coupangeats", "청년피자", com.discounttracker.history.DayState.PUBLISHED, null, 10000)),
+                java.util.Map.of(java.time.LocalDate.parse("2026-08-19"), java.util.Set.of("coupangeats")));
+        Offer offer = serviceWithHistory(List.of(rec("coupangeats", "청년피자", 10000, null, false)), brands,
+                on("2026-08-20"), history).compare().get(0).offers().get(0);
+        assertEquals(Boolean.FALSE, offer.isNew());
+    }
+
+    @Test
+    void offersAreUnknownWhenHistoryIsEmpty() {
+        String brands = """
+                brands:
+                  청년피자:
+                    category: pizza
+                """;
+        Offer offer = serviceWithHistory(List.of(rec("coupangeats", "청년피자", 10000, null, false)), brands,
+                on("2026-08-20"), com.discounttracker.history.OfferHistory.empty()).compare().get(0).offers().get(0);
+        assertNull(offer.isNew());
+    }
+
     /** KST 기준 그 날짜 정오를 가리키는 시계. */
     private Clock on(String date) {
         return Clock.fixed(Instant.parse(date + "T03:00:00Z"), SEOUL);

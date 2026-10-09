@@ -7,6 +7,11 @@ public enum DayState {
     PUBLISHED, WITHHELD, UNCOLLECTED, ABSENT, UNKNOWN;
 
     public static DayState of(String s) {
-        return s == null ? UNKNOWN : valueOf(s.toUpperCase(Locale.ROOT));
+        if (s == null || s.isBlank()) return UNKNOWN;
+        try {
+            return valueOf(s.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            return UNKNOWN; // 새 상태 문자열 하나로 이력 전체를 잃지 않는다
+        }
     }
 }

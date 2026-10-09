@@ -79,7 +79,8 @@
         "kind": "discount",
         "membership": "none",
         "status": "confirmed",
-        "firstSeenAt": "2026-10-03T00:37:00+09:00"
+        "firstSeenAt": "2026-10-03T00:37:00+09:00",
+        "isNew": null
       }
     },
     {
@@ -124,7 +125,8 @@
         "kind": "discount",
         "membership": "none",
         "status": "confirmed",
-        "firstSeenAt": null
+        "firstSeenAt": null,
+        "isNew": null
       }
     },
     {
@@ -170,7 +172,8 @@
         "kind": "discount",
         "membership": "coupangEats",
         "status": "confirmed",
-        "firstSeenAt": null
+        "firstSeenAt": null,
+        "isNew": null
       }
     }
   ],
@@ -218,6 +221,7 @@
     "firstCome",
     "firstSeenAt",
     "fromBanner",
+    "isNew",
     "kind",
     "link",
     "membership",

@@ -180,7 +180,7 @@ public class NewOfferNotificationService {
 
     static List<DailyOfferNotification.Target> replacementCandidates(List<BrandComparison> brands, LocalDate day) {
         return brands.stream().flatMap(brand -> brand.offers().stream()
-                .filter(NewOfferNotificationService::eligible).filter(offer -> seenToday(offer.firstSeenAt(), day))
+                .filter(NewOfferNotificationService::eligible).filter(offer -> Boolean.TRUE.equals(offer.isNew()))
                 .map(offer -> new DailyOfferNotification.Target(brand.name(), offer.platform(), offer.amount(), offer.firstCome(), offer.firstSeenAt())))
                 .distinct().sorted(Comparator.comparingInt(DailyOfferNotification.Target::amount).reversed()
                         .thenComparing(DailyOfferNotification.Target::brand).thenComparing(DailyOfferNotification.Target::platform)).toList();
@@ -191,7 +191,7 @@ public class NewOfferNotificationService {
             Integer best = brand.offers().stream().filter(NewOfferNotificationService::eligible)
                     .map(Offer::amount).max(Integer::compareTo).orElse(null);
             return brand.offers().stream().filter(NewOfferNotificationService::eligible)
-                    .filter(offer -> offer.amount().equals(best) && seenToday(offer.firstSeenAt(), day))
+                    .filter(offer -> offer.amount().equals(best) && Boolean.TRUE.equals(offer.isNew()))
                     .map(offer -> new DailyOfferNotification.Target(brand.name(), offer.platform(),
                             offer.amount(), offer.firstCome(), offer.firstSeenAt()));
         }).sorted(Comparator.comparingInt(DailyOfferNotification.Target::amount).reversed()
@@ -202,10 +202,5 @@ public class NewOfferNotificationService {
     private static boolean eligible(Offer offer) {
         return offer.amount() != null && offer.amount() > 0
                 && OfferComparison.isBestCandidate(offer.certainty(), offer.kind(), offer.soldOut(), offer.platform());
-    }
-
-    private static boolean seenToday(String firstSeenAt, LocalDate day) {
-        try { return Instant.parse(firstSeenAt).atZone(KST).toLocalDate().equals(day); }
-        catch (RuntimeException e) { return false; }
     }
 }

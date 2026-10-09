@@ -42,6 +42,16 @@ class NewOfferNotificationServiceTest {
     }
 
     @Test
+    void onlyOffersJudgedNewAreCandidates() {
+        Offer newOne = offer("coupangeats", 10000, true);
+        Offer old = offer("coupangeats", 9000, false);
+        Offer unknown = offer("baemin", 12000, null);
+        var targets = NewOfferNotificationService.candidates(
+                List.of(brand("청년피자", newOne, old), brand("BBQ", unknown)), LocalDate.parse("2026-10-09"));
+        assertThat(targets).extracting(DailyOfferNotification.Target::brand).containsExactly("청년피자");
+    }
+
+    @Test
     void persistsRandomScheduleInsideRemainingWindow() {
         var store = store();
         var comparisons = mock(BrandComparisonService.class);
@@ -192,6 +202,15 @@ class NewOfferNotificationServiceTest {
         when(offer.certainty()).thenReturn(Certainty.EXACT);
         when(offer.kind()).thenReturn(AmountKind.DISCOUNT);
         when(offer.firstSeenAt()).thenReturn(firstSeenAt);
+        // 신규 판정은 이제 이력(isNew)이 한다. 기존 기대를 지키려고 시계 날(2026-10-08 KST)에 처음 본 것을 신규로 둔다.
+        when(offer.isNew()).thenReturn(Instant.parse(firstSeenAt).atZone(ZoneId.of("Asia/Seoul")).toLocalDate()
+                .equals(LocalDate.parse("2026-10-08")));
+        return offer;
+    }
+    private static Offer offer(String platform, int amount, Boolean isNew) {
+        var offer = offer(amount, "2026-10-01T00:00:00Z");
+        when(offer.platform()).thenReturn(platform);
+        when(offer.isNew()).thenReturn(isNew);
         return offer;
     }
 }

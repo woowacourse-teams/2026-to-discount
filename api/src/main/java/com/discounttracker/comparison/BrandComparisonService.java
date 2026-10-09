@@ -5,6 +5,8 @@ import com.discounttracker.banner.BannerAmount;
 import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.banner.BannerText;
 import com.discounttracker.brand.BrandCatalog;
+import com.discounttracker.history.HistoryRepository;
+import com.discounttracker.history.OfferHistory;
 import com.discounttracker.offer.Certainty;
 import com.discounttracker.offer.Offer;
 import com.discounttracker.offer.OfferComparison;
@@ -42,15 +44,22 @@ public class BrandComparisonService {
     private final BrandCatalog brands;
     private final BannerCatalog banners;
     private final Clock clock;
+    private final HistoryRepository history;
 
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
                                   BannerCatalog banners, Clock clock) {
-        this(offers, brands, banners, clock, null, "");
+        this(offers, brands, banners, clock, null, "", HistoryRepository.of(OfferHistory.empty()));
+    }
+
+    /** 테스트용: 이력을 넣는다. */
+    public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
+                                  BannerCatalog banners, Clock clock, HistoryRepository history) {
+        this(offers, brands, banners, clock, null, "", history);
     }
 
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
                                   BannerCatalog banners, Clock clock, String hideUnlinkedPlatforms) {
-        this(offers, brands, banners, clock, null, hideUnlinkedPlatforms);
+        this(offers, brands, banners, clock, null, hideUnlinkedPlatforms, HistoryRepository.of(OfferHistory.empty()));
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -58,7 +67,9 @@ public class BrandComparisonService {
                                   BannerCatalog banners, Clock clock,
                                   com.discounttracker.analytics.PopularityIndex popularity,
                                   @org.springframework.beans.factory.annotation.Value("${discount.hide-unlinked-platforms:yogiyo}")
-                                  String hideUnlinkedPlatforms) {
+                                  String hideUnlinkedPlatforms,
+                                  HistoryRepository history) {
+        this.history = history;
         this.offers = offers;
         this.brands = brands;
         this.banners = banners;
@@ -404,12 +415,17 @@ public class BrandComparisonService {
         // 한 칸으로 합친다. 2026-09-30 던킨 땡겨요: 배너와 원장이 같은 7,000원인데 두 번 떴다.
         byBrand.values().forEach(BrandComparisonService::mergeSameFirstCome);
 
+        // 신규 여부는 이력이 판정한다(설계 2026-10-09). 금액 없는 오퍼는 모름(null).
+        OfferHistory h = history.current();
         List<BrandComparison> result = new ArrayList<>();
         byBrand.forEach((name, offersByPlatform) -> result.add(new BrandComparison(
                 brands.find(name),
                 maxConfirmed.get(name),
                 maxHeld.get(name),
-                new ArrayList<>(offersByPlatform.values()),
+                new ArrayList<>(offersByPlatform.values().stream()
+                        .map(o -> o.amount() == null ? o
+                                : o.withIsNew(h.novelty(o.platform(), name, o.amount(), today).asBoolean()))
+                        .toList()),
                 popularity == null ? 0 : popularity.scoreOf(name))));
 
         result.sort(BrandComparison.byBestDiscount());
