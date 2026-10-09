@@ -1,15 +1,29 @@
-.hist { margin: 12px 0 0; }
-.hist:focus-visible { outline: 2px solid var(--sale); outline-offset: 2px; }
+.hist { margin: 16px 0 0; font-variant-numeric: tabular-nums; border-radius: 8px; }
+.hist:focus-visible { outline: 2px solid var(--sale); outline-offset: 4px; }
+.hist__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hist__title { font-size: 14px; font-weight: 600; color: var(--text); margin: 0; }
+.hist__tabs { display: flex; gap: 2px; }
+.hist__tab { font: inherit; font-size: 12px; padding: 3px 8px; border: 0; border-radius: 999px; background: none; color: var(--text-muted); cursor: pointer; }
+.hist__tab[aria-pressed="true"] { color: var(--text); font-weight: 600; background: color-mix(in srgb, var(--border) 70%, transparent); }
+.hist__sum { display: flex; gap: 14px; margin: 8px 0 4px; font-size: 12px; flex-wrap: wrap; }
+.hist__sum > div { display: flex; gap: 4px; }
+.hist__sum dt { color: var(--text-muted); }
+.hist__sum dd { margin: 0; color: var(--text); font-weight: 600; }
 .hist__wrap { position: relative; min-width: 0; }
-.hist__svg { width: 100%; height: auto; display: block; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
-.hist__solid { fill: none; stroke: var(--sale); stroke-width: 2; }
-.hist__carried { fill: none; stroke: var(--sale); stroke-width: 2; stroke-dasharray: 4 4; opacity: .6; }
-.hist__lbl { font-size: 9px; fill: var(--text); text-anchor: middle; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
-.hist__guide { stroke: var(--text-muted); stroke-width: 1; pointer-events: none; }
-.hist__tip { position: absolute; top: 0; transform: translateX(-50%); padding: 2px 6px; font-size: 11px; white-space: nowrap; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; pointer-events: none; font-variant-numeric: tabular-nums; }
-.hist__title { font-size: 13px; font-weight: 600; color: var(--text); margin: 0 0 6px; }
-.hist__plot { display: block; }
-.hist__plot > * { min-width: 0; }
-.hist__ytick { font-size: 10px; fill: var(--text-muted); text-anchor: end; font-variant-numeric: tabular-nums; pointer-events: none; }
-.hist__x { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin: 0; padding-left: 11.3%; font-variant-numeric: tabular-nums; }
-.hist__axis { stroke: var(--border); stroke-width: 1; }
+.hist__svg { width: 100%; height: auto; display: block; overflow: visible; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.hist__svg text { font-family: inherit; font-variant-numeric: tabular-nums; pointer-events: none; }
+.hist__grid { stroke: var(--border); stroke-width: 1; }
+.hist__ytick { font-size: 10px; fill: var(--text-muted); text-anchor: end; dominant-baseline: middle; }
+.hist__xtick { font-size: 11px; fill: var(--text-muted); }
+.hist__area { fill: var(--sale); opacity: .1; stroke: none; }
+.hist__solid { fill: none; stroke: var(--sale); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.hist__carried { fill: none; stroke: var(--sale); stroke-width: 2; stroke-dasharray: 3 4; stroke-linejoin: round; opacity: .45; }
+.hist__dot { fill: var(--sale); stroke: var(--surface); stroke-width: 2; }
+.hist__pill rect { fill: var(--surface); stroke: var(--border); stroke-width: 1; }
+.hist__pill text { text-anchor: middle; font-size: 11px; }
+.hist__pill-d { fill: var(--text-muted); }
+.hist__pill-v { fill: var(--text); font-weight: 600; }
+.hist__guide { stroke: var(--text-muted); stroke-width: 1; opacity: .6; pointer-events: none; }
+.hist__tip { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; padding: 3px 9px; font-size: 11px; line-height: 1.35; white-space: nowrap; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; pointer-events: none; box-shadow: 0 1px 3px rgb(0 0 0 / .08); }
+.hist__tip b { font-size: 12px; font-weight: 700; }
+.hist__tip-d { color: var(--text-muted); }
