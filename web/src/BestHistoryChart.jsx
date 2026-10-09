@@ -33,13 +33,16 @@ export default function BestHistoryChart({ brand }) {
   const midI = nearestIndex((xs[0] + xs[xs.length - 1]) / 2, xs)
   const xTicks = [[0, 'start'], [midI, 'middle'], [pts.length - 1, 'end']]
 
+  // 그래프 위 끌기는 날짜 고르기다. 바텀시트 끌어 닫기로 올라가지 않게 막는다.
   const pick = (e) => {
+    e.stopPropagation()
     clearTimeout(timer.current)
     const r = svgRef.current.getBoundingClientRect()
     setSel(nearestIndex(((e.clientX - r.left) / r.width) * W, xs))
   }
   // 터치는 손을 떼도 잠깐 남겨 읽을 시간을 준다. 마우스는 올려둔 동안만.
   const onUp = (e) => {
+    e.stopPropagation()
     if (e.pointerType === 'mouse') return
     timer.current = setTimeout(() => setSel(null), 1500)
   }

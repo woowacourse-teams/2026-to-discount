@@ -1,7 +1,7 @@
 // 브랜드 최고 할인 꺾은선(2026-10-10 계단에서 바꿈). 실선 = 그날 본 값, 점선 = 못 봐서 이어 그린 값, 끊김 = 할인 없음.
 export const W = 320
 export const H = 150
-export const GUTTER = 36 // 금액 축 숫자 자리
+export const GUTTER = 28 // 금액 축 숫자 자리
 export const RIGHT = 8
 export const TOP = 46 // 말풍선 자리(PILL_H + 간격)
 export const BOTTOM = 18 // 날짜 축 자리

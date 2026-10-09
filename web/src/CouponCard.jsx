@@ -261,7 +261,8 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
     if (dy > 120 || (fast && dy > 40)) { el.style.transform = 'translateY(100%)'; setTimeout(() => setSheet(false), 200) }
     else el.style.transform = ''
   }
-  const dragStart = (y, target) => { const body = target.closest?.('.cc-sheet__body'); sdrag.current = { y0: y, t: Date.now(), dy: 0, body, active: false } }
+  const dragStart = (y, target) => { if (target.closest?.('.hist__svg')) { sdrag.current = null; return } // 그래프 위 끌기는 날짜 고르기
+  const body = target.closest?.('.cc-sheet__body'); sdrag.current = { y0: y, t: Date.now(), dy: 0, body, active: false } }
   const dragMove = (y) => {
     const d = sdrag.current
     const el = sheetRef.current
