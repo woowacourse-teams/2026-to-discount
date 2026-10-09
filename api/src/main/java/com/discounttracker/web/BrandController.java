@@ -5,11 +5,17 @@ import com.discounttracker.comparison.BrandComparison;
 import com.discounttracker.comparison.BrandComparisonService;
 import com.discounttracker.offer.OfferRepository;
 import com.discounttracker.push.BannerNotificationService;
+import com.discounttracker.history.HistoryResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -23,11 +29,13 @@ public class BrandController {
     private final com.discounttracker.analytics.PopularityIndex popularity;
     private final BannerNotificationService notifications;
     private final com.discounttracker.history.HistoryRepository history;
+    private final Clock clock;
 
     public BrandController(BrandComparisonService service, OfferRepository offers,
                            BannerCatalog banners, com.discounttracker.analytics.PopularityIndex popularity,
                            BannerNotificationService notifications,
-                           com.discounttracker.history.HistoryRepository history) {
+                           com.discounttracker.history.HistoryRepository history, Clock clock) {
+        this.clock = clock;
         this.history = history;
         this.service = service;
         this.offers = offers;
@@ -39,6 +47,16 @@ public class BrandController {
     @GetMapping("/brands")
     public List<BrandComparison> brands() {
         return service.compare();
+    }
+
+    @GetMapping("/brands/{brand}/history")
+    public ResponseEntity<HistoryResponse> history(@PathVariable String brand,
+                                                   @RequestParam(defaultValue = "1m") String range) {
+        try {
+            return ResponseEntity.ok(HistoryResponse.of(history.current(), brand, range, LocalDate.now(clock)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**
