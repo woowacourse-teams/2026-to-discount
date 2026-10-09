@@ -1,0 +1,6 @@
+.hist { margin: 12px 0 0; }
+.hist__svg { width: 100%; height: auto; display: block; }
+.hist__solid { fill: none; stroke: var(--sale); stroke-width: 2; }
+.hist__carried { fill: none; stroke: var(--sale); stroke-width: 2; stroke-dasharray: 4 4; opacity: .6; }
+.hist__dot { fill: var(--sale); }
+.hist__dot--hollow { fill: var(--surface); stroke: var(--sale); stroke-width: 1.5; }

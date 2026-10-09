@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchHistory } from './api.js'
 import { chartModel } from './historyChart.js'
 import { won } from './OfferChip.jsx'
+import './styles/hist.css'
 
 const W = 300
 const H = 96
@@ -19,8 +20,8 @@ export default function BestHistoryChart({ brand }) {
   return (
     <figure className="hist">
       <svg viewBox={`0 0 ${W} ${H}`} className="hist__svg" role="img" aria-label={won(m.yMax)}>
-        {m.solid.map((pts, i) => <polyline key={`s${i}`} points={pts} className="hist__solid" />)}
-        {m.carried.map((pts, i) => <polyline key={`c${i}`} points={pts} className="hist__carried" />)}
+        {m.solid.map((pts, i) => <polyline key={`s${i}`} points={pts} fill="none" className="hist__solid" />)}
+        {m.carried.map((pts, i) => <polyline key={`c${i}`} points={pts} fill="none" className="hist__carried" />)}
         {m.dots.map((d, i) => <circle key={i} cx={d.x} cy={d.y} r="2.5" className={d.hollow ? 'hist__dot hist__dot--hollow' : 'hist__dot'} />)}
       </svg>
     </figure>

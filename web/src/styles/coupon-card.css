@@ -395,10 +395,3 @@
 /* 중복 할인 설명 창은 하단 시트(z-index 91) 위에도 떠야 한다(2026-10-08 사용자: 시트에서 안 뜸) */
 .cc-info__pop { z-index: 95; }
 .cc-sheet .cc-combo { pointer-events: auto; }
-
-.hist { margin: 12px 0 0; }
-.hist__svg { width: 100%; height: auto; display: block; }
-.hist__solid { fill: none; stroke: var(--sale); stroke-width: 2; }
-.hist__carried { fill: none; stroke: var(--sale); stroke-width: 2; stroke-dasharray: 4 4; opacity: .6; }
-.hist__dot { fill: var(--sale); }
-.hist__dot--hollow { fill: var(--surface); stroke: var(--sale); stroke-width: 1.5; }
