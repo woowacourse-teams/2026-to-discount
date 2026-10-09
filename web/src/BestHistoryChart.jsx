@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { fetchHistory } from './api.js'
 import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H, TOP } from './historyChart.js'
 import { won } from './OfferChip.jsx'
+import { track } from './analytics.js'
 import './styles/hist.css'
 
 const RANGES = [['1m', '1개월'], ['3m', '3개월'], ['all', '전체']]
@@ -70,7 +71,7 @@ export default function BestHistoryChart({ brand }) {
         <div className="hist__tabs" role="group">
           {RANGES.map(([k, label]) => (
             <button key={k} type="button" className="hist__tab" aria-pressed={range === k}
-              onClick={() => setRange(k)}>{label}</button>
+              onClick={() => { if (k !== range) track('history_range_change', { brand, from: range, to: k }); setRange(k) }}>{label}</button>
           ))}
         </div>
       </div>
@@ -78,12 +79,11 @@ export default function BestHistoryChart({ brand }) {
         <dl className="hist__sum">
           <div><dt>최고</dt><dd>{won(sum.max)} · {md(sum.maxDate)}</dd></div>
           <div><dt>최저</dt><dd>{won(sum.min)}</dd></div>
-          <div><dt>평균</dt><dd>{won(sum.avg)}</dd></div>
         </dl>
       )}
       <div className="hist__wrap">
         <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="hist__svg" aria-hidden="true"
-          onPointerDown={pick} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}
+          onPointerDown={(e) => { track('history_point_select', { brand, range, pointer: e.pointerType || 'none' }); pick(e) }} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}
           onPointerLeave={(e) => { if (e.pointerType === 'mouse') setSel(null) }}>
           <line x1={GUTTER} y1={m.yHi} x2={W} y2={m.yHi} className="hist__grid" />
           <line x1={GUTTER} y1={m.yLo} x2={W} y2={m.yLo} className="hist__grid" />
