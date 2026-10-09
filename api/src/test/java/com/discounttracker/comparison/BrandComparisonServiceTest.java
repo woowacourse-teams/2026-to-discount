@@ -789,6 +789,22 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void bannerOfferCarriesItsStartAsFirstSeen() {
+        // 2026-10-09: 배너 오퍼의 firstSeenAt이 null이라 그날 시작한 배너가 신규로 안 잡혔다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        Offer offer = serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow().offers().get(0);
+        assertEquals("2026-08-17T00:00+09:00", offer.firstSeenAt());
+    }
+
+    @Test
     void bannerOfferCarriesItsOwnLinkAndLeavesBrandLinksAlone() {
         // 배너의 url은 그 행사로 가는 딜링크다. 배너에서 세운 오퍼가
         // 그걸 안 들고 가면, 화면엔 배너에서 온 금액이 찍히는데 누르면

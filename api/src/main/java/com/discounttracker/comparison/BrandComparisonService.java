@@ -156,7 +156,11 @@ public class BrandComparisonService {
                     banner.soldOut(),
                     // 무엇을 주는가 - own 배너의 캐시백/적립까지 discount로 뭉개면 확정
                     // 할인처럼 최고 할인 후보에 낄 수 있다(2026-09-22 fix round).
-                    amountSpec.kind().key()));
+                    amountSpec.kind().key(),
+                    // 배너가 걸린 시각을 처음 본 시각으로 싣는다. null이면 웹이 신규로 못 잡았다(2026-10-09:
+                    // 홍콩반점, KFC 등 배너 오퍼가 그날 시작인데 신규 탭에 안 떴다). 어제와 같은 행사로 기간을
+                    // 늘린 배너는 startsAt이 그대로라 첫날만 신규다.
+                    banner.startsAt() == null ? null : banner.startsAt() + "+09:00"));
         }
         return records;
     }
