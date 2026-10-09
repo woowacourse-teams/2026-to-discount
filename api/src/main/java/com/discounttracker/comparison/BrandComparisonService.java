@@ -160,7 +160,7 @@ public class BrandComparisonService {
                     // 배너가 걸린 시각을 처음 본 시각으로 싣는다. null이면 웹이 신규로 못 잡았다(2026-10-09:
                     // 홍콩반점, KFC 등 배너 오퍼가 그날 시작인데 신규 탭에 안 떴다). 어제와 같은 행사로 기간을
                     // 늘린 배너는 startsAt이 그대로라 첫날만 신규다.
-                    banner.startsAt() == null ? null : banner.startsAt() + "+09:00"));
+                    firstSeen(banner)));
         }
         return records;
     }
@@ -204,9 +204,15 @@ public class BrandComparisonService {
                     banner.url(),
                     banner.spec() == null ? null : banner.spec().membership(),
                     banner.soldOut(),
-                    banner.amountSpec() == null ? null : banner.amountSpec().kind().key()));
+                    banner.amountSpec() == null ? null : banner.amountSpec().kind().key(),
+                    firstSeen(banner)));
         }
         return out;
+    }
+
+    /** 배너가 걸린 시각(KST). 배너 오퍼의 처음 본 시각이다 — 두 경로(새 모양, 옛 모양)가 같이 쓴다. */
+    private static String firstSeen(Banner banner) {
+        return banner.startsAt() == null ? null : banner.startsAt() + "+09:00";
     }
 
     /**
