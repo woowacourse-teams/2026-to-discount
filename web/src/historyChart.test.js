@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { chartModel, inflections, labelLayout, nearestIndex } from './historyChart.js'
+import { chartModel, GUTTER, inflections, labelLayout, nearestIndex } from './historyChart.js'
 
 const P = (date, amount, line, reason) => ({ date, amount, line, reason })
 
@@ -47,4 +47,11 @@ test('labelLayout keeps the later of two colliding labels, clamps edges', () => 
 test('nearestIndex picks closest x', () => {
   assert.equal(nearestIndex(60, [0, 50, 100]), 1)
   assert.equal(nearestIndex(-9, [0, 50, 100]), 0)
+})
+
+test('axis labels share the line coordinates: yMax and 0 map to yTop and yZero', () => {
+  const m = chartModel([P('2026-10-01', 0, 'solid'), P('2026-10-11', 1000, 'solid')], 300, 120)
+  assert.equal(m.pts[1].y, m.yTop)
+  assert.equal(m.pts[0].y, m.yZero)
+  assert.equal(m.pts[0].x, GUTTER)
 })

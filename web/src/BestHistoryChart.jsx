@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchHistory } from './api.js'
-import { chartModel, inflections, labelLayout, nearestIndex, LABEL_H } from './historyChart.js'
+import { chartModel, inflections, labelLayout, nearestIndex, GUTTER, LABEL_H } from './historyChart.js'
 import { won } from './OfferChip.jsx'
 import './styles/hist.css'
 
@@ -29,7 +29,7 @@ export default function BestHistoryChart({ brand }) {
   if (!m) return null
   const pts = data.best
   const xs = m.pts.map((p) => p.x)
-  const labels = labelLayout(inflections(pts).map((i) => ({ i, x: m.pts[i].x, y: m.pts[i].y })), W)
+  const labels = labelLayout(inflections(pts).map((i) => ({ i, x: m.pts[i].x, y: m.pts[i].y })), W, undefined, undefined, undefined, GUTTER)
 
   const pick = (e) => {
     clearTimeout(timer.current)
@@ -54,13 +54,14 @@ export default function BestHistoryChart({ brand }) {
       aria-label={`할인 이력, 최고 ${won(m.yMax)}. 좌우 화살표로 날짜 선택`}>
       <figcaption className="hist__title">할인 이력</figcaption>
       <div className="hist__plot">
-        <div className="hist__y" aria-hidden="true"><span>{num(m.yMax)}</span><span>0</span></div>
         <div className="hist__wrap">
           <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="hist__svg" aria-hidden="true"
             onPointerDown={pick} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}
             onPointerLeave={(e) => { if (e.pointerType === 'mouse') setSel(null) }}>
-            <line x1="0" y1={H} x2={W} y2={H} className="hist__axis" />
-            <line x1="0" y1="0" x2="0" y2={H} className="hist__axis" />
+            <line x1={GUTTER} y1={H} x2={W} y2={H} className="hist__axis" />
+            <line x1={GUTTER} y1="0" x2={GUTTER} y2={H} className="hist__axis" />
+            <text x={GUTTER - 4} y={m.yTop + 3} className="hist__ytick">{num(m.yMax)}</text>
+            <text x={GUTTER - 4} y={m.yZero + 3} className="hist__ytick">0</text>
             {m.solid.map((p, i) => <polyline key={`s${i}`} points={p} fill="none" className="hist__solid" />)}
             {m.carried.map((p, i) => <polyline key={`c${i}`} points={p} fill="none" className="hist__carried" />)}
             {sel == null && labels.map((l) => {
@@ -76,7 +77,6 @@ export default function BestHistoryChart({ brand }) {
           </svg>
           {sel != null && <div className="hist__tip" role="status" style={{ left: `${tipX}%` }}>{tipText(pts[sel])}</div>}
         </div>
-        <span />
         <div className="hist__x" aria-hidden="true"><span>{md(pts[0].date)}</span><span>{md(pts[pts.length - 1].date)}</span></div>
       </div>
     </figure>
