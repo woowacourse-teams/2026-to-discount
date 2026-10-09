@@ -42,7 +42,10 @@ export function hasNewBest(offers, include = false) {
   return best != null && offers.some((o) => isUpdated(o) && comparisonAmount(o, include) === best)
 }
 
+// 서버가 이력으로 판정한 값(isNew)이 있으면 그것을 따른다(설계 2026-10-09). null = 이력 없음, 신규로 안 친다.
+// 칸이 아예 없는 옛 응답만 firstSeenAt 오늘 규칙을 쓴다.
 export function isUpdated(offer, now = Date.now()) {
+  if (offer && 'isNew' in offer) return offer.isNew === true
   const t = offer?.firstSeenAt ? Date.parse(offer.firstSeenAt) : NaN
   return Number.isFinite(t) && kstDay(t) === kstDay(now)
 }

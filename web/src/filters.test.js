@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { apiFile } from '../scripts/api-repo.mjs'
 import {
+  isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
   hasNewBest,
@@ -212,4 +213,12 @@ test('목록 검색은 대표명 밖에 별칭, 메뉴명, 초성으로도 찾�
   assert.deepEqual(f('비비큐'), ['BBQ'])
   assert.deepEqual(f('BHC'), ['bhc'])
   assert.deepEqual(f('ㅂㅂㅋ'), ['BBQ'])
+})
+
+test('isUpdated prefers server isNew over firstSeenAt', () => {
+  const now = Date.parse('2026-10-09T03:00:00Z')
+  assert.equal(isUpdated({ isNew: false, firstSeenAt: '2026-10-09T00:10:03+09:00' }, now), false)
+  assert.equal(isUpdated({ isNew: true, firstSeenAt: '2026-10-01T00:00:00+09:00' }, now), true)
+  assert.equal(isUpdated({ isNew: null, firstSeenAt: '2026-10-09T00:10:03+09:00' }, now), false)
+  assert.equal(isUpdated({ firstSeenAt: '2026-10-09T00:10:03+09:00' }, now), true)
 })

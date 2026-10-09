@@ -14,6 +14,7 @@
 # 반영된다. 기본값(classpath)은 빈 목록이라 배너가 아예 안 뜬다.
 discount:
   export-path: ${DISCOUNT_EXPORT_PATH:classpath:data/export.json}
+  history-path: ${DISCOUNT_HISTORY_PATH:classpath:data/history.json}
   banners-path: ${DISCOUNT_BANNERS_PATH:classpath:banners.yml}
   # 기프티콘 코드. 값을 가진 문자열이라 저장소에 안 두고 서버에 직접 올린다.
   # 파일이 없으면 남은 코드 0으로 보고 설문이 저절로 안 뜬다.

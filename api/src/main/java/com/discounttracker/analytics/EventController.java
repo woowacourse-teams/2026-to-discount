@@ -63,7 +63,9 @@ public class EventController {
             // 새로 여는 것이 없다. 어떤 브랜드가 얼마나 숨겨지는지가 목록 품질의 신호다.
             "brand_hide", "hidden_open",
             // 메인 화면 A/B(2026-10-05): 접기(두 안 모두)와 쿠폰 카드 캐러셀 넘기기.
-            "brand_collapse", "coupon_carousel_swipe");
+            "brand_collapse", "coupon_carousel_swipe",
+            // 할인 그래프(2026-10-10): 날짜 짚기(누르기 한 번에 한 건)와 기간 탭 바꾸기.
+            "history_point_select", "history_range_change");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
             "inputLength", "resultCount", "submitMethod", "query", "results",
             "fCategory", "fPlatforms", "fSearch", "fSort",

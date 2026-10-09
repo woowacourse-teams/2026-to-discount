@@ -3,6 +3,7 @@ import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { comparable, displayBestAmount, offerKey } from './filters.js'
 import { BrandLogo } from './logos.jsx'
+import BestHistoryChart from './BestHistoryChart.jsx'
 import OfferChip from './OfferChip.jsx'
 import OfferDetail from './OfferDetail.jsx'
 
@@ -71,6 +72,8 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
   // 접기는 여전히 가능하다.
   const [pinned, setPinned] = useState(true)
   const open = pinned
+  // 기본이 펼침이라 open만 보면 로드 즉시 이력을 받는다. 사용자가 직접 눌렀을 때만 그래프를 받는다.
+  const [touched, setTouched] = useState(false)
   const detailId = `${useId()}-detail`
   const cardRef = useRef(null)
   const headerRef = useRef(null)
@@ -79,6 +82,7 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
   // 접는 동작은 안 남긴다 — 관심 신호가 아니다.
   const toggle = () => {
     onInteract?.()
+    setTouched(true)
     setPinned((v) => {
       if (!v) track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
       else track('brand_collapse', { brand: brand.name, category: brand.category ?? 'none' })
@@ -182,6 +186,7 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
           브랜드 73개 × 앱 4개어치를 미리 심어두면 첫 화면이 통째로 멎는다.
           컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
       <div id={detailId} className="brand-detail" hidden={!open}>
+        {open && touched && <BestHistoryChart brand={brand.name} />}
         {open && sortedOffers.map((o) => <OfferDetail key={offerKey(o)} offer={o} brandName={brand.name} />)}
       </div>
 
