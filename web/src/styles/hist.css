@@ -1,11 +1,15 @@
 .hist { margin: 12px 0 0; }
-.hist__svg { width: 100%; height: auto; display: block; }
+.hist:focus-visible { outline: 2px solid var(--sale); outline-offset: 2px; }
+.hist__wrap { position: relative; min-width: 0; }
+.hist__svg { width: 100%; height: auto; display: block; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .hist__solid { fill: none; stroke: var(--sale); stroke-width: 2; }
 .hist__carried { fill: none; stroke: var(--sale); stroke-width: 2; stroke-dasharray: 4 4; opacity: .6; }
-.hist__dot { fill: var(--sale); }
-.hist__dot--hollow { fill: var(--surface); stroke: var(--sale); stroke-width: 1.5; }
+.hist__lbl { font-size: 9px; fill: var(--text); text-anchor: middle; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.hist__guide { stroke: var(--text-muted); stroke-width: 1; pointer-events: none; }
+.hist__tip { position: absolute; top: 0; transform: translateX(-50%); padding: 2px 6px; font-size: 11px; white-space: nowrap; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 4px; pointer-events: none; font-variant-numeric: tabular-nums; }
 .hist__title { font-size: 13px; font-weight: 600; color: var(--text); margin: 0 0 6px; }
 .hist__plot { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: stretch; }
+.hist__plot > * { min-width: 0; }
 .hist__y { display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; color: var(--text-muted); text-align: right; font-variant-numeric: tabular-nums; }
 .hist__x { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin: 0; font-variant-numeric: tabular-nums; }
 .hist__axis { stroke: var(--border); stroke-width: 1; }
