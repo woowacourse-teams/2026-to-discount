@@ -186,8 +186,8 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
           브랜드 73개 × 앱 4개어치를 미리 심어두면 첫 화면이 통째로 멎는다.
           컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
       <div id={detailId} className="brand-detail" hidden={!open}>
-        {open && sortedOffers.map((o) => <OfferDetail key={offerKey(o)} offer={o} brandName={brand.name} />)}
         {open && touched && <BestHistoryChart brand={brand.name} />}
+        {open && sortedOffers.map((o) => <OfferDetail key={offerKey(o)} offer={o} brandName={brand.name} />)}
       </div>
 
       {/* 카드 맨 아래 줄 — 담기와 펼치기. 펼치기를 헤더에서 내린 건

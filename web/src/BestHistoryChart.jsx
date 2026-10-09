@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchHistory } from './api.js'
-import { callouts, chartModel, nearestIndex, summary, GUTTER, H, W, BOTTOM, PILL_W, PILL_H } from './historyChart.js'
+import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM } from './historyChart.js'
 import { won } from './OfferChip.jsx'
 import './styles/hist.css'
 
@@ -50,7 +50,8 @@ export default function BestHistoryChart({ brand }) {
     setSel((s) => Math.min(pts.length - 1, Math.max(0, (s ?? (d < 0 ? pts.length : -1)) + d)))
   }
   const sp = sel != null ? pts[sel] : null
-  const tipX = sel != null ? Math.min(86, Math.max(14, (xs[sel] / W) * 100)) : 0
+  // 변곡점 말풍선과 눌렀을 때 말풍선은 같은 모양(.hist__tip), 같은 자리 규칙이다.
+  const at = (c) => ({ left: `${(c.cx / W) * 100}%`, top: `${(c.top / H) * 100}%` })
 
   return (
     <figure className="hist" tabIndex={0} onKeyDown={onKey} onBlur={() => setSel(null)}
@@ -85,21 +86,17 @@ export default function BestHistoryChart({ brand }) {
           {xTicks.map(([i, anchor]) => (
             <text key={anchor} x={xs[i]} y={H - 4} textAnchor={anchor} className="hist__xtick">{md(pts[i].date)}</text>
           ))}
-          {sel == null && pills.map((c) => (
-            <g key={c.i} className="hist__pill">
-              <rect x={c.cx - PILL_W / 2} y={c.top} width={PILL_W} height={PILL_H} rx={PILL_H / 2} />
-              {c.top < m.xy[c.i].y && <path d={`M${m.xy[c.i].x - 4},${c.top + PILL_H - 0.5} l4,4 l4,-4z`} />}
-              <text x={c.cx} y={c.top + PILL_H / 2} dominantBaseline="central">
-                <tspan className="hist__pill-d">{md(pts[c.i].date)}</tspan>
-                <tspan className="hist__pill-v" dx="4">{won(pts[c.i].amount)}</tspan>
-              </text>
-            </g>
-          ))}
           <circle cx={xs[cur]} cy={m.xy[cur].y} r="3.5" className="hist__dot" />
           {sel != null && <line x1={xs[sel]} y1="0" x2={xs[sel]} y2={H - BOTTOM} className="hist__guide" />}
         </svg>
+        {sel == null && pills.map((c) => (
+          <div key={c.i} className="hist__tip" style={at(c)}>
+            <span className="hist__tip-d">{md(pts[c.i].date)}</span>
+            <b>{won(pts[c.i].amount)}</b>
+          </div>
+        ))}
         {sp && (
-          <div className="hist__tip" role="status" style={{ left: `${tipX}%` }}>
+          <div className="hist__tip" role="status" style={at(placeCallout(m.xy.map((p) => ({ ...p, y: p.y ?? m.yLo })), sel))}>
             <span className="hist__tip-d">{md(sp.date)}</span>
             {sp.amount == null
               ? <b>할인 없음</b>

@@ -1,13 +1,12 @@
-// 브랜드 최고 할인 계단선(2026-10-09 다시 그림). 실선 = 그날 본 값, 점선 = 못 봐서 이어 그린 값, 끊김 = 할인 없음.
-// 금액은 하루 단위 값이라 다음 날짜까지 그대로 유지했다가 세로로 바뀐다(계단).
+// 브랜드 최고 할인 꺾은선(2026-10-10 계단에서 바꿈). 실선 = 그날 본 값, 점선 = 못 봐서 이어 그린 값, 끊김 = 할인 없음.
 export const W = 320
 export const H = 150
 export const GUTTER = 36 // 금액 축 숫자 자리
 export const RIGHT = 8
-export const TOP = 32 // 말풍선 자리
+export const TOP = 44 // 말풍선 자리
 export const BOTTOM = 18 // 날짜 축 자리
-export const PILL_W = 78 // 한 줄 칩 "9/23 10,000원"
-export const PILL_H = 20
+export const PILL_W = 64 // 두 줄 말풍선 "9/23" / "10,000원" (눌렀을 때 말풍선과 같은 모양)
+export const PILL_H = 34
 const STEP = 1000
 
 // 최솟값 아래 1,000원 단위 바닥 ~ 최댓값 이상 1,000원 단위 천장. 0에서 시작하지 않는다.
@@ -30,8 +29,8 @@ export function summary(points) {
   return { max: max.amount, maxDate: max.date, min: Math.min(...s.map((p) => p.amount)), avg }
 }
 
-// xy: [{x, y|null, line}]. 이웃한 두 점 사이를 계단 한 칸으로 잇고, 같은 종류끼리 이어 붙인다.
-export function stepPaths(xy, bottom) {
+// xy: [{x, y|null, line}]. 이웃한 두 점을 직선으로 잇고, 같은 종류끼리 이어 붙인다.
+export function linePaths(xy, bottom) {
   const solid = []
   const area = []
   const carried = []
@@ -49,7 +48,7 @@ export function stepPaths(xy, bottom) {
     const kind = a.line === 'carried' || b.line === 'carried' ? 'carried' : 'solid'
     if (run && run.kind !== kind) close()
     if (!run) run = { kind, x0: a.x, d: [`M${a.x} ${a.y}`] }
-    run.d.push(`H${b.x} V${b.y}`)
+    run.d.push(`L${b.x} ${b.y}`)
   }
   close()
   return { solid, area, carried }
@@ -66,7 +65,7 @@ export function chartModel(points) {
   const x = (p) => r(GUTTER + ((Date.parse(p.date) - t0) / span) * (W - GUTTER - RIGHT))
   const yOf = (v) => r(TOP + ((hi - v) / (hi - lo)) * (H - BOTTOM - TOP))
   const xy = points.map((p) => ({ x: x(p), y: p.amount == null ? null : yOf(p.amount), line: p.line }))
-  return { ...stepPaths(xy, H - BOTTOM), xy, lo, hi, yLo: yOf(lo), yHi: yOf(hi) }
+  return { ...linePaths(xy, H - BOTTOM), xy, lo, hi, yLo: yOf(lo), yHi: yOf(hi) }
 }
 
 export function nearestIndex(xPx, xs) {
@@ -77,6 +76,13 @@ export function nearestIndex(xPx, xs) {
 
 // 최고점과 현재(마지막 그릴 수 있는) 점에만 말풍선. 겹치면 현재 것만 남긴다.
 // 가장자리는 안쪽으로 밀고, 위에 자리가 없으면 점 아래에 둔다. 반환: [{i, cx, top}] (cx = 가운데, top = 위 끝)
+// 점 i 위(자리 없으면 아래)에 말풍선 하나. 눌렀을 때 말풍선도 같은 자리 규칙을 쓴다.
+export function placeCallout(xy, i, width = W, minX = GUTTER, w = PILL_W, h = PILL_H, gap = 6) {
+  const { x, y } = xy[i]
+  const top = y - gap - h >= 0 ? y - gap - h : y + gap
+  return { i, cx: Math.min(width - w / 2, Math.max(minX + w / 2, x)), top }
+}
+
 export function callouts(points, xy, width = W, minX = GUTTER, w = PILL_W, h = PILL_H, gap = 6) {
   let cur = -1
   let mx = -1
@@ -86,11 +92,7 @@ export function callouts(points, xy, width = W, minX = GUTTER, w = PILL_W, h = P
     if (mx < 0 || p.amount > points[mx].amount) mx = i
   })
   if (cur < 0) return []
-  const place = (i) => {
-    const { x, y } = xy[i]
-    const top = y - gap - h >= 0 ? y - gap - h : y + gap
-    return { i, cx: Math.min(width - w / 2, Math.max(minX + w / 2, x)), top }
-  }
+  const place = (i) => placeCallout(xy, i, width, minX, w, h, gap)
   const c = place(cur)
   if (mx === cur) return [c]
   const m = place(mx)

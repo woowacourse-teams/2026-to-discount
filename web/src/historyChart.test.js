@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { callouts, chartModel, GUTTER, niceDomain, nearestIndex, stepPaths, summary, PILL_W } from './historyChart.js'
+import { callouts, chartModel, GUTTER, niceDomain, nearestIndex, linePaths, summary, PILL_W } from './historyChart.js'
 
 const P = (date, amount, line = 'solid') => ({ date, amount, line })
 
@@ -18,18 +18,18 @@ test('summary uses solid points only', () => {
   assert.equal(summary([P('d', null, 'break')]), null)
 })
 
-test('stepPaths: horizontal then vertical, no diagonals; solid gets area', () => {
-  const r = stepPaths([{ x: 0, y: 10, line: 'solid' }, { x: 5, y: 20, line: 'solid' }, { x: 9, y: 15, line: 'solid' }], 50)
-  assert.deepEqual(r.solid, ['M0 10 H5 V20 H9 V15'])
-  assert.deepEqual(r.area, ['M0 10 H5 V20 H9 V15 V50 H0 Z'])
+test('linePaths: straight segments point to point; solid gets area', () => {
+  const r = linePaths([{ x: 0, y: 10, line: 'solid' }, { x: 5, y: 20, line: 'solid' }, { x: 9, y: 15, line: 'solid' }], 50)
+  assert.deepEqual(r.solid, ['M0 10 L5 20 L9 15'])
+  assert.deepEqual(r.area, ['M0 10 L5 20 L9 15 V50 H0 Z'])
   assert.deepEqual(r.carried, [])
 })
 
-test('stepPaths: carried segments dashed, break leaves gap', () => {
-  const r = stepPaths([{ x: 0, y: 1, line: 'solid' }, { x: 1, y: 1, line: 'solid' }, { x: 2, y: 2, line: 'carried' },
+test('linePaths: carried segments dashed, break leaves gap', () => {
+  const r = linePaths([{ x: 0, y: 1, line: 'solid' }, { x: 1, y: 1, line: 'solid' }, { x: 2, y: 2, line: 'carried' },
     { x: 3, y: 3, line: 'solid' }, { x: 4, y: null, line: 'break' }, { x: 5, y: 4, line: 'solid' }, { x: 6, y: 4, line: 'solid' }], 9)
-  assert.deepEqual(r.solid, ['M0 1 H1 V1', 'M5 4 H6 V4'])
-  assert.deepEqual(r.carried, ['M1 1 H2 V2 H3 V3'])
+  assert.deepEqual(r.solid, ['M0 1 L1 1', 'M5 4 L6 4'])
+  assert.deepEqual(r.carried, ['M1 1 L2 2 L3 3'])
   assert.equal(r.area.length, 2)
 })
 
