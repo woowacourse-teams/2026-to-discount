@@ -52,3 +52,13 @@ export async function fetchSurveyStatus(visitorId) {
   if (!res.ok) throw new Error(`API ${res.status}`)
   return res.json()
 }
+
+// 이력 엔드포인트가 아직 없는 서버도 있다. 404, 네트워크 실패는 조용히 null.
+export async function fetchHistory(brand, range = '1m') {
+  try {
+    const res = await fetch(`${API_BASE}/api/brands/${encodeURIComponent(brand)}/history?range=${range}`)
+    return res.ok ? await res.json() : null
+  } catch {
+    return null
+  }
+}

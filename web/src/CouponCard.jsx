@@ -11,6 +11,7 @@ import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandN
 import { offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
+import BestHistoryChart from './BestHistoryChart.jsx'
 import './styles/coupon-card.css'
 
 const Up = () => (
@@ -444,6 +445,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                   </div>
                 )
               })}
+              <BestHistoryChart brand={brand.name} />
             </div>
           </div>
         </div>

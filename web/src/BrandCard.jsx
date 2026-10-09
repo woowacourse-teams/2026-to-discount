@@ -3,6 +3,7 @@ import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { comparable, displayBestAmount, offerKey } from './filters.js'
 import { BrandLogo } from './logos.jsx'
+import BestHistoryChart from './BestHistoryChart.jsx'
 import OfferChip from './OfferChip.jsx'
 import OfferDetail from './OfferDetail.jsx'
 
@@ -183,6 +184,7 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
           컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
       <div id={detailId} className="brand-detail" hidden={!open}>
         {open && sortedOffers.map((o) => <OfferDetail key={offerKey(o)} offer={o} brandName={brand.name} />)}
+        {open && <BestHistoryChart brand={brand.name} />}
       </div>
 
       {/* 카드 맨 아래 줄 — 담기와 펼치기. 펼치기를 헤더에서 내린 건
