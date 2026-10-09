@@ -93,7 +93,10 @@ function noticeMs() {
   return NOTICE_FIRST_MS
 }
 
-/** 쿠팡이츠 링크면 기본 이동을 막고 화면을 어둡게 깔아 안내를 1.5초 띄운 뒤 같은 탭에서 연다. 그 밖의 링크는 손대지 않는다. */
+/** 쿠팡이츠 링크면 기본 이동을 막고 화면을 어둡게 깔아 안내를 1.5초 띄운 뒤 연다. 그 밖의 링크는 손대지 않는다.
+ * 웹 주소(https)는 새 탭으로 연다 — 현재 페이지를 떠나지 않게(2026-10-09 사용자). 앱 링크(coupangeats://)는
+ * 새 탭에서 열면 브라우저가 about:blank만 띄우고 앱을 안 연다(OfferChip 주석) — 같은 탭에서 부르고, 앱이
+ * 열려도 이 페이지는 그대로 남는다. */
 export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   if (offerPrompt && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('discount-offer-prompt', { detail: { href } }))
@@ -101,6 +104,8 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   const tab = typeof href === 'string' && href.startsWith('coupangeats://')
   if ((href !== COUPANGEATS_LINK && !tab) || typeof document === 'undefined') return
   e.preventDefault()
+  // 새 탭은 누른 순간 연다 — 안내 뒤(setTimeout)에 열면 팝업 차단(특히 iOS)에 걸린다. 주소는 안내가 끝나고 넣는다.
+  const win = tab ? null : window.open('', '_blank')
   document.querySelector('.ce-dim')?.remove()
   // 바텀시트처럼 화면을 어둡게 깔고 그 위에 안내를 띄운다(2026-10-06 사용자)
   const dim = document.createElement('div')
@@ -122,7 +127,8 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
       window.addEventListener('pagehide', mark, { once: true })
       document.addEventListener('visibilitychange', mark, { once: true })
     }
-    window.location.href = href
+    if (tab) window.location.href = href
+    else if (win) { win.opener = null; win.location.href = href } else window.location.href = href // 차단되면 같은 탭
     if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') window.location.href = COUPANGEATS_LINK }, 4000) // 앱이 안 열리면 4초 뒤 허브(2026-10-07 사용자: 2.5초 -> 4초)
   }, noticeMs())
 }
