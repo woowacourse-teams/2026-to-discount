@@ -434,6 +434,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
               <button type="button" className="cc-sheet__close" aria-label="닫기" onClick={() => setSheet(false)}>×</button>
             </div>
             <div className="cc-sheet__body">
+              <BestHistoryChart brand={brand.name} />
               {[...best, ...rest].map((o, i) => {
                 // 중복 할인 계산식은 시트에서 뺐다(2026-10-07 사용자: 표 첫 줄에 이미 계산이 보인다)
                 const tb = conditionTable(o)
@@ -445,7 +446,6 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                   </div>
                 )
               })}
-              <BestHistoryChart brand={brand.name} />
             </div>
           </div>
         </div>
