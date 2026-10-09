@@ -5,7 +5,7 @@
 .hist__tabs { display: flex; gap: 2px; }
 .hist__tab { font: inherit; font-size: 12px; padding: 3px 8px; border: 0; border-radius: 999px; background: none; color: var(--text-muted); cursor: pointer; }
 .hist__tab[aria-pressed="true"] { color: var(--text); font-weight: 600; background: color-mix(in srgb, var(--border) 70%, transparent); }
-.hist__sum { display: flex; gap: 16px; margin: 6px 0 0; font-size: 12px; flex-wrap: wrap; letter-spacing: -0.01em; }
+.hist__sum { display: flex; gap: 16px; margin: 4px 0 0; font-size: 12px; flex-wrap: wrap; letter-spacing: -0.01em; }
 .hist__sum > div { display: flex; gap: 4px; }
 .hist__sum dt { color: var(--text-muted); }
 .hist__sum dd { margin: 0; color: var(--text); font-weight: 700; }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchHistory } from './api.js'
-import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H } from './historyChart.js'
+import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H, TOP } from './historyChart.js'
 import { won } from './OfferChip.jsx'
 import './styles/hist.css'
 
@@ -54,16 +54,16 @@ export default function BestHistoryChart({ brand }) {
   const at = (c) => ({ left: `${(c.cx / W) * 100}%`, top: `${(c.top / H) * 100}%` })
   // 말풍선이 가장자리에서 안쪽으로 밀려도 꼬리와 점은 실제 날짜 위치를 가리킨다.
   const tail = (c, y) => {
-    const up = c.top > y
+    const up = false
     return <i className={`hist__tail${up ? ' hist__tail--up' : ''}`} aria-hidden="true"
       style={{ left: `${(m.xy[c.i].x / W) * 100}%`, top: `${((up ? c.top : c.top + PILL_H) / H) * 100}%` }} />
   }
 
   return (
     <figure className="hist" tabIndex={0} onKeyDown={onKey} onBlur={() => setSel(null)}
-      aria-label={`할인 이력${sum ? `, 최고 ${won(sum.max)}, 최저 ${won(sum.min)}` : ''}. 좌우 화살표로 날짜 선택`}>
+      aria-label={`할인 그래프${sum ? `, 최고 ${won(sum.max)}, 최저 ${won(sum.min)}` : ''}. 좌우 화살표로 날짜 선택`}>
       <div className="hist__head">
-        <figcaption className="hist__title">할인 이력</figcaption>
+        <figcaption className="hist__title">할인 그래프</figcaption>
         <div className="hist__tabs" role="group">
           {RANGES.map(([k, label]) => (
             <button key={k} type="button" className="hist__tab" aria-pressed={range === k}
@@ -92,10 +92,13 @@ export default function BestHistoryChart({ brand }) {
           {xTicks.map(([i, anchor]) => (
             <text key={anchor} x={xs[i]} y={H - 4} textAnchor={anchor} className="hist__xtick">{md(pts[i].date)}</text>
           ))}
+          {sel == null && pills.map((c) => (
+            <line key={`g${c.i}`} x1={xs[c.i]} y1={c.top + PILL_H} x2={xs[c.i]} y2={m.xy[c.i].y} className="hist__guide" />
+          ))}
           {(sel == null ? pills.map((c) => c.i) : m.xy[sel].y == null ? [] : [sel]).map((i) => (
             <circle key={i} cx={xs[i]} cy={m.xy[i].y} r="3.5" className="hist__dot" />
           ))}
-          {sel != null && <line x1={xs[sel]} y1="0" x2={xs[sel]} y2={H - BOTTOM} className="hist__guide" />}
+          {sel != null && <line x1={xs[sel]} y1={TOP} x2={xs[sel]} y2={H - BOTTOM} className="hist__guide" />}
         </svg>
         {sel == null && pills.map((c) => (
           <div key={c.i}>

@@ -60,5 +60,5 @@ test('callouts: max and current; collision keeps current; same point once', () =
   const near = callouts(pts, [{ x: 280, y: 60 }, { x: 290, y: 100 }, { x: 300, y: 70 }, { x: 310, y: null }])
   assert.deepEqual(near.map((c) => c.i), [2])
   assert.deepEqual(callouts([P('a', 1), P('b', 5)], [{ x: 40, y: 50 }, { x: 300, y: 10 }]).map((c) => c.i), [1])
-  assert.equal(callouts([P('a', 1), P('b', 5)], [{ x: 40, y: 50 }, { x: 300, y: 10 }])[0].top, 16) // 위에 자리 없으면 아래
+  assert.equal(callouts([P('a', 1), P('b', 5)], [{ x: 40, y: 50 }, { x: 300, y: 10 }])[0].top, 0) // 높이 고정: 축 맨 위 바로 위
 })

@@ -3,7 +3,7 @@ export const W = 320
 export const H = 150
 export const GUTTER = 36 // 금액 축 숫자 자리
 export const RIGHT = 8
-export const TOP = 50 // 말풍선 자리
+export const TOP = 46 // 말풍선 자리(PILL_H + 간격)
 export const BOTTOM = 18 // 날짜 축 자리
 export const PILL_W = 70 // 두 줄 말풍선 "9/23" / "10,000원" (눌렀을 때 말풍선과 같은 모양)
 export const PILL_H = 40
@@ -76,11 +76,9 @@ export function nearestIndex(xPx, xs) {
 
 // 최고점과 현재(마지막 그릴 수 있는) 점에만 말풍선. 겹치면 현재 것만 남긴다.
 // 가장자리는 안쪽으로 밀고, 위에 자리가 없으면 점 아래에 둔다. 반환: [{i, cx, top}] (cx = 가운데, top = 위 끝)
-// 점 i 위(자리 없으면 아래)에 말풍선 하나. 눌렀을 때 말풍선도 같은 자리 규칙을 쓴다.
+// 말풍선은 높이를 고정한다: 금액 축 맨 위(TOP) 바로 위. 점이 어디 있든 높낮이가 안 바뀌고, 꼬리와 점이 날짜를 가리킨다.
 export function placeCallout(xy, i, width = W, minX = GUTTER, w = PILL_W, h = PILL_H, gap = 6) {
-  const { x, y } = xy[i]
-  const top = y - gap - h >= 0 ? y - gap - h : y + gap
-  return { i, cx: Math.min(width - w / 2, Math.max(minX + w / 2, x)), top }
+  return { i, cx: Math.min(width - w / 2, Math.max(minX + w / 2, xy[i].x)), top: TOP - gap - h }
 }
 
 export function callouts(points, xy, width = W, minX = GUTTER, w = PILL_W, h = PILL_H, gap = 6) {
