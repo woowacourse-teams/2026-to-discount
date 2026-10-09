@@ -87,9 +87,12 @@ export default function BestHistoryChart({ brand }) {
           ))}
           {sel == null && pills.map((c) => (
             <g key={c.i} className="hist__pill">
-              <rect x={c.cx - PILL_W / 2} y={c.top} width={PILL_W} height={PILL_H} rx="7" />
-              <text x={c.cx} y={c.top + 11} className="hist__pill-d">{md(pts[c.i].date)}</text>
-              <text x={c.cx} y={c.top + 23} className="hist__pill-v">{won(pts[c.i].amount)}</text>
+              <rect x={c.cx - PILL_W / 2} y={c.top} width={PILL_W} height={PILL_H} rx={PILL_H / 2} />
+              {c.top < m.xy[c.i].y && <path d={`M${m.xy[c.i].x - 4},${c.top + PILL_H - 0.5} l4,4 l4,-4z`} />}
+              <text x={c.cx} y={c.top + PILL_H / 2} dominantBaseline="central">
+                <tspan className="hist__pill-d">{md(pts[c.i].date)}</tspan>
+                <tspan className="hist__pill-v" dx="4">{won(pts[c.i].amount)}</tspan>
+              </text>
             </g>
           ))}
           <circle cx={xs[cur]} cy={m.xy[cur].y} r="3.5" className="hist__dot" />

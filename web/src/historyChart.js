@@ -6,8 +6,8 @@ export const GUTTER = 36 // 금액 축 숫자 자리
 export const RIGHT = 8
 export const TOP = 32 // 말풍선 자리
 export const BOTTOM = 18 // 날짜 축 자리
-export const PILL_W = 46
-export const PILL_H = 28
+export const PILL_W = 78 // 한 줄 칩 "9/23 10,000원"
+export const PILL_H = 20
 const STEP = 1000
 
 // 최솟값 아래 1,000원 단위 바닥 ~ 최댓값 이상 1,000원 단위 천장. 0에서 시작하지 않는다.
