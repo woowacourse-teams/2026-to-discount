@@ -3,10 +3,10 @@ export const W = 320
 export const H = 150
 export const GUTTER = 36 // 금액 축 숫자 자리
 export const RIGHT = 8
-export const TOP = 44 // 말풍선 자리
+export const TOP = 50 // 말풍선 자리
 export const BOTTOM = 18 // 날짜 축 자리
-export const PILL_W = 64 // 두 줄 말풍선 "9/23" / "10,000원" (눌렀을 때 말풍선과 같은 모양)
-export const PILL_H = 34
+export const PILL_W = 70 // 두 줄 말풍선 "9/23" / "10,000원" (눌렀을 때 말풍선과 같은 모양)
+export const PILL_H = 40
 const STEP = 1000
 
 // 최솟값 아래 1,000원 단위 바닥 ~ 최댓값 이상 1,000원 단위 천장. 0에서 시작하지 않는다.

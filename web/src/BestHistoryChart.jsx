@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchHistory } from './api.js'
-import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM } from './historyChart.js'
+import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H } from './historyChart.js'
 import { won } from './OfferChip.jsx'
 import './styles/hist.css'
 
@@ -52,6 +52,12 @@ export default function BestHistoryChart({ brand }) {
   const sp = sel != null ? pts[sel] : null
   // 변곡점 말풍선과 눌렀을 때 말풍선은 같은 모양(.hist__tip), 같은 자리 규칙이다.
   const at = (c) => ({ left: `${(c.cx / W) * 100}%`, top: `${(c.top / H) * 100}%` })
+  // 말풍선이 가장자리에서 안쪽으로 밀려도 꼬리와 점은 실제 날짜 위치를 가리킨다.
+  const tail = (c, y) => {
+    const up = c.top > y
+    return <i className={`hist__tail${up ? ' hist__tail--up' : ''}`} aria-hidden="true"
+      style={{ left: `${(m.xy[c.i].x / W) * 100}%`, top: `${((up ? c.top : c.top + PILL_H) / H) * 100}%` }} />
+  }
 
   return (
     <figure className="hist" tabIndex={0} onKeyDown={onKey} onBlur={() => setSel(null)}
@@ -86,23 +92,33 @@ export default function BestHistoryChart({ brand }) {
           {xTicks.map(([i, anchor]) => (
             <text key={anchor} x={xs[i]} y={H - 4} textAnchor={anchor} className="hist__xtick">{md(pts[i].date)}</text>
           ))}
-          <circle cx={xs[cur]} cy={m.xy[cur].y} r="3.5" className="hist__dot" />
+          {(sel == null ? pills.map((c) => c.i) : m.xy[sel].y == null ? [] : [sel]).map((i) => (
+            <circle key={i} cx={xs[i]} cy={m.xy[i].y} r="3.5" className="hist__dot" />
+          ))}
           {sel != null && <line x1={xs[sel]} y1="0" x2={xs[sel]} y2={H - BOTTOM} className="hist__guide" />}
         </svg>
         {sel == null && pills.map((c) => (
-          <div key={c.i} className="hist__tip" style={at(c)}>
-            <span className="hist__tip-d">{md(pts[c.i].date)}</span>
-            <b>{won(pts[c.i].amount)}</b>
+          <div key={c.i}>
+            <div className="hist__tip" style={at(c)}>
+              <span className="hist__tip-d">{md(pts[c.i].date)}</span>
+              <b>{won(pts[c.i].amount)}</b>
+            </div>
+            {tail(c, m.xy[c.i].y)}
           </div>
         ))}
-        {sp && (
-          <div className="hist__tip" role="status" style={at(placeCallout(m.xy.map((p) => ({ ...p, y: p.y ?? m.yLo })), sel))}>
-            <span className="hist__tip-d">{md(sp.date)}</span>
-            {sp.amount == null
-              ? <b>할인 없음</b>
-              : <><b>{won(sp.amount)}</b>{sp.line === 'carried' && <span className="hist__tip-d">수집 안 됨</span>}</>}
-          </div>
-        )}
+        {sp && (() => {
+          const yy = m.xy[sel].y ?? m.yLo
+          const c = placeCallout(m.xy.map((p) => ({ ...p, y: p.y ?? m.yLo })), sel)
+          return (
+            <>
+              <div className="hist__tip" role="status" style={at(c)}>
+                <span className="hist__tip-d">{md(sp.date)}{sp.line === 'carried' && ' 수집 안 됨'}</span>
+                <b>{sp.amount == null ? '할인 없음' : won(sp.amount)}</b>
+              </div>
+              {tail(c, yy)}
+            </>
+          )
+        })()}
       </div>
     </figure>
   )
