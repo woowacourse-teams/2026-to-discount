@@ -23,6 +23,28 @@ export default function BestHistoryChart({ brand }) {
     return () => { live = false }
   }, [brand, range])
   useEffect(() => () => clearTimeout(timer.current), [])
+  // 손가락 끌기: 처음 움직임이 위아래면 그대로 시트 스크롤·끌어 닫기에 맡긴다.
+  // 좌우로 먼저 끌기 시작한 뒤에만 그 손짓이 끝날 때까지 시트로 올라가지 않게 막는다.
+  useEffect(() => {
+    const el = svgRef.current
+    if (!el) return
+    let g = null
+    const ts = (e) => { const t = e.touches[0]; g = { x: t.clientX, y: t.clientY, dir: null } }
+    const tm = (e) => {
+      if (!g) return
+      const t = e.touches[0]
+      const dx = Math.abs(t.clientX - g.x)
+      const dy = Math.abs(t.clientY - g.y)
+      if (!g.dir && dx + dy > 4) g.dir = dx > dy ? 'x' : 'y'
+      if (g.dir === 'x') { e.stopPropagation(); if (e.cancelable) e.preventDefault() }
+    }
+    const te = () => { g = null }
+    el.addEventListener('touchstart', ts, { passive: true })
+    el.addEventListener('touchmove', tm, { passive: false })
+    el.addEventListener('touchend', te)
+    el.addEventListener('touchcancel', te)
+    return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
+  }, [data])
   const pts = data?.best ?? []
   const m = chartModel(pts)
   if (!m) return null
@@ -34,7 +56,6 @@ export default function BestHistoryChart({ brand }) {
   const midI = nearestIndex((xs[0] + xs[xs.length - 1]) / 2, xs)
   const xTicks = [[0, 'start'], [midI, 'middle'], [pts.length - 1, 'end']]
 
-  // 그래프 위 끌기는 날짜 고르기다. 바텀시트 끌어 닫기로 올라가지 않게 막는다.
   const pick = (e) => {
     e.stopPropagation()
     clearTimeout(timer.current)
