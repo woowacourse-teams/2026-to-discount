@@ -900,6 +900,6 @@
  },
  "bannerOps": {
   "note": "banner_ops.py(beggars-ops 정본, tracker 사본)의 머리말 docstring 뒤 본문 sha256. 두 사본이 바이트 단위로 같아야 한다. 정본을 고치면 여기도 고친다",
-  "bodySha256": "23b6d08bf20311be0fe9645a82d64c01678f37f7413e87faa1592bb24be902a6"
+  "bodySha256": "6af39d5ccd3ffa20f66b399c8243b573c937e978da473932afe44cbf09630c6e"
  }
 }
