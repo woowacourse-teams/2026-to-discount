@@ -355,4 +355,4 @@
 .update-note { margin: 2px 4px 10px; font-size: 13px; color: var(--text-muted); }
 
 /* 신규 보기는 꺼져 있어도 할인 강조색으로 눈에 띄게(2026-10-10 사용자) */
-.menu-bar__item--accent, .menu-bar__item--accent:hover { color: var(--sale); font-weight: 700; }
+.menu-bar__item--accent, .menu-bar__item--accent:hover { color: var(--sale); font-weight: 700; background: var(--sale-weak); border-radius: 8px; }
