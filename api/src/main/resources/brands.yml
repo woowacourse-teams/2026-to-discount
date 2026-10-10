@@ -27,7 +27,7 @@ brands:
   # --- 치킨 ---
   가마로강정:
     searchAliases: [가마로, 가마로 닭강정, gamaro, gamaro gangjeong]
-    menus: [사천깐풍기, 치블링, 컵강정]
+    menus: [사천깐풍기, 치블링, 컵강정, 파파강정]
     aliases: [가마로, 가마로 닭강정, gamaro, gamaro gangjeong]
     category: chicken
   치킨마루:
@@ -68,7 +68,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=4723
   굽네치킨:
     searchAliases: [굽네, 굽네 치킨, goobne, goobne chicken, gubne]
-    menus: [고추바사삭, 볼케이노, 갈비천왕, 오븐바사삭]
+    menus: [고추바사삭, 볼케이노, 갈비천왕, 오븐바사삭, 파기름]
     category: chicken
     aliases: [굽네, 굽네치킨, goobne, goobnechicken, 굽네치킨&피자, gubne]
     links:
@@ -113,7 +113,7 @@ brands:
     category: chicken
   두찜:
     searchAliases: [두찜 찜닭, 두찜찜닭, doojjim, doojjim chicken]
-    menus: [감자숭이, 모치치]
+    menus: [감자숭이, 모치치, 볼치즈]
     category: chicken
     aliases: [두찜, 두찜찜닭, 두찜 찜닭, 두찜_찜닭, doojjim, doojjim chicken]
     links:
@@ -127,6 +127,7 @@ brands:
       baemin: https://s.baemin.com/Ra000Lptp5yYe
   땅땅치킨:
     searchAliases: [땅땅, 땅땅 치킨, ttangttang, ttangttang chicken]
+    menus: [후왕]
     aliases: [땅땅, ttangttang, ttangttang chicken]
     category: chicken
     links:
@@ -240,7 +241,7 @@ brands:
       baemin: https://s.baemin.com/VQ000LpusVuS3
   치킨플러스:
     searchAliases: [치킨 플러스, 치플, chicken plus, chikin plus]
-    menus: [핫쵸킹]
+    menus: [핫쵸킹, 혼치킨]
     aliases: [치플, chicken plus, chikin plus]
     category: chicken
     links:
@@ -254,7 +255,7 @@ brands:
     category: chicken
   푸라닭:
     searchAliases: [푸라닭치킨, 푸라닭 치킨, puradak, puradak chicken]
-    menus: [블랙알리오, 고추마요, 파불로, 마마치, 일품깐풍]
+    menus: [블랙알리오, 고추마요, 파불로, 마마치, 일품깐풍, 쿼터레그]
     aliases: [푸라닭, 푸라닭치킨, 푸라닭 치킨, puradak, puradak chicken]
     category: chicken
     links:
@@ -334,6 +335,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=652
   맘스피자:
     searchAliases: [맘스 피자, 맘피, moms pizza, mom's pizza]
+    menus: [싸이피자]
     aliases: [맘피, moms pizza, mom's pizza]
     category: pizza
     links:
@@ -347,6 +349,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=20101
   빽보이피자:
     searchAliases: [빽보이, 빽보이 피자, 백피자, 빽피자]
+    menus: [열탄불고기]
     category: pizza
     links:
       baemin: https://s.baemin.com/33000Lpqvmlnc
@@ -368,6 +371,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?tC3WuJ7
   오구쌀피자:
     searchAliases: [오구 피자, 오구쌀 피자, 59 pizza, ogu rice pizza]
+    menus: [반미터]
     aliases: [오구 피자, 59 pizza, ogu rice pizza]
     category: pizza
   서오릉피자:
@@ -408,6 +412,7 @@ brands:
       baemin: https://s.baemin.com/pj000LpI3ZTTN
   피자헛:
     searchAliases: [피자 헛, 피자헛 코리아, pizza hut, pizzahut]
+    menus: [피자설기, 한근피자]
     aliases: [피자헛 코리아]
     category: pizza
     links:
@@ -417,6 +422,7 @@ brands:
 
   노모어피자:
     searchAliases: [노모어 피자, 노모어, no more pizza, nomore pizza]
+    menus: [옥수수새우, 핫허니]
     aliases: [노모어]
     category: pizza
 
@@ -427,7 +433,7 @@ brands:
     category: fastfood
   롯데리아:
     searchAliases: [롯데 리아, lotteria]
-    menus: [데리버거, 모짜렐라인더버거, 한우불고기버거]
+    menus: [데리버거, 모짜렐라인더버거, 한우불고기버거, 착한점심]
     aliases: [롯데리아, lotteria]
     category: fastfood
     # 쿠팡이츠 반짝핫딜(2026-10-05)로 처음 들어왔다. 배달앱 링크와 로고는 아직 없다.
@@ -450,7 +456,7 @@ brands:
       baemin: https://s.baemin.com/ND000LpqFoc7y
   맥도날드:
     searchAliases: [맥날, 맥도날드 코리아, mcdonald's, mcdonalds]
-    menus: [빅맥, 상하이 스파이시, 맥스파이시, 맥너겟, 맥모닝, 맥플러리, 1955버거, 맥크리스피]
+    menus: [빅맥, 상하이 스파이시, 맥스파이시, 맥너겟, 맥모닝, 맥플러리, 1955버거, 맥크리스피, 고추장버터]
     aliases: [맥날, 맥도날드 코리아, mcdonald's, mcdonalds]
     category: fastfood
     links:
@@ -492,6 +498,7 @@ brands:
       baemin: https://s.baemin.com/5z000LBSFKsfJ
   왓더버거:
     searchAliases: [왓더 버거, 왓버거, what the burger, whattheburger]
+    menus: [왓더헬]
     aliases: [왓버거]
     category: fastfood
     links:
@@ -513,6 +520,7 @@ brands:
     category: cafe
   카페인중독:
     searchAliases: [카페인 중독, 카중, caffeine addiction, caffeine jungdok]
+    menus: [햅쌀와플]
     aliases: [카중, caffeine addiction, caffeine jungdok]
     category: cafe
     links:
@@ -563,6 +571,7 @@ brands:
       baemin: https://s.baemin.com/LR000LpqbHpqH
   뚜레쥬르:
     searchAliases: [뚜레주르, 뚜쥬, tous les jours, touslesjours]
+    menus: [로열퀸, 아그작]
     aliases: [뚜레쥬르, touslesjours, tlj, 뚜레주르, 뚜쥬]
     category: cafe
     links:
@@ -620,7 +629,7 @@ brands:
   # 브랜드 카드가 행사 페이지로 나가므로 비워 둔다(ADR-016 취지).
   빽다방:
     searchAliases: [백다방, 빽다방 커피, 백종원 커피, paiks coffee, paik's coffee, ppaekdabang]
-    menus: [앗메리카노, 빽스치노, 블랙벨벳]
+    menus: [앗메리카노, 빽스치노, 블랙벨벳, 호지차라떼]
     aliases: [백다방, 빽다방 커피, 백종원 커피, paiks coffee, paik's coffee, ppaekdabang]
     category: cafe
 
@@ -639,6 +648,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=646
   세븐일레븐:
     searchAliases: [세븐 일레븐, 세븐편의점, 세븐, 7-eleven, seven eleven]
+    menus: [복담주]
     aliases: [세븐편의점, 세븐, 7-eleven, seven eleven]
     category: convenience
     links:
@@ -659,6 +669,7 @@ brands:
   # --- 한식 ---
   밥풀릭스:
     searchAliases: [밥 풀릭스, 밥풀, bapflix, babflix]
+    menus: [소금우유]
     aliases: [밥풀, bapflix, babflix]
     category: korean
     links:
@@ -823,6 +834,7 @@ brands:
       baemin: https://s.baemin.com/or000Lq09nEXd
   포케올데이:
     searchAliases: [포케 올데이, 포케, poke all day, pokeallday]
+    menus: [두부볼]
     aliases: [포케올데이, poke all day, 포케]
     category: cafe
     links:
@@ -850,6 +862,7 @@ brands:
       baemin: https://s.baemin.com/7o3.gggxg
   나우카페:
     searchAliases: [나우 카페, 나우커피, now cafe, now coffee]
+    menus: [하이나우]
     aliases: [나우커피, now cafe, now coffee]
     category: cafe
     links:
@@ -874,6 +887,7 @@ brands:
       baemin: https://s.baemin.com/7o3.hvrvw
   미스터보쌈:
     searchAliases: [미스터 보쌈, 미스터보쌈족발, mister bossam, mr bossam]
+    menus: [앤족발]
     aliases: [미스터보쌈족발, mister bossam, mr bossam]
     category: korean
     links:
@@ -895,6 +909,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=3225
   백억커피:
     searchAliases: [백억 커피, 백억, baekeok coffee, 10 billion coffee]
+    menus: [리치라떼]
     aliases: [백억, baekeok coffee, 10 billion coffee]
     category: cafe
     links:
@@ -1019,6 +1034,7 @@ brands:
       baemin: https://s.baemin.com/Ya000aBNscd6W
   피자에땅:
     searchAliases: [피자 에땅, 에땅피자, pizza etang, pizza ettang]
+    menus: [달피자]
     aliases: [에땅피자, pizza etang, pizza ettang]
     category: pizza
     links:
@@ -1048,7 +1064,7 @@ brands:
   # --- 분식/기타 ---
   삼첩분식:
     searchAliases: [삼첩 분식, 삼첩, samcheop bunsik, samcheop]
-    menus: [감자폭탄, 로제샹궈]
+    menus: [감자폭탄, 로제샹궈, 바질크림]
     aliases: [삼첩, samcheop bunsik, samcheop]
     category: snack
   본죽:
@@ -1109,6 +1125,7 @@ brands:
       baemin: https://s.baemin.com/l8000LprOkwZ5
   미친피자:
     searchAliases: [미친피자]
+    menus: [씬크러스트]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=20097
       baemin: https://s.baemin.com/DN000LpRIMwjE
@@ -1183,6 +1200,7 @@ brands:
     category: convenience
   가마치통닭:
     searchAliases: [가마치통닭]
+    menus: [누룽지통닭]
     category: chicken
   크리스피크림도넛:
     searchAliases: [크리스피크림도넛]
