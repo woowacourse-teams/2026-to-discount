@@ -1,6 +1,6 @@
 // 쿠폰 브랜드 카드(메인 화면 A안 16차)의 계산. 화면 없이 테스트한다.
 // 명세: tracker docs/superpowers/specs/2026-10-03-home-a-display-model.md
-import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated, isBundle, bundleFirst } from './filters.js'
+import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated, isBundle } from './filters.js'
 export { isUpdated }
 
 const byMinOrder = (a, b) => (a.minOrderAmount ?? Infinity) - (b.minOrderAmount ?? Infinity)
@@ -15,19 +15,22 @@ const QUALIFIER_BADGE = {
  * 견줄 수 있고 품절이 아닌 오퍼 중 가장 큰 금액, 동점은 하나를 골라 올리지 않는다.
  * 하위는 최대(불확정)를 뒤로 민 뒤 금액 큰 순. 최고가 없으면 그 순서의 맨 앞이 대표다.
  */
-export function splitOffers(offers, include) {
+export function splitOffers(all, include) {
+  // 1+1 묶음 행사는 대표, 하위와 따로 카드 맨 위 줄에 선다(2026-10-11 사용자: 오퍼 최상단).
+  const bundles = all.filter(isBundle)
+  const offers = all.filter((x) => !isBundle(x))
+  // 묶음 행사뿐인 브랜드는 그것이 대표다(대표 쿠폰 자리가 비면 카드가 안 그려진다).
+  if (offers.length === 0) return { best: bundles.slice(0, 1), rest: bundles.slice(1), hasBest: false, bundles: [] }
   const top = displayBestAmount(offers, include)
   const isBest = (x) => top != null && comparable(x, include) && !x.soldOut && x.amount === top
   const sorted = [...offers].sort((a, b) => {
     const am = a.qualifier === '최대' ? 1 : 0
     const bm = b.qualifier === '최대' ? 1 : 0
-    return bundleFirst(a, b) || am - bm || (b.amount ?? -1) - (a.amount ?? -1)
+    return am - bm || (b.amount ?? -1) - (a.amount ?? -1)
   })
   const best = sorted.filter(isBest).sort(byMinOrder)
-  if (best.length > 0) return { best, rest: sorted.filter((x) => !isBest(x)), hasBest: true }
-  // 대표는 묶음 행사가 아닌 첫 오퍼다. 묶음만 있으면 그것이 대표다.
-  const lead = sorted.find((x) => !isBundle(x)) ?? sorted[0]
-  return { best: lead ? [lead] : [], rest: sorted.filter((x) => x !== lead), hasBest: false }
+  if (best.length > 0) return { best, rest: sorted.filter((x) => !isBest(x)), hasBest: true, bundles }
+  return { best: sorted.slice(0, 1), rest: sorted.slice(1), hasBest: false, bundles }
 }
 
 export function minLabel(m) {

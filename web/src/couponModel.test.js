@@ -179,11 +179,12 @@ test('요기요 정률 배달 + 정액 포장 합계 구간: 포장은 계산식
   ])
 })
 
-test('1+1 묶음 행사는 대표를 뺏지 않고 나머지 맨 위에 선다(2026-10-11)', () => {
+test('1+1 묶음 행사는 대표, 하위와 따로 맨 위 줄로 간다(2026-10-11)', () => {
   const bundle = { platform: 'own', amount: null, rawText: '징거버거 1+1', kind: 'bundle' }
   const a = o('baemin', 3000)
   const b = o('coupangeats', 2000)
-  const { best, rest } = splitOffers([a, b, bundle], {})
+  const { best, rest, bundles } = splitOffers([a, b, bundle], {})
   assert.equal(best[0], a)
-  assert.equal(rest[0], bundle)
+  assert.deepEqual(rest, [b])
+  assert.deepEqual(bundles, [bundle])
 })

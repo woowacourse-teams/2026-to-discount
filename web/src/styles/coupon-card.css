@@ -395,3 +395,10 @@
 /* 중복 할인 설명 창은 하단 시트(z-index 91) 위에도 떠야 한다(2026-10-08 사용자: 시트에서 안 뜸) */
 .cc-info__pop { z-index: 95; }
 .cc-sheet .cc-combo { pointer-events: auto; }
+
+/* 1+1 묶음 행사 줄: 대표 쿠폰 위, 쿠폰 폭(2026-10-11 사용자: 오퍼 최상단) */
+.cc-bundle { width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 10px; background: var(--sale-weak); color: var(--sale); text-decoration: none; font-size: 14px; line-height: 1.3; min-width: 0; }
+.cc-bundle b { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-bundle-tag { flex: none; font-size: 11.5px; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: var(--sale); color: #fff; }
+.cc-bundle svg { flex: none; width: 15px; height: 15px; }
+.cc-deal-col > .cc-bundle + .cc-main-in { margin-top: 6px; }

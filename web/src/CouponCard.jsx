@@ -229,7 +229,7 @@ function Ticket({ brand, best, hasBest, position, idx, setIdx }) {
 const OPEN_MS = 280
 const LEAVE_MS = 220
 function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false, compact = false }) {
-  const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
+  const { best, rest, hasBest, bundles } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   const [phase, setPhase] = useState(false)
   const [cur, setCur] = useState(0) // 캐러셀에서 보이는 쿠폰. 브랜드명 옆 배지가 이걸 따른다
   const [settled, setSettled] = useState(false) // 다 열린 뒤에는 overflow를 풀어 쿠폰 그림자가 잘리지 않게 한다
@@ -368,7 +368,15 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         {/* 2줄: 배지(예전 계산식 자리). 계산식은 복합 배지의 (i) 설명으로 옮겼다(2026-10-06 사용자) */}
         {best[cur] && <div className="cc-fx cc-badges"><Tags o={best[cur]} /></div>}
       </div>
-      <div className="cc-deal cc-deal--main"><div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div></div>
+      {/* 1+1 묶음 행사는 대표 쿠폰 위 한 줄(2026-10-11 사용자: 오퍼 최상단). 금액 비교 밖이라 대표를 뺏지 않는다. */}
+      <div className="cc-deal cc-deal--main"><div className={bundles.length ? 'cc-deal-col' : undefined}>
+        {bundles.map((o) => (
+          <OfferLinkA key={offerKey(o)} offer={o} brand={brand} position={position} best={false} where="main" slot="bundle" className="cc-bundle">
+            <span className="cc-bundle-tag">행사</span><b>{o.rawText}</b><LinkIcon />
+          </OfferLinkA>
+        ))}
+        <div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
+      </div></div>
       {/* 최고 오퍼는 메인 쿠폰에 이미 있으니 쿠폰으로 다시 그리지 않고, 상세 표만 메인 쿠폰 바로 아래에 둔다 */}
       {bestTables.length > 0 && (
         <div className="cc-x"><div className="cc-x-in">
