@@ -1,6 +1,8 @@
 package com.discounttracker.banner;
 
 import com.discounttracker.offer.AmountKind;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.discounttracker.offer.Certainty;
 
 import java.util.List;
@@ -16,6 +18,7 @@ import java.util.Objects;
  * amount: {won: [1000, 8000], random: true}  1,000~8,000원 랜덤
  * amount: {percent: 30}                      30% 할인
  * amount: {percent: 50, kind: cashback}      50% 캐시백
+ * amount: {buy: 1, get: 1, item: 징거버거}     징거버거 1+1 (금액 없이 선다)
  * </pre>
  *
  * <p>{@code won}과 {@code percent}는 하나만 쓴다. 옛 모양의 문자열 {@code amount}와
@@ -28,7 +31,14 @@ import java.util.Objects;
  * @param kind 무엇을 주는가
  */
 public record BannerAmount(Integer wonMin, Integer wonMax, Integer percent,
-                           boolean random, AmountKind kind) {
+                           boolean random, AmountKind kind,
+                           @JsonInclude(JsonInclude.Include.NON_NULL) Integer buy,
+                           @JsonInclude(JsonInclude.Include.NON_NULL) Integer get,
+                           @JsonInclude(JsonInclude.Include.NON_NULL) String item) {
+
+    public BannerAmount(Integer wonMin, Integer wonMax, Integer percent, boolean random, AmountKind kind) {
+        this(wonMin, wonMax, percent, random, kind, null, null, null);
+    }
 
     public BannerAmount {
         if ((wonMin != null || wonMax != null) && percent != null) {
@@ -73,10 +83,28 @@ public record BannerAmount(Integer wonMin, Integer wonMax, Integer percent,
             lo = hi;
             hi = swap;
         }
+        Integer buy = intOrNull(map.get("buy"));
+        Integer get = intOrNull(map.get("get"));
+        if (hi == null && percent == null && buy != null && get != null && buy > 0 && get > 0) {
+            Object item = map.get("item");
+            String name = item == null || String.valueOf(item).isBlank() ? null : String.valueOf(item).trim();
+            return new BannerAmount(null, null, null, false, AmountKind.BUNDLE, buy, get, name);
+        }
         if (hi == null && percent == null) return null;
         boolean random = Boolean.TRUE.equals(map.get("random"));
         AmountKind kind = AmountKind.from(map.get("kind") == null ? null : String.valueOf(map.get("kind")));
         return new BannerAmount(lo, hi, percent, random, kind);
+    }
+
+    /** 1+1, 2+1 같은 묶음 행사인가. */
+    @JsonIgnore
+    public boolean isBundle() {
+        return buy != null && get != null;
+    }
+
+    /** 묶음 행사 문구. "징거버거 1+1", 메뉴가 없으면 "1+1". */
+    public String bundleText() {
+        return (item == null ? "" : item + " ") + buy + "+" + get;
     }
 
     /** 범위인가. 하한이 없거나 상한과 다르면 범위다. */

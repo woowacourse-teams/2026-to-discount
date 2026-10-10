@@ -128,6 +128,17 @@ public class BrandComparisonService {
             // 지운다 - RULES 9가 만료 배너를 그대로 두기로 했으므로 그날은 영영 안
             // 올 수도 있다. 몇 장 남았는지는 beggars-ops의
             // `python tools/convert_banners.py --file <banners.yml>`이 센다.
+            // 1+1, 2+1 묶음 행사는 금액 없이 원문("징거버거 1+1")으로 선다. kind가 bundle이라 할인액
+            // 비교(OfferComparison)에는 안 들고, 웹이 카드 오퍼 맨 위에 둔다(2026-10-11 사용자).
+            if (amountSpec != null && amountSpec.isBundle()) {
+                records.add(new OfferRecord(
+                        banner.platform(), banner.brand(), null, null, false, Offer.BANNER_OFFER_TYPE,
+                        banner.id(), amountSpec.bundleText(), today, null, banner.minOrder(), null, null,
+                        BannerText.conditions(banner), banner.endsOn().toString(), banner.period(), banner.url(),
+                        banner.spec() == null ? null : banner.spec().membership(), banner.soldOut(),
+                        amountSpec.kind().key(), firstSeen(banner)));
+                continue;
+            }
             if (amountSpec == null || (amountSpec.headline() == null && amountSpec.percent() == null)) {
                 records.addAll(legacyRecords(banner, today));
                 continue;

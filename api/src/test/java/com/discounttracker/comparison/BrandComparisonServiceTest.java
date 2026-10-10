@@ -754,6 +754,33 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void aBuyGetBannerStandsAsAWordOfferOutsideTheCeiling() {
+        // 2026-10-11 사용자: 1+1 행사를 카드 오퍼로 띄운다. 금액이 없어 할인액 비교에는 안 든다.
+        String brands = """
+                brands:
+                  KFC:
+                    category: burger
+                """;
+        String yaml = """
+                banners:
+                  - id: kfc-own-1plus1-20261011
+                    brand: KFC
+                    platform: own
+                    url: https://www.kfckorea.com/promotion/promotionList/detail/955
+                    amount: {buy: 1, get: 1, item: 징거버거}
+                    startsOn: 2026-10-11
+                    endsOn: 2026-10-12
+                """;
+        List<BrandComparison> cards = serviceWith(List.of(), brands, on("2026-10-11"), yaml).compare();
+        BrandComparison kfc = cards.stream().filter(c -> c.brand().name().equals("KFC")).findFirst().orElseThrow();
+        Offer offer = kfc.offers().get(0);
+        assertNull(offer.amount());
+        assertEquals("징거버거 1+1", offer.rawText());
+        assertEquals(com.discounttracker.offer.AmountKind.BUNDLE, offer.kind());
+        assertNull(kfc.maxConfirmedAmount());
+    }
+
+    @Test
     void aRandomOfferStandsBesideTheFixedOfferOfTheSameApp() {
         // 2026-09-20: 노모어피자 쿠팡이츠 확정 5,000과 랜덤 상한 10,000이 같은 자리를 다퉈 랜덤이 사라졌다.
         String brands = """

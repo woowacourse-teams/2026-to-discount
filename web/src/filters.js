@@ -127,6 +127,12 @@ export function kindOf(offer) {
   return offer.kind ?? 'discount'
 }
 
+/** 1+1, 2+1 묶음 행사인가. 금액 없이 원문으로 서고 카드 오퍼 맨 위에 둔다(2026-10-11 사용자). */
+export const isBundle = (offer) => kindOf(offer) === 'bundle'
+
+/** 오퍼 정렬 앞자리: 묶음 행사가 맨 위, 그다음 최대(불확정)를 뒤로. */
+export const bundleFirst = (a, b) => isBundle(b) - isBundle(a)
+
 /**
  * 확실성과 무관하게, 이 오퍼가 배달앱끼리 견주는 자리에 낄 수 있는가.
  *

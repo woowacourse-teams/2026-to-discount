@@ -1,6 +1,6 @@
 // 쿠폰 브랜드 카드(메인 화면 A안 16차)의 계산. 화면 없이 테스트한다.
 // 명세: tracker docs/superpowers/specs/2026-10-03-home-a-display-model.md
-import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated } from './filters.js'
+import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated, isBundle, bundleFirst } from './filters.js'
 export { isUpdated }
 
 const byMinOrder = (a, b) => (a.minOrderAmount ?? Infinity) - (b.minOrderAmount ?? Infinity)
@@ -21,11 +21,13 @@ export function splitOffers(offers, include) {
   const sorted = [...offers].sort((a, b) => {
     const am = a.qualifier === '최대' ? 1 : 0
     const bm = b.qualifier === '최대' ? 1 : 0
-    return am - bm || (b.amount ?? -1) - (a.amount ?? -1)
+    return bundleFirst(a, b) || am - bm || (b.amount ?? -1) - (a.amount ?? -1)
   })
   const best = sorted.filter(isBest).sort(byMinOrder)
   if (best.length > 0) return { best, rest: sorted.filter((x) => !isBest(x)), hasBest: true }
-  return { best: sorted.slice(0, 1), rest: sorted.slice(1), hasBest: false }
+  // 대표는 묶음 행사가 아닌 첫 오퍼다. 묶음만 있으면 그것이 대표다.
+  const lead = sorted.find((x) => !isBundle(x)) ?? sorted[0]
+  return { best: lead ? [lead] : [], rest: sorted.filter((x) => x !== lead), hasBest: false }
 }
 
 export function minLabel(m) {

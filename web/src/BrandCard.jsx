@@ -1,7 +1,7 @@
 import { memo, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
-import { comparable, displayBestAmount, offerKey } from './filters.js'
+import { comparable, displayBestAmount, offerKey, bundleFirst } from './filters.js'
 import { BrandLogo } from './logos.jsx'
 import BestHistoryChart from './BestHistoryChart.jsx'
 import OfferChip from './OfferChip.jsx'
@@ -47,8 +47,7 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
     () => [...brand.offers].sort((a, b) => {
       const aMax = a.qualifier === '최대' ? 1 : 0
       const bMax = b.qualifier === '최대' ? 1 : 0
-      if (aMax !== bMax) return aMax - bMax
-      return (b.amount ?? -1) - (a.amount ?? -1)
+      return bundleFirst(a, b) || aMax - bMax || (b.amount ?? -1) - (a.amount ?? -1)
     }),
     [brand.offers],
   )

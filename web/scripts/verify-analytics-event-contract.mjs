@@ -35,6 +35,7 @@ const topBarASource = await source('src/TopBarA.jsx')
 // 서버 허용 목록에 없어도 검사를 통과하고, 서버가 조용히 버린다.
 const surveyCardSource = await source('src/SurveyCard.jsx')
 const surveyDockSource = await source('src/SurveyDock.jsx')
+const historyChartSource = await source('src/BestHistoryChart.jsx')
 // 필터 시트. membership_toggle(시트의 멤버십 칩)을 여기서 쏜다.
 const filterSheetSource = await source('src/FilterSheet.jsx')
 // 푸시 설정. 구독 결과 이벤트도 자체 API 원장으로 릴레이하므로 목록에서
@@ -58,6 +59,7 @@ const emittedEvents = new Set([
   ...staticTrackEvents('src/TopBarA.jsx', topBarASource),
   ...staticTrackEvents('src/SurveyCard.jsx', surveyCardSource),
   ...staticTrackEvents('src/SurveyDock.jsx', surveyDockSource),
+  ...staticTrackEvents('src/BestHistoryChart.jsx', historyChartSource),
   ...staticTrackEvents('src/FilterSheet.jsx', filterSheetSource),
   ...staticTrackEvents('src/PushNotificationSetting.jsx', pushNotificationSettingSource),
   ...staticTrackEvents('src/analytics.js#startAnalytics', startAnalyticsSource),

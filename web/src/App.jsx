@@ -96,6 +96,8 @@ export default function App({ initial = null }) {
   const [brands, setBrands] = useState(initial?.brands ?? null)
   // null은 아직 못 받음(자리만 잡는다), []는 받았는데 0건.
   const [banners, setBanners] = useState(initial?.banners ?? null)
+  // 1+1 같은 묶음 행사는 배너 띠에 안 띄우고 카드 오퍼 맨 위에 둔다(2026-10-11 사용자).
+  const stripBanners = useMemo(() => banners && banners.filter((b) => b.amountSpec?.kind !== 'bundle'), [banners])
   const [error, setError] = useState(null)
   // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
   const [surveyOn, setSurveyOn] = useState(false)
@@ -587,7 +589,7 @@ export default function App({ initial = null }) {
           (2026-09-30 브랜드 페이지 CLS 0.9). 받았는데 0건이면 자리를 거둔다. */}
       {/* 쿠폰 카드 쪽은 위 배너 캐러셀 없이 처음부터 하단 도크로만(2026-10-05 사용자: 목록 안 한 줄은 별로) */}
       {/* 2026-10-05 사용자: 운영 카드 쪽도 하단 도크로 */}
-      {banners ? <EventBanner banners={banners} dockOnly /> : null}
+      {stripBanners ? <EventBanner banners={stripBanners} dockOnly /> : null}
       <PushNotificationSetting toggleSlot={pushToggleSlot} />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액

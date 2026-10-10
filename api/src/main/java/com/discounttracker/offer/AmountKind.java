@@ -15,7 +15,9 @@ public enum AmountKind {
     /** 결제 수단이 나중에 돌려준다. 그 수단이 닿는 곳이면 어디서든 쓴다. */
     CASHBACK("cashback"),
     /** 그 브랜드나 그 앱 안에서만 쓰는 적립금. */
-    POINTS("points");
+    POINTS("points"),
+    /** 하나 사면 하나 더(1+1, 2+1). 금액이 없어 할인액 비교에는 안 든다. */
+    BUNDLE("bundle");
 
     private final String key;
 

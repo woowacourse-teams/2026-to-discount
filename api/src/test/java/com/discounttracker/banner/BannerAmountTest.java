@@ -132,4 +132,15 @@ class BannerAmountTest {
         assertThrows(IllegalArgumentException.class,
                 () -> BannerAmount.of(Map.of("won", Arrays.asList(8000, -1000))));
     }
+
+    @Test
+    void buyGetIsABundleWithoutAmount() {
+        // 2026-10-11 사용자: KFC 자사앱 1+1. 메뉴 칸에 무엇이든 적고, 2+1 같은 변형도 받는다.
+        BannerAmount a = BannerAmount.of(Map.of("buy", 1, "get", 1, "item", "징거버거"));
+        assertTrue(a.isBundle());
+        assertEquals(AmountKind.BUNDLE, a.kind());
+        assertNull(a.headline());
+        assertEquals("징거버거 1+1", a.bundleText());
+        assertEquals("2+1", BannerAmount.of(Map.of("buy", 2, "get", 1)).bundleText());
+    }
 }
