@@ -314,7 +314,8 @@ export function applyFilters(brands, filters) {
     .map((b) => {
       const offers = b.offers.filter((o) => (o.platform === OWN || filters.platforms.has(o.platform))
         // 검색 중에는 금액으로 거르지 않는다. 브랜드를 이름으로 찾았는데 5천원 미만이라 안 보이면 없는 줄 안다.
-        && (!filters.minAmount5k || q !== '' || (o.amount ?? 0) >= 5000)
+        // 1+1 묶음 행사는 금액이 없어도 5천원 거르기에 안 걸린다(2026-10-11 KFC 1+1이 안 떴다).
+        && (!filters.minAmount5k || q !== '' || isBundle(o) || (o.amount ?? 0) >= 5000)
         // 없는 멤버십의 전용 오퍼는 뺀다(MEMBERSHIP_FILTERABLE).
         && !(MEMBERSHIP_FILTERABLE[o.membership] && filters.memberships && !filters.memberships.has(MEMBERSHIP_FILTERABLE[o.membership])))
       return offers.length === b.offers.length ? b : { ...b, offers }

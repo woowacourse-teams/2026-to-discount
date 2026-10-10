@@ -222,3 +222,9 @@ test('isUpdated prefers server isNew over firstSeenAt', () => {
   assert.equal(isUpdated({ isNew: null, firstSeenAt: '2026-10-09T00:10:03+09:00' }, now), false)
   assert.equal(isUpdated({ firstSeenAt: '2026-10-09T00:10:03+09:00' }, now), true)
 })
+
+test('1+1 묶음 행사는 5천원 이상만을 켜도 남는다(2026-10-11)', () => {
+  const brand = { name: 'KFC', offers: [{ platform: 'own', amount: null, rawText: '1+1', kind: 'bundle' }] }
+  const got = applyFilters([brand], { ...defaultFilters(), minAmount5k: true })
+  assert.equal(got.length, 1)
+})
