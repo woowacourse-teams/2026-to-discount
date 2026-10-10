@@ -27,17 +27,19 @@ brands:
   # --- 치킨 ---
   가마로강정:
     searchAliases: [가마로, 가마로 닭강정, gamaro, gamaro gangjeong]
+    menus: [사천깐풍기, 치블링, 컵강정]
     aliases: [가마로, 가마로 닭강정, gamaro, gamaro gangjeong]
     category: chicken
   치킨마루:
     searchAliases: [치킨 마루, 마루치킨, chicken maru, chikin maru]
+    menus: [쏘이츄]
     aliases: [마루치킨, chicken maru, chikin maru]
     category: chicken
     links:
       baemin: https://s.baemin.com/k7000Lprasbb2
   BBQ:
     searchAliases: [비비큐, 비비큐치킨, bbq chicken, bbq치킨, BBQ치킨]
-    menus: [황금올리브, 황올, 자메이카 통다리]
+    menus: [황금올리브, 황올, 자메이카 통다리, 자메이카, 필크런치]
     category: chicken
     aliases: [BBQ, BBQ치킨, 비비큐, 비비큐치킨, bbq chicken]
     links:
@@ -46,7 +48,7 @@ brands:
       baemin: https://s.baemin.com/f3e.6ibml
   bhc:
     searchAliases: [비에이치씨, 비에이치씨치킨, bhc chicken, bhc치킨, BHC치킨]
-    menus: [뿌링클, 맛초킹, 골드킹, 콰삭킹, 뿌링뿌링]
+    menus: [뿌링클, 맛초킹, 골드킹, 콰삭킹, 뿌링뿌링, 커링클, 콰삭모짜킹]
     category: chicken
     aliases: [bhc, bhc치킨, BHC, BHC치킨, 비에이치씨, 비에이치씨치킨, bhc chicken]
     links:
@@ -59,19 +61,21 @@ brands:
     category: chicken
   계근상:
     searchAliases: [계근상 치킨, 계근상닭, gyegunsang, gyegunsang chicken]
+    menus: [트간찜]
     aliases: [계근상 치킨, 계근상닭, gyegunsang, gyegunsang chicken]
     category: chicken
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=4723
   굽네치킨:
     searchAliases: [굽네, 굽네 치킨, goobne, goobne chicken, gubne]
-    menus: [고추바사삭, 볼케이노, 갈비천왕]
+    menus: [고추바사삭, 볼케이노, 갈비천왕, 오븐바사삭]
     category: chicken
     aliases: [굽네, 굽네치킨, goobne, goobnechicken, 굽네치킨&피자, gubne]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=18
   기영이숯불두마리치킨:
     searchAliases: [기영이치킨, 기영이 숯불치킨, giyeongi, giyeongi chicken]
+    menus: [까만양념]
     aliases: [기영이숯불두마리치킨, 기영이치킨, 기영이 치킨, 기영이 숯불치킨, 기영이숯불치킨, giyeongi, giyeongi chicken]
     category: chicken
     links:
@@ -95,7 +99,7 @@ brands:
       baemin: https://s.baemin.com/aou.816hq
   네네치킨:
     searchAliases: [네네, 네네 치킨, nene, nene chicken]
-    menus: [스노윙, 오리엔탈파닭, 청양마요]
+    menus: [스노윙, 오리엔탈파닭, 청양마요, 핫블링, 베트남핫]
     aliases: [네네, nene, nene chicken]
     category: chicken
     links:
@@ -104,11 +108,12 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=7
   노랑통닭:
     searchAliases: [노랑 통닭, 노랑치킨, norang tongdak, norang chicken]
-    menus: [알싸한마늘치킨]
+    menus: [알싸한마늘치킨, 대파간장]
     aliases: [노랑치킨, norang tongdak, norang chicken]
     category: chicken
   두찜:
     searchAliases: [두찜 찜닭, 두찜찜닭, doojjim, doojjim chicken]
+    menus: [감자숭이, 모치치]
     category: chicken
     aliases: [두찜, 두찜찜닭, 두찜 찜닭, 두찜_찜닭, doojjim, doojjim chicken]
     links:
@@ -129,6 +134,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?Cnbxstg
   또래오래:
     searchAliases: [또래오래 치킨, 또래치킨, toreore, toreore chicken]
+    menus: [갈반핫반, 뿌레카]
     aliases: [또래오래 치킨, 또래치킨, toreore, toreore chicken]
     category: chicken
     links:
@@ -137,6 +143,7 @@ brands:
       baemin: https://s.baemin.com/q6000LpqkRtnC
   또봉이통닭:
     searchAliases: [또봉이, 또봉이 통닭, ttobongi, ttobongi chicken]
+    menus: [맵치킹]
     aliases: [또봉이, ttobongi, ttobongi chicken]
     category: chicken
     links:
@@ -144,7 +151,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?ZyRayUj
   멕시카나:
     searchAliases: [멕시카나치킨, 멕시카나 치킨, mexicana, mexicana chicken]
-    menus: [땡초치킨]
+    menus: [땡초치킨, 고추화삭, 와삭칸, 치필링]
     category: chicken
     aliases: [멕시카나, 멕시카나치킨, mexicana, mexicana chicken]
     links:
@@ -153,6 +160,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?c4n3pkp
   바른치킨:
     searchAliases: [바른 치킨, 바른, bareun chicken, barun chicken]
+    menus: [크럼푹]
     aliases: [바른, bareun chicken, barun chicken]
     category: chicken
     links:
@@ -166,6 +174,7 @@ brands:
       baemin: https://s.baemin.com/BF000LpxF1Xnx
   부어치킨:
     searchAliases: [부어, 부어 치킨, boor chicken, bueo chicken]
+    menus: [맛쇼킹]
     aliases: [부어, boor chicken, bueo chicken]
     category: chicken
     links:
@@ -180,6 +189,7 @@ brands:
       baemin: https://s.baemin.com/a2000Lps97R9G
   오븐마루치킨:
     searchAliases: [오븐마루, 오븐마루 치킨, ovenmaru, ovenmaru chicken]
+    menus: [바사콘]
     aliases: [오븐마루치킨, 오븐마루, ovenmaru, ovenmaru chicken]
     category: chicken
     links:
@@ -201,7 +211,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?zwAnnh5
   자담치킨:
     searchAliases: [자담, 자담 치킨, jadam, jadam chicken]
-    menus: [맵슐랭]
+    menus: [맵슐랭, 치요링, 치즈핑]
     aliases: [자담, jadam, jadam chicken]
     category: chicken
     links:
@@ -230,6 +240,7 @@ brands:
       baemin: https://s.baemin.com/VQ000LpusVuS3
   치킨플러스:
     searchAliases: [치킨 플러스, 치플, chicken plus, chikin plus]
+    menus: [핫쵸킹]
     aliases: [치플, chicken plus, chikin plus]
     category: chicken
     links:
@@ -238,11 +249,12 @@ brands:
       baemin: https://s.baemin.com/hk000Lps3ybDS
   페리카나:
     searchAliases: [페리카나치킨, 페리카나 치킨, pelicana, pelicana chicken]
+    menus: [치폴릭]
     aliases: [pelicana, pelicana chicken]
     category: chicken
   푸라닭:
     searchAliases: [푸라닭치킨, 푸라닭 치킨, puradak, puradak chicken]
-    menus: [블랙알리오, 고추마요, 파불로]
+    menus: [블랙알리오, 고추마요, 파불로, 마마치, 일품깐풍]
     aliases: [푸라닭, 푸라닭치킨, 푸라닭 치킨, puradak, puradak chicken]
     category: chicken
     links:
@@ -256,6 +268,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?wk8rLk3
   호식이두마리치킨:
     searchAliases: [호식이, 호식이 치킨, hosigi, hosigi chicken]
+    menus: [깐쇼킹, 맵시크]
     category: chicken
     aliases: [호식이, 호식이두마리치킨, hosigi, 호식이 치킨, hosigi chicken]
     links:
@@ -282,7 +295,7 @@ brands:
 
   60계치킨:
     searchAliases: [육십계, 육십계치킨, 60gye, 60gye chicken]
-    menus: [간지치킨, 크크크치킨]
+    menus: [간지치킨, 크크크치킨, 크랑이, 크크크]
     aliases: [육십계, 육십계치킨, 60gye, 60gye chicken]
     category: chicken
   교촌치킨:
@@ -303,6 +316,7 @@ brands:
     category: pizza
   7번가피자:
     searchAliases: [칠번가피자, 7번가 피자, 7번가, 7th street pizza, seven street pizza]
+    menus: [골드스윗]
     aliases: [칠번가피자, 7번가, 7th street pizza, seven street pizza]
     category: pizza
     links:
@@ -363,6 +377,7 @@ brands:
     # 자사 포장할인 배너(오릉이날, 2026-10-05)로 처음 들어왔다. 배달앱 링크는 아직 없다.
   청년피자:
     searchAliases: [청년 피자, 청피, youngman pizza, youth pizza]
+    menus: [공주님박스, 구름에그콘]
     aliases: [청년피자, youngmanpizza, 청피, youth pizza]
     category: pizza
     links:
@@ -371,7 +386,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=821
   파파존스:
     searchAliases: [파파 존스, 파존, papa johns, papa john's]
-    menus: [수퍼파파스]
+    menus: [수퍼파파스, 골드링]
     aliases: [파존, papa johns, papa john's]
     category: pizza
     links:
@@ -418,7 +433,7 @@ brands:
     # 쿠팡이츠 반짝핫딜(2026-10-05)로 처음 들어왔다. 배달앱 링크와 로고는 아직 없다.
   맘스터치:
     searchAliases: [맘스 터치, 맘터, mom's touch, momstouch]
-    menus: [싸이버거, 딥치즈버거, 휠렛버거]
+    menus: [싸이버거, 딥치즈버거, 휠렛버거, 갓빠삭, 빅싸이순살, 핫치즈밤]
     aliases: [맘터, mom's touch, momstouch]
     # 부모 브랜드. 맘스터치피자앤치킨(버거 제외 피자·치킨 파생)과는 행사가
     # 별개라 alias로 합치지 않는다.
@@ -452,14 +467,14 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=75
   써브웨이:
     searchAliases: [서브웨이, 섭웨, 써브 웨이, subway, subway korea]
-    menus: [이탈리안 비엠티, 써브웨이 클럽]
+    menus: [이탈리안 비엠티, 써브웨이 클럽, 로티세리, 썹픽]
     aliases: [서브웨이, 섭웨, subway, subway korea]
     category: fastfood
   KFC:
     # 2026-09-16 쿠팡이츠 선착순(오전 11시 8,000원) 배너에 올리며 추가. 원장엔
     # 08-17부터 11행이 있었는데 표에 없어 API가 모르는 브랜드로 봤다.
     searchAliases: [케이에프씨, 케이 에프 씨, 켄터키, kfc, kentucky fried chicken]
-    menus: [징거버거, 타워버거, 핫크리스피]
+    menus: [징거버거, 타워버거, 핫크리스피, 갓쏘이, 닭껍질튀김, 트위스터, 치킨나이트]
     category: fastfood
     aliases: [KFC, 케이에프씨, 켄터키, kentucky fried chicken]
   쉐이크쉑:
@@ -556,7 +571,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=606
   배스킨라빈스:
     searchAliases: [베스킨라빈스, 배라, 베라, baskin robbins, baskinrobbins]
-    menus: [엄마는외계인, 아몬드봉봉, 이상한나라의솜사탕]
+    menus: [엄마는외계인, 아몬드봉봉, 이상한나라의솜사탕, 블록팩, 파인트, 쿼터]
     aliases: [베스킨라빈스, 배라, 베라]
     category: cafe
     links:
@@ -577,6 +592,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?Dszf1X0
   잠바주스:
     searchAliases: [잠바 주스, 잠바, jamba juice, jambajuice]
+    menus: [망고고고]
     aliases: [잠바]
     category: cafe
     links:
@@ -604,7 +620,7 @@ brands:
   # 브랜드 카드가 행사 페이지로 나가므로 비워 둔다(ADR-016 취지).
   빽다방:
     searchAliases: [백다방, 빽다방 커피, 백종원 커피, paiks coffee, paik's coffee, ppaekdabang]
-    menus: [앗메리카노, 빽스치노]
+    menus: [앗메리카노, 빽스치노, 블랙벨벳]
     aliases: [백다방, 빽다방 커피, 백종원 커피, paiks coffee, paik's coffee, ppaekdabang]
     category: cafe
 
@@ -742,6 +758,7 @@ brands:
     category: snack
   떡참:
     searchAliases: [떡볶이참잘하는집, 떡참잘, 떡참 떡볶이, tteokcham, tteokbokki cham]
+    menus: [대창떡볶이]
     aliases: [떡참, 떡볶이참잘하는집 떡참&치킨, 떡참 떡볶이&치킨, 떡볶이참잘하는집, 떡참잘, 떡참 떡볶이, tteokcham, tteokbokki cham]
     category: snack
     links:
@@ -897,6 +914,7 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=396
   순살몬스터:
     searchAliases: [순살 몬스터, 순몬, sunsal monster, boneless monster]
+    menus: [슈뿌림양념]
     aliases: [순몬, sunsal monster, boneless monster]
     category: chicken
     links:
@@ -936,6 +954,7 @@ brands:
       baemin: https://s.baemin.com/b9000Lps0Rb7v
   요아정:
     searchAliases: [요거트아이스크림의정석, 요아정 요거트, yoajung, yogurt ice cream standard]
+    menus: [초코쉘]
     aliases: [요거트아이스크림의정석, 요아정 요거트, yoajung, yogurt ice cream standard]
     category: snack
     links:
@@ -978,6 +997,7 @@ brands:
       baemin: https://s.baemin.com/K7000LptW5LzE
   티바두마리치킨:
     searchAliases: [티바, 티바 두마리치킨, tiba chicken, tiba two chicken]
+    menus: [후라잉불닭]
     aliases: [티바, tiba chicken, tiba two chicken]
     category: chicken
     links:
@@ -992,6 +1012,7 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?zHO0nFF
   피나치공:
     searchAliases: [피자나라치킨공주, 피나치공 피자, pizza nara chicken gongju, pinachigong]
+    menus: [뿌리공, 페퍼라구]
     aliases: [피자나라치킨공주, 피나치공 피자, pizza nara chicken gongju, pinachigong]
     category: pizza
     links:
@@ -1012,6 +1033,7 @@ brands:
       baemin: https://s.baemin.com/7oa.r5l0e
   호치킨:
     searchAliases: [호 치킨, 호치킨집, ho chicken, hochicken]
+    menus: [핫슐랭]
     aliases: [호치킨집]
     category: chicken
     links:
@@ -1026,10 +1048,12 @@ brands:
   # --- 분식/기타 ---
   삼첩분식:
     searchAliases: [삼첩 분식, 삼첩, samcheop bunsik, samcheop]
+    menus: [감자폭탄, 로제샹궈]
     aliases: [삼첩, samcheop bunsik, samcheop]
     category: snack
   본죽:
     searchAliases: [본 죽, 본죽 비빔밥, bonjuk, bon porridge]
+    menus: [낙지김치죽]
     category: snack
     aliases: [본죽, 본죽&비빔밥, 본죽 비빔밥, bonjuk, bon porridge]
     links:
@@ -1041,6 +1065,7 @@ brands:
     category: snack
   스텔라떡볶이:
     searchAliases: [스텔라 떡볶이, 스텔라, stella tteokbokki, stellatteokbokki]
+    menus: [별튀김]
     aliases: [스텔라떡볶이, 스텔라 떡볶이, 스텔라]
     category: snack
     links:
