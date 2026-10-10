@@ -37,7 +37,7 @@ export default function MenuBar({ selected, onToggle, leading = [] }) {
           {/* 분류 앞에 서는 보기(전체, 신규). 분류와 같은 꼴이고 하나만 켜진다 */}
           {leading.map((l) => (
             <li key={l.key}>
-              <button type="button" className={`menu-bar__item${l.on ? ' menu-bar__item--on' : ''}`} aria-pressed={l.on} onClick={l.onClick}>
+              <button type="button" className={`menu-bar__item${l.on ? ' menu-bar__item--on' : ''}${l.key === 'new' ? ' menu-bar__item--accent' : ''}`} aria-pressed={l.on} onClick={l.onClick}>
                 {l.label}
               </button>
             </li>
