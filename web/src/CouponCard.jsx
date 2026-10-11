@@ -355,7 +355,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const listed = stack ? [...best.filter((o) => o !== top[0]), ...rest] : rest
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name} onClick={onCardClick}
-             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}${stack ? ' cc--stack' : ''}`}>
+             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}${bundles.length > 0 && !canExpand && rest.length === 0 ? ' cc--bare' : ''}${stack ? ' cc--stack' : ''}`}>
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>

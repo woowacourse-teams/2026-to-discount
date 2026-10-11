@@ -402,3 +402,11 @@
 .cc-bundle-tag { flex: none; font-size: 12px; font-weight: 800; padding: 3px 7px; border-radius: 6px; background: #fff; color: var(--sale); }
 .cc-bundle svg { flex: none; width: 18px; height: 18px; }
 .cc-deal-col > .cc-bundle + .cc-main-in { margin-top: 8px; }
+/* 묶음 줄 폭 = 쿠폰 폭(2026-10-11 사용자: 크기 맞추기). 줄 칸은 쿠폰 줄 폭 그대로 쓰고 줄만 쿠폰 공식으로 줄인다. */
+.cc-deal-col:has(> .cc-bundle) { width: 100%; align-items: center; }
+.cc-deal-col > .cc-bundle { width: var(--tk-w); }
+.cc--compact .cc-deal-col > .cc-bundle { width: calc((100% - 30px) * .96); }
+/* 하위 오퍼도 자세히 보기도 없는 카드는 고정 높이를 쓰지 않는다. 빈 칸만 남는다. */
+.cc--compact.cc--bare:not(.cc--open) { min-height: 0; grid-template-rows: auto; }
+.cc--compact.cc--bare:not(.cc--open)::after { content: none; }
+.cc.cc--bare { padding-bottom: 18px; }
