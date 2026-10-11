@@ -369,14 +369,18 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         {best[cur] && <div className="cc-fx cc-badges"><Tags o={best[cur]} /></div>}
       </div>
       {/* 1+1 묶음 행사는 대표 쿠폰 위 한 줄(2026-10-11 사용자: 오퍼 최상단). 금액 비교 밖이라 대표를 뺏지 않는다. */}
-      <div className="cc-deal cc-deal--main"><div className={bundles.length ? 'cc-deal-col' : undefined}>
-        {bundles.map((o) => (
-          <OfferLinkA key={offerKey(o)} offer={o} brand={brand} position={position} best={false} where="main" slot="bundle" className="cc-bundle">
-            <span className="cc-bundle-tag">행사</span><b>{o.rawText}</b><LinkIcon />
-          </OfferLinkA>
-        ))}
-        <div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
-      </div></div>
+      {/* 감싸는 div는 묶음이 있을 때만. 모든 카드에 두면 쿠폰이 사라진다(2026-10-11 회귀). */}
+      <div className="cc-deal cc-deal--main">{bundles.length === 0
+        ? <div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
+        : <div className="cc-deal-col">
+            {bundles.map((o) => (
+              <OfferLinkA key={offerKey(o)} offer={o} brand={brand} position={position} best={false} where="main" slot="bundle" className="cc-bundle">
+                <span className="cc-bundle-tag">행사</span><b>{o.rawText}</b><LinkIcon />
+              </OfferLinkA>
+            ))}
+            <div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
+          </div>}
+      </div>
       {/* 최고 오퍼는 메인 쿠폰에 이미 있으니 쿠폰으로 다시 그리지 않고, 상세 표만 메인 쿠폰 바로 아래에 둔다 */}
       {bestTables.length > 0 && (
         <div className="cc-x"><div className="cc-x-in">
