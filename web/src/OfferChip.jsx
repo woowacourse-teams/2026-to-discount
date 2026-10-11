@@ -90,7 +90,7 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
   )
 
   return (
-    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}${best ? ' offer--best' : ''}${capped ? ' offer--capped' : ''}${hero ? ' offer--hero' : ''}`}>
+    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}${best || (hero && isBundle(offer)) ? ' offer--best' : ''}${capped ? ' offer--capped' : ''}${hero ? ' offer--hero' : ''}`}>
       {link ? (
         <a
           className="offer__chip offer__chip--link"
