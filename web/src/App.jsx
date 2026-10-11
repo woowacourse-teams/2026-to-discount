@@ -93,6 +93,10 @@ function routeFilters() {
 // (localStorage, 시각, 화면 폭)은 전부 effect에서 읽는다.
 export default function App({ initial = null }) {
   const [pushToggleSlot, setPushToggleSlot] = useState(null)
+  // 알림 토글 자리는 ref가 붙을 때 받는다. 급한 업데이트로 받으면 하이드레이션 중인 쿠폰 카드(Suspense)가
+  // 업데이트를 받아 통째로 다시 그려져, a홈이 서버 화면 -> 운영 카드 -> 쿠폰 카드로 바뀌어 보였다(React #421,
+  // 2026-10-08 8035491부터, 10-12 사용자 발견). 전환으로 두면 하이드레이션이 끝난 뒤 처리된다.
+  const pushToggleRef = useCallback((el) => { startTransition(() => setPushToggleSlot(el)) }, [])
   const [brands, setBrands] = useState(initial?.brands ?? null)
   // null은 아직 못 받음(자리만 잡는다), []는 받았는데 0건.
   const [banners, setBanners] = useState(initial?.banners ?? null)
@@ -552,7 +556,7 @@ export default function App({ initial = null }) {
       {homeA ? (
         <TopBarB
           barRef={titleBarRef}
-          pushToggleRef={setPushToggleSlot}
+          pushToggleRef={pushToggleRef}
           filters={filters}
           setFilters={setFilters}
           search={search}
@@ -567,7 +571,7 @@ export default function App({ initial = null }) {
       ) : (
       <TopBarA
         barRef={titleBarRef}
-        pushToggleRef={setPushToggleSlot}
+        pushToggleRef={pushToggleRef}
         filters={filters}
         setFilters={setFilters}
         search={search}
