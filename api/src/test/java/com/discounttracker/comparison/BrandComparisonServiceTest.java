@@ -777,7 +777,10 @@ class BrandComparisonServiceTest {
         assertEquals(15000, offer.amount());
         assertEquals("징거버거 1+1", offer.rawText());
         assertEquals(com.discounttracker.offer.AmountKind.BUNDLE, offer.kind());
-        assertNull(kfc.maxConfirmedAmount());
+        // 정렬 천장에는 15,000으로 든다(목록 위로). 최고 할인 후보는 아니다.
+        assertEquals(15000, kfc.maxConfirmedAmount());
+        assertFalse(com.discounttracker.offer.OfferComparison.isBestCandidate(
+                offer.certainty(), offer.kind(), offer.soldOut(), offer.platform()));
     }
 
     @Test

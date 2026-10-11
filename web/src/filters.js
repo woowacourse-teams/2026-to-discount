@@ -212,6 +212,8 @@ export function comparable(offer, include = false) {
  * 꺼져 있으면 sortingAmount가 null이라 안 낀다. 켜면 액면이 오른다.
  */
 function comparisonAmount(offer, include) {
+  // 1+1 묶음 행사는 최고 할인 후보는 아니지만 정렬값(15,000)으로 목록에 선다(2026-10-11 사용자). API와 같다.
+  if (isBundle(offer) && !offer.soldOut) return offer.amount ?? null
   if (!comparableAxes(offer)) return null
   const inc = includesOf(include)
   const c = certaintyOf(offer)
