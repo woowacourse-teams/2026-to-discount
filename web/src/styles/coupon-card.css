@@ -396,9 +396,9 @@
 .cc-info__pop { z-index: 95; }
 .cc-sheet .cc-combo { pointer-events: auto; }
 
-/* 1+1 묶음 행사 줄: 대표 쿠폰 위, 쿠폰 폭(2026-10-11 사용자: 오퍼 최상단) */
-.cc-bundle { width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 10px; background: var(--sale-weak); color: var(--sale); text-decoration: none; font-size: 14px; line-height: 1.3; min-width: 0; }
-.cc-bundle b { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cc-bundle-tag { flex: none; font-size: 11.5px; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: var(--sale); color: #fff; }
-.cc-bundle svg { flex: none; width: 15px; height: 15px; }
-.cc-deal-col > .cc-bundle + .cc-main-in { margin-top: 6px; }
+/* 1+1 묶음 행사 줄: 대표 쿠폰 위, 쿠폰 폭. 쿠폰보다 먼저 눈에 걸리게 꽉 찬 강조색(2026-10-11 사용자: 잘 안 보인다) */
+.cc-bundle { width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--sale); color: #fff; text-decoration: none; font-size: 16.5px; line-height: 1.25; min-width: 0; box-shadow: 0 2px 8px color-mix(in srgb, var(--sale) 35%, transparent); }
+.cc-bundle b { flex: 1; min-width: 0; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-bundle-tag { flex: none; font-size: 12px; font-weight: 800; padding: 3px 7px; border-radius: 6px; background: #fff; color: var(--sale); }
+.cc-bundle svg { flex: none; width: 18px; height: 18px; }
+.cc-deal-col > .cc-bundle + .cc-main-in { margin-top: 8px; }

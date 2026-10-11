@@ -96,6 +96,12 @@ public record BannerAmount(Integer wonMin, Integer wonMax, Integer percent,
         return new BannerAmount(lo, hi, percent, random, kind);
     }
 
+    /**
+     * 묶음 행사의 정렬값. 금액이 없어 할인액으로 못 견주지만, 목록에서 위로 올리려고 이만큼으로 본다
+     * (2026-10-11 사용자: "한 만오천원으로 잡아서 위에 노출"). 최고 할인 후보는 아니다(kind bundle).
+     */
+    public static final int BUNDLE_SORT_VALUE = 15000;
+
     /** 1+1, 2+1 같은 묶음 행사인가. */
     @JsonIgnore
     public boolean isBundle() {

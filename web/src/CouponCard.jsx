@@ -8,7 +8,7 @@ import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
 import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
-import { offerKey } from './filters.js'
+import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import BestHistoryChart from './BestHistoryChart.jsx'
@@ -35,7 +35,7 @@ function Min({ value }) {
 
 // 품절은 운영 칩과 같다: 금액에 취소선, 옆에 "품절" 라벨.
 function Amt({ offer }) {
-  const hasNum = offer.amount != null
+  const hasNum = offer.amount != null && !isBundle(offer) // 묶음 행사의 금액 칸은 정렬값이다
   const num = hasNum ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
   return (
     <span className="cc-amt">

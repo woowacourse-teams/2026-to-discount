@@ -1,4 +1,4 @@
-import { MEMBERSHIP_LABEL } from './filters.js'
+import { MEMBERSHIP_LABEL, isBundle } from './filters.js'
 import { formulaOf } from './couponModel.js'
 import { PlatformBadge, PLATFORM_BY_KEY } from './logos.jsx'
 import { OWN, OWN_LABEL } from './platforms.js'
@@ -63,7 +63,7 @@ export default function OfferDetail({ offer, brandName }) {
             {rows.map((t, i) => (
               <li key={i} className="detail__tier">
                 <span className="detail__tier-amount">
-                  {t.amount == null ? (
+                  {isBundle(offer) ? <b>{offer.rawText}</b> : t.amount == null ? (
                     <span className="detail__unknown">금액 미확인</span>
                   ) : t.soldOut ? (
                     <>

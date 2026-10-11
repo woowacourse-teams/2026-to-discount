@@ -696,3 +696,7 @@ button.platform-badge:focus-visible { outline: 2px solid var(--accent); outline-
 /* 2026-10-07 사용자: 계산식, 정률 괄호는 금액 옆 한 줄로 작게 붙인다(배지 칸은 그만큼 오른쪽으로 밀린다) */
 .detail__tier-amount { white-space: nowrap; }
 .detail__tier-percent { display: inline; margin-left: 2px; font-size: .78em; font-weight: 500; }
+
+/* 자사(own) 오퍼는 앱 아이콘 대신 브랜드 로고를 배지 크기에 맞춰 넣는다(2026-10-11 KFC 1+1 칩을 로고가 덮었다). */
+.platform-badge--own { background: #fff; }
+.platform-badge--own .brand-logo { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: inherit; }

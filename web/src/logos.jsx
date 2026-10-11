@@ -70,7 +70,8 @@ export function PlatformBadge({ platformKey, via = null, brand = null, onClick, 
   const p = iconFor(platformKey, via)
   // 아이콘이 없는 자리(자사 행사)는 브랜드 로고를 그대로 쓴다. 로고도 없으면 아무것도
   // 안 그린다 — 여기서 죽으면 카드 하나가 아니라 페이지 전체가 안 그려진다.
-  if (!p) return brand ? <BrandLogo name={brand} /> : null
+  // 칩의 앱 아이콘 자리(platform-badge) 크기에 맞춰 감싼다. 그냥 두면 로고가 칩을 덮었다(2026-10-11 KFC 1+1).
+  if (!p) return brand ? <span className="platform-badge platform-badge--own" title={brand}><BrandLogo name={brand} /></span> : null
   const content = (
     <>
       {PLATFORM_ICON_DATA[p.key] ? (

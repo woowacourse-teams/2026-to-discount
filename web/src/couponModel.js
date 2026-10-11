@@ -136,6 +136,8 @@ export function channelOf(offer) {
 }
 
 export function amountText(offer) {
+  // 묶음 행사의 금액 칸은 정렬값(15,000)이다. 화면에는 원문("징거버거 1+1")을 쓴다.
+  if (isBundle(offer)) return offer.rawText ?? ''
   return offer.amount != null ? `${offer.amount.toLocaleString('ko-KR')}원` : (offer.rawText ?? '')
 }
 

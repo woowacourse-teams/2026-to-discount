@@ -774,7 +774,7 @@ class BrandComparisonServiceTest {
         List<BrandComparison> cards = serviceWith(List.of(), brands, on("2026-10-11"), yaml).compare();
         BrandComparison kfc = cards.stream().filter(c -> c.brand().name().equals("KFC")).findFirst().orElseThrow();
         Offer offer = kfc.offers().get(0);
-        assertNull(offer.amount());
+        assertEquals(15000, offer.amount());
         assertEquals("징거버거 1+1", offer.rawText());
         assertEquals(com.discounttracker.offer.AmountKind.BUNDLE, offer.kind());
         assertNull(kfc.maxConfirmedAmount());

@@ -1,4 +1,4 @@
-import { isUpdated } from './filters.js'
+import { isBundle, isUpdated } from './filters.js'
 import { track } from './analytics.js'
 import { badgesOf } from './couponModel.js'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
@@ -10,6 +10,7 @@ export function won(value) {
 
 // 상위 오퍼(큰 칸)는 '원 할인'으로 끝낸다(2026-10-06 사용자). 아래 작은 칩은 자리가 좁아 그대로.
 function offerAmountText(offer, hero = false) {
+  if (isBundle(offer)) return offer.rawText // 금액 칸은 정렬값이다(묶음 행사)
   return offer.amount != null ? `${won(offer.amount)}${hero ? ' 할인' : ''}` : offer.rawText
 }
 
