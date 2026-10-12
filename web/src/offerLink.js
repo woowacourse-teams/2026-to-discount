@@ -149,7 +149,7 @@ export function setHubLinks(banners) {
 /** 오퍼 링크 사다리. 오퍼 자신의 링크 → 브랜드 링크 → 앱 안 브랜드 검색 → 허브 → 앱 열기. */
 export function offerLink(offer, brandLinks, brandName) {
   // 쿠팡이츠: 수집이 그 쿠폰이 있는 허브 탭 링크(coupangeats://…anchorTabNo=N)를 실었으면 그 탭으로, 아니면 공유 링크(2026-10-07)
-  if (offer.platform === 'coupangeats') return /^(coupangeats:\/\/|https:\/\/share\.coupangeats\.com\/)/.test(offer.link ?? '') ? offer.link : COUPANGEATS_LINK
+  if (offer.platform === 'coupangeats') return COUPANGEATS_LINK // 쿠팡이츠 오퍼는 전부 공유 링크 하나(2026-10-12 사용자)
   return offer.link
     ?? brandLinks?.[offer.platform]
     ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
