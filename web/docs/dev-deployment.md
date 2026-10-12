@@ -5,7 +5,7 @@
 ## 최초 설정
 
 1. GitHub development 환경에 VERCEL_DEV_TOKEN, VERCEL_DEV_ORG_ID, VERCEL_DEV_PROJECT_ID를 시크릿으로 등록한다. 개발 프로젝트와 팀의 ID를 사용하고 토큰에는 필요한 팀 배포 권한만 부여한다.
-   CI는 기존 VERCEL_DEV_TOKEN으로 vercel curl을 사용해 보호된 고유 배포 URL을 검사한다. 별도 우회 시크릿은 필수가 아니다. 토큰 없는 수동 검사에서만 필요에 따라 VERCEL_AUTOMATION_BYPASS_SECRET을 지정한다.
+   기본 개발 주소가 공개여도 고유 배포 URL은 보호될 수 있다. 보호된 프로젝트는 Protection Bypass for Automation 값을 VERCEL_DEV_AUTOMATION_BYPASS_SECRET에 등록한다. CI는 이 값이 있으면 요청 헤더로 전달하고, 없으면 기존 토큰의 vercel curl을 시도한다. 현재 개발 프로젝트는 명시적 우회 시크릿이 필요하다.
 2. development 환경의 허용 배포 브랜치를 dev로 제한한다.
 3. 개발 Vercel Production에 VITE_APP_ENV=development, VITE_API_BASE_URL=https://dev-api-todiscount.duckdns.org, SITE_ORIGIN=https://to-discount-dev.vercel.app을 설정한다. Actions도 동일한 공개 값을 사용한다. 기존 PostHog 등 필요한 값은 Vercel에서 관리하며 vercel pull로 빌드에 전달한다.
 4. 첫 dev push 전에 개발 프로젝트의 Settings → Build and Deployment → Ignored Build Step에서 Don’t build anything(exit 0)을 저장한다. Git 연결은 유지하고 Actions의 prebuilt 배포만 사용한다. 저장소의 git.deploymentEnabled.dev=false도 이후 dev push 자동 배포를 차단한다. main 운영 프로젝트의 Git 연결은 바꾸지 않는다.
