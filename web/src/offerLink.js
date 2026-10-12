@@ -103,10 +103,12 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
     window.dispatchEvent(new CustomEvent('discount-offer-prompt', { detail: { href } }))
   }
   const tab = typeof href === 'string' && href.startsWith('coupangeats://')
-  if ((href !== COUPANGEATS_LINK && !tab) || typeof document === 'undefined') return
+  const share = typeof href === 'string' && href.startsWith('https://share.coupangeats.com/')
+  if ((!share && !tab) || typeof document === 'undefined') return
   e.preventDefault()
-  // 새 탭은 누른 순간 연다 — 안내 뒤(setTimeout)에 열면 팝업 차단(특히 iOS)에 걸린다. 주소는 안내가 끝나고 넣는다.
-  const win = tab ? null : window.open('', '_blank')
+  // 공유 링크도 같은 탭으로 넘긴다. 새 탭에 넣으면 그 탭엔 누른 기록이 없어 앱 열기(intent://)가 막혀 빈 탭에 멈췄다
+  // (2026-10-12 사용자: 안 넘어간다).
+  const win = null
   document.querySelector('.ce-dim')?.remove()
   // 바텀시트처럼 화면을 어둡게 깔고 그 위에 안내를 띄운다(2026-10-06 사용자)
   const dim = document.createElement('div')
