@@ -17,6 +17,7 @@ export default function BestHistoryChart({ brand }) {
   const [sel, setSel] = useState(null)
   const svgRef = useRef(null)
   const timer = useRef(null)
+  const drag = useRef(null) // 누른 채 끄는 중이면 { pointer, seen: 지나간 점 번호 }
   useEffect(() => {
     let live = true
     fetchHistory(brand, range).then((d) => { if (live) { setData(d); setSel(null) } })
@@ -60,11 +61,19 @@ export default function BestHistoryChart({ brand }) {
     e.stopPropagation()
     clearTimeout(timer.current)
     const r = svgRef.current.getBoundingClientRect()
-    setSel(nearestIndex(((e.clientX - r.left) / r.width) * W, xs))
+    const i = nearestIndex(((e.clientX - r.left) / r.width) * W, xs)
+    if (drag.current) drag.current.seen.add(i)
+    setSel(i)
   }
   // 터치는 손을 떼도 잠깐 남겨 읽을 시간을 준다. 마우스는 올려둔 동안만.
   const onUp = (e) => {
     e.stopPropagation()
+    // 누른 채 끌어 두 날짜 이상 지나갔으면 손을 뗄 때 한 번만 남긴다(2026-10-12 사용자). 움직일 때마다 보내면 폭증한다.
+    const d = drag.current
+    drag.current = null
+    if (d && d.seen.size > 1) {
+      track('history_drag', { brand, range, pointer: d.pointer, points: d.seen.size, last: pts[[...d.seen].pop()]?.date ?? null })
+    }
     if (e.pointerType === 'mouse') return
     timer.current = setTimeout(() => setSel(null), 1500)
   }
@@ -104,7 +113,7 @@ export default function BestHistoryChart({ brand }) {
       )}
       <div className="hist__wrap">
         <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="hist__svg" aria-hidden="true"
-          onPointerDown={(e) => { track('history_point_select', { brand, range, pointer: e.pointerType || 'none' }); pick(e) }} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}
+          onPointerDown={(e) => { track('history_point_select', { brand, range, pointer: e.pointerType || 'none' }); drag.current = { pointer: e.pointerType || 'none', seen: new Set() }; pick(e) }} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}
           onPointerLeave={(e) => { if (e.pointerType === 'mouse') setSel(null) }}>
           <line x1={GUTTER} y1={m.yHi} x2={W} y2={m.yHi} className="hist__grid" />
           <line x1={GUTTER} y1={m.yLo} x2={W} y2={m.yLo} className="hist__grid" />
