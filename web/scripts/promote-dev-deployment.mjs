@@ -7,7 +7,8 @@ assert.equal(deploymentUrl.protocol, 'https:')
 assert.ok(deploymentUrl.hostname.endsWith('.vercel.app'))
 
 async function api(path, method = 'GET') {
-  const response = await fetch(`https://api.vercel.com${path}?teamId=${encodeURIComponent(team)}`, {
+  const separator = path.includes('?') ? '&' : '?'
+  const response = await fetch(`https://api.vercel.com${path}${separator}teamId=${encodeURIComponent(team)}`, {
     method,
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     ...(method === 'POST' ? { body: '{}' } : {}),
@@ -28,7 +29,7 @@ await api(`/v10/projects/${encodeURIComponent(project)}/promote/${encodeURICompo
 
 const deadline = Date.now() + 180000
 while (Date.now() < deadline) {
-  const status = await api(`/v9/projects/${encodeURIComponent(project)}`)
+  const status = await api(`/v9/projects/${encodeURIComponent(project)}?rollbackInfo=true`)
   const request = status.lastAliasRequest
   if (request?.toDeploymentId === deployment.id) {
     assert.notEqual(request.jobStatus, 'failed', '개발 도메인 연결 실패')

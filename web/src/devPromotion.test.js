@@ -7,10 +7,11 @@ function run(overrides = {}, jobStatus = 'succeeded') {
   return spawnSync(process.execPath, ['--input-type=module', '-e', `
     Object.assign(process.env, { VERCEL_TOKEN: 'test-token', VERCEL_ORG_ID: 'team_test', VERCEL_PROJECT_ID: 'prj_test', DEPLOYMENT_URL: 'https://candidate.vercel.app', GITHUB_SHA: 'test-sha' });
     globalThis.fetch = async (url, options) => {
-      if (!url.startsWith('https://api.vercel.com/') || !url.endsWith('?teamId=team_test')) throw Error('wrong API scope');
+      if (!url.startsWith('https://api.vercel.com/') || new URL(url).searchParams.get('teamId') !== 'team_test') throw Error('wrong API scope');
       if (options.headers.Authorization !== 'Bearer test-token') throw Error('missing auth');
       if (url.includes('/v13/deployments/')) return new Response(JSON.stringify(${JSON.stringify(deployment)}));
       if (options.method === 'POST') { console.log('PROMOTE_REQUEST'); return new Response(null); }
+      if (new URL(url).searchParams.get('rollbackInfo') !== 'true') throw Error('missing promotion status parameter');
       return new Response(JSON.stringify({ lastAliasRequest: { toDeploymentId: 'dpl_test', jobStatus: ${JSON.stringify(jobStatus)} } }));
     };
     await import(${JSON.stringify(new URL('../scripts/promote-dev-deployment.mjs', import.meta.url).href)});
