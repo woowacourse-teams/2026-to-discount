@@ -9,6 +9,8 @@ import { guideSteps, markGuideSeen } from './firstVisitGuide.js'
 // 처음 잡은 요소(대체 카드)가 바뀌어 끼워지고, 옛 요소를 쥐고 있으면 밝힌 자리가 사라졌다(2026-10-13 실측).
 // ponytail: 250ms 다시 찾기. 단계가 늘거나 자리가 자주 움직이면 MutationObserver로.
 // 개발 모드 StrictMode는 마운트를 두 번 한다. view는 페이지당 한 번만 센다.
+// 움직임 줄이기를 켠 사람에겐 바로 옮긴다
+const scrollBehavior = () => (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth')
 let viewSent = false
 const lockScroll = (e) => { if (!e.target.closest?.('.fvg-tip')) e.preventDefault() }
 
@@ -43,15 +45,15 @@ export default function FirstVisitGuide({ arm, onClose }) {
     if (!step) return undefined
     const el = document.querySelector(step.selector)
     // 바 안의 자리는 고정이라 그대로, 목록 쪽은 가운데로 끌어온다(잠금 중에도 코드 스크롤은 된다)
-    if (el && !el.closest('.title-bar')) el.scrollIntoView({ block: 'center' })
+    if (el && !el.closest('.title-bar')) el.scrollIntoView({ block: 'center', behavior: scrollBehavior() })
     // 큰 자리 하나와, 그 안에서 따로 짚는 자리들(marks: 버튼, 자세히 보기). 값이 같으면 다시 그리지 않는다.
     const box = (r) => ({ top: r.top, left: r.left, right: r.right, bottom: r.bottom, width: r.width, height: r.height })
-    const measure = () => {
+    const measure = (heal) => {
       const target = document.querySelector(step.selector)
       let r = target?.getBoundingClientRect()
       // 뜨는 순간 남은 관성 스크롤(모바일 플링)이 자리를 화면 밖으로 밀면 다시 끌어온다
-      if (r && !target.closest('.title-bar') && (r.bottom < 0 || r.top > window.innerHeight)) {
-        target.scrollIntoView({ block: 'center' })
+      if (heal === true && r && !target.closest('.title-bar') && (r.bottom < 0 || r.top > window.innerHeight)) {
+        target.scrollIntoView({ block: 'center', behavior: scrollBehavior() })
         r = target.getBoundingClientRect()
       }
       const marks = (step.marks ?? []).flatMap((m) => {
@@ -62,10 +64,12 @@ export default function FirstVisitGuide({ arm, onClose }) {
       const next = r && r.width > 0 ? { ...box(r), marks } : null
       setRect((old) => (JSON.stringify(old) === JSON.stringify(next) ? old : next))
     }
-    measure()
-    const id = setInterval(measure, 250)
+    measure(true)
+    const id = setInterval(() => measure(true), 250)
+    // 부드러운 스크롤 동안 구멍이 따라오도록 스크롤마다 잰다
     window.addEventListener('resize', measure)
-    return () => { clearInterval(id); window.removeEventListener('resize', measure) }
+    window.addEventListener('scroll', measure, { passive: true })
+    return () => { clearInterval(id); window.removeEventListener('resize', measure); window.removeEventListener('scroll', measure) }
   }, [step])
 
   const finish = (action) => {
