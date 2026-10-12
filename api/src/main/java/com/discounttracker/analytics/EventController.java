@@ -46,12 +46,12 @@ public class EventController {
             // 필터 시트는 옛 B안의 것인데 2026-09-16 A 바에 기능으로 병합했다.
             // 담기(cart_*)는 2026-09-29 웹에서 기능째 지웠다.
             "filter_sheet_open", "quick_filter",
-            // 홈 버튼(2026-09-16, 바의 필터 버튼 옆).
-            "home_click",
             // 배너 자동 넘김 멈춤/재생(2026-09-16, 캐러셀 조작 묶음).
             "banner_autoplay_toggle",
             "banner_impression", "banner_dismiss", "brand_search_submitted",
             "brand_impression",
+            // 첫 방문 안내(2026-10-12, web FirstVisitGuide). action: view/skip/done.
+            "first_guide",
             // 웹 푸시 설정 결과. 브라우저 SDK가 차단돼도 서버 릴레이로 남아야 한다.
             "push_subscription_enabled", "push_subscription_disabled", "push_permission_denied",
             "push_prompt_viewed", "push_prompt_enable_clicked", "push_prompt_closed",

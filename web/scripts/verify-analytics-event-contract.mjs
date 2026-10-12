@@ -38,6 +38,8 @@ const surveyDockSource = await source('src/SurveyDock.jsx')
 const historyChartSource = await source('src/BestHistoryChart.jsx')
 // 필터 시트. membership_toggle(시트의 멤버십 칩)을 여기서 쏜다.
 const filterSheetSource = await source('src/FilterSheet.jsx')
+// 첫 방문 안내. first_guide를 여기서 쏜다.
+const guideSource = await source('src/FirstVisitGuide.jsx')
 // 푸시 설정. 구독 결과 이벤트도 자체 API 원장으로 릴레이하므로 목록에서
 // 빠지면 API가 이름을 모른 채 조용히 버린다.
 const pushNotificationSettingSource = await source('src/PushNotificationSetting.jsx')
@@ -61,6 +63,7 @@ const emittedEvents = new Set([
   ...staticTrackEvents('src/SurveyDock.jsx', surveyDockSource),
   ...staticTrackEvents('src/BestHistoryChart.jsx', historyChartSource),
   ...staticTrackEvents('src/FilterSheet.jsx', filterSheetSource),
+  ...staticTrackEvents('src/FirstVisitGuide.jsx', guideSource),
   ...staticTrackEvents('src/PushNotificationSetting.jsx', pushNotificationSettingSource),
   ...staticTrackEvents('src/analytics.js#startAnalytics', startAnalyticsSource),
   'page_exit',

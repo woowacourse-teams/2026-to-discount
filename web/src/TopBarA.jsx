@@ -142,7 +142,6 @@ export default function TopBarA({
   resetFilters,
   onOpenSheet,
   sheetOpen,
-  onHome,
 }) {
   // Set 하나짜리를 단일 선택처럼 읽는다. 비어 있으면 "전체"다.
   // 신규(2026-10-05): 쿠폰 카드 쪽과 같은 규칙. 켜면 분류를 풀고 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
@@ -204,20 +203,7 @@ export default function TopBarA({
           <div className="title-bar__actions">
             <span ref={pushToggleRef} id="push-toggle-slot" className="push-toggle-slot" />
 
-            {/* 홈 — 첫 화면으로. 필터·검색을 풀고 맨 위로, /brand/<이름>에서
-                들어왔으면 전체 목록으로(사용자 결정 2026-09-16). */}
-            <button
-              type="button"
-              className="filter-reset-btn home-btn"
-              onClick={onHome}
-              aria-label="첫 화면으로"
-              title="첫 화면으로"
-            >
-              <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 11.5 12 4l9 7.5" />
-                <path d="M5.5 10.5V20h13v-9.5" />
-              </svg>
-            </button>
+            {/* 홈 버튼은 2026-10-13 뺐다(사용자: 360px에서 바가 화면 밖으로 넘쳤다). 브랜드 경로에선 목록의 "전체 브랜드 보기"가 나가는 길이다. */}
 
             {/* 필터 시트(옛 B안). 바에 펼쳐진 앱·분류는 그대로 두고, 정렬과
                 여러 분류 동시 선택처럼 바에 안 실린 조건은 여기서 고른다
