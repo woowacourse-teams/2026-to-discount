@@ -221,13 +221,15 @@ export default function App({ initial = null }) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
   // 첫 방문 안내(firstVisitGuide.js). 카드가 그려진 뒤에 띄운다 — 짚을 자리가 있어야 한다.
-  const [guideOn, setGuideOn] = useState(false)
+  // 값은 띄울 안('coupon'|'old'). 바가 그 안으로 바뀐 뒤에만 그린다 — 마운트 직후엔 운영 바가 먼저 그려져 안내가 두 번 떴다.
+  const [guideOn, setGuideOn] = useState(null)
   const guideChecked = useRef(false)
   useEffect(() => {
     if (!brands?.length || guideChecked.current) return
     guideChecked.current = true
     try {
-      if (shouldShowGuide({ visitCount: getAnalyticsContext().visitCount, pathname: window.location.pathname, search: window.location.search })) setGuideOn(true)
+      const ctx = getAnalyticsContext()
+      if (shouldShowGuide({ visitCount: ctx.visitCount, pathname: window.location.pathname, search: window.location.search })) setGuideOn(currentHomeArm(ctx.visitorId).arm)
     } catch { /* 못 읽으면 안내 없이 */ }
   }, [brands])
   useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
@@ -797,10 +799,10 @@ export default function App({ initial = null }) {
 
       <SiteFooter />
 
-      {/* 메인 화면 A/B 안이 바뀌면(마운트 뒤 배정) key로 새로 띄워 그 안의 단계로 다시 짚는다 */}
-      {guideOn && (
+      {/* 메인 화면 A/B 배정(마운트 뒤)이 끝나 바가 그 안이 된 뒤에 띄운다 */}
+      {guideOn && guideOn === (homeA ? 'coupon' : 'old') && (
         <Suspense fallback={null}>
-          <FirstVisitGuide key={homeA ? 'coupon' : 'old'} arm={homeA ? 'coupon' : 'old'} onClose={() => setGuideOn(false)} />
+          <FirstVisitGuide arm={guideOn} onClose={() => setGuideOn(null)} />
         </Suspense>
       )}
 

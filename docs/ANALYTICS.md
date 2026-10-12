@@ -104,7 +104,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
 | `filters_reset` | 초기화 버튼 | 없음 |
 | `home_click` | (2026-10-13 버튼째 뺐다. 그 전 기록에만 있다) 바의 홈 버튼 | 없음 |
-| `first_guide` | 첫 방문 안내(FirstVisitGuide). 첫 세션 첫 화면에서 한 번 | `action`(view/prev/next/skip/done), `step`, `arm` |
+| `first_guide` | 첫 방문 안내(FirstVisitGuide). 첫 세션 첫 화면에서 한 번 | `action`(view/prev/next/skip/back/done), `step`, `index`, `total`, `arm`. back은 폰의 뒤로 버튼으로 닫은 것 |
 | `membership_toggle` | 멤버십 라벨 (아직 미구현 기능) | `platform`, `state:'soon'`, `from` |
 | `brand_search_submitted` | 비어 있지 않은 검색어를 엔터나 검색 버튼으로 확정 | `inputLength`, `resultCount`(목록 로드 전에는 생략), `submitMethod`(`enter`/`button`) |
 

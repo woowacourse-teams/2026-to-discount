@@ -8,6 +8,8 @@ import { guideSteps, markGuideSeen } from './firstVisitGuide.js'
 // 안내 중엔 스크롤을 잠근다. 자리는 짧은 간격으로 다시 찾아 잰다 — 쿠폰 카드는 지연 로드라
 // 처음 잡은 요소(대체 카드)가 바뀌어 끼워지고, 옛 요소를 쥐고 있으면 밝힌 자리가 사라졌다(2026-10-13 실측).
 // ponytail: 250ms 다시 찾기. 단계가 늘거나 자리가 자주 움직이면 MutationObserver로.
+// 개발 모드 StrictMode는 마운트를 두 번 한다. view는 페이지당 한 번만 센다.
+let viewSent = false
 const lockScroll = (e) => { if (!e.target.closest?.('.fvg-tip')) e.preventDefault() }
 
 export default function FirstVisitGuide({ arm, onClose }) {
@@ -20,7 +22,8 @@ export default function FirstVisitGuide({ arm, onClose }) {
     if (found.length === 0) { onClose(); return undefined }
     markGuideSeen()
     setSteps(found)
-    track('first_guide', { action: 'view', step: found[0].key, arm })
+    if (!viewSent) track('first_guide', { action: 'view', step: found[0].key, index: 1, total: found.length, arm })
+    viewSent = true
     const root = document.documentElement
     const prev = root.style.overflow
     root.style.overflow = 'hidden'
@@ -58,10 +61,11 @@ export default function FirstVisitGuide({ arm, onClose }) {
   }, [step])
 
   const finish = (action) => {
-    track('first_guide', { action, step: step?.key, arm })
+    track('first_guide', { action, step: step?.key, index: i + 1, total: steps?.length, arm })
     onClose()
   }
-  useBackClose(Boolean(steps), () => finish('skip'))
+  // 폰의 뒤로 버튼은 페이지를 떠나지 않고 안내만 닫는다(건너뛰기와 따로 센다)
+  useBackClose(Boolean(steps), () => finish('back'))
 
   if (!step || !rect) return null
   const last = i === steps.length - 1
@@ -74,7 +78,8 @@ export default function FirstVisitGuide({ arm, onClose }) {
   const right = Math.min(rect.right + pad, vw - 2)
   const bottom = Math.min(rect.bottom + pad, vh - 2)
   const below = (top + bottom) / 2 < vh / 2
-  const go = (n, action) => { track('first_guide', { action, step: steps[n].key, arm }); setI(n) }
+  // 이전/다음은 도착한 단계로 센다. 어느 단계에서 많이 떠나는지 볼 수 있다.
+  const go = (n, action) => { track('first_guide', { action, step: steps[n].key, index: n + 1, total: steps.length, arm }); setI(n) }
   return (
     <div className="fvg" role="dialog" aria-modal="true" aria-label="처음 오셨나요? 화면 안내" tabIndex={-1} ref={(n) => n && !n.contains(document.activeElement) && n.focus({ preventScroll: true })}>
       <div className="fvg-hole" aria-hidden="true" style={{ top, left, width: right - left, height: bottom - top }} />
