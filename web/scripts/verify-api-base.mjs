@@ -1,4 +1,4 @@
-// ADR-001이 코드와 갈라지지 않게 지킨다.
+// ADR-004의 환경별 절대주소 직접 호출 계약을 지킨다.
 //
 // ADR-001(2026-07-28)은 "백엔드 주소를 절대값으로 고정, 프록시·환경변수
 // 없이"로 확정됐다. 그런데 어느 시점에 API_BASE가 ''로 돌아가고
@@ -21,12 +21,13 @@ const read = (p) => readFileSync(resolve(here, '..', p), 'utf8')
 const fail = []
 
 const api = read('src/api.js')
-const m = api.match(/export const API_BASE = '([^']*)'/)
-if (!m) {
-  fail.push("src/api.js에 `export const API_BASE = '...'` 가 없다")
-} else if (!/^https:\/\/\S+$/.test(m[1])) {
-  fail.push(`API_BASE가 절대주소가 아니다: ${JSON.stringify(m[1])} (ADR-001)`)
+if (!api.includes('resolveApiBase(import.meta.env?.VITE_API_BASE_URL')) {
+  fail.push('API_BASE는 환경별 절대주소 검증을 사용해야 한다')
 }
+const html = read('index.html')
+if (!html.includes('__DISCOUNT_API_BASE__/api/banners')) fail.push('초기 배너 요청도 같은 API 설정을 사용해야 한다')
+const prerender = read('scripts/prerender.mjs')
+if (!prerender.includes('resolveApiBase(env.VITE_API_BASE_URL, env.VITE_APP_ENV)')) fail.push('사전 렌더링 API 설정이 분리되어 있다')
 
 // 프록시로 되돌아가는 다른 경로 — vercel.json의 /api rewrite.
 const vercel = JSON.parse(read('vercel.json'))
@@ -44,7 +45,7 @@ for (const f of ['src/analytics.js', 'src/App.jsx', 'src/SurveyCard.jsx']) {
   } catch {
     continue
   }
-  if (text.includes('bebeggars.duckdns.org')) {
+  if (text.replace(/^\s*\/\/.*$/gm, '').includes('bebeggars.duckdns.org')) {
     fail.push(`${f}가 백엔드 주소를 직접 들고 있다 — api.js의 API_BASE를 import할 것`)
   }
 }

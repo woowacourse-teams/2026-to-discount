@@ -1,11 +1,18 @@
 package com.discounttracker.web;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+    private final String developmentOrigin;
+
+    public WebConfig(@Value("${discount.cors.development-origin:}") String developmentOrigin) {
+        this.developmentOrigin = developmentOrigin;
+    }
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         // 기본 allowedMethods는 GET/HEAD/POST라 /api/events(POST)도 포함되지만,
@@ -16,7 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
         // beggars-git-*-nn98s-projects — 실제 Vercel 프로젝트 슬러그는
         // "beggars"(운영 별칭이 beggars-five)라, git 브랜치 프리뷰 주소는
         // beggars-git-<브랜치>-nn98s-projects.vercel.app 형태로 나온다.
-        registry.addMapping("/api/**")
+        var mapping = registry.addMapping("/api/**")
                 .allowedOriginPatterns(
                         "http://localhost:5173",
                         "http://192.168.*:5173",
@@ -29,5 +36,7 @@ public class WebConfig implements WebMvcConfigurer {
                         // preflight 403 "Invalid CORS request").
                         "https://beggars-*-nn98s-projects.vercel.app")
                 .allowedMethods("GET", "POST", "DELETE");
+        // 개발 서버에만 환경변수를 지정한다. 운영의 기존 출처 목록은 유지한다.
+        if (!developmentOrigin.isBlank()) mapping.allowedOrigins(developmentOrigin);
     }
 }

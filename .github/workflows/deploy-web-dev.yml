@@ -1,0 +1,80 @@
+name: Deploy Web development
+
+on:
+  push:
+    branches: [dev]
+    paths: ['web/**', 'api/src/test/resources/contracts/**', '.github/workflows/deploy-web-dev.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-web-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    environment: development
+    timeout-minutes: 25
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_DEV_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_DEV_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_DEV_TOKEN }}
+      VITE_APP_ENV: development
+      VITE_API_BASE_URL: https://dev-api-todiscount.duckdns.org
+      SITE_ORIGIN: https://to-discount-dev.vercel.app
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - name: Check deployment credentials
+        run: |
+          for name in VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN; do
+            [ -n "${!name}" ] || { echo "Missing $name"; exit 1; }
+          done
+      - name: Install pinned deployment CLI
+        run: npm install --global vercel@63.1.2
+      - name: Pull development project settings
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Build deployable output
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+      - name: Verify development output
+        run: node scripts/verify-dev-output.mjs
+      # 도메인을 옮기기 전에 신규 배포의 SSR과 개발 API CORS를 확인한다.
+      - name: Deploy without moving the domain
+        id: candidate
+        run: |
+          vercel deploy --prebuilt --prod --skip-domain --meta githubCommitRef=dev --meta githubCommitSha="$GITHUB_SHA" --token="$VERCEL_TOKEN" > "$RUNNER_TEMP/web-dev-url"
+          DEPLOYMENT_URL=$(tail -n 1 "$RUNNER_TEMP/web-dev-url")
+          [[ "$DEPLOYMENT_URL" =~ ^https://[a-zA-Z0-9.-]+\.vercel\.app$ ]] || exit 1
+          echo "url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+      - name: Verify candidate and development API
+        env:
+          DEPLOYMENT_URL: ${{ steps.candidate.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_DEV_AUTOMATION_BYPASS_SECRET }}
+        run: node scripts/verify-dev-deployment.mjs
+      - name: Promote only the latest dev commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYMENT_URL: ${{ steps.candidate.outputs.url }}
+        run: |
+          LATEST_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/dev" --jq '.object.sha')
+          if [ "$LATEST_SHA" != "$GITHUB_SHA" ]; then
+            echo "Newer dev commit exists; retain the current domain deployment" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          vercel promote "$DEPLOYMENT_URL" --yes --token="$VERCEL_TOKEN"
+          echo "Deployed $GITHUB_SHA to https://to-discount-dev.vercel.app" >> "$GITHUB_STEP_SUMMARY"
