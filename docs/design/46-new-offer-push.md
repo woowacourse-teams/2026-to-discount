@@ -38,3 +38,11 @@
 - API는 실제 연결 주소가 루프백이고 인증 표시가 있는 요청만 허용한다. 일반 공개 경로에서는 Nginx가 외부에서 보낸 인증 표시를 제거한다.
 - 운영 적용에는 API 배포와 Nginx 설정 반영이 모두 필요하다. 콘솔은 같은 출처의 관리 경로로 요청해 기존 인증을 사용한다.
 - 관리 콘솔 화면은 이 변경에 포함하지 않는다. 조회 응답의 candidates와 offerId를 이용해 별도로 연결한다.
+
+## 운영 콘솔 저장 요청 CORS 수정
+
+2026-10-12 운영 저장 요청에서 403 `Invalid CORS request`를 확인했다. Nginx가 내부 API로 전달하는 요청에 운영 콘솔 Origin이 남지만 기존 공개 API 설정에는 해당 출처와 PUT이 없었다.
+
+관리 경로 `/api/push/admin/**`에만 `https://bebeggars.duckdns.org`의 GET과 PUT을 허용한다. 전체 API에 PUT을 추가하는 방식보다 허용 범위가 작고 기존 Nginx Basic Auth와 내부 인증 표시 검사를 유지한다.
+
+WebConfig의 경로별 설정과 실제 MVC 요청 처리를 함께 검증한다. 운영 Origin을 포함한 조회, 교체 저장, preflight는 허용하고 잘못된 출처, 인증 누락, 공개 API의 PUT은 차단한다. 배포 후 실제 운영 콘솔 저장 확인은 별도로 수행한다.
