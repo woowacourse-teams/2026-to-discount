@@ -13,7 +13,7 @@ if (process.env.VERCEL_TOKEN) {
   // 고유 배포 URL은 기본 주소와 달리 보호될 수 있다. 기존 배포 권한으로 읽는다.
   const dir = mkdtempSync(join(tmpdir(), 'web-dev-smoke-'))
   try {
-    const run = spawnSync('vercel', ['--token', process.env.VERCEL_TOKEN, 'curl', '/', '--deployment', url.href, '--', '--silent', '--show-error',
+    const run = spawnSync('vercel', ['curl', '/', '--deployment', url.href, '--', '--silent', '--show-error',
       '--max-time', '20', '--dump-header', join(dir, 'headers'), '--output', join(dir, 'body'),
       '--write-out', '%{http_code}'], {
       cwd: new URL('../../', import.meta.url), encoding: 'utf8', timeout: 60000,
