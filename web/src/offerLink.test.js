@@ -27,5 +27,6 @@ test('쿠팡이츠: 탭 앱 링크가 있으면 그 탭, 없으면 공유 링크
   const tab = 'coupangeats://Web?url=x%26anchorTabNo%3D4&navType=push'
   assert.equal(offerLink({ platform: 'coupangeats', link: tab }, {}, 'BBQ'), tab)
   assert.equal(offerLink({ platform: 'coupangeats' }, {}, 'BBQ'), COUPANGEATS_LINK)
-  assert.equal(offerLink({ platform: 'coupangeats', link: 'https://share.coupangeats.com/old' }, {}, 'BBQ'), COUPANGEATS_LINK)
+  // 수집이 검증해 실은 공유 링크가 코드 상수보다 먼저다(2026-10-12: 상수가 만료 링크였다).
+  assert.equal(offerLink({ platform: 'coupangeats', link: 'https://share.coupangeats.com/new' }, {}, 'BBQ'), 'https://share.coupangeats.com/new')
 })

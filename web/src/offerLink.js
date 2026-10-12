@@ -73,7 +73,8 @@ const HUB_LINK_MARKERS = { coupangeats: 'V5_HUB_' }
 let hubLinks = {}
 
 // 쿠팡이츠는 오퍼와 배너 모두 이 링크(와우 라운지)로 보낸다(2026-10-06 사용자). 수집이 매일 받는 허브 공유 링크보다 우선.
-export const COUPANGEATS_LINK = 'https://share.coupangeats.com/VzILg2hUX6b'
+// 마지막 기본값이다. 수집이 매일 검증한 공유 링크를 오퍼 link로 실어 보내면 그게 먼저다(2026-10-12 만료 링크가 박혀 있었다).
+export const COUPANGEATS_LINK = 'https://share.coupangeats.com/q0kvJIIv96b'
 
 // 쿠팡이츠 허브 쿠폰은 앱에서 '쿠폰 받기'를 눌러야 적용된다(2026-10-06 사용자 확인).
 // 위험: 1.5초 뒤 이동은 사용자 제스처 밖이라 iOS 사파리가 앱 대신 웹을 열 수 있다. 실기 확인 필요.
@@ -146,7 +147,7 @@ export function setHubLinks(banners) {
 /** 오퍼 링크 사다리. 오퍼 자신의 링크 → 브랜드 링크 → 앱 안 브랜드 검색 → 허브 → 앱 열기. */
 export function offerLink(offer, brandLinks, brandName) {
   // 쿠팡이츠: 수집이 그 쿠폰이 있는 허브 탭 링크(coupangeats://…anchorTabNo=N)를 실었으면 그 탭으로, 아니면 공유 링크(2026-10-07)
-  if (offer.platform === 'coupangeats') return offer.link?.startsWith('coupangeats://') ? offer.link : COUPANGEATS_LINK
+  if (offer.platform === 'coupangeats') return /^(coupangeats:\/\/|https:\/\/share\.coupangeats\.com\/)/.test(offer.link ?? '') ? offer.link : COUPANGEATS_LINK
   return offer.link
     ?? brandLinks?.[offer.platform]
     ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
