@@ -152,6 +152,7 @@ web/scripts/dev/build-ui-kit.py
 web/scripts/dev/capture-dom.mjs
 web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
+web/scripts/promote-dev-deployment.mjs
 web/scripts/run-node-tests.mjs
 web/scripts/ssr-template.mjs
 web/scripts/verify-analytics-event-contract.mjs
@@ -206,6 +207,7 @@ web/src/cardShift.test.js
 web/src/couponCard.test.js
 web/src/couponModel.js
 web/src/couponModel.test.js
+web/src/devPromotion.test.js
 web/src/entry-server.jsx
 web/src/filters.js
 web/src/filters.test.js
@@ -309,7 +311,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 131 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 129 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 131 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -392,6 +394,7 @@ HTTP 경계:
 | `couponCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `devPromotion.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `entry-server.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `filters.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |

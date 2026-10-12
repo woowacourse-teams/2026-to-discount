@@ -80,5 +80,5 @@ jobs:
             echo "Newer dev commit exists; retain the current domain deployment" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          vercel promote "$DEPLOYMENT_URL" --yes --token="$VERCEL_TOKEN"
+          node web/scripts/promote-dev-deployment.mjs
           echo "Deployed $GITHUB_SHA to https://to-discount-dev.vercel.app" >> "$GITHUB_STEP_SUMMARY"
