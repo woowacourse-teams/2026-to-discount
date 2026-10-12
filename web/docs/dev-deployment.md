@@ -14,6 +14,8 @@
 
 ## 실행 순서
 
+CLI의 pull, build, deploy, promote는 모노레포 루트에서 실행한다. 프로젝트 Root Directory(web)가 중복 적용되지 않도록 한다. 테스트와 검증 스크립트만 web에서 실행한다.
+
 npm test → vercel pull → vercel build --prod → 개발 주소 및 SSR 산출물 검사 → vercel deploy --prebuilt --prod --skip-domain → 신규 URL의 SSR 및 API CORS 검사 → 최신 dev SHA 확인 → vercel promote.
 
 토큰 누락, 테스트, 빌드, CORS 및 SSR 오류는 배포 승격을 막는다. 새 커밋이 있으면 오래된 실행은 승격하지 않는다. Vercel Production 환경은 개발 프로젝트의 기본 배포 환경을 의미한다.

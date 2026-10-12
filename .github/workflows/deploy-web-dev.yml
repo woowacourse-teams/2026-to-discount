@@ -48,13 +48,16 @@ jobs:
       - name: Install pinned deployment CLI
         run: npm install --global vercel@63.1.2
       - name: Pull development project settings
+        working-directory: .
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
       - name: Build deployable output
+        working-directory: .
         run: vercel build --prod --token="$VERCEL_TOKEN"
       - name: Verify development output
         run: node scripts/verify-dev-output.mjs
       # 도메인을 옮기기 전에 신규 배포의 SSR과 개발 API CORS를 확인한다.
       - name: Deploy without moving the domain
+        working-directory: .
         id: candidate
         run: |
           vercel deploy --prebuilt --prod --skip-domain --meta githubCommitRef=dev --meta githubCommitSha="$GITHUB_SHA" --token="$VERCEL_TOKEN" > "$RUNNER_TEMP/web-dev-url"
@@ -67,6 +70,7 @@ jobs:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_DEV_AUTOMATION_BYPASS_SECRET }}
         run: node scripts/verify-dev-deployment.mjs
       - name: Promote only the latest dev commit
+        working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
           DEPLOYMENT_URL: ${{ steps.candidate.outputs.url }}
