@@ -1,0 +1,46 @@
+name: Sync development offers
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-api-dev-refs/heads/dev
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.ref == 'refs/heads/dev'
+    environment: development
+    runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
+    timeout-minutes: 5
+    steps:
+      - name: Read production snapshot and reload development API
+        env:
+          SOURCE_KEY: ${{ secrets.DEV_OFFERS_SOURCE_SSH_KEY }}
+          SOURCE_KNOWN_HOSTS: ${{ secrets.DEV_OFFERS_SOURCE_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          [ -n "$SOURCE_KEY" ] && [ -n "$SOURCE_KNOWN_HOSTS" ] || { echo "Missing development offer source secrets"; exit 1; }
+          test -x /usr/local/sbin/todiscount-sync-offers-dev
+          SYNC_DIR=$(mktemp -d /var/lib/todiscount-runner/offer-sync.XXXXXXXX)
+          trap 'rm -rf -- "$SYNC_DIR"' EXIT
+          umask 077
+          printf '%s\n' "$SOURCE_KEY" > "$SYNC_DIR/key"
+          printf '%s\n' "$SOURCE_KNOWN_HOSTS" > "$SYNC_DIR/known_hosts"
+          # The source key is forced-command/read-only: it can only print export.json.
+          ssh -T -i "$SYNC_DIR/key" -o BatchMode=yes -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$SYNC_DIR/known_hosts" \
+            -o ConnectTimeout=10 ubuntu@bebeggars.duckdns.org \
+            'cat /home/ubuntu/delivery-discount-api/data/export.json' > "$SYNC_DIR/export.json"
+          sudo -n /usr/local/sbin/todiscount-sync-offers-dev "$SYNC_DIR/export.json" > "$SYNC_DIR/result.json"
+          python3 - "$SYNC_DIR/result.json" <<'PYTHON' >> "$GITHUB_STEP_SUMMARY"
+          import json, sys
+          result = json.load(open(sys.argv[1]))
+          print('Development offers synchronized and API reloaded')
+          print('Offers: ' + str(result['offers']))
+          print('SHA-256: ' + result['sha256'])
+          print('Synced at: ' + result['synced_at'])
+          PYTHON
