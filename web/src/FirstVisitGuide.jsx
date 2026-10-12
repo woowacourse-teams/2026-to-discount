@@ -39,9 +39,17 @@ export default function FirstVisitGuide({ arm, onClose }) {
     const el = document.querySelector(step.selector)
     // 바 안의 자리는 고정이라 그대로, 목록 쪽은 가운데로 끌어온다(잠금 중에도 코드 스크롤은 된다)
     if (el && !el.closest('.title-bar')) el.scrollIntoView({ block: 'center' })
+    // 큰 자리 하나와, 그 안에서 따로 짚는 자리들(marks: 버튼, 자세히 보기). 값이 같으면 다시 그리지 않는다.
+    const box = (r) => ({ top: r.top, left: r.left, right: r.right, bottom: r.bottom, width: r.width, height: r.height })
     const measure = () => {
       const r = document.querySelector(step.selector)?.getBoundingClientRect()
-      setRect((old) => (r && r.width > 0 ? (old && old.top === r.top && old.left === r.left && old.width === r.width && old.height === r.height ? old : r) : null))
+      const marks = (step.marks ?? []).flatMap((m) => {
+        const e = document.querySelector(m.selector)
+        const mr = e?.getBoundingClientRect()
+        return mr && mr.width > 0 ? [{ ...box(mr), radius: getComputedStyle(e).borderRadius, label: m.label, side: m.side }] : []
+      })
+      const next = r && r.width > 0 ? { ...box(r), marks } : null
+      setRect((old) => (JSON.stringify(old) === JSON.stringify(next) ? old : next))
     }
     measure()
     const id = setInterval(measure, 250)
@@ -70,15 +78,24 @@ export default function FirstVisitGuide({ arm, onClose }) {
   return (
     <div className="fvg" role="dialog" aria-modal="true" aria-label="처음 오셨나요? 화면 안내" tabIndex={-1} ref={(n) => n && !n.contains(document.activeElement) && n.focus({ preventScroll: true })}>
       <div className="fvg-hole" aria-hidden="true" style={{ top, left, width: right - left, height: bottom - top }} />
+      {rect.marks.map((m) => (
+        <div key={m.label} className="fvg-mark" aria-hidden="true"
+             style={{ top: m.top - 3, left: m.left - 3, width: m.width + 6, height: m.height + 6, borderRadius: `calc(${m.radius} + 3px)` }}>
+          <span className={`fvg-mark__label fvg-mark__label--${m.side}`}>{m.label}</span>
+        </div>
+      ))}
       <div className="fvg-tip" style={below ? { top: bottom + 10 } : { bottom: vh - top + 10 }}>
-        <p className="fvg-tip__text">{step.text}</p>
+        <p className="fvg-tip__text">
+          {/* em 낱말(예: 버튼)은 짚은 테두리와 같은 색으로 */}
+          {step.em ? step.text.split(step.em).flatMap((part, n) => (n ? [<strong key={n} className="fvg-em">{step.em}</strong>, part] : [part])) : step.text}
+        </p>
         <div className="fvg-tip__row">
           <span className="fvg-tip__count">{i + 1} / {steps.length}</span>
           {!last && <button type="button" className="fvg-tip__skip" onClick={() => finish('skip')}>건너뛰기</button>}
-          {/* 이전/다음은 빠른 정렬과 같은 한 홈 모양(quick-bar__sorts) */}
-          <div className="quick-bar__sorts fvg-tip__nav" role="group" aria-label="안내 넘기기">
-            <button type="button" className="quick-bar__chip" disabled={i === 0} onClick={() => go(i - 1, 'prev')}>이전</button>
-            <button type="button" className="quick-bar__chip quick-bar__chip--on"
+          {/* 이전/다음: 가운데 구분선을 둔 한 덩어리 타원(세그먼트 컨트롤) */}
+          <div className="fvg-seg" role="group" aria-label="안내 넘기기">
+            <button type="button" disabled={i === 0} onClick={() => go(i - 1, 'prev')}>이전</button>
+            <button type="button" className="fvg-seg__next"
                     onClick={() => (last ? finish('done') : go(i + 1, 'next'))}>
               {last ? '시작하기' : '다음'}
             </button>

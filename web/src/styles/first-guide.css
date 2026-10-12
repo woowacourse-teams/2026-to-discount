@@ -6,6 +6,16 @@
 .fvg-tip__row { display: flex; align-items: center; gap: 8px; }
 .fvg-tip__count { margin-right: auto; font-size: .8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .fvg-tip__skip { min-height: 36px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: var(--text-muted); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
-.fvg-tip__nav .quick-bar__chip { font-size: .85rem; padding: .45rem .9rem; }
-.fvg-tip__nav .quick-bar__chip:disabled { opacity: .45; cursor: default; }
 .fvg:focus { outline: none; }
+/* 이전/다음: 가운데 구분선을 둔 한 덩어리 타원(세그먼트 컨트롤) */
+.fvg-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; background: var(--surface); }
+.fvg-seg button { min-height: 36px; padding: 0 16px; border: 0; background: transparent; color: var(--text); font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; }
+.fvg-seg button + button { border-left: 1px solid var(--border); }
+.fvg-seg button:disabled { color: var(--text-muted); opacity: .5; cursor: default; }
+.fvg-seg button:not(:disabled):active { background: var(--save-soft); }
+.fvg-seg__next { font-weight: 800 !important; }
+/* 카드 안에서 따로 짚는 자리(버튼, 자세히 보기). 색은 할인 강조색 하나, 본문의 강조 낱말과 같다. */
+.fvg-em { color: var(--sale); font-weight: 800; }
+.fvg-mark { position: fixed; box-sizing: border-box; border: 2px solid var(--sale); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sale) 22%, transparent); pointer-events: none; }
+.fvg-mark__label { position: absolute; top: -11px; padding: 1px 7px; border-radius: 999px; background: var(--sale); color: #fff; font-size: .72rem; font-weight: 800; line-height: 1.5; white-space: nowrap; }.fvg-mark__label--left { left: 8px; }
+.fvg-mark__label--right { right: 8px; }
