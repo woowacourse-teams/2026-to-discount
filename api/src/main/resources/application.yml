@@ -13,6 +13,8 @@
 # 한다. jar 밖 파일을 물려두면 파일만 갈아끼우고 POST /api/reload로
 # 반영된다. 기본값(classpath)은 빈 목록이라 배너가 아예 안 뜬다.
 discount:
+  cors:
+    development-origin: ${DISCOUNT_CORS_DEVELOPMENT_ORIGIN:}
   export-path: ${DISCOUNT_EXPORT_PATH:classpath:data/export.json}
   banners-path: ${DISCOUNT_BANNERS_PATH:classpath:banners.yml}
   # 기프티콘 코드. 값을 가진 문자열이라 저장소에 안 두고 서버에 직접 올린다.

@@ -124,6 +124,7 @@ api/src/test/java/com/discounttracker/push/PushEndpointPolicyTest.java
 api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
 api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
+api/src/test/java/com/discounttracker/web/DevelopmentCorsTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
 api/src/test/resources/contracts/banner-cases.json
@@ -157,6 +158,8 @@ web/scripts/verify-analytics-event-contract.mjs
 web/scripts/verify-analytics-event-id.mjs
 web/scripts/verify-api-base.mjs
 web/scripts/verify-brand-route.mjs
+web/scripts/verify-dev-deployment.mjs
+web/scripts/verify-dev-output.mjs
 web/scripts/verify-posthog-sdk.mjs
 web/scripts/verify-search-filters.mjs
 web/src/App.css
@@ -181,6 +184,8 @@ web/src/TopBarB.jsx
 web/src/analytics-context.js
 web/src/analytics.js
 web/src/api.js
+web/src/apiBase.js
+web/src/apiBase.test.js
 web/src/backClose.js
 web/src/bannerAnalytics.js
 web/src/bannerAnalytics.test.js
@@ -303,8 +308,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 130 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 125 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 131 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 129 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -365,6 +370,8 @@ HTTP 경계:
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
 | `api.js` | 브랜드와 배너 API 호출 |
+| `apiBase.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `apiBase.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `backClose.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerAnalytics.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerAnalytics.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
