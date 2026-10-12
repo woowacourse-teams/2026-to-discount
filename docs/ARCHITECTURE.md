@@ -41,7 +41,7 @@ flowchart LR
 
 ### 2-1. 데이터: 수집 PC → 원장 → export → 서버
 
-1. 수집 PC가 예약 시각(00:01, 08:30, 15:55)에 `scripts/run_routine.py`를 돌린다.
+1. 수집 PC가 하루 세 번 예약 시각에 `scripts/run_routine.py`를 돌린다.
    1단계는 pytest다. 실패하면 그 회차 수집을 통째로 건너뛴다
 2. 2~7단계가 폰으로 앱을 읽어 원장 `data/log.jsonl`에 덧붙인다
 3. 8단계 `reflect_daily --apply`가 원장에서 export를 만들고 `scripts/deploy_export.py`로 서버에
