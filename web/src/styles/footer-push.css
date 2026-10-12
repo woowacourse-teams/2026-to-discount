@@ -11,7 +11,9 @@
 .site-footer p { margin: 0 0 .7rem; }
 .site-footer p:last-child { margin-bottom: 0; }
 .site-footer strong { color: var(--text); font-weight: 600; }
-.site-footer__fine { font-size: .7rem; opacity: .85; }
+.site-footer__links { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin-top: .7rem; font-size: .8rem; }
+.site-footer__links a { color: var(--text-muted); text-decoration: none; }
+.site-footer__links a:hover { text-decoration: underline; }
 
 .push-setting {
   position: relative;

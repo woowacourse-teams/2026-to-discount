@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>개인정보처리방침 - 배달앱 할인모음</title>
+  <meta name="description" content="배달앱 할인모음이 쓰는 방문 통계, 검색어 기록, 쿠키와 거부 방법을 안내합니다." />
+  <link rel="canonical" href="https://beggars-five.vercel.app/privacy" />
+  <link rel="icon" href="/favicon-48.png" />
+  <link rel="stylesheet" href="/legal.css" />
+</head>
+<body>
+  <main class="legal">
+    <a class="legal__home" href="/">← 할인 목록으로</a>
+    <h1>개인정보처리방침</h1>
+    <p class="legal__meta">시행일 2026-10-13</p>
+
+    <h2>1. 처리하는 정보와 목적</h2>
+    <p>
+      어떤 화면이 실제로 쓰이는지 보려고 방문 통계를 씁니다. 하나는 직접 만든
+      <strong>익명 통계</strong>로 자체 서버에 기록하고, 같은 화면 행동을 제품 사용 흐름
+      분석을 위해 브라우저에서 <strong>PostHog</strong>로 직접 전달합니다.
+      자체 서버에는 IP 원본을 저장하지 않고, PostHog에는 이름·연락처를
+      보내지 않으며 쿠키도 사용하지 않습니다.
+      검색을 개선하려고 <strong>검색창에 입력한 검색어와 그 결과</strong>도 함께 기록합니다.
+    </p>
+    <p>
+      배포 플랫폼의 <strong>쿠키 없는 집계형 통계</strong>(Vercel Analytics)도 페이지뷰 수준으로 사용하며,
+      이 통계들은 광고 목적으로 쓰지 않습니다.
+    </p>
+
+    <h2>2. 쿠키</h2>
+    <p>
+      재방문 여부를 더 정확히 보려고 <strong>Google Analytics(GA4)를 임시로</strong> 함께
+      사용합니다. 위 두 통계와 달리 <strong>쿠키를 사용하며 데이터가 Google로 전달</strong>됩니다.
+      저희 쪽에서 광고 개인화·Google Signals는 껐습니다. 트래픽 정확도 확보를 위한 임시 조치이며
+      목적을 달성하면 제거할 예정입니다.
+    </p>
+
+    <h2>3. 보관 기간</h2>
+    <p>방문 통계와 검색어 기록은 <strong>3개월</strong> 보관한 뒤 지웁니다.</p>
+
+    <h2>4. 거부하는 방법</h2>
+    <p>
+      브라우저의 <strong>추적 안 함(DNT/GPC)</strong> 설정이 켜져 있으면 위 통계와 GA4를 모두 보내지 않습니다.
+      브라우저 설정에서 쿠키를 차단해도 됩니다. 거부해도 할인 목록은 그대로 쓸 수 있습니다.
+    </p>
+
+    <h2>5. 문의</h2>
+    <ul>
+      <li><a href="https://github.com/woowacourse-teams/2026-to-discount/issues">저장소 이슈</a></li>
+      <li><a href="mailto:woowa202610@gmail.com">woowa202610@gmail.com</a></li>
+    </ul>
+
+    <p class="legal__links"><a href="/about">서비스 소개</a></p>
+  </main>
+</body>
+</html>

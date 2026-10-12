@@ -133,7 +133,8 @@ const BOOT_STYLE = `
       .seo h3 a { color: inherit; text-decoration: none; }
       /* 홈 맨 아래 브랜드 목록(brandNav). 사람에게도 보이는 작은 바닥글이다. */
       .brand-index { max-width: 720px; margin: 2rem auto 1.5rem; padding: 0 1rem; font-size: .8rem; color: #888; }
-      .brand-index h2 { font-size: .85rem; font-weight: 600; color: #666; margin: 0 0 .5rem; }
+      .brand-index summary { font-size: .85rem; font-weight: 600; color: #666; cursor: pointer; padding: .25rem 0; }
+      .brand-index details[open] summary { margin-bottom: .5rem; }
       .brand-index ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .25rem .75rem; }
       .brand-index a { color: #888; text-decoration: none; }
       .brand-index a:hover { text-decoration: underline; }
@@ -167,11 +168,14 @@ function brandNav(brands) {
   const items = brands.map((b) =>
     `        <li><a href="/brand/${encodeURIComponent(slugOf(b.name))}">${esc(b.name)} 할인</a></li>`)
   return [
+    // 접어 둔다(2026-10-13, 설계 47). 사람에게는 필요할 때 펼치는 목록이고, 링크는 HTML에 그대로 있어 크롤러가 따라간다.
     '    <nav class="brand-index" aria-label="브랜드별 할인 페이지">',
-    '      <h2>브랜드별 할인</h2>',
-    '      <ul>',
+    '      <details>',
+    `        <summary>브랜드별 할인 (${brands.length})</summary>`,
+    '        <ul>',
     ...items,
-    '      </ul>',
+    '        </ul>',
+    '      </details>',
     '    </nav>',
   ].join('\n')
 }
@@ -467,6 +471,9 @@ async function main() {
   const urls = [
     // 홈은 목록 전체라 어느 브랜드가 바뀌어도 바뀐다.
     ['/', '1.0', 'daily', today],
+    // 소개, 처리방침(public/ 정적 페이지). 날짜는 본문을 고친 날로 손으로 올린다.
+    ['/about', '0.3', 'yearly', '2026-10-13'],
+    ['/privacy', '0.3', 'yearly', '2026-10-13'],
     ...listed.map((b) => [
       `/brand/${encodeURIComponent(slugOf(b.name))}`, '0.7', 'weekly', brandLastmod(b),
     ]),
