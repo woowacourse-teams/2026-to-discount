@@ -10,7 +10,9 @@ install -d -o todiscount-runner -g todiscount-runner -m 750 /var/lib/todiscount-
 install -m 644 todiscount-be-dev.service /etc/systemd/system/todiscount-be-dev.service
 install -o root -g todiscount-dev -m 640 development.env /etc/todiscount-be-dev.env
 install -o root -g root -m 755 deploy.py /usr/local/sbin/todiscount-deploy-dev
+install -o root -g root -m 755 sync_offers.py /usr/local/sbin/todiscount-sync-offers-dev
 printf 'todiscount-runner ALL=(root) NOPASSWD: /usr/local/sbin/todiscount-deploy-dev\n' > /etc/sudoers.d/todiscount-runner
+printf 'todiscount-runner ALL=(root) NOPASSWD: /usr/local/sbin/todiscount-sync-offers-dev\n' >> /etc/sudoers.d/todiscount-runner
 chmod 440 /etc/sudoers.d/todiscount-runner
 visudo -cf /etc/sudoers.d/todiscount-runner
 # Existing test data is preserved on repeated provisioning.
