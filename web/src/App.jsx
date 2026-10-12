@@ -291,18 +291,6 @@ export default function App({ initial = null }) {
     setFilters(defaultFilters())
     track('filters_reset')
   }
-  // 첫 화면: 브랜드 경로(/brand/<이름>)면 전체 목록으로 나가고, 아니면
-  // 필터·검색을 풀고 맨 위로. 시트가 열려 있으면 닫는다.
-  const goHome = () => {
-    track('home_click')
-    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-      window.location.assign('/')
-      return
-    }
-    setSheetOpen(false)
-    setFilters(defaultFilters())
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
 
   // URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유할 수 있게 한다.
   // 해시가 바뀌면(같은 페이지 안에서 다른 링크로 다시 들어와도) 다시
@@ -593,7 +581,6 @@ export default function App({ initial = null }) {
         resetFilters={resetFilters}
         sheetOpen={sheetOpen}
         onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
-        onHome={goHome}
       />
       )}
 

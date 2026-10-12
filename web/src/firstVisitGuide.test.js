@@ -29,6 +29,6 @@ test('저장소가 막히면 띄우지 않는다', () => {
 
 test('두 안은 바 쪽 단계만 다르다', () => {
   const keys = (arm) => guideSteps(arm).map((s) => s.key)
-  assert.deepEqual(keys('old'), ['card', 'sort', 'category', 'search'])
-  assert.deepEqual(keys('coupon'), ['card', 'sort', 'filter', 'search'])
+  assert.deepEqual(keys('old'), ['card', 'sort', 'category', 'platform', 'search'])
+  assert.deepEqual(keys('coupon'), ['card', 'sort', 'category', 'search', 'filter'])
 })

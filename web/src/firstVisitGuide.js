@@ -15,16 +15,20 @@ export function markGuideSeen(storage = globalThis.localStorage) {
   try { storage.setItem(SEEN_KEY, '1') } catch { /* 못 적으면 다음 세션은 visitCount가 막는다 */ }
 }
 
-const CARD = { key: 'card', selector: '.brand-grid > :first-child', text: '브랜드마다 지금 받을 수 있는 가장 큰 할인을 모았어요. 누르면 그 앱으로 바로 가요.' }
-const SORT = { key: 'sort', selector: '.quick-bar', text: '할인금액 높은순, 최소주문 낮은순으로 바로 줄 세울 수 있어요.' }
+// 문구는 2026-10-13 사용자가 정했다
+const CARD = { key: 'card', selector: '.brand-grid > :first-child', text: '브랜드마다 지금 받을 수 있는 가장 큰 할인을 모았어요. 버튼을 누르면 그 앱으로 바로 이동해요.' }
+const SORT = { key: 'sort', selector: '.quick-bar', text: '할인금액 높은순, 최소주문 낮은순으로 빠르게 모아 볼 수 있어요.' }
+const CATEGORY = '카테고리를 선택해 모아 볼 수 있어요.'
 
-// old = 운영 바(TopBarA: 검색 아이콘 + 분류 줄), coupon = TopBarB(검색창 + 필터 시트)
+// old = 운영 바(TopBarA: 앱 배지 + 검색 아이콘 + 분류 줄), coupon = TopBarB(검색창 + 분류 메뉴 + 필터 시트)
 export function guideSteps(arm) {
   return arm === 'coupon'
     ? [CARD, SORT,
-      { key: 'filter', selector: '[aria-label="필터 열기"]', text: '앱, 분류, 정렬은 여기서 한 번에 골라요.' },
-      { key: 'search', selector: '.search-field', text: '찾는 브랜드가 있으면 검색하세요.' }]
+      { key: 'category', selector: '.menu-bar', text: CATEGORY },
+      { key: 'search', selector: '.search-field', text: '브랜드를 검색할 수 있어요.' },
+      { key: 'filter', selector: '[aria-label="필터 열기"]', text: '필터 페이지에서 원하는 조건을 선택할 수 있어요.' }]
     : [CARD, SORT,
-      { key: 'category', selector: '.cat-bar', text: '분류를 눌러 먹고 싶은 것만 볼 수 있어요.' },
-      { key: 'search', selector: '.search-control', text: '오른쪽 위 돋보기를 누르면 브랜드를 찾을 수 있어요.' }]
+      { key: 'category', selector: '.cat-bar', text: CATEGORY },
+      { key: 'platform', selector: '.page-head__apps', text: '원하는 플랫폼만 선택할 수 있어요.' },
+      { key: 'search', selector: '.search-control', text: '검색 버튼을 눌러 브랜드를 찾을 수 있어요.' }]
 }
