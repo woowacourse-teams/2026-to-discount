@@ -25,6 +25,8 @@ export default function FirstVisitGuide({ arm, onClose }) {
     if (!viewSent) track('first_guide', { action: 'view', step: found[0].key, index: 1, total: found.length, arm })
     viewSent = true
     const root = document.documentElement
+    // 뜨기 전에 내려 둔 자리 그대로 잠기면 안내가 엉뚱한 화면 위에 뜬다. 맨 위로 되돌린 뒤 잠근다.
+    window.scrollTo(0, 0)
     const prev = root.style.overflow
     root.style.overflow = 'hidden'
     document.addEventListener('touchmove', lockScroll, { passive: false })
@@ -45,7 +47,13 @@ export default function FirstVisitGuide({ arm, onClose }) {
     // 큰 자리 하나와, 그 안에서 따로 짚는 자리들(marks: 버튼, 자세히 보기). 값이 같으면 다시 그리지 않는다.
     const box = (r) => ({ top: r.top, left: r.left, right: r.right, bottom: r.bottom, width: r.width, height: r.height })
     const measure = () => {
-      const r = document.querySelector(step.selector)?.getBoundingClientRect()
+      const target = document.querySelector(step.selector)
+      let r = target?.getBoundingClientRect()
+      // 뜨는 순간 남은 관성 스크롤(모바일 플링)이 자리를 화면 밖으로 밀면 다시 끌어온다
+      if (r && !target.closest('.title-bar') && (r.bottom < 0 || r.top > window.innerHeight)) {
+        target.scrollIntoView({ block: 'center' })
+        r = target.getBoundingClientRect()
+      }
       const marks = (step.marks ?? []).flatMap((m) => {
         const e = document.querySelector(m.selector)
         const mr = e?.getBoundingClientRect()
