@@ -19,3 +19,6 @@
 .fvg-mark { position: fixed; box-sizing: border-box; border: 2px solid var(--sale); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sale) 22%, transparent); pointer-events: none; }
 .fvg-mark__label { position: absolute; top: -11px; padding: 1px 7px; border-radius: 999px; background: var(--sale); color: #fff; font-size: .72rem; font-weight: 800; line-height: 1.5; white-space: nowrap; }.fvg-mark__label--left { left: 8px; }
 .fvg-mark__label--right { right: 8px; }
+/* 단계가 바뀔 때 구멍·테두리·말풍선이 끊기지 않고 옮겨 간다 */
+.fvg-tip, .fvg-mark { transition: top 200ms ease, bottom 200ms ease, left 200ms ease, width 200ms ease, height 200ms ease; }
+@media (prefers-reduced-motion: reduce) { .fvg-hole, .fvg-tip, .fvg-mark { transition: none; } }
