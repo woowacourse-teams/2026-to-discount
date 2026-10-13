@@ -115,7 +115,7 @@
 .menu-bar__list {
   display: flex;
   align-items: center;
-  gap: .1rem;
+  gap: .3rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -134,7 +134,7 @@
   background: none;
   cursor: pointer;
   white-space: nowrap;
-  padding: .55rem .5rem;
+  padding: .7rem .65rem;
   font-size: .95rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -150,9 +150,9 @@
 .menu-bar__item--on::after {
   content: '';
   position: absolute;
-  left: .35rem;
-  right: .35rem;
-  bottom: 2px;
+  left: .5rem;
+  right: .5rem;
+  bottom: 0; /* 바 밑선에 붙인다(2026-10-13 사용자) */
   height: 2.5px;
   border-radius: 2px;
   background: var(--text);
