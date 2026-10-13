@@ -51,22 +51,23 @@
     .btn--ghost { padding: 0 24px; background: transparent; color: var(--text); border: 1px solid var(--border); }
     .btn:focus-visible, a:focus-visible { outline: 2px solid var(--sale); outline-offset: 3px; }
 
-    /* 1. 첫 화면 */
-    .hero { display: grid; gap: 40px; align-items: center; }
-    .hero .btn { margin-top: 32px; }
-    .phone { justify-self: center; width: min(68vw, 300px, calc((100dvh - 420px) * .45)); padding: 10px; border-radius: 46px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(221, 75, 2, .35); }
-    .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 36px; overflow: hidden; background: var(--surface); }
-    .phone__screen::before { content: ''; position: absolute; top: 9px; left: 50%; width: 30%; height: 22px; transform: translateX(-50%); border-radius: 999px; background: var(--bezel); z-index: 1; }
-    .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; padding-top: 36px; background: #fbfbfa; }
+    /* 1~3. 문구 + 폰 화면 */
+    .split { display: grid; gap: 28px; align-items: center; }
+    .split .btn { margin-top: 28px; }
+    .phone { justify-self: center; width: min(82vw, 360px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(221, 75, 2, .35); }
+    .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 38px; overflow: hidden; background: #fbfbfa; }
+    .phone__screen::before { content: ''; position: absolute; top: 9px; left: 50%; width: 30%; height: 24px; transform: translateX(-50%); border-radius: 999px; background: var(--bezel); z-index: 1; }
+    .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; padding-top: 38px; }
+    .apps { display: flex; gap: 10px; margin-bottom: 22px; }
+    .apps img { width: 44px; height: 44px; border-radius: 12px; }
 
-    /* 2. 가장 큰 할인 */
-    .big { margin: 28px 0 0; font-size: clamp(4rem, 16vw, 9rem); line-height: 1; font-weight: 800; letter-spacing: -.05em; color: var(--sale); font-variant-numeric: tabular-nums; }
-    .big small { font-size: .3em; color: var(--text); letter-spacing: -.02em; margin-left: 6px; }
-    .apps { display: flex; gap: 12px; margin-top: 36px; }
-    .apps img { width: 52px; height: 52px; border-radius: 14px; }
-
-    /* 3. 새 할인 */
-    .tag { display: inline-block; margin-top: 28px; padding: 10px 22px; border-radius: 14px; background: var(--sale-weak); color: var(--sale); font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; }
+    /* 모바일: 폰을 크게 두고 아래는 화면 밖으로 흘린다 */
+    @media (max-width: 767px) {
+      .slide--shot { height: 100dvh; padding-bottom: 0; justify-content: flex-start; }
+      .slide--shot .slide__in { flex: 1; display: flex; flex-direction: column; }
+      .slide--shot .split { flex: 1; align-content: start; }
+      .slide--shot .next { display: none; }
+    }
 
     /* 4. 문의 */
     .contact .row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
@@ -74,8 +75,8 @@
     .foot p { margin: 0 0 6px; }
 
     @media (min-width: 768px) {
-      .hero { grid-template-columns: 1.15fr .85fr; }
-      .phone { width: 300px; }
+      .split { grid-template-columns: 1.1fr .9fr; }
+      .phone { width: min(360px, calc((100dvh - 120px) * .44)); }
     }
 
     /* 떠오르는 등장. 움직임 줄이기를 켠 기기와 스크립트가 없을 때는 처음부터 보인다 */
@@ -91,13 +92,13 @@
 </head>
 <body>
   <main>
-    <section class="slide" id="s1">
+    <section class="slide slide--shot" id="s1">
       <a class="brand" href="/">배달앱 할인모음</a>
-      <div class="slide__in hero">
+      <div class="slide__in split">
         <div>
-          <h1 class="rise">배달앱 할인,<br /><em>한 화면</em>에서 비교</h1>
-          <p class="lead rise" style="--i:1">배민, 쿠팡이츠, 요기요, 땡겨요의 할인을 브랜드별로 모았어요.</p>
-          <a class="btn rise" style="--i:2" href="/">할인 보러 가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
+          <h1 class="rise">배달앱 할인,<br /><em>한 눈에</em> 보기</h1>
+          <p class="lead rise" style="--i:1">오늘의 최고 할인을 확인하고, 빠르게 이동해요.</p>
+          <a class="btn rise" style="--i:2" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
         </div>
         <div class="phone rise" style="--i:2">
           <div class="phone__screen"><img src="/about/home.jpg" width="390" height="844" alt="할인 목록 화면. 브랜드마다 가장 큰 할인 금액과 그 할인을 주는 앱이 보인다." /></div>
@@ -106,25 +107,32 @@
       <a class="next" href="#s2" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="slide" id="s2">
-      <div class="slide__in">
-        <h2 class="rise">브랜드마다<br /><em>가장 큰 할인</em> 하나</h2>
-        <p class="big rise" style="--i:1">12,000<small>원 할인</small></p>
-        <div class="apps rise" style="--i:2">
-          <img src="/platform-icons/baemin.png" alt="배달의민족" />
-          <img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" />
-          <img src="/platform-icons/yogiyo.png" alt="요기요" />
-          <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
+    <section class="slide slide--shot" id="s2">
+      <div class="slide__in split">
+        <div>
+          <div class="apps rise">
+            <img src="/platform-icons/baemin.png" alt="배달의민족" />
+            <img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" />
+            <img src="/platform-icons/yogiyo.png" alt="요기요" />
+            <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
+          </div>
+          <h2 class="rise" style="--i:1">4개 배달 플랫폼,<br />브랜드마다 <em>가장 큰 할인</em>을 탐색</h2>
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/sheet.jpg" width="390" height="844" alt="한 브랜드의 할인을 배달앱 네 곳별로 나열한 화면." /></div>
         </div>
       </div>
       <a class="next" href="#s3" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="slide" id="s3">
-      <div class="slide__in">
-        <h2 class="rise">새로 나온 할인은<br />먼저 보여드려요</h2>
-        <span class="tag rise" style="--i:1">신규</span>
-        <p class="lead rise" style="--i:2">버튼을 누르면 그 앱의 할인으로 바로 이동해요.</p>
+    <section class="slide slide--shot" id="s3">
+      <div class="slide__in split">
+        <div>
+          <h2 class="rise">새로운 할인, 당일 행사, 선착순 할인 등 <em>실시간 정보</em>와 <em>할인 이력</em>을 제공</h2>
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/history.jpg" width="390" height="844" alt="브랜드의 할인 금액이 날짜별로 어떻게 바뀌었는지 보여주는 그래프 화면." /></div>
+        </div>
       </div>
       <a class="next" href="#s4" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
@@ -133,7 +141,7 @@
       <div class="slide__in">
         <h2 class="rise">고칠 곳이 보이면<br /><em>알려주세요</em></h2>
         <div class="row rise" style="--i:1">
-          <a class="btn" href="/">할인 보러 가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
+          <a class="btn" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
           <a class="btn btn--ghost" href="mailto:woowa202610@gmail.com">메일 보내기</a>
         </div>
       </div>
