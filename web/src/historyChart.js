@@ -1,11 +1,11 @@
-// 브랜드 최고 할인 꺾은선(2026-10-10 계단에서 바꿈). 실선 = 그날 본 값, 점선 = 못 봐서 이어 그린 값, 끊김 = 할인 없음.
+// 브랜드 최고 할인 곡선(2026-10-10 계단 → 꺾은선, 2026-10-14 곡선). 실선 = 그날 본 값, 점선 = 못 봐서 이어 그린 값, 끊김 = 할인 없음.
 export const W = 320
 export const H = 150
 export const GUTTER = 28 // 금액 축 숫자 자리
 export const RIGHT = 8
 export const TOP = 46 // 말풍선 자리(PILL_H + 간격)
 export const BOTTOM = 18 // 날짜 축 자리
-export const PILL_W = 70 // 두 줄 말풍선 "9/23" / "10,000원" (눌렀을 때 말풍선과 같은 모양)
+export const PILL_W = 112 // 두 줄 값 표시 "9/23" / "10,000원 할인" (좁으면 끝에서 잘렸다) (눌렀을 때 말풍선과 같은 모양)
 export const PILL_H = 40
 const STEP = 1000
 
@@ -29,7 +29,8 @@ export function summary(points) {
   return { max: max.amount, maxDate: max.date, min: Math.min(...s.map((p) => p.amount)), avg }
 }
 
-// xy: [{x, y|null, line}]. 이웃한 두 점을 직선으로 잇고, 같은 종류끼리 이어 붙인다.
+// xy: [{x, y|null, line}]. 이웃한 두 점을 곡선으로 잇고, 같은 종류끼리 이어 붙인다.
+// ponytail: 두 점 가운데 x에 제어점을 둔 3차 곡선. 점에서 수평이라 값보다 위아래로 넘치지 않는다.
 export function linePaths(xy, bottom) {
   const solid = []
   const area = []
@@ -48,7 +49,8 @@ export function linePaths(xy, bottom) {
     const kind = a.line === 'carried' || b.line === 'carried' ? 'carried' : 'solid'
     if (run && run.kind !== kind) close()
     if (!run) run = { kind, x0: a.x, d: [`M${a.x} ${a.y}`] }
-    run.d.push(`L${b.x} ${b.y}`)
+    const mx = Math.round(((a.x + b.x) / 2) * 10) / 10
+    run.d.push(`C${mx} ${a.y} ${mx} ${b.y} ${b.x} ${b.y}`)
   }
   close()
   return { solid, area, carried }
@@ -64,7 +66,8 @@ export function chartModel(points) {
   const r = (n) => Math.round(n * 10) / 10
   const x = (p) => r(GUTTER + ((Date.parse(p.date) - t0) / span) * (W - GUTTER - RIGHT))
   const yOf = (v) => r(TOP + ((hi - v) / (hi - lo)) * (H - BOTTOM - TOP))
-  const xy = points.map((p) => ({ x: x(p), y: p.amount == null ? null : yOf(p.amount), line: p.line }))
+  // 그리기는 한 가지 선으로(2026-10-14 사용자: 점선 빼고 균일하게). 못 본 날 구분은 누를 때 글자로만 남긴다.
+  const xy = points.map((p) => ({ x: x(p), y: p.amount == null ? null : yOf(p.amount), line: 'solid' }))
   return { ...linePaths(xy, H - BOTTOM), xy, lo, hi, yLo: yOf(lo), yHi: yOf(hi) }
 }
 
