@@ -29,7 +29,10 @@
     * { box-sizing: border-box; }
     /* 풀페이지 고정. 넘김은 아래 스크립트가 한다 */
     main { height: 100dvh; overflow-y: auto; }
-    .js main { overflow: hidden; overscroll-behavior: none; }
+    /* 넘김은 스크롤이 아니라 트랙을 옮기는 transform이라 합성 단계에서만 돌아 버벅이지 않는다 */
+    .js main { overflow: hidden; overscroll-behavior: none; touch-action: none; }
+    .js .track { transition: transform .6s cubic-bezier(.22, .8, .3, 1); will-change: transform; }
+    @media (prefers-reduced-motion: reduce) { .js .track { transition: none; } }
     body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
     a { color: inherit; }
 
@@ -107,6 +110,7 @@
 </head>
 <body>
   <main>
+   <div class="track">
     <section class="slide slide--shot" id="s1">
       <a class="brand" href="/">배달앱 할인모음</a>
       <div class="slide__in split">
@@ -160,34 +164,35 @@
 
     <section class="slide contact" id="s4">
       <div class="slide__in">
-        <h2 class="rise">고칠 곳이 보이면<br /><em>알려주세요</em></h2>
+        <h2 class="rise">오늘의 할인,<br /><em>직접 확인</em>해 보세요</h2>
         <div class="row rise" style="--i:1">
           <a class="btn" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
-          <a class="btn btn--ghost" href="mailto:woowa202610@gmail.com">메일 보내기</a>
         </div>
       </div>
       <footer class="foot">
-        <p>각 배달앱의 공식 서비스가 아니며, 모든 상표는 각 권리자에게 있습니다.</p>
+        <p>각 배달앱의 공식 서비스가 아니며,<br />모든 상표는 각 권리자에게 있습니다.</p>
         <p><a href="/privacy"><strong>개인정보처리방침</strong></a></p>
       </footer>
     </section>
+   </div>
   </main>
   <script>
     // 화면에 들어온 슬라이드의 요소를 떠오르게 한다
-    const io = 'IntersectionObserver' in window && new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && e.target.classList.add('in')), { threshold: 0.35 })
     const slides = [...document.querySelectorAll('.slide')]
-    slides.forEach((s) => io ? io.observe(s) : s.classList.add('in'))
+    slides[0].classList.add('in')
     // 풀페이지 고정: 기본 스크롤과 관성을 끄고, 휠이나 스와이프 방향을 받아 한 장씩 바로 넘긴다.
     // 손을 떼자마자 넘어가므로 브라우저 스냅의 관성 대기가 없다
     const box = document.querySelector('main')
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
     let cur = 0, busy = false, acc = 0, y0 = null
+    const track = document.querySelector('.track')
     const go = (i) => {
       i = Math.min(slides.length - 1, Math.max(0, i))
       if (i === cur || busy) return
       cur = i; busy = true
-      box.scrollTo({ top: slides[i].offsetTop, behavior: reduce ? 'auto' : 'smooth' })
-      setTimeout(() => { busy = false }, reduce ? 50 : 650)
+      track.style.transform = `translate3d(0, ${-i * box.clientHeight}px, 0)`
+      slides[i].classList.add('in')
+      setTimeout(() => { busy = false }, reduce ? 50 : 600)
     }
     box.addEventListener('wheel', (e) => {
       if (e.ctrlKey) return
@@ -208,7 +213,7 @@
       if (d) { e.preventDefault(); go(cur + d) }
     })
     document.querySelectorAll('.next').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); go(slides.indexOf(document.querySelector(a.getAttribute('href')))) }))
-    addEventListener('resize', () => box.scrollTo({ top: slides[cur].offsetTop }))
+    addEventListener('resize', () => { track.style.transform = `translate3d(0, ${-cur * box.clientHeight}px, 0)` })
   </script>
 </body>
 </html>
