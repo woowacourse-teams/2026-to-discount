@@ -76,6 +76,7 @@ api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
 api/src/main/java/com/discounttracker/web/PushAdminController.java
 api/src/main/java/com/discounttracker/web/PushSubscriptionController.java
 api/src/main/java/com/discounttracker/web/PushTrackingController.java
+api/src/main/java/com/discounttracker/web/RequestIdFilter.java
 api/src/main/java/com/discounttracker/web/WebConfig.java
 api/src/main/resources/application.yml
 api/src/main/resources/banners.yml
@@ -135,6 +136,8 @@ api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
 api/src/test/java/com/discounttracker/web/PushAdminControllerTest.java
 api/src/test/java/com/discounttracker/web/PushAdminCorsTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
+api/src/test/java/com/discounttracker/web/RequestIdFilterTest.java
+api/src/test/java/com/discounttracker/web/RequestIdIntegrationTest.java
 api/src/test/resources/contracts/banner-cases.json
 api/src/test/resources/contracts/brand-alias-cases.json
 api/src/test/resources/contracts/certainty-cases.json
@@ -320,7 +323,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 139 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 142 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 133 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -340,7 +343,7 @@ flowchart TB
 | `history/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 6 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 11 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
-| `web/` | HTTP 엔드포인트와 CORS | 7 |
+| `web/` | HTTP 엔드포인트와 CORS | 8 |
 
 HTTP 경계:
 
