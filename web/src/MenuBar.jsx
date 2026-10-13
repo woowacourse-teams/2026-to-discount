@@ -3,7 +3,8 @@ import { CATEGORIES } from './filters.js'
 
 // 분류 메뉴 바(상단 바 B안의 2줄). 2026-09 화면 실험 B안에서 되살림(1e9a40f에서 지운 파일).
 // 누르면 바로 반영한다. 고른 분류는 버튼마다 자기 배경을 그린다.
-export default function MenuBar({ selected, onToggle, leading = [] }) {
+// 가로 목록이 어느 쪽으로 더 밀리는지. A안 분류 바도 같이 쓴다.
+export function useScrollMore() {
   const listRef = useRef(null)
   // 어느 쪽으로 더 갈 수 있는지. 양쪽 화살표를 늘 켜두면 끝에 닿았는데도
   // 더 있는 것처럼 보인다.
@@ -25,6 +26,11 @@ export default function MenuBar({ selected, onToggle, leading = [] }) {
     ro.observe(el)
     return () => { el.removeEventListener('scroll', update); ro.disconnect() }
   }, [])
+  return [listRef, more]
+}
+
+export default function MenuBar({ selected, onToggle, leading = [] }) {
+  const [listRef, more] = useScrollMore()
 
   return (
     <nav className="menu-bar" aria-label="분류 메뉴">

@@ -8,6 +8,8 @@
    투명으로)을 그대로 잇는다 — 전엔 --surface 불투명 판에 윗선까지 그어
    타이틀바와 다른 색의 띠로 보였다(2026-09-14). 하나의 바다. */
 [data-variant="a"] .cat-bar {
+  position: relative; /* 좌우 화살표(.menu-bar__more) 기준 */
+  padding: 0 1.25rem; /* A안 메뉴 바처럼 목록 밖 여백에 화살표를 둔다 */
   background: transparent;
 }
 [data-variant="a"] .cat-bar__list {
@@ -15,7 +17,7 @@
   align-items: center;
   gap: .11rem;
   margin: 0 auto;
-  padding: 0 1.25rem;
+  padding: 0;
   max-width: 880px;
   list-style: none;
   overflow-x: auto;

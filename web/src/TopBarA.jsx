@@ -4,6 +4,7 @@ import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
 import { CATEGORIES, applyFilters } from './filters.js'
+import { useScrollMore } from './MenuBar.jsx'
 import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 
 /**
@@ -178,6 +179,7 @@ export default function TopBarA({
   }
 
   const tabs = [{ key: 'all', label: '전체' }, { key: 'new', label: newCount ? `신규 ${newCount}` : '신규' }, ...CATEGORIES]
+  const [catListRef, catMore] = useScrollMore()
 
   return (
     <div className="title-bar" ref={barRef}>
@@ -247,7 +249,9 @@ export default function TopBarA({
           분류를 고르는 건 이 화면의 주된 조작이고, 한 번 더 누르게
           하면 그만큼 안 쓴다. 좁으면 옆으로 흐른다. */}
       <nav className="cat-bar" aria-label="분류">
-        <ul className="cat-bar__list">
+        <span className={`menu-bar__more menu-bar__more--left${catMore.left ? ' menu-bar__more--on' : ''}`} aria-hidden="true">‹</span>
+        <span className={`menu-bar__more menu-bar__more--right${catMore.right ? ' menu-bar__more--on' : ''}`} aria-hidden="true">›</span>
+        <ul className="cat-bar__list" ref={catListRef}>
           {tabs.map((c) => (
             <li key={c.key}>
               <button
