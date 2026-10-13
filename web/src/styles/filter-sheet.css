@@ -150,24 +150,34 @@
   padding: 12px 0 0; /* 메뉴 바와 정렬 칩, 정렬 칩과 첫 카드 간격을 같게(12px, 2026-10-05 사용자) */
 }
 /* 정렬 둘은 "하나 고르기"다. 홈 하나에 넣어 그 뜻을 형태로 보여 준다(B안). */
-/* 2026-10-13 사용자: 회색 알약 묶음 대신 "N천원 이상만" 스위치와 같은 말투로. 고른 쪽만 스위치와 같은 색, 나머지는 흐린 글자. */
-.quick-bar__sorts { display: flex; gap: 2px; min-width: 0; }
+.quick-bar__sorts {
+  display: flex;
+  gap: 0;
+  min-width: 0;
+  padding: 3px;
+  background: var(--border, #eceef1);
+  border-radius: 999px;
+}
 .quick-bar__chip {
   flex: 0 0 auto;
   font: inherit;
   font-size: .78rem;
-  padding: .34rem .5rem;
+  padding: .34rem .68rem;
   border: 0;
-  background: none;
+  border-radius: 999px;
+  background: transparent;
   color: var(--text-muted, #6f767f);
   cursor: pointer;
   white-space: nowrap;
-  transition: color .2s ease;
+  transition: background .2s cubic-bezier(.2, .8, .2, 1), color .2s ease, box-shadow .2s ease;
 }
-.quick-bar__sorts .quick-bar__chip:first-of-type { padding-left: 0; }
-.quick-bar__chip--on { color: var(--sale); font-weight: 700; }
-/* 정렬 기준이라는 걸 아이콘으로 먼저 보여 준다(2026-10-14 사용자: 정렬인 게 티가 안 남) */
-.quick-bar__sort-icon { flex: none; width: 16px; height: 16px; margin-right: 4px; color: var(--text-muted, #6f767f); align-self: center; }
+/* 고른 쪽은 포인트 색 판(2026-10-14 사용자: 기존 스위치에 배경만 강조색으로) */
+.quick-bar__chip--on {
+  background: var(--sale);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+}
 .quick-bar__chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* 정렬 섹션(2026-09-19): 기준 라벨 + 방향 버튼 한 줄. 고른 기준은 번호가 붙고 진하게. */
