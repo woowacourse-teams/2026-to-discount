@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
+import { useScrollMore } from './MenuBar.jsx'
 import { CATEGORIES, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_AMOUNT_OPTIONS, defaultFilters, isDefaultFilters, minAmountLabel } from './filters.js'
 
 /**
@@ -12,6 +13,29 @@ import { CATEGORIES, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_A
  * 앱을 전부 껐다가 다시 켜는 도중)에서 결과가 0건으로 깜빡인다.
  * 열 때마다 지금 적용된 값으로 draft를 채운다.
  */
+// 한 줄 캐러셀 트랙(2026-10-14 사용자: 여러 줄 칩이 눈 아프다, turbom /map 패턴).
+// 넘치면 옆으로 밀고, 더 갈 쪽 끝만 흐린다. thumb면 고른 칸 아래 흰 판이 미끄러진다(하나 고르기용).
+function Track({ label, thumb = false, children }) {
+  const [ref, more] = useScrollMore()
+  const [pos, setPos] = useState(null)
+  useLayoutEffect(() => {
+    if (!thumb) return
+    const on = ref.current?.querySelector('[aria-pressed="true"]')
+    const next = on ? { left: on.offsetLeft, width: on.offsetWidth } : null
+    // 값이 같으면 그대로 둔다. 매번 새 객체를 넣으면 다시 그리기가 끝없이 돈다.
+    setPos((p) => (p?.left === next?.left && p?.width === next?.width ? p : next))
+  })
+  return (
+    <div className={`sheet__track${more.left ? ' sheet__track--l' : ''}${more.right ? ' sheet__track--r' : ''}`}>
+      <div ref={ref} className={`sheet__chips${thumb ? ' sheet__chips--thumb' : ''}`} role="group" aria-label={label}>
+        {thumb && pos && <span className="sheet__thumb" aria-hidden="true" style={{ left: pos.left, width: pos.width }} />}
+        {children}
+      </div>
+    </div>
+  )
+}
+
+
 export default function FilterSheet({ open, filters, onApply, onClose }) {
   const [draft, setDraft] = useState(filters)
   // 배경을 눌러 닫을 때, 누른 자리가 배경이었는지 기억해둔다. 시트 안에서
@@ -132,7 +156,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
           </div>
 
           <h2 className="sheet__title">카테고리</h2>
-          <div className="sheet__chips">
+          <Track label="카테고리">
             {CATEGORIES.map((c) => (
               <button
                 key={c.key}
@@ -147,10 +171,10 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
                 {c.label}
               </button>
             ))}
-          </div>
+          </Track>
 
           <h2 className="sheet__title">필터링</h2>
-          <div className="sheet__chips">
+          <Track label="필터링">
             <button
               type="button"
               className={`sheet__chip${draft.includeRandom ? ' sheet__chip--on' : ''}`}
@@ -175,9 +199,10 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
             >
               {minAmountLabel(draft.minAmount)} 이상만
             </button>
-          </div>
+          </Track>
           {/* 기준 금액(2026-10-13 사용자). 2026-10-14: 칩 대신 끌기 막대. 움직이면 거르기도 켠다 — 금액만 바꾸고 꺼져 있으면 고른 보람이 없다. */}
-          <label className="sheet__range">
+          {/* 거르기를 끄면 막대도 숨긴다(2026-10-14 사용자) */}
+          {draft.minAmount5k && <label className="sheet__range">
             <input
               type="range"
               min={MIN_AMOUNT_OPTIONS[0]}
@@ -190,61 +215,32 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
               onChange={(e) => { const n = Number(e.target.value); setDraft((d) => ({ ...d, minAmount: n, minAmount5k: true })) }}
             />
             <span className="sheet__range-ends" aria-hidden="true"><span>{minAmountLabel(MIN_AMOUNT_OPTIONS[0])}</span><span>{minAmountLabel(MIN_AMOUNT_OPTIONS[MIN_AMOUNT_OPTIONS.length - 1])}</span></span>
-          </label>
+          </label>}
 
           <h2 className="sheet__title">정렬</h2>
-          {/* 정렬은 하나만(2026-09-19, 사용자). 고른 것이 곧 정렬이다. 방향 있는 기준은 라벨 한 줄 +
-              높은순/낮은순 두 버튼. 켜진 버튼을 다시 누르면 기본(할인액 높은 순)으로 돌아간다. */}
-          {SORT_KEYS.filter((k) => k.directional).map((k) => {
-            const idx = draft.sorts.findIndex((x) => x.key === k.key)
-            const chosen = idx >= 0 ? draft.sorts[idx] : null
-            const set = (dir) => setDraft((d) => ({
-              ...d,
-              sorts: chosen && chosen.dir === dir ? [{ key: 'amount', dir: 'desc' }] : [{ key: k.key, dir }],
-            }))
-            return (
-              <div key={k.key} className="sheet__sort-row">
-                <span className={`sheet__sort-label${chosen ? ' sheet__sort-label--on' : ''}`}>{k.label}</span>
-                <span className="sheet__chips">
-                  {[['desc', '높은순'], ['asc', '낮은순']].map(([dir, label]) => (
-                    <button
-                      key={dir}
-                      type="button"
-                      className={`sheet__chip${chosen?.dir === dir ? ' sheet__chip--on' : ''}`}
-                      aria-pressed={chosen?.dir === dir}
-                      onClick={() => set(dir)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </span>
-              </div>
-            )
-          })}
-          <div className="sheet__sort-row">
-            <span className="sheet__sort-label">그 외</span>{/* 인기순·최신순은 하나만 — 둘을 겹쳐 봐야 뜻이 없다(2026-09-19). */}
-            <span className="sheet__chips">
-              {SORT_KEYS.filter((k) => !k.directional).map((k) => {
-                const idx = draft.sorts.findIndex((x) => x.key === k.key)
-                const on = idx >= 0
-                return (
-                  <button
-                    key={k.key}
-                    type="button"
-                    className={`sheet__chip${on ? ' sheet__chip--on' : ''}`}
-                    aria-pressed={on}
-                    onClick={() => setDraft((d) => ({ ...d, sorts: on ? [{ key: 'amount', dir: 'desc' }] : [{ key: k.key, dir: 'desc' }] }))}
-                  >
-                    {k.label}
-                  </button>
-                )
-              })}
-            </span>
-          </div>
+          {/* 정렬은 하나만(2026-09-19). 2026-10-14: 기준별 줄을 한 줄 트랙으로 합쳤다. 켜진 칸을 다시 누르면 기본(할인액 높은 순). */}
+          <Track label="정렬" thumb>
+            {SORT_KEYS.flatMap((k) => (k.directional
+              ? [['desc', `${k.label} 높은순`], ['asc', `${k.label} 낮은순`]].map(([dir, text]) => [k.key, dir, text])
+              : [[k.key, 'desc', k.label]])).map(([key, dir, text]) => {
+              const on = draft.sorts[0]?.key === key && draft.sorts[0]?.dir === dir
+              return (
+                <button
+                  key={`${key}_${dir}`}
+                  type="button"
+                  className={`sheet__chip${on ? ' sheet__chip--on' : ''}`}
+                  aria-pressed={on}
+                  onClick={() => setDraft((d) => ({ ...d, sorts: on ? [{ key: 'amount', dir: 'desc' }] : [{ key, dir }] }))}
+                >
+                  {text}
+                </button>
+              )
+            })}
+          </Track>
 
           {/* 멤버십: 배민클럽, 쿠팡와우는 실제로 거른다(끄면 그 전용 오퍼를 뺀다). 요기패스는 식별을 못 해 구현 예정(2026-10-04). */}
           <h2 className="sheet__title">멤버십</h2>
-          <div className="sheet__chips">
+          <Track label="멤버십">
             {MEMBERSHIP_OPTIONS.map((m) => {
               const works = Object.values(MEMBERSHIP_FILTERABLE).includes(m.key)
               if (!works) {
@@ -263,7 +259,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
                 </button>
               )
             })}
-          </div>
+          </Track>
         </div>
 
         <div className="sheet__actions">

@@ -222,3 +222,21 @@
 .sheet__range input::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid var(--sale); box-shadow: 0 1px 4px rgba(0, 0, 0, .2); }
 .sheet__range input:focus-visible { outline: 2px solid var(--sale); outline-offset: 2px; border-radius: 6px; }
 .sheet__range-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+
+/* 한 줄 캐러셀 트랙(2026-10-14 사용자: 여러 줄 칩과 테두리 버튼이 눈 아프다. turbom /map 패턴).
+   회색 판 하나에 칩을 한 줄로 깔고, 넘치면 옆으로 민다. 고른 칸은 흰 판 + 강조색 글씨. */
+.sheet__track { position: relative; }
+.sheet__track::before, .sheet__track::after { content: ''; position: absolute; top: 0; bottom: 0; width: 28px; z-index: 2; pointer-events: none; opacity: 0; transition: opacity .18s ease; border-radius: 999px; }
+.sheet__track::before { left: 0; background: linear-gradient(to right, var(--surface), transparent); }
+.sheet__track::after { right: 0; background: linear-gradient(to left, var(--surface), transparent); }
+.sheet__track--l::before, .sheet__track--r::after { opacity: 1; }
+.sheet__track .sheet__chips { position: relative; flex-wrap: nowrap; gap: 2px; overflow-x: auto; scrollbar-width: none; padding: 3px; border-radius: 999px; background: color-mix(in srgb, var(--text) 6%, var(--surface)); scroll-behavior: smooth; }
+.sheet__track .sheet__chips::-webkit-scrollbar { display: none; }
+.sheet__track .sheet__chip { position: relative; z-index: 1; flex: none; white-space: nowrap; border: 0; background: none; padding: .42rem .85rem; font-size: .85rem; color: var(--text-muted); }
+.sheet__track .sheet__chip:hover:not(.sheet__chip--on) { color: var(--text); }
+.sheet__track .sheet__chip--on { background: var(--surface); color: var(--sale); font-weight: 700; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
+.sheet__track .sheet__chip--soon { opacity: .45; }
+/* 하나 고르기 트랙은 칸마다 판을 칠하지 않고 흰 판 하나가 미끄러진다 */
+.sheet__chips--thumb .sheet__chip--on { background: none; box-shadow: none; }
+.sheet__thumb { position: absolute; top: 3px; bottom: 3px; border-radius: 999px; background: var(--surface); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); transition: left .28s cubic-bezier(.2, .8, .2, 1), width .28s cubic-bezier(.2, .8, .2, 1); }
+@media (prefers-reduced-motion: reduce) { .sheet__thumb { transition: none; } }
