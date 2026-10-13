@@ -113,6 +113,8 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
       ref={cardRef}
       className={`brand-card ${open ? 'brand-card--open' : ''} ${highlighted ? 'brand-card--highlighted' : ''}${leaving ? ' brand-card--leaving' : ''}`}
       data-brand={brand.name}
+      // 2026-10-13 사용자: 쿠폰 카드(a)처럼 버튼과 링크 밖 아무 곳이나 누르면 접고 펼친다
+      onClick={(e) => { if (!e.target.closest('a, button, input, label, select, textarea') && !window.getSelection()?.toString()) toggle() }}
     >
       {/* 헤더는 이름표다. 펼침 트리거는 카드 아래 한 곳뿐이다 —
           헤더 전체·화살표·아래 버튼 셋이 같은 일을 하면 어느 것을
