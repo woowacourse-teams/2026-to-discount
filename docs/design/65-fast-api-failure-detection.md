@@ -229,4 +229,3 @@
 - 반영 경로: `feat/65-fast-api-failure-detection → dev`.
 - `beggars-ops`에 `dev`가 없어 기존 `main`을 기준으로 개발 브랜치를 생성했다. 구현 커밋은 `033efac`이다.
 - 이 저장소의 기존 자동 배포는 `main`만 대상으로 한다. 개발 배포 CI/CD는 미구성이며 PR 생성만으로 개발 서버 배포나 서버 수용 검증이 완료되지는 않는다.
-
