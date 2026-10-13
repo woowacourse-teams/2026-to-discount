@@ -211,3 +211,14 @@
 .sheet__body { overscroll-behavior: contain; }
 .sheet-scrim { touch-action: none; }
 .sheet { touch-action: pan-y; }
+
+/* 기준 금액 끌기 막대(2026-10-14 사용자). 채운 쪽은 강조색. */
+.sheet__range { display: block; margin: 4px 2px 18px; }
+.sheet__range input { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; }
+.sheet__range input::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(to right, var(--sale) var(--fill), var(--border) var(--fill)); }
+.sheet__range input::-moz-range-track { height: 6px; border-radius: 999px; background: var(--border); }
+.sheet__range input::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--sale); }
+.sheet__range input::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: #fff; border: 2px solid var(--sale); box-shadow: 0 1px 4px rgba(0, 0, 0, .2); }
+.sheet__range input::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid var(--sale); box-shadow: 0 1px 4px rgba(0, 0, 0, .2); }
+.sheet__range input:focus-visible { outline: 2px solid var(--sale); outline-offset: 2px; border-radius: 6px; }
+.sheet__range-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }

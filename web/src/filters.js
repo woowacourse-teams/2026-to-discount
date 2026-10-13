@@ -76,9 +76,10 @@ export function primarySort(f) {
 // Set이 들어 있어 상수 하나를 돌려쓰면 한쪽에서 고친 게 다른 쪽에
 // 새어 나간다. 부를 때마다 새로 만든다.
 /** 시트에서 고르는 기준 금액(2026-10-13 사용자). */
-export const MIN_AMOUNT_OPTIONS = [3000, 5000, 7000, 10000]
-/** 3000 → "3천원", 10000 → "1만원". */
-export const minAmountLabel = (n) => (n % 10000 === 0 ? `${n / 10000}만원` : `${n / 1000}천원`)
+// 시트의 끌기 막대 눈금(2026-10-14 사용자: 칩 대신 수평 막대). 1,000원 단위.
+export const MIN_AMOUNT_OPTIONS = Array.from({ length: 10 }, (_, i) => (i + 1) * 1000)
+/** 3000 → "3,000원" (2026-10-14 사용자: "n천원" 대신 금액 그대로). */
+export const minAmountLabel = (n) => `${n.toLocaleString('ko-KR')}원`
 const MIN_AMOUNT_KEY = 'dk_min_amount'
 /** 저장된 기준 금액. 없거나 목록 밖 값이면 null. 저장소가 막혀도 멈추지 않는다. */
 export function readMinAmount(storage = globalThis.localStorage) {

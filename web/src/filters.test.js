@@ -177,7 +177,7 @@ test('기준 금액은 시트에서 고른 값을 따르고 저장소에 남는�
   assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount: 10000 }).length, 0)
   assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount: 7000 }).length, 1)
   assert.equal(isDefaultFilters({ ...defaultFilters(), minAmount: 7000 }), false)
-  assert.deepEqual([3000, 5000, 10000].map(minAmountLabel), ['3천원', '5천원', '1만원'])
+  assert.deepEqual([3000, 5000, 10000].map(minAmountLabel), ['3,000원', '5,000원', '10,000원'])
   const m = new Map()
   const s = { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }
   assert.equal(readMinAmount(s), null)

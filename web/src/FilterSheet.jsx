@@ -173,23 +173,24 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
               aria-pressed={draft.minAmount5k}
               onClick={() => setDraft((d) => ({ ...d, minAmount5k: !d.minAmount5k }))}
             >
-              {minAmountLabel(draft.minAmount)} 이상 할인만
+              {minAmountLabel(draft.minAmount)} 이상만
             </button>
           </div>
-          {/* 기준 금액(2026-10-13 사용자). 고르면 거르기도 켠다 — 금액만 바꾸고 꺼져 있으면 고른 보람이 없다. */}
-          <div className="sheet__chips" role="group" aria-label="기준 금액">
-            {MIN_AMOUNT_OPTIONS.map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={`sheet__chip${draft.minAmount === n ? ' sheet__chip--on' : ''}`}
-                aria-pressed={draft.minAmount === n}
-                onClick={() => setDraft((d) => ({ ...d, minAmount: n, minAmount5k: true }))}
-              >
-                {minAmountLabel(n)}
-              </button>
-            ))}
-          </div>
+          {/* 기준 금액(2026-10-13 사용자). 2026-10-14: 칩 대신 끌기 막대. 움직이면 거르기도 켠다 — 금액만 바꾸고 꺼져 있으면 고른 보람이 없다. */}
+          <label className="sheet__range">
+            <input
+              type="range"
+              min={MIN_AMOUNT_OPTIONS[0]}
+              max={MIN_AMOUNT_OPTIONS[MIN_AMOUNT_OPTIONS.length - 1]}
+              step={1000}
+              value={draft.minAmount}
+              aria-label="기준 금액"
+              aria-valuetext={`${minAmountLabel(draft.minAmount)} 이상`}
+              style={{ '--fill': `${((draft.minAmount - MIN_AMOUNT_OPTIONS[0]) / (MIN_AMOUNT_OPTIONS[MIN_AMOUNT_OPTIONS.length - 1] - MIN_AMOUNT_OPTIONS[0])) * 100}%` }}
+              onChange={(e) => { const n = Number(e.target.value); setDraft((d) => ({ ...d, minAmount: n, minAmount5k: true })) }}
+            />
+            <span className="sheet__range-ends" aria-hidden="true"><span>{minAmountLabel(MIN_AMOUNT_OPTIONS[0])}</span><span>{minAmountLabel(MIN_AMOUNT_OPTIONS[MIN_AMOUNT_OPTIONS.length - 1])}</span></span>
+          </label>
 
           <h2 className="sheet__title">정렬</h2>
           {/* 정렬은 하나만(2026-09-19, 사용자). 고른 것이 곧 정렬이다. 방향 있는 기준은 라벨 한 줄 +
