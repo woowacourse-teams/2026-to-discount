@@ -34,8 +34,8 @@
   cursor: pointer;
   white-space: nowrap;
   /* 44px 세로 타깃. 글자는 작게 두되 눌리는 상자는 손가락에 맞춘다. */
-  height: 56px;
-  padding: 0 .6rem;
+  height: 40px;
+  padding: 0 .8rem;
   font-size: .95rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -49,7 +49,7 @@
 /* 신규 탭은 A안 메뉴 바처럼 주황 강조(2026-10-13 사용자) */
 [data-variant="a"] .cat-bar__item--accent, [data-variant="a"] .cat-bar__item--accent:hover { color: var(--sale); font-weight: 700; }
 /* 바탕은 44px 누름 영역 전체가 아니라 글자 둘레만(A안 칩 높이와 맞춘다) */
-[data-variant="a"] .cat-bar__item--accent::before { content: ''; position: absolute; inset: 12px 0; z-index: -1; border-radius: 8px; background: var(--sale-weak); }
+[data-variant="a"] .cat-bar__item--accent::before { content: ''; position: absolute; inset: 6px 0; z-index: -1; border-radius: 8px; background: var(--sale-weak); }
 [data-variant="a"] .cat-bar__item--on::after {
   content: '';
   position: absolute;
