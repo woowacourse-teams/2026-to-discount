@@ -97,3 +97,37 @@ main 또는 다른 브랜치로 실행하면 dev 가드에 의해 작업을 건�
 
 개발 API가 외부 파일을 사용하므로 오퍼 변경은 SSR의 다음 요청부터 보이고 브라우저는 새로고침하면 된다.
 웹 빌드에 포함된 fallback 사본도 갱신하려면 별도로 개발 웹 배포를 실행한다.
+
+## 요청 ID 연결
+
+Nginx가 생성한 32자리 요청 ID를 API에 전달한다. 응답의 `X-Request-ID`,
+Nginx 접근 로그의 `request_id=...`, API journal의 `[request_id=...]`가 일치해야 한다.
+외부에서 보낸 ID는 Nginx가 덮어쓴다. 내부 API 직접 호출은 유효한 ID를 수용하거나 새로 생성한다.
+
+Nginx 설정은 JAR 자동 배포와 별도로 반영한다. 기존 개발 HTTPS server 블록에
+`nginx-locations.conf` include가 이미 있는지 확인하고 중복 include하지 않는다.
+로그 형식은 server 블록 바깥 http 문맥에 설치한다.
+
+```bash
+sudo install -m 644 nginx-request-id.conf /etc/nginx/conf.d/todiscount-dev-request-id.conf
+# nginx-locations.conf는 기존 include 대상 파일에 반영한다.
+sudo nginx -t
+sudo systemctl reload nginx
+curl -sS -D - -o /dev/null https://dev-api-todiscount.duckdns.org/api/brands
+```
+
+검사 실패 시 reload하지 않고 변경 전 파일을 복원한다. 로그 파일 이름을 새로 지정하므로
+기존 `/etc/logrotate.d/nginx`의 `/var/log/nginx/*.log` 대상에 포함되는지 확인한다.
+
+응답에서 확인한 ID를 아래 값으로 넣어 같은 요청을 찾는다.
+
+```bash
+REQUEST_ID=응답의_32자리_ID
+sudo grep -F "request_id=$REQUEST_ID" /var/log/nginx/todiscount-dev.access.log
+sudo journalctl -u todiscount-be-dev.service --since '10 minutes ago' --no-pager -o cat |
+  grep -F "[request_id=$REQUEST_ID]"
+```
+
+일반 API 응답과 차단된 `/api/reload`의 403 응답 모두 ID가 있어야 한다.
+502와 504는 API에 도달하지 못할 수 있어 Nginx 로그만 남을 수 있다.
+API 요청이 없는 시작 로그와 예약 작업은 `[request_id=-]`로 표시한다.

@@ -45,3 +45,6 @@ discount:
     api-root: ${DISCOUNT_API_ROOT:https://bebeggars.duckdns.org}
 server:
   port: 8080
+logging:
+  pattern:
+    level: "%5p [request_id=%X{requestId:--}]"

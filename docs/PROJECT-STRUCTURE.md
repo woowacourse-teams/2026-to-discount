@@ -9,6 +9,7 @@ api/deploy/dev/README.md
 api/deploy/dev/deploy.py
 api/deploy/dev/development.env
 api/deploy/dev/nginx-locations.conf
+api/deploy/dev/nginx-request-id.conf
 api/deploy/dev/provision.sh
 api/deploy/dev/sync_offers.py
 api/deploy/dev/test_deploy.py
@@ -76,6 +77,7 @@ api/src/main/java/com/discounttracker/web/BrandController.java
 api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
 api/src/main/java/com/discounttracker/web/PushSubscriptionController.java
 api/src/main/java/com/discounttracker/web/PushTrackingController.java
+api/src/main/java/com/discounttracker/web/RequestIdFilter.java
 api/src/main/java/com/discounttracker/web/WebConfig.java
 api/src/main/resources/application.yml
 api/src/main/resources/banners.yml
@@ -129,6 +131,8 @@ api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/DevelopmentCorsTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
+api/src/test/java/com/discounttracker/web/RequestIdFilterTest.java
+api/src/test/java/com/discounttracker/web/RequestIdIntegrationTest.java
 api/src/test/resources/contracts/banner-cases.json
 api/src/test/resources/contracts/brand-alias-cases.json
 api/src/test/resources/contracts/certainty-cases.json
@@ -312,7 +316,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 133 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 137 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 131 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -331,7 +335,7 @@ flowchart TB
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 11 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 9 |
-| `web/` | HTTP 엔드포인트와 CORS | 6 |
+| `web/` | HTTP 엔드포인트와 CORS | 7 |
 
 HTTP 경계:
 
