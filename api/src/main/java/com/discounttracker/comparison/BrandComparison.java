@@ -51,6 +51,12 @@ public record BrandComparison(
         return brand.searchAliases();
     }
 
+    /** brands.yml의 짧은 이름. 카드 이름이 별칭 중 가장 짧은 것으로 줄어드는 대신 이것을 쓴다. 없으면 null. */
+    @JsonProperty("shortName")
+    public String shortName() {
+        return brand.shortName();
+    }
+
     /** 그 브랜드에만 있는 대표 메뉴명. 메뉴로 검색해도 브랜드가 나오게 한다. */
     @JsonProperty("menus")
     public List<String> menus() {

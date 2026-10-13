@@ -67,7 +67,8 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
     const el = sheetRef.current
     if (!open || !el) return undefined
     let d = null
-    const start = (e) => { d = { y0: e.touches[0].clientY, t: Date.now(), dy: 0, active: false } }
+    // 금액 막대를 끄는 손가락은 시트를 끌지 않는다(2026-10-14 사용자).
+    const start = (e) => { d = e.target.closest?.('.sheet__range') ? null : { y0: e.touches[0].clientY, t: Date.now(), dy: 0, active: false } }
     const move = (e) => {
       if (!d) return
       const y = e.touches[0].clientY

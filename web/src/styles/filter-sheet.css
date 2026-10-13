@@ -215,7 +215,7 @@
 
 /* 기준 금액 끌기 막대(2026-10-14 사용자). 채운 쪽은 강조색. */
 .sheet__range { display: block; margin: 4px 2px 18px; }
-.sheet__range input { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; }
+.sheet__range input { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; touch-action: none; } /* 막대를 좌우로 끄는 동안 시트가 위아래로 안 따라간다 */
 .sheet__range input::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(to right, var(--sale) var(--fill), var(--border) var(--fill)); }
 .sheet__range input::-moz-range-track { height: 6px; border-radius: 999px; background: var(--border); }
 .sheet__range input::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--sale); }

@@ -115,6 +115,7 @@ const weight = (t) => [...t].reduce((n, ch) => n + (/[ᄀ-ᇿ㄰-㆏가-힯一-�
  * 공백을 뺀 한글 포함 별칭 중 가장 짧은 것. 별칭이 없거나 더 길면 원래 이름(넘치면 CSS 말줄임).
  */
 export function shortBrandName(brand, limit = 10) {
+  if (brand.shortName) return brand.shortName // 사람이 정한 이름이 이긴다(2026-10-14 토핑몬스터피자)
   if (weight(brand.name) <= limit) return brand.name
   const cand = (brand.searchAliases ?? []).map((a) => a.replace(/\s+/g, '')).filter((a) => /[가-힣]/.test(a) && weight(a) < weight(brand.name))
   cand.sort((a, b) => weight(a) - weight(b))

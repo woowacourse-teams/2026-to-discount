@@ -114,6 +114,7 @@ test('조건 표: 구간마다 한 줄, 멤버십은 오퍼 값을 이어받아 
 test('긴 이름은 별칭에서 가장 짧은 한글 이름으로, 짧으면 그대로', () => {
   const tmp = { name: '토핑몬스터피자TMPPIZZA', searchAliases: ['토핑몬스터피자', '토핑몬스터', '토핑 몬스터 피자', 'tmp pizza'] }
   assert.equal(shortBrandName(tmp), '토핑몬스터')
+  assert.equal(shortBrandName({ ...tmp, shortName: '토핑몬스터피자' }), '토핑몬스터피자')
   assert.equal(shortBrandName({ name: '청년피자', searchAliases: ['청피'] }), '청년피자')
   assert.equal(shortBrandName({ name: '아주아주긴이름의브랜드명입니다', searchAliases: [] }), '아주아주긴이름의브랜드명입니다')
 })
