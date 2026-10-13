@@ -176,7 +176,7 @@
   background: #fff;
   color: var(--sale);
   font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, .16); /* 주황 판 위에서도 보이는 옅은 그림자 */
 }
 .quick-bar__chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
