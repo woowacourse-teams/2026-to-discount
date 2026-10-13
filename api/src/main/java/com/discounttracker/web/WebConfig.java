@@ -1,18 +1,32 @@
 package com.discounttracker.web;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.core.Ordered;
+import jakarta.servlet.DispatcherType;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+    @Bean
+    public FilterRegistrationBean<RequestIdFilter> requestIdFilter() {
+        var registration = new FilterRegistrationBean<>(new RequestIdFilter());
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ASYNC, DispatcherType.ERROR);
+        registration.setAsyncSupported(true);
+        return registration;
+    }
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         // 운영 콘솔 PUT은 Origin을 보낸다. Nginx 내부 프록시를 거치면
         // CORS 검사가 필요하므로 관리 경로에만 운영 출처와 저장 메서드를 허용한다.
         registry.addMapping("/api/push/admin/**")
                 .allowedOrigins("https://bebeggars.duckdns.org")
-                .allowedMethods("GET", "PUT");
+                .allowedMethods("GET", "PUT")
+                .exposedHeaders(RequestIdFilter.HEADER);
 
         // 기본 allowedMethods는 GET/HEAD/POST라 /api/events(POST)도 포함되지만,
         // 무엇을 허용하는지 눈에 보이게 적어 둔다.
@@ -34,6 +48,7 @@ public class WebConfig implements WebMvcConfigurer {
                         // 주소로 열면 브랜치 별칭과 달리 막혔다(2026-09-16 실측:
                         // preflight 403 "Invalid CORS request").
                         "https://beggars-*-nn98s-projects.vercel.app")
-                .allowedMethods("GET", "POST", "DELETE");
+                .allowedMethods("GET", "POST", "DELETE")
+                .exposedHeaders(RequestIdFilter.HEADER);
     }
 }
