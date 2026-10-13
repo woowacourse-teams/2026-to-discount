@@ -55,3 +55,45 @@ bash -n api/deploy/dev/provision.sh
 
 systemd 설정은 서버에서 `systemd-analyze verify`로 검사한다.
 부하 테스트 중에는 배포 워크플로를 중단하고 runner 활동도 관측한다.
+
+## 운영 오퍼 수동 가져오기
+
+Actions의 **Sync development offers → Run workflow → dev**로 실행한다.
+개발 웹은 계속 개발 API를 호출한다. 스케줄 실행은 없으며 배너나 사용자 기록을 복사하지 않는다.
+수동 실행 버튼을 등록하려면 `sync-dev-offers.yml`이 기본 브랜치 main에도 있어야 한다.
+main 또는 다른 브랜치로 실행하면 dev 가드에 의해 작업을 건너뛴다.
+
+최초 설정:
+
+1. 개발 서버에 `sync_offers.py`를 root 소유 실행 파일로 설치한다.
+   기존 환경 파일을 보존하기 위해 전체 provision을 다시 실행하지 않는다.
+
+   ```bash
+   sudo install -o root -g root -m 755 sync_offers.py /usr/local/sbin/todiscount-sync-offers-dev
+   printf 'todiscount-runner ALL=(root) NOPASSWD: /usr/local/sbin/todiscount-sync-offers-dev\n' | sudo tee /etc/sudoers.d/todiscount-offer-sync >/dev/null
+   sudo chmod 440 /etc/sudoers.d/todiscount-offer-sync
+   sudo visudo -cf /etc/sudoers.d/todiscount-offer-sync
+   ```
+
+2. 오퍼 읽기 전용 SSH 키를 새로 발급하고 운영 ubuntu 계정의 authorized_keys에 다음 제한으로 등록한다.
+   기존 운영 관리 키를 Actions에 재사용하지 않는다.
+
+   ```text
+   restrict,command="cat /home/ubuntu/delivery-discount-api/data/export.json" ssh-ed25519 <공개키> dev-offer-read-only
+   ```
+
+3. GitHub development 환경에 `DEV_OFFERS_SOURCE_SSH_KEY`로 개인키를 등록한다.
+   `DEV_OFFERS_SOURCE_KNOWN_HOSTS`에는 이미 검증한 `bebeggars.duckdns.org` 호스트 키를 등록한다.
+   실행 중 ssh-keyscan 결과를 그대로 신뢰하는 방식은 사용하지 않는다.
+
+4. 개발 서비스의 실제 환경에 `DISCOUNT_EXPORT_PATH=file:/var/lib/todiscount-be-dev/export.json`과
+   `DISCOUNT_PUSH_ENABLED=false`가 적용됐는지 확인하고 수동 실행한다.
+
+실행은 개발 전용 러너에서 원장을 임시 파일로 받아 root 소유 도구를 호출한다.
+도구는 개발 배포와 같은 잠금으로 직렬 실행하고 유효한 운영 원장만 원자적으로 교체한다.
+`export.before-sync.json`에 이전 개발 파일을 보관한다. 내부 `/api/reload` 후 건수와 brands 응답을 확인한다.
+실패하면 원본 파일을 복원하고 개발 API를 다시 재로드한다. 복구 재로드까지 실패하면 그 사실을 별도로 보고한다.
+운영 원장 내용은 Actions 로그나 artifact로 남기지 않으며 성공 결과에는 건수, SHA-256, 시각만 기록한다.
+
+개발 API가 외부 파일을 사용하므로 오퍼 변경은 SSR의 다음 요청부터 보이고 브라우저는 새로고침하면 된다.
+웹 빌드에 포함된 fallback 사본도 갱신하려면 별도로 개발 웹 배포를 실행한다.
