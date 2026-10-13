@@ -54,7 +54,7 @@
     /* 1~3. 문구 + 폰 화면 */
     .split { display: grid; gap: 28px; align-items: center; }
     .split .btn { margin-top: 28px; }
-    .phone { justify-self: center; width: min(82vw, 360px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(221, 75, 2, .35); }
+    .phone { justify-self: center; width: min(calc(100vw - 32px), 450px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(221, 75, 2, .35); }
     .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 38px; overflow: hidden; background: #fbfbfa; }
     .phone__screen::before { content: ''; position: absolute; top: 9px; left: 50%; width: 30%; height: 24px; transform: translateX(-50%); border-radius: 999px; background: var(--bezel); z-index: 1; }
     .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; padding-top: 38px; }
@@ -70,13 +70,15 @@
     }
 
     /* 4. 문의 */
-    .contact .row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-    .foot { position: absolute; left: 20px; right: 20px; bottom: 24px; max-width: 1080px; margin: 0 auto; color: var(--muted); font-size: .8rem; }
+    .contact { text-align: center; }
+    .contact .row { justify-content: center; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .foot { text-align: center; position: absolute; left: 20px; right: 20px; bottom: 24px; max-width: 1080px; margin: 0 auto; color: var(--muted); font-size: .8rem; }
     .foot p { margin: 0 0 6px; }
 
     @media (min-width: 768px) {
       .split { grid-template-columns: 1.1fr .9fr; }
-      .phone { width: min(360px, calc((100dvh - 120px) * .44)); }
+      .phone { width: min(450px, calc((100dvh - 120px) * .55)); align-self: start; }
+      .slide--shot { height: 100dvh; }
     }
 
     /* 떠오르는 등장. 움직임 줄이기를 켠 기기와 스크립트가 없을 때는 처음부터 보인다 */
@@ -116,7 +118,7 @@
             <img src="/platform-icons/yogiyo.png" alt="요기요" />
             <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
           </div>
-          <h2 class="rise" style="--i:1">4개 배달 플랫폼,<br />브랜드마다 <em>가장 큰 할인</em>을 탐색</h2>
+          <h2 class="rise" style="--i:1">4개 배달 플랫폼, 브랜드마다<br /><em>가장 큰 할인</em>을 탐색</h2>
         </div>
         <div class="phone rise" style="--i:2">
           <div class="phone__screen"><img src="/about/sheet.jpg" width="390" height="844" alt="한 브랜드의 할인을 배달앱 네 곳별로 나열한 화면." /></div>
@@ -128,7 +130,7 @@
     <section class="slide slide--shot" id="s3">
       <div class="slide__in split">
         <div>
-          <h2 class="rise">새로운 할인, 당일 행사, 선착순 할인 등 <em>실시간 정보</em>와 <em>할인 이력</em>을 제공</h2>
+          <h2 class="rise">신규, 행사, 선착순 등 <em>실시간 정보</em>와<br />지난 <em>할인 이력</em> 제공</h2>
         </div>
         <div class="phone rise" style="--i:2">
           <div class="phone__screen"><img src="/about/history.jpg" width="390" height="844" alt="브랜드의 할인 금액이 날짜별로 어떻게 바뀌었는지 보여주는 그래프 화면." /></div>
