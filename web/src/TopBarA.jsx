@@ -252,7 +252,7 @@ export default function TopBarA({
             <li key={c.key}>
               <button
                 type="button"
-                className={`cat-bar__item${selected === c.key ? ' cat-bar__item--on' : ''}`}
+                className={`cat-bar__item${selected === c.key ? ' cat-bar__item--on' : ''}${c.key === 'new' ? ' cat-bar__item--accent' : ''}`}
                 aria-current={selected === c.key ? 'true' : undefined}
                 onClick={() => selectCategory(c.key)}
               >

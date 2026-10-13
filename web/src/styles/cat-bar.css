@@ -36,7 +36,7 @@
   /* 44px 세로 타깃. 글자는 작게 두되 눌리는 상자는 손가락에 맞춘다. */
   height: 44px;
   padding: 0 .55rem;
-  font-size: .88rem;
+  font-size: .95rem;
   font-weight: 500;
   color: var(--text-muted);
   transition: color .16s ease, transform .12s ease;
@@ -46,6 +46,10 @@
 [data-variant="a"] .cat-bar__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* 고른 분류만 밑줄. 판을 깔면 캐러셀이 알약 줄처럼 무거워진다. */
 [data-variant="a"] .cat-bar__item--on { color: var(--text); font-weight: 700; }
+/* 신규 탭은 A안 메뉴 바처럼 주황 강조(2026-10-13 사용자) */
+[data-variant="a"] .cat-bar__item--accent, [data-variant="a"] .cat-bar__item--accent:hover { color: var(--sale); font-weight: 700; }
+/* 바탕은 44px 누름 영역 전체가 아니라 글자 둘레만(A안 칩 높이와 맞춘다) */
+[data-variant="a"] .cat-bar__item--accent::before { content: ''; position: absolute; inset: 6px 0; z-index: -1; border-radius: 8px; background: var(--sale-weak); }
 [data-variant="a"] .cat-bar__item--on::after {
   content: '';
   position: absolute;
