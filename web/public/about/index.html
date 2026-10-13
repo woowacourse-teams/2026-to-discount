@@ -61,6 +61,12 @@
     .apps { display: flex; gap: 10px; margin-bottom: 22px; }
     .apps img { width: 44px; height: 44px; border-radius: 12px; }
 
+    .snaps { display: grid; gap: 12px; margin-top: 28px; max-width: 340px; }
+    .snaps img { display: block; width: 100%; height: auto; border-radius: 18px; box-shadow: 0 14px 30px -16px rgba(0, 0, 0, .35); }
+    .snaps img:nth-child(1) { width: 82%; border-radius: 16px; }
+    .snaps img:nth-child(2) { margin-left: 8%; width: 92%; }
+    @media (max-width: 767px) { .snaps { max-width: 300px; gap: 8px; margin-top: 20px; } }
+
     /* 모바일: 폰을 크게 두고 아래는 화면 밖으로 흘린다 */
     @media (max-width: 767px) {
       .slide--shot { height: 100dvh; padding-bottom: 0; justify-content: flex-start; }
@@ -99,7 +105,7 @@
       <div class="slide__in split">
         <div>
           <h1 class="rise">배달앱 할인,<br /><em>한 눈에</em> 보기</h1>
-          <p class="lead rise" style="--i:1">오늘의 최고 할인을 확인하고, 빠르게 이동해요.</p>
+          <p class="lead rise" style="--i:1">오늘의 최고 할인을 확인하고,<br />빠르게 이동해요.</p>
           <a class="btn rise" style="--i:2" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
         </div>
         <div class="phone rise" style="--i:2">
@@ -118,7 +124,8 @@
             <img src="/platform-icons/yogiyo.png" alt="요기요" />
             <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
           </div>
-          <h2 class="rise" style="--i:1">4개 배달 플랫폼, 브랜드마다<br /><em>가장 큰 할인</em>을 탐색</h2>
+          <h2 class="rise" style="--i:1">4개 배달 플랫폼 중<br /><em>가장 큰 할인</em>을 탐색</h2>
+          <p class="lead rise" style="--i:2">플랫폼별 할인 정보를 비교하고,<br />최고 할인을 선정해요.</p>
         </div>
         <div class="phone rise" style="--i:2">
           <div class="phone__screen"><img src="/about/sheet.jpg" width="390" height="844" alt="한 브랜드의 할인을 배달앱 네 곳별로 나열한 화면." /></div>
@@ -130,7 +137,12 @@
     <section class="slide slide--shot" id="s3">
       <div class="slide__in split">
         <div>
-          <h2 class="rise">신규, 행사, 선착순 등 <em>실시간 정보</em>와<br />지난 <em>할인 이력</em> 제공</h2>
+          <h2 class="rise"><em>실시간 정보</em>와<br />지난 <em>할인 히스토리</em> 제공</h2>
+          <div class="snaps">
+            <img class="rise" style="--i:1" src="/about/snap-new.jpg" width="716" height="420" alt="신규 할인 표시가 붙은 쿠폰 카드." />
+            <img class="rise" style="--i:2" src="/about/snap-event.jpg" width="712" height="160" alt="하루 행사 배너. 파리바게뜨 땡겨요 브랜드데이 6,000원." />
+            <img class="rise" style="--i:3" src="/about/snap-first.jpg" width="712" height="160" alt="선착순 배너. 오전 11시 오픈 4,500원." />
+          </div>
         </div>
         <div class="phone rise" style="--i:2">
           <div class="phone__screen"><img src="/about/history.jpg" width="390" height="844" alt="브랜드의 할인 금액이 날짜별로 어떻게 바뀌었는지 보여주는 그래프 화면." /></div>
