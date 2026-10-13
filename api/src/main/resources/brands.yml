@@ -85,7 +85,7 @@ brands:
   꾸브라꼬숯불치킨:
     searchAliases: [꾸브라꼬, 꾸브라꼬 치킨, 꾸브라코, kkuburakko, kkuburakko chicken]
     shortName: 꾸브라꼬
-    aliases: [꾸브라꼬숯불치킨, 꾸브라꼬 숯불치킨, 꾸브라꼬치킨, 꾸브라꼬, 꾸브라코, kkuburakko, kkuburakko chicken]
+    aliases: [꾸브라꼬숯불치킨, 꾸브라꼬 숯불치킨, 꾸브라꼬치킨, 꾸브라꼬, 꾸브라코, kkuburakko, kkuburakko chicken, 꾸브라꼬숯불두마리치킨]
     category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?RfCmRa3
@@ -417,7 +417,8 @@ brands:
   피자헛:
     searchAliases: [피자 헛, 피자헛 코리아, pizza hut, pizzahut]
     menus: [피자설기, 한근피자]
-    aliases: [피자헛 코리아]
+    # 피자헛익스프레스테이크아웃(요기요)은 포장 전용 매장이라 구간을 포장으로 단다(tracker export_data.TAKEOUT_ONLY_BRANDS, 2026-10-14 사용자)
+    aliases: [피자헛 코리아, 피자헛익스프레스테이크아웃, 피자헛 익스프레스 테이크아웃]
     category: pizza
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=85
@@ -669,6 +670,9 @@ brands:
     category: convenience
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=1789
+  요마트:
+    searchAliases: [요 마트, 요기요 마트, yo mart, yogiyo mart]
+    category: convenience
 
   # --- 한식 ---
   밥풀릭스:
