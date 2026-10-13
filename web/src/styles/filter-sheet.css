@@ -155,7 +155,7 @@
   gap: 0;
   min-width: 0;
   padding: 3px;
-  background: var(--border, #eceef1);
+  background: var(--sale); /* 판이 포인트 색, 고른 칸은 흰 버튼(2026-10-14 사용자) */
   border-radius: 999px;
 }
 .quick-bar__chip {
@@ -166,15 +166,15 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-muted, #6f767f);
+  color: rgba(255, 255, 255, .85);
   cursor: pointer;
   white-space: nowrap;
   transition: background .2s cubic-bezier(.2, .8, .2, 1), color .2s ease, box-shadow .2s ease;
 }
-/* 고른 쪽은 포인트 색 판(2026-10-14 사용자: 기존 스위치에 배경만 강조색으로) */
+/* 고른 쪽은 흰 버튼에 포인트 색 글씨 */
 .quick-bar__chip--on {
-  background: var(--sale);
-  color: #fff;
+  background: #fff;
+  color: var(--sale);
   font-weight: 700;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
 }
