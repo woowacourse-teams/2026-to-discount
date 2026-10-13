@@ -10,7 +10,7 @@ import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount } from './filters.js'
+import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
@@ -53,6 +53,7 @@ function analyticsFilterContext(filters) {
     // 2026-10-05 추가: 신규 보기, 5천원 이상만, 꺼 둔 멤버십(없으면 빈 값)
     fNew: !!filters.updatedOnly,
     fMin5k: !!filters.minAmount5k,
+    fMinAmount: filters.minAmount,
     fMemberOff: ['baemin', 'coupangeats'].filter((k) => !(filters.memberships?.has(k) ?? true)).join('+') || 'none',
   }
 }
@@ -174,12 +175,18 @@ export default function App({ initial = null }) {
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
   const [filters, setFilters] = useState(routeFilters)
+  // 시트에서 고른 기준 금액은 이 브라우저에 남는다. 서버 렌더와 첫 화면을 맞추려고 effect에서 읽는다.
+  useEffect(() => {
+    const n = readMinAmount()
+    if (n) setFilters((f) => ({ ...f, minAmount: n }))
+  }, [])
   // 필터 시트(옛 B안을 A 바에 병합, 2026-09-16). 시트가 draft를 만들어
   // 통째로 돌려주므로 "적용" 한 번에 setFilters 한 번이다.
   const [sheetOpen, setSheetOpen] = useState(false)
   useBackClose(sheetOpen, () => setSheetOpen(false))
   const applyFromSheet = (draft) => {
     setFilters(draft)
+    saveMinAmount(draft.minAmount)
     setSheetOpen(false)
     track('filters_apply', {
       platforms: draft.platforms.size,
@@ -188,6 +195,7 @@ export default function App({ initial = null }) {
       random: draft.includeRandom,
       menu: draft.includeMenu,
       min5k: draft.minAmount5k,
+      minAmount: draft.minAmount,
       memberships: [...(draft.memberships ?? [])].sort().join('+') || 'none',
       updatedOnly: !!draft.updatedOnly,
     })
@@ -623,20 +631,21 @@ export default function App({ initial = null }) {
             )
           })}
         </div>
-        {/* 5천원 이상만(2026-10-03, 사용자): 정렬 묶음에서 빼 같은 줄 오른쪽 끝의 ON/OFF 스위치로. 시트의 같은 칸과 한 상태, 기본은 켜짐. */}
+        {/* N천원 이상만(2026-10-03, 사용자): 같은 줄 오른쪽 끝. 시트의 같은 칸과 한 상태, 기본은 켜짐.
+            2026-10-13 사용자: 스위치 대신 정렬 칩과 같은 모양으로, 금액은 시트에서 고른다. */}
+        <div className="quick-bar__sorts quick-bar__min">
         <button
           type="button"
-          role="switch"
-          aria-checked={filters.minAmount5k}
-          className="quick-bar__switch"
+          aria-pressed={filters.minAmount5k}
+          className={`quick-bar__chip${filters.minAmount5k ? ' quick-bar__chip--on' : ''}`}
           onClick={() => {
             setFilters((f) => ({ ...f, minAmount5k: !f.minAmount5k }))
-            track('quick_filter', { key: 'min5k', on: !filters.minAmount5k })
+            track('quick_filter', { key: 'min5k', on: !filters.minAmount5k, amount: filters.minAmount })
           }}
         >
-          <span>5천원 이상만</span>
-          <span className="quick-bar__switch-track" aria-hidden="true" />
+          {minAmountLabel(filters.minAmount)} 이상만
         </button>
+        </div>
         {/* 숨긴 목록은 정렬과 다른 일이라 오른쪽에 따로 선다. 떠 있는 알약으로 두었더니
             하단 배너와 겹쳤다(2026-09-24 사용자). 숨긴 것이 없으면 안 그린다. */}
         {Object.keys(hidden).length > 0 && (
@@ -783,9 +792,9 @@ export default function App({ initial = null }) {
         <button type="button" className="list-end-more"
                 onClick={() => {
                   setFilters((f) => ({ ...f, minAmount5k: false }))
-                  track('quick_filter', { key: 'min5k', on: false, from: 'list_end' })
+                  track('quick_filter', { key: 'min5k', on: false, from: 'list_end', amount: filters.minAmount })
                 }}>
-          5천원 미만도 보기
+          {minAmountLabel(filters.minAmount)} 미만도 보기
         </button>
       )}
 

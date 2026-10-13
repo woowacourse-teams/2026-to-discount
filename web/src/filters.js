@@ -75,6 +75,22 @@ export function primarySort(f) {
 
 // Set이 들어 있어 상수 하나를 돌려쓰면 한쪽에서 고친 게 다른 쪽에
 // 새어 나간다. 부를 때마다 새로 만든다.
+/** 시트에서 고르는 기준 금액(2026-10-13 사용자). */
+export const MIN_AMOUNT_OPTIONS = [3000, 5000, 7000, 10000]
+/** 3000 → "3천원", 10000 → "1만원". */
+export const minAmountLabel = (n) => (n % 10000 === 0 ? `${n / 10000}만원` : `${n / 1000}천원`)
+const MIN_AMOUNT_KEY = 'dk_min_amount'
+/** 저장된 기준 금액. 없거나 목록 밖 값이면 null. 저장소가 막혀도 멈추지 않는다. */
+export function readMinAmount(storage = globalThis.localStorage) {
+  try {
+    const n = Number(storage?.getItem(MIN_AMOUNT_KEY))
+    return MIN_AMOUNT_OPTIONS.includes(n) ? n : null
+  } catch { return null }
+}
+export function saveMinAmount(n, storage = globalThis.localStorage) {
+  try { storage?.setItem(MIN_AMOUNT_KEY, String(n)) } catch { /* 저장 못 해도 이번 화면은 그 값으로 돈다 */ }
+}
+
 export function defaultFilters() {
   return { ...DEFAULT_SCALARS, platforms: new Set(PLATFORMS.map((p) => p.key)), categories: new Set(), memberships: ALL_MEMBERSHIPS() }
 }
@@ -90,6 +106,8 @@ const DEFAULT_SCALARS = {
   // 2026-10-03부터 기본으로 켠다(사용자): 최소주문 낮은순으로 보면 너무 작은 할인이 앞을 채웠다.
   // 배너 분석(docs/metrics/BANNER-TYPES-20261003.md)에서도 5천원 미만은 클릭률이 0.7% 안팎이었다.
   minAmount5k: true,
+  // 위 거르기의 기준 금액(2026-10-13 사용자). 시트에서 고르고 이 브라우저에 남긴다(readMinAmount).
+  minAmount: 5000,
   // 정렬은 하나다(2026-09-19). 처음은 할인액 높은 순.(2026-09-19, 사용자: 우선순위 개념 제거). 처음은 할인액 높은 순 하나.
   sorts: [{ key: 'amount', dir: 'desc' }],
   search: '',
@@ -103,6 +121,7 @@ export function isDefaultFilters(f) {
     && f.includeRandom === DEFAULT_SCALARS.includeRandom
     && f.includeMenu === DEFAULT_SCALARS.includeMenu
     && f.minAmount5k === DEFAULT_SCALARS.minAmount5k
+    && (f.minAmount ?? 5000) === DEFAULT_SCALARS.minAmount
     && sortSignature(f.sorts) === sortSignature(DEFAULT_SCALARS.sorts)
     && f.search.trim() === ''
 }
@@ -317,7 +336,7 @@ export function applyFilters(brands, filters) {
       const offers = b.offers.filter((o) => (o.platform === OWN || filters.platforms.has(o.platform))
         // 검색 중에는 금액으로 거르지 않는다. 브랜드를 이름으로 찾았는데 5천원 미만이라 안 보이면 없는 줄 안다.
         // 1+1 묶음 행사는 금액이 없어도 5천원 거르기에 안 걸린다(2026-10-11 KFC 1+1이 안 떴다).
-        && (!filters.minAmount5k || q !== '' || isBundle(o) || (o.amount ?? 0) >= 5000)
+        && (!filters.minAmount5k || q !== '' || isBundle(o) || (o.amount ?? 0) >= (filters.minAmount ?? 5000))
         // 없는 멤버십의 전용 오퍼는 뺀다(MEMBERSHIP_FILTERABLE).
         && !(MEMBERSHIP_FILTERABLE[o.membership] && filters.memberships && !filters.memberships.has(MEMBERSHIP_FILTERABLE[o.membership])))
       return offers.length === b.offers.length ? b : { ...b, offers }

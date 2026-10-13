@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
-import { CATEGORIES, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, defaultFilters, isDefaultFilters } from './filters.js'
+import { CATEGORIES, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_AMOUNT_OPTIONS, defaultFilters, isDefaultFilters, minAmountLabel } from './filters.js'
 
 /**
  * 아래에서 올라오는 필터 시트. 앱·분류·정렬을 한 자리에서 고르고
@@ -173,8 +173,22 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
               aria-pressed={draft.minAmount5k}
               onClick={() => setDraft((d) => ({ ...d, minAmount5k: !d.minAmount5k }))}
             >
-              5,000원 이상 할인만
+              {minAmountLabel(draft.minAmount)} 이상 할인만
             </button>
+          </div>
+          {/* 기준 금액(2026-10-13 사용자). 고르면 거르기도 켠다 — 금액만 바꾸고 꺼져 있으면 고른 보람이 없다. */}
+          <div className="sheet__chips" role="group" aria-label="기준 금액">
+            {MIN_AMOUNT_OPTIONS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`sheet__chip${draft.minAmount === n ? ' sheet__chip--on' : ''}`}
+                aria-pressed={draft.minAmount === n}
+                onClick={() => setDraft((d) => ({ ...d, minAmount: n, minAmount5k: true }))}
+              >
+                {minAmountLabel(n)}
+              </button>
+            ))}
           </div>
 
           <h2 className="sheet__title">정렬</h2>

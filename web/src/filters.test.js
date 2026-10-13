@@ -6,7 +6,7 @@ import {
   isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest,
+  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount,
 } from './filters.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
@@ -170,6 +170,22 @@ test('5천원 이상만은 기본으로 켜져 있고, 검색 중에는 금액�
   assert.deepEqual(applyFilters(brands, f).map((b) => b.name), ['청년피자'])
   // 이름으로 찾았는데 금액 때문에 안 보이면 없는 줄 안다.
   assert.deepEqual(applyFilters(brands, { ...f, search: '디디' }).map((b) => b.name), ['디디치킨'])
+})
+
+test('기준 금액은 시트에서 고른 값을 따르고 저장소에 남는다(2026-10-13)', () => {
+  const brands = [{ name: '청년피자', category: 'pizza', offers: [{ platform: 'baemin', amount: 7500, certainty: 'exact', kind: 'discount' }] }]
+  assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount: 10000 }).length, 0)
+  assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount: 7000 }).length, 1)
+  assert.equal(isDefaultFilters({ ...defaultFilters(), minAmount: 7000 }), false)
+  assert.deepEqual([3000, 5000, 10000].map(minAmountLabel), ['3천원', '5천원', '1만원'])
+  const m = new Map()
+  const s = { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }
+  assert.equal(readMinAmount(s), null)
+  saveMinAmount(7000, s)
+  assert.equal(readMinAmount(s), 7000)
+  s.setItem('dk_min_amount', '1234')
+  assert.equal(readMinAmount(s), null, '목록 밖 값은 버린다')
+  assert.equal(readMinAmount({ getItem: () => { throw new Error('blocked') } }), null)
 })
 
 test('멤버십: 끄면 그 멤버십 전용 오퍼만 빠지고, 기본(둘 다 켜짐)은 그대로', () => {
