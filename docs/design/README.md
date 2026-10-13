@@ -27,6 +27,7 @@
 | 32 | [#32](https://github.com/woowacourse-teams/2026-to-discount/issues/32) |
 | 33 | [#33](https://github.com/woowacourse-teams/2026-to-discount/issues/33) |
 | 34 | [#34](https://github.com/woowacourse-teams/2026-to-discount/issues/34) |
+| 65 | [#65](https://github.com/woowacourse-teams/2026-to-discount/issues/65) |
 
 ## 상태
 
@@ -42,6 +43,7 @@
 | 33 | 콘솔을 팀의 입구로 키운다(관례 조사, 구조 탭, 지금 할 일, 이력 탭) | **완료** (2026-09-18). 1~4와 별도 트랙 5(31의 1~2단계), 6(사람별 계정)까지 같은 날 끝 | 32 | 없음 |
 | 32 | 운영 관측을 한 화면과 한 알림 채널로(수집, API, 데이터, 웹, 서버, 배포 탭과 슬랙) | **완료** (1~3단계 2026-09-17, 배너 제안 승인 09-18). 10절에 남은 것은 범위 밖 항목과 팀원 피드백 요청뿐 | 없음 | 없음 |
 | 34 | 라이브 오퍼 상시 확인 봇 | **닫힘** (2026-09-29). 새 봇 대신 4단계 전수조사 재확인 주기를 2일로 줄임(tracker `4d43802`) | 32 | — |
+| 65 | [짧은 API 장애 감지 지연 개선](65-fast-api-failure-detection.md) | **개발 PR 리뷰 대기**. [구현 PR](https://github.com/nn98/beggars-ops/pull/10). 테스트 248개 통과. 개발 배포 경로 구성 및 서버 수용 검증 대기 | 32 | 개발 배포 확인 |
 
 트래커 쪽 설계·계획(수집 파이프라인)은 tracker 저장소(비공개)에 따로 있다
 (둘 다 구현 완료, ADR-032·조율기).
