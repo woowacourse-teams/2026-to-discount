@@ -9,7 +9,6 @@
    타이틀바와 다른 색의 띠로 보였다(2026-09-14). 하나의 바다. */
 [data-variant="a"] .cat-bar {
   position: relative; /* 좌우 화살표(.menu-bar__more) 기준 */
-  margin-top: -2px; /* 위 영역과 간격 2px 줄임 */
   padding: 0 1.25rem; /* A안 메뉴 바처럼 목록 밖 여백에 화살표를 둔다 */
   background: transparent;
 }
