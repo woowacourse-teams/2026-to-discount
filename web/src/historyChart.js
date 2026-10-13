@@ -5,7 +5,7 @@ export const GUTTER = 28 // 금액 축 숫자 자리
 export const RIGHT = 8
 export const TOP = 46 // 말풍선 자리(PILL_H + 간격)
 export const BOTTOM = 18 // 날짜 축 자리
-export const PILL_W = 92 // 두 줄 값 표시 "9/23" / "10,000원 할인" (눌렀을 때 말풍선과 같은 모양)
+export const PILL_W = 112 // 두 줄 값 표시 "9/23" / "10,000원 할인" (좁으면 끝에서 잘렸다) (눌렀을 때 말풍선과 같은 모양)
 export const PILL_H = 40
 const STEP = 1000
 
@@ -66,7 +66,8 @@ export function chartModel(points) {
   const r = (n) => Math.round(n * 10) / 10
   const x = (p) => r(GUTTER + ((Date.parse(p.date) - t0) / span) * (W - GUTTER - RIGHT))
   const yOf = (v) => r(TOP + ((hi - v) / (hi - lo)) * (H - BOTTOM - TOP))
-  const xy = points.map((p) => ({ x: x(p), y: p.amount == null ? null : yOf(p.amount), line: p.line }))
+  // 그리기는 한 가지 선으로(2026-10-14 사용자: 점선 빼고 균일하게). 못 본 날 구분은 누를 때 글자로만 남긴다.
+  const xy = points.map((p) => ({ x: x(p), y: p.amount == null ? null : yOf(p.amount), line: 'solid' }))
   return { ...linePaths(xy, H - BOTTOM), xy, lo, hi, yLo: yOf(lo), yHi: yOf(hi) }
 }
 

@@ -94,10 +94,7 @@ export default function BestHistoryChart({ brand }) {
     <figure className="hist" tabIndex={0} onKeyDown={onKey} onBlur={() => setSel(null)}
       aria-label={`할인 기록${sum ? `, 최고 ${won(sum.max)} 할인 ${md(sum.maxDate)}` : ''}. 좌우 화살표로 날짜 선택`}>
       <div className="hist__head">
-        <div>
-          <figcaption className="hist__title">할인 기록</figcaption>
-          {sum && <span className="hist__badge">최고 <b>{won(sum.max)}</b> {md(sum.maxDate)}</span>}
-        </div>
+        <figcaption className="hist__title">할인 기록</figcaption>
         <div className="hist__tabs" role="group" aria-label="기간">
           {RANGES.map(([k, label]) => (
             <button key={k} type="button" className="hist__tab" aria-pressed={range === k}
@@ -115,16 +112,11 @@ export default function BestHistoryChart({ brand }) {
           <text x={GUTTER - 6} y={m.yLo} className="hist__ytick">{num(m.lo)}</text>
           {m.area.map((d, i) => <path key={`a${i}`} d={d} className="hist__area" />)}
           {m.solid.map((d, i) => <path key={`s${i}`} d={d} className="hist__solid" />)}
-          {m.carried.map((d, i) => <path key={`c${i}`} d={d} className="hist__carried" />)}
           {xTicks.map(([i, anchor]) => (
             <text key={anchor} x={xs[i]} y={H - 4} textAnchor={anchor} className="hist__xtick">{md(pts[i].date)}</text>
           ))}
           {sel == null && pills.map((c) => (
-            <g key={`g${c.i}`}>
-              <line x1={xs[c.i]} y1={c.top + PILL_H} x2={xs[c.i]} y2={m.xy[c.i].y} className="hist__guide" />
-              {/* 점에서 날짜 축까지 이어 값과 날짜가 한 줄로 읽히게 */}
-              <line x1={xs[c.i]} y1={m.xy[c.i].y} x2={xs[c.i]} y2={H - BOTTOM} className="hist__drop" />
-            </g>
+            <line key={`g${c.i}`} x1={xs[c.i]} y1={c.top + PILL_H} x2={xs[c.i]} y2={m.xy[c.i].y} className="hist__guide" />
           ))}
           {(sel == null ? pills.map((c) => c.i) : m.xy[sel].y == null ? [] : [sel]).map((i) => (
             <circle key={i} cx={xs[i]} cy={m.xy[i].y} r="3.5" className="hist__dot" />
