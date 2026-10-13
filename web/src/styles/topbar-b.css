@@ -115,8 +115,8 @@
 .menu-bar__list {
   display: flex;
   align-items: center;
-  gap: .115rem;
-  margin: 0;
+  gap: .11rem;
+  margin: 0 1.4rem; /* 좌우 화살표 자리를 비워 탭과 겹치지 않게 */
   padding: 0;
   list-style: none;
   /* 좁은 화면에서 분류가 다 안 들어간다. 줄바꿈 대신 옆으로 민다 —
@@ -134,8 +134,9 @@
   background: none;
   cursor: pointer;
   white-space: nowrap;
-  padding: .63rem .58rem;
-  font-size: 1.01rem;
+  height: 48px; /* A안 분류 탭 높이와 맞춘다 */
+  padding: 0 .6rem;
+  font-size: .96rem;
   font-weight: 500;
   color: var(--text-muted);
   transition: color .18s ease;

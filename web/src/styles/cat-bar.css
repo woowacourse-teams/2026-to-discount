@@ -13,7 +13,7 @@
 [data-variant="a"] .cat-bar__list {
   display: flex;
   align-items: center;
-  gap: .115rem;
+  gap: .11rem;
   margin: 0 auto;
   padding: 0 1.25rem;
   max-width: 880px;
@@ -34,9 +34,9 @@
   cursor: pointer;
   white-space: nowrap;
   /* 44px 세로 타깃. 글자는 작게 두되 눌리는 상자는 손가락에 맞춘다. */
-  height: 51px;
-  padding: 0 .63rem;
-  font-size: 1.01rem;
+  height: 48px;
+  padding: 0 .6rem;
+  font-size: .96rem;
   font-weight: 500;
   color: var(--text-muted);
   transition: color .16s ease, transform .12s ease;
@@ -49,7 +49,7 @@
 /* 신규 탭은 A안 메뉴 바처럼 주황 강조(2026-10-13 사용자) */
 [data-variant="a"] .cat-bar__item--accent, [data-variant="a"] .cat-bar__item--accent:hover { color: var(--sale); font-weight: 700; }
 /* 바탕은 44px 누름 영역 전체가 아니라 글자 둘레만(A안 칩 높이와 맞춘다) */
-[data-variant="a"] .cat-bar__item--accent::before { content: ''; position: absolute; inset: 8px 0; z-index: -1; border-radius: 8px; background: var(--sale-weak); }
+[data-variant="a"] .cat-bar__item--accent::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 8px; background: var(--sale-weak); }
 [data-variant="a"] .cat-bar__item--on::after {
   content: '';
   position: absolute;
