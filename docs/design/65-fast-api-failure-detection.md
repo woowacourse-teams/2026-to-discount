@@ -2,7 +2,7 @@
 
 추적 이슈: [#65](https://github.com/woowacourse-teams/2026-to-discount/issues/65)
 
-상태: 개발 PR 리뷰 대기. 개발 서버 배포 경로 구성과 실제 Slack 수용 검증 대기.
+상태: 구현 PR 리뷰 대기. main 배포 이후 실제 서버와 Slack 수용 검증 대기.
 
 ## 1. 문제
 
@@ -223,9 +223,9 @@
 - `systemd-analyze verify`는 macOS에 명령이 없어 실행하지 못했다. 배포 스크립트에서 서버의 unit 검증을 통과한 뒤 설치하도록 연결했다.
 - 실제 서버 설치, timer 실행 주기와 Slack 전송 수용 검증은 배포 이후에 확인한다.
 
-### 개발 반영
+### 저장소별 반영
 
 - 구현 PR: https://github.com/nn98/beggars-ops/pull/10
-- 반영 경로: `feat/65-fast-api-failure-detection → dev`.
-- `beggars-ops`에 `dev`가 없어 기존 `main`을 기준으로 개발 브랜치를 생성했다. 구현 커밋은 `033efac`이다.
-- 이 저장소의 기존 자동 배포는 `main`만 대상으로 한다. 개발 배포 CI/CD는 미구성이며 PR 생성만으로 개발 서버 배포나 서버 수용 검증이 완료되지는 않는다.
+- 구현 반영 경로: `feat/65-fast-api-failure-detection → main`. `beggars-ops`만 dev를 거치지 않는 프로젝트 예외를 적용한다. 구현 커밋은 `033efac`이다.
+- PR #10은 main 대상으로 수정했다. main에 반영한 뒤 CI와 Deploy 성공을 확인하고 실제 서버 및 Slack 인수테스트를 수행한다. 로컬에서 코드를 pull한 것만으로 서버 배포가 완료되지는 않는다.
+- 모노레포의 문서 PR #66은 `docs/65-fast-api-failure-detection → dev` 경로를 유지한다.
