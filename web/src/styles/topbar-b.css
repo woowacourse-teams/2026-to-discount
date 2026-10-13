@@ -44,6 +44,7 @@
    배경과 밑 윤곽선을 준다 — 카드 그리드가 바로 아래로 지나가는데 바가
    투명하면 글자가 카드에 겹쳐 읽힌다. */
 .menu-bar {
+  margin-top: -2px; /* 위 영역과 간격 2px 줄임 */
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
@@ -134,8 +135,8 @@
   background: none;
   cursor: pointer;
   white-space: nowrap;
-  height: 48px; /* A안 분류 탭 높이와 맞춘다 */
-  padding: 0 .6rem;
+  height: 41px; /* 위 2px, 아래 5px 줄임. old 분류 탭과 같은 높이 */
+  padding: 0 .6rem 3px;
   font-size: .96rem;
   font-weight: 500;
   color: var(--text-muted);
