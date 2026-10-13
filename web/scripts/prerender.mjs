@@ -18,7 +18,7 @@
 //
 // API가 죽어 있으면 심지 않고 그냥 넘어간다. 배포를 막을 일이 아니다.
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url))
 const SITE = process.env.SITE_ORIGIN ?? 'https://beggars-five.vercel.app'
@@ -289,7 +289,7 @@ function appAssetTags(indexHtml) {
   return tags.map((t) => `    ${t}`).join(String.fromCharCode(10))
 }
 
-function brandPage(b, siblings, today, appTags) {
+export function brandPage(b, siblings, today, appTags) {
   const offers = (b.offers ?? []).filter((o) => o.amount != null)
   const cat = CATEGORY_LABEL[b.category]
   const apps = offers.map((o) => PLATFORM_LABEL[o.platform] ?? o.platform)
@@ -324,6 +324,13 @@ function brandPage(b, siblings, today, appTags) {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="${SITE}/og-image.png" />
+    <script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '홈', item: `${SITE}/` },
+        { '@type': 'ListItem', position: 2, name: b.name, item: url },
+      ],
+    }).replace(/</g, '\\u003c')}</script>
 ${appTags}
 ${BOOT_STYLE}
   </head>
@@ -496,5 +503,8 @@ async function main() {
   console.log(`[prerender] 본문 ${listed.length}개 + 브랜드 페이지 ${listed.length}장 (${today})`)
 }
 
-await mkdir(DIST, { recursive: true })
-await main()
+// 테스트가 brandPage만 가져갈 때는 빌드를 돌리지 않는다.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await mkdir(DIST, { recursive: true })
+  await main()
+}
