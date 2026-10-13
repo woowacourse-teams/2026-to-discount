@@ -214,3 +214,4 @@ Nginx 접근 로그와 API 예외 로그에 공통 요청 ID가 없어 동시 �
 - `sudo nginx -t` 통과. API 및 fast-check timer active, fast-check Result=success 및 ExecMainStatus=0. 21:40:48 및 21:41:19 KST에 감시 실행 성공.
 - 기존 전체 수집의 5분 cron 유지 확인. 운영에서 인위적인 5xx는 만들지 않았다. 예외 로그의 ID는 API 통합 테스트, 502와 504는 격리된 Nginx에서 검증했다.
 - 개발 API 배포 실행 38396973713은 성공했다. 개발 Nginx 설치 및 양쪽 로그 대조는 SSH 접근 제한으로 미수행이다. 사용자가 해당 개발 검증을 생략하고 운영에 반영하도록 승인했다.
+- 배포 영향: API 재시작 시점인 21:39:30 및 21:39:32 KST에 `/api/banners` 502가 2건 기록됐다. 21:40:18 fast-check에서 장애 없음이 확인됐고 이후 운영 응답 대조에서 brands와 banners 200을 확인했다. 배포 절차의 무중단 개선은 이번 요청 ID 작업 범위 밖이다.
