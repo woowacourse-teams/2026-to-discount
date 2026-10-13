@@ -2,7 +2,7 @@
 
 추적 이슈: [#65](https://github.com/woowacourse-teams/2026-to-discount/issues/65)
 
-상태: 구현 PR 리뷰 대기. main 배포 이후 실제 서버와 Slack 수용 검증 대기.
+상태: main 배포 후 빈 요청 로그로 인한 감시 실패 확인. 원인 수정 PR 리뷰 및 재검증 대기.
 
 ## 1. 문제
 
@@ -229,3 +229,11 @@
 - 구현 반영 경로: `feat/65-fast-api-failure-detection → main`. `beggars-ops`만 dev를 거치지 않는 프로젝트 예외를 적용한다. 구현 커밋은 `033efac`이다.
 - PR #10은 main 대상으로 수정했다. main에 반영한 뒤 CI와 Deploy 성공을 확인하고 실제 서버 및 Slack 인수테스트를 수행한다. 로컬에서 코드를 pull한 것만으로 서버 배포가 완료되지는 않는다.
 - 모노레포의 문서 PR #66은 `docs/65-fast-api-failure-detection → dev` 경로를 유지한다.
+
+### 서버 인수 검증 중 발견한 로그 파싱 실패
+
+- 운영 로그에 요청 문자열이 빈 `"" 400` 기록이 있었다. 최초 파서는 요청에 항상 메서드, 경로와 HTTP 버전이 있다고 가정해 실패했고 로그 처리 위치를 저장하지 못해 같은 줄에서 반복 실패했다.
+- 빠른 감시 파서를 시각과 상태 코드 우선으로 수정했다. 빈 요청과 비정상 HTTP 입력도 읽고, 경로를 알 수 없는 5xx도 감지하되 경로 없는 정상 응답을 복구 근거로 쓰지 않는다.
+- 수정 PR: https://github.com/nn98/beggars-ops/pull/11 (`fix/65-nginx-empty-request → main`).
+- 빠른 감시 테스트 20개와 전체 테스트 252개 통과. 서버 `/tmp`의 수정 후보로 실제 Nginx 현재 로그와 `.1`의 파싱도 통과했다. 운영 파일과 상태, Slack은 변경하거나 호출하지 않았다.
+- main 배포 이후 두 번 이상의 타이머 실행 성공과 Slack 인수 검증을 다시 확인해야 한다.
