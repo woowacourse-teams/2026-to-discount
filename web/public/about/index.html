@@ -4,131 +4,164 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>서비스 소개 - 배달앱 할인모음</title>
-  <meta name="description" content="배민, 쿠팡이츠, 요기요, 땡겨요에서 지금 받을 수 있는 가장 큰 할인을 브랜드별로 모은 비영리 페이지입니다." />
+  <meta name="description" content="배민, 쿠팡이츠, 요기요, 땡겨요에서 지금 받을 수 있는 가장 큰 할인을 브랜드별로 모았습니다." />
   <link rel="canonical" href="https://beggars-five.vercel.app/about" />
   <meta property="og:title" content="배달앱 할인모음" />
   <meta property="og:description" content="배달앱 네 곳의 할인을 브랜드별로 한 화면에서 비교해요." />
   <meta property="og:image" content="https://beggars-five.vercel.app/og-image.png" />
   <link rel="icon" href="/favicon-48.png" />
   <link rel="stylesheet" href="/fonts/pretendard-optional.css" />
-  <!-- 앱 번들 없이 읽히는 정적 소개 페이지(설계 47). 색은 앱 base.css 토큰과 같은 값을 쓴다. -->
+  <!-- 앱 번들 없이 읽히는 정적 소개 페이지(설계 47). 한 화면씩 넘어가는 풀페이지 스크롤(CSS scroll-snap). -->
   <style>
     :root {
       --bg: #fbfbfa; --surface: #ffffff; --border: #eaeaea;
       --text: #171717; --muted: #64635f; --sale: #dd4b02; --sale-weak: #fdf0e9;
-      --btn: #171717; --btn-text: #ffffff;
+      --btn: #171717; --btn-text: #ffffff; --bezel: #171717;
       color-scheme: light dark;
     }
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #121211; --surface: #1c1c1a; --border: #2c2c29;
         --text: #f1f0ee; --muted: #a8a7a2; --sale: #ff7a3d; --sale-weak: #2a1c14;
-        --btn: #f1f0ee; --btn-text: #121211;
+        --btn: #f1f0ee; --btn-text: #121211; --bezel: #3a3a37;
       }
     }
     * { box-sizing: border-box; }
+    html { scroll-snap-type: y mandatory; }
     body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
     a { color: inherit; }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
 
-    .top { display: flex; align-items: center; justify-content: space-between; height: 64px; }
-    .top__brand { font-weight: 800; text-decoration: none; letter-spacing: -.01em; }
-    .top__link { color: var(--muted); text-decoration: none; font-size: .95rem; }
+    .slide { position: relative; min-height: 100dvh; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; justify-content: center; padding: 72px 20px 88px; overflow: hidden; }
+    .slide__in { width: 100%; max-width: 1080px; margin: 0 auto; }
+    .brand { position: absolute; top: 20px; left: 20px; right: 20px; max-width: 1080px; margin: 0 auto; font-weight: 800; text-decoration: none; letter-spacing: -.01em; }
+    .next { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); text-decoration: none; }
+    .next svg { width: 20px; height: 20px; }
 
-    .hero { display: grid; gap: 40px; padding-block: 32px 56px; align-items: center; }
-    .hero h1 { margin: 0; font-size: clamp(2.1rem, 6vw, 3.4rem); line-height: 1.15; letter-spacing: -.035em; font-weight: 800; text-wrap: balance; }
-    .hero h1 em { font-style: normal; color: var(--sale); }
-    .hero p { margin: 18px 0 28px; max-width: 34ch; color: var(--muted); font-size: 1.08rem; }
-    .btn { display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 24px; border-radius: 12px; background: var(--btn); color: var(--btn-text); font-weight: 700; text-decoration: none; transition: transform .2s cubic-bezier(.16,1,.3,1), opacity .2s; }
-    .btn:hover { opacity: .88; }
+    h1, h2 { margin: 0; letter-spacing: -.035em; font-weight: 800; text-wrap: balance; }
+    h1 { font-size: clamp(2.3rem, 7vw, 3.8rem); line-height: 1.12; }
+    h2 { font-size: clamp(1.9rem, 5.5vw, 3rem); line-height: 1.18; }
+    em { font-style: normal; color: var(--sale); }
+    .lead { margin: 18px 0 0; max-width: 30ch; color: var(--muted); font-size: 1.1rem; }
+
+    .btn { display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 8px 0 24px; border-radius: 999px; background: var(--btn); color: var(--btn-text); font-weight: 700; text-decoration: none; transition: transform .2s cubic-bezier(.16,1,.3,1), opacity .2s; }
+    .btn i { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--sale); color: #fff; font-style: normal; transition: transform .3s cubic-bezier(.16,1,.3,1); }
+    .btn i svg { width: 16px; height: 16px; }
+    .btn:hover i { transform: translateX(3px); }
     .btn:active { transform: scale(.98); }
+    .btn--ghost { padding: 0 24px; background: transparent; color: var(--text); border: 1px solid var(--border); }
     .btn:focus-visible, a:focus-visible { outline: 2px solid var(--sale); outline-offset: 3px; }
-    .apps { display: flex; gap: 10px; margin-top: 32px; }
-    .apps img { width: 40px; height: 40px; border-radius: 10px; }
-    .shot { justify-self: center; width: min(100%, 340px); aspect-ratio: 390 / 640; border-radius: 28px; border: 1px solid var(--border); overflow: hidden; background: var(--surface); box-shadow: 0 24px 60px -24px rgba(60, 40, 20, .25); }
-    .shot img { display: block; width: 100%; height: auto; }
 
-    .facts { display: grid; gap: 16px; padding-block: 24px 72px; }
-    .fact { padding: 28px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); }
-    .fact h2 { margin: 0 0 8px; font-size: 1.25rem; letter-spacing: -.02em; line-height: 1.35; }
-    .fact p { margin: 0; color: var(--muted); }
-    .fact--lead { background: var(--sale-weak); border-color: transparent; }
-    .fact--lead h2 { font-size: 1.5rem; }
+    /* 1. 첫 화면 */
+    .hero { display: grid; gap: 40px; align-items: center; }
+    .hero .btn { margin-top: 32px; }
+    .phone { justify-self: center; width: min(68vw, 300px, calc((100dvh - 420px) * .45)); padding: 10px; border-radius: 46px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(221, 75, 2, .35); }
+    .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 36px; overflow: hidden; background: var(--surface); }
+    .phone__screen::before { content: ''; position: absolute; top: 9px; left: 50%; width: 30%; height: 22px; transform: translateX(-50%); border-radius: 999px; background: var(--bezel); z-index: 1; }
+    .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; padding-top: 36px; background: #fbfbfa; }
 
-    .contact { padding-block: 56px; border-top: 1px solid var(--border); }
-    .contact h2 { margin: 0 0 8px; font-size: 1.6rem; letter-spacing: -.03em; }
-    .contact p { margin: 0 0 24px; color: var(--muted); }
-    .contact__links { display: flex; flex-wrap: wrap; gap: 12px; }
-    .btn--ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    /* 2. 가장 큰 할인 */
+    .big { margin: 28px 0 0; font-size: clamp(4rem, 16vw, 9rem); line-height: 1; font-weight: 800; letter-spacing: -.05em; color: var(--sale); font-variant-numeric: tabular-nums; }
+    .big small { font-size: .3em; color: var(--text); letter-spacing: -.02em; margin-left: 6px; }
+    .apps { display: flex; gap: 12px; margin-top: 36px; }
+    .apps img { width: 52px; height: 52px; border-radius: 14px; }
 
-    .foot { padding-block: 24px 48px; color: var(--muted); font-size: .85rem; }
-    .foot p { margin: 0 0 8px; }
+    /* 3. 새 할인 */
+    .tag { display: inline-block; margin-top: 28px; padding: 10px 22px; border-radius: 14px; background: var(--sale-weak); color: var(--sale); font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 800; }
+
+    /* 4. 문의 */
+    .contact .row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .foot { position: absolute; left: 20px; right: 20px; bottom: 24px; max-width: 1080px; margin: 0 auto; color: var(--muted); font-size: .8rem; }
+    .foot p { margin: 0 0 6px; }
 
     @media (min-width: 768px) {
-      .hero { grid-template-columns: 1.15fr .85fr; padding-block: 48px 88px; }
-      .facts { grid-template-columns: 1.3fr 1fr; grid-template-rows: auto auto; }
-      .fact--lead { grid-row: span 2; display: flex; flex-direction: column; justify-content: flex-end; min-height: 280px; padding: 36px; }
-      .fact--lead h2 { font-size: 1.9rem; }
+      .hero { grid-template-columns: 1.15fr .85fr; }
+      .phone { width: 300px; }
     }
 
+    /* 떠오르는 등장. 움직임 줄이기를 켠 기기와 스크립트가 없을 때는 처음부터 보인다 */
     @media (prefers-reduced-motion: no-preference) {
-      .reveal { animation: rise .7s cubic-bezier(.16,1,.3,1) both; animation-delay: calc(var(--i, 0) * 80ms); }
-      @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+      .js .rise { opacity: 0; transform: translateY(28px); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); transition-delay: calc(var(--i, 0) * 90ms); }
+      .js .in .rise { opacity: 1; transform: none; }
+      .next svg { animation: bob 1.8s ease-in-out infinite; }
+      @keyframes bob { 50% { transform: translateY(5px); } }
     }
+    @media (prefers-reduced-motion: reduce) { html { scroll-snap-type: none; } }
   </style>
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="wrap top">
-    <a class="top__brand" href="/">배달앱 할인모음</a>
-    <a class="top__link" href="/">할인 목록</a>
-  </header>
-
   <main>
-    <section class="wrap hero">
-      <div>
-        <h1 class="reveal">배달앱 할인,<br /><em>한 화면</em>에서 비교</h1>
-        <p class="reveal" style="--i:1">배민, 쿠팡이츠, 요기요, 땡겨요에서 지금 받을 수 있는 가장 큰 할인을 브랜드별로 모았어요.</p>
-        <a class="btn reveal" style="--i:2" href="/">할인 보러 가기</a>
-        <div class="apps reveal" style="--i:3">
+    <section class="slide" id="s1">
+      <a class="brand" href="/">배달앱 할인모음</a>
+      <div class="slide__in hero">
+        <div>
+          <h1 class="rise">배달앱 할인,<br /><em>한 화면</em>에서 비교</h1>
+          <p class="lead rise" style="--i:1">배민, 쿠팡이츠, 요기요, 땡겨요의 할인을 브랜드별로 모았어요.</p>
+          <a class="btn rise" style="--i:2" href="/">할인 보러 가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/home.jpg" width="390" height="844" alt="할인 목록 화면. 브랜드마다 가장 큰 할인 금액과 그 할인을 주는 앱이 보인다." /></div>
+        </div>
+      </div>
+      <a class="next" href="#s2" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
+
+    <section class="slide" id="s2">
+      <div class="slide__in">
+        <h2 class="rise">브랜드마다<br /><em>가장 큰 할인</em> 하나</h2>
+        <p class="big rise" style="--i:1">12,000<small>원 할인</small></p>
+        <div class="apps rise" style="--i:2">
           <img src="/platform-icons/baemin.png" alt="배달의민족" />
           <img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" />
           <img src="/platform-icons/yogiyo.png" alt="요기요" />
           <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
         </div>
       </div>
-      <div class="shot reveal" style="--i:2">
-        <img src="/about/home.jpg" width="390" height="780" alt="할인 목록 화면. 브랜드마다 가장 큰 할인 금액과 그 할인을 주는 앱이 보인다." />
-      </div>
+      <a class="next" href="#s3" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="wrap facts" aria-label="이렇게 만들어요">
-      <article class="fact fact--lead">
-        <h2>앱에 보이는 화면을<br />사람이 직접 확인해요</h2>
-        <p>누구나 볼 수 있는 화면만 옮겨요. 자동 수집이나 접근 제한 우회는 하지 않아요.</p>
-      </article>
-      <article class="fact">
-        <h2>광고도 제휴도 없어요</h2>
-        <p>개인이 만든 비영리 페이지예요. 각 배달앱의 공식 서비스가 아니에요.</p>
-      </article>
-      <article class="fact">
-        <h2>금액은 확인한 날 기준이에요</h2>
-        <p>지역, 매장, 회원 등급, 시간대에 따라 달라요. 주문 전에 앱에서 다시 확인하세요.</p>
-      </article>
+    <section class="slide" id="s3">
+      <div class="slide__in">
+        <h2 class="rise">새로 나온 할인은<br />먼저 보여드려요</h2>
+        <span class="tag rise" style="--i:1">신규</span>
+        <p class="lead rise" style="--i:2">버튼을 누르면 그 앱의 할인으로 바로 이동해요.</p>
+      </div>
+      <a class="next" href="#s4" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="wrap contact" id="contact">
-      <h2>고칠 곳이 보이면 알려주세요</h2>
-      <p>잘못된 금액, 수정 요청, 삭제 요청 모두 받아요.</p>
-      <div class="contact__links">
-        <a class="btn" href="mailto:woowa202610@gmail.com">메일 보내기</a>
-        <a class="btn btn--ghost" href="https://github.com/woowacourse-teams/2026-to-discount/issues">저장소 이슈</a>
+    <section class="slide contact" id="s4">
+      <div class="slide__in">
+        <h2 class="rise">고칠 곳이 보이면<br /><em>알려주세요</em></h2>
+        <div class="row rise" style="--i:1">
+          <a class="btn" href="/">할인 보러 가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
+          <a class="btn btn--ghost" href="mailto:woowa202610@gmail.com">메일 보내기</a>
+        </div>
       </div>
+      <footer class="foot">
+        <p>각 배달앱의 공식 서비스가 아니며, 모든 상표는 각 권리자에게 있습니다.</p>
+        <p><a href="/privacy"><strong>개인정보처리방침</strong></a></p>
+      </footer>
     </section>
   </main>
-
-  <footer class="wrap foot">
-    <p>브랜드명과 로고는 해당 브랜드를 가리키는 데만 쓰며, 모든 상표는 각 권리자에게 있습니다.</p>
-    <p><a href="/privacy"><strong>개인정보처리방침</strong></a></p>
-  </footer>
+  <script>
+    // 화면에 들어온 슬라이드의 요소를 떠오르게 한다
+    const io = 'IntersectionObserver' in window && new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && e.target.classList.add('in')), { threshold: 0.35 })
+    const slides = [...document.querySelectorAll('.slide')]
+    slides.forEach((s) => io ? io.observe(s) : s.classList.add('in'))
+    // 휠은 일정 이상 굴리면 다음 슬라이드로 넘긴다(터치는 브라우저 스냅이 넘긴다)
+    let acc = 0, busy = false
+    addEventListener('wheel', (e) => {
+      if (e.ctrlKey) return
+      e.preventDefault()
+      if (busy) return
+      acc += e.deltaY
+      if (Math.abs(acc) < 40) return
+      const cur = slides.findIndex((s) => Math.abs(s.getBoundingClientRect().top) < innerHeight / 2)
+      const to = slides[Math.min(slides.length - 1, Math.max(0, cur + Math.sign(acc)))]
+      acc = 0; busy = true
+      to.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+      setTimeout(() => { busy = false }, 800)
+    }, { passive: false })
+  </script>
 </body>
 </html>
