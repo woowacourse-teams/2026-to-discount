@@ -410,3 +410,7 @@
 .cc--compact.cc--bare:not(.cc--open) { min-height: 0; grid-template-rows: auto; }
 .cc--compact.cc--bare:not(.cc--open)::after { content: none; }
 .cc.cc--bare { padding-bottom: 18px; }
+
+/* 2026-10-13 재발(카카오톡 인앱, 글자 크기 '가가'): iOS 글자 크기 조절이 컨테이너 단위(cqw) 글자를 배치 뒤에 키워
+   금액과 최소주문 글자가 제자리에서 겹쳤다. 쿠폰 칸은 카드 폭에 맞춘 크기라 조절을 끈다 */
+.cc-ticket, .cc--compact, .cc-carousel-wrap, .cc-sheet__item { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }

@@ -87,11 +87,15 @@ if (ssr) {
   // iOS WebKit(사파리, 카카오톡 인앱)은 서버가 그린 쿠폰의 컨테이너 단위(cqw) 글자를 처음 한 번 잘못 배치한다.
   // 금액 위에 '원 할인'이 겹치고 최소주문 글자가 사라진 채 남았다(2026-10-07 실기). 다시 그리면 풀리므로
   // 컨테이너를 한 번 껐다 켜 배치를 새로 하게 한다.
-  requestAnimationFrame(() => {
-    const els = rootEl.querySelectorAll('.cc-ticket, .cc--compact, .cc-carousel-wrap')
+  // 2026-10-13 재발(카카오톡 인앱): 글꼴이 하이드레이션 뒤에 도착하면 글자 폭이 다시 어긋났다. 글꼴 도착 뒤에도 한 번 더.
+  const relayout = () => {
+    const els = rootEl.querySelectorAll('.cc-ticket, .cc--compact, .cc-carousel-wrap, .brand-grid, .cc-sheet__item')
     els.forEach((el) => { el.style.containerType = 'normal' })
     void rootEl.offsetWidth
     els.forEach((el) => { el.style.containerType = '' })
-  })
+  }
+  requestAnimationFrame(relayout)
+  document.fonts?.ready.then(() => requestAnimationFrame(relayout))
+  document.fonts?.addEventListener?.('loadingdone', () => requestAnimationFrame(relayout))
 }
 else ReactDOM.createRoot(rootEl).render(tree)
