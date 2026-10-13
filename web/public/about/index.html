@@ -4,42 +4,131 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>서비스 소개 - 배달앱 할인모음</title>
-  <meta name="description" content="배달앱 할인모음은 개인이 만든 비영리 정보 제공 페이지입니다. 배달의민족·쿠팡이츠·요기요·땡겨요와 제휴 관계가 없습니다." />
+  <meta name="description" content="배민, 쿠팡이츠, 요기요, 땡겨요에서 지금 받을 수 있는 가장 큰 할인을 브랜드별로 모은 비영리 페이지입니다." />
   <link rel="canonical" href="https://beggars-five.vercel.app/about" />
+  <meta property="og:title" content="배달앱 할인모음" />
+  <meta property="og:description" content="배달앱 네 곳의 할인을 브랜드별로 한 화면에서 비교해요." />
+  <meta property="og:image" content="https://beggars-five.vercel.app/og-image.png" />
   <link rel="icon" href="/favicon-48.png" />
-  <link rel="stylesheet" href="/legal.css" />
+  <link rel="stylesheet" href="/fonts/pretendard-optional.css" />
+  <!-- 앱 번들 없이 읽히는 정적 소개 페이지(설계 47). 색은 앱 base.css 토큰과 같은 값을 쓴다. -->
+  <style>
+    :root {
+      --bg: #fbfbfa; --surface: #ffffff; --border: #eaeaea;
+      --text: #171717; --muted: #64635f; --sale: #dd4b02; --sale-weak: #fdf0e9;
+      --btn: #171717; --btn-text: #ffffff;
+      color-scheme: light dark;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121211; --surface: #1c1c1a; --border: #2c2c29;
+        --text: #f1f0ee; --muted: #a8a7a2; --sale: #ff7a3d; --sale-weak: #2a1c14;
+        --btn: #f1f0ee; --btn-text: #121211;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    .top { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .top__brand { font-weight: 800; text-decoration: none; letter-spacing: -.01em; }
+    .top__link { color: var(--muted); text-decoration: none; font-size: .95rem; }
+
+    .hero { display: grid; gap: 40px; padding-block: 32px 56px; align-items: center; }
+    .hero h1 { margin: 0; font-size: clamp(2.1rem, 6vw, 3.4rem); line-height: 1.15; letter-spacing: -.035em; font-weight: 800; text-wrap: balance; }
+    .hero h1 em { font-style: normal; color: var(--sale); }
+    .hero p { margin: 18px 0 28px; max-width: 34ch; color: var(--muted); font-size: 1.08rem; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 24px; border-radius: 12px; background: var(--btn); color: var(--btn-text); font-weight: 700; text-decoration: none; transition: transform .2s cubic-bezier(.16,1,.3,1), opacity .2s; }
+    .btn:hover { opacity: .88; }
+    .btn:active { transform: scale(.98); }
+    .btn:focus-visible, a:focus-visible { outline: 2px solid var(--sale); outline-offset: 3px; }
+    .apps { display: flex; gap: 10px; margin-top: 32px; }
+    .apps img { width: 40px; height: 40px; border-radius: 10px; }
+    .shot { justify-self: center; width: min(100%, 340px); aspect-ratio: 390 / 640; border-radius: 28px; border: 1px solid var(--border); overflow: hidden; background: var(--surface); box-shadow: 0 24px 60px -24px rgba(60, 40, 20, .25); }
+    .shot img { display: block; width: 100%; height: auto; }
+
+    .facts { display: grid; gap: 16px; padding-block: 24px 72px; }
+    .fact { padding: 28px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); }
+    .fact h2 { margin: 0 0 8px; font-size: 1.25rem; letter-spacing: -.02em; line-height: 1.35; }
+    .fact p { margin: 0; color: var(--muted); }
+    .fact--lead { background: var(--sale-weak); border-color: transparent; }
+    .fact--lead h2 { font-size: 1.5rem; }
+
+    .contact { padding-block: 56px; border-top: 1px solid var(--border); }
+    .contact h2 { margin: 0 0 8px; font-size: 1.6rem; letter-spacing: -.03em; }
+    .contact p { margin: 0 0 24px; color: var(--muted); }
+    .contact__links { display: flex; flex-wrap: wrap; gap: 12px; }
+    .btn--ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+
+    .foot { padding-block: 24px 48px; color: var(--muted); font-size: .85rem; }
+    .foot p { margin: 0 0 8px; }
+
+    @media (min-width: 768px) {
+      .hero { grid-template-columns: 1.15fr .85fr; padding-block: 48px 88px; }
+      .facts { grid-template-columns: 1.3fr 1fr; grid-template-rows: auto auto; }
+      .fact--lead { grid-row: span 2; display: flex; flex-direction: column; justify-content: flex-end; min-height: 280px; padding: 36px; }
+      .fact--lead h2 { font-size: 1.9rem; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal { animation: rise .7s cubic-bezier(.16,1,.3,1) both; animation-delay: calc(var(--i, 0) * 80ms); }
+      @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+    }
+  </style>
 </head>
 <body>
-  <main class="legal">
-    <a class="legal__home" href="/">← 할인 목록으로</a>
-    <h1>서비스 소개</h1>
+  <header class="wrap top">
+    <a class="top__brand" href="/">배달앱 할인모음</a>
+    <a class="top__link" href="/">할인 목록</a>
+  </header>
 
-    <p>
-      개인이 만든 <strong>비영리 정보 제공</strong> 페이지입니다. 광고나 제휴 수수료를 받지 않습니다.
-      배달의민족·쿠팡이츠·요기요·땡겨요와 <strong>제휴 관계가 없으며</strong> 각 사의 공식 서비스가 아닙니다.
-    </p>
-    <p>
-      할인 정보는 각 앱에서 <strong>누구나 볼 수 있는 화면</strong>을 사람이 직접 보고 옮겨 적은 것입니다.
-      자동 수집(크롤링)이나 기술적 접근 제한 우회는 하지 않습니다.
-    </p>
-    <p>
-      금액은 <strong>확인일 기준</strong>이며 지역·매장·회원 등급·시간대에 따라 다를 수 있습니다.
-      브랜드를 눌러 조건을 확인하고, <strong>주문 전에 각 앱에서 실제 금액을 다시 확인하세요.</strong>
-    </p>
-    <p>
-      브랜드명과 로고는 해당 브랜드를 가리키기 위해서만 사용했으며, 모든 상표는 각 권리자에게 있습니다.
-    </p>
+  <main>
+    <section class="wrap hero">
+      <div>
+        <h1 class="reveal">배달앱 할인,<br /><em>한 화면</em>에서 비교</h1>
+        <p class="reveal" style="--i:1">배민, 쿠팡이츠, 요기요, 땡겨요에서 지금 받을 수 있는 가장 큰 할인을 브랜드별로 모았어요.</p>
+        <a class="btn reveal" style="--i:2" href="/">할인 보러 가기</a>
+        <div class="apps reveal" style="--i:3">
+          <img src="/platform-icons/baemin.png" alt="배달의민족" />
+          <img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" />
+          <img src="/platform-icons/yogiyo.png" alt="요기요" />
+          <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
+        </div>
+      </div>
+      <div class="shot reveal" style="--i:2">
+        <img src="/about/home.jpg" width="390" height="780" alt="할인 목록 화면. 브랜드마다 가장 큰 할인 금액과 그 할인을 주는 앱이 보인다." />
+      </div>
+    </section>
 
-    <h2 id="contact">문의</h2>
-    <p>
-      수정 요청이나 삭제 요청은 아래로 알려주세요.
-    </p>
-    <ul>
-      <li><a href="https://github.com/woowacourse-teams/2026-to-discount/issues">저장소 이슈</a></li>
-      <li><a href="mailto:woowa202610@gmail.com">woowa202610@gmail.com</a></li>
-    </ul>
+    <section class="wrap facts" aria-label="이렇게 만들어요">
+      <article class="fact fact--lead">
+        <h2>앱에 보이는 화면을<br />사람이 직접 확인해요</h2>
+        <p>누구나 볼 수 있는 화면만 옮겨요. 자동 수집이나 접근 제한 우회는 하지 않아요.</p>
+      </article>
+      <article class="fact">
+        <h2>광고도 제휴도 없어요</h2>
+        <p>개인이 만든 비영리 페이지예요. 각 배달앱의 공식 서비스가 아니에요.</p>
+      </article>
+      <article class="fact">
+        <h2>금액은 확인한 날 기준이에요</h2>
+        <p>지역, 매장, 회원 등급, 시간대에 따라 달라요. 주문 전에 앱에서 다시 확인하세요.</p>
+      </article>
+    </section>
 
-    <p class="legal__links"><a href="/privacy">개인정보처리방침</a></p>
+    <section class="wrap contact" id="contact">
+      <h2>고칠 곳이 보이면 알려주세요</h2>
+      <p>잘못된 금액, 수정 요청, 삭제 요청 모두 받아요.</p>
+      <div class="contact__links">
+        <a class="btn" href="mailto:woowa202610@gmail.com">메일 보내기</a>
+        <a class="btn btn--ghost" href="https://github.com/woowacourse-teams/2026-to-discount/issues">저장소 이슈</a>
+      </div>
+    </section>
   </main>
+
+  <footer class="wrap foot">
+    <p>브랜드명과 로고는 해당 브랜드를 가리키는 데만 쓰며, 모든 상표는 각 권리자에게 있습니다.</p>
+    <p><a href="/privacy"><strong>개인정보처리방침</strong></a></p>
+  </footer>
 </body>
 </html>
