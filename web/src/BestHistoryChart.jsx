@@ -5,9 +5,9 @@ import { won } from './OfferChip.jsx'
 import { track } from './analytics.js'
 import './styles/hist.css'
 
-// 1주는 API에 없다. 1달을 받아 마지막 7일만 그린다.
-const RANGES = [['1w', '1주'], ['1m', '1달'], ['all', '전체']]
-const WEEK_MS = 6 * 864e5
+// 2주는 API에 없다. 1달을 받아 마지막 14일만 그린다.
+const RANGES = [['2w', '2주'], ['1m', '1달'], ['all', '전체']]
+const TWO_WEEKS_MS = 13 * 864e5
 const md = (iso) => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}`
 const num = (n) => n.toLocaleString('ko-KR')
 
@@ -22,7 +22,7 @@ export default function BestHistoryChart({ brand }) {
   const drag = useRef(null) // 누른 채 끄는 중이면 { pointer, seen: 지나간 점 번호 }
   useEffect(() => {
     let live = true
-    fetchHistory(brand, range === '1w' ? '1m' : range).then((d) => { if (live) { setData(d); setSel(null) } })
+    fetchHistory(brand, range === '2w' ? '1m' : range).then((d) => { if (live) { setData(d); setSel(null) } })
     return () => { live = false }
   }, [brand, range])
   useEffect(() => () => clearTimeout(timer.current), [])
@@ -49,7 +49,7 @@ export default function BestHistoryChart({ brand }) {
     return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
   }, [data])
   const all = data?.best ?? []
-  const pts = range === '1w' && all.length ? all.filter((p) => Date.parse(p.date) >= Date.parse(all[all.length - 1].date) - WEEK_MS) : all
+  const pts = range === '2w' && all.length ? all.filter((p) => Date.parse(p.date) >= Date.parse(all[all.length - 1].date) - TWO_WEEKS_MS) : all
   const m = chartModel(pts)
   if (!m) return null
   const sum = summary(pts)
@@ -120,7 +120,11 @@ export default function BestHistoryChart({ brand }) {
             <text key={anchor} x={xs[i]} y={H - 4} textAnchor={anchor} className="hist__xtick">{md(pts[i].date)}</text>
           ))}
           {sel == null && pills.map((c) => (
-            <line key={`g${c.i}`} x1={xs[c.i]} y1={c.top + PILL_H} x2={xs[c.i]} y2={m.xy[c.i].y} className="hist__guide" />
+            <g key={`g${c.i}`}>
+              <line x1={xs[c.i]} y1={c.top + PILL_H} x2={xs[c.i]} y2={m.xy[c.i].y} className="hist__guide" />
+              {/* 점에서 날짜 축까지 이어 값과 날짜가 한 줄로 읽히게 */}
+              <line x1={xs[c.i]} y1={m.xy[c.i].y} x2={xs[c.i]} y2={H - BOTTOM} className="hist__drop" />
+            </g>
           ))}
           {(sel == null ? pills.map((c) => c.i) : m.xy[sel].y == null ? [] : [sel]).map((i) => (
             <circle key={i} cx={xs[i]} cy={m.xy[i].y} r="3.5" className="hist__dot" />
