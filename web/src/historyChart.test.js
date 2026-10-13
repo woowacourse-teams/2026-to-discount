@@ -18,18 +18,18 @@ test('summary uses solid points only', () => {
   assert.equal(summary([P('d', null, 'break')]), null)
 })
 
-test('linePaths: straight segments point to point; solid gets area', () => {
+test('linePaths: curved segments point to point; solid gets area', () => {
   const r = linePaths([{ x: 0, y: 10, line: 'solid' }, { x: 5, y: 20, line: 'solid' }, { x: 9, y: 15, line: 'solid' }], 50)
-  assert.deepEqual(r.solid, ['M0 10 L5 20 L9 15'])
-  assert.deepEqual(r.area, ['M0 10 L5 20 L9 15 V50 H0 Z'])
+  assert.deepEqual(r.solid, ['M0 10 C2.5 10 2.5 20 5 20 C7 20 7 15 9 15'])
+  assert.deepEqual(r.area, ['M0 10 C2.5 10 2.5 20 5 20 C7 20 7 15 9 15 V50 H0 Z'])
   assert.deepEqual(r.carried, [])
 })
 
 test('linePaths: carried segments dashed, break leaves gap', () => {
   const r = linePaths([{ x: 0, y: 1, line: 'solid' }, { x: 1, y: 1, line: 'solid' }, { x: 2, y: 2, line: 'carried' },
     { x: 3, y: 3, line: 'solid' }, { x: 4, y: null, line: 'break' }, { x: 5, y: 4, line: 'solid' }, { x: 6, y: 4, line: 'solid' }], 9)
-  assert.deepEqual(r.solid, ['M0 1 L1 1', 'M5 4 L6 4'])
-  assert.deepEqual(r.carried, ['M1 1 L2 2 L3 3'])
+  assert.deepEqual(r.solid, ['M0 1 C0.5 1 0.5 1 1 1', 'M5 4 C5.5 4 5.5 4 6 4'])
+  assert.deepEqual(r.carried, ['M1 1 C1.5 1 1.5 2 2 2 C2.5 2 2.5 3 3 3'])
   assert.equal(r.area.length, 2)
 })
 
