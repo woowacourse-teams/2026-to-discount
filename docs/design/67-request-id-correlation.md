@@ -2,7 +2,7 @@
 
 추적 이슈: [#67](https://github.com/woowacourse-teams/2026-to-discount/issues/67)
 
-상태: 2026-10-13 설계 승인 후 구현 및 사전 검증 완료. 실제 개발 및 운영 배포와 인수 검증은 미수행.
+상태: 운영 배포 및 실제 요청 ID 연결 인수 검증 완료. 개발 Nginx 설치와 로그 대조는 SSH 접근 제한으로 사용자 승인에 따라 생략.
 
 ## 1. 문제
 
@@ -198,3 +198,20 @@ Nginx 접근 로그와 API 예외 로그에 공통 요청 ID가 없어 동시 �
 - 2026-10-13 사용자 승인: SSH 접근 제한으로 개발 Nginx 설치 및 로그 대조를 건너뛰고 운영에 반영한다.
 - dev의 개발 CI/CD 및 웹 변경을 함께 반영하지 않도록 main 기반 `release/67-request-id-correlation`에 검증한 API 요청 ID 변경만 옮긴다. 개발 인프라 파일과 개발 CORS 설정은 운영 반영에서 제외한다.
 - 운영 API 배포 후 beggars-ops PR #12의 Nginx 설정을 반영하고 실제 응답, 접근 로그 및 API journal의 동일 ID를 대조한다.
+
+### 운영 배포 및 최종 검증
+
+- 운영 API PR: https://github.com/woowacourse-teams/2026-to-discount/pull/69
+- 운영 Nginx PR: https://github.com/nn98/beggars-ops/pull/12
+- API 운영 main 기반 테스트 424개와 빌드 통과. 기존 운영 관리 API CORS 정책을 유지했다.
+- API 미러 실행 38398793270 및 서버 배포 실행 38398817863 성공. 설치된 current.jar는 `delivery-discount-api-8999f02.jar`다. 모노레포 운영 병합 커밋은 `0d898f9df67c2d25bd33fc7b3d168098c7057602`다.
+- Nginx 운영 배포 실행 38399011890 성공. 병합 커밋은 `49e5ad492e0f3c85b1fc8ba33c29c74ed42671ab`다.
+- 실제 HTTPS 응답과 `/var/log/nginx/discount.access.log`, `delivery-discount-api` journal의 ID 일치 확인:
+  - brands 200: `141fc4df27ae0fcf7dcd8a7ff08864bd`
+  - banners 200: `f70dbdacb011ad26e1dafbebabcf2433`
+  - 없는 경로 404: `1c362c7eb1d1b0d87e00749e1f86bdb9`
+- 각 ID는 서로 다르고 외부 입력 ID는 교체됐으며 응답 헤더는 하나만 반환됐다.
+- `sudo nginx -t` 통과. API 및 fast-check timer active, fast-check Result=success 및 ExecMainStatus=0. 21:40:48 및 21:41:19 KST에 감시 실행 성공.
+- 기존 전체 수집의 5분 cron 유지 확인. 운영에서 인위적인 5xx는 만들지 않았다. 예외 로그의 ID는 API 통합 테스트, 502와 504는 격리된 Nginx에서 검증했다.
+- 개발 API 배포 실행 38396973713은 성공했다. 개발 Nginx 설치 및 양쪽 로그 대조는 SSH 접근 제한으로 미수행이다. 사용자가 해당 개발 검증을 생략하고 운영에 반영하도록 승인했다.
+- 배포 영향: API 재시작 시점인 21:39:30 및 21:39:32 KST에 `/api/banners` 502가 2건 기록됐다. 21:40:18 fast-check에서 장애 없음이 확인됐고 이후 운영 응답 대조에서 brands와 banners 200을 확인했다. 배포 절차의 무중단 개선은 이번 요청 ID 작업 범위 밖이다.
