@@ -53,12 +53,12 @@
 [data-variant="a"] .cat-bar__item--on::after {
   content: '';
   position: absolute;
-  left: .52rem;
-  right: .52rem;
+  left: -.05rem;
+  right: -.05rem;
   bottom: 0; /* 바 밑선에 붙인다(2026-10-13 사용자: 밑줄 아래 여백 제거) */
   height: 2.5px;
   border-radius: 2px;
-  background: var(--text);
+  background: var(--sale);
 }
 
 /* 바 아래 구분선이 생긴 뒤(2026-09-16)로는 큰 띄움이 필요 없다 — 30px은

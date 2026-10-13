@@ -150,12 +150,12 @@
 .menu-bar__item--on::after {
   content: '';
   position: absolute;
-  left: .4rem;
-  right: .4rem;
+  left: -.05rem;
+  right: -.05rem;
   bottom: 0; /* 바 밑선에 붙인다(2026-10-13 사용자) */
   height: 2.5px;
   border-radius: 2px;
-  background: var(--text);
+  background: var(--sale);
 }
 
 /* ── 상단 바 1행: 이름 + 도구(2026-08-19) ─────────────────────────
