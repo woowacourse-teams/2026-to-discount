@@ -242,6 +242,7 @@ web/src/platformIcons.js
 web/src/platforms.js
 web/src/platformsContract.test.js
 web/src/posthog.js
+web/src/prerenderBreadcrumb.test.js
 web/src/privacy.js
 web/src/pushNotifications.js
 web/src/pushNotifications.test.js
@@ -324,7 +325,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 142 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 133 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 134 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -438,6 +439,7 @@ HTTP 경계:
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformsContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |
+| `prerenderBreadcrumb.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `privacy.js` | DNT/GPC 추적 거부 판정 |
 | `pushNotifications.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `pushNotifications.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
