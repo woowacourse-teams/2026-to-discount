@@ -1,6 +1,10 @@
 package com.discounttracker.web;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.core.Ordered;
+import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -11,6 +15,15 @@ public class WebConfig implements WebMvcConfigurer {
 
     public WebConfig(@Value("${discount.cors.development-origin:}") String developmentOrigin) {
         this.developmentOrigin = developmentOrigin;
+    }
+
+    @Bean
+    public FilterRegistrationBean<RequestIdFilter> requestIdFilter() {
+        var registration = new FilterRegistrationBean<>(new RequestIdFilter());
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ASYNC, DispatcherType.ERROR);
+        registration.setAsyncSupported(true);
+        return registration;
     }
 
     @Override
@@ -35,7 +48,8 @@ public class WebConfig implements WebMvcConfigurer {
                         // 주소로 열면 브랜치 별칭과 달리 막혔다(2026-09-16 실측:
                         // preflight 403 "Invalid CORS request").
                         "https://beggars-*-nn98s-projects.vercel.app")
-                .allowedMethods("GET", "POST", "DELETE");
+                .allowedMethods("GET", "POST", "DELETE")
+                .exposedHeaders(RequestIdFilter.HEADER);
         // 개발 서버에만 환경변수를 지정한다. 운영의 기존 출처 목록은 유지한다.
         if (!developmentOrigin.isBlank()) mapping.allowedOrigins(developmentOrigin);
     }
