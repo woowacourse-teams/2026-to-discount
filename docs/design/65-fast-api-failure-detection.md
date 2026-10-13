@@ -2,7 +2,7 @@
 
 추적 이슈: [#65](https://github.com/woowacourse-teams/2026-to-discount/issues/65)
 
-상태: main 배포 후 빈 요청 로그로 인한 감시 실패 확인. 원인 수정 PR 리뷰 및 재검증 대기.
+상태: 로그 파싱 수정의 main 배포와 30초 감시 정상 실행 확인. 실제 Slack 장애 및 복구 알림 인수 검증 대기.
 
 ## 1. 문제
 
@@ -236,4 +236,10 @@
 - 빠른 감시 파서를 시각과 상태 코드 우선으로 수정했다. 빈 요청과 비정상 HTTP 입력도 읽고, 경로를 알 수 없는 5xx도 감지하되 경로 없는 정상 응답을 복구 근거로 쓰지 않는다.
 - 수정 PR: https://github.com/nn98/beggars-ops/pull/11 (`fix/65-nginx-empty-request → main`).
 - 빠른 감시 테스트 20개와 전체 테스트 252개 통과. 서버 `/tmp`의 수정 후보로 실제 Nginx 현재 로그와 `.1`의 파싱도 통과했다. 운영 파일과 상태, Slack은 변경하거나 호출하지 않았다.
-- main 배포 이후 두 번 이상의 타이머 실행 성공과 Slack 인수 검증을 다시 확인해야 한다.
+- 수정 PR #11은 main에 병합됐다. 병합 커밋은 `1203ca59510c63e3b3f293f4de0923b8748a49cc`이다.
+- [CI](https://github.com/nn98/beggars-ops/actions/runs/38391696772)와 [Deploy](https://github.com/nn98/beggars-ops/actions/runs/38391737950)가 모두 성공했다.
+- `systemctl is-active ops-fast-check.timer`: `active`. `systemctl show ops-fast-check.service -p Result -p ExecMainStatus`: `Result=success`, `ExecMainStatus=0`.
+- `journalctl -u ops-fast-check.service`: 2026-10-13 KST 20:40:30, 20:41:00, 20:41:31, 20:42:01에 연속 성공했다. 배포 이후 해당 실행에는 로그 파싱 오류가 없었다.
+- `crontab -l`: 전체 수집은 기존 `*/5 * * * *` 설정을 유지한다.
+- 기본 호스트 없는 localhost API 점검은 Nginx의 기본 서버가 연결을 닫아 HTTP 000으로 실패했다. 감시 서비스 실패와는 별개다. `curl https://bebeggars.duckdns.org/api/brands`로 실제 서버 이름을 사용해 HTTP 200을 확인했다.
+- 실제 Slack 장애 및 복구 알림 인수 검증은 아직 수행하지 않았다.
