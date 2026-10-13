@@ -4,42 +4,192 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>서비스 소개 - 배달앱 할인모음</title>
-  <meta name="description" content="배달앱 할인모음은 개인이 만든 비영리 정보 제공 페이지입니다. 배달의민족·쿠팡이츠·요기요·땡겨요와 제휴 관계가 없습니다." />
+  <meta name="description" content="배민, 쿠팡이츠, 요기요, 땡겨요에서 지금 받을 수 있는 가장 큰 할인을 브랜드별로 모았습니다." />
   <link rel="canonical" href="https://beggars-five.vercel.app/about" />
+  <meta property="og:title" content="배달앱 할인모음" />
+  <meta property="og:description" content="배달앱 네 곳의 할인을 브랜드별로 한 화면에서 비교해요." />
+  <meta property="og:image" content="https://beggars-five.vercel.app/og-image.png" />
   <link rel="icon" href="/favicon-48.png" />
-  <link rel="stylesheet" href="/legal.css" />
+  <link rel="stylesheet" href="/fonts/pretendard-optional.css" />
+  <!-- 앱 번들 없이 읽히는 정적 소개 페이지(설계 47). 한 화면씩 넘어가는 풀페이지 스크롤(CSS scroll-snap). -->
+  <style>
+    :root {
+      --bg: #fbfbfa; --surface: #ffffff; --border: #eaeaea;
+      --text: #171717; --muted: #64635f; --sale: #dd4b02; --sale-weak: #fdf0e9;
+      --btn: #171717; --btn-text: #ffffff; --bezel: #171717;
+      color-scheme: light dark;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121211; --surface: #1c1c1a; --border: #2c2c29;
+        --text: #f1f0ee; --muted: #a8a7a2; --sale: #ff7a3d; --sale-weak: #2a1c14;
+        --btn: #f1f0ee; --btn-text: #121211; --bezel: #3a3a37;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-snap-type: y mandatory; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+
+    .slide { position: relative; min-height: 100dvh; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; justify-content: center; padding: 72px 20px 88px; overflow: hidden; }
+    .slide__in { width: 100%; max-width: 1080px; margin: 0 auto; }
+    .brand { position: absolute; top: 20px; left: 20px; right: 20px; max-width: 1080px; margin: 0 auto; font-weight: 800; text-decoration: none; letter-spacing: -.01em; }
+    .next { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); text-decoration: none; }
+    .next svg { width: 20px; height: 20px; }
+
+    h1, h2 { margin: 0; letter-spacing: -.035em; font-weight: 800; text-wrap: balance; }
+    h1 { font-size: clamp(2.3rem, 7vw, 3.8rem); line-height: 1.12; }
+    h2 { font-size: clamp(1.9rem, 5.5vw, 3rem); line-height: 1.18; }
+    em { font-style: normal; color: var(--sale); }
+    .lead { margin: 18px 0 0; max-width: 30ch; color: var(--muted); font-size: 1.1rem; }
+
+    .btn { display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 8px 0 24px; border-radius: 999px; background: var(--btn); color: var(--btn-text); font-weight: 700; text-decoration: none; transition: transform .2s cubic-bezier(.16,1,.3,1), opacity .2s; }
+    .btn i { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--sale); color: #fff; font-style: normal; transition: transform .3s cubic-bezier(.16,1,.3,1); }
+    .btn i svg { width: 16px; height: 16px; }
+    .btn:hover i { transform: translateX(3px); }
+    .btn:active { transform: scale(.98); }
+    .btn--ghost { padding: 0 24px; background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn:focus-visible, a:focus-visible { outline: 2px solid var(--sale); outline-offset: 3px; }
+
+    /* 1~3. 문구 + 폰 화면 */
+    .split { display: grid; gap: 28px; align-items: center; }
+    .split .btn { margin-top: 28px; }
+    .phone { justify-self: center; width: min(calc(100vw - 32px), 450px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(221, 75, 2, .35); }
+    .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 38px; overflow: hidden; background: #fbfbfa; }
+    .phone__screen::before { content: ''; position: absolute; top: 9px; left: 50%; width: 30%; height: 24px; transform: translateX(-50%); border-radius: 999px; background: var(--bezel); z-index: 1; }
+    .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; padding-top: 38px; }
+    .apps { display: flex; gap: 10px; margin-bottom: 22px; }
+    .apps img { width: 44px; height: 44px; border-radius: 12px; }
+
+    /* 3장: 앱 행사 화면과 우리 카드를 겹쳐 놓는다 */
+    .snaps { position: relative; width: min(100%, 420px); aspect-ratio: 1 / .92; margin-top: 28px; }
+    .snaps img { position: absolute; display: block; height: auto; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 18px 36px -18px rgba(0, 0, 0, .4); }
+    .snaps img:nth-child(1) { left: 0; top: 0; width: 58%; transform: rotate(-3deg); }
+    .snaps img:nth-child(2) { right: 0; top: 6%; width: 50%; transform: rotate(3deg); }
+    .snaps img:nth-child(3) { left: 18%; bottom: 0; width: 58%; z-index: 1; }
+    .js .in .snaps img.rise:nth-child(1) { transform: rotate(-3deg); }
+    .js .in .snaps img.rise:nth-child(2) { transform: rotate(3deg); }
+    .phone img.fit-w { height: auto; object-fit: initial; }
+    #s3 .phone__screen { background: #f1f2f4; }
+    @media (max-width: 767px) { .snaps { width: min(100%, 340px); margin-top: 18px; } }
+
+    /* 모바일: 폰을 크게 두고 아래는 화면 밖으로 흘린다 */
+    @media (max-width: 767px) {
+      .slide--shot { height: 100dvh; padding-bottom: 0; justify-content: flex-start; }
+      .slide--shot .slide__in { flex: 1; display: flex; flex-direction: column; }
+      .slide--shot .split { flex: 1; align-content: start; }
+      .slide--shot .next { display: none; }
+    }
+
+    /* 4. 문의 */
+    .contact { text-align: center; }
+    .contact .row { justify-content: center; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+    .foot { text-align: center; position: absolute; left: 20px; right: 20px; bottom: 24px; max-width: 1080px; margin: 0 auto; color: var(--muted); font-size: .8rem; }
+    .foot p { margin: 0 0 6px; }
+
+    @media (min-width: 768px) {
+      .split { grid-template-columns: 1.1fr .9fr; }
+      .phone { width: min(450px, calc((100dvh - 120px) * .55)); align-self: start; }
+      .slide--shot { height: 100dvh; }
+    }
+
+    /* 떠오르는 등장. 움직임 줄이기를 켠 기기와 스크립트가 없을 때는 처음부터 보인다 */
+    @media (prefers-reduced-motion: no-preference) {
+      .js .rise { opacity: 0; transform: translateY(28px); transition: opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1); transition-delay: calc(var(--i, 0) * 90ms); }
+      .js .in .rise { opacity: 1; transform: none; }
+      .next svg { animation: bob 1.8s ease-in-out infinite; }
+      @keyframes bob { 50% { transform: translateY(5px); } }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-snap-type: none; } }
+  </style>
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <main class="legal">
-    <a class="legal__home" href="/">← 할인 목록으로</a>
-    <h1>서비스 소개</h1>
+  <main>
+    <section class="slide slide--shot" id="s1">
+      <a class="brand" href="/">배달앱 할인모음</a>
+      <div class="slide__in split">
+        <div>
+          <h1 class="rise">배달앱 할인,<br /><em>한 눈에</em> 보기</h1>
+          <p class="lead rise" style="--i:1">오늘의 최고 할인을 확인하고,<br />빠르게 이동해요.</p>
+          <a class="btn rise" style="--i:2" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/home.jpg" width="390" height="844" alt="할인 목록 화면. 브랜드마다 가장 큰 할인 금액과 그 할인을 주는 앱이 보인다." /></div>
+        </div>
+      </div>
+      <a class="next" href="#s2" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
 
-    <p>
-      개인이 만든 <strong>비영리 정보 제공</strong> 페이지입니다. 광고나 제휴 수수료를 받지 않습니다.
-      배달의민족·쿠팡이츠·요기요·땡겨요와 <strong>제휴 관계가 없으며</strong> 각 사의 공식 서비스가 아닙니다.
-    </p>
-    <p>
-      할인 정보는 각 앱에서 <strong>누구나 볼 수 있는 화면</strong>을 사람이 직접 보고 옮겨 적은 것입니다.
-      자동 수집(크롤링)이나 기술적 접근 제한 우회는 하지 않습니다.
-    </p>
-    <p>
-      금액은 <strong>확인일 기준</strong>이며 지역·매장·회원 등급·시간대에 따라 다를 수 있습니다.
-      브랜드를 눌러 조건을 확인하고, <strong>주문 전에 각 앱에서 실제 금액을 다시 확인하세요.</strong>
-    </p>
-    <p>
-      브랜드명과 로고는 해당 브랜드를 가리키기 위해서만 사용했으며, 모든 상표는 각 권리자에게 있습니다.
-    </p>
+    <section class="slide slide--shot" id="s2">
+      <div class="slide__in split">
+        <div>
+          <div class="apps rise">
+            <img src="/platform-icons/baemin.png" alt="배달의민족" />
+            <img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" />
+            <img src="/platform-icons/yogiyo.png" alt="요기요" />
+            <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
+          </div>
+          <h2 class="rise" style="--i:1">4개 배달 플랫폼 중<br /><em>가장 큰 할인</em>을 탐색</h2>
+          <p class="lead rise" style="--i:2">플랫폼별 할인 정보를 비교하고,<br />최고 할인을 선정해요.</p>
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/sheet.jpg" width="390" height="844" alt="한 브랜드의 할인을 배달앱 네 곳별로 나열한 화면." /></div>
+        </div>
+      </div>
+      <a class="next" href="#s3" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
 
-    <h2 id="contact">문의</h2>
-    <p>
-      수정 요청이나 삭제 요청은 아래로 알려주세요.
-    </p>
-    <ul>
-      <li><a href="https://github.com/woowacourse-teams/2026-to-discount/issues">저장소 이슈</a></li>
-      <li><a href="mailto:woowa202610@gmail.com">woowa202610@gmail.com</a></li>
-    </ul>
+    <section class="slide slide--shot" id="s3">
+      <div class="slide__in split">
+        <div>
+          <h2 class="rise"><em>실시간 정보</em>와<br />지난 <em>할인 히스토리</em> 제공</h2>
+          <div class="snaps">
+            <img class="rise" style="--i:1" src="/about/snap-weekly.jpg" width="720" height="673" alt="쿠팡이츠 오늘의 위클리 슈퍼딜과 반짝핫딜 화면." />
+            <img class="rise" style="--i:2" src="/about/snap-baemin.jpg" width="720" height="833" alt="배민 배짱할인 화면. 선착순 할인 쿠폰." />
+            <img class="rise" style="--i:3" src="/about/snap-card.jpg" width="720" height="706" alt="이 서비스의 하루 행사 카드와 아래 배너." />
+          </div>
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img class="fit-w" src="/about/history.jpg" width="720" height="921" alt="브랜드의 할인 금액이 날짜별로 어떻게 바뀌었는지 보여주는 그래프 화면." /></div>
+        </div>
+      </div>
+      <a class="next" href="#s4" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
 
-    <p class="legal__links"><a href="/privacy">개인정보처리방침</a></p>
+    <section class="slide contact" id="s4">
+      <div class="slide__in">
+        <h2 class="rise">고칠 곳이 보이면<br /><em>알려주세요</em></h2>
+        <div class="row rise" style="--i:1">
+          <a class="btn" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
+          <a class="btn btn--ghost" href="mailto:woowa202610@gmail.com">메일 보내기</a>
+        </div>
+      </div>
+      <footer class="foot">
+        <p>각 배달앱의 공식 서비스가 아니며, 모든 상표는 각 권리자에게 있습니다.</p>
+        <p><a href="/privacy"><strong>개인정보처리방침</strong></a></p>
+      </footer>
+    </section>
   </main>
+  <script>
+    // 화면에 들어온 슬라이드의 요소를 떠오르게 한다
+    const io = 'IntersectionObserver' in window && new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && e.target.classList.add('in')), { threshold: 0.35 })
+    const slides = [...document.querySelectorAll('.slide')]
+    slides.forEach((s) => io ? io.observe(s) : s.classList.add('in'))
+    // 휠은 일정 이상 굴리면 다음 슬라이드로 넘긴다(터치는 브라우저 스냅이 넘긴다)
+    let acc = 0, busy = false
+    addEventListener('wheel', (e) => {
+      if (e.ctrlKey) return
+      e.preventDefault()
+      if (busy) return
+      acc += e.deltaY
+      if (Math.abs(acc) < 40) return
+      const cur = slides.findIndex((s) => Math.abs(s.getBoundingClientRect().top) < innerHeight / 2)
+      const to = slides[Math.min(slides.length - 1, Math.max(0, cur + Math.sign(acc)))]
+      acc = 0; busy = true
+      to.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+      setTimeout(() => { busy = false }, 800)
+    }, { passive: false })
+  </script>
 </body>
 </html>
