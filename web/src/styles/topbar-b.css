@@ -115,7 +115,7 @@
 .menu-bar__list {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: .115rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -134,8 +134,8 @@
   background: none;
   cursor: pointer;
   white-space: nowrap;
-  padding: .45rem .8rem;
-  font-size: .95rem;
+  padding: .63rem .58rem;
+  font-size: 1.01rem;
   font-weight: 500;
   color: var(--text-muted);
   transition: color .18s ease;
@@ -150,8 +150,8 @@
 .menu-bar__item--on::after {
   content: '';
   position: absolute;
-  left: .15rem;
-  right: .15rem;
+  left: .4rem;
+  right: .4rem;
   bottom: 0; /* 바 밑선에 붙인다(2026-10-13 사용자) */
   height: 2.5px;
   border-radius: 2px;
@@ -357,4 +357,4 @@
 /* 신규 보기는 꺼져 있어도 할인 강조색으로 눈에 띄게(2026-10-10 사용자) */
 .menu-bar__item--accent, .menu-bar__item--accent:hover { color: var(--sale); font-weight: 700; isolation: isolate; }
 /* 바탕은 글자 둘레만(탭 누름 영역이 높아져도 칩 높이는 그대로) */
-.menu-bar__item--accent::before { content: ''; position: absolute; inset: .2rem 0; z-index: -1; border-radius: 8px; background: var(--sale-weak); }
+.menu-bar__item--accent::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 8px; background: var(--sale-weak); }
