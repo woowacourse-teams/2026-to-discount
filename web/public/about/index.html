@@ -27,11 +27,12 @@
       }
     }
     * { box-sizing: border-box; }
-    html { scroll-snap-type: y mandatory; }
+    /* 문서 대신 화면 높이로 고정한 상자에서 스냅한다. 모바일 주소창이 접혀도 높이가 안 흔들려 바로 맞춰진다 */
+    main { height: 100dvh; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior-y: contain; }
     body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
     a { color: inherit; }
 
-    .slide { position: relative; min-height: 100dvh; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; justify-content: center; padding: 72px 20px 88px; overflow: hidden; }
+    .slide { position: relative; height: 100dvh; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; justify-content: center; padding: 72px 20px 88px; overflow: hidden; }
     .slide__in { width: 100%; max-width: 1080px; margin: 0 auto; }
     .brand { position: absolute; top: 20px; left: 20px; right: 20px; max-width: 1080px; margin: 0 auto; font-weight: 800; text-decoration: none; letter-spacing: -.01em; }
     .next { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); text-decoration: none; }
@@ -98,7 +99,7 @@
       .next svg { animation: bob 1.8s ease-in-out infinite; }
       @keyframes bob { 50% { transform: translateY(5px); } }
     }
-    @media (prefers-reduced-motion: reduce) { html { scroll-snap-type: none; } }
+    @media (prefers-reduced-motion: reduce) { main { scroll-snap-type: none; } }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
