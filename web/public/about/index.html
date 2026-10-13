@@ -70,6 +70,8 @@
     .snaps img:nth-child(3) { left: 18%; bottom: 0; width: 58%; z-index: 1; }
     .js .in .snaps img.rise:nth-child(1) { transform: rotate(-3deg); }
     .js .in .snaps img.rise:nth-child(2) { transform: rotate(3deg); }
+    .phone img.fit-w { height: auto; object-fit: initial; }
+    #s3 .phone__screen { background: #f1f2f4; }
     @media (max-width: 767px) { .snaps { width: min(100%, 340px); margin-top: 18px; } }
 
     /* 모바일: 폰을 크게 두고 아래는 화면 밖으로 흘린다 */
@@ -150,7 +152,7 @@
           </div>
         </div>
         <div class="phone rise" style="--i:2">
-          <div class="phone__screen"><img src="/about/history.jpg" width="390" height="844" alt="푸라닭 바텀시트. 3개월 할인 그래프와 배민, 땡겨요 쿠폰." /></div>
+          <div class="phone__screen"><img class="fit-w" src="/about/history.jpg" width="780" height="1416" alt="푸라닭 바텀시트. 3개월 할인 그래프와 배민, 땡겨요 쿠폰." /></div>
         </div>
       </div>
       <a class="next" href="#s4" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
