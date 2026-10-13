@@ -44,6 +44,7 @@
    배경과 밑 윤곽선을 준다 — 카드 그리드가 바로 아래로 지나가는데 바가
    투명하면 글자가 카드에 겹쳐 읽힌다. */
 .menu-bar {
+  margin-top: -2px; /* 위 영역과 간격 2px 줄임 */
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
@@ -115,7 +116,7 @@
 .menu-bar__list {
   display: flex;
   align-items: center;
-  gap: .1rem;
+  gap: .11rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -134,8 +135,9 @@
   background: none;
   cursor: pointer;
   white-space: nowrap;
-  padding: .55rem .5rem;
-  font-size: .88rem;
+  height: 41px; /* 위 2px, 아래 5px 줄임. old 분류 탭과 같은 높이 */
+  padding: 0 .6rem 3px;
+  font-size: .96rem;
   font-weight: 500;
   color: var(--text-muted);
   transition: color .18s ease;
@@ -150,12 +152,12 @@
 .menu-bar__item--on::after {
   content: '';
   position: absolute;
-  left: .35rem;
-  right: .35rem;
-  bottom: 2px;
+  left: -.05rem;
+  right: -.05rem;
+  bottom: 0; /* 바 밑선에 붙인다(2026-10-13 사용자) */
   height: 2.5px;
   border-radius: 2px;
-  background: var(--text);
+  background: var(--sale);
 }
 
 /* ── 상단 바 1행: 이름 + 도구(2026-08-19) ─────────────────────────
@@ -355,4 +357,6 @@
 .update-note { margin: 2px 4px 10px; font-size: 13px; color: var(--text-muted); }
 
 /* 신규 보기는 꺼져 있어도 할인 강조색으로 눈에 띄게(2026-10-10 사용자) */
-.menu-bar__item--accent, .menu-bar__item--accent:hover { color: var(--sale); font-weight: 700; background: var(--sale-weak); border-radius: 8px; }
+.menu-bar__item--accent, .menu-bar__item--accent:hover { color: var(--sale); font-weight: 700; isolation: isolate; }
+/* 바탕은 글자 둘레만(탭 누름 영역이 높아져도 칩 높이는 그대로) */
+.menu-bar__item--accent::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 8px; background: var(--sale-weak); }

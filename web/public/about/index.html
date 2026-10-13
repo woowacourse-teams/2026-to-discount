@@ -11,7 +11,7 @@
   <meta property="og:image" content="https://beggars-five.vercel.app/og-image.png" />
   <link rel="icon" href="/favicon-48.png" />
   <link rel="stylesheet" href="/fonts/pretendard-optional.css" />
-  <!-- 앱 번들 없이 읽히는 정적 소개 페이지(설계 47). 한 화면씩 넘어가는 풀페이지 스크롤(CSS scroll-snap). -->
+  <!-- 앱 번들 없이 읽히는 정적 소개 페이지(설계 47). 한 화면씩 넘어가는 풀페이지 스크롤(스크립트로 한 장씩 넘김). -->
   <style>
     :root {
       --bg: #fbfbfa; --surface: #ffffff; --border: #eaeaea;
@@ -27,11 +27,16 @@
       }
     }
     * { box-sizing: border-box; }
-    html { scroll-snap-type: y mandatory; }
+    /* 풀페이지 고정. 넘김은 아래 스크립트가 한다 */
+    main { height: 100dvh; overflow-y: auto; }
+    /* 넘김은 스크롤이 아니라 트랙을 옮기는 transform이라 합성 단계에서만 돌아 버벅이지 않는다 */
+    .js main { overflow: hidden; overscroll-behavior: none; touch-action: none; }
+    .js .track { transition: transform .6s cubic-bezier(.22, .8, .3, 1); will-change: transform; }
+    @media (prefers-reduced-motion: reduce) { .js .track { transition: none; } }
     body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
     a { color: inherit; }
 
-    .slide { position: relative; min-height: 100dvh; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; justify-content: center; padding: 72px 20px 88px; overflow: hidden; }
+    .slide { position: relative; height: 100dvh; display: flex; flex-direction: column; justify-content: center; padding: 72px 20px 88px; overflow: hidden; }
     .slide__in { width: 100%; max-width: 1080px; margin: 0 auto; }
     .brand { position: absolute; top: 20px; left: 20px; right: 20px; max-width: 1080px; margin: 0 auto; font-weight: 800; text-decoration: none; letter-spacing: -.01em; }
     .next { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); text-decoration: none; }
@@ -63,7 +68,7 @@
 
     /* 3장: 앱 행사 화면과 우리 카드를 겹쳐 놓는다 */
     .snaps { position: relative; width: min(100%, 420px); aspect-ratio: 1 / .92; margin-top: 28px; }
-    .snaps img { position: absolute; display: block; height: auto; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 18px 36px -18px rgba(0, 0, 0, .4); }
+    .snaps img { position: absolute; display: block; height: auto; border-radius: 16px; box-shadow: 0 20px 40px -14px rgba(0, 0, 0, .55); }
     .snaps img:nth-child(1) { left: 0; top: 0; width: 58%; transform: rotate(-3deg); }
     .snaps img:nth-child(2) { right: 0; top: 6%; width: 50%; transform: rotate(3deg); }
     .snaps img:nth-child(3) { left: 18%; bottom: 0; width: 58%; z-index: 1; }
@@ -100,12 +105,12 @@
       .next svg { animation: bob 1.8s ease-in-out infinite; }
       @keyframes bob { 50% { transform: translateY(5px); } }
     }
-    @media (prefers-reduced-motion: reduce) { html { scroll-snap-type: none; } }
-  </style>
+      </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
   <main>
+   <div class="track">
     <section class="slide slide--shot" id="s1">
       <a class="brand" href="/">배달앱 할인모음</a>
       <div class="slide__in split">
@@ -151,7 +156,7 @@
           </div>
         </div>
         <div class="phone rise" style="--i:2">
-          <div class="phone__screen"><img class="fit-w" src="/about/history.jpg" width="720" height="921" alt="브랜드의 할인 금액이 날짜별로 어떻게 바뀌었는지 보여주는 그래프 화면." /></div>
+          <div class="phone__screen"><img class="fit-w" src="/about/history.jpg" width="780" height="1376" alt="푸라닭 바텀시트. 3개월 할인 그래프와 배민, 땡겨요 쿠폰." /></div>
         </div>
       </div>
       <a class="next" href="#s4" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -159,37 +164,56 @@
 
     <section class="slide contact" id="s4">
       <div class="slide__in">
-        <h2 class="rise">고칠 곳이 보이면<br /><em>알려주세요</em></h2>
+        <h2 class="rise">오늘의 할인,<br /><em>직접 확인</em>해 보세요</h2>
         <div class="row rise" style="--i:1">
           <a class="btn" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
-          <a class="btn btn--ghost" href="mailto:woowa202610@gmail.com">메일 보내기</a>
         </div>
       </div>
       <footer class="foot">
-        <p>각 배달앱의 공식 서비스가 아니며, 모든 상표는 각 권리자에게 있습니다.</p>
+        <p>각 배달앱의 공식 서비스가 아니며,<br />모든 상표는 각 권리자에게 있습니다.</p>
         <p><a href="/privacy"><strong>개인정보처리방침</strong></a></p>
       </footer>
     </section>
+   </div>
   </main>
   <script>
     // 화면에 들어온 슬라이드의 요소를 떠오르게 한다
-    const io = 'IntersectionObserver' in window && new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && e.target.classList.add('in')), { threshold: 0.35 })
     const slides = [...document.querySelectorAll('.slide')]
-    slides.forEach((s) => io ? io.observe(s) : s.classList.add('in'))
-    // 휠은 일정 이상 굴리면 다음 슬라이드로 넘긴다(터치는 브라우저 스냅이 넘긴다)
-    let acc = 0, busy = false
-    addEventListener('wheel', (e) => {
+    slides[0].classList.add('in')
+    // 풀페이지 고정: 기본 스크롤과 관성을 끄고, 휠이나 스와이프 방향을 받아 한 장씩 바로 넘긴다.
+    // 손을 떼자마자 넘어가므로 브라우저 스냅의 관성 대기가 없다
+    const box = document.querySelector('main')
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    let cur = 0, busy = false, acc = 0, y0 = null
+    const track = document.querySelector('.track')
+    const go = (i) => {
+      i = Math.min(slides.length - 1, Math.max(0, i))
+      if (i === cur || busy) return
+      cur = i; busy = true
+      track.style.transform = `translate3d(0, ${-i * box.clientHeight}px, 0)`
+      slides[i].classList.add('in')
+      setTimeout(() => { busy = false }, reduce ? 50 : 600)
+    }
+    box.addEventListener('wheel', (e) => {
       if (e.ctrlKey) return
       e.preventDefault()
-      if (busy) return
       acc += e.deltaY
       if (Math.abs(acc) < 40) return
-      const cur = slides.findIndex((s) => Math.abs(s.getBoundingClientRect().top) < innerHeight / 2)
-      const to = slides[Math.min(slides.length - 1, Math.max(0, cur + Math.sign(acc)))]
-      acc = 0; busy = true
-      to.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
-      setTimeout(() => { busy = false }, 800)
+      go(cur + Math.sign(acc)); acc = 0
     }, { passive: false })
+    box.addEventListener('touchstart', (e) => { y0 = e.touches[0].clientY }, { passive: true })
+    box.addEventListener('touchmove', (e) => { if (e.touches.length === 1) e.preventDefault() }, { passive: false })
+    box.addEventListener('touchend', (e) => {
+      if (y0 === null) return
+      const dy = y0 - e.changedTouches[0].clientY; y0 = null
+      if (Math.abs(dy) > 40) go(cur + Math.sign(dy))
+    })
+    addEventListener('keydown', (e) => {
+      const d = { ArrowDown: 1, PageDown: 1, ' ': 1, ArrowUp: -1, PageUp: -1 }[e.key]
+      if (d) { e.preventDefault(); go(cur + d) }
+    })
+    document.querySelectorAll('.next').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); go(slides.indexOf(document.querySelector(a.getAttribute('href')))) }))
+    addEventListener('resize', () => { track.style.transform = `translate3d(0, ${-cur * box.clientHeight}px, 0)` })
   </script>
 </body>
 </html>
