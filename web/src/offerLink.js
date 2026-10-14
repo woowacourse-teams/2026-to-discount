@@ -1,4 +1,5 @@
 import { isUpdated } from './filters.js'
+import { watchAppOpen } from './telemetry.js'
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
 //
@@ -104,7 +105,9 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   }
   const tab = typeof href === 'string' && href.startsWith('coupangeats://')
   const share = typeof href === 'string' && href.startsWith('https://share.coupangeats.com/')
-  if ((!share && !tab) || typeof document === 'undefined') return
+  if (typeof document === 'undefined') return
+  // 앱 열림 결과(telemetry.js). 쿠팡이츠는 안내 뒤 실제로 이동할 때부터 잰다.
+  if (!share && !tab) { watchAppOpen(href); return }
   e.preventDefault()
   // 공유 링크도 같은 탭으로 넘긴다. 새 탭에 넣으면 그 탭엔 누른 기록이 없어 앱 열기(intent://)가 막혀 빈 탭에 멈췄다
   // (2026-10-12 사용자: 안 넘어간다).
@@ -130,6 +133,7 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
       window.addEventListener('pagehide', mark, { once: true })
       document.addEventListener('visibilitychange', mark, { once: true })
     }
+    watchAppOpen(href)
     if (tab) window.location.href = href
     else if (win) { win.opener = null; win.location.href = href } else window.location.href = href // 차단되면 같은 탭
     if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') window.location.href = COUPANGEATS_LINK }, 4000) // 앱이 안 열리면 4초 뒤 허브(2026-10-07 사용자: 2.5초 -> 4초)

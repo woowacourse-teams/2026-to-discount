@@ -12,6 +12,7 @@ import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
 import { uiVariant } from './variant.js'
 import { currentHomeArm } from './homeExperiment.js'
+import { inApp, standalone } from './telemetry.js'
 
 const MAX_PENDING_POSTHOG_EVENTS = 100
 
@@ -227,7 +228,8 @@ function sendExit() {
 
 export function startAnalytics() {
   if (optedOut()) return
-  track('page_view')
+  // inApp: 카카오톡 인앱 브라우저, standalone: 홈 화면에 설치해 연 것(2026-10-14)
+  track('page_view', { inApp: inApp(), standalone: !!standalone() })
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
