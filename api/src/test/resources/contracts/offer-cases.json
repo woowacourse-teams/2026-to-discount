@@ -253,7 +253,8 @@
     "name",
     "offers",
     "popularity",
-    "searchAliases"
+    "searchAliases",
+    "shortName"
   ],
   "unreadByWeb": {
     "brand": [

@@ -25,12 +25,14 @@ class PopularityIndexTest {
                 "{\"ts\":\"2026-09-18T10:02:00+09:00\",\"event\":\"banner_click\",\"props\":{\"brand\":\"BBQ\"}}",
                 "{\"ts\":\"2026-08-01T10:00:00+09:00\",\"event\":\"offer_link_click\",\"props\":{\"brand\":\"bhc\"}}",
                 "{\"ts\":\"2026-09-18T10:03:00+09:00\",\"event\":\"brand_impression\",\"props\":{\"brand\":\"bhc\"}}",
+                "{\"ts\":\"2026-09-18T10:04:00+09:00\",\"event\":\"offer_link_click\",\"dev\":true,\"props\":{\"brand\":\"bhc\"}}",
+                "{\"ts\":\"2026-09-18T10:05:00+09:00\",\"event\":\"offer_link_click\",\"bot\":\"Googlebot\",\"props\":{\"brand\":\"BBQ\"}}",
                 "not json",
                 ""), StandardCharsets.UTF_8);
         Clock clock = Clock.fixed(Instant.parse("2026-09-19T00:00:00Z"), ZoneId.of("Asia/Seoul"));
         PopularityIndex idx = new PopularityIndex(new EventLog(log.toString(), new ObjectMapper()), new ObjectMapper(), clock);
 
-        assertEquals(4, idx.scoreOf("bhc"));      // 클릭 3 + 펼침 1. 8월 클릭과 노출은 안 센다
+        assertEquals(4, idx.scoreOf("bhc"));      // 클릭 3 + 펼침 1. 8월 클릭, 노출, 개발 접속, 크롤러는 안 센다
         assertEquals(2, idx.scoreOf("BBQ"));
         assertEquals(0, idx.scoreOf("없는브랜드"));
     }

@@ -25,7 +25,7 @@ import java.util.Set;
  * 사용자 행동을 브랜드별로 센다. PostHog와 같은 이벤트가 이 파일에도 남으므로 같은 기준이다.
  *
  * <p>세는 이벤트와 무게: 할인 칩 클릭(offer_link_click) 3, 배너 클릭(banner_click) 2,
- * 카드 펼침(brand_expand) 1. 노출(impression)은 화면 위치가 정하므로 안 센다.
+ * 카드 펼침(brand_expand) 1. 노출(impression)은 화면 위치가 정하므로 안 센다. 개발 접속(dev)과 크롤러(bot)는 뺀다.
  *
  * <p>파일이 크므로(15만 줄) 요청마다 읽지 않는다. 10분에 한 번, 그리고 reload 때 다시 센다.
  * 파일이 없거나 깨지면 빈 표다 — 인기순은 그때 0으로 같은 값이 되어 다음 기준으로 넘어간다.
@@ -79,6 +79,8 @@ public class PopularityIndex {
                     }
                     String event = n.path("event").asText(null);
                     if (event == null || !EVENTS.contains(event)) continue;
+                    // 개발 접속과 크롤러는 다른 집계처럼 뺀다(SurveyEligibility와 같은 판정, 2026-10-14).
+                    if (n.path("dev").asBoolean(false) || n.hasNonNull("bot")) continue;
                     String brand = n.path("props").path("brand").asText(null);
                     if (brand == null || brand.isBlank() || "none".equals(brand)) continue;
                     if (!within(n.path("ts").asText(null), since)) continue;
