@@ -409,6 +409,10 @@ export default function App({ initial = null }) {
   // 올려 새 목록을 처음부터 보게 한다 — 첫 렌더에는 건너뛴다(들어오자마자
   // 스크롤이 튀면 안 된다).
   const firstGrid = useRef(true)
+  // 서버가 그린 첫 목록은 떠오르는 애니메이션 없이 바로 보인다. opacity 0에서 시작하면 그동안 최대 콘텐츠
+  // 표시(LCP)가 안 찍혀 쿠폰 홈 실사용 LCP p75가 1.6초로 운영 카드(0.8초)의 두 배였다(2026-10-14).
+  // ponytail: 처음 조건으로 되돌아오면 그때도 애니메이션이 없다. 거슬리면 첫 마운트 여부를 따로 든다.
+  const [stillKey] = useState(gridKey)
   useEffect(() => {
     if (firstGrid.current) {
       firstGrid.current = false
@@ -769,7 +773,7 @@ export default function App({ initial = null }) {
         // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
-        <div className="brand-grid" key={gridKey} ref={gridRef}>
+        <div className={gridKey === stillKey ? 'brand-grid brand-grid--still' : 'brand-grid'} key={gridKey} ref={gridRef}>
           {/* 브랜드 카드와 같은 칸에 놓는다 — 요청대로 맨 앞칸. 필터를
               바꾸면 그리드 전체가 새로 마운트되니 이 카드도 같이 날아가지만,
               발급된 코드는 App이 들고 있어(surveyCode) 다시 열면 그대로

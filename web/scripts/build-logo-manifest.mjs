@@ -56,7 +56,15 @@ export function buildManifest(dir = LOGO_DIR) {
   return out
 }
 
-export function render(manifest) {
+// WebP가 PNG와 같은 해시로 있는 로고 이름(scripts/make-logo-webp.py). 해시가 안 맞으면 PNG를 쓴다.
+export function buildWebpList(manifest, dir = LOGO_DIR) {
+  let files = []
+  try { files = readdirSync(join(dir, 'webp')) } catch { /* 폴더가 없으면 전부 PNG */ }
+  const have = new Set(files)
+  return Object.keys(manifest).filter((k) => have.has(`${k}.${manifest[k]}.webp`))
+}
+
+export function render(manifest, webp = []) {
   const body = Object.entries(manifest)
     .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
     .join('\n')
@@ -66,12 +74,14 @@ export function render(manifest) {
     + `// 값은 파일 내용 해시 8자다. 파일이 바뀔 때만 바뀌므로 캐시가 유지되고,\n`
     + `// 바뀌면 URL이 달라져 옛 캐시(404 포함)를 비켜 간다.\n`
     + `export const LOGO_MANIFEST = {\n${body}\n}\n`
+    + `\n// 192px WebP가 있는 로고(scripts/make-logo-webp.py). 없으면 PNG.\n`
+    + `export const LOGO_WEBP = new Set(${JSON.stringify(webp)})\n`
 }
 
 const isMain = process.argv[1]
   && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))
 if (isMain) {
   const manifest = buildManifest()
-  writeFileSync(OUT, render(manifest), 'utf8')
+  writeFileSync(OUT, render(manifest, buildWebpList(manifest)), 'utf8')
   console.log(`로고 ${Object.keys(manifest).length}개 -> src/logoManifest.js`)
 }

@@ -12,8 +12,8 @@ import { dirname, resolve } from 'node:path'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 
-import { buildManifest } from '../scripts/build-logo-manifest.mjs'
-import { LOGO_MANIFEST } from './logoManifest.js'
+import { buildManifest, buildWebpList } from '../scripts/build-logo-manifest.mjs'
+import { LOGO_MANIFEST, LOGO_WEBP } from './logoManifest.js'
 import { brandLogoSrc, logoFileName } from './logoSrc.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -34,7 +34,8 @@ test('없는 브랜드는 주소를 만들지 않는다 — 요청이 나가면 
 })
 
 test('있는 브랜드는 내용 해시를 달고 나온다', () => {
-  const name = Object.keys(LOGO_MANIFEST)[0]
+  const name = Object.keys(LOGO_MANIFEST).find((k) => !LOGO_WEBP.has(k))
+  if (!name) return // 전부 WebP면 PNG 경로는 아래 WebP 테스트가 본다
   const src = brandLogoSrc(name)
   assert.ok(src.startsWith(`/logos/${encodeURIComponent(name)}.png?v=`), src)
   assert.match(src, /\?v=[0-9a-f]{8}$/)
@@ -51,4 +52,9 @@ test('치환된 이름으로 실제 파일을 찾는다', () => {
   const withSpace = Object.keys(LOGO_MANIFEST).find((k) => k.includes('_'))
   if (!withSpace) return
   assert.ok(LOGO_MANIFEST[withSpace], withSpace)
+})
+
+test('WebP 목록이 디스크와 일치하고, PNG 해시가 맞는 것만 든다', () => {
+  assert.deepEqual([...LOGO_WEBP], buildWebpList(LOGO_MANIFEST, LOGO_DIR), 'npm run logos 를 돌릴 것')
+  for (const k of LOGO_WEBP) assert.match(brandLogoSrc(k), new RegExp(`\.${LOGO_MANIFEST[k]}\.webp$`))
 })
