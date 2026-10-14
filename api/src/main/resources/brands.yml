@@ -1113,90 +1113,110 @@ brands:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?ENWjEwq
   유로코피자:
     searchAliases: [유로코피자]
+    category: pizza
     links:
       baemin: https://s.baemin.com/Pg000LrP4iseh
   연돈튀김덮밥볼카츠:
-    searchAliases: [연돈튀김덮밥볼카츠]
+    searchAliases: [연돈튀김덮밥볼카츠, 연돈볼카츠, 볼카츠]
+    category: korean
     links:
       baemin: https://s.baemin.com/Ol000LpNo43IC
   롤링파스타:
     searchAliases: [롤링파스타]
+    category: western
     links:
       baemin: https://s.baemin.com/FT000LrPnlXh5
   백종원의 미정국수&덮밥:
-    searchAliases: [백종원의 미정국수, 덮밥, 백종원의미정국수&덮밥]
+    searchAliases: [백종원의 미정국수, 미정국수, 백종원의미정국수&덮밥]
+    category: korean
     aliases: [백종원의 미정국수]
     links:
       baemin: https://s.baemin.com/9Q000LBUygw3u
   백종원의 새마을식당:
-    searchAliases: [백종원의새마을식당]
+    searchAliases: [백종원의새마을식당, 새마을식당]
+    category: korean
     links:
       baemin: https://s.baemin.com/Uf000LBSGkO0e
   파스타헛:
     searchAliases: [파스타헛]
+    category: western
     links:
       baemin: https://s.baemin.com/l8000LprOkwZ5
   미친피자:
     searchAliases: [미친피자]
+    category: pizza
     menus: [씬크러스트]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=20097
       baemin: https://s.baemin.com/DN000LpRIMwjE
   한식요리주점 막이오름:
-    searchAliases: [한식요리주점막이오름]
+    searchAliases: [한식요리주점막이오름, 막이오름]
+    category: korean
     links:
       baemin: https://s.baemin.com/5k000LBT5gcfl
   백종원의 백스비어:
-    searchAliases: [백종원의백스비어]
+    searchAliases: [백종원의백스비어, 백스비어]
+    category: korean
     links:
       baemin: https://s.baemin.com/Om000LrSzU9cK
   돌배기집:
     searchAliases: [돌배기집]
+    category: korean
     links:
       baemin: https://s.baemin.com/U4000LBU3qXDt
   본가:
     searchAliases: [본가]
+    category: korean
     links:
       baemin: https://s.baemin.com/h3000LBU4ubcO
   정담오리바베큐:
     searchAliases: [정담오리바베큐]
+    category: korean
     links:
       baemin: https://s.baemin.com/Mz000Lx2lnJx5
   갓튀긴후라이드:
-    searchAliases: [갓튀긴후라이드]
+    searchAliases: [갓튀긴후라이드, 갓튀긴]
+    category: chicken
     links:
       baemin: https://s.baemin.com/Gr000Lq0FuXZ0
   고피자:
     searchAliases: [고피자]
+    category: pizza
     links:
       baemin: https://s.baemin.com/Ee000LtinyGOA
   백종원의 한신포차 닭발&통닭:
-    searchAliases: [백종원의 한신포차 닭발, 통닭, 백종원의한신포차닭발&통닭]
-    aliases: [백종원의 한신포차 닭발, 통닭]
+    searchAliases: [백종원의 한신포차 닭발, 한신포차, 백종원의한신포차닭발&통닭]
+    category: korean
+    aliases: [백종원의 한신포차 닭발]
     links:
       baemin: https://s.baemin.com/36000LscZX2wk
   백종원의 인생설렁탕&불고기:
-    searchAliases: [백종원의 인생설렁탕, 불고기, 백종원의인생설렁탕&불고기]
-    aliases: [백종원의 인생설렁탕, 불고기]
+    searchAliases: [백종원의 인생설렁탕, 인생설렁탕, 백종원의인생설렁탕&불고기]
+    category: korean
+    aliases: [백종원의 인생설렁탕]
     links:
       baemin: https://s.baemin.com/BA000LrTvsNMg
   백종원의 리춘시장&마라탕:
-    searchAliases: [백종원의 리춘시장, 마라탕, 백종원의리춘시장&마라탕]
-    aliases: [백종원의 리춘시장, 마라탕]
+    searchAliases: [백종원의 리춘시장, 리춘시장, 백종원의리춘시장&마라탕]
+    category: chinese
+    aliases: [백종원의 리춘시장]
     links:
       baemin: https://s.baemin.com/Xv000LBSJuZkH
   백종원의원조쌈밥집 제육&삼겹:
-    searchAliases: [백종원의원조쌈밥집 제육, 삼겹, 백종원의원조쌈밥집제육&삼겹]
-    aliases: [백종원의원조쌈밥집 제육, 삼겹]
+    searchAliases: [백종원의원조쌈밥집 제육, 원조쌈밥집, 백종원의원조쌈밥집제육&삼겹]
+    category: korean
+    aliases: [백종원의원조쌈밥집 제육]
     links:
       baemin: https://s.baemin.com/TL000LtSAp1Dn
   역전우동&덮밥:
-    searchAliases: [역전우동, 덮밥]
+    searchAliases: [역전우동, 역전우동0410]
+    category: snack
     aliases: [역전우동]
     links:
       baemin: https://s.baemin.com/DO000LBSDxIHr
   땅스부대찌개:
-    searchAliases: [땅스부대찌개]
+    searchAliases: [땅스부대찌개, 땅스]
+    category: korean
     # 행사 수집이 찾은 브랜드. 분류와 로고는 사람이 채운다
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?EvxXykm
