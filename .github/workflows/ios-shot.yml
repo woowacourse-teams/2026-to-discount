@@ -1,6 +1,7 @@
 # 실제 iOS 사파리(시뮬레이터)로 운영 웹을 찍는다. 윈도 웹킷은 iOS 배치 버그를 재현하지 못한다(2026-10-13).
 # main 배포(미러) 뒤 자동으로, 또는 Actions에서 주소를 넣어 수동으로 돈다. 결과는 실행의 아티팩트 ios-shots.
-# 프리뷰는 Vercel 로그인이 걸려 시뮬레이터로 열 수 없다. 운영 주소만 찍는다.
+# 프리뷰(Vercel 보호)는 저장소 시크릿 VERCEL_BYPASS(Vercel 보호 우회 값)가 있으면 주소에 우회 쿼리를 붙여 연다(2026-10-14).
+# 없으면 프리뷰는 로그인 화면이 찍힌다. 시크릿 값은 Actions 로그에서 가려지고, index.txt에는 원래 주소만 적는다.
 name: ios-shot
 on:
   workflow_dispatch:
@@ -29,11 +30,20 @@ jobs:
           xcrun simctl bootstatus "$UDID"
           xcrun simctl launch "$UDID" com.apple.mobilesafari || true; sleep 20
       - name: 찍기
+        env:
+          BYPASS: ${{ secrets.VERCEL_BYPASS }}
         run: |
           mkdir shots; n=0
           for u in $URLS; do
             n=$((n+1))
-            xcrun simctl openurl "$UDID" "$u" || { sleep 30; xcrun simctl openurl "$UDID" "$u"; }
+            open="$u"
+            case "$u" in *-git-*vercel.app*)
+              if [ -n "$BYPASS" ]; then
+                sep='?'; case "$u" in *\?*) sep='&';; esac
+                open="${u}${sep}x-vercel-protection-bypass=${BYPASS}&x-vercel-set-bypass-cookie=true"
+              fi;;
+            esac
+            xcrun simctl openurl "$UDID" "$open" || { sleep 30; xcrun simctl openurl "$UDID" "$open"; }
             sleep 15
             xcrun simctl io "$UDID" screenshot "shots/$n.png"
             echo "$n $u" >> shots/index.txt
