@@ -10,6 +10,7 @@ import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
 import PopularStrip from './PopularStrip.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
+const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
@@ -31,6 +32,7 @@ const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { currentHomeArm } from './homeExperiment.js'
+import { shouldShowGuide } from './firstVisitGuide.js'
 import PushNotificationSetting from './PushNotificationSetting.jsx'
 import BrandCard, { brandCardId } from './BrandCard.jsx'
 import BrandGridSkeleton from './BrandGridSkeleton.jsx'
@@ -231,6 +233,17 @@ export default function App({ initial = null }) {
   useEffect(() => { if (homeA) import('./styles/coupon-card.css') }, [homeA])
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
+  // 첫 방문 안내(firstVisitGuide.js). 2026-10-14부터 ?guide=1로만 뜬다. 카드가 그려진 뒤에 띄운다.
+  // 값은 띄울 안('coupon'|'old'). 바가 그 안으로 바뀐 뒤에만 그린다.
+  const [guideOn, setGuideOn] = useState(null)
+  const guideChecked = useRef(false)
+  useEffect(() => {
+    if (!brands?.length || guideChecked.current) return
+    guideChecked.current = true
+    try {
+      if (shouldShowGuide({ search: window.location.search })) setGuideOn(currentHomeArm(getAnalyticsContext().visitorId).arm)
+    } catch { /* 못 읽으면 안내 없이 */ }
+  }, [brands])
   useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
 
@@ -806,6 +819,12 @@ export default function App({ initial = null }) {
       )}
 
       <SiteFooter />
+
+      {guideOn && guideOn === (homeA ? 'coupon' : 'old') && (
+        <Suspense fallback={null}>
+          <FirstVisitGuide arm={guideOn} onClose={() => setGuideOn(null)} />
+        </Suspense>
+      )}
 
       {/* 새벽 안내 — 맨 위로 버튼 맞은편(왼쪽 아래), 하단 배너 위. */}
       {isNight && (
