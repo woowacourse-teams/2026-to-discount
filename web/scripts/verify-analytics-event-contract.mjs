@@ -44,6 +44,8 @@ const pushNotificationSettingSource = await source('src/PushNotificationSetting.
 // 실사용 측정(앱 열림, 바이탈, 오류). 2026-10-14
 const telemetrySource = await source('src/telemetry.js')
 const analyticsSource = await source('src/analytics.js')
+// 배달앱 링크. 앱이 안 열렸을 때 link_fallback을 여기서 쏜다.
+const offerLinkSource = await source('src/offerLink.js')
 const startAnalyticsSource = analyticsSource.slice(
   analyticsSource.indexOf('export function startAnalytics()'),
 )
@@ -66,6 +68,7 @@ const emittedEvents = new Set([
   ...staticTrackEvents('src/PushNotificationSetting.jsx', pushNotificationSettingSource),
   ...staticTrackEvents('src/telemetry.js', telemetrySource),
   ...staticTrackEvents('src/analytics.js#startAnalytics', startAnalyticsSource),
+  ...staticTrackEvents('src/offerLink.js', offerLinkSource),
   'page_exit',
 ])
 

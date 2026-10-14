@@ -1,4 +1,5 @@
 import { isUpdated } from './filters.js'
+import { track } from './analytics.js'
 import { watchAppOpen } from './telemetry.js'
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
@@ -136,7 +137,8 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
     watchAppOpen(href)
     if (tab) window.location.href = href
     else if (win) { win.opener = null; win.location.href = href } else window.location.href = href // 차단되면 같은 탭
-    if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') window.location.href = COUPANGEATS_LINK }, 4000) // 앱이 안 열리면 4초 뒤 허브(2026-10-07 사용자: 2.5초 -> 4초)
+    // 앱이 안 열려 공유 링크로 넘긴 것도 남긴다(link_fallback, 신뢰 지표: 링크 실패)
+    if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') { track('link_fallback', { platform: 'coupangeats' }); window.location.href = COUPANGEATS_LINK } }, 4000) // 앱이 안 열리면 4초 뒤 허브(2026-10-07 사용자: 2.5초 -> 4초)
   }, noticeMs())
 }
 

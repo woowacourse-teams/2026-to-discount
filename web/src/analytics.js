@@ -10,6 +10,7 @@
 import { API_BASE } from './api.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
+import { noteExit, noteHidden, takeReturn } from './linkReturn.js'
 import { uiVariant } from './variant.js'
 import { currentHomeArm } from './homeExperiment.js'
 import { inApp, standalone } from './telemetry.js'
@@ -198,6 +199,8 @@ function flush(useBeacon = false) {
 
 export function track(event, props) {
   if (optedOut()) return
+  // 배달앱으로 나간 순간(linkReturn.js). 돌아오면 app_return을 보낸다.
+  if (event === 'offer_link_click' || event === 'banner_click') noteExit(props)
   enqueue(createAnalyticsEvent(event, {
     props,
   }))
@@ -230,12 +233,19 @@ export function startAnalytics() {
   if (optedOut()) return
   // inApp: 카카오톡 인앱 브라우저, standalone: 홈 화면에 설치해 연 것(2026-10-14)
   track('page_view', { inApp: inApp(), standalone: !!standalone() })
+  // 같은 탭으로 배달앱에 갔다가 새로 열린 경우(linkReturn.js)
+  const reopened = takeReturn(Date.now(), undefined, { reloaded: true })
+  if (reopened) track('app_return', reopened)
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       visibleSince = Date.now()
       exitSent = false
+      // 새 탭이나 앱으로 갔다가 이 화면으로 돌아왔다
+      const back = takeReturn()
+      if (back) track('app_return', back)
     } else {
+      noteHidden()
       // 모바일에서는 탭 전환이 곧 이탈인 경우가 많아 여기서 확정 전송한다.
       sendExit()
     }

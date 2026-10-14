@@ -121,7 +121,8 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
           눌러야 하는지 생각하게 된다. */}
       <div className="brand-card__head" ref={headerRef}>
         <BrandLogo name={brand.name} />
-        <h2 className="brand-card__name">{brand.name}</h2>
+        {/* 사람이 정한 짧은 이름이 있으면 그것(brands.yml shortName, 2026-10-14 토핑몬스터피자) */}
+        <h2 className="brand-card__name">{brand.shortName ?? brand.name}</h2>
       </div>
 
       {/* 카드 오른쪽 위. 헤더 버튼의 형제라 눌러도 카드가 안 펼쳐진다. */}
