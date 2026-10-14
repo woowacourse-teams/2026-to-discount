@@ -8,6 +8,7 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
 import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
+import RecentStrip from './RecentStrip.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
@@ -651,6 +652,18 @@ export default function App({ initial = null }) {
           </button>
         )}
         </div>
+      )}
+
+      {/* 최근 띠(2026-10-14 시안). 누르면 그 카드로 간다. 지금 거르기에 빠진 브랜드면 이름으로 찾는다 */}
+      {brands && (
+        <RecentStrip
+          brands={brands}
+          onPick={(name) => {
+            if (visibleBrands?.some((b) => b.name === name)) {
+              setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name)))
+            } else setSearch(name)
+          }}
+        />
       )}
 
       {/* 신규를 고르면 정렬 줄 아래 한 줄 안내(2026-10-05 사용자 문구) */}

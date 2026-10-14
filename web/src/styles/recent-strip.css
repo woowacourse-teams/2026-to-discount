@@ -1,0 +1,11 @@
+/* 최근 띠(RecentStrip.jsx, 2026-10-14 시안). 정렬 줄과 첫 카드 사이, 가로로 넘긴다. */
+.recent-strip { padding: 10px 0 2px; }
+.recent-strip__title { margin: 0 0 6px; font-size: .82rem; font-weight: 700; color: var(--text); }
+.recent-strip__list { display: flex; gap: 6px; margin: 0; padding: 0 0 4px; list-style: none; overflow-x: auto; scrollbar-width: none; }
+.recent-strip__list::-webkit-scrollbar { display: none; }
+.recent-strip__item { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); font: inherit; font-size: .8rem; white-space: nowrap; cursor: pointer; }
+.recent-strip__item:active { transform: scale(.98); }
+.recent-strip__item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 카드 로고 규칙(.brand-logo 크기)이 이겨서 22px로 못 박는다 */
+.recent-strip__item .brand-logo, .recent-strip__item .brand-logo img { width: 22px; height: 22px; min-width: 22px; border-radius: 6px; }
+.recent-strip__amount { font-weight: 800; color: var(--sale); font-variant-numeric: tabular-nums; }

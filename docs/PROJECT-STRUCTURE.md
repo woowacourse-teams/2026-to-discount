@@ -188,6 +188,7 @@ web/src/MenuBar.jsx
 web/src/OfferChip.jsx
 web/src/OfferDetail.jsx
 web/src/PushNotificationSetting.jsx
+web/src/RecentStrip.jsx
 web/src/SiteFooter.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
@@ -265,6 +266,7 @@ web/src/styles/hist.css
 web/src/styles/offer-tabs.css
 web/src/styles/overflow.css
 web/src/styles/platform-icons.css
+web/src/styles/recent-strip.css
 web/src/styles/status.css
 web/src/styles/survey-dock.css
 web/src/styles/survey.css
@@ -325,7 +327,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 142 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 134 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 136 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -383,6 +385,7 @@ HTTP 경계:
 | `OfferChip.jsx` | 앱별 할인 칩과 앱 링크 사다리 |
 | `OfferDetail.jsx` | 칩을 펼친 상세 조건 |
 | `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `RecentStrip.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SiteFooter.jsx` | 서비스 안내 푸터 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
