@@ -18,7 +18,7 @@ export default class ErrorBoundary extends Component {
     if (!this.state.failed) return this.props.children
     return (
       <div className="load-error" role="alert">
-        <p className="load-error__title">할인 정보를 불러오지 못했습니다.</p>
+        <p className="load-error__title">할인 정보를 못 불러옴</p>
         <button type="button" className="load-error__retry" onClick={() => location.reload()}>
           다시 시도
         </button>

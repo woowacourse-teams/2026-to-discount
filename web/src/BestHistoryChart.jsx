@@ -136,7 +136,7 @@ export default function BestHistoryChart({ brand }) {
           return (
             <>
               <div className="hist__tip" role="status" style={at(c)}>
-                <span className="hist__tip-d">{md(sp.date)}{sp.line === 'carried' && ' 수집 안 됨'}</span>
+                <span className="hist__tip-d">{md(sp.date)}{sp.line === 'carried' && ' 기록 없음'}</span>
                 <b>{sp.amount == null ? '할인 없음' : `${won(sp.amount)} 할인`}</b>
               </div>
             </>
