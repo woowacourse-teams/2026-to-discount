@@ -65,6 +65,22 @@ class BannerOfferCertaintyTest {
         assertEquals(8000, o.amount());
     }
 
+    /** 배너 오퍼의 확인 시각은 요청 시각이 아니라 그날 끝으로 고정이다. 요청마다 바뀌면 응답 ETag가 매번 달라 304가 안 난다(2026-10-14). */
+    @Test
+    void bannerCapturedAtIsStableWithinTheDay() {
+        Offer o = only(service("""
+                banners:
+                  - id: bhc-20260922
+                    brand: bhc
+                    platform: coupangeats
+                    url: "https://example.test/b"
+                    amount: {won: [null, 8000]}
+                    startsAt: 2026-09-22T00:00
+                    endsAt: 2026-09-22T23:59
+                """));
+        assertEquals("2026-09-22T23:59:59+09:00", o.capturedAt());
+    }
+
     @Test
     void randomBeatsCapped() {
         Offer o = only(service("""

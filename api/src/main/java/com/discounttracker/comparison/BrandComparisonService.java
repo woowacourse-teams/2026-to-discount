@@ -114,7 +114,11 @@ public class BrandComparisonService {
         // 날짜만 넣으면 같은 날 찍힌 원장 레코드보다 "더 이르다"고 읽혀
         // 배너가 항상 진다 — 오늘 등록한 배너가 어제 원장 값에 안 이겨서
         // 카드에 안 뜨는 사고가 났다(사용자 확인, 2026-09-03).
-        String today = java.time.OffsetDateTime.now(clock).toString();
+        // 지금 시각 대신 오늘 23:59:59로 고정한다. 같은 날 원장 기록보다 늘 늦어 배너가 이기는 것은 같고,
+        // 값이 요청마다 바뀌지 않아 응답 ETag가 하루 동안 같다(지금 시각이면 매 요청 ETag가 달라 304가
+        // 한 번도 안 났다, 2026-10-14). 웹은 이 값을 최신순 정렬에만 쓴다.
+        String today = java.time.LocalDate.now(clock).atTime(23, 59, 59)
+                .atZone(clock.getZone()).toOffsetDateTime().toString();
         List<OfferRecord> records = new ArrayList<>();
         for (Banner banner : banners.activeMembers()) {
             if (banner.brand() == null) continue;
