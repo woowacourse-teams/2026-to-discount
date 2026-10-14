@@ -42,7 +42,7 @@
 | 배너 | 운영 콘솔(`/ops/`, beggars-ops)이 서버의 `banners.yml`을 고치고 reload한다 |
 
 재시작하는 동안 약 5초 응답이 끊긴다. Spring Boot 4.1부터는 내릴 때 처리 중인 요청을 끝내고 내린다
-(graceful shutdown, [ADR-012](docs/decisions/ADR-012-spring-boot-4-jackson-3.md)). 서버 앞단은 HTTPS를 받아
+(우아한 종료, graceful shutdown, [ADR-012](docs/decisions/ADR-012-spring-boot-4-jackson-3.md)). 서버 앞단은 HTTPS를 받아
 넘겨주는 웹 서버 nginx이고, 리눅스 서비스 관리자 systemd의 유닛 `delivery-discount-api.service`가 jar를 띄운다.
 
 ## 구조

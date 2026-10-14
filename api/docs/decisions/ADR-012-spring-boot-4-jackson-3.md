@@ -49,15 +49,15 @@ API를 Spring Boot(자바 웹 서버 프레임워크) 3.3.5에서 4.1.1로 올�
 
 ## 따라 바뀐 것: 내릴 때 처리 중 요청을 끝낸다
 
-Spring Boot 3.4부터 graceful shutdown이 기본으로 켜진다. graceful shutdown은 서버를 내릴 때 새 요청은 막고, 이미 처리 중인 요청은 끝날 때까지 기다리는 방식이다. 3.3은 기본이 즉시 종료(`server.shutdown: immediate`)였고 이 프로젝트는 따로 켜지 않았다.
+Spring Boot 3.4부터 우아한 종료(graceful shutdown)가 기본으로 켜진다. 우아한 종료는 서버를 내릴 때 새 요청은 막고, 이미 처리 중인 요청은 끝날 때까지 기다리는 방식이다. 3.3은 기본이 즉시 종료(`server.shutdown: immediate`)였고 이 프로젝트는 따로 켜지 않았다.
 
-| | 3.3.5(즉시 종료) | 4.1.1(graceful shutdown) |
+| | 3.3.5(즉시 종료) | 4.1.1(우아한 종료) |
 | --- | --- | --- |
 | 처리 중이던 요청 | 끊긴다. 받는 쪽은 오류를 본다 | 끝까지 처리한다. 기다리는 한도는 기본 30초(`spring.lifecycle.timeout-per-shutdown-phase`) |
 | 내리는 중에 새로 온 요청 | 연결이 거부된다 | 같다. Tomcat은 네트워크 층에서 받지 않는다 |
 | 새 프로세스가 뜨기까지 | 연결이 거부된다 | 같다 |
 
-배포는 `systemctl restart`로 내렸다 올린다. 그래서 graceful shutdown은 재시작 순간 처리 중이던 요청이 잘리는 것만 막는다. 새 요청이 받지 못하는 약 5초는 그대로다. 새 프로세스는 ADR-011의 원장 첫 읽기(로컬 3~7초)까지 마쳐야 `/api/brands`와 `/api/survey`에 바로 답한다. 무중단으로 가려면 두 포트를 번갈아 띄우고 nginx의 upstream(요청을 넘길 뒤쪽 서버 목록)만 바꿔야 한다. 그 결정은 tracker `docs/REFACTOR-BACKLOG.md` 14번에 있다.
+배포는 `systemctl restart`로 내렸다 올린다. 그래서 우아한 종료는 재시작 순간 처리 중이던 요청이 잘리는 것만 막는다. 새 요청이 받지 못하는 약 5초는 그대로다. 새 프로세스는 ADR-011의 원장 첫 읽기(로컬 3~7초)까지 마쳐야 `/api/brands`와 `/api/survey`에 바로 답한다. 무중단으로 가려면 두 포트를 번갈아 띄우고 nginx의 upstream(요청을 넘길 뒤쪽 서버 목록)만 바꿔야 한다. 그 결정은 tracker `docs/REFACTOR-BACKLOG.md` 14번에 있다.
 
 ## 근거
 
