@@ -601,9 +601,10 @@ export default function App({ initial = null }) {
       {brands && (
         <div className="quick-bar">
         <div className="quick-bar__sorts" role="group" aria-label="정렬">
-          {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문 낮은순']].map(([key, dir, label]) => {
+          {/* 인기순(2026-10-14 시안): 셋째 칸. 고르면 아래에 오늘 / 이번 주. 자리가 모자라 첫 칸 글자를 줄였다 */}
+          {[['amount', 'desc', '할인 높은순'], ['minOrder', 'asc', '최소주문 낮은순'], ['popularityToday', 'desc', '인기순']].map(([key, dir, label]) => {
             const first = primarySort(filters)
-            const on = first.key === key && first.dir === dir
+            const on = key === 'popularityToday' ? first.key.startsWith('popularity') : first.key === key && first.dir === dir
             return (
               <button
                 key={key}
@@ -651,6 +652,26 @@ export default function App({ initial = null }) {
             {revived.length > 0 && <span className="quick-bar__hidden-dot" aria-hidden="true" />}
           </button>
         )}
+        </div>
+      )}
+
+      {/* 인기순을 고르면 기간을 바꾸는 칸(2026-10-14 시안). 서버가 두 기간을 낸다(PopularityIndex). */}
+      {brands && primarySort(filters).key.startsWith('popularity') && (
+        <div className="quick-bar__period" role="group" aria-label="인기 기간">
+          {[['popularityToday', '오늘'], ['popularity', '이번 주']].map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              className={`quick-bar__period-btn${primarySort(filters).key === key ? ' quick-bar__period-btn--on' : ''}`}
+              aria-pressed={primarySort(filters).key === key}
+              onClick={() => {
+                setFilters((f) => ({ ...f, sorts: [{ key, dir: 'desc' }] }))
+                track('quick_filter', { key, dir: 'desc', on: true })
+              }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       )}
 

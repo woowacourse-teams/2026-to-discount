@@ -279,6 +279,8 @@ export function latestCaptured(offers) {
 function sortValue(brand, key, include) {
   if (key === 'minOrder') return lowestMinOrder(brand.offers)
   if (key === 'popularity') return brand.popularity ?? 0
+  // 오늘 인기(2026-10-14 시안): 최근 24시간 링크나 배너를 누른 사람 수(API popularityToday)
+  if (key === 'popularityToday') return brand.popularityToday ?? 0
   if (key === 'recent') return latestCaptured(brand.offers)
   return bestConfirmedAmount(brand.offers, include)
 }
@@ -289,13 +291,13 @@ export function includesFrom(f) {
 }
 
 // 인기·최신은 방향 버튼이 없다. 항상 높은 순(많이 눌린 순, 최근 순).
-const FIXED_DIR = { popularity: 'desc', recent: 'desc' }
+const FIXED_DIR = { popularity: 'desc', popularityToday: 'desc', recent: 'desc' }
 
 export function sortBrands(brands, { sorts, includeRandom = false, include = null }) {
   const inc = include ?? includeRandom
   // 인기순·최신순은 "무엇으로 줄 세우나"라 고르면 맨 앞이다. 할인금액이 기본으로 켜져 있어
   // 뒤에 두면 인기순이 동점 처리에만 쓰여 눌러도 화면이 안 바뀐다(2026-09-19 실측).
-  const PRECEDENCE = ['popularity', 'recent', 'amount', 'minOrder']
+  const PRECEDENCE = ['popularityToday', 'popularity', 'recent', 'amount', 'minOrder']
   const order = (k) => PRECEDENCE.indexOf(k)
   // 우선순위는 고른 순서가 아니라 고정(그 외 → 할인금액 → 최소주문금액).
   const keys = [...(sorts && sorts.length ? sorts : DEFAULT_SCALARS.sorts)]
