@@ -1,5 +1,6 @@
 """Read-only development runner preflight. Never deploys or starts a load."""
 import gzip
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -8,6 +9,9 @@ import urllib.request
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--require-compression', action='store_true')
+    args = parser.parse_args()
     if not Path('/etc/systemd/system/todiscount-be-dev.service').exists():
         raise SystemExit('Development service missing')
     service = subprocess.check_output(
@@ -28,7 +32,12 @@ def main():
                       'content_encoding': encoding, 'wire_bytes': len(body),
                       'decoded_sha256': hashlib.sha256(decoded).hexdigest(),
                       'python_sudo_allowed': sudo_check.returncode == 0}, indent=2), flush=True)
-    if sudo_check.returncode:
+    if args.require_compression:
+        assert encoding == 'gzip', 'Compression improvement is not deployed'
+        deployment = json.loads(Path('/opt/todiscount-be-dev/deployment.json').read_text())
+        import os
+        assert deployment['commit'] == os.environ['GITHUB_SHA'], 'Expected dev deployment missing'
+    elif sudo_check.returncode:
         raise SystemExit('Runner cannot apply/revert temporary compression: administrator setup required. No load started.')
 
 

@@ -46,6 +46,12 @@ discount:
     api-root: ${DISCOUNT_API_ROOT:https://bebeggars.duckdns.org}
 server:
   port: 8080
+  # 개발 부하 실험에서 brands JSON 154KB가 압축 없이 전송됐다.
+  # 응답 내용은 유지하고 gzip을 지원하는 클라이언트의 전송량을 줄인다.
+  compression:
+    enabled: true
+    mime-types: application/json
+    min-response-size: 2KB
   tomcat:
     mbeanregistry:
       enabled: true

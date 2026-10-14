@@ -13,6 +13,10 @@ on:
         description: '개발 부하 테스트 러너 접근 및 권한 점검 (배포 없음)'
         type: boolean
         default: false
+      load_test_after:
+        description: '개발에 배포된 압축 개선의 30 RPS 5분 3회 측정'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -23,7 +27,7 @@ concurrency:
 
 jobs:
   load-test-preflight:
-    if: github.event_name == 'workflow_dispatch' && inputs.load_test_preflight && github.ref == 'refs/heads/dev'
+    if: github.event_name == 'workflow_dispatch' && (inputs.load_test_preflight || inputs.load_test_after) && github.ref == 'refs/heads/dev'
     environment: development
     runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
     timeout-minutes: 5
@@ -32,11 +36,98 @@ jobs:
         with:
           persist-credentials: false
       - name: Check development host access without changing settings
-        run: python3 api/load-tests/runner-preflight.py
+        env:
+          REQUIRE_COMPRESSION: ${{ inputs.load_test_after }}
+        run: |
+          if [ "$REQUIRE_COMPRESSION" = true ]; then
+            python3 api/load-tests/runner-preflight.py --require-compression
+          else
+            python3 api/load-tests/runner-preflight.py
+          fi
+      - name: Snapshot server inputs
+        if: inputs.load_test_after
+        run: |
+          mkdir -p "$RUNNER_TEMP/load-server"
+          python3 api/load-tests/server-snapshot.py --public-data > "$RUNNER_TEMP/load-server/before.json"
+      - uses: actions/upload-artifact@v4
+        if: inputs.load_test_after
+        with:
+          name: load-server-baseline
+          path: ${{ runner.temp }}/load-server/before.json
+          retention-days: 14
+
+  load-test-monitor:
+    needs: load-test-preflight
+    if: inputs.load_test_after && github.ref == 'refs/heads/dev'
+    environment: development
+    runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: load-server-baseline
+          path: ${{ runner.temp }}/load-server
+      - name: Monitor development server
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 api/load-tests/server-monitor.py "$RUNNER_TEMP/load-server"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-server-observations
+          path: ${{ runner.temp }}/load-server/
+          retention-days: 14
+
+  load-test-generator:
+    needs: load-test-preflight
+    if: inputs.load_test_after && github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install k6 2.3.0
+        run: |
+          cd "$RUNNER_TEMP"
+          curl -fsSLO https://github.com/grafana/k6/releases/download/v2.3.0/k6-v2.3.0-linux-amd64.tar.gz
+          curl -fsSLO https://github.com/grafana/k6/releases/download/v2.3.0/k6-v2.3.0-checksums.txt
+          awk '$2 == "k6-v2.3.0-linux-amd64.tar.gz" { print; found=1 } END { if (!found) exit 1 }' k6-v2.3.0-checksums.txt | sha256sum -c -
+          tar -xzf k6-v2.3.0-linux-amd64.tar.gz
+          echo "$RUNNER_TEMP/k6-v2.3.0-linux-amd64" >> "$GITHUB_PATH"
+      - name: Record generator environment
+        run: |
+          mkdir -p "$RUNNER_TEMP/load-client"
+          { k6 version; uname -m; nproc; } > "$RUNNER_TEMP/load-client/generator.txt"
+      - name: Measure improved read APIs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 api/load-tests/cloud-run.py "$RUNNER_TEMP/load-client"
+      - name: Summarize all measured stages
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/load-client/runs.ndjson" ]; then
+            python3 api/load-tests/summarize.py "$RUNNER_TEMP/load-client"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: load-client-results
+          path: ${{ runner.temp }}/load-client/
+          retention-days: 14
 
   build:
     # 수동 실행도 dev만 허용한다.
-    if: github.ref == 'refs/heads/dev' && !inputs.load_test_preflight
+    if: github.ref == 'refs/heads/dev' && !inputs.load_test_preflight && !inputs.load_test_after
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
