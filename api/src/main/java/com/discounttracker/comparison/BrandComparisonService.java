@@ -437,7 +437,8 @@ public class BrandComparisonService {
                         .map(o -> o.amount() == null ? o
                                 : o.withIsNew(h.novelty(o.platform(), name, o.amount(), today).asBoolean()))
                         .toList()),
-                popularity == null ? 0 : popularity.scoreOf(name))));
+                popularity == null ? 0 : popularity.scoreOf(name),
+                popularity == null ? 0 : popularity.todayOf(name))));
 
         result.sort(BrandComparison.byBestDiscount());
         return result;

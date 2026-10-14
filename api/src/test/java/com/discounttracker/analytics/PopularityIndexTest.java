@@ -13,27 +13,42 @@ import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** 인기순(2026-09-19): 최근 14일의 클릭·펼침을 브랜드별로 가중합한다. */
+/** 인기(2026-10-14): 링크나 배너를 누른 서로 다른 방문자 수. 오늘(24시간)과 이번 주(7일). */
 class PopularityIndexTest {
 
+    private static String ev(String ts, String event, String visitor, String brand, String extra) {
+        return "{\"ts\":\"" + ts + "\",\"event\":\"" + event + "\",\"visitorId\":\"" + visitor + "\""
+                + extra + ",\"props\":{\"brand\":\"" + brand + "\"}}";
+    }
+
     @Test
-    void weightsRecentClicksAndIgnoresOldOrUnrelatedEvents(@TempDir Path dir) throws Exception {
+    void countsPeopleNotClicksPerWindow(@TempDir Path dir) throws Exception {
         Path log = dir.resolve("events.jsonl");
         Files.writeString(log, String.join("\n",
-                "{\"ts\":\"2026-09-18T10:00:00+09:00\",\"event\":\"offer_link_click\",\"props\":{\"brand\":\"bhc\"}}",
-                "{\"ts\":\"2026-09-18T10:01:00+09:00\",\"event\":\"brand_expand\",\"props\":{\"brand\":\"bhc\"}}",
-                "{\"ts\":\"2026-09-18T10:02:00+09:00\",\"event\":\"banner_click\",\"props\":{\"brand\":\"BBQ\"}}",
-                "{\"ts\":\"2026-08-01T10:00:00+09:00\",\"event\":\"offer_link_click\",\"props\":{\"brand\":\"bhc\"}}",
-                "{\"ts\":\"2026-09-18T10:03:00+09:00\",\"event\":\"brand_impression\",\"props\":{\"brand\":\"bhc\"}}",
-                "{\"ts\":\"2026-09-18T10:04:00+09:00\",\"event\":\"offer_link_click\",\"dev\":true,\"props\":{\"brand\":\"bhc\"}}",
-                "{\"ts\":\"2026-09-18T10:05:00+09:00\",\"event\":\"offer_link_click\",\"bot\":\"Googlebot\",\"props\":{\"brand\":\"BBQ\"}}",
+                // 오늘: 한 사람이 bhc를 세 번 눌러도 1, 다른 사람이 배너로 1 → 2
+                ev("2026-10-14T12:00:00+09:00", "offer_link_click", "v1", "bhc", ""),
+                ev("2026-10-14T12:01:00+09:00", "offer_link_click", "v1", "bhc", ""),
+                ev("2026-10-14T12:02:00+09:00", "offer_link_click", "v1", "bhc", ""),
+                ev("2026-10-14T12:03:00+09:00", "banner_click", "v2", "bhc", ""),
+                // 사흘 전: 이번 주에만 든다
+                ev("2026-10-11T12:00:00+09:00", "offer_link_click", "v3", "bhc", ""),
+                ev("2026-10-11T12:00:00+09:00", "offer_link_click", "v3", "BBQ", ""),
+                // 8일 전, 펼침, 노출, 개발 접속, 크롤러, 방문자 없음은 안 센다
+                ev("2026-10-06T12:00:00+09:00", "offer_link_click", "v4", "bhc", ""),
+                ev("2026-10-14T12:04:00+09:00", "brand_expand", "v5", "bhc", ""),
+                ev("2026-10-14T12:05:00+09:00", "brand_impression", "v6", "bhc", ""),
+                ev("2026-10-14T12:06:00+09:00", "offer_link_click", "v7", "bhc", ",\"dev\":true"),
+                ev("2026-10-14T12:07:00+09:00", "offer_link_click", "v8", "BBQ", ",\"bot\":\"Googlebot\""),
+                "{\"ts\":\"2026-10-14T12:08:00+09:00\",\"event\":\"offer_link_click\",\"props\":{\"brand\":\"bhc\"}}",
                 "not json",
                 ""), StandardCharsets.UTF_8);
-        Clock clock = Clock.fixed(Instant.parse("2026-09-19T00:00:00Z"), ZoneId.of("Asia/Seoul"));
+        Clock clock = Clock.fixed(Instant.parse("2026-10-14T06:00:00Z"), ZoneId.of("Asia/Seoul"));
         PopularityIndex idx = new PopularityIndex(new EventLog(log.toString(), new ObjectMapper()), new ObjectMapper(), clock);
 
-        assertEquals(4, idx.scoreOf("bhc"));      // 클릭 3 + 펼침 1. 8월 클릭, 노출, 개발 접속, 크롤러는 안 센다
-        assertEquals(2, idx.scoreOf("BBQ"));
+        assertEquals(2, idx.todayOf("bhc"));
+        assertEquals(3, idx.scoreOf("bhc"));      // v1, v2, v3
+        assertEquals(0, idx.todayOf("BBQ"));
+        assertEquals(1, idx.scoreOf("BBQ"));      // 크롤러 v8은 안 센다
         assertEquals(0, idx.scoreOf("없는브랜드"));
     }
 }
