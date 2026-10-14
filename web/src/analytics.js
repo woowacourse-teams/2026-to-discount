@@ -10,6 +10,7 @@
 import { API_BASE } from './api.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
+import { rememberBrand } from './recentBrands.js'
 import { uiVariant } from './variant.js'
 import { currentHomeArm } from './homeExperiment.js'
 
@@ -196,6 +197,8 @@ function flush(useBeacon = false) {
 }
 
 export function track(event, props) {
+  // 분류 바 "최근" 탭이 쓰는 기기 안 목록. 계측을 거부해도 탭은 동작해야 하므로 먼저 적는다.
+  if (event === 'offer_link_click' || event === 'banner_click') rememberBrand(props?.brand)
   if (optedOut()) return
   enqueue(createAnalyticsEvent(event, {
     props,

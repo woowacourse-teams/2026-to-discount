@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import MenuBar from './MenuBar.jsx'
+import { readRecent } from './recentBrands.js'
 import { PLATFORMS } from './logos.jsx'
 import { CATEGORIES, applyFilters } from './filters.js'
 import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
@@ -92,18 +93,21 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
 export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, search, setSearch, onSearchSubmit, brands, isFiltered, resetFilters, sheetOpen, onOpenSheet }) {
   // 지금 상단 바(TopBarA)와 같은 규칙: 분류는 하나만, '전체'나 같은 분류를 다시 누르면 전체로. 계측도 같은 이벤트.
   const toggleCategory = (key) => {
-    setFilters((f) => ({ ...f, search: '', updatedOnly: false, categories: key === 'all' || f.categories.has(key) ? new Set() : new Set([key]) }))
+    setFilters((f) => ({ ...f, search: '', updatedOnly: false, recentOnly: false, categories: key === 'all' || f.categories.has(key) ? new Set() : new Set([key]) }))
     track('category_change', { category: key, from: 'menu-bar' })
   }
   const menuSelected = filters.categories
   const newCount = brands ? applyFilters(brands, { ...filters, categories: new Set(), updatedOnly: true }).length : 0
   // 전체 / 신규(2026-10-05): 분류 바 맨 앞. 기본은 전체. 신규 = 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
   const leading = [
-    { key: 'all', label: '전체', on: filters.categories.size === 0 && !filters.updatedOnly,
-      onClick: () => { setFilters((f) => ({ ...f, search: '', updatedOnly: false, categories: new Set() })); track('category_change', { category: 'all', from: 'menu-bar' }) } },
+    { key: 'all', label: '전체', on: filters.categories.size === 0 && !filters.updatedOnly && !filters.recentOnly,
+      onClick: () => { setFilters((f) => ({ ...f, search: '', updatedOnly: false, recentOnly: false, categories: new Set() })); track('category_change', { category: 'all', from: 'menu-bar' }) } },
     // 개수는 지금 조건(앱, 5천원 이상만 등)에서 신규만 켰을 때 남는 브랜드 수(설계의 "New N")
     { key: 'new', label: newCount ? `신규 ${newCount}` : '신규', on: !!filters.updatedOnly,
-      onClick: () => { setFilters((f) => ({ ...f, search: '', updatedOnly: !f.updatedOnly, categories: new Set() })); track('quick_filter', { key: 'updated', on: !filters.updatedOnly }) } },
+      onClick: () => { setFilters((f) => ({ ...f, search: '', updatedOnly: !f.updatedOnly, recentOnly: false, categories: new Set() })); track('quick_filter', { key: 'updated', on: !filters.updatedOnly }) } },
+    // 최근(2026-10-14 시안): 누른 브랜드가 있을 때만 신규 뒤에 선다.
+    ...(readRecent().length > 0 ? [{ key: 'recent', label: '최근', on: !!filters.recentOnly,
+      onClick: () => { setFilters((f) => ({ ...f, search: '', recentOnly: !f.recentOnly, updatedOnly: false, categories: new Set() })); track('quick_filter', { key: 'recent', on: !filters.recentOnly }) } }] : []),
   ]
   return (
     <div className="title-bar title-bar--b" ref={barRef}>

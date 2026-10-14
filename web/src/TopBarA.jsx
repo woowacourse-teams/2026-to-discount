@@ -4,6 +4,7 @@ import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
 import { CATEGORIES, applyFilters } from './filters.js'
+import { readRecent } from './recentBrands.js'
 import { useScrollMore } from './MenuBar.jsx'
 import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 
@@ -146,14 +147,19 @@ export default function TopBarA({
 }) {
   // Set 하나짜리를 단일 선택처럼 읽는다. 비어 있으면 "전체"다.
   // 신규(2026-10-05): 쿠폰 카드 쪽과 같은 규칙. 켜면 분류를 풀고 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
-  const selected = filters.updatedOnly ? 'new' : filters.categories.size === 1
+  const selected = filters.recentOnly ? 'recent' : filters.updatedOnly ? 'new' : filters.categories.size === 1
     ? [...filters.categories][0]
     : 'all'
   const newCount = brands ? applyFilters(brands, { ...filters, categories: new Set(), updatedOnly: true }).length : 0
 
   const selectCategory = (key) => {
+    if (key === 'recent') {
+      setFilters((f) => ({ ...f, search: '', recentOnly: !f.recentOnly, updatedOnly: false, categories: new Set() }))
+      track('quick_filter', { key: 'recent', on: !filters.recentOnly, from: 'bar' })
+      return
+    }
     if (key === 'new') {
-      setFilters((f) => ({ ...f, search: '', updatedOnly: !f.updatedOnly, categories: new Set() }))
+      setFilters((f) => ({ ...f, search: '', updatedOnly: !f.updatedOnly, recentOnly: false, categories: new Set() }))
       track('quick_filter', { key: 'updated', on: !filters.updatedOnly, from: 'bar' })
       return
     }
@@ -162,6 +168,7 @@ export default function TopBarA({
       // 검색 중에 분류를 누르면 검색어를 푼다. 둘이 같이 걸리면 대개 0건이다(2026-10-08 사용자)
       search: '',
       updatedOnly: false,
+      recentOnly: false,
       categories: key === 'all' ? new Set() : new Set([key]),
     }))
     track('category_change', { category: key, from: 'bar' })
@@ -178,7 +185,10 @@ export default function TopBarA({
     track('platform_filter_toggle', { platform: key, from: 'bar' })
   }
 
-  const tabs = [{ key: 'all', label: '전체' }, { key: 'new', label: newCount ? `신규 ${newCount}` : '신규' }, ...CATEGORIES]
+  // 최근(2026-10-14 시안): 누른 브랜드가 있을 때만 신규 뒤에 선다.
+  const hasRecent = readRecent().length > 0
+  const tabs = [{ key: 'all', label: '전체' }, { key: 'new', label: newCount ? `신규 ${newCount}` : '신규' },
+    ...(hasRecent ? [{ key: 'recent', label: '최근' }] : []), ...CATEGORIES]
   const [catListRef, catMore] = useScrollMore()
 
   return (
