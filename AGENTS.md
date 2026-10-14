@@ -16,7 +16,7 @@
 
 ## 웹은 프리뷰 먼저, 승인 뒤 main
 
-main에 직접 커밋하지 않는다. 브랜치, 360px 스크린샷, 미러 저장소의 `preview/<이름>` 프리뷰, 승인, 머지 순서다. 절차는 [`docs/WORKFLOW.md`](docs/WORKFLOW.md) §3-3.
+main에 직접 커밋하지 않는다. 브랜치, 360px 스크린샷, mono `preview/<이름>` 브랜치 push(CI가 미러로 옮겨 프리뷰를 띄운다), 승인, 머지 순서다. 절차는 [`docs/WORKFLOW.md`](docs/WORKFLOW.md) §3-3.
 
 ## 점검과 새 파일
 

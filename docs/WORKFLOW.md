@@ -52,7 +52,7 @@ tracker(작업 사본) --커밋--> tracker origin
 ### 3-3. 웹 (mono/web): 프리뷰가 기본값
 
 1. mono에서 브랜치(`feature/…`)를 만들고 `npm test`와 `npm run build`를 돌린다.
-2. `web/`만 미러 저장소의 `preview/<이름>` 브랜치로 push한다. Vercel 프리뷰 주소는 `beggars-git-preview-<이름>-nn98s-projects.vercel.app`이다.
+2. mono에 `preview/<이름>` 브랜치를 push한다. CI(`mirror-deploy-repos.yml`)가 `web/`만 미러 저장소의 같은 이름 브랜치로 옮긴다(미러에 직접 push하지 않는다). Vercel 프리뷰 주소는 `beggars-git-preview-<이름>-nn98s-projects.vercel.app`이다.
 3. 360px 폭 스크린샷으로 확인한다(`web/scripts/dev/banner-shot.mjs`). 눈으로 보지 않은 변경은 올리지 않는다.
 4. 요청한 사람이 프리뷰를 승인하면 main에 합치고 push한다. 미러를 거쳐 운영에 나간다.
 5. 프리뷰 브랜치는 합친 뒤 지운다. 실험이 보류되면 브랜치 이름과 상태를 [`design/README.md`](design/README.md)에 적는다(예: `best-tag`).
