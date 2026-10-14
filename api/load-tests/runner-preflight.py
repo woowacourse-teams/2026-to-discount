@@ -11,6 +11,7 @@ import urllib.request
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--require-compression', action='store_true')
+    parser.add_argument('--require-no-compression', action='store_true')
     args = parser.parse_args()
     if not Path('/etc/systemd/system/todiscount-be-dev.service').exists():
         raise SystemExit('Development service missing')
@@ -32,8 +33,10 @@ def main():
                       'content_encoding': encoding, 'wire_bytes': len(body),
                       'decoded_sha256': hashlib.sha256(decoded).hexdigest(),
                       'python_sudo_allowed': sudo_check.returncode == 0}, indent=2), flush=True)
-    if args.require_compression:
-        assert encoding == 'gzip', 'Compression improvement is not deployed'
+    if args.require_compression or args.require_no_compression:
+        assert not (args.require_compression and args.require_no_compression), 'Choose one compression state'
+        expected = 'gzip' if args.require_compression else None
+        assert encoding == expected, 'Expected compression state is not deployed'
         deployment = json.loads(Path('/opt/todiscount-be-dev/deployment.json').read_text())
         import os
         assert deployment['commit'] == os.environ['GITHUB_SHA'], 'Expected dev deployment missing'

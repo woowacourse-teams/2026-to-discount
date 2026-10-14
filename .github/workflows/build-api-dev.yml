@@ -17,6 +17,10 @@ on:
         description: '개발에 배포된 압축 개선의 30 RPS 5분 3회 측정'
         type: boolean
         default: false
+      load_test_before:
+        description: '압축을 끈 개발 JAR로 기준 3회 측정 후 정상 JAR 복원'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -27,7 +31,8 @@ concurrency:
 
 jobs:
   load-test-preflight:
-    if: github.event_name == 'workflow_dispatch' && (inputs.load_test_preflight || inputs.load_test_after) && github.ref == 'refs/heads/dev'
+    needs: [build, deploy]
+    if: always() && github.event_name == 'workflow_dispatch' && (inputs.load_test_preflight || inputs.load_test_after || inputs.load_test_before) && github.ref == 'refs/heads/dev' && (!inputs.load_test_before || needs.deploy.result == 'success')
     environment: development
     runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
     timeout-minutes: 5
@@ -38,19 +43,25 @@ jobs:
       - name: Check development host access without changing settings
         env:
           REQUIRE_COMPRESSION: ${{ inputs.load_test_after }}
+          REQUIRE_NO_COMPRESSION: ${{ inputs.load_test_before }}
         run: |
+          if [ "$REQUIRE_COMPRESSION" = true ] && [ "$REQUIRE_NO_COMPRESSION" = true ]; then
+            echo 'Choose before or after, not both'; exit 1
+          fi
           if [ "$REQUIRE_COMPRESSION" = true ]; then
             python3 api/load-tests/runner-preflight.py --require-compression
+          elif [ "$REQUIRE_NO_COMPRESSION" = true ]; then
+            python3 api/load-tests/runner-preflight.py --require-no-compression
           else
             python3 api/load-tests/runner-preflight.py
           fi
       - name: Snapshot server inputs
-        if: inputs.load_test_after
+        if: inputs.load_test_after || inputs.load_test_before
         run: |
           mkdir -p "$RUNNER_TEMP/load-server"
           python3 api/load-tests/server-snapshot.py --public-data > "$RUNNER_TEMP/load-server/before.json"
       - uses: actions/upload-artifact@v4
-        if: inputs.load_test_after
+        if: inputs.load_test_after || inputs.load_test_before
         with:
           name: load-server-baseline
           path: ${{ runner.temp }}/load-server/before.json
@@ -58,13 +69,13 @@ jobs:
 
   load-test-monitor:
     needs: load-test-preflight
-    if: inputs.load_test_after && github.ref == 'refs/heads/dev'
+    if: (inputs.load_test_after || inputs.load_test_before) && github.ref == 'refs/heads/dev'
     environment: development
     runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
     timeout-minutes: 30
     permissions:
       contents: read
-      actions: write
+      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -86,7 +97,7 @@ jobs:
 
   load-test-generator:
     needs: load-test-preflight
-    if: inputs.load_test_after && github.ref == 'refs/heads/dev'
+    if: (inputs.load_test_after || inputs.load_test_before) && github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     timeout-minutes: 28
     permissions:
@@ -111,6 +122,7 @@ jobs:
       - name: Measure improved read APIs
         env:
           GH_TOKEN: ${{ github.token }}
+          REQUIRE_COMPRESSION: ${{ !inputs.load_test_before }}
         run: python3 api/load-tests/cloud-run.py "$RUNNER_TEMP/load-client"
       - name: Summarize all measured stages
         if: always()
@@ -130,6 +142,12 @@ jobs:
     if: github.ref == 'refs/heads/dev' && !inputs.load_test_preflight && !inputs.load_test_after
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      restore_run: ${{ steps.restoration.outputs.run }}
+      restore_attempt: ${{ steps.restoration.outputs.attempt }}
+    permissions:
+      contents: read
+      actions: read
     defaults:
       run:
         working-directory: api
@@ -142,15 +160,51 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: gradle
+      - name: Verify normal artifact exists before baseline deployment
+        id: restoration
+        if: inputs.load_test_before
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.request
+          base = os.environ['GITHUB_API_URL'] + '/repos/' + os.environ['GITHUB_REPOSITORY']
+          url = base + '/actions/workflows/build-api-dev.yml/runs?event=push&status=success&head_sha=' + os.environ['GITHUB_SHA']
+          def read(url):
+              req = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN']})
+              with urllib.request.urlopen(req, timeout=15) as response: return json.load(response)
+          runs = [r for r in read(url)['workflow_runs'] if r['head_branch'] == 'dev' and r['head_sha'] == os.environ['GITHUB_SHA']]
+          if not runs: raise SystemExit('Successful normal dev artifact required before baseline deployment')
+          r = runs[0]
+          name = 'api-dev-' + r['head_sha'] + '-' + str(r['id']) + '-' + str(r['run_attempt'])
+          artifacts = read(base + '/actions/runs/' + str(r['id']) + '/artifacts')['artifacts']
+          if not any(a['name'] == name and not a['expired'] for a in artifacts): raise SystemExit('Restoration artifact missing')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('run=' + str(r['id']) + '\nattempt=' + str(r['run_attempt']) + '\n')
+          PY
       - name: Test deployment recovery
         run: python3 -m unittest discover -s deploy/dev -p "test_*.py"
       - name: Test
         run: ./gradlew test
       - name: Build executable JAR
-        run: ./gradlew bootJar -x test
+        env:
+          LOAD_BASELINE: ${{ inputs.load_test_before }}
+        run: |
+          if [ "$LOAD_BASELINE" = true ]; then
+            python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/main/resources/application.yml')
+          source = p.read_text()
+          setting = 'compression:\n    enabled: true'
+          if source.count(setting) != 1: raise SystemExit('Unexpected compression configuration')
+          p.write_text(source.replace(setting, 'compression:\n    enabled: false'))
+          PY
+          fi
+          ./gradlew bootJar -x test
       - name: Prepare artifact
         env:
           ARTIFACT_DIR: ${{ runner.temp }}/api-dev-artifact
+          LOAD_BASELINE: ${{ inputs.load_test_before }}
         run: |
           python3 - <<'PYTHON'
           import hashlib, json, os, shutil
@@ -171,6 +225,7 @@ jobs:
               "run_id": os.environ["GITHUB_RUN_ID"],
               "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
               "sha256": digest,
+              "compression_baseline": os.environ.get("LOAD_BASELINE") == "true",
           }
           (target / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
           PYTHON
@@ -223,3 +278,33 @@ jobs:
         env:
           ARTIFACT_DIR: ${{ runner.temp }}/api-dev-artifact
         run: rm -rf -- "$ARTIFACT_DIR"
+
+  restore-compression:
+    needs: [build, deploy, load-test-preflight, load-test-generator, load-test-monitor]
+    if: always() && inputs.load_test_before && github.ref == 'refs/heads/dev' && needs.deploy.result == 'success'
+    environment: development
+    runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: api-dev-${{ github.sha }}-${{ needs.build.outputs.restore_run }}-${{ needs.build.outputs.restore_attempt }}
+          path: ${{ runner.temp }}/api-load-restore
+          run-id: ${{ needs.build.outputs.restore_run }}
+          github-token: ${{ github.token }}
+      - name: Restore verified normal dev artifact
+        env:
+          RESTORE_RUN: ${{ needs.build.outputs.restore_run }}
+          RESTORE_ATTEMPT: ${{ needs.build.outputs.restore_attempt }}
+        run: sudo /usr/local/sbin/todiscount-deploy-dev "$RUNNER_TEMP/api-load-restore" "$GITHUB_SHA" "$RESTORE_RUN" "$RESTORE_ATTEMPT"
+      - name: Verify compression restored
+        run: python3 api/load-tests/runner-preflight.py --require-compression
+      - name: Clean restoration files
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/api-load-restore"

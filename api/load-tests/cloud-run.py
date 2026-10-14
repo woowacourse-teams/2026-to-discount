@@ -29,7 +29,8 @@ def stop(proc):
 def stage(directory, name, rate, duration):
     if not monitor_ready(): raise RuntimeError('Server monitor unavailable')
     env = dict(os.environ, RATE=str(rate), DURATION=duration, RUN_ID=name,
-               REQUIRE_COMPRESSION='true', SUMMARY_FILE=str(directory / (name + '.summary.json')))
+               REQUIRE_COMPRESSION=os.environ.get('REQUIRE_COMPRESSION', 'true'),
+               SUMMARY_FILE=str(directory / (name + '.summary.json')))
     raw = directory / (name + '.ndjson'); guard = Guard(); offset = 0; carry = ''; reason = None
     with (directory / (name + '.log')).open('w') as log:
         proc = subprocess.Popen(['k6', 'run', '--quiet', '--out', 'json=' + str(raw),

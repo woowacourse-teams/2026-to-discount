@@ -42,6 +42,7 @@ export default function () {
     valid = valid && Array.isArray(body);
     if (endpoint === 'brands') {
       if (__ENV.REQUIRE_COMPRESSION === 'true') valid = valid && response.headers['Content-Encoding'] === 'gzip';
+      if (__ENV.REQUIRE_COMPRESSION === 'false') valid = valid && !response.headers['Content-Encoding'];
       valid = valid && body.length > 0 && body.every(item => typeof item.name === 'string' && Array.isArray(item.offers));
     } else {
       valid = valid && body.every(item => typeof item.id === 'string' && typeof item.url === 'string');
