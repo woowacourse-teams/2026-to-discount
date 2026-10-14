@@ -45,6 +45,29 @@ discount:
     api-root: ${DISCOUNT_API_ROOT:https://bebeggars.duckdns.org}
 server:
   port: 8080
+  tomcat:
+    mbeanregistry:
+      enabled: true
 logging:
   pattern:
     level: "%5p [request_id=%X{requestId:--}]"
+
+# 외부 API 포트와 분리한다. 같은 서버의 Alloy만 지표를 읽는다.
+management:
+  server:
+    port: ${DISCOUNT_METRICS_PORT:9090}
+    address: 127.0.0.1
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    distribution:
+      # 고정 버킷으로 환경 간 합산 가능한 p95/p99를 계산한다.
+      # 자동 히스토그램 버킷과 클라이언트 percentile 시계열은 추가하지 않는다.
+      slo:
+        http.server.requests: 5ms,10ms,25ms,50ms,100ms,250ms,500ms,1s,2s,5s,10s,30s
