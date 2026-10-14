@@ -92,6 +92,8 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `brand_expand` | 브랜드 카드를 펼침 | `brand`, `category` |
 | `brands_retry` | 목록 불러오기 실패 후 재시도 | 없음 |
 | `scroll_to_top` | "맨 위로" | 없음 |
+| `app_return` | (2026-10-14) 할인 링크나 배너로 배달앱에 갔다가 이 화면으로 돌아옴. 새 탭에서 돌아오면 화면이 다시 보일 때, 같은 탭이면 다시 열릴 때 한 번. 6시간 넘게 떠나 있었으면 안 보낸다 | `brand`, `platform`, `where`(누른 자리), `awayMs`(떠나 있던 시간), `reloaded`(같은 탭으로 다시 열림) |
+| `link_fallback` | (2026-10-14) 쿠팡이츠 앱이 4초 안에 안 열려 공유 링크로 넘김(링크 실패 신호) | `platform` |
 
 ### 조건을 어떻게 고르나 (`from`: `bar` = 펼친 바, `sheet` = 필터 시트)
 

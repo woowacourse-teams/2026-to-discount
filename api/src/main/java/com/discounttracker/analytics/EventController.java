@@ -40,6 +40,8 @@ public class EventController {
      * 링크 이동까지 가는가)이 그 이벤트들에 걸려 있었다.
      */
     private static final Set<String> ALLOWED_EVENTS = Set.of(
+            // 배달앱에서 돌아옴, 앱이 안 열려 공유 링크로 넘김(2026-10-14, 신뢰를 재는 프론트 지표)
+            "app_return", "link_fallback",
             "page_view", "page_exit", "category_change", "brand_expand",
             "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
             "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",

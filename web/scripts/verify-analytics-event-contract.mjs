@@ -42,6 +42,8 @@ const filterSheetSource = await source('src/FilterSheet.jsx')
 // 빠지면 API가 이름을 모른 채 조용히 버린다.
 const pushNotificationSettingSource = await source('src/PushNotificationSetting.jsx')
 const analyticsSource = await source('src/analytics.js')
+// 배달앱 링크. 앱이 안 열렸을 때 link_fallback을 여기서 쏜다.
+const offerLinkSource = await source('src/offerLink.js')
 const startAnalyticsSource = analyticsSource.slice(
   analyticsSource.indexOf('export function startAnalytics()'),
 )
@@ -63,6 +65,7 @@ const emittedEvents = new Set([
   ...staticTrackEvents('src/FilterSheet.jsx', filterSheetSource),
   ...staticTrackEvents('src/PushNotificationSetting.jsx', pushNotificationSettingSource),
   ...staticTrackEvents('src/analytics.js#startAnalytics', startAnalyticsSource),
+  ...staticTrackEvents('src/offerLink.js', offerLinkSource),
   'page_exit',
 ])
 
