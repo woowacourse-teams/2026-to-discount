@@ -50,8 +50,6 @@ public class EventController {
             "banner_autoplay_toggle",
             "banner_impression", "banner_dismiss", "brand_search_submitted",
             "brand_impression",
-            // 첫 방문 안내(2026-10-12, web FirstVisitGuide). action: view/skip/done.
-            "first_guide",
             // 웹 푸시 설정 결과. 브라우저 SDK가 차단돼도 서버 릴레이로 남아야 한다.
             "push_subscription_enabled", "push_subscription_disabled", "push_permission_denied",
             "push_prompt_viewed", "push_prompt_enable_clicked", "push_prompt_closed",

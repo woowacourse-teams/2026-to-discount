@@ -180,7 +180,6 @@ web/src/BrandSuggestions.jsx
 web/src/CouponCard.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
-web/src/FirstVisitGuide.jsx
 web/src/HiddenBrandsSheet.jsx
 web/src/HideBrandAsk.jsx
 web/src/MenuBar.jsx
@@ -218,8 +217,6 @@ web/src/couponModel.test.js
 web/src/entry-server.jsx
 web/src/filters.js
 web/src/filters.test.js
-web/src/firstVisitGuide.js
-web/src/firstVisitGuide.test.js
 web/src/ga4.js
 web/src/hiddenBrands.js
 web/src/hiddenBrands.test.js
@@ -257,7 +254,6 @@ web/src/styles/card-foot-bar.css
 web/src/styles/cat-bar.css
 web/src/styles/coupon-card.css
 web/src/styles/filter-sheet.css
-web/src/styles/first-guide.css
 web/src/styles/footer-push.css
 web/src/styles/hidden-brands.css
 web/src/styles/hide-ask.css
@@ -325,7 +321,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 142 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 134 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 130 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -377,7 +373,6 @@ HTTP 경계:
 | `CouponCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합) |
-| `FirstVisitGuide.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `HiddenBrandsSheet.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `HideBrandAsk.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `MenuBar.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -415,8 +410,6 @@ HTTP 경계:
 | `entry-server.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `filters.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `firstVisitGuide.js` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `firstVisitGuide.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `ga4.js` | 임시 GA4 측정 |
 | `hiddenBrands.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `hiddenBrands.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
