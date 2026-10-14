@@ -13,7 +13,8 @@ const ROOT_OPEN = '<div id="root">'
 // iOS WebKit은 서버가 그린 쿠폰의 컨테이너 단위(cqw) 글자를 처음 한 번 잘못 배치해 금액과 '원 할인'이 겹친다
 // (2026-10-07 실기). 앱 JS를 기다리면 그 사이 겹친 화면이 보이므로, 마크업 바로 뒤에서 컨테이너를 껐다 켜
 // 첫 페인트 전에 다시 배치하게 한다. main.jsx도 붙인 뒤 한 번 더 한다.
-const RELAYOUT = "(function(){var e=document.querySelectorAll('#root .cc-ticket,#root .cc--compact,#root .cc-carousel-wrap'),i;for(i=0;i<e.length;i++)e[i].style.containerType='normal';document.body.offsetWidth;for(i=0;i<e.length;i++)e[i].style.containerType=''})()"
+// iOS WebKit에서만 돈다. 다른 기기는 전체 재배치 비용(CPU 4배 감속에서 약 0.45초)만 남았다(2026-10-14).
+const RELAYOUT = "(function(){if(!/iP(hone|ad|od)/.test(navigator.userAgent)&&!(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return;var e=document.querySelectorAll('#root .cc-ticket,#root .cc--compact,#root .cc-carousel-wrap'),i;for(i=0;i<e.length;i++)e[i].style.containerType='normal';document.body.offsetWidth;for(i=0;i<e.length;i++)e[i].style.containerType=''})()"
 
 export function inject(html, appHtml, data) {
   const start = html.indexOf(ROOT_OPEN)

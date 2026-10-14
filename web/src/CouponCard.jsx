@@ -12,7 +12,8 @@ import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import BestHistoryChart from './BestHistoryChart.jsx'
-import './styles/coupon-card.css'
+// coupon-card.css는 여기서 싣지 않는다. :root 배경 같은 전역 규칙이 있어 운영 카드 쪽에 섞이면 안 된다.
+// 쿠폰 쪽일 때만 App이 따로 받고, 서버 렌더는 <head>에 링크를 단다(api/ssr.js).
 
 const Up = () => (
   <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2l4 5H7.2v3H4.8V7H2z" fill="currentColor" /></svg>

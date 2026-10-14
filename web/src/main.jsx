@@ -59,8 +59,9 @@ startAnalyticsDelivery({ postHogConfigured, startPostHog })
 // ?dev=1은 우리 서버가 PostHog로 넘기는 것만 막아, 2026-09-30 성능 측정이 GA4에 그대로 찍혔다.
 const quiet = getAnalyticsContext().dev || /Chrome-Lighthouse|HeadlessChrome/.test(navigator.userAgent)
 if (!quiet) {
-  if (document.readyState === 'complete') setTimeout(startGa4, 0)
-  else window.addEventListener('load', () => setTimeout(startGa4, 0), { once: true }) // 임시, ADR-002 참고
+  // 2026-10-14: load 직후가 아니라 브라우저가 한가할 때(최대 4초) 띄운다. gtag가 0.45초짜리 긴 작업을 만들었다.
+  if (document.readyState === 'complete') later(startGa4)
+  else window.addEventListener('load', () => later(startGa4), { once: true }) // 임시, ADR-002 참고
 }
 
 // 홈은 서버가 요청 시점 데이터로 그린 HTML을 보낸다(api/ssr.js). 그 데이터가 실려 있으면
@@ -80,7 +81,6 @@ const tree = (
 const rootEl = document.getElementById('root')
 // ?home=a면 쿠폰 카드 조각을 하이드레이션 전에 미리 받는다(받는 동안 운영 카드가 보였다가 바뀌는 깜박임과 최대 콘텐츠 표시 시간 손해를 줄인다).
 // 첫 렌더에는 영향이 없다(App은 마운트 뒤에 주소를 읽는다).
-try { if (ssr?.arm === 'coupon' || new URLSearchParams(window.location.search).get('home') === 'a') import('./CouponCard.jsx') } catch { /* 미리 받기는 덤이다 */ }
 
 if (ssr) {
   ReactDOM.hydrateRoot(rootEl, tree)
@@ -94,8 +94,12 @@ if (ssr) {
     void rootEl.offsetWidth
     els.forEach((el) => { el.style.containerType = '' })
   }
-  requestAnimationFrame(relayout)
-  document.fonts?.ready.then(() => requestAnimationFrame(relayout))
-  document.fonts?.addEventListener?.('loadingdone', () => requestAnimationFrame(relayout))
+  // 겹침은 iOS WebKit에서만 났다. 다른 기기는 재배치 비용만 남아 건너뛴다(2026-10-14).
+  const iosWebKit = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  if (iosWebKit) {
+    requestAnimationFrame(relayout)
+    document.fonts?.ready.then(() => requestAnimationFrame(relayout))
+    document.fonts?.addEventListener?.('loadingdone', () => requestAnimationFrame(relayout))
+  }
 }
 else ReactDOM.createRoot(rootEl).render(tree)

@@ -14,7 +14,9 @@ import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilter
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
-const CouponCard = lazy(() => import('./CouponCard.jsx'))
+// 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
+// 서버 화면을 버리고 다시 그렸다(React #421 x 카드 수, TBT 2.3초, 2026-10-14). 15KB.
+import CouponCard from './CouponCard.jsx'
 import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import { captureRects, playShift, readCards } from './cardShift.js'
 
@@ -224,6 +226,8 @@ export default function App({ initial = null }) {
       else if (initial?.arm === 'coupon') startTransition(() => { setHomeA(false); setHomeCompact(false) })
     } catch { /* 주소를 못 읽으면 운영 카드 */ }
   }, [])
+  // 쿠폰 카드 CSS는 쿠폰 쪽일 때만 받는다(전역 규칙이 있어서). 서버 렌더면 이미 <head>에 있어 캐시로 끝난다.
+  useEffect(() => { if (homeA) import('./styles/coupon-card.css') }, [homeA])
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
   useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
@@ -766,7 +770,7 @@ export default function App({ initial = null }) {
             const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name), onInteract: clearLinked }
             return homeA
-              ? <Suspense key={b.name} fallback={<BrandCard {...props} />}><CouponCard {...props} photo={homePhoto} compact={homeCompact} /></Suspense>
+              ? <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
               : <BrandCard key={b.name} {...props} />
           })}
         </div>
