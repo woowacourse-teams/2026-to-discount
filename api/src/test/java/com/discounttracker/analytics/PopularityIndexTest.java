@@ -55,4 +55,30 @@ class PopularityIndexTest {
         assertEquals(0, idx.yesterdayOf("bhc"));
         assertEquals(0, idx.scoreOf("없는브랜드"));
     }
+
+    /** 다시 셀 때 새로 붙은 누름만 더 읽는다. 7일이 지난 누름은 표에서 빠진다. */
+    @Test
+    void addsNewClicksAndDropsOldOnReload(@TempDir Path dir) throws Exception {
+        Path log = dir.resolve("events.jsonl");
+        Files.writeString(log, ev("2026-10-14T12:00:00+09:00", "offer_link_click", "v1", "bhc", "") + "\n",
+                StandardCharsets.UTF_8);
+        java.util.concurrent.atomic.AtomicReference<Instant> now =
+                new java.util.concurrent.atomic.AtomicReference<>(Instant.parse("2026-10-14T06:00:00Z"));
+        Clock clock = new Clock() {
+            public ZoneId getZone() { return ZoneId.of("Asia/Seoul"); }
+            public Clock withZone(ZoneId z) { return this; }
+            public Instant instant() { return now.get(); }
+        };
+        PopularityIndex idx = new PopularityIndex(new EventLog(log.toString(), new ObjectMapper()), new ObjectMapper(), clock);
+        assertEquals(1, idx.todayOf("bhc"));
+
+        Files.writeString(log, ev("2026-10-14T13:00:00+09:00", "offer_link_click", "v2", "bhc", "") + "\n",
+                StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.APPEND);
+        idx.reload();
+        assertEquals(2, idx.todayOf("bhc"));
+
+        now.set(Instant.parse("2026-10-22T06:00:00Z"));          // 8일 뒤
+        idx.reload();
+        assertEquals(0, idx.scoreOf("bhc"));
+    }
 }

@@ -123,4 +123,36 @@ class SurveyEligibilityTest {
     }
 
     private static final int MIN_DAYS_FOR_TEST = 7;
+
+    /** 판정 사이에 붙은 줄도 센다. 집계를 메모리에 들게 된 뒤(2026-10-14) 새 줄을 놓치면 문턱을 영영 못 넘는다. */
+    @Test
+    void countsLinesAppendedAfterFirstCount() throws Exception {
+        Path log = tmp.resolve("events.jsonl");
+        Files.write(log, List.of(line("2026-08-01T10:00:00+09:00", "offer_link_click", "v_1")), StandardCharsets.UTF_8);
+        SurveyEligibility e = new SurveyEligibility(new EventLog(log.toString(), new ObjectMapper()));
+        assertEquals(1, e.count("v_1").conversions());
+
+        Files.write(log, List.of(line("2026-08-02T10:00:00+09:00", "offer_link_click", "v_1"),
+                line("2026-08-02T10:01:00+09:00", "survey_answer", "v_1")),
+                StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.APPEND);
+        SurveyEligibility.Counts c = e.count("v_1");
+        assertEquals(2, c.conversions());
+        assertEquals(2, c.days());
+        assertTrue(c.answered());
+    }
+
+    /** 원장을 갈아끼우면(더 짧은 파일) 옛 집계를 버리고 새 파일로 다시 센다. */
+    @Test
+    void recountsWhenLogIsReplaced() throws Exception {
+        Path log = tmp.resolve("events.jsonl");
+        Files.write(log, List.of(
+                line("2026-08-01T10:00:00+09:00", "offer_link_click", "v_1"),
+                line("2026-08-02T10:00:00+09:00", "offer_link_click", "v_1")), StandardCharsets.UTF_8);
+        SurveyEligibility e = new SurveyEligibility(new EventLog(log.toString(), new ObjectMapper()));
+        assertEquals(2, e.count("v_1").conversions());
+
+        Files.write(log, List.of(line("2026-08-03T10:00:00+09:00", "page_view", "v_1")), StandardCharsets.UTF_8);
+        assertEquals(0, e.count("v_1").conversions());
+        assertEquals(1, e.count("v_1").days());
+    }
 }
