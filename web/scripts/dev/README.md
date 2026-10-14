@@ -18,7 +18,8 @@
 
 CPU 4배 감속, 360px 새 방문으로 열어 긴 작업(TBT), 레이아웃 이동, LCP, 예외 수를 잰다. 주소 여럿은 번갈아 연다.
 보호된 프리뷰는 `VERCEL_BYPASS_FILE`(우회 값 파일 경로)을 준다. Lighthouse 점수는 같은 주소도 크게 흔들려
-전후 비교에 이 스크립트를 쓴다.
+전후 비교에 이 스크립트를 쓴다. `--max-tbt`, `--max-cls`를 주면 넘을 때와 페이지 예외가 있을 때 종료 코드 1이다.
+CI `web-perf`(.github/workflows/web-perf.yml)가 main 배포 뒤 운영에 이 기준으로 돈다(TBT 1,000ms, CLS 0.1, 예외 0).
 `load-interact.mjs <주소>`는 같은 조건에서 카드 펼치기, 필터, 검색, 목록 끝 스크롤을 해 시나리오별 긴 작업을 잰다. 기록: `docs/metrics/WEB-PERFORMANCE-20261014.md`.
 
 ## UI 키트 (피그마 왕복용)

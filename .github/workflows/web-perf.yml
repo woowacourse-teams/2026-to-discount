@@ -1,0 +1,37 @@
+# 운영 홈이 저사양 폰에서 다시 느려지거나 하이드레이션이 깨지면 잡는다(2026-10-14).
+# main 배포(미러) 뒤 자동으로, 또는 Actions에서 수동으로 돈다. 운영에 순차로 6번만 연다(요청 한도).
+# 기준: CPU 4배 감속 360px 새 방문, 두 화면 각 3회.
+#   - 페이지 예외 0건(쿠폰 카드 하이드레이션 실패 #421이 카드 수만큼 나던 것)
+#   - TBT 중앙값 1,000ms 이하(2026-10-14 개선 뒤 약 240ms, 러너 편차 여유)
+#   - 레이아웃 이동(CLS) 0.1 이하
+# 측정 방법과 기록은 docs/metrics/WEB-PERFORMANCE-20261014.md.
+name: web-perf
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Mirror to deploy repos]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  perf:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: web/scripts/dev }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Vercel 배포 기다리기
+        if: github.event_name == 'workflow_run'
+        run: sleep 120
+      - name: 재기
+        env:
+          EDGE_PATH: /usr/bin/google-chrome
+        run: >
+          node web/scripts/dev/load-tbt.mjs
+          "https://beggars-five.vercel.app/?home=a&dev=1"
+          "https://beggars-five.vercel.app/?home=old&dev=1"
+          --runs 3 --max-tbt 1000 --max-cls 0.1

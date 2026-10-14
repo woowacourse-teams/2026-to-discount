@@ -13,6 +13,8 @@ import { readFileSync } from 'node:fs'
 const args = process.argv.slice(2)
 const opt = (name, def) => { const i = args.indexOf(name); return i < 0 ? def : Number(args.splice(i, 2)[1]) }
 const runs = opt('--runs', 5); const cpu = opt('--cpu', 4); const wait = opt('--wait', 9000)
+// 합격 기준(CI web-perf). 주면 넘는 주소가 있을 때 종료 코드 1. 예외는 하나라도 있으면 실패(하이드레이션 실패 #421 같은 것).
+const maxTbt = opt('--max-tbt', Infinity); const maxCls = opt('--max-cls', Infinity)
 const urls = args
 if (!urls.length) { console.error('주소를 하나 이상 주세요'); process.exit(2) }
 const bypass = process.env.VERCEL_BYPASS_FILE ? readFileSync(process.env.VERCEL_BYPASS_FILE, 'utf8').trim() : null
@@ -20,7 +22,7 @@ const EDGE = process.env.EDGE_PATH || 'C:/Program Files (x86)/Microsoft/Edge/App
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 
 async function measure(url, port) {
-  const p = spawn(EDGE, ['--headless=new', '--disable-gpu', `--user-data-dir=${process.env.TMP || '/tmp'}/load-tbt-${port}`,
+  const p = spawn(EDGE, ['--headless=new', '--disable-gpu', ...(process.env.CI ? ['--no-sandbox'] : []), `--user-data-dir=${process.env.TMP || '/tmp'}/load-tbt-${port}`,
     `--remote-debugging-port=${port}`, 'about:blank'], { stdio: 'ignore' })
   try {
     let targets = []
@@ -65,3 +67,9 @@ for (const [u, rs] of out) {
   console.log(`${u}\n  TBT 중앙값 ${median(rs.map(r => r.tbt))}ms  CLS 최대 ${Math.max(...rs.map(r => r.cls))}  LCP 중앙값 ${median(rs.map(r => r.lcp))}ms  예외 ${rs.map(r => r.errors).join(',')}`)
   console.log(`  회차 TBT ${rs.map(r => r.tbt).join(',')}`)
 }
+const fails = [...out].flatMap(([u, rs]) => [
+  ...(median(rs.map(r => r.tbt)) > maxTbt ? [`${u}: TBT 중앙값 ${median(rs.map(r => r.tbt))}ms > ${maxTbt}ms`] : []),
+  ...(Math.max(...rs.map(r => r.cls)) > maxCls ? [`${u}: CLS ${Math.max(...rs.map(r => r.cls))} > ${maxCls}`] : []),
+  ...(rs.some(r => r.errors) && (maxTbt !== Infinity || maxCls !== Infinity) ? [`${u}: 페이지 예외 ${rs.map(r => r.errors).join(',')}`] : []),
+])
+if (fails.length) { console.log(`\n실패:\n- ${fails.join('\n- ')}`); process.exit(1) }

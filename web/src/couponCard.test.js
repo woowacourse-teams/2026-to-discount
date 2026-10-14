@@ -48,3 +48,11 @@ test('배지는 이름 아래 줄, 복합은 맨 끝에 (i). 동점은 쿠폰마
   assert.match(tie, /class="cc-dots"[^>]*><i class="on"><\/i><i><\/i><i><\/i>/)
   assert.doesNotMatch(tie, /class="cc-fx"/)
 })
+
+// 서버가 그린 카드를 lazy 경계로 감싸면 코드 조각이 오기 전 갱신에 React가 서버 화면을 버리고 다시 그린다
+// (React #421이 카드 수만큼, 쿠폰 쪽 TBT 2.3초, 스크롤 중 13초 멈춤, 2026-10-14). 카드는 정적으로 싣는다.
+test('서버가 그리는 카드 컴포넌트는 lazy로 싣지 않는다', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const app = await readFile(path.join(here, 'App.jsx'), 'utf8')
+  for (const card of ['CouponCard', 'BrandCard']) assert.doesNotMatch(app, new RegExp(`lazy\\(\\(\\) => import\\('\\./${card}\\.jsx'\\)\\)`), card)
+})
