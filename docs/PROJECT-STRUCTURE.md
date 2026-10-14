@@ -45,6 +45,7 @@ api/src/main/java/com/discounttracker/analytics/VisitEvent.java
 api/src/main/java/com/discounttracker/banner/Banner.java
 api/src/main/java/com/discounttracker/banner/BannerAmount.java
 api/src/main/java/com/discounttracker/banner/BannerCatalog.java
+api/src/main/java/com/discounttracker/banner/BannerOffers.java
 api/src/main/java/com/discounttracker/banner/BannerSpec.java
 api/src/main/java/com/discounttracker/banner/BannerText.java
 api/src/main/java/com/discounttracker/brand/Brand.java
@@ -352,7 +353,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 154 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 155 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 150 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -366,7 +367,7 @@ flowchart TB
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
 | `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 21 |
-| `banner/` | 당일 행사 로드와 날짜 판정 | 5 |
+| `banner/` | 당일 행사 로드와 날짜 판정 | 6 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `history/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 6 |

@@ -372,9 +372,14 @@ class BannerOfferCertaintyTest {
             """;
 
     private static OfferRecord ledgerBhc(String qualifier) {
-        return new OfferRecord("coupangeats", "bhc", 5000, qualifier, false,
-                "discount", null, "5,000원", "2026-09-22T09:00:00+09:00", null,
-                null, null, null, null, null, null, null, null, false);
+        return OfferRecord.builder("coupangeats", "bhc")
+                .amount(5000)
+                .qualifier(qualifier)
+                .offerType("discount")
+                .rawText("5,000원")
+                .capturedAt("2026-09-22T09:00:00+09:00")
+                .soldOut(false)
+                .build();
     }
 
     /** BrandComparisonService의 경고만 골라 문자열로 돌려준다. */
@@ -504,12 +509,23 @@ class BannerOfferCertaintyTest {
     void ledgerFirstComeStandsApartAndTheBiggerWins() {
         // 2026-10-01 KFC 배민: 배짱할인 선착순 5,000원(00:15)과 쿠폰함 3,000원(02:51). 한 칸이면 늦게 온
         // 3,000원이 이겼다. 선착순은 따로 서고, 같은 앱에서는 큰 쪽 하나가 보인다.
-        OfferRecord first = new OfferRecord("coupangeats", "bhc", 8000, null, false,
-                "discount", "배짱할인 주말핫딜 선착순", "8,000원", "2026-09-22T00:15:00+09:00", null,
-                null, null, null, "오전 10시 오픈 선착순", null, null, null, null, false);
-        OfferRecord box = new OfferRecord("coupangeats", "bhc", 3000, null, false,
-                "discount", "쿠폰함 보유쿠폰", "3,000원", "2026-09-22T02:51:00+09:00", null,
-                null, null, null, null, null, null, null, null, false);
+        OfferRecord first = OfferRecord.builder("coupangeats", "bhc")
+                .amount(8000)
+                .offerType("discount")
+                .section("배짱할인 주말핫딜 선착순")
+                .rawText("8,000원")
+                .capturedAt("2026-09-22T00:15:00+09:00")
+                .conditions("오전 10시 오픈 선착순")
+                .soldOut(false)
+                .build();
+        OfferRecord box = OfferRecord.builder("coupangeats", "bhc")
+                .amount(3000)
+                .offerType("discount")
+                .section("쿠폰함 보유쿠폰")
+                .rawText("3,000원")
+                .capturedAt("2026-09-22T02:51:00+09:00")
+                .soldOut(false)
+                .build();
         BannerCatalog banners = new BannerCatalog(
                 new ByteArrayResource("banners: []\n".getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
         OfferRepository repo = new OfferRepository(null) {

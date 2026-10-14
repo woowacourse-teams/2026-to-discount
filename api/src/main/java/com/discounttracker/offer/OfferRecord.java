@@ -55,29 +55,67 @@ public record OfferRecord(
         // 옛 export.json과 배너에서 세운 오퍼에는 없다(null). API는 해석하지 않고 넘긴다.
         String firstSeenAt
 ) {
-    /** 처음 본 시각 없이 만드는 20칸 호출부 호환용(배너 오퍼, 테스트). */
-    public OfferRecord(String platform, String brand, Integer amount, String qualifier,
-            boolean needsReview, String offerType, String section, String rawText,
-            String capturedAt, String screenshotPath, Integer minOrderAmount, String tierMode,
-            List<DiscountTier> tiers, String conditions, String expiresAt, String badge,
-            String link, String membership, Boolean soldOut, String kind) {
-        this(platform, brand, amount, qualifier, needsReview, offerType, section, rawText,
-                capturedAt, screenshotPath, minOrderAmount, tierMode, tiers, conditions,
-                expiresAt, badge, link, membership, soldOut, kind, null);
+    /**
+     * 이름으로 채우는 빌더. 칸이 21개이고 그중 문자열이 16칸이라, 위치로 넘기면 두 칸이 자리를 바꿔도
+     * 컴파일이 못 잡는다(2026-10-14). 원장을 읽는 Jackson은 정식 생성자를 그대로 쓴다.
+     */
+    public static Builder builder(String platform, String brand) {
+        return new Builder(platform, brand);
     }
 
-    /**
-     * 옛 19칸 호출부 호환용. {@code kind} 없이 만들면 원장 레코드처럼 discount로
-     * 읽힌다 — 기존 호출부(테스트 포함)를 전부 고치지 않아도 되게 남겨둔다.
-     */
-    public OfferRecord(String platform, String brand, Integer amount, String qualifier,
-            boolean needsReview, String offerType, String section, String rawText,
-            String capturedAt, String screenshotPath, Integer minOrderAmount, String tierMode,
-            List<DiscountTier> tiers, String conditions, String expiresAt, String badge,
-            String link, String membership, Boolean soldOut) {
-        this(platform, brand, amount, qualifier, needsReview, offerType, section, rawText,
-                capturedAt, screenshotPath, minOrderAmount, tierMode, tiers, conditions,
-                expiresAt, badge, link, membership, soldOut, null, null);
+    public static final class Builder {
+        private final String platform;
+        private final String brand;
+        private Integer amount;
+        private String qualifier;
+        private boolean needsReview;
+        private String offerType;
+        private String section;
+        private String rawText;
+        private String capturedAt;
+        private String screenshotPath;
+        private Integer minOrderAmount;
+        private String tierMode;
+        private List<DiscountTier> tiers;
+        private String conditions;
+        private String expiresAt;
+        private String badge;
+        private String link;
+        private String membership;
+        private Boolean soldOut;
+        private String kind;
+        private String firstSeenAt;
+
+        private Builder(String platform, String brand) {
+            this.platform = platform;
+            this.brand = brand;
+        }
+
+        public Builder amount(Integer v) { this.amount = v; return this; }
+        public Builder qualifier(String v) { this.qualifier = v; return this; }
+        public Builder needsReview(boolean v) { this.needsReview = v; return this; }
+        public Builder offerType(String v) { this.offerType = v; return this; }
+        public Builder section(String v) { this.section = v; return this; }
+        public Builder rawText(String v) { this.rawText = v; return this; }
+        public Builder capturedAt(String v) { this.capturedAt = v; return this; }
+        public Builder screenshotPath(String v) { this.screenshotPath = v; return this; }
+        public Builder minOrderAmount(Integer v) { this.minOrderAmount = v; return this; }
+        public Builder tierMode(String v) { this.tierMode = v; return this; }
+        public Builder tiers(List<DiscountTier> v) { this.tiers = v; return this; }
+        public Builder conditions(String v) { this.conditions = v; return this; }
+        public Builder expiresAt(String v) { this.expiresAt = v; return this; }
+        public Builder badge(String v) { this.badge = v; return this; }
+        public Builder link(String v) { this.link = v; return this; }
+        public Builder membership(String v) { this.membership = v; return this; }
+        public Builder soldOut(Boolean v) { this.soldOut = v; return this; }
+        public Builder kind(String v) { this.kind = v; return this; }
+        public Builder firstSeenAt(String v) { this.firstSeenAt = v; return this; }
+
+        public OfferRecord build() {
+            return new OfferRecord(platform, brand, amount, qualifier, needsReview, offerType, section,
+                    rawText, capturedAt, screenshotPath, minOrderAmount, tierMode, tiers, conditions, expiresAt,
+                    badge, link, membership, soldOut, kind, firstSeenAt);
+        }
     }
 
     /**

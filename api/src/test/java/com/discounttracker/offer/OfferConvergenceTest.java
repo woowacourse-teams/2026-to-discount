@@ -20,15 +20,28 @@ class OfferConvergenceTest {
     private static final LocalDate TODAY = LocalDate.of(2026, 9, 12);
 
     private static OfferRecord ledger(int amount, Integer minOrder, String capturedAt) {
-        return new OfferRecord("baemin", "빽다방", amount, null, false,
-                "discount", null, amount + "원", capturedAt, "x.jpg",
-                minOrder, null, null, null, null, null, null, null, false);
+        return OfferRecord.builder("baemin", "빽다방")
+                .amount(amount)
+                .offerType("discount")
+                .rawText(amount + "원")
+                .capturedAt(capturedAt)
+                .screenshotPath("x.jpg")
+                .minOrderAmount(minOrder)
+                .soldOut(false)
+                .build();
     }
 
     private static OfferRecord banner(int amount, Integer minOrder, String capturedAt) {
-        return new OfferRecord("baemin", "빽다방", amount, "행사", false,
-                Offer.BANNER_OFFER_TYPE, null, amount + "원", capturedAt, null,
-                minOrder, null, null, null, null, null, "https://link", null, false);
+        return OfferRecord.builder("baemin", "빽다방")
+                .amount(amount)
+                .qualifier("행사")
+                .offerType(Offer.BANNER_OFFER_TYPE)
+                .rawText(amount + "원")
+                .capturedAt(capturedAt)
+                .minOrderAmount(minOrder)
+                .link("https://link")
+                .soldOut(false)
+                .build();
     }
 
     @Test
@@ -71,9 +84,17 @@ class OfferConvergenceTest {
     }
 
     private static OfferRecord ledgerWithTiers(String tierMode, List<DiscountTier> tiers) {
-        return new OfferRecord("baemin", "빽다방", 5000, null, false,
-                "discount", null, "5,000원", "2026-09-11T00:00:00+09:00", "x.jpg",
-                15000, tierMode, tiers, null, null, null, null, null, false);
+        return OfferRecord.builder("baemin", "빽다방")
+                .amount(5000)
+                .offerType("discount")
+                .rawText("5,000원")
+                .capturedAt("2026-09-11T00:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .minOrderAmount(15000)
+                .tierMode(tierMode)
+                .tiers(tiers)
+                .soldOut(false)
+                .build();
     }
 
     @Test
@@ -116,12 +137,26 @@ class OfferConvergenceTest {
         //
         // 구간별 조건은 산문이 아니라 구조화된 값에서 와야 한다 — 쿠폰함이
         // 쿠폰마다 주는 badge가 그것이다(build_couponbox_records).
-        OfferRecord bannerRec = new OfferRecord("baemin", "피자헛", 10000, "행사", false,
-                Offer.BANNER_OFFER_TYPE, null, "10,000원", "2026-09-12T00:00:00+09:00", null,
-                24000, null, null, "푸라닭·던킨", null, null, "https://link", null, false);
-        OfferRecord ledgerRec = new OfferRecord("baemin", "피자헛", 7000, null, false,
-                "discount", null, "7,000원", "2026-09-11T00:00:00+09:00", "x.jpg",
-                22000, null, null, null, null, null, null, null, false);
+        OfferRecord bannerRec = OfferRecord.builder("baemin", "피자헛")
+                .amount(10000)
+                .qualifier("행사")
+                .offerType(Offer.BANNER_OFFER_TYPE)
+                .rawText("10,000원")
+                .capturedAt("2026-09-12T00:00:00+09:00")
+                .minOrderAmount(24000)
+                .conditions("푸라닭·던킨")
+                .link("https://link")
+                .soldOut(false)
+                .build();
+        OfferRecord ledgerRec = OfferRecord.builder("baemin", "피자헛")
+                .amount(7000)
+                .offerType("discount")
+                .rawText("7,000원")
+                .capturedAt("2026-09-11T00:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .minOrderAmount(22000)
+                .soldOut(false)
+                .build();
 
         Offer merged = Offer.from(bannerRec, TODAY).preferredOver(Offer.from(ledgerRec, TODAY));
 

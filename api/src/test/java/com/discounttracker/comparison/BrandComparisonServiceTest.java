@@ -102,16 +102,31 @@ class BrandComparisonServiceTest {
 
     private OfferRecord rec(String platform, String brand, Integer amount,
                             String qualifier, boolean needsReview) {
-        return new OfferRecord(platform, brand, amount, qualifier, needsReview,
-                "discount", null, amount == null ? "" : amount + "원",
-                "2026-07-27T14:20:00+09:00", "path.jpg", null, null, null, null, null, null, null, null, false);
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .qualifier(qualifier)
+                .needsReview(needsReview)
+                .offerType("discount")
+                .rawText(amount == null ? "" : amount + "원")
+                .capturedAt("2026-07-27T14:20:00+09:00")
+                .screenshotPath("path.jpg")
+                .soldOut(false)
+                .build();
     }
 
     private OfferRecord recWithConditions(String platform, String brand, Integer amount,
                                           boolean needsReview, Integer minOrder, String conditions) {
-        return new OfferRecord(platform, brand, amount, null, needsReview,
-                "discount", null, amount == null ? "" : amount + "원",
-                "2026-07-29T18:00:00+09:00", "path2.jpg", minOrder, null, null, conditions, null, null, null, null, false);
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .needsReview(needsReview)
+                .offerType("discount")
+                .rawText(amount == null ? "" : amount + "원")
+                .capturedAt("2026-07-29T18:00:00+09:00")
+                .screenshotPath("path2.jpg")
+                .minOrderAmount(minOrder)
+                .conditions(conditions)
+                .soldOut(false)
+                .build();
     }
 
     @Test
@@ -261,9 +276,15 @@ class BrandComparisonServiceTest {
         // 확정 특정메뉴라도 품절이면 4,999원을 안 낸다. 제외 축을 확실성보다 먼저 물면서
         // 확정 경로도 같이 바뀐 자리다(2026-09-23 fix round 4).
         var result = serviceWith(
-                List.of(new OfferRecord("baemin", "품절브랜드", 14000, "특정메뉴", false,
-                        "discount", null, "14000원", "2026-07-27T14:20:00+09:00", "path.jpg",
-                        null, null, null, null, null, null, null, null, true)),
+                List.of(OfferRecord.builder("baemin", "품절브랜드")
+                        .amount(14000)
+                        .qualifier("특정메뉴")
+                        .offerType("discount")
+                        .rawText("14000원")
+                        .capturedAt("2026-07-27T14:20:00+09:00")
+                        .screenshotPath("path.jpg")
+                        .soldOut(true)
+                        .build()),
                 "brands: {}").compare();
         assertEquals(1, result.size());
         assertNull(result.get(0).maxConfirmedAmount());
@@ -275,9 +296,15 @@ class BrandComparisonServiceTest {
         // own에 품절인 특정메뉴 행이 4,999원 천장을 세우던 구멍. 제외 축을 확실성보다
         // 먼저 묻는다(2026-09-23 fix round 4). /api/test 픽스처로 실제로 들어온다.
         var result = serviceWith(
-                List.of(new OfferRecord("own", "자사브랜드", 14000, "특정메뉴", false,
-                        "discount", null, "14000원", "2026-07-27T14:20:00+09:00", "path.jpg",
-                        null, null, null, null, null, null, null, null, true)),
+                List.of(OfferRecord.builder("own", "자사브랜드")
+                        .amount(14000)
+                        .qualifier("특정메뉴")
+                        .offerType("discount")
+                        .rawText("14000원")
+                        .capturedAt("2026-07-27T14:20:00+09:00")
+                        .screenshotPath("path.jpg")
+                        .soldOut(true)
+                        .build()),
                 "brands: {}").compare();
         assertEquals(1, result.size());
         assertNull(result.get(0).maxConfirmedAmount());
@@ -391,10 +418,21 @@ class BrandComparisonServiceTest {
     @Test
     void carriesDetailFieldsThroughToOffer() {
         // 상세 패널이 읽는 값 — 서비스는 해석하지 않고 그대로 흘려보낸다.
-        OfferRecord detailed = new OfferRecord("yogiyo", "굽네치킨", 7000, "최대", true,
-                "discount", null, "최대 7,000원 할인", "2026-07-27T14:25:00+09:00",
-                "x.jpg", 15000, null, List.of(new DiscountTier(15000, 3000, null, null, null, null, null)), "1일 1회",
-                "2026-08-31", "선착순 품절", null, null, true);
+        OfferRecord detailed = OfferRecord.builder("yogiyo", "굽네치킨")
+                .amount(7000)
+                .qualifier("최대")
+                .needsReview(true)
+                .offerType("discount")
+                .rawText("최대 7,000원 할인")
+                .capturedAt("2026-07-27T14:25:00+09:00")
+                .screenshotPath("x.jpg")
+                .minOrderAmount(15000)
+                .tiers(List.of(new DiscountTier(15000, 3000, null, null, null, null, null)))
+                .conditions("1일 1회")
+                .expiresAt("2026-08-31")
+                .badge("선착순 품절")
+                .soldOut(true)
+                .build();
         Offer offer = serviceWith(List.of(detailed), "brands: {}")
                 .compare().get(0).offers().get(0);
         assertEquals(15000, offer.minOrderAmount());
@@ -410,12 +448,17 @@ class BrandComparisonServiceTest {
     void carriesTierModeThroughToOffer() {
         // 프론트가 "겹치는 쿠폰이 더 있다"(+a 표시)를 판단하는 근거라
         // 응답까지 그대로 나가야 한다.
-        OfferRecord cumulative = new OfferRecord("yogiyo", "굽네치킨", 5250, "최적", false,
-                "discount", null, "최적 5,250원", "2026-07-31T10:00:00+09:00",
-                "x.jpg", null, "cumulative", List.of(
-                        new DiscountTier(17000, 4000, null, null, null, null, null),
-                        new DiscountTier(25000, 1250, 5, 3000, null, null, null)),
-                null, null, null, null, null, false);
+        OfferRecord cumulative = OfferRecord.builder("yogiyo", "굽네치킨")
+                .amount(5250)
+                .qualifier("최적")
+                .offerType("discount")
+                .rawText("최적 5,250원")
+                .capturedAt("2026-07-31T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .tierMode("cumulative")
+                .tiers(List.of( new DiscountTier(17000, 4000, null, null, null, null, null), new DiscountTier(25000, 1250, 5, 3000, null, null, null)))
+                .soldOut(false)
+                .build();
         Offer offer = serviceWith(List.of(cumulative), "brands: {}")
                 .compare().get(0).offers().get(0);
         assertEquals("cumulative", offer.tierMode());
@@ -456,9 +499,15 @@ class BrandComparisonServiceTest {
     /** 종료일·캡처시각을 지정하는 레코드. */
     private OfferRecord recExpiring(String platform, String brand, Integer amount,
                                     String expiresAt, String capturedAt) {
-        return new OfferRecord(platform, brand, amount, null, false,
-                "discount", null, amount + "원", capturedAt, "path.jpg",
-                null, null, null, null, expiresAt, null, null, null, false);
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .offerType("discount")
+                .rawText(amount + "원")
+                .capturedAt(capturedAt)
+                .screenshotPath("path.jpg")
+                .expiresAt(expiresAt)
+                .soldOut(false)
+                .build();
     }
 
     @Test
@@ -554,9 +603,16 @@ class BrandComparisonServiceTest {
 
     private OfferRecord recWithTiers(String platform, String brand, Integer amount,
                                      String expiresAt, List<DiscountTier> tiers) {
-        return new OfferRecord(platform, brand, amount, null, false,
-                "discount", null, amount + "원", "2026-08-01T10:00:00+09:00", "path.jpg",
-                null, null, tiers, null, expiresAt, null, null, null, false);
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .offerType("discount")
+                .rawText(amount + "원")
+                .capturedAt("2026-08-01T10:00:00+09:00")
+                .screenshotPath("path.jpg")
+                .tiers(tiers)
+                .expiresAt(expiresAt)
+                .soldOut(false)
+                .build();
     }
 
     @Test

@@ -11,9 +11,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class OfferCertaintyTest {
 
     private static OfferRecord record(String qualifier) {
-        return new OfferRecord("baemin", "교촌치킨", 5000, qualifier, false, null, null, null,
-                "2026-09-22T12:00:00+09:00", null, 20000, null, null, null, null, null, null,
-                null, false);
+        return OfferRecord.builder("baemin", "교촌치킨")
+                .amount(5000)
+                .qualifier(qualifier)
+                .capturedAt("2026-09-22T12:00:00+09:00")
+                .minOrderAmount(20000)
+                .soldOut(false)
+                .build();
     }
 
     @Test
