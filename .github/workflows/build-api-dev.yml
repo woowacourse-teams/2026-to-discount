@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   load-test-preflight:
-    if: github.event_name == 'workflow_dispatch' && inputs.load_test_preflight && github.ref == 'refs/heads/codex/api-load-test'
+    if: github.event_name == 'workflow_dispatch' && inputs.load_test_preflight && github.ref == 'refs/heads/dev'
     environment: development
     runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
     timeout-minutes: 5
