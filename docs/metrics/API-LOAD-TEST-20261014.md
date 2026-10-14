@@ -1,6 +1,13 @@
 # API 부하 테스트 설계와 개선 전 측정 보고서
 
 상태: 사용자 요청으로 개선 후 측정 보류. 개선 전 3회 완료, 개발 서버 임시 설정 원복 확인.
+후속 진행: 사용자 승인으로 PR #78 dev 병합 완료. 압축 개선 정상 개발 배포 및 GitHub 러너 측정 실행 중.
+측정 실행: https://github.com/woowacourse-teams/2026-to-discount/actions/runs/38560064544.
+개선 코드 API CI와 감시 테스트 12개가 GitHub에서도 통과했다.
+첫 GitHub 실행은 워밍업에서 무효로 종료했다. HTTP 실패는 0/30이었지만 생성기가
+Accept-Encoding을 보내지 않아 brands 압축 검사만 실패했다. 개발 API 자체 오류는 아니다.
+명시적 gzip 요청 한 건에서 HTTP 200, Content-Encoding gzip 및 JSON 구조를 확인했으며
+시나리오에 Accept-Encoding gzip을 추가해 재실행한다. 이는 기존 기준 요청 헤더와의 추가 차이다.
 설계: [api-load-test.md](../design/api-load-test.md).
 
 ## 예상 트래픽과 목표의 근거
@@ -105,6 +112,8 @@ API의 JSON 압축 협상을 활성화하고, gzip을 지원하지 않는 클라
 - 전체 API 테스트 431개와 ./gradlew test build 통과.
 - 시간 파싱, 최근 실패 집계, 메모리 중단, 감시 실패 시 프로세스 종료 등 감시 테스트 8개 통과.
 - 기존 Check API의 Gradle 테스트와 새 감시 테스트 실행 단계로 CI 회귀 검증을 연결했다. GitHub에서의 새 브랜치 CI 실행은 아직 미수행이다.
+- 후속 PR #78의 [Check API](https://github.com/woowacourse-teams/2026-to-discount/actions/runs/38559914156)에서
+  Gradle 테스트 및 빌드, 감시 테스트 12개가 통과했다. 위 미수행 표기는 기준 보고서 작성 당시의 상태다.
 
 | 테스트 위치 | 검증 내용 | 로컬 결과 |
 |---|---|---|
