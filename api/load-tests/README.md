@@ -38,6 +38,7 @@ dev 환경 보호와 배포 동시 실행 방지는 유지한다. 사전 점검�
 개발 데이터 디렉터리는 러너에게 비공개이므로 데이터 파일 대신 실제 조회 응답 본문의 해시를 감시한다.
 JAR 해시 및 PID는 별도로 비교하며 감시 조회는 두 경로에 합계 약 0.13 RPS를 추가한다.
 GitHub-hosted Ubuntu 러너의 cloud-run.py는 워밍업과 30 RPS 5분 3회를 실행한다.
+생성기는 Accept-Encoding gzip을 명시하고 brands의 압축 협상 및 JSON 구조를 확인한다.
 두 작업은 현재 실행의 GitHub API 작업 상태로 서로 감시하며 서버 입력 변경 또는 감시 실패 시 중단한다.
 서버 메모리는 서버 감시가, 요청 실패 및 p99와 미발행은 생성기가 판단한다.
 자료는 load-server-baseline, load-server-observations, load-client-results 아티팩트로 14일 보존한다.

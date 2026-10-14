@@ -30,7 +30,10 @@ export default function () {
   const tags = { endpoint, run: __ENV.RUN_ID || 'manual' };
   const start = Date.now();
   const response = http.get(`${base}/api/${endpoint}`, {
-    timeout: '5s', tags, headers: { 'User-Agent': `beggars-load-test/${__ENV.RUN_ID || 'manual'}` },
+    timeout: '5s', tags, headers: {
+      'User-Agent': `beggars-load-test/${__ENV.RUN_ID || 'manual'}`,
+      'Accept-Encoding': 'gzip',
+    },
   });
   total.add(Date.now() - start, tags);
   let valid = response.status === 200;
