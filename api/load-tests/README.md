@@ -40,7 +40,19 @@ JAR 해시 및 PID는 별도로 비교하며 감시 조회는 두 경로에 합�
 GitHub-hosted Ubuntu 러너의 cloud-run.py는 워밍업과 30 RPS 5분 3회를 실행한다.
 생성기는 Accept-Encoding gzip을 명시하고 brands의 압축 협상 및 JSON 구조를 확인한다.
 두 작업은 현재 실행의 GitHub API 작업 상태로 서로 감시하며 서버 입력 변경 또는 감시 실패 시 중단한다.
+서버 감시 실패는 해당 작업을 실패로 종료한다. 생성기는 다음 15초 점검에서 감지해 부하를 종료한다.
 서버 메모리는 서버 감시가, 요청 실패 및 p99와 미발행은 생성기가 판단한다.
 자료는 load-server-baseline, load-server-observations, load-client-results 아티팩트로 14일 보존한다.
 기존 맥북 생성기 결과와 네트워크가 다르므로 전후 차이를 압축만의 인과 효과로 해석하지 않는다.
 이 경로는 systemd 임시 설정이나 sudo 권한을 사용하지 않으며 배포된 압축 설정은 개발 환경에 유지한다.
+
+## 러너의 개선 전 기준 측정
+
+dev에서 `load_test_before=true`만 선택한다. 같은 SHA의 정상 push 배포 아티팩트가 없으면 시작하지 않는다.
+API 테스트 후 빌드 단계에서만 compression.enabled를 false로 바꾼 측정용 JAR를 만든다.
+아티팩트 manifest에 compression_baseline=true를 남기며 저장소 기본 설정은 true로 유지한다.
+기존 제한된 개발 배포 명령으로 적용하고 gzip 요청에도 압축되지 않은 응답인지 확인한다.
+워밍업과 30 RPS 5분 3회 및 서버 감시 후 성공/실패와 무관하게 정상 push 아티팩트로 복원한다.
+복원 이후 gzip 및 배포 SHA를 검증한다. 실행을 강제 취소하면 복원 작업까지 취소될 수 있으므로
+restore-compression 작업의 성공 여부를 반드시 확인하고 실패 시 정상 dev 배포를 별도로 실행한다.
+이전 개선 후 실행과 모두 GitHub-hosted 방식이지만 서로 다른 머신과 경로의 변동이 남는다.

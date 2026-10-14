@@ -34,14 +34,13 @@ class ActionsRunnerTest(unittest.TestCase):
         with patch.object(cloud, 'job', return_value={'status': 'completed'}):
             with self.assertRaises(RuntimeError): cloud.monitor_ready()
 
-    def test_changed_server_inputs_cancel_current_workflow(self):
+    def test_changed_server_inputs_fail_monitor_without_cancelling_restoration(self):
         before = {'hashes': {'jar': 'old'}, 'unit': 'unchanged', 'compression_override': None}
         after = dict(before, hashes={'jar': 'new'})
         with tempfile.TemporaryDirectory() as directory:
             (Path(directory) / 'before.json').write_text(json.dumps(before))
-            with patch('sys.argv', ['server-monitor.py', directory]), patch.object(server, 'snapshot', return_value=after), patch.object(server, 'request') as cancel:
+            with patch('sys.argv', ['server-monitor.py', directory]), patch.object(server, 'snapshot', return_value=after):
                 with self.assertRaises(RuntimeError): server.main()
-                cancel.assert_called_once_with('/cancel', 'POST')
                 self.assertTrue((Path(directory) / 'invalid-run.json').exists())
 
 

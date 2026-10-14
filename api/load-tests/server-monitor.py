@@ -1,10 +1,10 @@
-"""Read-only server guard. Cancels its workflow on failure; needs no sudo."""
+"""Read-only server guard. Fails its job on failure; needs no sudo."""
 import argparse
 import json
 from pathlib import Path
 import subprocess
 import time
-from actions_api import job, request
+from actions_api import job
 from run import Guard
 
 HERE = Path(__file__).resolve().parent
@@ -43,8 +43,8 @@ def main():
         raise RuntimeError('Monitoring deadline exceeded')
     except BaseException as error:
         (args.directory / 'invalid-run.json').write_text(json.dumps({'reason': str(error)}))
-        try: request('/cancel', 'POST')
-        except Exception as cancel_error: print('Cancellation failed:', type(cancel_error).__name__, flush=True)
+        # Let the generator detect this job's failure within its next 15-second check.
+        # Do not cancel the workflow: its restoration job must still execute.
         raise
 
 
