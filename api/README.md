@@ -37,12 +37,13 @@
 
 | 무엇 | 길 |
 | --- | --- |
-| 코드 | mono `main` push, 미러 저장소 `nn98/delivery-discount-api`, 운영 서버에 붙은 러너가 `./gradlew build`(테스트 포함), `systemctl restart`, `/api/brands` 헬스체크. 헬스체크가 30초 안에 안 되면 이전 jar로 되돌린다 |
+| 코드 | mono `main` push, 미러 저장소 `nn98/delivery-discount-api`, 운영 서버에 붙은 러너(미러의 워크플로를 실행하는 기계)가 `./gradlew build`(테스트 포함), `systemctl restart`, `/api/brands` 헬스체크. 헬스체크가 30초 안에 안 되면 이전 jar로 되돌린다 |
 | 오퍼와 이력 | tracker 수집 8단계(`deploy_export.py`)가 서버에 올리고 reload한다. 다른 데이터 배포 경로는 없다 |
 | 배너 | 운영 콘솔(`/ops/`, beggars-ops)이 서버의 `banners.yml`을 고치고 reload한다 |
 
-재시작하는 동안 약 5초 응답이 끊긴다. 서버 앞단은 nginx(TLS 종료)이고 systemd 유닛
-`delivery-discount-api.service`가 jar를 띄운다.
+재시작하는 동안 약 5초 응답이 끊긴다. Spring Boot 4.1부터는 내릴 때 처리 중인 요청을 끝내고 내린다
+(graceful shutdown, [ADR-012](docs/decisions/ADR-012-spring-boot-4-jackson-3.md)). 서버 앞단은 HTTPS를 받아
+넘겨주는 웹 서버 nginx이고, 리눅스 서비스 관리자 systemd의 유닛 `delivery-discount-api.service`가 jar를 띄운다.
 
 ## 구조
 
