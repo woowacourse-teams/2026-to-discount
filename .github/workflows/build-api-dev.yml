@@ -8,6 +8,11 @@ on:
       - 'docs/contracts/**'
       - '.github/workflows/build-api-dev.yml'
   workflow_dispatch:
+    inputs:
+      load_test_preflight:
+        description: '개발 부하 테스트 러너 접근 및 권한 점검 (배포 없음)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -17,9 +22,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  load-test-preflight:
+    if: github.event_name == 'workflow_dispatch' && inputs.load_test_preflight && github.ref == 'refs/heads/codex/api-load-test'
+    environment: development
+    runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check development host access without changing settings
+        run: python3 api/load-tests/runner-preflight.py
+
   build:
     # 수동 실행도 dev만 허용한다.
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/dev' && !inputs.load_test_preflight
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
