@@ -195,6 +195,7 @@ web/src/BrandCard.jsx
 web/src/BrandGridSkeleton.jsx
 web/src/BrandSuggestions.jsx
 web/src/CouponCard.jsx
+web/src/ErrorBoundary.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
 web/src/HiddenBrandsSheet.jsx
@@ -289,6 +290,7 @@ web/src/styles/topbar-overrides.css
 web/src/surveyDismiss.js
 web/src/surveyDismiss.test.js
 web/src/surveyQuestions.js
+web/src/telemetry.js
 web/src/useBrandAutocomplete.js
 web/src/variant.js
 web/vercel.json
@@ -341,7 +343,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 154 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 138 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 140 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -391,6 +393,7 @@ HTTP 경계:
 | `BrandGridSkeleton.jsx` | 로딩 중 카드 자리지킴 |
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `CouponCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `ErrorBoundary.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합) |
 | `HiddenBrandsSheet.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -466,6 +469,7 @@ HTTP 경계:
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `telemetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useBrandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `variant.js` | 화면 안 상수(a 고정, A/B 종료 2026-09-15) |
 
