@@ -421,7 +421,7 @@ async function main() {
     '# 자산은 색인 대상이 아닌데 요청 수의 대부분이다.',
     'Disallow: /logos/',
     'Disallow: /platform-icons/',
-    'Disallow: /assets/',
+    // /assets/(JS, CSS)는 막지 않는다. 구글이 화면을 그려 보려면 받아야 하고, 1년 캐시라 요청도 적다(2026-10-14).
     'Disallow: /links/',
     '',
     ...CRAWL_DELAY_BOTS.flatMap((bot) => [`User-agent: ${bot}`, 'Crawl-delay: 10', '']),
