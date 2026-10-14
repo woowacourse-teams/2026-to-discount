@@ -254,13 +254,15 @@
     "offers",
     "popularity",
     "popularityToday",
+    "popularityYesterday",
     "searchAliases",
     "shortName"
   ],
   "unreadByWeb": {
     "brand": [
       "maxConfirmedAmount",
-      "popularityToday"
+      "popularityToday",
+      "popularityYesterday"
     ],
     "why": "응답에는 있지만 웹이 안 읽는다. maxConfirmedAmount는 죽은 칸(정렬은 웹이 오퍼에서 다시 센다). popularityToday는 오늘 순위 화면을 붙이기 전이다(2026-10-14)."
   }

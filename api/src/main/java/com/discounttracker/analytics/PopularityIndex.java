@@ -47,6 +47,7 @@ public class PopularityIndex {
     private final Clock clock;
     private volatile Map<String, Integer> scores = Map.of();     // 이번 주(7일) 사람 수
     private volatile Map<String, Integer> today = Map.of();      // 오늘(24시간) 사람 수
+    private volatile Map<String, Integer> yesterday = Map.of();  // 그 전 24시간(24~48시간 전). 오늘 인기 등락용(2026-10-14)
     private volatile Instant computedAt = Instant.EPOCH;
 
     public PopularityIndex(EventLog eventLog, ObjectMapper mapper, Clock clock) {
@@ -67,6 +68,12 @@ public class PopularityIndex {
         return today.getOrDefault(brand, 0);
     }
 
+    /** 브랜드 대표명 → 그 전 24시간(24~48시간 전) 누른 사람 수. 없으면 0. */
+    public int yesterdayOf(String brand) {
+        refreshIfStale();
+        return yesterday.getOrDefault(brand, 0);
+    }
+
     public Map<String, Integer> scores() {
         refreshIfStale();
         return scores;
@@ -78,6 +85,8 @@ public class PopularityIndex {
         Instant now = clock.instant();
         Instant weekSince = now.minus(WEEK);
         Instant daySince = now.minus(DAY);
+        Instant prevSince = now.minus(DAY.multipliedBy(2));
+        Map<String, Set<String>> prev = new HashMap<>();
         if (Files.exists(path)) {
             try (BufferedReader r = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
                 String line;
@@ -101,6 +110,7 @@ public class PopularityIndex {
                     if (at == null || at.isBefore(weekSince)) continue;
                     week.computeIfAbsent(brand, k -> new HashSet<>()).add(visitor);
                     if (!at.isBefore(daySince)) day.computeIfAbsent(brand, k -> new HashSet<>()).add(visitor);
+                    else if (!at.isBefore(prevSince)) prev.computeIfAbsent(brand, k -> new HashSet<>()).add(visitor);
                 }
             } catch (IOException e) {
                 log.warn("events.jsonl을 읽지 못해 인기 점수를 비운다: {}", e.toString());
@@ -108,6 +118,7 @@ public class PopularityIndex {
         }
         scores = counts(week);
         today = counts(day);
+        yesterday = counts(prev);
         computedAt = clock.instant();
     }
 

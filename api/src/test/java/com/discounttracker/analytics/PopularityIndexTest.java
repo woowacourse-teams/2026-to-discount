@@ -30,6 +30,8 @@ class PopularityIndexTest {
                 ev("2026-10-14T12:01:00+09:00", "offer_link_click", "v1", "bhc", ""),
                 ev("2026-10-14T12:02:00+09:00", "offer_link_click", "v1", "bhc", ""),
                 ev("2026-10-14T12:03:00+09:00", "banner_click", "v2", "bhc", ""),
+                // 어제(24~48시간 전): 등락용 yesterday와 이번 주에 든다
+                ev("2026-10-13T10:00:00+09:00", "offer_link_click", "v9", "BBQ", ""),
                 // 사흘 전: 이번 주에만 든다
                 ev("2026-10-11T12:00:00+09:00", "offer_link_click", "v3", "bhc", ""),
                 ev("2026-10-11T12:00:00+09:00", "offer_link_click", "v3", "BBQ", ""),
@@ -48,7 +50,9 @@ class PopularityIndexTest {
         assertEquals(2, idx.todayOf("bhc"));
         assertEquals(3, idx.scoreOf("bhc"));      // v1, v2, v3
         assertEquals(0, idx.todayOf("BBQ"));
-        assertEquals(1, idx.scoreOf("BBQ"));      // 크롤러 v8은 안 센다
+        assertEquals(2, idx.scoreOf("BBQ"));      // v3, v9. 크롤러 v8은 안 센다
+        assertEquals(1, idx.yesterdayOf("BBQ"));  // v9만
+        assertEquals(0, idx.yesterdayOf("bhc"));
         assertEquals(0, idx.scoreOf("없는브랜드"));
     }
 }
