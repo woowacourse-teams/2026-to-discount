@@ -443,7 +443,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             <div className="cc-sheet__grip" aria-hidden="true" />
             <div className="cc-sheet__head">
               <BrandLogo name={brand.name} size={40} />
-              <strong>{brand.name}</strong>
+              <strong>{brand.shortName ?? brand.name}</strong>
               <button type="button" className="cc-sheet__close" aria-label="닫기" onClick={() => setSheet(false)}>×</button>
             </div>
             <div className="cc-sheet__body">
