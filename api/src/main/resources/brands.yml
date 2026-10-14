@@ -1239,10 +1239,12 @@ brands:
     category: chicken
   크리스피크림도넛:
     searchAliases: [크리스피크림도넛]
+    aliases: [크리스피크림]
     menus: [오리지널 글레이즈드]
     category: cafe
   엔제리너스:
     searchAliases: [엔제리너스]
+    aliases: [엔제리너스커피]
     category: cafe
   이재모피자:
     searchAliases: [이재모피자]
@@ -1261,3 +1263,16 @@ brands:
     searchAliases: [스노우폭스플라워]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=1657
+  # --- 2026-10-14 원장에 있던 미등록 브랜드 ---
+  강정천하:
+    searchAliases: [강정천하, 강정 천하]
+    category: chicken
+  곱분이곱창:
+    searchAliases: [곱분이곱창, 곱분이]
+    category: korean
+  땅스즉석떡볶이:
+    searchAliases: [땅스즉석떡볶이, 땅스 떡볶이]
+    category: snack
+  이마트에브리데이:
+    searchAliases: [이마트에브리데이, 이마트 에브리데이, 이마트슈퍼]
+    category: convenience
