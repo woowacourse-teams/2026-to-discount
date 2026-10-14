@@ -15,3 +15,9 @@ test('등락은 그 전 24시간 순위와의 차이, 없던 브랜드는 null',
   // 어제 순위: b 1, d 2, a 3. 오늘: a 1, b 2, c 3, d 4
   assert.deepEqual(got.map((x) => [x.brand.name, x.rank, x.change]), [['a', 1, 2], ['b', 2, -1], ['c', 3, null], ['d', 4, -2]])
 })
+
+test('같은 사람 수는 같은 순위, 다음 순위는 그만큼 건너뛴다(어제 둘 다 1위, 오늘 둘 다 2위면 내림 1)', () => {
+  const b = (name, popularityToday, popularityYesterday = 0) => ({ name, popularityToday, popularityYesterday })
+  const got = popularToday([b('a', 9), b('b', 7, 5), b('c', 7, 5), b('d', 2)])
+  assert.deepEqual(got.map((x) => [x.brand.name, x.rank, x.change]), [['a', 1, null], ['b', 2, -1], ['c', 2, -1], ['d', 4, null]])
+})

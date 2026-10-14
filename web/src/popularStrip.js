@@ -6,12 +6,16 @@
 export const STRIP_SIZE = 5
 export const STRIP_MIN = 3
 
-/** key 값이 0보다 큰 브랜드를 많은 순으로 세운 순위표. 이름 → 1부터 센 순위. */
+/**
+ * key 값이 0보다 큰 브랜드를 많은 순으로 세운 순위표. 이름 → 순위.
+ * 같은 값이면 같은 순위다(1, 2, 2, 4). 목록 순서로 동점을 가르면 띠와 카드 목록이
+ * 서로 다른 순위를 보였다(2026-10-14, 토핑몬스터피자와 교촌치킨 둘 다 7명).
+ */
 export function ranks(brands, key) {
-  return new Map([...(brands ?? [])]
-    .filter((b) => (b[key] ?? 0) > 0)
-    .sort((a, b) => b[key] - a[key])
-    .map((b, i) => [b.name, i + 1]))
+  const sorted = [...(brands ?? [])].filter((b) => (b[key] ?? 0) > 0).sort((a, b) => b[key] - a[key])
+  const out = new Map()
+  sorted.forEach((b, i) => out.set(b.name, i > 0 && sorted[i - 1][key] === b[key] ? out.get(sorted[i - 1].name) : i + 1))
+  return out
 }
 
 /**
