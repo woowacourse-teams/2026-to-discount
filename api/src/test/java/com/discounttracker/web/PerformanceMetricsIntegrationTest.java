@@ -1,10 +1,9 @@
 package com.discounttracker.web;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalManagementPort;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
@@ -18,38 +17,50 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = "management.server.port=0")
-@AutoConfigureObservability
+@AutoConfigureMetrics
 @Import(PerformanceMetricsIntegrationTest.Probes.class)
 class PerformanceMetricsIntegrationTest {
-    private final TestRestTemplate http = new TestRestTemplate();
+    private final java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
     @LocalServerPort int apiPort;
     @LocalManagementPort int metricsPort;
 
     private String api(String path) { return "http://127.0.0.1:" + apiPort + path; }
     private String metrics(String path) { return "http://127.0.0.1:" + metricsPort + path; }
 
+    // Boot 4에서 TestRestTemplate이 별도 모듈로 갔다(4.2부터 폐기 예정). 상태와 본문만 보면 되니 JDK 클라이언트로 충분하다.
+    private java.net.http.HttpResponse<String> get(String url) {
+        try {
+            return client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(url)).build(),
+                    java.net.http.HttpResponse.BodyHandlers.ofString());
+        } catch (java.io.IOException | InterruptedException e) {
+            throw new IllegalStateException(url, e);
+        }
+    }
+
+    private int status(String url) { return get(url).statusCode(); }
+
     @Test
     void exposesPrometheusOnlyOnSeparateManagementPort() {
         assertNotEquals(apiPort, metricsPort);
-        assertEquals(HttpStatus.NOT_FOUND, http.getForEntity(api("/actuator/prometheus"), String.class).getStatusCode());
-        assertEquals(HttpStatus.NOT_FOUND, http.getForEntity(metrics("/actuator/env"), String.class).getStatusCode());
-        assertEquals(HttpStatus.NOT_FOUND, http.getForEntity(metrics("/actuator/health"), String.class).getStatusCode());
-        assertEquals(HttpStatus.NOT_FOUND, http.getForEntity(metrics("/api/brands"), String.class).getStatusCode());
-        assertEquals(HttpStatus.OK, http.getForEntity(metrics("/actuator/prometheus"), String.class).getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND.value(), status(api("/actuator/prometheus")));
+        assertEquals(HttpStatus.NOT_FOUND.value(), status(metrics("/actuator/env")));
+        assertEquals(HttpStatus.NOT_FOUND.value(), status(metrics("/actuator/health")));
+        assertEquals(HttpStatus.NOT_FOUND.value(), status(metrics("/api/brands")));
+        assertEquals(HttpStatus.OK.value(), status(metrics("/actuator/prometheus")));
     }
 
     @Test
     void recordsRequestsErrorsHistogramAndJvmResourcesWithoutIdentifiers() {
-        assertEquals(HttpStatus.OK, http.getForEntity(api("/api/brands"), String.class).getStatusCode());
-        assertEquals(HttpStatus.OK, http.getForEntity(api("/api/banners"), String.class).getStatusCode());
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,
-                http.getForEntity(api("/metrics-test/failure"), String.class).getStatusCode());
+        assertEquals(HttpStatus.OK.value(), status(api("/api/brands")));
+        assertEquals(HttpStatus.OK.value(), status(api("/api/banners")));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                status(api("/metrics-test/failure")));
         for (String id : new String[]{"private-id-one", "private-id-two"}) {
-            assertEquals(HttpStatus.OK, http.getForEntity(api("/metrics-test/items/" + id + "?visitorId=private-visitor"), String.class).getStatusCode());
+            assertEquals(HttpStatus.OK.value(), status(api("/metrics-test/items/" + id + "?visitorId=private-visitor")));
         }
-        var response = http.getForEntity(metrics("/actuator/prometheus"), String.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        String scrape = response.getBody();
+        var response = get(metrics("/actuator/prometheus"));
+        assertEquals(HttpStatus.OK.value(), response.statusCode());
+        String scrape = response.body();
         assertNotNull(scrape);
         for (String metric : new String[]{"http_server_requests_seconds_count", "http_server_requests_seconds_sum",
                 "http_server_requests_seconds_bucket", "process_cpu_usage", "jvm_memory_used_bytes",

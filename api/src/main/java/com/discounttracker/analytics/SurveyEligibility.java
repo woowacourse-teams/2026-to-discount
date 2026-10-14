@@ -1,7 +1,9 @@
 package com.discounttracker.analytics;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -38,7 +40,7 @@ public class SurveyEligibility {
     public static final int MIN_CONVERSIONS = 5;
 
     private final EventLog eventLog;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults().build();
 
     public SurveyEligibility(EventLog eventLog) {
         this.eventLog = eventLog;
@@ -155,7 +157,7 @@ public class SurveyEligibility {
         if (line == null || line.isBlank()) return null;
         try {
             return mapper.readTree(line);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             // 한 줄이 깨져도 나머지는 멀쩡하다 — JSONL을 쓴 이유가 이것이다.
             return null;
         }
@@ -163,6 +165,6 @@ public class SurveyEligibility {
 
     private static String text(JsonNode node, String field) {
         JsonNode v = node.get(field);
-        return v == null || v.isNull() ? null : v.asText();
+        return v == null || v.isNull() ? null : v.asString();
     }
 }

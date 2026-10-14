@@ -1,7 +1,8 @@
 package com.discounttracker.analytics;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -133,18 +134,18 @@ public class PopularityIndex {
         JsonNode n;
         try {
             n = mapper.readTree(line);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             return;                                                 // 깨진 줄 하나가 표 전체를 막지 않는다
         }
-        String event = n.path("event").asText(null);
+        String event = n.path("event").asString(null);
         if (event == null || !EVENTS.contains(event)) return;
         // 개발 접속과 크롤러는 다른 집계처럼 뺀다(SurveyEligibility와 같은 판정, 2026-10-14).
         if (n.path("dev").asBoolean(false) || n.hasNonNull("bot")) return;
-        String brand = n.path("props").path("brand").asText(null);
+        String brand = n.path("props").path("brand").asString(null);
         if (brand == null || brand.isBlank() || "none".equals(brand)) return;
-        String visitor = n.path("visitorId").asText(null);
+        String visitor = n.path("visitorId").asString(null);
         if (visitor == null || visitor.isBlank()) return;
-        Instant at = parse(n.path("ts").asText(null));
+        Instant at = parse(n.path("ts").asString(null));
         if (at == null || at.isBefore(clock.instant().minus(WEEK))) return;
         clicks.add(new Click(at, brand, visitor));
     }

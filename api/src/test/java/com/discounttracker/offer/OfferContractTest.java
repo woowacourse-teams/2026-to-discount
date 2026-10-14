@@ -1,14 +1,14 @@
 package com.discounttracker.offer;
 
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import com.discounttracker.comparison.BrandComparison;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.io.InputStream;
 import java.time.LocalDate;
@@ -26,10 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class OfferContractTest {
 
-    private static final ObjectMapper READ = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private static final ObjectMapper JSON = Jackson2ObjectMapperBuilder.json()
-            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).build();
+    private static final ObjectMapper READ = JsonMapper.builderWithJackson2Defaults()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
+    private static final ObjectMapper JSON = JsonMapper.builderWithJackson2Defaults()
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build();
 
     private static JsonNode contract() throws Exception {
         try (InputStream in = OfferContractTest.class.getResourceAsStream("/contracts/offer-cases.json")) {
@@ -39,23 +39,23 @@ class OfferContractTest {
 
     private static TreeSet<String> keys(JsonNode node) {
         TreeSet<String> out = new TreeSet<>();
-        node.fieldNames().forEachRemaining(out::add);
+        node.propertyNames().forEach(out::add);
         return out;
     }
 
     private static TreeSet<String> list(JsonNode arr) {
         TreeSet<String> out = new TreeSet<>();
-        arr.forEach(n -> out.add(n.asText()));
+        arr.forEach(n -> out.add(n.asString()));
         return out;
     }
 
     @TestFactory
     Stream<DynamicTest> recordBecomesTheContractOffer() throws Exception {
         JsonNode c = contract();
-        LocalDate asOf = LocalDate.parse(c.get("asOf").asText());
+        LocalDate asOf = LocalDate.parse(c.get("asOf").asString());
         List<DynamicTest> tests = new ArrayList<>();
         for (JsonNode k : c.get("cases")) {
-            tests.add(DynamicTest.dynamicTest(k.get("name").asText(), () -> {
+            tests.add(DynamicTest.dynamicTest(k.get("name").asString(), () -> {
                 OfferRecord r = READ.treeToValue(k.get("record"), OfferRecord.class);
                 JsonNode got = JSON.readTree(JSON.writeValueAsString(Offer.from(r, asOf)));
                 // 칸 순서는 보지 않는다. @JsonProperty 게터(status, membership)의 순서는 실행마다
@@ -72,7 +72,7 @@ class OfferContractTest {
     void brandCardKeysAreTheContractKeys() throws Exception {
         JsonNode c = contract();
         OfferRecord r = READ.treeToValue(c.get("cases").get(0).get("record"), OfferRecord.class);
-        Offer offer = Offer.from(r, LocalDate.parse(c.get("asOf").asText()));
+        Offer offer = Offer.from(r, LocalDate.parse(c.get("asOf").asString()));
         BrandComparison card = new BrandComparison(new com.discounttracker.brand.Brand("bhc", List.of(), null, null, java.util.Map.of(), List.of()),
                 offer.amount(), null, List.of(offer), 0, 0, 0);
         assertEquals(list(c.get("brandKeys")), keys(JSON.readTree(JSON.writeValueAsString(card))));

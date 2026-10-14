@@ -3,8 +3,7 @@ package com.discounttracker.web;
 import com.discounttracker.analytics.AnalyticsEventService;
 import com.discounttracker.push.PushProperties;
 import com.discounttracker.push.PushStateStore;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -29,7 +28,7 @@ class PushTrackingControllerTest {
         PushProperties properties = new PushProperties(true, "public", "private",
                 "mailto:test@example.com", temp.resolve("push.json"),
                 "https://front.example/", "https://api.example");
-        ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        ObjectMapper mapper = new ObjectMapper();
         PushStateStore store = new PushStateStore(properties, mapper, clock);
         var subscription = store.upsert("https://push.example/sub", "key", "auth", "v_123", true);
         var token = store.createToken("notification", subscription.id(), List.of("banner"), "digest");

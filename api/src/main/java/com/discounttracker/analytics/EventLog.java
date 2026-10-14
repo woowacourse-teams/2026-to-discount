@@ -1,6 +1,6 @@
 package com.discounttracker.analytics;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -36,11 +36,8 @@ public class EventLog {
         if (events.isEmpty()) return;
         StringBuilder sb = new StringBuilder();
         for (VisitEvent e : events) {
-            try {
-                sb.append(mapper.writeValueAsString(e)).append('\n');
-            } catch (IOException ex) {
-                throw new UncheckedIOException("이벤트 직렬화 실패", ex);
-            }
+            // Jackson 3은 직렬화 오류가 비검사 예외(JacksonException)라 감싸지 않는다.
+            sb.append(mapper.writeValueAsString(e)).append('\n');
         }
         try {
             if (path.getParent() != null) Files.createDirectories(path.getParent());

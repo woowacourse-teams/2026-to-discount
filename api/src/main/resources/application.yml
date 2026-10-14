@@ -50,6 +50,11 @@ discount:
     state-path: ${DISCOUNT_PUSH_STATE_PATH:}
     frontend-root: ${DISCOUNT_FRONTEND_ROOT:https://beggars-five.vercel.app/}
     api-root: ${DISCOUNT_API_ROOT:https://bebeggars.duckdns.org}
+# Spring Boot 4는 Jackson 3을 쓴다. 3은 기본값이 몇 가지 바뀌었다(속성 알파벳 정렬, 원시 타입에 null 거부 등).
+# 응답과 이벤트 원장 모양을 그대로 두려고 2의 기본값으로 맞춘다(2026-10-14 이전).
+spring:
+  jackson:
+    use-jackson2-defaults: true
 server:
   port: 8080
   tomcat:
@@ -64,14 +69,16 @@ management:
   server:
     port: ${DISCOUNT_METRICS_PORT:9090}
     address: 127.0.0.1
+  # enabled-by-default, endpoint.<id>.enabled는 3.4에서 폐기된 이름이다(4.1로 올리며 2026-10-14 바꿈).
   endpoints:
-    enabled-by-default: false
+    access:
+      default: none
     web:
       exposure:
         include: prometheus
   endpoint:
     prometheus:
-      enabled: true
+      access: read-only
   metrics:
     distribution:
       # 고정 버킷으로 환경 간 합산 가능한 p95/p99를 계산한다.

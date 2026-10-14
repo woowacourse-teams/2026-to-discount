@@ -1,7 +1,8 @@
 package com.discounttracker.history;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,7 @@ public class HistoryRepository {
 
     private static final Logger log = LoggerFactory.getLogger(HistoryRepository.class);
     private final Resource source;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults().build();
     private volatile OfferHistory current = OfferHistory.empty();
 
     public HistoryRepository(@Value("${discount.history-path}") Resource source) {
@@ -48,16 +49,16 @@ public class HistoryRepository {
             JsonNode root = mapper.readTree(in);
             List<BrandDay> days = new ArrayList<>();
             for (JsonNode n : root.path("days")) {
-                days.add(new BrandDay(LocalDate.parse(n.get("date").asText()), n.get("platform").asText(),
-                        n.get("brand").asText(), DayState.of(n.path("state").asText(null)),
-                        WithheldReason.of(n.path("reason").asText(null)),
+                days.add(new BrandDay(LocalDate.parse(n.get("date").asString()), n.get("platform").asString(),
+                        n.get("brand").asString(), DayState.of(n.path("state").asString(null)),
+                        WithheldReason.of(n.path("reason").asString(null)),
                         n.hasNonNull("max") ? n.get("max").asInt() : null));
             }
             Map<LocalDate, Set<String>> coverage = new TreeMap<>();
             for (JsonNode n : root.path("coverage")) {
                 Set<String> ps = new HashSet<>();
-                n.path("platforms").forEach(p -> ps.add(p.asText()));
-                coverage.put(LocalDate.parse(n.get("date").asText()), ps);
+                n.path("platforms").forEach(p -> ps.add(p.asString()));
+                coverage.put(LocalDate.parse(n.get("date").asString()), ps);
             }
             current = new OfferHistory(days, coverage);
             log.info("history.json 로드 — {}줄, {}일", days.size(), coverage.size());

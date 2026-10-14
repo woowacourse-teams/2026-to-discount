@@ -1,7 +1,8 @@
 package com.discounttracker.analytics;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 
@@ -102,7 +103,7 @@ public class EventController {
         try {
             List<IncomingEvent> parsed = mapper.readValue(body, new TypeReference<>() {});
             return parsed == null ? List.of() : parsed;
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             return List.of();
         }
     }

@@ -1,7 +1,6 @@
 package com.discounttracker.push;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,7 +20,7 @@ class PushStateStoreTest {
 
     private final Clock clock = Clock.fixed(Instant.parse("2026-09-21T02:00:00Z"),
             ZoneId.of("Asia/Seoul"));
-    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     void updatesVisitorAndRestoresStateWithoutCreatingDuplicateActivation() {

@@ -5,9 +5,9 @@ import com.discounttracker.offer.OfferRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,8 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(OutputCaptureExtension.class)
 class RequestIdIntegrationTest {
     @Autowired MockMvc mvc;
-    @MockBean BrandComparisonService service;
-    @MockBean OfferRepository offers;
+    @MockitoBean BrandComparisonService service;
+    @MockitoBean OfferRepository offers;
 
     @Test
     void exceptionLogAndCompletionLogCarryResponseId(CapturedOutput output) throws Exception {

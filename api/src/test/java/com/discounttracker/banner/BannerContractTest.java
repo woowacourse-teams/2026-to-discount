@@ -1,14 +1,14 @@
 package com.discounttracker.banner;
 
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
 import com.discounttracker.brand.BrandCatalog;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
@@ -39,8 +39,8 @@ class BannerContractTest {
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
 
     /** 스프링 부트가 응답에 쓰는 것과 같은 설정. 부트는 날짜를 숫자 배열이 아니라 문자열로 쓴다. */
-    private static final ObjectMapper JSON = Jackson2ObjectMapperBuilder.json()
-            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS).build();
+    private static final ObjectMapper JSON = JsonMapper.builderWithJackson2Defaults()
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS).build();
 
     private static JsonNode contract() throws Exception {
         try (InputStream in = BannerContractTest.class.getResourceAsStream("/contracts/banner-cases.json")) {
@@ -60,10 +60,10 @@ class BannerContractTest {
     @TestFactory
     Stream<DynamicTest> everyCaseSerializesToTheContractResponse() throws Exception {
         JsonNode doc = contract();
-        String now = doc.get("now").asText();
+        String now = doc.get("now").asString();
         List<DynamicTest> tests = new ArrayList<>();
         for (JsonNode c : doc.get("cases")) {
-            tests.add(DynamicTest.dynamicTest(c.get("name").asText(), () -> {
+            tests.add(DynamicTest.dynamicTest(c.get("name").asString(), () -> {
                 JsonNode actual = JSON.valueToTree(activeFor(c.get("banners"), now));
                 assertEquals(c.get("response"), actual,
                         "응답이 계약과 다르다. 의도한 변경이면 계약을 고치고 웹 테스트를 같이 돌린다.\n실제: " + actual);
@@ -76,26 +76,26 @@ class BannerContractTest {
     void everyResponseCarriesExactlyTheContractKeys() throws Exception {
         JsonNode doc = contract();
         TreeSet<String> keys = new TreeSet<>();
-        doc.get("responseKeys").forEach(k -> keys.add(k.asText()));
+        doc.get("responseKeys").forEach(k -> keys.add(k.asString()));
         TreeSet<String> specKeys = new TreeSet<>();
-        doc.get("specKeys").forEach(k -> specKeys.add(k.asText()));
+        doc.get("specKeys").forEach(k -> specKeys.add(k.asString()));
         TreeSet<String> memberKeys = new TreeSet<>();
-        doc.get("memberKeys").forEach(k -> memberKeys.add(k.asText()));
+        doc.get("memberKeys").forEach(k -> memberKeys.add(k.asString()));
         int seen = 0;
         for (JsonNode c : doc.get("cases")) {
-            for (JsonNode item : JSON.valueToTree(activeFor(c.get("banners"), doc.get("now").asText()))) {
+            for (JsonNode item : JSON.valueToTree(activeFor(c.get("banners"), doc.get("now").asString()))) {
                 TreeSet<String> got = new TreeSet<>();
-                item.fieldNames().forEachRemaining(got::add);
+                item.propertyNames().forEach(got::add);
                 assertEquals(keys, got, "응답 칸이 계약(responseKeys)과 다르다: " + c.get("name"));
                 if (item.get("spec").isObject()) {
                     TreeSet<String> s = new TreeSet<>();
-                    item.get("spec").fieldNames().forEachRemaining(s::add);
+                    item.get("spec").propertyNames().forEach(s::add);
                     assertEquals(specKeys, s, "spec 칸이 계약과 다르다");
                 }
                 if (item.get("members").isArray()) {
                     for (JsonNode m : item.get("members")) {
                         TreeSet<String> s = new TreeSet<>();
-                        m.fieldNames().forEachRemaining(s::add);
+                        m.propertyNames().forEach(s::add);
                         assertEquals(memberKeys, s, "members 칸이 계약과 다르다");
                     }
                 }

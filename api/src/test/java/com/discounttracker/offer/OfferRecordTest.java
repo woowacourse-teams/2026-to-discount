@@ -271,8 +271,8 @@ class OfferRecordTest {
                 {"platform":"baemin","brand":"BBQ","amount":3000,"needsReview":false,
                  "rawText":"3,000원","capturedAt":"2026-10-04T08:48:11+09:00",
                  "firstSeenAt":"2026-10-03T00:37:00+09:00","someFutureField":1}""";
-        OfferRecord r = new com.fasterxml.jackson.databind.ObjectMapper()
-                .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        OfferRecord r = tools.jackson.databind.json.JsonMapper.builderWithJackson2Defaults()
+                .disable(tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
                 .readValue(json, OfferRecord.class);
         assertEquals("2026-10-03T00:37:00+09:00", r.firstSeenAt());
         assertEquals("2026-10-03T00:37:00+09:00", Offer.from(r, LocalDate.of(2026, 10, 4)).firstSeenAt());
