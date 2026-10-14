@@ -285,3 +285,8 @@ Push는 기본 비활성화다. `DISCOUNT_PUSH_ENABLED=true`, VAPID 공개 키�
 **필수 값이 빠진 항목은 건너뛴다.** 사람이 손으로 고치는 파일이라 오타 하나가
 기동이나 reload 전체를 죽이면 안 된다. 몇 건이 올라갔는지는 reload 응답의
 `banners` 값으로 확인한다.
+
+## 성능 지표
+
+API와 분리된 내부 관리 포트에서 Prometheus 형식의 성능 지표를 제공합니다.
+수집 범위와 조회 방법은 [성능 지표 문서](docs/performance-metrics.md)를 참고하세요.
