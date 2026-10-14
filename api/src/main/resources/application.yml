@@ -18,6 +18,12 @@ discount:
   export-path: ${DISCOUNT_EXPORT_PATH:classpath:data/export.json}
   history-path: ${DISCOUNT_HISTORY_PATH:classpath:data/history.json}
   banners-path: ${DISCOUNT_BANNERS_PATH:classpath:banners.yml}
+  # 브랜드 목록. jar 안에 있어 바꾸려면 API를 다시 배포한다(reload로는 안 바뀐다).
+  brands-path: ${DISCOUNT_BRANDS_PATH:classpath:brands.yml}
+  # 방문 이벤트 원장(append). 설문 판정과 인기가 이 파일에서 새로 붙은 줄만 읽는다.
+  event-log-path: ${DISCOUNT_EVENT_LOG_PATH:data/events.jsonl}
+  # 브랜드 링크(brands.yml links.<앱>)가 없으면 그 앱 오퍼를 숨긴다. 요기요는 링크 없이 누르면 앱만 켜진다.
+  hide-unlinked-platforms: ${DISCOUNT_HIDE_UNLINKED_PLATFORMS:yogiyo}
   # 기프티콘 코드. 값을 가진 문자열이라 저장소에 안 두고 서버에 직접 올린다.
   # 파일이 없으면 남은 코드 0으로 보고 설문이 저절로 안 뜬다.
   gifticons-path: ${DISCOUNT_GIFTICONS_PATH:data/gifticons.yml}

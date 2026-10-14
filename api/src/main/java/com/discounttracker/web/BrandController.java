@@ -1,10 +1,12 @@
 package com.discounttracker.web;
 
+import com.discounttracker.analytics.PopularityIndex;
 import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.comparison.BrandComparison;
 import com.discounttracker.comparison.BrandComparisonService;
 import com.discounttracker.offer.OfferRepository;
 import com.discounttracker.push.BannerNotificationService;
+import com.discounttracker.history.HistoryRepository;
 import com.discounttracker.history.HistoryResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,15 +28,15 @@ public class BrandController {
     private final BrandComparisonService service;
     private final OfferRepository offers;
     private final BannerCatalog banners;
-    private final com.discounttracker.analytics.PopularityIndex popularity;
+    private final PopularityIndex popularity;
     private final BannerNotificationService notifications;
-    private final com.discounttracker.history.HistoryRepository history;
+    private final HistoryRepository history;
     private final Clock clock;
 
     public BrandController(BrandComparisonService service, OfferRepository offers,
-                           BannerCatalog banners, com.discounttracker.analytics.PopularityIndex popularity,
+                           BannerCatalog banners, PopularityIndex popularity,
                            BannerNotificationService notifications,
-                           com.discounttracker.history.HistoryRepository history, Clock clock) {
+                           HistoryRepository history, Clock clock) {
         this.clock = clock;
         this.history = history;
         this.service = service;
