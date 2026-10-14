@@ -8,10 +8,12 @@ import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './BrandCard.jsx'
 import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
-import { offerKey } from './filters.js'
+import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
-import './styles/coupon-card.css'
+import BestHistoryChart from './BestHistoryChart.jsx'
+// coupon-card.css는 여기서 싣지 않는다. :root 배경 같은 전역 규칙이 있어 운영 카드 쪽에 섞이면 안 된다.
+// 쿠폰 쪽일 때만 App이 따로 받고, 서버 렌더는 <head>에 링크를 단다(api/ssr.js).
 
 const Up = () => (
   <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2l4 5H7.2v3H4.8V7H2z" fill="currentColor" /></svg>
@@ -34,7 +36,7 @@ function Min({ value }) {
 
 // 품절은 운영 칩과 같다: 금액에 취소선, 옆에 "품절" 라벨.
 function Amt({ offer }) {
-  const hasNum = offer.amount != null
+  const hasNum = offer.amount != null && !isBundle(offer) // 묶음 행사의 금액 칸은 정렬값이다
   const num = hasNum ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
   return (
     <span className="cc-amt">
@@ -53,7 +55,7 @@ function OfferLinkA({ offer, brand, position, best, where, slot, expanded, class
        // 커스텀 스킴(coupangeats://, ddangyo://, baemin://)은 같은 탭에서 열어야 앱으로 간다(운영 칩과 같다).
        target={web ? '_blank' : undefined} rel={web ? 'noreferrer' : undefined}
        aria-label={`${brand.name} ${amountText(offer)}, 앱으로 이동`}
-       onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best, where, slot, expanded })); openWithNotice(e, href) }}>
+       onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best, where, slot, expanded })); openWithNotice(e, href, { offerPrompt: true }) }}>
       {children}
     </a>
   )
@@ -71,19 +73,21 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
     // 감싸개: 쿠폰(마스크로 홈을 판다)은 바깥으로 삐져나온 것을 잘라서, 업데이트 탭은 감싸개에 단다
     <div className="cc-tkw">
     {isUpdated(o) && <span className="cc-upd">신규 할인</span>}
+    {/* 하단 시트: 배지는 쿠폰 위 한 줄(쿠폰은 카드 쿠폰과 같은 모양, 2026-10-07 사용자) */}
+    {tags && <span className="cc-ticket__tags">{tags}</span>}
     {/* 쿠폰 어디를 눌러도 앱 링크로(2026-10-07 사용자): 이동 꼭지(a)를 대신 누른다 — 클릭 기록과 쿠팡이츠 안내가 그대로 간다.
         카드의 나머지 영역은 하단 시트를 연다(onCardClick). */}
     <div className="cc-ticket" data-platform={o.platform} {...rest}
          onClick={(e) => { if (e.target.closest('a')) return; e.stopPropagation(); e.currentTarget.querySelector('a.cc-stub')?.click() }}>
       {/* tags: 하단 시트에서는 배지를 쿠폰 안 위쪽에 따로 둔다. 금액·최소주문은 세로 가운데 그대로 */}
-      {tags && <span className="cc-ticket__tags">{tags}</span>}
       <span className="cc-info">
         <PlatformBadge platformKey={o.platform} brand={brand.name} />
         <span className="cc-num"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} where={where} slot={slot} expanded={expanded} className="cc-stub"><LinkIcon /></OfferLinkA>
     </div>
-    {o.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
+    {/* 쿠팡이츠 안내: 카드에서는 이동 전 토스트로 대신하고, 하단 시트에서만 쿠폰 아래 문구를 둔다(2026-10-07 사용자) */}
+    {where === 'sheet' && o.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
     </div>
   )
 }
@@ -138,7 +142,7 @@ function ComboInfo({ o, text }) {
 >i</button>
       {pos && createPortal(
         <span ref={pop} className="cc-info__pop" role="tooltip" style={{ top: pos.top, right: pos.right }}>
-          고정 할인 쿠폰과 중복 할인 쿠폰을 합쳐<br />최적의 할인을 계산한 결과입니다.
+          요기요는 기본할인과 추가할인을 모두 받는<br />최소주문금액 기준으로 할인을 계산해요.
           {fx && <><br /><b>{fx}</b></>}
         </span>, document.body)}
     </span>
@@ -226,7 +230,7 @@ function Ticket({ brand, best, hasBest, position, idx, setIdx }) {
 const OPEN_MS = 280
 const LEAVE_MS = 220
 function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false, compact = false }) {
-  const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
+  const { best, rest, hasBest, bundles } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   const [phase, setPhase] = useState(false)
   const [cur, setCur] = useState(0) // 캐러셀에서 보이는 쿠폰. 브랜드명 옆 배지가 이걸 따른다
   const [settled, setSettled] = useState(false) // 다 열린 뒤에는 overflow를 풀어 쿠폰 그림자가 잘리지 않게 한다
@@ -352,7 +356,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const listed = stack ? [...best.filter((o) => o !== top[0]), ...rest] : rest
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name} onClick={onCardClick}
-             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}${stack ? ' cc--stack' : ''}`}>
+             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}${bundles.length > 0 && !canExpand && rest.length === 0 ? ' cc--bare' : ''}${stack ? ' cc--stack' : ''}`}>
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>
@@ -365,7 +369,19 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         {/* 2줄: 배지(예전 계산식 자리). 계산식은 복합 배지의 (i) 설명으로 옮겼다(2026-10-06 사용자) */}
         {best[cur] && <div className="cc-fx cc-badges"><Tags o={best[cur]} /></div>}
       </div>
-      <div className="cc-deal cc-deal--main"><div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div></div>
+      {/* 1+1 묶음 행사는 대표 쿠폰 위 한 줄(2026-10-11 사용자: 오퍼 최상단). 금액 비교 밖이라 대표를 뺏지 않는다. */}
+      {/* 감싸는 div는 묶음이 있을 때만. 모든 카드에 두면 쿠폰이 사라진다(2026-10-11 회귀). */}
+      <div className="cc-deal cc-deal--main">{bundles.length === 0
+        ? <div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
+        : <div className="cc-deal-col">
+            {bundles.map((o) => (
+              <OfferLinkA key={offerKey(o)} offer={o} brand={brand} position={position} best={false} where="main" slot="bundle" className="cc-bundle">
+                <span className="cc-bundle-tag">행사</span><b>{o.rawText}</b><LinkIcon />
+              </OfferLinkA>
+            ))}
+            <div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
+          </div>}
+      </div>
       {/* 최고 오퍼는 메인 쿠폰에 이미 있으니 쿠폰으로 다시 그리지 않고, 상세 표만 메인 쿠폰 바로 아래에 둔다 */}
       {bestTables.length > 0 && (
         <div className="cc-x"><div className="cc-x-in">
@@ -431,14 +447,15 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
               <button type="button" className="cc-sheet__close" aria-label="닫기" onClick={() => setSheet(false)}>×</button>
             </div>
             <div className="cc-sheet__body">
+              <BestHistoryChart brand={brand.name} />
               {[...best, ...rest].map((o, i) => {
-                const f = formulaOf(o)
+                // 중복 할인 계산식은 시트에서 뺐다(2026-10-07 사용자: 표 첫 줄에 이미 계산이 보인다)
                 const tb = conditionTable(o)
-                const hasTbl = tb.rows.length > 0 || tb.note || f
+                const hasTbl = tb.rows.length > 0 || tb.note
                 return (
                   <div key={offerKey(o)} className="cc-sheet__item">
                     <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded tags={<Tags o={o} />} />
-                    {hasTbl && <DetailTable t={tb} i={0} fx={f} />}
+                    {hasTbl && <DetailTable t={tb} i={0} />}
                   </div>
                 )
               })}

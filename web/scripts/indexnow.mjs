@@ -21,7 +21,7 @@ import { dirname, join } from 'node:path'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const SITE = 'https://beggars-five.vercel.app'
-const KEY = 'fcef50a16763ab3b091826456f17ed38'
+const KEY = 'fcef50a16763ab3b091826456f17ed38' // gitleaks:allow — IndexNow 키는 사이트에 공개로 올리는 값이다
 const ENDPOINT = 'https://api.indexnow.org/indexnow'
 // 한 번에 보낼 수 있는 상한이 10,000이다. 지금은 111개라 나눌 일이 없지만
 // 브랜드가 늘면 여기서 잘린다는 걸 알아볼 수 있게 상수로 둔다.

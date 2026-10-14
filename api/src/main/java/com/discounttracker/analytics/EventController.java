@@ -46,14 +46,13 @@ public class EventController {
             // 필터 시트는 옛 B안의 것인데 2026-09-16 A 바에 기능으로 병합했다.
             // 담기(cart_*)는 2026-09-29 웹에서 기능째 지웠다.
             "filter_sheet_open", "quick_filter",
-            // 홈 버튼(2026-09-16, 바의 필터 버튼 옆).
-            "home_click",
             // 배너 자동 넘김 멈춤/재생(2026-09-16, 캐러셀 조작 묶음).
             "banner_autoplay_toggle",
             "banner_impression", "banner_dismiss", "brand_search_submitted",
             "brand_impression",
             // 웹 푸시 설정 결과. 브라우저 SDK가 차단돼도 서버 릴레이로 남아야 한다.
             "push_subscription_enabled", "push_subscription_disabled", "push_permission_denied",
+            "push_prompt_viewed", "push_prompt_enable_clicked", "push_prompt_closed",
             // 설문 노출·닫기는 프론트가 쏜다. 응답(survey_answer)은 SurveyService가
             // 직접 적는다 — 이 경로는 인증이 없어 위조하면 응답 수와 코드 발급
             // 수가 어긋난다.
@@ -62,9 +61,11 @@ public class EventController {
             // 새로 여는 것이 없다. 어떤 브랜드가 얼마나 숨겨지는지가 목록 품질의 신호다.
             "brand_hide", "hidden_open",
             // 메인 화면 A/B(2026-10-05): 접기(두 안 모두)와 쿠폰 카드 캐러셀 넘기기.
-            "brand_collapse", "coupon_carousel_swipe");
+            "brand_collapse", "coupon_carousel_swipe",
+            // 할인 그래프(2026-10-10): 날짜 짚기(누르기 한 번에 한 건)와 기간 탭 바꾸기.
+            "history_point_select", "history_drag", "history_range_change");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
-            "inputLength", "resultCount", "submitMethod",
+            "inputLength", "resultCount", "submitMethod", "query", "results",
             "fCategory", "fPlatforms", "fSearch", "fSort",
             // 메인 화면 A/B 안(web/src/homeExperiment.js). 모든 이벤트에 실리는데 검색만 이 목록이 걸러 빠졌다(2026-10-04).
             "home", "home_forced");
@@ -168,6 +169,11 @@ public class EventController {
         return VARIANT_TOKEN.matcher(t).matches() ? t : null;
     }
 
+    /** 검색어 속 전화번호, 카드번호 같은 긴 숫자열(숫자 6개 이상)을 #으로 가린다. */
+    static String maskDigits(String v) {
+        return v == null ? null : v.replaceAll("\\d[\\d\\s-]{4,}\\d", "#");
+    }
+
     private static String trim(String v) {
         if (v == null) return null;
         return v.length() <= MAX_TEXT ? v : v.substring(0, MAX_TEXT);
@@ -180,7 +186,8 @@ public class EventController {
             if ("brand_search_submitted".equals(event)
                     && !BRAND_SEARCH_PROPS.contains(e.getKey())) continue;
             if (out.size() >= MAX_PROPS) break;
-            out.put(trim(e.getKey()), trim(e.getValue()));
+            String value = "query".equals(e.getKey()) ? maskDigits(e.getValue()) : e.getValue();
+            out.put(trim(e.getKey()), trim(value));
         }
         return out;
     }

@@ -28,6 +28,13 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        // 운영 콘솔 PUT은 Origin을 보낸다. Nginx 내부 프록시를 거치면
+        // CORS 검사가 필요하므로 관리 경로에만 운영 출처와 저장 메서드를 허용한다.
+        registry.addMapping("/api/push/admin/**")
+                .allowedOrigins("https://bebeggars.duckdns.org")
+                .allowedMethods("GET", "PUT")
+                .exposedHeaders(RequestIdFilter.HEADER);
+
         // 기본 allowedMethods는 GET/HEAD/POST라 /api/events(POST)도 포함되지만,
         // 무엇을 허용하는지 눈에 보이게 적어 둔다.
         // 192.168.*, 10.* — `npm run dev -- --host`로 LAN에 연 dev 서버를

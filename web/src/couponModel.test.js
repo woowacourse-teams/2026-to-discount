@@ -114,6 +114,7 @@ test('조건 표: 구간마다 한 줄, 멤버십은 오퍼 값을 이어받아 
 test('긴 이름은 별칭에서 가장 짧은 한글 이름으로, 짧으면 그대로', () => {
   const tmp = { name: '토핑몬스터피자TMPPIZZA', searchAliases: ['토핑몬스터피자', '토핑몬스터', '토핑 몬스터 피자', 'tmp pizza'] }
   assert.equal(shortBrandName(tmp), '토핑몬스터')
+  assert.equal(shortBrandName({ ...tmp, shortName: '토핑몬스터피자' }), '토핑몬스터피자')
   assert.equal(shortBrandName({ name: '청년피자', searchAliases: ['청피'] }), '청년피자')
   assert.equal(shortBrandName({ name: '아주아주긴이름의브랜드명입니다', searchAliases: [] }), '아주아주긴이름의브랜드명입니다')
 })
@@ -165,4 +166,26 @@ test('최적 상세 표: 겹친 구간에 계산식, 최소주문 모르면 미�
   assert.equal(rows[0].extra, '5,000+2,000')
   assert.equal(rows[1].min, '최소주문 미확인')
   assert.equal(rows[2].extra, '')
+})
+
+test('요기요 정률 배달 + 정액 포장 합계 구간: 포장은 계산식, 배달은 정률 표기(tracker RULE-AUDIT 7번)', () => {
+  const x = o('yogiyo', 9000, { qualifier: '최적', minOrderAmount: 20000, expiresAt: '2026-10-04', conditions: '포장 20,000원↑ 7,000+2,000=9,000원',
+    tiers: [{ minOrder: 19000, amount: 7000 }, { minOrder: 25000, amount: 8250, percent: 5, cap: 10000, channel: '배달', expiresAt: '2026-10-04' },
+      { minOrder: 20000, amount: 9000, channel: '포장', expiresAt: '2026-10-04' }] })
+  assert.equal(formulaOf(x), '포장 20,000원↑ 7,000+2,000=9,000원')
+  assert.deepEqual(conditionTable(x).rows.map((r) => [r.amount, r.extra, r.chips.map((c) => c.text).join(), r.min]), [
+    ['9,000원', '7,000+2,000', '포장', '20,000원↑'],
+    ['8,250원', '5%, 최대 10,000원', '배달', '25,000원↑'],
+    ['7,000원', '', '', '19,000원↑'],
+  ])
+})
+
+test('1+1 묶음 행사는 대표, 하위와 따로 맨 위 줄로 간다(2026-10-11)', () => {
+  const bundle = { platform: 'own', amount: null, rawText: '징거버거 1+1', kind: 'bundle' }
+  const a = o('baemin', 3000)
+  const b = o('coupangeats', 2000)
+  const { best, rest, bundles } = splitOffers([a, b, bundle], {})
+  assert.equal(best[0], a)
+  assert.deepEqual(rest, [b])
+  assert.deepEqual(bundles, [bundle])
 })

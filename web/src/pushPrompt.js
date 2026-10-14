@@ -1,5 +1,17 @@
 const STORAGE_KEY = 'discount_push_prompt'
 const MAX_IMPRESSIONS = 3
+const OFFER_PROMPT_KEY = 'discount-offer-prompt-seen'
+
+export function hasSeenOfferPrompt(storage = globalThis.localStorage) {
+  try { return storage.getItem(OFFER_PROMPT_KEY) === '1' }
+  catch { return false }
+}
+
+export function recordOfferPromptSeen({ visible, focused }, storage = globalThis.localStorage) {
+  if (!visible || !focused) return false
+  try { storage.setItem(OFFER_PROMPT_KEY, '1') } catch { /* 현재 페이지 기록은 호출부에서 유지한다. */ }
+  return true
+}
 
 function read(storage) {
   try {

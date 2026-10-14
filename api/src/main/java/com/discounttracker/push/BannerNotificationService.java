@@ -4,7 +4,6 @@ import com.discounttracker.banner.Banner;
 import com.discounttracker.banner.BannerCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -48,14 +47,12 @@ public class BannerNotificationService {
         List<BannerNotificationState> activated = store.observe(notify, immediate);
         List<BannerNotificationState> requested = activated.stream()
                 .filter(BannerNotificationState::immediateRequested).toList();
-        boolean allowed = immediateAllowed();
-        int sent = allowed ? dispatch(requested, "immediate") : 0;
-        return new ReloadResult(activated.size(), requested.size(), allowed, sent);
+        // 신규 오퍼 하루 1건 정책으로 전환되어 배너 reload는 사용자 알림을 보내지 않는다.
+        return new ReloadResult(activated.size(), requested.size(), false, 0);
     }
 
-    @Scheduled(cron = "0 0 11 * * *", zone = "Asia/Seoul")
     public void sendDailyDigest() {
-        dispatch(store.pending(), "digest");
+        // 이전 배너 요약은 신규 오퍼 자동 발송으로 대체되었다.
     }
 
     int dispatch(List<BannerNotificationState> activations, String type) {

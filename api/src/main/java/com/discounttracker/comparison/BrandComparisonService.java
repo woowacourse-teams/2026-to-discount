@@ -5,6 +5,8 @@ import com.discounttracker.banner.BannerAmount;
 import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.banner.BannerText;
 import com.discounttracker.brand.BrandCatalog;
+import com.discounttracker.history.HistoryRepository;
+import com.discounttracker.history.OfferHistory;
 import com.discounttracker.offer.Certainty;
 import com.discounttracker.offer.Offer;
 import com.discounttracker.offer.OfferComparison;
@@ -42,15 +44,22 @@ public class BrandComparisonService {
     private final BrandCatalog brands;
     private final BannerCatalog banners;
     private final Clock clock;
+    private final HistoryRepository history;
 
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
                                   BannerCatalog banners, Clock clock) {
-        this(offers, brands, banners, clock, null, "");
+        this(offers, brands, banners, clock, null, "", HistoryRepository.of(OfferHistory.empty()));
+    }
+
+    /** 테스트용: 이력을 넣는다. */
+    public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
+                                  BannerCatalog banners, Clock clock, HistoryRepository history) {
+        this(offers, brands, banners, clock, null, "", history);
     }
 
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
                                   BannerCatalog banners, Clock clock, String hideUnlinkedPlatforms) {
-        this(offers, brands, banners, clock, null, hideUnlinkedPlatforms);
+        this(offers, brands, banners, clock, null, hideUnlinkedPlatforms, HistoryRepository.of(OfferHistory.empty()));
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -58,7 +67,9 @@ public class BrandComparisonService {
                                   BannerCatalog banners, Clock clock,
                                   com.discounttracker.analytics.PopularityIndex popularity,
                                   @org.springframework.beans.factory.annotation.Value("${discount.hide-unlinked-platforms:yogiyo}")
-                                  String hideUnlinkedPlatforms) {
+                                  String hideUnlinkedPlatforms,
+                                  HistoryRepository history) {
+        this.history = history;
         this.offers = offers;
         this.brands = brands;
         this.banners = banners;
@@ -117,6 +128,17 @@ public class BrandComparisonService {
             // 지운다 - RULES 9가 만료 배너를 그대로 두기로 했으므로 그날은 영영 안
             // 올 수도 있다. 몇 장 남았는지는 beggars-ops의
             // `python tools/convert_banners.py --file <banners.yml>`이 센다.
+            // 1+1, 2+1 묶음 행사는 원문("징거버거 1+1")으로 서고 금액 칸은 정렬값(BUNDLE_SORT_VALUE)이다. kind가 bundle이라 할인액
+            // 비교(OfferComparison)에는 안 들고, 웹이 카드 오퍼 맨 위에 둔다(2026-10-11 사용자).
+            if (amountSpec != null && amountSpec.isBundle()) {
+                records.add(new OfferRecord(
+                        banner.platform(), banner.brand(), BannerAmount.BUNDLE_SORT_VALUE, null, false, Offer.BANNER_OFFER_TYPE,
+                        banner.id(), amountSpec.bundleText(), today, null, banner.minOrder(), null, null,
+                        BannerText.conditions(banner), banner.endsOn().toString(), banner.period(), banner.url(),
+                        banner.spec() == null ? null : banner.spec().membership(), banner.soldOut(),
+                        amountSpec.kind().key(), firstSeen(banner)));
+                continue;
+            }
             if (amountSpec == null || (amountSpec.headline() == null && amountSpec.percent() == null)) {
                 records.addAll(legacyRecords(banner, today));
                 continue;
@@ -156,7 +178,11 @@ public class BrandComparisonService {
                     banner.soldOut(),
                     // 무엇을 주는가 - own 배너의 캐시백/적립까지 discount로 뭉개면 확정
                     // 할인처럼 최고 할인 후보에 낄 수 있다(2026-09-22 fix round).
-                    amountSpec.kind().key()));
+                    amountSpec.kind().key(),
+                    // 배너가 걸린 시각을 처음 본 시각으로 싣는다. null이면 웹이 신규로 못 잡았다(2026-10-09:
+                    // 홍콩반점, KFC 등 배너 오퍼가 그날 시작인데 신규 탭에 안 떴다). 어제와 같은 행사로 기간을
+                    // 늘린 배너는 startsAt이 그대로라 첫날만 신규다.
+                    firstSeen(banner)));
         }
         return records;
     }
@@ -200,9 +226,15 @@ public class BrandComparisonService {
                     banner.url(),
                     banner.spec() == null ? null : banner.spec().membership(),
                     banner.soldOut(),
-                    banner.amountSpec() == null ? null : banner.amountSpec().kind().key()));
+                    banner.amountSpec() == null ? null : banner.amountSpec().kind().key(),
+                    firstSeen(banner)));
         }
         return out;
+    }
+
+    /** 배너가 걸린 시각(KST). 배너 오퍼의 처음 본 시각이다 — 두 경로(새 모양, 옛 모양)가 같이 쓴다. */
+    private static String firstSeen(Banner banner) {
+        return banner.startsAt() == null ? null : banner.startsAt() + "+09:00";
     }
 
     /**
@@ -394,13 +426,19 @@ public class BrandComparisonService {
         // 한 칸으로 합친다. 2026-09-30 던킨 땡겨요: 배너와 원장이 같은 7,000원인데 두 번 떴다.
         byBrand.values().forEach(BrandComparisonService::mergeSameFirstCome);
 
+        // 신규 여부는 이력이 판정한다(설계 2026-10-09). 금액 없는 오퍼는 모름(null).
+        OfferHistory h = history.current();
         List<BrandComparison> result = new ArrayList<>();
         byBrand.forEach((name, offersByPlatform) -> result.add(new BrandComparison(
                 brands.find(name),
                 maxConfirmed.get(name),
                 maxHeld.get(name),
-                new ArrayList<>(offersByPlatform.values()),
-                popularity == null ? 0 : popularity.scoreOf(name))));
+                new ArrayList<>(offersByPlatform.values().stream()
+                        .map(o -> o.amount() == null ? o
+                                : o.withIsNew(h.novelty(o.platform(), name, o.amount(), today).asBoolean()))
+                        .toList()),
+                popularity == null ? 0 : popularity.scoreOf(name),
+                popularity == null ? 0 : popularity.todayOf(name))));
 
         result.sort(BrandComparison.byBestDiscount());
         return result;

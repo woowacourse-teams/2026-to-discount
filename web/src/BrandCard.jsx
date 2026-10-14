@@ -1,8 +1,9 @@
 import { memo, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
-import { comparable, displayBestAmount, offerKey } from './filters.js'
+import { comparable, displayBestAmount, offerKey, bundleFirst, isBundle } from './filters.js'
 import { BrandLogo } from './logos.jsx'
+import BestHistoryChart from './BestHistoryChart.jsx'
 import OfferChip from './OfferChip.jsx'
 import OfferDetail from './OfferDetail.jsx'
 
@@ -46,8 +47,7 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
     () => [...brand.offers].sort((a, b) => {
       const aMax = a.qualifier === '최대' ? 1 : 0
       const bMax = b.qualifier === '최대' ? 1 : 0
-      if (aMax !== bMax) return aMax - bMax
-      return (b.amount ?? -1) - (a.amount ?? -1)
+      return bundleFirst(a, b) || aMax - bMax || (b.amount ?? -1) - (a.amount ?? -1)
     }),
     [brand.offers],
   )
@@ -59,18 +59,23 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
   // 거짓 우열이 생긴다(bestAmount가 동점을 그대로 두는 이유와 같다).
   // 최고가 없는 브랜드(전부 조건부거나 품절)는 sortedOffers가 이미
   // "최대 뒤로, 금액 큰 순"이라 맨 앞이 대표값이다.
+  // 1+1 묶음 행사는 최고 칸 위 단독 줄(2026-10-11 사용자: old에서도 최고 위로). 묶음뿐이면 그대로 대표다.
+  const bundleOffers = useMemo(() => (brand.offers.every(isBundle) ? [] : brand.offers.filter(isBundle)), [brand.offers])
   const [heroOffers, restOffers] = useMemo(() => {
-    const best = sortedOffers.filter(isBest)
+    const pool = sortedOffers.filter((o) => !bundleOffers.includes(o))
+    const best = pool.filter(isBest)
     return best.length > 0
-      ? [best, sortedOffers.filter((o) => !isBest(o))]
-      : [sortedOffers.slice(0, 1), sortedOffers.slice(1)]
-  }, [sortedOffers, bestAmount])
+      ? [best, pool.filter((o) => !isBest(o))]
+      : [pool.slice(0, 1), pool.slice(1)]
+  }, [sortedOffers, bestAmount, bundleOffers])
 
   // 상세를 펼친 상태를 기본으로 둔다 — 조건(최소주문금액 등)을 봐야
   // 금액이 실제로 무슨 뜻인지 알 수 있는데, 접어두면 매번 눌러야 했다.
   // 접기는 여전히 가능하다.
   const [pinned, setPinned] = useState(true)
   const open = pinned
+  // 기본이 펼침이라 open만 보면 로드 즉시 이력을 받는다. 사용자가 직접 눌렀을 때만 그래프를 받는다.
+  const [touched, setTouched] = useState(false)
   const detailId = `${useId()}-detail`
   const cardRef = useRef(null)
   const headerRef = useRef(null)
@@ -79,6 +84,7 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
   // 접는 동작은 안 남긴다 — 관심 신호가 아니다.
   const toggle = () => {
     onInteract?.()
+    setTouched(true)
     setPinned((v) => {
       if (!v) track('brand_expand', { brand: brand.name, category: brand.category ?? 'none' })
       else track('brand_collapse', { brand: brand.name, category: brand.category ?? 'none' })
@@ -107,6 +113,8 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
       ref={cardRef}
       className={`brand-card ${open ? 'brand-card--open' : ''} ${highlighted ? 'brand-card--highlighted' : ''}${leaving ? ' brand-card--leaving' : ''}`}
       data-brand={brand.name}
+      // 2026-10-13 사용자: 쿠폰 카드(a)처럼 버튼과 링크 밖 아무 곳이나 누르면 접고 펼친다
+      onClick={(e) => { if (!e.target.closest('a, button, input, label, select, textarea') && !window.getSelection()?.toString()) toggle() }}
     >
       {/* 헤더는 이름표다. 펼침 트리거는 카드 아래 한 곳뿐이다 —
           헤더 전체·화살표·아래 버튼 셋이 같은 일을 하면 어느 것을
@@ -139,6 +147,14 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
           내린다. 동점이면 그만큼 줄이 늘어난다. 넷을 균등한 격자에 늘어놓으면 "어느 게 제일 센가"를
           매번 눈으로 비교해야 한다 — 답을 먼저 보여주고, 나머지는
           비교하고 싶을 때 보는 부가 정보로 둔다. */}
+      {bundleOffers.length > 0 && (
+        <ul className="offer-list offer-list--hero offer-list--bundle">
+          {bundleOffers.map((o) => (
+            <OfferChip include={include} position={position} key={offerKey(o)} offer={o} brandLinks={brand.links}
+              brandName={brand.name} detailId={detailId} open={open} onToggle={toggle} best={false} hero />
+          ))}
+        </ul>
+      )}
       {heroOffers.length > 0 && (
         <ul className="offer-list offer-list--hero">
           {heroOffers.map((o) => (
@@ -182,6 +198,7 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
           브랜드 73개 × 앱 4개어치를 미리 심어두면 첫 화면이 통째로 멎는다.
           컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
       <div id={detailId} className="brand-detail" hidden={!open}>
+        {open && touched && <BestHistoryChart brand={brand.name} />}
         {open && sortedOffers.map((o) => <OfferDetail key={offerKey(o)} offer={o} brandName={brand.name} />)}
       </div>
 

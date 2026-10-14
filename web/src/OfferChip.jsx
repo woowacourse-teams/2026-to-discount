@@ -1,4 +1,4 @@
-import { isUpdated } from './filters.js'
+import { isBundle, isUpdated } from './filters.js'
 import { track } from './analytics.js'
 import { badgesOf } from './couponModel.js'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
@@ -10,6 +10,7 @@ export function won(value) {
 
 // 상위 오퍼(큰 칸)는 '원 할인'으로 끝낸다(2026-10-06 사용자). 아래 작은 칩은 자리가 좁아 그대로.
 function offerAmountText(offer, hero = false) {
+  if (isBundle(offer)) return offer.rawText // 금액 칸은 정렬값이다(묶음 행사)
   return offer.amount != null ? `${won(offer.amount)}${hero ? ' 할인' : ''}` : offer.rawText
 }
 
@@ -89,7 +90,7 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
   )
 
   return (
-    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}${best ? ' offer--best' : ''}${capped ? ' offer--capped' : ''}${hero ? ' offer--hero' : ''}`}>
+    <li className={`offer ${held ? 'offer--held' : 'offer--confirmed'}${best || (hero && isBundle(offer)) ? ' offer--best' : ''}${capped ? ' offer--capped' : ''}${hero ? ' offer--hero' : ''}`}>
       {link ? (
         <a
           className="offer__chip offer__chip--link"
@@ -101,7 +102,7 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
           rel={link.startsWith('http') ? 'noreferrer' : undefined}
           // 어느 오퍼를 눌렀는지까지 남긴다 — brand·platform만으로는 "bhc 배민"에
           // 여러 구간·멤버십 오퍼가 있을 때 무엇이 눌렸는지 못 본다(2026-09-17).
-          onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName, position, best, where: 'chip' })); openWithNotice(e, link) }}
+          onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName, position, best, where: 'chip' })); openWithNotice(e, link, { offerPrompt: true }) }}
         >
           {content}
         </a>

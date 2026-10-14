@@ -4,7 +4,8 @@ import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
 import { CATEGORIES, applyFilters } from './filters.js'
-import { useBrandAutocomplete } from './useBrandAutocomplete.js'
+import { useScrollMore } from './MenuBar.jsx'
+import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 
 /**
  * A안 검색 — 접힌 원형 버튼, 누르면 입력칸이 펼쳐진다.
@@ -23,11 +24,13 @@ function SearchControlA({ value, onSubmit, brands }) {
   const [draft, setDraft] = useState(value)
   const inputRef = useRef(null)
   const listboxId = useId()
+  const markSent = useSearchPauseTrack(draft, onSubmit)
   const autocomplete = useBrandAutocomplete({
     brands,
     input: draft,
     onSelect: (brand) => {
       setDraft(brand.name)
+      markSent(brand.name)
       onSubmit(brand.name, 'autocomplete')
       setOpen(false)
     },
@@ -35,7 +38,7 @@ function SearchControlA({ value, onSubmit, brands }) {
 
   useEffect(() => {
     if (open) {
-      setDraft(value)
+      setDraft((d) => (d.trim() === value ? d : value))
       inputRef.current?.focus()
     }
   }, [open, value])
@@ -52,6 +55,7 @@ function SearchControlA({ value, onSubmit, brands }) {
 
   const submit = (method) => {
     autocomplete.close()
+    markSent(draft)
     onSubmit(draft, method)
     setOpen(false)
   }
@@ -86,7 +90,7 @@ function SearchControlA({ value, onSubmit, brands }) {
             aria-activedescendant={autocomplete.activeIndex >= 0 ? `${listboxId}-option-${autocomplete.activeIndex}` : undefined}
             value={draft}
             onFocus={autocomplete.open}
-            onChange={(e) => { setDraft(e.target.value); autocomplete.inputChanged() }}
+            onChange={(e) => { setDraft(e.target.value); onSubmit(e.target.value, 'live'); autocomplete.inputChanged() }}
             onKeyDown={(e) => {
               if (autocomplete.handleKeyDown(e)) return
               if (e.key === 'Enter' && !e.repeat) submit('enter')
@@ -129,6 +133,7 @@ function SearchControlA({ value, onSubmit, brands }) {
  */
 export default function TopBarA({
   barRef,
+  pushToggleRef,
   filters,
   setFilters,
   search,
@@ -138,7 +143,6 @@ export default function TopBarA({
   resetFilters,
   onOpenSheet,
   sheetOpen,
-  onHome,
 }) {
   // Set 하나짜리를 단일 선택처럼 읽는다. 비어 있으면 "전체"다.
   // 신규(2026-10-05): 쿠폰 카드 쪽과 같은 규칙. 켜면 분류를 풀고 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
@@ -149,12 +153,14 @@ export default function TopBarA({
 
   const selectCategory = (key) => {
     if (key === 'new') {
-      setFilters((f) => ({ ...f, updatedOnly: !f.updatedOnly, categories: new Set() }))
+      setFilters((f) => ({ ...f, search: '', updatedOnly: !f.updatedOnly, categories: new Set() }))
       track('quick_filter', { key: 'updated', on: !filters.updatedOnly, from: 'bar' })
       return
     }
     setFilters((f) => ({
       ...f,
+      // 검색 중에 분류를 누르면 검색어를 푼다. 둘이 같이 걸리면 대개 0건이다(2026-10-08 사용자)
+      search: '',
       updatedOnly: false,
       categories: key === 'all' ? new Set() : new Set([key]),
     }))
@@ -173,6 +179,7 @@ export default function TopBarA({
   }
 
   const tabs = [{ key: 'all', label: '전체' }, { key: 'new', label: newCount ? `신규 ${newCount}` : '신규' }, ...CATEGORIES]
+  const [catListRef, catMore] = useScrollMore()
 
   return (
     <div className="title-bar" ref={barRef}>
@@ -196,22 +203,9 @@ export default function TopBarA({
 
         <div className="title-bar__ops">
           <div className="title-bar__actions">
-            <span id="push-toggle-slot" className="push-toggle-slot" />
+            <span ref={pushToggleRef} id="push-toggle-slot" className="push-toggle-slot" />
 
-            {/* 홈 — 첫 화면으로. 필터·검색을 풀고 맨 위로, /brand/<이름>에서
-                들어왔으면 전체 목록으로(사용자 결정 2026-09-16). */}
-            <button
-              type="button"
-              className="filter-reset-btn home-btn"
-              onClick={onHome}
-              aria-label="첫 화면으로"
-              title="첫 화면으로"
-            >
-              <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 11.5 12 4l9 7.5" />
-                <path d="M5.5 10.5V20h13v-9.5" />
-              </svg>
-            </button>
+            {/* 홈 버튼은 2026-10-13 뺐다(사용자: 360px에서 바가 화면 밖으로 넘쳤다). 브랜드 경로에선 목록의 "전체 브랜드 보기"가 나가는 길이다. */}
 
             {/* 필터 시트(옛 B안). 바에 펼쳐진 앱·분류는 그대로 두고, 정렬과
                 여러 분류 동시 선택처럼 바에 안 실린 조건은 여기서 고른다
@@ -255,12 +249,14 @@ export default function TopBarA({
           분류를 고르는 건 이 화면의 주된 조작이고, 한 번 더 누르게
           하면 그만큼 안 쓴다. 좁으면 옆으로 흐른다. */}
       <nav className="cat-bar" aria-label="분류">
-        <ul className="cat-bar__list">
+        <span className={`menu-bar__more menu-bar__more--left${catMore.left ? ' menu-bar__more--on' : ''}`} aria-hidden="true">‹</span>
+        <span className={`menu-bar__more menu-bar__more--right${catMore.right ? ' menu-bar__more--on' : ''}`} aria-hidden="true">›</span>
+        <ul className="cat-bar__list" ref={catListRef}>
           {tabs.map((c) => (
             <li key={c.key}>
               <button
                 type="button"
-                className={`cat-bar__item${selected === c.key ? ' cat-bar__item--on' : ''}`}
+                className={`cat-bar__item${selected === c.key ? ' cat-bar__item--on' : ''}${c.key === 'new' ? ' cat-bar__item--accent' : ''}`}
                 aria-current={selected === c.key ? 'true' : undefined}
                 onClick={() => selectCategory(c.key)}
               >

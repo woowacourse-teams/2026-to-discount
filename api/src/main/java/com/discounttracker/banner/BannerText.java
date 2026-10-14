@@ -28,6 +28,7 @@ public final class BannerText {
     /** 금액 문구. "7,000원", "최대 8,000원", "1,000~8,000원", "30% 할인", "50% 적립". */
     static String amount(BannerAmount a) {
         if (a == null) return null;
+        if (a.isBundle()) return a.bundleText();
         if (a.percent() != null) {
             return a.percent() + "% " + (a.kind() == AmountKind.DISCOUNT ? "할인" : "적립");
         }

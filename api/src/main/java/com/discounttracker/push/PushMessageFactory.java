@@ -26,6 +26,22 @@ public class PushMessageFactory {
         this.mapper = mapper;
     }
 
+    public String offerPayload(DailyOfferNotification.Target offer, String displayedUrl,
+                               String clickUrl, String notificationId) {
+        String benefit = String.format(java.util.Locale.KOREA, "%,d원 %s할인", offer.amount(),
+                offer.firstCome() ? "선착순 " : "");
+        try {
+            return mapper.writeValueAsString(Map.of(
+                    "title", offer.brand() + " " + benefit,
+                    "body", "할인 시간과 적용 조건을 확인해 보세요.",
+                    "url", clickUrl, "displayedUrl", displayedUrl,
+                    "notificationId", notificationId, "deliveryType", "new_offer",
+                    "offerCount", 1));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Push payload 생성 실패", e);
+        }
+    }
+
     public String payload(List<Banner> banners, String displayedUrl, String clickUrl,
                           String notificationId, String deliveryType) {
         Banner first = banners.get(0);

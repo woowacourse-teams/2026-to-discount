@@ -1,0 +1,53 @@
+# 실제 iOS 사파리(시뮬레이터)로 운영 웹을 찍는다. 윈도 웹킷은 iOS 배치 버그를 재현하지 못한다(2026-10-13).
+# main 배포(미러) 뒤 자동으로, 또는 Actions에서 주소를 넣어 수동으로 돈다. 결과는 실행의 아티팩트 ios-shots.
+# 프리뷰(Vercel 보호)는 저장소 시크릿 VERCEL_BYPASS(Vercel 보호 우회 값)가 있으면 주소에 우회 쿼리를 붙여 연다(2026-10-14).
+# 없으면 프리뷰는 로그인 화면이 찍힌다. 시크릿 값은 Actions 로그에서 가려지고, index.txt에는 원래 주소만 적는다.
+name: ios-shot
+on:
+  workflow_dispatch:
+    inputs:
+      urls: { description: 찍을 주소(공백으로 여럿), default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
+  workflow_run:
+    workflows: [Mirror to deploy repos]
+    types: [completed]
+    branches: [main]
+jobs:
+  shot:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      URLS: ${{ inputs.urls || 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }}
+    steps:
+      - name: Vercel 배포 기다리기
+        if: github.event_name == 'workflow_run'
+        run: sleep 120
+      - name: 시뮬레이터 켜기
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print([x['udid'] for k,v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone 16')][-1])")
+          echo "UDID=$UDID" >> $GITHUB_ENV
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID"
+          xcrun simctl launch "$UDID" com.apple.mobilesafari || true; sleep 20
+      - name: 찍기
+        env:
+          BYPASS: ${{ secrets.VERCEL_BYPASS }}
+        run: |
+          mkdir shots; n=0
+          for u in $URLS; do
+            n=$((n+1))
+            open="$u"
+            case "$u" in *-git-*vercel.app*)
+              if [ -n "$BYPASS" ]; then
+                sep='?'; case "$u" in *\?*) sep='&';; esac
+                open="${u}${sep}x-vercel-protection-bypass=${BYPASS}&x-vercel-set-bypass-cookie=true"
+              fi;;
+            esac
+            xcrun simctl openurl "$UDID" "$open" || { sleep 30; xcrun simctl openurl "$UDID" "$open"; }
+            sleep 15
+            xcrun simctl io "$UDID" screenshot "shots/$n.png"
+            echo "$n $u" >> shots/index.txt
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: ios-shots, path: shots }

@@ -1,6 +1,6 @@
 // 쿠폰 브랜드 카드(메인 화면 A안 16차)의 계산. 화면 없이 테스트한다.
 // 명세: tracker docs/superpowers/specs/2026-10-03-home-a-display-model.md
-import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated } from './filters.js'
+import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated, isBundle } from './filters.js'
 export { isUpdated }
 
 const byMinOrder = (a, b) => (a.minOrderAmount ?? Infinity) - (b.minOrderAmount ?? Infinity)
@@ -15,7 +15,12 @@ const QUALIFIER_BADGE = {
  * 견줄 수 있고 품절이 아닌 오퍼 중 가장 큰 금액, 동점은 하나를 골라 올리지 않는다.
  * 하위는 최대(불확정)를 뒤로 민 뒤 금액 큰 순. 최고가 없으면 그 순서의 맨 앞이 대표다.
  */
-export function splitOffers(offers, include) {
+export function splitOffers(all, include) {
+  // 1+1 묶음 행사는 대표, 하위와 따로 카드 맨 위 줄에 선다(2026-10-11 사용자: 오퍼 최상단).
+  const bundles = all.filter(isBundle)
+  const offers = all.filter((x) => !isBundle(x))
+  // 묶음 행사뿐인 브랜드는 그것이 대표다(대표 쿠폰 자리가 비면 카드가 안 그려진다).
+  if (offers.length === 0) return { best: bundles.slice(0, 1), rest: bundles.slice(1), hasBest: false, bundles: [] }
   const top = displayBestAmount(offers, include)
   const isBest = (x) => top != null && comparable(x, include) && !x.soldOut && x.amount === top
   const sorted = [...offers].sort((a, b) => {
@@ -24,8 +29,8 @@ export function splitOffers(offers, include) {
     return am - bm || (b.amount ?? -1) - (a.amount ?? -1)
   })
   const best = sorted.filter(isBest).sort(byMinOrder)
-  if (best.length > 0) return { best, rest: sorted.filter((x) => !isBest(x)), hasBest: true }
-  return { best: sorted.slice(0, 1), rest: sorted.slice(1), hasBest: false }
+  if (best.length > 0) return { best, rest: sorted.filter((x) => !isBest(x)), hasBest: true, bundles }
+  return { best: sorted.slice(0, 1), rest: sorted.slice(1), hasBest: false, bundles }
 }
 
 export function minLabel(m) {
@@ -110,6 +115,7 @@ const weight = (t) => [...t].reduce((n, ch) => n + (/[ᄀ-ᇿ㄰-㆏가-힯一-�
  * 공백을 뺀 한글 포함 별칭 중 가장 짧은 것. 별칭이 없거나 더 길면 원래 이름(넘치면 CSS 말줄임).
  */
 export function shortBrandName(brand, limit = 10) {
+  if (brand.shortName) return brand.shortName // 사람이 정한 이름이 이긴다(2026-10-14 토핑몬스터피자)
   if (weight(brand.name) <= limit) return brand.name
   const cand = (brand.searchAliases ?? []).map((a) => a.replace(/\s+/g, '')).filter((a) => /[가-힣]/.test(a) && weight(a) < weight(brand.name))
   cand.sort((a, b) => weight(a) - weight(b))
@@ -131,6 +137,8 @@ export function channelOf(offer) {
 }
 
 export function amountText(offer) {
+  // 묶음 행사의 금액 칸은 정렬값(15,000)이다. 화면에는 원문("징거버거 1+1")을 쓴다.
+  if (isBundle(offer)) return offer.rawText ?? ''
   return offer.amount != null ? `${offer.amount.toLocaleString('ko-KR')}원` : (offer.rawText ?? '')
 }
 

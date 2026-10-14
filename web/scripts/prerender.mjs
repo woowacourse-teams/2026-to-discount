@@ -18,7 +18,7 @@
 //
 // API가 죽어 있으면 심지 않고 그냥 넘어간다. 배포를 막을 일이 아니다.
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { loadEnv } from 'vite'
 import { resolveApiBase } from '../src/apiBase.js'
 
@@ -136,7 +136,8 @@ const BOOT_STYLE = `
       .seo h3 a { color: inherit; text-decoration: none; }
       /* 홈 맨 아래 브랜드 목록(brandNav). 사람에게도 보이는 작은 바닥글이다. */
       .brand-index { max-width: 720px; margin: 2rem auto 1.5rem; padding: 0 1rem; font-size: .8rem; color: #888; }
-      .brand-index h2 { font-size: .85rem; font-weight: 600; color: #666; margin: 0 0 .5rem; }
+      .brand-index summary { font-size: .85rem; font-weight: 600; color: #666; cursor: pointer; padding: .25rem 0; }
+      .brand-index details[open] summary { margin-bottom: .5rem; }
       .brand-index ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .25rem .75rem; }
       .brand-index a { color: #888; text-decoration: none; }
       .brand-index a:hover { text-decoration: underline; }
@@ -170,11 +171,14 @@ function brandNav(brands) {
   const items = brands.map((b) =>
     `        <li><a href="/brand/${encodeURIComponent(slugOf(b.name))}">${esc(b.name)} 할인</a></li>`)
   return [
+    // 접어 둔다(2026-10-13, 설계 47). 사람에게는 필요할 때 펼치는 목록이고, 링크는 HTML에 그대로 있어 크롤러가 따라간다.
     '    <nav class="brand-index" aria-label="브랜드별 할인 페이지">',
-    '      <h2>브랜드별 할인</h2>',
-    '      <ul>',
+    '      <details>',
+    `        <summary>브랜드별 할인 (${brands.length})</summary>`,
+    '        <ul>',
     ...items,
-    '      </ul>',
+    '        </ul>',
+    '      </details>',
     '    </nav>',
   ].join('\n')
 }
@@ -288,7 +292,7 @@ function appAssetTags(indexHtml) {
   return tags.map((t) => `    ${t}`).join(String.fromCharCode(10))
 }
 
-function brandPage(b, siblings, today, appTags) {
+export function brandPage(b, siblings, today, appTags) {
   const offers = (b.offers ?? []).filter((o) => o.amount != null)
   const cat = CATEGORY_LABEL[b.category]
   const apps = offers.map((o) => PLATFORM_LABEL[o.platform] ?? o.platform)
@@ -323,6 +327,13 @@ function brandPage(b, siblings, today, appTags) {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="${SITE}/og-image.png" />
+    <script type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: '홈', item: `${SITE}/` },
+        { '@type': 'ListItem', position: 2, name: b.name, item: url },
+      ],
+    }).replace(/</g, '\\u003c')}</script>
 ${appTags}
 ${BOOT_STYLE}
   </head>
@@ -413,7 +424,7 @@ async function main() {
     '# 자산은 색인 대상이 아닌데 요청 수의 대부분이다.',
     'Disallow: /logos/',
     'Disallow: /platform-icons/',
-    'Disallow: /assets/',
+    // /assets/(JS, CSS)는 막지 않는다. 구글이 화면을 그려 보려면 받아야 하고, 1년 캐시라 요청도 적다(2026-10-14).
     'Disallow: /links/',
     '',
     ...CRAWL_DELAY_BOTS.flatMap((bot) => [`User-agent: ${bot}`, 'Crawl-delay: 10', '']),
@@ -470,6 +481,9 @@ async function main() {
   const urls = [
     // 홈은 목록 전체라 어느 브랜드가 바뀌어도 바뀐다.
     ['/', '1.0', 'daily', today],
+    // 소개, 처리방침(public/ 정적 페이지). 날짜는 본문을 고친 날로 손으로 올린다.
+    ['/about', '0.3', 'yearly', '2026-10-13'],
+    ['/privacy', '0.3', 'yearly', '2026-10-13'],
     ...listed.map((b) => [
       `/brand/${encodeURIComponent(slugOf(b.name))}`, '0.7', 'weekly', brandLastmod(b),
     ]),
@@ -492,5 +506,8 @@ async function main() {
   console.log(`[prerender] 본문 ${listed.length}개 + 브랜드 페이지 ${listed.length}장 (${today})`)
 }
 
-await mkdir(DIST, { recursive: true })
-await main()
+// 테스트가 brandPage만 가져갈 때는 빌드를 돌리지 않는다.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await mkdir(DIST, { recursive: true })
+  await main()
+}

@@ -24,9 +24,10 @@ name: Mirror to deploy repos
 # 자격 증명은 저장소 하나씩만 열리는 deploy key다(계정 전체가 열리는 PAT
 # 대신). 시크릿 이름은 MIRROR_KEY_WEB / MIRROR_KEY_API.
 
+# preview/<이름> 브랜치에 밀면 web/만 미러의 같은 이름 브랜치로 밀어 Vercel 프리뷰를 띄운다(2026-10-13).
 on:
   push:
-    branches: [main]
+    branches: [main, 'preview/**']
   workflow_dispatch:
 
 permissions:
@@ -68,8 +69,15 @@ jobs:
       - name: Push ${{ matrix.dir }}/ to ${{ matrix.repo }}
         env:
           GIT_SSH_COMMAND: ssh -i ~/.ssh/mirror -o IdentitiesOnly=yes
+          REF: ${{ github.ref_name }}
         run: |
-          git clone --depth 1 "git@github.com:${{ matrix.repo }}.git" /tmp/target
+          # 프리뷰는 웹만. api 미러에는 프리뷰가 없다
+          if [ "$REF" != main ] && [ "${{ matrix.dir }}" != web ]; then echo "프리뷰는 web만 민다"; exit 0; fi
+          if [ "$REF" = main ]; then
+            git clone --depth 1 "git@github.com:${{ matrix.repo }}.git" /tmp/target
+          else
+            git clone --depth 1 -b "$REF" "git@github.com:${{ matrix.repo }}.git" /tmp/target 2>/dev/null               || { git clone --depth 1 "git@github.com:${{ matrix.repo }}.git" /tmp/target && git -C /tmp/target checkout -b "$REF"; }
+          fi
 
           # --delete가 있어야 여기서 지운 파일이 저쪽에서도 사라진다.
           # 없으면 미러가 쓰레기를 계속 쌓는다.
@@ -91,7 +99,7 @@ jobs:
           # 저쪽 로그만 보고도 되짚을 수 있어야 한다.
           git commit -m "mirror: ${{ github.repository }}@${{ github.sha }}" \
                      -m "이 저장소에 직접 커밋하지 않는다. 원본은 ${{ github.repository }}의 ${{ matrix.dir }}/ 이고, 여기 직접 넣은 것은 다음 미러에 덮인다."
-          git push origin HEAD:main
+          git push origin "HEAD:$REF"
       - name: 실패를 슬랙 채널로 (설계 26번, 오너 메일만으로는 팀이 못 본다)
         if: failure()
         env:

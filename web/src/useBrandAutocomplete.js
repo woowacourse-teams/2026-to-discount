@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { findBrandSuggestions } from './brandAutocomplete.js'
 
@@ -65,4 +65,19 @@ export function useBrandAutocomplete({ brands, input, onSelect }) {
     select,
     handleKeyDown,
   }
+}
+
+/**
+ * 검색은 입력하는 대로 걸린다(2026-10-08 사용자). 기록(brand_search_submitted)은 글자마다 보내지 않고
+ * 입력이 1.5초 멈췄을 때 한 번 'pause'로 보낸다. 엔터, 자동완성 선택으로 확정했으면 그 값은 다시 안 보낸다.
+ */
+export function useSearchPauseTrack(draft, onSubmit) {
+  const sent = useRef('')
+  useEffect(() => {
+    const q = draft.trim()
+    if (q === '' || q === sent.current) return undefined
+    const t = setTimeout(() => { sent.current = q; onSubmit(draft, 'pause') }, 1500)
+    return () => clearTimeout(t)
+  }, [draft]) // eslint-disable-line react-hooks/exhaustive-deps
+  return (q) => { sent.current = q.trim() }
 }

@@ -120,6 +120,12 @@ def load(src):
                 e = json.loads(line)
             except ValueError:
                 continue
+            # 미리보기는 원장에 남기되 실험 방문자와 이벤트 집계에는 포함하지 않는다.
+            props = e.get("props")
+            if (e.get("event") in {
+                    "push_prompt_viewed", "push_prompt_enable_clicked", "push_prompt_closed",
+                } and isinstance(props, dict) and props.get("source") == "preview"):
+                continue
             vid = e.get("visitorId")
             if not vid or vid in SYNTHETIC:
                 continue
@@ -160,6 +166,7 @@ def load(src):
                          e.get("ts") or "", e.get("sessionId") or "",
                          e.get("path") or ""))
     mark_crawler_bursts(people)
+    mark_idle_reloaders(people)
     return people, rows
 
 
@@ -271,6 +278,30 @@ def mark_crawler_bursts(people):
                 for v in group[i:j + 1]:
                     v.bot = "burst"
             i = j + 1
+
+
+# 화면을 열기만 하고 아무것도 안 누르는 방문자 중, 사람의 빈도를 넘는 쪽.
+# 2026-10-11 ~ 10-12에 v_fa46ff74d778e5ba가 이틀 동안 세션 145개를 냈다. 이벤트는
+# 진입, 이탈, 노출뿐이고 ipHash가 7개였다. 봇이라고 밝히지 않아 위 두 판정을
+# 모두 빠져나갔고, 메인 화면 A/B에서 기존 안의 방문자당 세션을 1.94 대비 2.41로
+# 부풀렸다(docs/metrics/HOME-AB-20261014.md). 새 할인을 "보기만 하고" 가는 사람은
+# 실제로 있다(14일에 25번 온 사람). 그래서 하루 평균 세션과 총 세션 둘 다 높을 때만 잡는다.
+IDLE_ACTIONLESS = {"page_view", "page_exit", "brand_impression", "banner_impression",
+                   "survey_impression", "push_prompt_viewed", "push_prompt_closed",
+                   "push_notification_displayed", "first_guide"}
+IDLE_MIN_SESSIONS = 40
+IDLE_MIN_SESSIONS_PER_DAY = 20
+
+
+def mark_idle_reloaders(people):
+    """동작 없이 하루 20세션 넘게 여는 방문자를 봇으로 표시한다. 지우지 않는다(--include-bots)."""
+    for v in people.values():
+        if v.bot or len(v.sessions) < IDLE_MIN_SESSIONS:
+            continue
+        if any(n for e, n in v.events.items() if e not in IDLE_ACTIONLESS):
+            continue
+        if len(v.sessions) / max(1, len(v.days)) >= IDLE_MIN_SESSIONS_PER_DAY:
+            v.bot = "idle-reload"
 
 
 def _gap(a, b):
@@ -813,6 +844,17 @@ def selftest():
     assert v.looks_developer()                # 창 조절
     v.widths = {360, 384}
     assert v.looks_developer() is None        # 둘 다 폰 폭이면 사람
+
+    # 열기만 하는 방문자: 하루 72세션이면 봇, 14일에 25세션이면 사람, 한 번이라도 누르면 사람
+    idle, glancer, clicker = Visitor("i"), Visitor("g"), Visitor("c")
+    idle.sessions, idle.days = {str(i) for i in range(145)}, {"10-11", "10-12"}
+    idle.events = collections.Counter(page_view=141, page_exit=156, banner_impression=148)
+    glancer.sessions, glancer.days = {str(i) for i in range(25)}, {str(d) for d in range(14)}
+    glancer.events = collections.Counter(page_view=25)
+    clicker.sessions, clicker.days = set(idle.sessions), set(idle.days)
+    clicker.events = collections.Counter(page_view=141, offer_link_click=1)
+    mark_idle_reloaders({"i": idle, "g": glancer, "c": clicker})
+    assert idle.bot == "idle-reload" and glancer.bot is None and clicker.bot is None
 
     # 퍼널은 순서를 지켜야 한다. 링크를 먼저 누른 사람은 통과하면 안 된다.
     rows = [

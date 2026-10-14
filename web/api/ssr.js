@@ -6,9 +6,15 @@
 //
 // 실패하면(API 장애, 렌더 오류) 사전 렌더링 HTML을 그대로 보낸다 — 예전 CSR과 같다.
 import { loadData, render } from '../dist-server/entry-server.js'
-import template from '../dist-server/template.js'
+import template, { couponCss } from '../dist-server/template.js'
 
 const ROOT_OPEN = '<div id="root">'
+
+// iOS WebKit은 서버가 그린 쿠폰의 컨테이너 단위(cqw) 글자를 처음 한 번 잘못 배치해 금액과 '원 할인'이 겹친다
+// (2026-10-07 실기). 앱 JS를 기다리면 그 사이 겹친 화면이 보이므로, 마크업 바로 뒤에서 컨테이너를 껐다 켜
+// 첫 페인트 전에 다시 배치하게 한다. main.jsx도 붙인 뒤 한 번 더 한다.
+// iOS WebKit에서만 돈다. 다른 기기는 전체 재배치 비용(CPU 4배 감속에서 약 0.45초)만 남았다(2026-10-14).
+const RELAYOUT = "(function(){if(!/iP(hone|ad|od)/.test(navigator.userAgent)&&!(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return;var e=document.querySelectorAll('#root .cc-ticket,#root .cc--compact,#root .cc-carousel-wrap'),i;for(i=0;i<e.length;i++)e[i].style.containerType='normal';document.body.offsetWidth;for(i=0;i<e.length;i++)e[i].style.containerType=''})()"
 
 export function inject(html, appHtml, data) {
   const start = html.indexOf(ROOT_OPEN)
@@ -16,7 +22,7 @@ export function inject(html, appHtml, data) {
   // null 칸은 싣지 않는다. 화면은 null과 없는 칸을 같게 다룬다(!= null, ??). 실린 데이터가 약 20% 준다(2026-10-06).
   const json = JSON.stringify(data, (_k, v) => (v === null ? undefined : v)).replace(/</g, '\\u003c')
   const out = html.slice(0, start)
-    + `${ROOT_OPEN}${appHtml}</div>\n    <script>window.__SSR__=${json}</script>`
+    + `${ROOT_OPEN}${appHtml}</div>\n    <script>${RELAYOUT}</script><script>window.__SSR__=${json}</script>`
     + html.slice(end + '</div>'.length)
   return out
     // 배너는 이미 실려 있다. 먼저 보내던 fetch는 필요 없다.
@@ -32,10 +38,12 @@ export default async function handler(req, res) {
     // 미들웨어가 쿠키(dk_home=coupon)를 보고 붙인 내부 표시. 쿠폰 카드 쪽이면 처음부터 그 안으로 그린다.
     if (new URL(req.url, 'http://x').searchParams.get('__arm') === 'coupon') data.arm = 'coupon'
     body = inject(template, await render(data), data)
+    // 쿠폰 카드 CSS를 첫 페인트 전에 받는다. 지연 로드 조각이 나중에 같은 주소를 보면 다시 받지 않는다.
+    if (data.arm === 'coupon') body = body.replace('</head>', `<link rel="stylesheet" href="${couponCss}"></head>`)
     res.setHeader('x-ssr', '1')
-    // CDN이 60초 들고, 그 뒤 60초까지는 낡은 걸 주면서 뒤에서 새로 그린다.
-    // 하루 세 번 바뀌는 금액이 최대 약 2분 늦는다. 실패한 응답은 CDN에 안 둔다.
-    res.setHeader('CDN-Cache-Control', 'public, s-maxage=60, stale-while-revalidate=60')
+    // CDN이 5분 들고, 그 뒤 5분까지는 낡은 걸 주면서 뒤에서 새로 그린다.
+    // 하루 세 번 바뀌는 금액이 최대 약 10분 늦는다(2026-10-14, 요청 수 줄이기). 실패한 응답은 CDN에 안 둔다.
+    res.setHeader('CDN-Cache-Control', 'public, s-maxage=300, stale-while-revalidate=300')
   } catch (e) {
     console.error('[ssr] 실패, 사전 렌더링으로 대신한다:', e?.message)
     res.setHeader('x-ssr', '0')

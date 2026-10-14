@@ -79,6 +79,8 @@ public final class OfferComparison {
      */
     public static Integer comparisonAmount(Certainty certainty, AmountKind kind, boolean soldOut,
             String platform, Integer amount, boolean confirmed) {
+        // 1+1 묶음 행사는 최고 할인 후보는 아니지만 정렬값(15,000)으로 목록에 선다(2026-10-11 사용자).
+        if (kind == AmountKind.BUNDLE && !soldOut) return amount;
         if (!comparable(kind, soldOut, platform)) return null;
         if (!confirmed && certainty == Certainty.CAPPED) return amount;
         return sortingAmount(certainty, amount);

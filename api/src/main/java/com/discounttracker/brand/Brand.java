@@ -19,9 +19,10 @@ import java.util.Map;
  * @param links    앱별 브랜드 쿠폰 바로가기. 플랫폼 키(ddangyo, baemin, ...) ->
  *                 링크. 앱마다 딥링크가 따로라 앱 하나당 링크 하나다. 모르는
  *                 앱은 그냥 안 들어 있다 — null이 아니라 빈 맵.
+ * @param menus    그 브랜드에만 있는 대표 메뉴명("뿌링클" -> bhc). 검색에서 별칭보다 아래로 건다.
  */
 public record Brand(String name, List<String> searchAliases, String shortName,
-                    Category category, Map<String, String> links) {
+                    Category category, Map<String, String> links, List<String> menus) {
 
     /** 좁은 자리에서 쓸 이름. 짧은 이름이 없으면 대표명. */
     public String display() {
@@ -30,6 +31,6 @@ public record Brand(String name, List<String> searchAliases, String shortName,
 
     /** brands.yml에 항목이 없는 브랜드 — 원장에만 있고 우리가 아는 게 없는 경우. */
     static Brand unknown(String name) {
-        return new Brand(name, List.of(), null, null, Map.of());
+        return new Brand(name, List.of(), null, null, Map.of(), List.of());
     }
 }

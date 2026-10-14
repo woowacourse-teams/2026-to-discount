@@ -58,6 +58,43 @@ class BrandComparisonServiceTest {
         return new BrandComparisonService(repositoryWith(records), brands, banners, clock);
     }
 
+    private BrandComparisonService serviceWithHistory(List<OfferRecord> records, String yaml, Clock clock,
+                                                      com.discounttracker.history.OfferHistory history) {
+        BrandCatalog brands = catalogWith(yaml);
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource("banners: []".getBytes(StandardCharsets.UTF_8)), clock, brands);
+        return new BrandComparisonService(repositoryWith(records), brands, banners, clock,
+                com.discounttracker.history.HistoryRepository.of(history));
+    }
+
+    @Test
+    void offersCarryNoveltyFromHistory() {
+        String brands = """
+                brands:
+                  청년피자:
+                    category: pizza
+                """;
+        var history = new com.discounttracker.history.OfferHistory(
+                List.of(new com.discounttracker.history.BrandDay(java.time.LocalDate.parse("2026-08-19"),
+                        "coupangeats", "청년피자", com.discounttracker.history.DayState.PUBLISHED, null, 10000)),
+                java.util.Map.of(java.time.LocalDate.parse("2026-08-19"), java.util.Set.of("coupangeats")));
+        Offer offer = serviceWithHistory(List.of(rec("coupangeats", "청년피자", 10000, null, false)), brands,
+                on("2026-08-20"), history).compare().get(0).offers().get(0);
+        assertEquals(Boolean.FALSE, offer.isNew());
+    }
+
+    @Test
+    void offersAreUnknownWhenHistoryIsEmpty() {
+        String brands = """
+                brands:
+                  청년피자:
+                    category: pizza
+                """;
+        Offer offer = serviceWithHistory(List.of(rec("coupangeats", "청년피자", 10000, null, false)), brands,
+                on("2026-08-20"), com.discounttracker.history.OfferHistory.empty()).compare().get(0).offers().get(0);
+        assertNull(offer.isNew());
+    }
+
     /** KST 기준 그 날짜 정오를 가리키는 시계. */
     private Clock on(String date) {
         return Clock.fixed(Instant.parse(date + "T03:00:00Z"), SEOUL);
@@ -717,6 +754,36 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void aBuyGetBannerStandsAsAWordOfferOutsideTheCeiling() {
+        // 2026-10-11 사용자: 1+1 행사를 카드 오퍼로 띄운다. 금액이 없어 할인액 비교에는 안 든다.
+        String brands = """
+                brands:
+                  KFC:
+                    category: burger
+                """;
+        String yaml = """
+                banners:
+                  - id: kfc-own-1plus1-20261011
+                    brand: KFC
+                    platform: own
+                    url: https://www.kfckorea.com/promotion/promotionList/detail/955
+                    amount: {buy: 1, get: 1, item: 징거버거}
+                    startsOn: 2026-10-11
+                    endsOn: 2026-10-12
+                """;
+        List<BrandComparison> cards = serviceWith(List.of(), brands, on("2026-10-11"), yaml).compare();
+        BrandComparison kfc = cards.stream().filter(c -> c.brand().name().equals("KFC")).findFirst().orElseThrow();
+        Offer offer = kfc.offers().get(0);
+        assertEquals(15000, offer.amount());
+        assertEquals("징거버거 1+1", offer.rawText());
+        assertEquals(com.discounttracker.offer.AmountKind.BUNDLE, offer.kind());
+        // 정렬 천장에는 15,000으로 든다(목록 위로). 최고 할인 후보는 아니다.
+        assertEquals(15000, kfc.maxConfirmedAmount());
+        assertFalse(com.discounttracker.offer.OfferComparison.isBestCandidate(
+                offer.certainty(), offer.kind(), offer.soldOut(), offer.platform()));
+    }
+
+    @Test
     void aRandomOfferStandsBesideTheFixedOfferOfTheSameApp() {
         // 2026-09-20: 노모어피자 쿠팡이츠 확정 5,000과 랜덤 상한 10,000이 같은 자리를 다퉈 랜덤이 사라졌다.
         String brands = """
@@ -786,6 +853,22 @@ class BrandComparisonServiceTest {
         assertEquals(25000, offer.minOrderAmount());
         // 기간 문구가 사라지면 아무 때나 받는 할인으로 읽힌다.
         assertEquals("매일 오후 3시부터 선착순", offer.badge());
+    }
+
+    @Test
+    void bannerOfferCarriesItsStartAsFirstSeen() {
+        // 2026-10-09: 배너 오퍼의 firstSeenAt이 null이라 그날 시작한 배너가 신규로 안 잡혔다.
+        String brands = """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """;
+        Offer offer = serviceWith(List.of(), brands, on("2026-08-20"), BANNER_YAML)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow().offers().get(0);
+        assertEquals("2026-08-17T00:00+09:00", offer.firstSeenAt());
     }
 
     @Test
