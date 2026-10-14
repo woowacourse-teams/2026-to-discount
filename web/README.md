@@ -21,12 +21,9 @@ ADR-015.
 
 ## 실행
 
-`npm install && npm run dev` (http://localhost:5173). 백엔드 주소는
-`src/api.js`에 `https://bebeggars.duckdns.org`로 고정되어 있어 로컬이든
-배포든 항상 그 주소로 API를 호출한다. 별도 환경변수나 프록시 설정이 필요
-없다. 백엔드를 바꾸려면 `src/api.js`의 `API_BASE`를 직접 수정한다.
-왜 env var/프록시 대신 고정값인지는
-[docs/decisions/ADR-001-fixed-backend-origin.md](docs/decisions/ADR-001-fixed-backend-origin.md).
+`npm install && npm run dev` (http://localhost:5173). API는 `VITE_API_BASE_URL`의 절대주소로 직접 호출한다. 설정이 없는 기존 운영 환경은 `https://bebeggars.duckdns.org`을 사용한다. 개발 배포는 `VITE_APP_ENV=development`와 개발 API 주소가 모두 필요하다. 상대경로나 API 프록시로 대체하지 않는다.
+
+브라우저, SSR, 사전 렌더링은 같은 API origin 검증을 사용한다. `.env.local`은 Git에서 제외하고 `.env.example`에 공개 설정을 기록한다. 개발 배포 절차는 [dev-deployment.md](docs/dev-deployment.md), 결정은 [ADR-004](docs/decisions/ADR-004-environment-api-origin.md)를 따른다.
 
 배포는 Vercel(`beggars-five.vercel.app`)이며, 백엔드 CORS 허용 목록에
 이미 등록돼 있다.
@@ -56,7 +53,7 @@ ADR-015.
   글자, 강조를 파생한다. 못 뽑으면 플랫폼 색
 - `src/logos.jsx`: `BrandLogo`, `PlatformBadge`, 플랫폼 목록. App과
   EventBanner가 같이 쓴다(App.jsx에 두면 순환 import가 된다)
-- `src/api.js`: `API_BASE`(고정 백엔드 주소) + `/api/brands`, `/api/banners` 호출
+- `src/api.js`: `API_BASE`(환경별 백엔드 주소) + `/api/brands`, `/api/banners` 호출
 - `src/analytics.js`: 방문 측정. `track(event, props)` + `startAnalytics()`
 - `src/ga4.js`: GA4 임시 도입(`startGa4()`). 이유와 제거 조건은
   [ADR-002](docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md)

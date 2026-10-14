@@ -4,3 +4,7 @@ dist/
 .idea/
 .superpowers/
 dist-server
+
+.vercel/
+.env.local
+.env.*.local

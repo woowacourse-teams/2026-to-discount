@@ -19,10 +19,13 @@
 // API가 죽어 있으면 심지 않고 그냥 넘어간다. 배포를 막을 일이 아니다.
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { loadEnv } from 'vite'
+import { resolveApiBase } from '../src/apiBase.js'
 
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url))
 const SITE = process.env.SITE_ORIGIN ?? 'https://beggars-five.vercel.app'
-const API = process.env.BRANDS_API ?? 'https://bebeggars.duckdns.org/api/brands'
+const env = loadEnv('production', fileURLToPath(new URL('..', import.meta.url)), '')
+const API = `${resolveApiBase(env.VITE_API_BASE_URL, env.VITE_APP_ENV)}/api/brands`
 
 const PLATFORM_LABEL = {
   baemin: '배달의민족',

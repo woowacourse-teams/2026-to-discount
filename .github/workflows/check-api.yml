@@ -30,6 +30,8 @@ jobs:
           cache: gradle
       - name: Test
         run: ./gradlew test
+      - name: Test development operations
+        run: python3 -m unittest discover -s deploy/dev -p 'test_*.py'
       # 테스트는 앞 단계에서 통과했다. build가 같은 테스트를 다시 실행하지
       # 않게 하고 컴파일과 패키징 실패를 별도 단계로 드러낸다.
       - name: Build

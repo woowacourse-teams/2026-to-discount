@@ -5,6 +5,16 @@ api/.gitattributes
 api/.gitignore
 api/README.md
 api/build.gradle
+api/deploy/dev/README.md
+api/deploy/dev/deploy.py
+api/deploy/dev/development.env
+api/deploy/dev/nginx-locations.conf
+api/deploy/dev/nginx-request-id.conf
+api/deploy/dev/provision.sh
+api/deploy/dev/sync_offers.py
+api/deploy/dev/test_deploy.py
+api/deploy/dev/test_sync_offers.py
+api/deploy/dev/todiscount-be-dev.service
 api/gradle/wrapper/gradle-wrapper.jar
 api/gradle/wrapper/gradle-wrapper.properties
 api/gradlew
@@ -132,7 +142,9 @@ api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
 api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/BrandHistoryEndpointTest.java
+api/src/test/java/com/discounttracker/web/DevelopmentCorsTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
+api/src/test/java/com/discounttracker/web/PerformanceMetricsIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PushAdminControllerTest.java
 api/src/test/java/com/discounttracker/web/PushAdminCorsTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
@@ -165,12 +177,15 @@ web/scripts/dev/load-interact.mjs
 web/scripts/dev/load-tbt.mjs
 web/scripts/indexnow.mjs
 web/scripts/prerender.mjs
+web/scripts/promote-dev-deployment.mjs
 web/scripts/run-node-tests.mjs
 web/scripts/ssr-template.mjs
 web/scripts/verify-analytics-event-contract.mjs
 web/scripts/verify-analytics-event-id.mjs
 web/scripts/verify-api-base.mjs
 web/scripts/verify-brand-route.mjs
+web/scripts/verify-dev-deployment.mjs
+web/scripts/verify-dev-output.mjs
 web/scripts/verify-posthog-sdk.mjs
 web/scripts/verify-search-filters.mjs
 web/src/App.css
@@ -196,6 +211,8 @@ web/src/TopBarB.jsx
 web/src/analytics-context.js
 web/src/analytics.js
 web/src/api.js
+web/src/apiBase.js
+web/src/apiBase.test.js
 web/src/backClose.js
 web/src/bannerAnalytics.js
 web/src/bannerAnalytics.test.js
@@ -216,6 +233,7 @@ web/src/cardShift.test.js
 web/src/couponCard.test.js
 web/src/couponModel.js
 web/src/couponModel.test.js
+web/src/devPromotion.test.js
 web/src/entry-server.jsx
 web/src/filters.js
 web/src/filters.test.js
@@ -322,8 +340,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 142 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 132 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 154 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 138 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -389,6 +407,8 @@ HTTP 경계:
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
 | `api.js` | 브랜드와 배너 API 호출 |
+| `apiBase.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `apiBase.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `backClose.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerAnalytics.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerAnalytics.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -409,6 +429,7 @@ HTTP 경계:
 | `couponCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `devPromotion.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `entry-server.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `filters.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |

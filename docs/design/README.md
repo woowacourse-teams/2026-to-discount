@@ -27,6 +27,7 @@
 | 32 | [#32](https://github.com/woowacourse-teams/2026-to-discount/issues/32) |
 | 33 | [#33](https://github.com/woowacourse-teams/2026-to-discount/issues/33) |
 | 34 | [#34](https://github.com/woowacourse-teams/2026-to-discount/issues/34) |
+| 65 | [#65](https://github.com/woowacourse-teams/2026-to-discount/issues/65) |
 
 ## 상태
 
@@ -42,6 +43,10 @@
 | 33 | 콘솔을 팀의 입구로 키운다(관례 조사, 구조 탭, 지금 할 일, 이력 탭) | **완료** (2026-09-18). 1~4와 별도 트랙 5(31의 1~2단계), 6(사람별 계정)까지 같은 날 끝 | 32 | 없음 |
 | 32 | 운영 관측을 한 화면과 한 알림 채널로(수집, API, 데이터, 웹, 서버, 배포 탭과 슬랙) | **완료** (1~3단계 2026-09-17, 배너 제안 승인 09-18). 10절에 남은 것은 범위 밖 항목과 팀원 피드백 요청뿐 | 없음 | 없음 |
 | 34 | 라이브 오퍼 상시 확인 봇 | **닫힘** (2026-09-29). 새 봇 대신 4단계 전수조사 재확인 주기를 2일로 줄임(tracker `4d43802`) | 32 | — |
+| 65 | [짧은 API 장애 감지 지연 개선](65-fast-api-failure-detection.md) | **완료**. 운영 배포, 연속 감시 및 실제 Slack 장애, 복구, 재발 알림 수신 확인 | 32 | 없음 |
+| 67 | [요청 ID로 접근 기록과 오류 연결](67-request-id-correlation.md) | 구현 및 사전 검증 완료. API 382개, 운영 설정 255개 테스트 통과 | 없음 | 개발 및 운영 배포 후 인수 검증 |
+| 71 | [운영 오류 목록의 전체 스택트레이스 조회](71-ops-error-stacktrace.md) | 운영 배포 및 실제 Loki와 운영 화면의 격리 인수 검증 완료 | 72 | 없음 |
+| 72 | [Grafana Cloud 로그 저장 및 조회 구성](72-grafana-cloud-logs.md) | 운영 설치 및 검증 완료, PR 리뷰 대기 | 없음 | 토큰 교체 및 전송 재확인 |
 | [47](47-footer-legal-pages.md) | 바닥글 정리: 브랜드 목록 접기, 고지문을 /about·/privacy로 | **구현, 프리뷰 승인 대기** (2026-10-13) | 없음 | 없음 |
 | 67 | [요청 ID로 접근 기록과 오류 연결](67-request-id-correlation.md) | **운영 배포 및 인수 검증 완료**. 개발 Nginx 검증은 사용자 승인으로 생략 | 없음 | 없음 |
 

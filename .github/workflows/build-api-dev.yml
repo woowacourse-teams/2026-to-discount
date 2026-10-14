@@ -1,0 +1,117 @@
+name: Deploy API development
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'api/**'
+      - 'docs/contracts/**'
+      - '.github/workflows/build-api-dev.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-api-dev-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # 수동 실행도 dev만 허용한다.
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Test deployment recovery
+        run: python3 -m unittest discover -s deploy/dev -p "test_*.py"
+      - name: Test
+        run: ./gradlew test
+      - name: Build executable JAR
+        run: ./gradlew bootJar -x test
+      - name: Prepare artifact
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/api-dev-artifact
+        run: |
+          python3 - <<'PYTHON'
+          import hashlib, json, os, shutil
+          from pathlib import Path
+          jars = [p for p in Path("build/libs").glob("*.jar") if not p.name.endswith("-plain.jar")]
+          if len(jars) != 1:
+              raise SystemExit(f"Expected exactly one executable JAR, found {len(jars)}")
+          target = Path(os.environ["ARTIFACT_DIR"])
+          target.mkdir(parents=True, exist_ok=True)
+          jar = target / "app.jar"
+          shutil.copy2(jars[0], jar)
+          digest = hashlib.sha256(jar.read_bytes()).hexdigest()
+          (target / "app.jar.sha256").write_text(f"{digest}  app.jar\n")
+          manifest = {
+              "commit": os.environ["GITHUB_SHA"],
+              "repository": os.environ["GITHUB_REPOSITORY"],
+              "ref": os.environ["GITHUB_REF"],
+              "run_id": os.environ["GITHUB_RUN_ID"],
+              "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
+              "sha256": digest,
+          }
+          (target / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          PYTHON
+      - name: Upload development artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-dev-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/api-dev-artifact/
+          retention-days: 14
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    environment: development
+    if: github.ref == 'refs/heads/dev'
+    runs-on: [self-hosted, Linux, ARM64, todiscount-be-dev]
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Check latest dev commit
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, urllib.request
+          url = os.environ['GITHUB_API_URL'] + '/repos/' + os.environ['GITHUB_REPOSITORY'] + '/git/ref/heads/dev'
+          request = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN']})
+          with urllib.request.urlopen(request, timeout=15) as response:
+              latest = json.load(response)['object']['sha']
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('current=' + str(latest == os.environ['EXPECTED_SHA']).lower() + '\n')
+          PYTHON
+      - name: Download artifact
+        if: steps.latest.outputs.current == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: api-dev-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/api-dev-artifact
+      - name: Deploy and verify
+        if: steps.latest.outputs.current == 'true'
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/api-dev-artifact
+        run: sudo /usr/local/sbin/todiscount-deploy-dev "$ARTIFACT_DIR" "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+      - name: Clean downloaded files
+        if: always()
+        env:
+          ARTIFACT_DIR: ${{ runner.temp }}/api-dev-artifact
+        run: rm -rf -- "$ARTIFACT_DIR"

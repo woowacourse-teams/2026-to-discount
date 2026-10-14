@@ -1,4 +1,5 @@
 {
+  "git": { "deploymentEnabled": { "dev": false } },
   "regions": ["icn1"],
   "headers": [
     {
