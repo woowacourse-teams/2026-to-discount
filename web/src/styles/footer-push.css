@@ -12,7 +12,7 @@
 .site-footer p:last-child { margin-bottom: 0; }
 .site-footer strong { color: var(--text); font-weight: 600; }
 .site-footer__links { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin-top: .7rem; font-size: .8rem; }
-.site-footer__links a { color: var(--text-muted); text-decoration: none; }
+.site-footer__links a { display: inline-block; padding: .25rem 0; color: var(--text-muted); text-decoration: none; }
 .site-footer__links a:hover { text-decoration: underline; }
 
 .push-setting {

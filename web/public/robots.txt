@@ -17,7 +17,6 @@ Allow: /
 # 그게 요청 수의 대부분이다.
 Disallow: /logos/
 Disallow: /platform-icons/
-Disallow: /assets/
 Disallow: /links/
 Disallow: /design/
 

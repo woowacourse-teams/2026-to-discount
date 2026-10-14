@@ -167,7 +167,7 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: rgba(255, 255, 255, .85);
+  color: #fff;
   cursor: pointer;
   white-space: nowrap;
   transition: background .2s cubic-bezier(.2, .8, .2, 1), color .2s ease, box-shadow .2s ease;

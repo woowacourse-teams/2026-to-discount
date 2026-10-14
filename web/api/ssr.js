@@ -40,9 +40,9 @@ export default async function handler(req, res) {
     // 쿠폰 카드 CSS를 첫 페인트 전에 받는다. 지연 로드 조각이 나중에 같은 주소를 보면 다시 받지 않는다.
     if (data.arm === 'coupon') body = body.replace('</head>', `<link rel="stylesheet" href="${couponCss}"></head>`)
     res.setHeader('x-ssr', '1')
-    // CDN이 60초 들고, 그 뒤 60초까지는 낡은 걸 주면서 뒤에서 새로 그린다.
-    // 하루 세 번 바뀌는 금액이 최대 약 2분 늦는다. 실패한 응답은 CDN에 안 둔다.
-    res.setHeader('CDN-Cache-Control', 'public, s-maxage=60, stale-while-revalidate=60')
+    // CDN이 5분 들고, 그 뒤 5분까지는 낡은 걸 주면서 뒤에서 새로 그린다.
+    // 하루 세 번 바뀌는 금액이 최대 약 10분 늦는다(2026-10-14, 요청 수 줄이기). 실패한 응답은 CDN에 안 둔다.
+    res.setHeader('CDN-Cache-Control', 'public, s-maxage=300, stale-while-revalidate=300')
   } catch (e) {
     console.error('[ssr] 실패, 사전 렌더링으로 대신한다:', e?.message)
     res.setHeader('x-ssr', '0')
