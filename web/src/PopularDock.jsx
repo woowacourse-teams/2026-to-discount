@@ -54,7 +54,7 @@ export default function PopularDock({ brands, onPick }) {
         aria-label={`오늘 인기 순위 ${open ? '접기' : '펼치기'}`}
         onClick={() => { setOpen((o) => !o); track('quick_filter', { key: 'popular_dock_toggle', on: !open }) }}
       >
-        <span className="pop-dock__label">오늘 인기</span>
+        <span className="pop-dock__label">인기 브랜드</span>
         <span className="pop-dock__tick" key={cur.brand.name} aria-hidden="true">
           <span className="pop-dock__rank">{cur.rank}</span>
           <BrandLogo name={cur.brand.name} size={20} />

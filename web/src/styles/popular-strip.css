@@ -40,7 +40,7 @@
 .pop-dock__caret { flex: none; color: var(--text-muted); font-size: .7rem; }
 @keyframes pop-dock-roll { from { opacity: 0; transform: translateY(70%); } to { opacity: 1; transform: none; } }
 .pop-dock__list { margin: 0 0 6px; padding: 4px; list-style: none; }
-.pop-dock__row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: .95rem; color: var(--text); cursor: pointer; text-align: left; }
+.pop-dock__row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 10px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: .95rem; color: var(--text); cursor: pointer; text-align: left; }
 .pop-dock__row:active { background: color-mix(in srgb, var(--sale) 8%, var(--surface)); }
 .pop-dock__row .brand-logo, .pop-dock__row .brand-logo img, .pop-dock__tick .brand-logo, .pop-dock__tick .brand-logo img { width: 26px; height: 26px; min-width: 26px; border-radius: 6px; }
 @media (prefers-reduced-motion: reduce) { .pop-dock, .pop-dock__tick { transition: none; animation: none; } }
