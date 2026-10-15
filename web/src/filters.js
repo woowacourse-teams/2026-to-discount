@@ -354,7 +354,13 @@ export function applyFilters(brands, filters) {
       if (filters.categories.size === 0) return true
       return filters.categories.has(b.category)
     })
-  return sortBrands(visible, { ...filters, include: includesFrom(filters) })
+  const include = includesFrom(filters)
+  const sorted = sortBrands(visible, { ...filters, include })
+  // 2026-10-15 사용자: 신규 탭 대신 기본 정렬일 때 신규(최고 오퍼가 신규인 브랜드)를 맨 위로. 신규끼리도 기본 정렬 순서.
+  // 정렬을 바꾸면 끌어올리지 않고 전체 정렬을 따른다.
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return sorted
+  const isNew = (b) => hasNewBest(b.offers, include)
+  return [...sorted.filter(isNew), ...sorted.filter((b) => !isNew(b))]
 }
 
 /**

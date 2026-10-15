@@ -244,3 +244,11 @@ test('1+1 묶음 행사는 5천원 이상만을 켜도 남는다(2026-10-11)', (
   const got = applyFilters([brand], { ...defaultFilters(), minAmount5k: true })
   assert.equal(got.length, 1)
 })
+
+test('default sort pins new brands to the top, other sorts do not', () => {
+  const b = (name, amount, isNew) => ({ name, category: 'chicken', offers: [{ platform: 'baemin', amount, isNew }] })
+  const brands = [b('가', 9000, false), b('나', 6000, true), b('다', 8000, false), b('라', 7000, true)]
+  assert.deepEqual(applyFilters(brands, defaultFilters()).map((x) => x.name), ['라', '나', '가', '다'])
+  const asc = { ...defaultFilters(), sorts: [{ key: 'amount', dir: 'asc' }] }
+  assert.deepEqual(applyFilters(brands, asc).map((x) => x.name), ['나', '라', '다', '가'])
+})
