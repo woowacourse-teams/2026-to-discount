@@ -58,6 +58,7 @@
       const slides = [...c.children]
       const hitIdx = slides.findIndex((sl) => sl.contains(hit))
       carousels.push({ brand: brandOf(c), scrollLeft: Math.round(c.scrollLeft), width: Math.round(c.clientWidth), dot, hitIdx,
+        display: getComputedStyle(c).display, overflowX: getComputedStyle(c).overflowX,
         slideLeft: slides.map((sl) => Math.round(sl.getBoundingClientRect().left - cr.left)) })
       // 가운데에서 다른 장이 눌리면(hitIdx > 0) 그것도 실패. -1(가운데가 화면 밖이거나 다른 것이 덮음)은 판정하지 않는다
       // 장 폭이 무너지면(iOS가 컨테이너 폭을 0으로 읽음) 장들이 한 자리에 겹친다(2026-10-16 장 위치 [0, 0])
@@ -84,7 +85,10 @@
       }
     }
     const vv = window.visualViewport
-    return { url: location.href, w: innerWidth, vv: vv ? { x: Math.round(vv.offsetLeft), scale: vv.scale } : null, ua: navigator.userAgent, carousels, fails }
+    // 첫 방문에서만 깨졌다(2026-10-16). 그 순간의 스타일, 글꼴, 시각을 남긴다
+    const diag = { sheets: document.styleSheets.length, fonts: document.fonts ? document.fonts.status : null,
+      cardsAt: cardsAt == null ? null : cardsAt - t0, measuredAt: Date.now() - t0 }
+    return { url: location.href, w: innerWidth, vv: vv ? { x: Math.round(vv.offsetLeft), scale: vv.scale } : null, ua: navigator.userAgent, carousels, diag, fails }
   }
 
   function report(res) {
@@ -99,8 +103,9 @@
   // 아직 없어 "카드 0장"으로 실패했다(2026-10-16 PR #86 검사). load 이벤트에는 기대지 않는다(첫 탭만 보고했다).
   // ?sheet=<브랜드> 면 카드가 뜬 1초 뒤 그 카드의 "자세히" 시트를 연다.
   const t0 = Date.now()
+  let cardsAt = null
   const ready = (cb) => {
-    if (document.querySelector('article[data-brand]') || Date.now() - t0 > 15000) cb()
+    if (document.querySelector('article[data-brand]') || Date.now() - t0 > 15000) { cardsAt = Date.now(); cb() }
     else setTimeout(() => ready(cb), 300)
   }
   ready(() => {
