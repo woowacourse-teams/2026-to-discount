@@ -114,7 +114,8 @@
 .cc-t-amt { color: var(--text); font-weight: 600; white-space: nowrap; }
 .cc-t-amt small { margin-left: 4px; font-size: 12.6px; font-weight: 400; color: var(--text-muted); }
 .cc-t-chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.cc-t-chips .detail__channel { font-size: 12.6px; }
+/* 표 안의 칩은 칸 안에서 줄을 바꾼다. 한 줄로 두면 긴 구간 메모("오전 10시 오픈 선착순")가 오른쪽 최소주문을 덮었다(2026-10-15). */
+.cc-t-chips .detail__channel { font-size: 12.6px; white-space: normal; word-break: keep-all; }
 .cc-t-min { white-space: nowrap; text-align: right; }
 .cc-t-head { grid-column: 1 / -1; display: flex; --pb: 18px; }
 .cc-tbl > .cc-t-head { border-top: 0; }
