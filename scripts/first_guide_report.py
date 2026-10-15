@@ -28,6 +28,8 @@ NON_ACTION = {"page_view", "page_exit", "brand_impression", "banner_impression",
               "push_notification_displayed", "app_open_result"}
 FILTER = {"category_change", "platform_filter_toggle", "quick_filter", "filter_sheet_open", "filters_apply",
           "membership_toggle", "filters_reset"}
+# experiments.load와 같은 미리보기 제외 규칙(알림 안내 미리보기는 실제 방문이 아니다)
+PREVIEW = {"push_prompt_viewed", "push_prompt_enable_clicked", "push_prompt_closed"}
 METRICS = (("conv", "전환"), ("link", "링크 클릭"), ("idle", "무동작"), ("search", "검색"),
            ("filter", "필터, 분류"), ("back", "다음 날 재방문"))
 
@@ -38,7 +40,8 @@ def when(s):
 
 def collect(src):
     people, _ = ex.load(src)
-    first, sess, days, home, forced = {}, collections.defaultdict(list), collections.defaultdict(set), {}, set()
+    first, sess, days, home, forced, no_sid = ({}, collections.defaultdict(list), collections.defaultdict(set), {},
+                                               set(), set())
     last_ts = ""
     with open(src, encoding="utf-8") as f:
         for line in f:
@@ -50,38 +53,46 @@ def collect(src):
             if not vid or not ts:
                 continue
             last_ts = max(last_ts, ts)
-            p = e.get("props") or {}
+            p = e.get("props") if isinstance(e.get("props"), dict) else {}
+            if e.get("event") in PREVIEW and p.get("source") == "preview":
+                continue
+            sid = e.get("sessionId")
+            if not sid:                      # 세션을 못 가르면 첫 세션을 셀 수 없다
+                no_sid.add(vid)
+                continue
             if p.get("home"):
                 home[vid] = p["home"]
             if p.get("home_forced"):
                 forced.add(vid)
             if vid not in first or ts < first[vid]["ts"]:
-                first[vid] = {"ts": ts, "sid": e.get("sessionId"), "ref": e.get("referrer"),
+                first[vid] = {"ts": ts, "sid": sid, "ref": e.get("referrer"),
                               "vp": e.get("viewport") or "", "visits": e.get("visitCount")}
-            sess[(vid, e.get("sessionId"))].append((ts, e.get("event"), p))
-            days[vid].add(when(ts).astimezone(KST).date())
+            sess[(vid, sid)].append((ts, e.get("event"), p))
+            days[vid].add((when(ts).astimezone(KST).date(), sid))
     # 다음 날 재방문은 다음 날이 원장에 다 들어 있을 때만 센다
     full_day = when(last_ts).astimezone(KST).date() - dt.timedelta(days=1)
     rows = []
     for vid, fe in first.items():
         v = people.get(vid)
-        if v is None or v.looks_developer() or v.bot or vid == BOT_VID or vid in forced or vid not in home:
+        if v is None or v.looks_developer() or v.bot or vid == BOT_VID or vid in forced or vid in no_sid or vid not in home:
             continue
-        if fe["visits"] not in (1, None):
+        if fe["visits"] != 1:
             continue
         period = next((n for n, a, b in PERIODS if a <= fe["ts"] < b), None)
         if not period:
             continue
         names = {n for _, n, _ in sess[(vid, fe["sid"])]}
         guide = [p for _, n, p in sorted(sess[(vid, fe["sid"])], key=lambda x: x[0]) if n == "first_guide"]
-        width = int(fe["vp"].split("x")[0]) if "x" in fe["vp"] else 0
+        width = int(fe["vp"].split("x")[0]) if "x" in fe["vp"] else None
         day0 = when(fe["ts"]).astimezone(KST).date()
         rows.append({
-            "period": period, "ref": fe["ref"], "device": "폰" if width <= 500 else "컴퓨터", "arm": home[vid],
+            "period": period, "ref": fe["ref"], "device": "모름" if width is None else "폰" if width <= 500 else "컴퓨터", "arm": home[vid],
             "conv": bool(names & {"offer_link_click", "banner_click"}), "link": "offer_link_click" in names,
             "idle": not (names - NON_ACTION), "search": "brand_search_submitted" in names,
             "filter": bool(names & FILTER),
-            "back": (day0 + dt.timedelta(days=1) in days[vid]) if day0 + dt.timedelta(days=1) <= full_day else None,
+            # 첫 세션이 자정을 넘긴 것은 재방문이 아니다. 다음 날 다른 세션이 있어야 한다
+            "back": (any(d == day0 + dt.timedelta(days=1) and s != fe["sid"] for d, s in days[vid])
+                     if day0 + dt.timedelta(days=1) <= full_day else None),
             "guide": guide})
     return rows, last_ts
 
