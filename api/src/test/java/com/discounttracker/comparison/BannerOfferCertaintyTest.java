@@ -474,7 +474,7 @@ class BannerOfferCertaintyTest {
         assertEquals(List.of(8000, 5000), o.tiers().stream().map(DiscountTier::amount).toList());
         assertTrue(o.tiers().get(0).note().contains("선착순"), o.tiers().toString());
         assertNull(o.tiers().get(0).soldOut());
-        assertFalse(o.firstCome(), "상시 칸에 선다 - 웹 오퍼 키가 서버 칸과 같아야 한다");
+        assertTrue(o.firstCome(), "선착순이 대표 금액을 낸다 - 푸시 제목에 선착순이 붙는다");
         assertEquals("https://example.test/x", o.link(), "대표 금액을 낸 선착순의 링크");
     }
 
@@ -488,6 +488,7 @@ class BannerOfferCertaintyTest {
         assertEquals(List.of(8000, 5000), o.tiers().stream().map(DiscountTier::amount).toList());
         assertEquals(Boolean.TRUE, o.tiers().get(0).soldOut(), "소진된 선착순은 품절 구간으로 남는다");
         assertFalse(o.soldOut());
+        assertFalse(o.firstCome(), "상시가 대표다");
     }
 
     @Test
@@ -544,9 +545,33 @@ class BannerOfferCertaintyTest {
         };
         Offer o = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers().get(0);
         assertEquals(3000, o.amount());
-        assertEquals("none", o.membershipKey(), "오퍼 값은 덜 제한적인 쪽");
+        assertEquals("baeminClub", o.membershipKey(), "소진된 선착순은 빼고 견준다 - 배민클럽 전용으로 남는다");
         assertNull(o.tiers().get(0).membership(), "선착순 구간은 멤버십을 모른다");
         assertEquals("baeminClub", o.tiers().get(1).membership());
         assertEquals(Boolean.TRUE, o.tiers().get(0).soldOut());
+    }
+
+    @Test
+    void soldOutStandingLetsTheLiveFirstComeLead() {
+        // 상시가 품절이고 선착순이 살아 있으면 오퍼 전체를 품절로 내지 않는다. 선착순이 금액이 작아도 대표다.
+        OfferRecord first = OfferRecord.builder("baemin", "bhc")
+                .amount(3000).offerType("discount").section("배짱할인 주말핫딜 선착순").rawText("3,000원")
+                .capturedAt("2026-09-22T00:15:00+09:00").conditions("오전 11시 오픈 선착순").soldOut(false).build();
+        OfferRecord standing = OfferRecord.builder("baemin", "bhc")
+                .amount(5000).offerType("discount").section("쿠폰함 보유쿠폰").rawText("5,000원")
+                .capturedAt("2026-09-22T02:51:00+09:00").soldOut(true).build();
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource("banners: []\n".getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
+        OfferRepository repo = new OfferRepository(null) {
+            @Override public void reload() { }
+            @Override public List<OfferRecord> findAll() { return List.of(first, standing); }
+        };
+        Offer o = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers().get(0);
+        assertFalse(o.soldOut());
+        assertEquals(3000, o.amount());
+        assertTrue(o.firstCome());
+        assertEquals(List.of(3000, 5000), o.tiers().stream().map(DiscountTier::amount).toList());
+        assertNull(o.tiers().get(0).soldOut());
+        assertEquals(Boolean.TRUE, o.tiers().get(1).soldOut(), "품절인 상시 구간에 품절이 붙는다");
     }
 }

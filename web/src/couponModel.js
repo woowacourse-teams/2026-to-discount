@@ -79,11 +79,12 @@ const won = (n) => `${n.toLocaleString('ko-KR')}원`
 // 여는 시각이 앞에 붙은 구간 메모("오전 10시 오픈 선착순")는 칩 둘로 가른다. 한 칩이면 좁은 칸에서 넘치거나
 // 줄이 낱말 사이로 끊겼다(2026-10-15 사용자: 따로 붙이든가). 시각 꼴은 배지 읽기(badgesOf)와 같다.
 const OPENS_NOTE = /^((?:오전|오후)\s*\d+시(?:\s*\d+분)?\s*오픈)\s+(.+)$/
-const noteChips = (note) => {
+export function noteParts(note) {
   if (!note) return []
   const m = note.match(OPENS_NOTE)
-  return (m ? [m[1], m[2]] : [note]).map((text) => ({ kind: 'note', text }))
+  return m ? [m[1], m[2]] : [note]
 }
+const noteChips = (note) => noteParts(note).map((text) => ({ kind: 'note', text }))
 
 export function conditionTable(offer) {
   const tiers = Array.isArray(offer.tiers) ? [...offer.tiers].sort((a, b) => b.amount - a.amount) : []
