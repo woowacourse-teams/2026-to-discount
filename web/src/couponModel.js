@@ -90,7 +90,10 @@ export function conditionTable(offer) {
   const tiers = Array.isArray(offer.tiers) ? [...offer.tiers].sort((a, b) => b.amount - a.amount) : []
   // 구간이 자기 멤버십을 말하지 않으면 오퍼 전체의 값을 따른다(운영 OfferDetail과 같다). 필드가 없는 옛 행은 badge 끝말로.
   const offerMem = offer.membership && offer.membership !== 'none' ? offer.membership : (offer.badge?.endsWith('전용쿠폰') ? 'badge' : null)
-  const memOf = (t) => (t.membership && t.membership !== 'none' ? t.membership : offerMem)
+  // 구간 하나라도 자기 멤버십을 밝히면, 밝히지 않은 구간은 오퍼 값을 물려받지 않는다. 선착순을 상시의 구간으로 합친
+  // 오퍼에서 상시(배민클럽 전용)의 멤버십이 멤버십을 모르는 선착순 구간에까지 붙었다(2026-10-16 CodeRabbit, PR #85).
+  const tierSays = tiers.some((t) => t.membership && t.membership !== 'none')
+  const memOf = (t) => (t.membership && t.membership !== 'none' ? t.membership : tierSays ? null : offerMem)
   const extra = (t) => t.channel || memOf(t) || t.note || (t.expiresAt && t.expiresAt !== offer.expiresAt)
   const rows = []
   // 최적(기본 할인 + 쿠폰을 겹친 값)은 겹친 구간마다 계산식을 붙인다: 30,000원↑ 7,000원 (5,000+2,000).
