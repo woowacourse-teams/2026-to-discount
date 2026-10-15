@@ -1,7 +1,7 @@
 package com.discounttracker.push;
 
 import com.discounttracker.banner.Banner;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;

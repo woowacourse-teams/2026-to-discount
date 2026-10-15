@@ -41,7 +41,11 @@ const filterSheetSource = await source('src/FilterSheet.jsx')
 // 푸시 설정. 구독 결과 이벤트도 자체 API 원장으로 릴레이하므로 목록에서
 // 빠지면 API가 이름을 모른 채 조용히 버린다.
 const pushNotificationSettingSource = await source('src/PushNotificationSetting.jsx')
+// 실사용 측정(앱 열림, 바이탈, 오류). 2026-10-14
+const telemetrySource = await source('src/telemetry.js')
 const analyticsSource = await source('src/analytics.js')
+// 배달앱 링크. 앱이 안 열렸을 때 link_fallback을 여기서 쏜다.
+const offerLinkSource = await source('src/offerLink.js')
 const startAnalyticsSource = analyticsSource.slice(
   analyticsSource.indexOf('export function startAnalytics()'),
 )
@@ -62,7 +66,9 @@ const emittedEvents = new Set([
   ...staticTrackEvents('src/BestHistoryChart.jsx', historyChartSource),
   ...staticTrackEvents('src/FilterSheet.jsx', filterSheetSource),
   ...staticTrackEvents('src/PushNotificationSetting.jsx', pushNotificationSettingSource),
+  ...staticTrackEvents('src/telemetry.js', telemetrySource),
   ...staticTrackEvents('src/analytics.js#startAnalytics', startAnalyticsSource),
+  ...staticTrackEvents('src/offerLink.js', offerLinkSource),
   'page_exit',
 ])
 

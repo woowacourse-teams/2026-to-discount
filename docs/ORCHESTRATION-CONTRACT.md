@@ -178,38 +178,12 @@ soldOut:          Boolean (nullable)  — primitive 아님, 아래 참고
 - 설정 프로퍼티: `discount.banners-path` (`src/main/resources/application.yml`), 기본값 `classpath:banners.yml`(빈 목록). 서버 배포 시 `DISCOUNT_BANNERS_PATH`로 `file:` 절대경로 오버라이드. `export-path`와 같은 방식이다.
 - 읽는 곳: `BannerCatalog`(생성자에서 1회, `POST /api/reload`로 재호출). 파일이 없으면 빈 목록, 에러 없음.
 - 원장에서 파생되지 않는다. 당일 행사와 특별 할인은 정의상 상시 오퍼 목록에 없는 것(앱 전체 이벤트, 첫 주문 쿠폰)이라, 오퍼 데이터에 묶으면 정작 띄우고 싶은 것을 못 띄운다. 형식은 README "당일 행사 배너 추가·수정".
-- 필수 값(`id`, `platform`, `url`, `amount`, `period`, `startsOn`, `endsOn`)이 빠진 항목은 그 항목만 건너뛴다. 손으로 고치는 jar 밖 파일이라, 오타 하나가 기동이나 reload 전체를 죽이면 나머지 배너까지 같이 죽는다.
+- 필수 값(`id`, `url`, `startsAt`, `endsAt`)이 빠졌거나 `amount`가 문자열(옛 모양)인 항목은 그 항목만 건너뛰고 reload 응답 `dropped`, `droppedReasons`에 남긴다. 손으로 고치는 jar 밖 파일이라, 오타 하나가 기동이나 reload 전체를 죽이면 나머지 배너까지 같이 죽는다.
 - 배너에 `brand`와 `platform`이 있으므로 나중에 원장 값과 대조하는 로직을 붙일 수 있다. 지금은 대조하지 않는다.
 
-#### 배너 문구에서 읽어내는 값 (`Banner.java`)
+#### 배너 문구 (`BannerText.java`)
 
-사람이 `extra`, `amount`에 적는 문장을 서버도 읽는다. 따로 칸을 두 번 적게 하면 비워둔 채로 나가기 때문이다. 실측(2026-08-25)에서 살아 있던 배너 셋이 전부 `extra`에는 금액을 적고 `minOrder`는 비워 두었고, 그 배너가 카드에 설 때 조건이 전부 "최소주문 미확인"으로 떴다.
-
-최소주문금액 (`effectiveMinOrder()`). `extra`에서 읽은 값이 먼저고, 문구에 금액이 없을 때만 `minOrder` 칸으로 떨어진다. `extra`는 배너를 올리면서 매번 다시 적는 문장이고 `minOrder`는 한번 적고 그대로 두는 칸이라, 둘이 어긋나면 문구 쪽이 지금 화면에 뜨는 값이다.
-
-```
-"16,000원↑, 사용(발급X) 선착순"   -> 16000
-"18,900원 이상"                        -> 18900
-"최소주문 20,000원, 선착순 300명"    -> 20000
-"25,000원↑, 고정 6,000+선착순 4,000"  -> 25000   (맨 앞 금액만)
-"원↑, 사용(발급X) 선착순"           -> null    (minOrder 칸으로)
-```
-
-맨 앞 금액만 본다. 뒤에 따라붙는 숫자는 할인액이지 최소주문금액이 아니다.
-
-복합쿠폰 (`compoundTiers()`). 요기요는 한 칸에 쿠폰 두 장을 적어 보낸다. 대표값 하나로만 두면 선착순가 끝나 고정분만 남았을 때 사람이 그 사실을 알 길이 없다. 두 모양을 `tier_mode: cumulative` 구간으로 푼다(ADR-019).
-
-```
-amount "6,500원(4,000+10%)"  + minOrder 25000
-  -> [{minOrder:25000, amount:4000}, {minOrder:25000, amount:2500, percent:10}]
-
-extra  "고정 6,000+선착순 4,000"  amount "10,000원"
-  -> [{minOrder:25000, amount:6000}, {minOrder:25000, amount:4000}]
-```
-
-정률분은 미리 계산해 `amount`에 넣는다. `DiscountLadder`가 `amount`만 더하고 `percent`를 다시 계산하지 않기 때문이다("각 구간의 amount는 이미 그 문턱에서 실제 받는 금액"). `percent`는 상세에 "10%"를 보이려고 함께 남긴다.
-
-합이 적혀 있는 대표값과 다르면 구간을 만들지 않는다. 문구를 잘못 읽은 것이지 새 사실을 안 것이 아니므로, 지어내지 않고 대표값 하나로 둔다.
+화면 문구(`amount`, `period`, `extra`)는 서버가 구조 칸에서 만든다. 사람이 적은 문장(`extra`의 "18,000원↑", 요기요 복합쿠폰 "6,500원(4,000+10%)")을 정규식으로 되짚던 `Banner.effectiveMinOrder()`, `compoundTiers()`는 2026-10-15에 옛 모양 읽기와 함께 지웠다. 최소주문은 `minOrder` 칸, 겹친 쿠폰은 배너를 나눠 `group`으로 묶는다.
 
 ## 4. 다른 레포가 의존하는 설정값
 

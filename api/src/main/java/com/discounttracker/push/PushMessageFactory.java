@@ -1,8 +1,8 @@
 package com.discounttracker.push;
 
 import com.discounttracker.banner.Banner;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class PushMessageFactory {
                     "url", clickUrl, "displayedUrl", displayedUrl,
                     "notificationId", notificationId, "deliveryType", "new_offer",
                     "offerCount", 1));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Push payload 생성 실패", e);
         }
     }
@@ -61,7 +61,7 @@ public class PushMessageFactory {
                     "deliveryType", deliveryType,
                     "bannerCount", banners.size(),
                     "bannerIds", banners.stream().map(Banner::id).toList()));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Push payload 생성 실패", e);
         }
     }

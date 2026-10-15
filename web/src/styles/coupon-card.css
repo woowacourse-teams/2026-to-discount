@@ -272,6 +272,11 @@
 .cc-sheet__head .brand-logo { width: 40px; height: 40px; border-radius: 10px; }
 .cc-sheet__close { all: unset; cursor: pointer; width: 32px; height: 32px; display: grid; place-items: center; font-size: 24px; line-height: 1; color: #6b7684; }
 .cc-sheet__body { overflow-y: auto; padding: 4px 16px 8px; display: flex; flex-direction: column; gap: 16px; }
+/* 본문은 스크롤 상자다. 자식이 줄어들면 넘친 부분이 잘린다(2026-10-14 사용자: 낮은 화면에서 할인 기록
+   그래프가 480px 높이에서 12px만 보였다). 자식은 제 크기를 지키고 본문이 스크롤한다. */
+.cc-sheet__body > * { flex-shrink: 0; }
+/* 낮은 화면(높이 600px 이하)은 시트를 더 키워 그래프와 첫 쿠폰이 한 번에 들어오게 한다 */
+@media (max-height: 600px) { .cc-sheet { max-height: 94dvh; } }
 .cc-sheet__item { display: flex; flex-direction: column; gap: 6px; container-type: inline-size; }
 .cc-sheet__item .cc-tkw { width: 100%; }
 .cc-sheet__item .cc-ticket { width: 100%; height: auto; aspect-ratio: 37 / 11; grid-template-columns: 1fr 29.4%; --stub: 29.4%; container-type: inline-size; }

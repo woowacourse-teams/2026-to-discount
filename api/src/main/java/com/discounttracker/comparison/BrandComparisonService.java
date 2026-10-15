@@ -1,9 +1,8 @@
 package com.discounttracker.comparison;
 
-import com.discounttracker.banner.Banner;
-import com.discounttracker.banner.BannerAmount;
+import com.discounttracker.analytics.PopularityIndex;
 import com.discounttracker.banner.BannerCatalog;
-import com.discounttracker.banner.BannerText;
+import com.discounttracker.banner.BannerOffers;
 import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.history.HistoryRepository;
 import com.discounttracker.history.OfferHistory;
@@ -14,14 +13,20 @@ import com.discounttracker.offer.OfferRecord;
 import com.discounttracker.offer.OfferRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 원장의 낱개 레코드를 브랜드 단위 비교 결과로 묶는다.
@@ -38,13 +43,18 @@ public class BrandComparisonService {
 
     // 이미 알린 어긋남. compare()는 요청마다 돌아 같은 경고가 하루 수백 번 찍혔다(2026-09-30).
     // ponytail: 배너 id가 날마다 바뀌어 조금씩 쌓인다. 재기동 때 비워지고 하루 수십 건이라 둔다.
-    private final java.util.Set<String> warnedCertainty = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private final Set<String> warnedCertainty = ConcurrentHashMap.newKeySet();
 
     private final OfferRepository offers;
     private final BrandCatalog brands;
     private final BannerCatalog banners;
     private final Clock clock;
     private final HistoryRepository history;
+    /** 인기 점수(2026-09-19). 테스트처럼 없으면 전부 0. */
+    private final PopularityIndex popularity;
+    /** 브랜드 링크 없이는 그 브랜드에 못 가는 앱 — 링크 없는 오퍼는 숨긴다(application.yml
+     * discount.hide-unlinked-platforms, 기본 yogiyo). 테스트의 4인자 생성자는 비어 있다. */
+    private final Set<String> unlinkedHidden;
 
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
                                   BannerCatalog banners, Clock clock) {
@@ -62,11 +72,11 @@ public class BrandComparisonService {
         this(offers, brands, banners, clock, null, hideUnlinkedPlatforms, HistoryRepository.of(OfferHistory.empty()));
     }
 
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
                                   BannerCatalog banners, Clock clock,
-                                  com.discounttracker.analytics.PopularityIndex popularity,
-                                  @org.springframework.beans.factory.annotation.Value("${discount.hide-unlinked-platforms:yogiyo}")
+                                  PopularityIndex popularity,
+                                  @Value("${discount.hide-unlinked-platforms:yogiyo}")
                                   String hideUnlinkedPlatforms,
                                   HistoryRepository history) {
         this.history = history;
@@ -75,12 +85,9 @@ public class BrandComparisonService {
         this.banners = banners;
         this.clock = clock;
         this.popularity = popularity;
-        this.unlinkedHidden = java.util.Arrays.stream((hideUnlinkedPlatforms == null ? "" : hideUnlinkedPlatforms).split(","))
-                .map(String::trim).filter(x -> !x.isEmpty()).collect(java.util.stream.Collectors.toSet());
+        this.unlinkedHidden = Arrays.stream((hideUnlinkedPlatforms == null ? "" : hideUnlinkedPlatforms).split(","))
+                .map(String::trim).filter(x -> !x.isEmpty()).collect(Collectors.toSet());
     }
-
-    /** 인기 점수(2026-09-19). 테스트처럼 없으면 전부 0. */
-    private final com.discounttracker.analytics.PopularityIndex popularity;
 
     public List<BrandComparison> compare() {
         // 배너는 사람이 그날 손으로 적는 행사다. 원장(캡처)에는 안 잡히지만
@@ -90,168 +97,12 @@ public class BrandComparisonService {
         // 레코드로 바꿔 원장 앞에 붙이면 그 뒤 처리(별칭 묶기, 같은 앱 중복
         // 정리, 만료 판정, 정렬)를 전부 그대로 탄다 — 배너용 경로를 따로
         // 내면 그쪽이 먼저 낡는다.
-        List<OfferRecord> withBanners = new ArrayList<>(bannerRecords());
+        List<OfferRecord> withBanners = new ArrayList<>(BannerOffers.of(banners.activeMembers(), clock));
         withBanners.addAll(offers.findAll());
         return compare(withBanners);
     }
 
-    /**
-     * 오늘 띄우는 배너 중 오퍼로 세울 수 있는 것.
-     *
-     * <p>브랜드가 없는 배너(앱 전체 행사)는 붙을 카드가 없어서 뺀다. 구조 칸
-     * ({@code amount:} 덩이)이 없는 배너 — 문장만 적은 옛 모양 — 는 {@link #legacyRecords}
-     * 로 내려간다(RULES 12). 자사 배너는 2026-09-22부터 넣는다 - 브랜드
-     * 자체 앱이나 사이트의 행사도 그 브랜드를 보는 사람에게는 고를 수 있는 값이다.
-     *
-     * <p>정률 배너는 대표 정액(headline)이 없다 — 그래도 카드에는 선다. 다만 최고 할인
-     * 비교에는 못 들어간다(액수 자체가 없어서).
-     *
-     * <p>묶음은 접지 않는다. 브랜드마다 오퍼가 하나씩 선다.
-     */
-    private List<OfferRecord> bannerRecords() {
-        // capturedAt은 날짜가 아니라 시각까지 있어야 한다. Offer.preferredOver가
-        // 문자열로 그냥 비교하는데("2026-09-03" vs "2026-09-03T12:00:00+09:00"),
-        // 날짜만 넣으면 같은 날 찍힌 원장 레코드보다 "더 이르다"고 읽혀
-        // 배너가 항상 진다 — 오늘 등록한 배너가 어제 원장 값에 안 이겨서
-        // 카드에 안 뜨는 사고가 났다(사용자 확인, 2026-09-03).
-        String today = java.time.OffsetDateTime.now(clock).toString();
-        List<OfferRecord> records = new ArrayList<>();
-        for (Banner banner : banners.activeMembers()) {
-            if (banner.brand() == null) continue;
-            BannerAmount amountSpec = banner.amountSpec();
-            // 구조 칸에 금액이 없으면 옛 경로로 내려간다(RULES 12). 여기서 건너뛰면
-            // 문자열 amount로 적힌 배너 전부가 브랜드 카드에서 조용히 사라진다 -
-            // 라이브 9장이 전부 그 모양이었다. 옛 limit(cashback/random)만 보고 만든
-            // 껍데기 amountSpec(BannerCatalog)도 금액이 없어 같이 내려간다.
-            //
-            // 이 갈림길은 라이브 banners.yml에 문자열 amount 행이 0장이 되는 날
-            // 지운다 - RULES 9가 만료 배너를 그대로 두기로 했으므로 그날은 영영 안
-            // 올 수도 있다. 몇 장 남았는지는 beggars-ops의
-            // `python tools/convert_banners.py --file <banners.yml>`이 센다.
-            // 1+1, 2+1 묶음 행사는 원문("징거버거 1+1")으로 서고 금액 칸은 정렬값(BUNDLE_SORT_VALUE)이다. kind가 bundle이라 할인액
-            // 비교(OfferComparison)에는 안 들고, 웹이 카드 오퍼 맨 위에 둔다(2026-10-11 사용자).
-            if (amountSpec != null && amountSpec.isBundle()) {
-                records.add(new OfferRecord(
-                        banner.platform(), banner.brand(), BannerAmount.BUNDLE_SORT_VALUE, null, false, Offer.BANNER_OFFER_TYPE,
-                        banner.id(), amountSpec.bundleText(), today, null, banner.minOrder(), null, null,
-                        BannerText.conditions(banner), banner.endsOn().toString(), banner.period(), banner.url(),
-                        banner.spec() == null ? null : banner.spec().membership(), banner.soldOut(),
-                        amountSpec.kind().key(), firstSeen(banner)));
-                continue;
-            }
-            if (amountSpec == null || (amountSpec.headline() == null && amountSpec.percent() == null)) {
-                records.addAll(legacyRecords(banner, today));
-                continue;
-            }
-            // 정률 배너는 배달앱에서는 오퍼로 안 선다(2026-09-22 되돌림). headline()이 없어
-            // amount null인 채로 서면 "금액 미확인" 칩이 뜨고, 그걸 가리려 배지에 퍼센트를
-            // 적으면 App.jsx의 status-badge 한 자리를 차지해 기간·시각 배지가 사라진다
-            // (2026-09-21 고정을 되돌리는 셈이었다). 배달앱 정률 배너는 원래(Task 8 이전)
-            // 오퍼로 안 섰으니 그대로 두는 편이 무회귀다. own은 예외로 그대로 세운다 -
-            // brief의 ownBannerNowStandsAsAnOffer(50% 캐시백)가 이 값을 요구한다. 정률을
-            // 제대로 그리는 일(App.jsx가 별도 자리를 만드는 일)은 Task 17·18이 한다.
-            if (amountSpec.percent() != null && !Banner.OWN.equals(banner.platform())) continue;
-            records.add(new OfferRecord(
-                    banner.platform(),
-                    banner.brand(),
-                    amountSpec.headline(),
-                    // 표식은 칸에서 나온다. 타겟딜은 계정에 따라 갈리므로 상한과 같은 성질이다.
-                    qualifierOf(banner),
-                    false,
-                    banner.firstCome() != null ? Offer.BANNER_FIRST_COME_OFFER_TYPE : Offer.BANNER_OFFER_TYPE,
-                    // section 자리는 원장에서는 화면 섹션 제목 그대로다(ADR-006). 배너
-                    // 레코드에는 그 개념이 없고 tracker가 offerType="banner"인 행을 낼 일도
-                    // 없어 두 뜻이 안 섞인다 - 여기서는 배너 id만 싣는다(확실성 경고 로그가
-                    // 브랜드·플랫폼만으로 못 찾는 배너를 이걸로 찾는다).
-                    banner.id(),
-                    banner.amount(),
-                    today,
-                    null,
-                    banner.minOrder(),
-                    null,
-                    null,
-                    BannerText.conditions(banner),
-                    banner.endsOn().toString(),
-                    banner.period(),
-                    banner.url(),
-                    banner.spec() == null ? null : banner.spec().membership(),
-                    banner.soldOut(),
-                    // 무엇을 주는가 - own 배너의 캐시백/적립까지 discount로 뭉개면 확정
-                    // 할인처럼 최고 할인 후보에 낄 수 있다(2026-09-22 fix round).
-                    amountSpec.kind().key(),
-                    // 배너가 걸린 시각을 처음 본 시각으로 싣는다. null이면 웹이 신규로 못 잡았다(2026-10-09:
-                    // 홍콩반점, KFC 등 배너 오퍼가 그날 시작인데 신규 탭에 안 떴다). 어제와 같은 행사로 기간을
-                    // 늘린 배너는 startsAt이 그대로라 첫날만 신규다.
-                    firstSeen(banner)));
-        }
-        return records;
-    }
-
-    /**
-     * 옛 모양 배너(문자열 {@code amount})가 세우는 오퍼. 브랜드마다 하나씩 선다.
-     *
-     * <p>{@code origin/main}이 같은 자리에서 하던 일 그대로다 -
-     * {@link Banner#brandAmounts()}가 "7/6/6/5천원" 같은 나열을 브랜드 순서로 짝짓고,
-     * {@link Banner#compoundTiers()}가 겹쳐 쓴 쿠폰을 구간으로 풀고,
-     * {@link Banner#effectiveMinOrder()}가 {@code extra} 문장에서 문턱을 되짚는다.
-     * RULES 1이 이 셋을 지우지 말라고 한 자리가 여기다.
-     *
-     * <p>자사(own)와 정률 취급은 새 경로와 같다. 정률만 적은 옛 배너("최대 30%")는
-     * {@code brandAmounts()}가 빈 목록을 내므로 저절로 안 선다 - 따로 막지 않는다.
-     */
-    private List<OfferRecord> legacyRecords(Banner banner, String today) {
-        List<com.discounttracker.offer.DiscountTier> compound = banner.compoundTiers();
-        String qualifier = legacyQualifier(banner);
-        List<OfferRecord> out = new ArrayList<>();
-        for (Map.Entry<String, Integer> pair : banner.brandAmounts()) {
-            out.add(new OfferRecord(
-                    banner.platform(),
-                    pair.getKey(),
-                    pair.getValue(),
-                    qualifier,
-                    false,
-                    banner.firstCome() != null ? Offer.BANNER_FIRST_COME_OFFER_TYPE : Offer.BANNER_OFFER_TYPE,
-                    // 새 경로와 같이 배너 id를 싣는다 - 확실성 경고 로그가 이 값으로
-                    // 어느 배너인지 찾는다(origin/main은 null이었다, 그때는 그 로그가 없었다).
-                    banner.id(),
-                    banner.amount(),
-                    today,
-                    null,
-                    banner.effectiveMinOrder(),
-                    compound.isEmpty() ? null : "cumulative",
-                    compound.isEmpty() ? null : compound,
-                    legacyConditions(banner),
-                    banner.endsOn().toString(),
-                    banner.period(),
-                    banner.url(),
-                    banner.spec() == null ? null : banner.spec().membership(),
-                    banner.soldOut(),
-                    banner.amountSpec() == null ? null : banner.amountSpec().kind().key(),
-                    firstSeen(banner)));
-        }
-        return out;
-    }
-
-    /** 배너가 걸린 시각(KST). 배너 오퍼의 처음 본 시각이다 — 두 경로(새 모양, 옛 모양)가 같이 쓴다. */
-    private static String firstSeen(Banner banner) {
-        return banner.startsAt() == null ? null : banner.startsAt() + "+09:00";
-    }
-
-    /**
-     * 옛 경로로 선 오퍼의 확실성. 옛 규칙 그대로다(RULES 12).
-     *
-     * <p>뽑기가 먼저다 - 랜덤 배너는 대개 "최대 7,000원"이라고 적힌다. 그 다음이 금액
-     * 문구의 "최대", 그 다음이 타겟딜이다(계정마다 갈리니 상한과 같은 성질). 나머지는
-     * 확정이다.
-     *
-     * <p>{@code origin/main}의 {@code isRandom}은 {@code spec.limit() == "random"}을 봤는데
-     * 지금은 {@code BannerCatalog}가 그 칸을 {@code amountSpec.random}으로 옮겨 담는다 -
-     * 같은 사실을 새 자리에서 읽는다. {@code isTargeted}의 {@code extra}에 적힌 "타겟딜"도
-     * 마찬가지로 {@code banner.targeted}로 옮겨 담기는데, 문장에만 적고 칸은 비운 옛 행이
-     * 남아 있어 문장도 함께 본다. {@code origin/main}이 겹침에 붙이던 "최적"은 안 쓴다 -
-     * {@link Certainty#fromQualifier}가 그것을 EXACT로 읽어 값이 같고, 겹침이라는 사실은
-     * {@code tierMode}가 이미 답한다.
-     */
+    /** 같은 앱의 선착순 칸과 상시 칸이 같은 쿠폰이면(확실성이 같다) 한 칸으로 합친다. */
     private static void mergeSameFirstCome(Map<String, Offer> offersBySlot) {
         for (String slot : List.copyOf(offersBySlot.keySet())) {
             if (!slot.endsWith("#first-come")) continue;
@@ -272,64 +123,6 @@ public class BrandComparisonService {
         }
     }
 
-    private static String legacyQualifier(Banner banner) {
-        if (legacyRandom(banner)) return "랜덤";
-        if (banner.amount() != null && banner.amount().contains("최대")) return "최대";
-        if (legacyTargeted(banner)) return "최대";
-        return null;
-    }
-
-    private static boolean legacyRandom(Banner banner) {
-        if (banner.amountSpec() != null && banner.amountSpec().certainty() == Certainty.RANDOM) return true;
-        String text = (banner.period() == null ? "" : banner.period())
-                + " " + (banner.extra() == null ? "" : banner.extra());
-        return text.contains("랜덤");
-    }
-
-    private static boolean legacyTargeted(Banner banner) {
-        return banner.isTargeted() || (banner.extra() != null && banner.extra().contains("타겟딜"));
-    }
-
-    /**
-     * 옛 경로의 조건 줄.
-     *
-     * <p>구조 칸에서 먼저 만든다. 사람이 적은 {@code extra}를 쓰면 구조 칸과 같은 말이
-     * 두 번 나온다 - 2026-09-24 실측: 반올림피자 오퍼 조건에 "/ 쿠팡와우 전용"이 떴는데
-     * 그 자격은 {@code membership} 칸으로 이미 배지에 뜨고 있었고, 최소주문을 떼어낸
-     * 자리에 슬래시만 덜렁 남은 모양이었다. 새 모양 배너(두찜)는 같은 자리에 "발급
-     * 선착순"만 낸다 - 두 경로가 같은 답을 내야 한다.
-     *
-     * <p>구조 칸이 아무 말도 못 만들면(옛 배너에 firstCome도 targeted도 없을 때)
-     * {@code extra}에서 최소주문 언급만 뺀 문장으로 떨어진다. 타겟딜이면 "한정"을 붙인다.
-     */
-    private static String legacyConditions(Banner banner) {
-        String structured = BannerText.conditions(banner);
-        String base = structured != null ? structured : banner.displayConditions();
-        if (!legacyTargeted(banner)) return base;
-        if (base == null) return "한정";
-        return base.contains("한정") ? base : base + " · 한정";
-    }
-
-    /**
-     * 이행 기간에만 남는 다리. 원장 표기를 배너 칸에서 만든다.
-     *
-     * <p>{@code OfferRecord}가 아직 {@code qualifier}만 들고 있어서, 배너 칸에서 정한
-     * 확실성을 원장 표기로 한 번 돌려 적는다({@link Certainty#fromQualifier}가 되짚는다).
-     * Task 19에서 {@code OfferRecord}가 확실성을 직접 갖게 되면 이 메서드가 사라진다.
-     */
-    private static String qualifierOf(Banner banner) {
-        Certainty c = banner.isTargeted() ? Certainty.CAPPED : banner.amountSpec().certainty();
-        return switch (c) {
-            case CAPPED -> "최대";
-            case PERCENT -> "정률";
-            case RANDOM -> "랜덤";
-            // MENU_ONLY는 여기 안 나온다 - BannerAmount.certainty()가 낼 수 있는 값이
-            // EXACT/CAPPED/RANDOM/PERCENT뿐이다(특정 메뉴 한정은 원장 qualifier
-            // "특정메뉴"에서만 나온다). default 대신 이름을 적어 둔다 - Certainty에
-            // 여섯째 값이 생기면 이 스위치가 조용히 새지 말고 컴파일이 깨져야 한다.
-            case MENU_ONLY, EXACT -> null;
-        };
-    }
 
     /** 넘겨받은 레코드로 비교한다. 운영 경로는 원장 레코드로 {@link #compare()}가 부른다. */
     List<BrandComparison> compare(List<OfferRecord> records) {
@@ -381,7 +174,7 @@ public class BrandComparisonService {
                     && existing.certainty() != offer.certainty()
                 && warnedCertainty.add(bannerIdsHere.get(slot) + "|" + name + "|" + record.platform()
                         + "|" + existing.certainty() + "|" + offer.certainty())) {
-                // 배너 레코드가 항상 원장보다 먼저 처리된다(compare()가 bannerRecords()를
+                // 배너 레코드가 항상 원장보다 먼저 처리된다(compare()가 BannerOffers.of()를
                 // 원장 앞에 붙인다) - 그래서 어긋남이 걸리는 시점엔 existing이 배너, offer가
                 // 원장이다. offer가 배너인 경우는 실제 경로에서 안 나온다(2-인자 compare에
                 // 순서를 뒤집어 넘기는 테스트가 아니면). 브랜드 하나에 배너가 여러 장일 수
@@ -438,13 +231,10 @@ public class BrandComparisonService {
                                 : o.withIsNew(h.novelty(o.platform(), name, o.amount(), today).asBoolean()))
                         .toList()),
                 popularity == null ? 0 : popularity.scoreOf(name),
-                popularity == null ? 0 : popularity.todayOf(name))));
+                popularity == null ? 0 : popularity.todayOf(name),
+                popularity == null ? 0 : popularity.yesterdayOf(name))));
 
         result.sort(BrandComparison.byBestDiscount());
         return result;
     }
-
-    /** 브랜드 링크 없이는 그 브랜드에 못 가는 앱 — 링크 없는 오퍼는 숨긴다(application.yml
-     * discount.hide-unlinked-platforms, 기본 yogiyo). 테스트의 4인자 생성자는 비어 있다. */
-    private final java.util.Set<String> unlinkedHidden;
 }

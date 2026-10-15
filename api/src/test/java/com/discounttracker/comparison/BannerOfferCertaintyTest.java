@@ -65,6 +65,22 @@ class BannerOfferCertaintyTest {
         assertEquals(8000, o.amount());
     }
 
+    /** 배너 오퍼의 확인 시각은 요청 시각이 아니라 그날 끝으로 고정이다. 요청마다 바뀌면 응답 ETag가 매번 달라 304가 안 난다(2026-10-14). */
+    @Test
+    void bannerCapturedAtIsStableWithinTheDay() {
+        Offer o = only(service("""
+                banners:
+                  - id: bhc-20260922
+                    brand: bhc
+                    platform: coupangeats
+                    url: "https://example.test/b"
+                    amount: {won: [null, 8000]}
+                    startsAt: 2026-09-22T00:00
+                    endsAt: 2026-09-22T23:59
+                """));
+        assertEquals("2026-09-22T23:59:59+09:00", o.capturedAt());
+    }
+
     @Test
     void randomBeatsCapped() {
         Offer o = only(service("""
@@ -258,34 +274,6 @@ class BannerOfferCertaintyTest {
         assertEquals(1, banners.active().size(), "레일에는 여전히 뜬다");
     }
 
-    @Test
-    void oldSentenceShapeBannerStandsAsAnOfferToo() {
-        // 2026-09-23 RULES 12로 뒤집혔다. Task 8이 여기서 문장 모양을 건너뛰게 했는데,
-        // 라이브 배너 9장이 전부 문장 모양이라 브랜드 카드의 배너 오퍼가 통째로
-        // 사라졌다(조용한 회귀 - 레일은 그대로 떴다). 이제 옛 경로로 내려가 선다.
-        String yaml = """
-                banners:
-                  - id: oldshape-20260922
-                    brand: 교촌치킨
-                    platform: baemin
-                    url: "https://example.test/old"
-                    amount: "8,000원"
-                    period: 8/11 하루만
-                    extra: "20,000원↑, 선착순 300명"
-                    startsOn: 2026-09-22
-                    endsOn: 2026-09-22
-                """;
-        BannerCatalog banners = new BannerCatalog(
-                new ByteArrayResource(yaml.getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
-        BrandComparisonService svc =
-                new BrandComparisonService(new OfferRepository(null), emptyBrands(), banners, CLOCK, "");
-
-        assertEquals(1, svc.compare().size(), "구조 칸이 없어도 문자열 금액에서 오퍼가 선다");
-        assertEquals(8000, svc.compare().get(0).offers().get(0).amount());
-        assertEquals(1, banners.active().size(), "레일에는 여전히 뜬다");
-        assertEquals("8,000원", banners.active().get(0).amount());
-    }
-
     private static final String BHC_FIRST_COME_BANNER = """
             banners:
               - id: bhc-open-20260922
@@ -356,9 +344,14 @@ class BannerOfferCertaintyTest {
             """;
 
     private static OfferRecord ledgerBhc(String qualifier) {
-        return new OfferRecord("coupangeats", "bhc", 5000, qualifier, false,
-                "discount", null, "5,000원", "2026-09-22T09:00:00+09:00", null,
-                null, null, null, null, null, null, null, null, false);
+        return OfferRecord.builder("coupangeats", "bhc")
+                .amount(5000)
+                .qualifier(qualifier)
+                .offerType("discount")
+                .rawText("5,000원")
+                .capturedAt("2026-09-22T09:00:00+09:00")
+                .soldOut(false)
+                .build();
     }
 
     /** BrandComparisonService의 경고만 골라 문자열로 돌려준다. */
@@ -488,12 +481,23 @@ class BannerOfferCertaintyTest {
     void ledgerFirstComeStandsApartAndTheBiggerWins() {
         // 2026-10-01 KFC 배민: 배짱할인 선착순 5,000원(00:15)과 쿠폰함 3,000원(02:51). 한 칸이면 늦게 온
         // 3,000원이 이겼다. 선착순은 따로 서고, 같은 앱에서는 큰 쪽 하나가 보인다.
-        OfferRecord first = new OfferRecord("coupangeats", "bhc", 8000, null, false,
-                "discount", "배짱할인 주말핫딜 선착순", "8,000원", "2026-09-22T00:15:00+09:00", null,
-                null, null, null, "오전 10시 오픈 선착순", null, null, null, null, false);
-        OfferRecord box = new OfferRecord("coupangeats", "bhc", 3000, null, false,
-                "discount", "쿠폰함 보유쿠폰", "3,000원", "2026-09-22T02:51:00+09:00", null,
-                null, null, null, null, null, null, null, null, false);
+        OfferRecord first = OfferRecord.builder("coupangeats", "bhc")
+                .amount(8000)
+                .offerType("discount")
+                .section("배짱할인 주말핫딜 선착순")
+                .rawText("8,000원")
+                .capturedAt("2026-09-22T00:15:00+09:00")
+                .conditions("오전 10시 오픈 선착순")
+                .soldOut(false)
+                .build();
+        OfferRecord box = OfferRecord.builder("coupangeats", "bhc")
+                .amount(3000)
+                .offerType("discount")
+                .section("쿠폰함 보유쿠폰")
+                .rawText("3,000원")
+                .capturedAt("2026-09-22T02:51:00+09:00")
+                .soldOut(false)
+                .build();
         BannerCatalog banners = new BannerCatalog(
                 new ByteArrayResource("banners: []\n".getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
         OfferRepository repo = new OfferRepository(null) {

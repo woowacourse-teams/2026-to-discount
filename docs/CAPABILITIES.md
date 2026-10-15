@@ -84,12 +84,12 @@
 
 ## 3. 백엔드 (api)
 
-Java 17 + Spring Boot 3.3, **DB 없음**(브랜드 137건 규모, 파일로 충분).
+Java 17 + Spring Boot 4.1, **DB 없음**(브랜드 137건 규모, 파일로 충분).
 
 | 무엇 | 어디 |
 |---|---|
 | 엔드포인트 | `/api/brands`, `/api/banners`, `/api/reload`. 3개뿐 |
-| 도메인이 규칙을 든다 | `OfferRecord.status()/isExpired()/liveTiers()`, `Offer.preferredOver()`, `Banner.effectiveMinOrder()/resolvedFor()` |
+| 도메인이 규칙을 든다 | `OfferRecord.status()/isExpired()/liveTiers()`, `Offer.preferredOver()`, `Banner.resolvedFor()` |
 | 브랜드 지식 단일 출처 | `brands.yml`. 고치고 `/api/reload`만 부르면 반영 |
 | 예외 처리 | `GlobalExceptionHandler`. 내부 경로 은닉(`{"error":"internal_error"}`), 정상 404는 500으로 안 바꾼다 |
 | 이벤트 수집 | 공개 쓰기 엔드포인트 + **이름 화이트리스트**(19종) |

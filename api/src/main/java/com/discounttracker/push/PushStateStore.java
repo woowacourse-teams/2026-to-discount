@@ -1,6 +1,7 @@
 package com.discounttracker.push;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -197,6 +198,9 @@ public class PushStateStore {
             return loaded;
         } catch (IOException e) {
             return recoverDamagedState(e);
+        } catch (JacksonException e) {
+            // Jackson 3부터 파싱 오류는 IOException이 아니다. 깨진 파일은 예전처럼 복구 길로 보낸다.
+            return recoverDamagedState(new IOException(e));
         }
     }
 

@@ -77,7 +77,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
-| `page_view` | 페이지 로드 1회 | 없음 |
+| `page_view` | 페이지 로드 1회 | `inApp`(카카오톡 인앱), `standalone`(홈 화면 설치로 염) |
 | `page_exit` | 탭을 떠날 때 | `dwellMs` (보고 있던 시간, 백그라운드 제외) |
 
 ### 무엇을 눌렀나
@@ -92,6 +92,11 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `brand_expand` | 브랜드 카드를 펼침 | `brand`, `category` |
 | `brands_retry` | 목록 불러오기 실패 후 재시도 | 없음 |
 | `scroll_to_top` | "맨 위로" | 없음 |
+| `app_return` | (2026-10-14) 할인 링크나 배너로 배달앱에 갔다가 이 화면으로 돌아옴. 새 탭에서 돌아오면 화면이 다시 보일 때, 같은 탭이면 다시 열릴 때 한 번. 6시간 넘게 떠나 있었으면 안 보낸다 | `brand`, `platform`, `where`(누른 자리), `awayMs`(떠나 있던 시간), `reloaded`(같은 탭으로 다시 열림) |
+| `link_fallback` | (2026-10-14) 쿠팡이츠 앱이 4초 안에 안 열려 공유 링크로 넘김(링크 실패 신호) | `platform` |
+| `app_open_result` | (2026-10-14, telemetry.js) 배달앱 링크로 이동한 뒤 2.5초 안에 화면이 가려졌는지(앱이 떴는지) 한 번. 쿠팡이츠는 안내 뒤 실제 이동부터 잰다 | `platform`, `scheme`, `opened`, `signal`(hidden/pagehide/timeout), `blurred`, `inApp` |
+| `web_vitals` | (2026-10-14, telemetry.js) 페이지가 처음 가려질 때 한 번. 헤드리스(측정 도구)는 안 보낸다 | `lcp`, `inp`, `cls`, `ttfb`(ms, cls는 소수), `inApp` |
+| `client_error` | (2026-10-14, telemetry.js) 잡히지 않은 오류, 거부된 Promise, 하이드레이션 복구, 에러 바운더리. 페이지당 5건, 같은 메시지 한 번 | `kind`(error/rejection/recoverable/boundary), `message`(120자), `where`(컴포넌트 스택 첫 줄), `inApp` |
 
 ### 조건을 어떻게 고르나 (`from`: `bar` = 펼친 바, `sheet` = 필터 시트)
 

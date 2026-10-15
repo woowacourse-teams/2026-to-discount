@@ -119,7 +119,7 @@ bhc 배너는 이미 새 모양이다. 옛 모양 배너(`endsOn: 2026-09-30`)�
 
 ## 이제 경계를 지키는 것
 
-계약: `mono api/src/test/resources/contracts/banner-cases.json`. yml 예시(새 모양, 옛 모양, 묶음, 기간 밖), 그 예시가 만들 응답 JSON 전체, 콘솔 판정 사례, 웹과 운영 수집기가 읽는 칸 목록, `banner_ops.py` 본문 해시가 들어 있다.
+계약: `mono api/src/test/resources/contracts/banner-cases.json`. yml 예시(새 모양, 묶음, 기간 밖), 그 예시가 만들 응답 JSON 전체, 콘솔 판정 사례, 웹과 운영 수집기가 읽는 칸 목록, `banner_ops.py` 본문 해시가 들어 있다.
 
 | 경계 | 테스트 | 저장소 |
 | --- | --- | --- |

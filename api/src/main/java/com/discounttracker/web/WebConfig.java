@@ -6,7 +6,9 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.core.Ordered;
 import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.filter.ShallowEtagHeaderFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -24,6 +26,35 @@ public class WebConfig implements WebMvcConfigurer {
         registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ASYNC, DispatcherType.ERROR);
         registration.setAsyncSupported(true);
         return registration;
+    }
+
+    /** 읽기 전용 목록 GET 경로. 웹 홈(api.js)이 부르는 것들. */
+    static final String[] CACHEABLE = {"/api/brands", "/api/brands/*/history", "/api/banners"};
+
+    /**
+     * 본문 해시 ETag. 재적재가 데이터를 바꾸면 해시가 바뀌므로 버전 관리가 필요 없다.
+     * 304는 본문을 안 보내 대역폭만 아낀다(계산은 서버에서 한다). 압축은 Nginx가 이미 한다.
+     */
+    @Bean
+    public FilterRegistrationBean<ShallowEtagHeaderFilter> etagFilter() {
+        var registration = new FilterRegistrationBean<>(new ShallowEtagHeaderFilter());
+        registration.addUrlPatterns(CACHEABLE);
+        return registration;
+    }
+
+    /** 200일 때만 붙는다: 예외로 끝난 요청은 postHandle이 안 불리고, 4xx는 상태로 거른다. */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new org.springframework.web.servlet.HandlerInterceptor() {
+            @Override
+            public void postHandle(jakarta.servlet.http.HttpServletRequest req,
+                                   jakarta.servlet.http.HttpServletResponse res,
+                                   Object handler, org.springframework.web.servlet.ModelAndView mv) {
+                // 재적재 뒤 최대 60초(+재검증 중 300초) 묵은 값이 보일 수 있다. 하루 3회 갱신이라 허용.
+                if ("GET".equals(req.getMethod()) && res.getStatus() == 200)
+                    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+            }
+        }).addPathPatterns(CACHEABLE);
     }
 
     @Override

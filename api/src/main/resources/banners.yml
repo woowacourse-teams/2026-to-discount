@@ -64,15 +64,10 @@
 #             없어 레일에만 뜬다(2026-09-22).
 #             구조로 적으면 화면 문구(금액·기간·부가조건)는 서버가 만든다.
 #
-#             **금액이 아닌 혜택은 문자열로 적는다** — "디카페인 메뉴 1+1"처럼
-#             won/percent로 표현할 수 없는 것. 그때는 period와 extra도 직접
-#             적는다(서버가 만들 근거가 없다). 문자열은 배너 띠에만 뜨고
-#             오퍼 비교에는 안 들어간다
-#   period    문자열 amount일 때. 금액 우측 상단("8/11 하루만")
-#   extra     문자열 amount일 때, 선택. 금액 우측 하단. 없으면 그 줄이 사라진다
-#   minOrder  선택, 숫자. 최소주문금액. 이 배너가 오퍼로 설 때 조건으로 들어간다.
-#             extra에 "18,000원↑"이라고만 적으면 서버가 되짚어 읽기는 하지만
-#             (effectiveMinOrder) 이 칸에 숫자로 적는 쪽이 확실하다
+#             묶음 행사는 {buy: 1, get: 1, item: 징거버거}(금액 없이 선다).
+#             **문자열 amount("8,000원")는 읽지 않는다.** 그 배너는 dropped로 빠지고
+#             reload가 bannersOk=false가 된다(2026-10-15에 옛 모양 읽기를 지웠다)
+#   minOrder  선택, 숫자. 최소주문금액. 이 배너가 오퍼로 설 때 조건으로 들어간다
 #
 #   ── 누가 받나 (자격) ──
 #   membership  선택. 플랫폼 멤버십 키(coupangEats, baeminClub …)
@@ -91,22 +86,9 @@
 #   note      선택. 위 칸 어디에도 안 담기는 한 줄. **"선착순 300명"처럼 새 칸에
 #             담을 자리가 아예 없는 정보가 여기로 온다**(확정 규칙 8절)
 #
-# 옛 모양 — **읽히기는 하지만 새로 적을 때는 쓰지 않는다.**
-#   startsOn / endsOn  날짜만. `startsOn: D`는 `D T00:00`, `endsOn: D`는
-#                      `D T23:59:59`로 읽힌다. startsAt/endsAt(시각)으로 적는다
-#   items              [{brand, amount, minOrder, opensAt}] → brands와 group으로 적는다
-#   amountRange        [최소, 최대] → amount: {won: [최소, 최대]}로 적는다
-#   limit              first_come|random|targeted|none → firstCome / targeted /
-#                      amount.random / amount.kind로 쪼개졌다
-#   usage              use|issue → firstCome에 그 값을 적는다
-#
-# BannerCatalog.toBanner가 두 모양을 매번 나눠 읽는다. 이 읽기를 지울 수 있는 때는
-# 라이브 banners.yml에 옛 모양이 0건일 때다(RULES 9·11). 만료된 배너라도 다시
-# 읽혀야 하므로 그 전에는 못 지운다. 몇 장 남았는지는 이렇게 센다:
-#
-#   python tools/convert_banners.py --file <banners.yml>     (beggars-ops)
-#
-# 2026-09-28 실측: 150장 중 새 기간(startsAt) 16장, 구조 amount 13장. 나머지는 옛 모양이다.
+# 옛 모양(문자열 amount, period, extra, startsOn/endsOn, limit, usage, items, amountRange)은
+# 2026-10-15에 읽기를 지웠다. 그 칸은 무시되거나(period, extra 등) 배너가 dropped로 빠진다
+# (문자열 amount, 날짜만 적은 기간). 옛 배너 원본은 beggars-ops archive/에 있다.
 #
 # 확실성(certainty)은 적는 칸이 아니라 위 칸에서 서버가 정한다 — exact, capped,
 # random, menuOnly, percent 다섯이고, "최고 할인" 후보는 exact인 것만이다.

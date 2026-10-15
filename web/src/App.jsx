@@ -8,7 +8,9 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
 import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
+import PopularStrip from './PopularStrip.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
+const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
@@ -30,6 +32,7 @@ const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { currentHomeArm } from './homeExperiment.js'
+import { shouldShowGuide } from './firstVisitGuide.js'
 import PushNotificationSetting from './PushNotificationSetting.jsx'
 import BrandCard, { brandCardId } from './BrandCard.jsx'
 import BrandGridSkeleton from './BrandGridSkeleton.jsx'
@@ -230,6 +233,17 @@ export default function App({ initial = null }) {
   useEffect(() => { if (homeA) import('./styles/coupon-card.css') }, [homeA])
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
+  // 첫 방문 안내(firstVisitGuide.js). 2026-10-14부터 ?guide=1로만 뜬다. 카드가 그려진 뒤에 띄운다.
+  // 값은 띄울 안('coupon'|'old'). 바가 그 안으로 바뀐 뒤에만 그린다.
+  const [guideOn, setGuideOn] = useState(null)
+  const guideChecked = useRef(false)
+  useEffect(() => {
+    if (!brands?.length || guideChecked.current) return
+    guideChecked.current = true
+    try {
+      if (shouldShowGuide({ search: window.location.search })) setGuideOn(currentHomeArm(getAnalyticsContext().visitorId).arm)
+    } catch { /* 못 읽으면 안내 없이 */ }
+  }, [brands])
   useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
 
@@ -395,6 +409,10 @@ export default function App({ initial = null }) {
   // 올려 새 목록을 처음부터 보게 한다 — 첫 렌더에는 건너뛴다(들어오자마자
   // 스크롤이 튀면 안 된다).
   const firstGrid = useRef(true)
+  // 서버가 그린 첫 목록은 떠오르는 애니메이션 없이 바로 보인다. opacity 0에서 시작하면 그동안 최대 콘텐츠
+  // 표시(LCP)가 안 찍혀 쿠폰 홈 실사용 LCP p75가 1.6초로 운영 카드(0.8초)의 두 배였다(2026-10-14).
+  // ponytail: 처음 조건으로 되돌아오면 그때도 애니메이션이 없다. 거슬리면 첫 마운트 여부를 따로 든다.
+  const [stillKey] = useState(gridKey)
   useEffect(() => {
     if (firstGrid.current) {
       firstGrid.current = false
@@ -676,6 +694,14 @@ export default function App({ initial = null }) {
         </div>
       )}
 
+      {/* 오늘 인기 띠(2026-10-14 시안). 누르면 그 카드로 간다(링크로 들어온 브랜드와 같은 길) */}
+      {visibleBrands && (
+        <PopularStrip
+          brands={visibleBrands}
+          onPick={(name) => { setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name))) }}
+        />
+      )}
+
       {/* 신규를 고르면 정렬 줄 아래 한 줄 안내(2026-10-05 사용자 문구) */}
 
       {asking && (
@@ -706,7 +732,7 @@ export default function App({ initial = null }) {
 
       {error && (
         <div className="load-error" role="alert">
-          <p className="load-error__title">할인 정보를 불러오지 못했습니다.</p>
+          <p className="load-error__title">할인 정보를 못 불러옴</p>
           <p className="load-error__detail">{error}</p>
           <button
             type="button"
@@ -728,7 +754,7 @@ export default function App({ initial = null }) {
         <div className="msg">
           {search.trim() ? (
             <>
-              <p>&quot;{search}&quot;와 이름이 겹치는 브랜드가 없습니다.</p>
+              <p>&quot;{search}&quot; 검색 결과 없음</p>
               {filters.platforms.size < PLATFORMS.length && (
                 <p>
                   지금 {filters.platforms.size}개 앱만 켜져 있습니다.
@@ -746,7 +772,7 @@ export default function App({ initial = null }) {
               </button>
             </>
           ) : (
-            <p>이 분류엔 브랜드가 없습니다.</p>
+            <p>브랜드 없음</p>
           )}
         </div>
       )}
@@ -764,7 +790,7 @@ export default function App({ initial = null }) {
         // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
-        <div className="brand-grid" key={gridKey} ref={gridRef}>
+        <div className={gridKey === stillKey ? 'brand-grid brand-grid--still' : 'brand-grid'} key={gridKey} ref={gridRef}>
           {/* 브랜드 카드와 같은 칸에 놓는다 — 요청대로 맨 앞칸. 필터를
               바꾸면 그리드 전체가 새로 마운트되니 이 카드도 같이 날아가지만,
               발급된 코드는 App이 들고 있어(surveyCode) 다시 열면 그대로
@@ -814,6 +840,12 @@ export default function App({ initial = null }) {
       )}
 
       <SiteFooter />
+
+      {guideOn && guideOn === (homeA ? 'coupon' : 'old') && (
+        <Suspense fallback={null}>
+          <FirstVisitGuide arm={guideOn} onClose={() => setGuideOn(null)} />
+        </Suspense>
+      )}
 
       {/* 새벽 안내 — 맨 위로 버튼 맞은편(왼쪽 아래), 하단 배너 위. */}
       {isNight && (

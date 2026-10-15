@@ -2,7 +2,7 @@ package com.discounttracker.web;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -84,5 +84,22 @@ class BrandControllerTest {
            .andExpect(jsonPath("$.bannersOk").isBoolean())
            .andExpect(jsonPath("$.bannersParsed").isBoolean())
            .andExpect(jsonPath("$.unknownBrands").isArray());
+    }
+    /** 목록 GET은 짧은 캐시 + ETag, 같은 ETag로 재요청하면 304. 에러 응답에는 캐시 헤더가 없다. */
+    @Test
+    void cacheHeadersAndConditionalGet() throws Exception {
+        for (String path : new String[]{"/api/brands", "/api/banners"}) {
+            var res = mvc.perform(get(path))
+               .andExpect(status().isOk())
+               .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                   .string("Cache-Control", "public, max-age=60, stale-while-revalidate=300"))
+               .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().exists("ETag"))
+               .andReturn().getResponse();
+            mvc.perform(get(path).header("If-None-Match", res.getHeader("ETag")))
+               .andExpect(status().isNotModified());
+        }
+        mvc.perform(get("/api/brands/x/history?range=bogus"))
+           .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+               .doesNotExist("Cache-Control"));
     }
 }

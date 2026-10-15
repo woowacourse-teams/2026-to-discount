@@ -48,6 +48,10 @@
   to { opacity: 1; transform: none; }
 }
 
+/* 첫 화면(서버가 그린 목록)은 바로 보인다. App.jsx stillKey 참고(2026-10-14). */
+.brand-grid--still,
+.brand-grid--still > * { animation: none; }
+
 /* 움직임을 줄이라고 설정한 사용자에게는 계단도 이동도 없다. */
 @media (prefers-reduced-motion: reduce) {
   .brand-grid,

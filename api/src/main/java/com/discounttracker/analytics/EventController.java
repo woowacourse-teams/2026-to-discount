@@ -1,7 +1,8 @@
 package com.discounttracker.analytics;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 
@@ -40,6 +41,8 @@ public class EventController {
      * 링크 이동까지 가는가)이 그 이벤트들에 걸려 있었다.
      */
     private static final Set<String> ALLOWED_EVENTS = Set.of(
+            // 배달앱에서 돌아옴, 앱이 안 열려 공유 링크로 넘김(2026-10-14, 신뢰를 재는 프론트 지표)
+            "app_return", "link_fallback",
             "page_view", "page_exit", "category_change", "brand_expand",
             "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
             "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
@@ -63,7 +66,9 @@ public class EventController {
             // 메인 화면 A/B(2026-10-05): 접기(두 안 모두)와 쿠폰 카드 캐러셀 넘기기.
             "brand_collapse", "coupon_carousel_swipe",
             // 할인 그래프(2026-10-10): 날짜 짚기(누르기 한 번에 한 건)와 기간 탭 바꾸기.
-            "history_point_select", "history_drag", "history_range_change");
+            "history_point_select", "history_drag", "history_range_change",
+            // 실사용 측정(2026-10-14, web/src/telemetry.js): 앱 열림 결과, 웹 바이탈, 클라이언트 오류.
+            "app_open_result", "web_vitals", "client_error");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
             "inputLength", "resultCount", "submitMethod", "query", "results",
             "fCategory", "fPlatforms", "fSearch", "fSort",
@@ -98,7 +103,7 @@ public class EventController {
         try {
             List<IncomingEvent> parsed = mapper.readValue(body, new TypeReference<>() {});
             return parsed == null ? List.of() : parsed;
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             return List.of();
         }
     }

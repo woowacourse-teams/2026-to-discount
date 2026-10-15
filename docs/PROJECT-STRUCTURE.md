@@ -58,6 +58,7 @@ api/src/main/java/com/discounttracker/analytics/VisitEvent.java
 api/src/main/java/com/discounttracker/banner/Banner.java
 api/src/main/java/com/discounttracker/banner/BannerAmount.java
 api/src/main/java/com/discounttracker/banner/BannerCatalog.java
+api/src/main/java/com/discounttracker/banner/BannerOffers.java
 api/src/main/java/com/discounttracker/banner/BannerSpec.java
 api/src/main/java/com/discounttracker/banner/BannerText.java
 api/src/main/java/com/discounttracker/brand/Brand.java
@@ -136,7 +137,6 @@ api/src/test/java/com/discounttracker/brand/BrandAliasContractTest.java
 api/src/test/java/com/discounttracker/brand/BrandCatalogTest.java
 api/src/test/java/com/discounttracker/comparison/BannerOfferCertaintyTest.java
 api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java
-api/src/test/java/com/discounttracker/comparison/LegacyBannerOfferTest.java
 api/src/test/java/com/discounttracker/comparison/TargetedBannerTest.java
 api/src/test/java/com/discounttracker/history/HistoryRepositoryTest.java
 api/src/test/java/com/discounttracker/history/OfferHistoryTest.java
@@ -190,6 +190,7 @@ web/scripts/dev/capture-dom.mjs
 web/scripts/dev/load-interact.mjs
 web/scripts/dev/load-tbt.mjs
 web/scripts/indexnow.mjs
+web/scripts/make-logo-webp.py
 web/scripts/prerender.mjs
 web/scripts/promote-dev-deployment.mjs
 web/scripts/run-node-tests.mjs
@@ -209,13 +210,16 @@ web/src/BrandCard.jsx
 web/src/BrandGridSkeleton.jsx
 web/src/BrandSuggestions.jsx
 web/src/CouponCard.jsx
+web/src/ErrorBoundary.jsx
 web/src/EventBanner.jsx
 web/src/FilterSheet.jsx
+web/src/FirstVisitGuide.jsx
 web/src/HiddenBrandsSheet.jsx
 web/src/HideBrandAsk.jsx
 web/src/MenuBar.jsx
 web/src/OfferChip.jsx
 web/src/OfferDetail.jsx
+web/src/PopularStrip.jsx
 web/src/PushNotificationSetting.jsx
 web/src/SiteFooter.jsx
 web/src/SurveyCard.jsx
@@ -251,6 +255,8 @@ web/src/devPromotion.test.js
 web/src/entry-server.jsx
 web/src/filters.js
 web/src/filters.test.js
+web/src/firstVisitGuide.js
+web/src/firstVisitGuide.test.js
 web/src/ga4.js
 web/src/hiddenBrands.js
 web/src/hiddenBrands.test.js
@@ -258,6 +264,8 @@ web/src/historyChart.js
 web/src/historyChart.test.js
 web/src/homeExperiment.js
 web/src/homeExperiment.test.js
+web/src/linkReturn.js
+web/src/linkReturn.test.js
 web/src/logoManifest.js
 web/src/logoManifest.test.js
 web/src/logoSrc.js
@@ -272,6 +280,8 @@ web/src/platformBadge.test.js
 web/src/platformIcons.js
 web/src/platforms.js
 web/src/platformsContract.test.js
+web/src/popularStrip.js
+web/src/popularStrip.test.js
 web/src/posthog.js
 web/src/prerenderBreadcrumb.test.js
 web/src/privacy.js
@@ -288,6 +298,7 @@ web/src/styles/card-foot-bar.css
 web/src/styles/cat-bar.css
 web/src/styles/coupon-card.css
 web/src/styles/filter-sheet.css
+web/src/styles/first-guide.css
 web/src/styles/footer-push.css
 web/src/styles/hidden-brands.css
 web/src/styles/hide-ask.css
@@ -295,6 +306,7 @@ web/src/styles/hist.css
 web/src/styles/offer-tabs.css
 web/src/styles/overflow.css
 web/src/styles/platform-icons.css
+web/src/styles/popular-strip.css
 web/src/styles/status.css
 web/src/styles/survey-dock.css
 web/src/styles/survey.css
@@ -303,6 +315,7 @@ web/src/styles/topbar-overrides.css
 web/src/surveyDismiss.js
 web/src/surveyDismiss.test.js
 web/src/surveyQuestions.js
+web/src/telemetry.js
 web/src/useBrandAutocomplete.js
 web/src/variant.js
 web/vercel.json
@@ -355,7 +368,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 168 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 138 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 151 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -368,7 +381,7 @@ flowchart TB
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
 | `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 21 |
-| `banner/` | 당일 행사 로드와 날짜 판정 | 5 |
+| `banner/` | 당일 행사 로드와 날짜 판정 | 6 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `history/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 6 |
@@ -405,13 +418,16 @@ HTTP 경계:
 | `BrandGridSkeleton.jsx` | 로딩 중 카드 자리지킴 |
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `CouponCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `ErrorBoundary.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `EventBanner.jsx` | 당일 행사 배너 |
 | `FilterSheet.jsx` | 앱·분류·정렬 필터 바텀시트(옛 B안, 2026-09-16 A 바에 병합) |
+| `FirstVisitGuide.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `HiddenBrandsSheet.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `HideBrandAsk.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `MenuBar.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `OfferChip.jsx` | 앱별 할인 칩과 앱 링크 사다리 |
 | `OfferDetail.jsx` | 칩을 펼친 상세 조건 |
+| `PopularStrip.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SiteFooter.jsx` | 서비스 안내 푸터 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -447,6 +463,8 @@ HTTP 경계:
 | `entry-server.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `filters.js` | 필터 상태와 적용·정렬 규칙 |
 | `filters.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `firstVisitGuide.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `firstVisitGuide.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `ga4.js` | 임시 GA4 측정 |
 | `hiddenBrands.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `hiddenBrands.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -454,6 +472,8 @@ HTTP 경계:
 | `historyChart.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeExperiment.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeExperiment.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `linkReturn.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `linkReturn.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoManifest.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoManifest.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoSrc.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -468,6 +488,8 @@ HTTP 경계:
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformsContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `popularStrip.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `popularStrip.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |
 | `prerenderBreadcrumb.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `privacy.js` | DNT/GPC 추적 거부 판정 |
@@ -480,6 +502,7 @@ HTTP 경계:
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `telemetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useBrandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `variant.js` | 화면 안 상수(a 고정, A/B 종료 2026-09-15) |
 

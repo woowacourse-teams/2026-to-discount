@@ -90,44 +90,6 @@ class BannerGroupTest {
         assertEquals(15000, members.get(1).minOrder());
     }
 
-    @Test
-    void oldShapeStillLoads() {
-        // 1단계에서는 파일을 안 건드린다. 옛 모양이 그대로 떠야 한다.
-        BannerCatalog c = catalog("""
-                banners:
-                  - id: kyochon-20260922
-                    brand: 교촌치킨
-                    platform: baemin
-                    url: "https://example.test/k"
-                    amount: "12,000원"
-                    period: 9월 22일 하루
-                    extra: "20,000원↑, 선착순 300명"
-                    minOrder: 20000
-                    startsOn: 2026-09-22
-                    endsOn: 2026-09-22
-                """);
-        assertEquals(1, c.active().size());
-        assertEquals("12,000원", c.active().get(0).amount());
-        assertEquals("9월 22일 하루", c.active().get(0).period());
-    }
-
-    @Test
-    void mixingBothShapesIsReportedRatherThanGuessed() {
-        // 드리프트 2. 둘 다 있으면 어느 쪽이 이기는지 파일만 봐서는 모른다.
-        BannerCatalog c = catalog("""
-                banners:
-                  - id: mixed-20260922
-                    brand: 교촌치킨
-                    platform: baemin
-                    url: "https://example.test/m"
-                    amount: "12,000원"
-                    startsOn: 2026-09-22
-                    startsAt: 2026-09-22T17:00
-                    endsOn: 2026-09-22
-                """);
-        assertEquals(List.of("mixed-20260922"), c.mixedShape());
-    }
-
     private static final String CROSSED_PRIORITY_AND_ID = """
             banners:
               - id: zzz-20260922

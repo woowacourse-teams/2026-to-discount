@@ -5,7 +5,7 @@ import com.discounttracker.comparison.BrandComparisonService;
 import com.discounttracker.offer.AmountKind;
 import com.discounttracker.offer.Certainty;
 import com.discounttracker.offer.Offer;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 class NewOfferNotificationServiceTest {
     @TempDir Path temp;
     private final Clock clock = Clock.fixed(Instant.parse("2026-10-08T02:15:00Z"), ZoneId.of("Asia/Seoul"));
-    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     void selectsLargestNewBestAndExcludesOldSoldOutAndUncertainOffers() {
@@ -89,7 +89,7 @@ class NewOfferNotificationServiceTest {
         resumed.sendDueOffer();
         var payload = org.mockito.ArgumentCaptor.forClass(String.class);
         verify(retrySender, times(1)).send(any(), payload.capture());
-        assertThat(mapper.readTree(payload.getValue()).get("title").asText()).isEqualTo("BHC 8,000원 할인");
+        assertThat(mapper.readTree(payload.getValue()).get("title").asString()).isEqualTo("BHC 8,000원 할인");
         assertThat(restored.dailyOffer("2026-10-08", 0).complete()).isTrue();
     }
 
@@ -135,7 +135,7 @@ class NewOfferNotificationServiceTest {
         service(restored, sender, comparisons).sendDueOffer();
         var payload = org.mockito.ArgumentCaptor.forClass(String.class);
         verify(sender).send(any(), payload.capture());
-        assertThat(mapper.readTree(payload.getValue()).get("title").asText()).isEqualTo("BHC 8,000원 할인");
+        assertThat(mapper.readTree(payload.getValue()).get("title").asString()).isEqualTo("BHC 8,000원 할인");
     }
 
     @Test
@@ -177,9 +177,9 @@ class NewOfferNotificationServiceTest {
     void payloadUsesApprovedCopyAndFirstComeBenefit() throws Exception {
         var target = new DailyOfferNotification.Target("홍콩반점0410", "baemin", 8000, true, "2026-10-08T01:00:00Z");
         var payload = mapper.readTree(new PushMessageFactory(mapper).offerPayload(target, "display", "click", "id"));
-        assertThat(payload.get("title").asText()).isEqualTo("홍콩반점0410 8,000원 선착순 할인");
-        assertThat(payload.get("body").asText()).isEqualTo("할인 시간과 적용 조건을 확인해 보세요.");
-        assertThat(payload.get("url").asText()).isEqualTo("click");
+        assertThat(payload.get("title").asString()).isEqualTo("홍콩반점0410 8,000원 선착순 할인");
+        assertThat(payload.get("body").asString()).isEqualTo("할인 시간과 적용 조건을 확인해 보세요.");
+        assertThat(payload.get("url").asString()).isEqualTo("click");
     }
 
     private PushProperties properties() {

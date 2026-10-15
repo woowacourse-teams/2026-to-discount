@@ -14,9 +14,17 @@ class OfferRecordTest {
     private static final LocalDate TODAY = LocalDate.parse("2026-08-13");
 
     private OfferRecord record(Integer amount, String tierMode, List<DiscountTier> tiers) {
-        return new OfferRecord("yogiyo", "굽네치킨", amount, "최소", false,
-                "discount", null, "최소 4,000원", "2026-07-31T10:00:00+09:00",
-                "x.jpg", null, tierMode, tiers, null, null, null, null, null, false);
+        return OfferRecord.builder("yogiyo", "굽네치킨")
+                .amount(amount)
+                .qualifier("최소")
+                .offerType("discount")
+                .rawText("최소 4,000원")
+                .capturedAt("2026-07-31T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .tierMode(tierMode)
+                .tiers(tiers)
+                .soldOut(false)
+                .build();
     }
 
     private DiscountTier fixed(Integer minOrder, Integer amount) {
@@ -68,12 +76,17 @@ class OfferRecordTest {
     void cumulativeSkipsExpiredTiers() {
         // 만료된 구간은 사다리에 안 들어간다. 17,000원 칸이 끝났으면
         // 남은 건 25,000원 칸뿐이고 대표값도 그쪽이 된다.
-        OfferRecord r = new OfferRecord("yogiyo", "굽네치킨", 4000, "최소", false,
-                "discount", null, "최소 4,000원", "2026-07-31T10:00:00+09:00",
-                "x.jpg", null, "cumulative", List.of(
-                        new DiscountTier(17000, 4000, null, null, null, null, "2026-08-01"),
-                        new DiscountTier(25000, 1250, 5, 3000, null, null, null)),
-                null, null, null, null, null, false);
+        OfferRecord r = OfferRecord.builder("yogiyo", "굽네치킨")
+                .amount(4000)
+                .qualifier("최소")
+                .offerType("discount")
+                .rawText("최소 4,000원")
+                .capturedAt("2026-07-31T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .tierMode("cumulative")
+                .tiers(List.of( new DiscountTier(17000, 4000, null, null, null, null, "2026-08-01"), new DiscountTier(25000, 1250, 5, 3000, null, null, null)))
+                .soldOut(false)
+                .build();
         assertEquals(1250, r.amountAsOf(TODAY));
     }
 
@@ -82,12 +95,17 @@ class OfferRecordTest {
         // 품절 구간은 못 받는 금액이라 더하면 안 된다. liveTiers는 만료만
         // 거르므로(상세 패널이 품절 구간도 보여줘야 한다) 합산 전에 한 번 더
         // 거른다 — 쿠팡이츠 메가MGC커피 실측과 같은 이유.
-        OfferRecord r = new OfferRecord("yogiyo", "굽네치킨", 4000, "최소", false,
-                "discount", null, "최소 4,000원", "2026-07-31T10:00:00+09:00",
-                "x.jpg", null, "cumulative", List.of(
-                        new DiscountTier(17000, 4000, null, null, null, null, null),
-                        new DiscountTier(17000, 9999, null, null, null, true, null)),
-                null, null, null, null, null, false);
+        OfferRecord r = OfferRecord.builder("yogiyo", "굽네치킨")
+                .amount(4000)
+                .qualifier("최소")
+                .offerType("discount")
+                .rawText("최소 4,000원")
+                .capturedAt("2026-07-31T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .tierMode("cumulative")
+                .tiers(List.of( new DiscountTier(17000, 4000, null, null, null, null, null), new DiscountTier(17000, 9999, null, null, null, true, null)))
+                .soldOut(false)
+                .build();
         assertEquals(4000, r.amountAsOf(TODAY));
     }
 
@@ -136,21 +154,45 @@ class OfferRecordTest {
         List<DiscountTier> tiers = List.of(
                 new DiscountTier(15000, 8000, null, null, null, null, null, null, "baeminClub"),
                 new DiscountTier(15000, 3000, null, null, null, null, null, null, "none"));
-        OfferRecord r = new OfferRecord("baemin", "던킨", 3000, null, false,
-                "discount", null, "3,000원", "2026-09-14T10:00:00+09:00",
-                "x.jpg", 15000, "exclusive", tiers, null, null, null, null, "baeminClub", false);
+        OfferRecord r = OfferRecord.builder("baemin", "던킨")
+                .amount(3000)
+                .offerType("discount")
+                .rawText("3,000원")
+                .capturedAt("2026-09-14T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .minOrderAmount(15000)
+                .tierMode("exclusive")
+                .tiers(tiers)
+                .membership("baeminClub")
+                .soldOut(false)
+                .build();
         assertEquals(Membership.NONE, r.membershipTier());
         // 구간이 전부 클럽이면 클럽.
-        OfferRecord club = new OfferRecord("baemin", "던킨", 8000, null, false,
-                "discount", null, "8,000원", "2026-09-14T10:00:00+09:00",
-                "x.jpg", 15000, "exclusive", List.of(tiers.get(0)), null, null, null, null, null, false);
+        OfferRecord club = OfferRecord.builder("baemin", "던킨")
+                .amount(8000)
+                .offerType("discount")
+                .rawText("8,000원")
+                .capturedAt("2026-09-14T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .minOrderAmount(15000)
+                .tierMode("exclusive")
+                .tiers(List.of(tiers.get(0)))
+                .soldOut(false)
+                .build();
         assertEquals(Membership.BAEMIN_CLUB, club.membershipTier());
         // 구간에 값이 없으면 레코드 값.
-        OfferRecord plain = new OfferRecord("baemin", "던킨", 8000, null, false,
-                "discount", null, "8,000원", "2026-09-14T10:00:00+09:00",
-                "x.jpg", 15000, "exclusive",
-                List.of(new DiscountTier(15000, 8000, null, null, null, null, null)),
-                null, null, null, null, "baeminClub", false);
+        OfferRecord plain = OfferRecord.builder("baemin", "던킨")
+                .amount(8000)
+                .offerType("discount")
+                .rawText("8,000원")
+                .capturedAt("2026-09-14T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .minOrderAmount(15000)
+                .tierMode("exclusive")
+                .tiers(List.of(new DiscountTier(15000, 8000, null, null, null, null, null)))
+                .membership("baeminClub")
+                .soldOut(false)
+                .build();
         assertEquals(Membership.BAEMIN_CLUB, plain.membershipTier());
     }
 
@@ -159,34 +201,67 @@ class OfferRecordTest {
         // 허브 재캡처(최신, 표시 없음)가 이기고 쿠폰함(옛것, 와우 관측)이
         // 진다. 2026-09-14: 이 병합이 없으면 다음 허브 갱신 때 와우 전용
         // 12곳이 일반 쿠폰으로 선다.
-        Offer hub = Offer.from(new OfferRecord("coupangeats", "BBQ", 5000, null, false,
-                "discount", null, "5,000원할인", "2026-09-15T07:00:00+09:00",
-                "x.png", null, null, null, null, null, null, null, null, false), java.time.LocalDate.parse("2026-09-15"));
-        Offer box = Offer.from(new OfferRecord("coupangeats", "BBQ", 5000, null, false,
-                "discount", null, "5,000원할인", "2026-09-13T11:05:00+09:00",
-                "y.png", 15000, null, null, null, null, null, null, "coupangEats", false), java.time.LocalDate.parse("2026-09-15"));
+        Offer hub = Offer.from(OfferRecord.builder("coupangeats", "BBQ")
+                .amount(5000)
+                .offerType("discount")
+                .rawText("5,000원할인")
+                .capturedAt("2026-09-15T07:00:00+09:00")
+                .screenshotPath("x.png")
+                .soldOut(false)
+                .build(), java.time.LocalDate.parse("2026-09-15"));
+        Offer box = Offer.from(OfferRecord.builder("coupangeats", "BBQ")
+                .amount(5000)
+                .offerType("discount")
+                .rawText("5,000원할인")
+                .capturedAt("2026-09-13T11:05:00+09:00")
+                .screenshotPath("y.png")
+                .minOrderAmount(15000)
+                .membership("coupangEats")
+                .soldOut(false)
+                .build(), java.time.LocalDate.parse("2026-09-15"));
         assertEquals(Membership.COUPANG_EATS, hub.preferredOver(box).membership());
         // 관측된 "none"은 안 덮인다 — 봤는데 없더라는 사실이다.
-        Offer boxNone = Offer.from(new OfferRecord("coupangeats", "BBQ", 5000, null, false,
-                "discount", null, "5,000원할인", "2026-09-15T11:05:00+09:00",
-                "z.png", 15000, null, null, null, null, null, null, "none", false), java.time.LocalDate.parse("2026-09-15"));
+        Offer boxNone = Offer.from(OfferRecord.builder("coupangeats", "BBQ")
+                .amount(5000)
+                .offerType("discount")
+                .rawText("5,000원할인")
+                .capturedAt("2026-09-15T11:05:00+09:00")
+                .screenshotPath("z.png")
+                .minOrderAmount(15000)
+                .membership("none")
+                .soldOut(false)
+                .build(), java.time.LocalDate.parse("2026-09-15"));
         assertEquals(Membership.NONE, boxNone.preferredOver(box).membership());
     }
 
     @Test
     void keepsKnownMembership() {
-        OfferRecord r = new OfferRecord("baemin", "던킨", 4000, null, false,
-                "discount", null, "4,000원 메뉴할인", "2026-08-31T10:00:00+09:00",
-                "x.jpg", 18000, null, null, null, null, "배민클럽", null, "baeminClub", false);
+        OfferRecord r = OfferRecord.builder("baemin", "던킨")
+                .amount(4000)
+                .offerType("discount")
+                .rawText("4,000원 메뉴할인")
+                .capturedAt("2026-08-31T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .minOrderAmount(18000)
+                .badge("배민클럽")
+                .membership("baeminClub")
+                .soldOut(false)
+                .build();
         assertEquals(Membership.BAEMIN_CLUB, r.membershipTier());
     }
 
     @Test
     void unrecognizedMembershipValueNormalizesToUnknown() {
         // 판독 오류로 이상한 값이 들어와도 안 죽고 "모름"으로 본다.
-        OfferRecord r = new OfferRecord("baemin", "던킨", 4000, null, false,
-                "discount", null, "4,000원", "2026-08-31T10:00:00+09:00",
-                "x.jpg", null, null, null, null, null, null, null, "premium", false);
+        OfferRecord r = OfferRecord.builder("baemin", "던킨")
+                .amount(4000)
+                .offerType("discount")
+                .rawText("4,000원")
+                .capturedAt("2026-08-31T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .membership("premium")
+                .soldOut(false)
+                .build();
         assertEquals(Membership.UNKNOWN, r.membershipTier());
     }
 
@@ -196,8 +271,8 @@ class OfferRecordTest {
                 {"platform":"baemin","brand":"BBQ","amount":3000,"needsReview":false,
                  "rawText":"3,000원","capturedAt":"2026-10-04T08:48:11+09:00",
                  "firstSeenAt":"2026-10-03T00:37:00+09:00","someFutureField":1}""";
-        OfferRecord r = new com.fasterxml.jackson.databind.ObjectMapper()
-                .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        OfferRecord r = tools.jackson.databind.json.JsonMapper.builderWithJackson2Defaults()
+                .disable(tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
                 .readValue(json, OfferRecord.class);
         assertEquals("2026-10-03T00:37:00+09:00", r.firstSeenAt());
         assertEquals("2026-10-03T00:37:00+09:00", Offer.from(r, LocalDate.of(2026, 10, 4)).firstSeenAt());

@@ -22,4 +22,5 @@ main에 직접 커밋하지 않는다. 브랜치, 360px 스크린샷, mono `prev
 
 - 확인 명령은 [`docs/WORKFLOW.md`](docs/WORKFLOW.md) §5. `git config core.hooksPath scripts/githooks`로 구조 문서 검사를 push 전에 자동으로 돌린다.
 - `web/src/*.test.js`를 새로 만들면 `web/package.json`의 `test` 명령에 넣는다. 안 넣으면 안 돌고, 안 도는 줄도 모른다.
+- api는 Spring Boot 4.1, Jackson 3이다. Jackson 파싱 오류는 `IOException`이 아니다. 고칠 때 규칙은 `api/docs/decisions/ADR-012`.
 - 비밀값은 코드와 커밋에 값으로 적지 않는다. CI(`secret-scan`)가 작업 트리를 검사한다.

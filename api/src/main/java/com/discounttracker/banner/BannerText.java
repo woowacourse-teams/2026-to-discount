@@ -1,6 +1,7 @@
 package com.discounttracker.banner;
 
 import com.discounttracker.offer.AmountKind;
+import com.discounttracker.offer.Certainty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +83,7 @@ public final class BannerText {
         if (b.isTargeted()) tail.add("타겟딜");
         if ("issue".equals(b.firstCome())) tail.add("발급 선착순");
         if ("use".equals(b.firstCome())) tail.add("사용(발급X) 선착순");
-        if (b.amountSpec() != null && b.amountSpec().certainty() == com.discounttracker.offer.Certainty.RANDOM) {
+        if (b.amountSpec() != null && b.amountSpec().certainty() == Certainty.RANDOM) {
             tail.add("랜덤쿠폰");
         }
         if (b.untilSoldOutFlag()) tail.add("소진 시 종료");

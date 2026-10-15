@@ -102,16 +102,31 @@ class BrandComparisonServiceTest {
 
     private OfferRecord rec(String platform, String brand, Integer amount,
                             String qualifier, boolean needsReview) {
-        return new OfferRecord(platform, brand, amount, qualifier, needsReview,
-                "discount", null, amount == null ? "" : amount + "원",
-                "2026-07-27T14:20:00+09:00", "path.jpg", null, null, null, null, null, null, null, null, false);
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .qualifier(qualifier)
+                .needsReview(needsReview)
+                .offerType("discount")
+                .rawText(amount == null ? "" : amount + "원")
+                .capturedAt("2026-07-27T14:20:00+09:00")
+                .screenshotPath("path.jpg")
+                .soldOut(false)
+                .build();
     }
 
     private OfferRecord recWithConditions(String platform, String brand, Integer amount,
                                           boolean needsReview, Integer minOrder, String conditions) {
-        return new OfferRecord(platform, brand, amount, null, needsReview,
-                "discount", null, amount == null ? "" : amount + "원",
-                "2026-07-29T18:00:00+09:00", "path2.jpg", minOrder, null, null, conditions, null, null, null, null, false);
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .needsReview(needsReview)
+                .offerType("discount")
+                .rawText(amount == null ? "" : amount + "원")
+                .capturedAt("2026-07-29T18:00:00+09:00")
+                .screenshotPath("path2.jpg")
+                .minOrderAmount(minOrder)
+                .conditions(conditions)
+                .soldOut(false)
+                .build();
     }
 
     @Test
@@ -261,9 +276,15 @@ class BrandComparisonServiceTest {
         // 확정 특정메뉴라도 품절이면 4,999원을 안 낸다. 제외 축을 확실성보다 먼저 물면서
         // 확정 경로도 같이 바뀐 자리다(2026-09-23 fix round 4).
         var result = serviceWith(
-                List.of(new OfferRecord("baemin", "품절브랜드", 14000, "특정메뉴", false,
-                        "discount", null, "14000원", "2026-07-27T14:20:00+09:00", "path.jpg",
-                        null, null, null, null, null, null, null, null, true)),
+                List.of(OfferRecord.builder("baemin", "품절브랜드")
+                        .amount(14000)
+                        .qualifier("특정메뉴")
+                        .offerType("discount")
+                        .rawText("14000원")
+                        .capturedAt("2026-07-27T14:20:00+09:00")
+                        .screenshotPath("path.jpg")
+                        .soldOut(true)
+                        .build()),
                 "brands: {}").compare();
         assertEquals(1, result.size());
         assertNull(result.get(0).maxConfirmedAmount());
@@ -275,9 +296,15 @@ class BrandComparisonServiceTest {
         // own에 품절인 특정메뉴 행이 4,999원 천장을 세우던 구멍. 제외 축을 확실성보다
         // 먼저 묻는다(2026-09-23 fix round 4). /api/test 픽스처로 실제로 들어온다.
         var result = serviceWith(
-                List.of(new OfferRecord("own", "자사브랜드", 14000, "특정메뉴", false,
-                        "discount", null, "14000원", "2026-07-27T14:20:00+09:00", "path.jpg",
-                        null, null, null, null, null, null, null, null, true)),
+                List.of(OfferRecord.builder("own", "자사브랜드")
+                        .amount(14000)
+                        .qualifier("특정메뉴")
+                        .offerType("discount")
+                        .rawText("14000원")
+                        .capturedAt("2026-07-27T14:20:00+09:00")
+                        .screenshotPath("path.jpg")
+                        .soldOut(true)
+                        .build()),
                 "brands: {}").compare();
         assertEquals(1, result.size());
         assertNull(result.get(0).maxConfirmedAmount());
@@ -391,10 +418,21 @@ class BrandComparisonServiceTest {
     @Test
     void carriesDetailFieldsThroughToOffer() {
         // 상세 패널이 읽는 값 — 서비스는 해석하지 않고 그대로 흘려보낸다.
-        OfferRecord detailed = new OfferRecord("yogiyo", "굽네치킨", 7000, "최대", true,
-                "discount", null, "최대 7,000원 할인", "2026-07-27T14:25:00+09:00",
-                "x.jpg", 15000, null, List.of(new DiscountTier(15000, 3000, null, null, null, null, null)), "1일 1회",
-                "2026-08-31", "선착순 품절", null, null, true);
+        OfferRecord detailed = OfferRecord.builder("yogiyo", "굽네치킨")
+                .amount(7000)
+                .qualifier("최대")
+                .needsReview(true)
+                .offerType("discount")
+                .rawText("최대 7,000원 할인")
+                .capturedAt("2026-07-27T14:25:00+09:00")
+                .screenshotPath("x.jpg")
+                .minOrderAmount(15000)
+                .tiers(List.of(new DiscountTier(15000, 3000, null, null, null, null, null)))
+                .conditions("1일 1회")
+                .expiresAt("2026-08-31")
+                .badge("선착순 품절")
+                .soldOut(true)
+                .build();
         Offer offer = serviceWith(List.of(detailed), "brands: {}")
                 .compare().get(0).offers().get(0);
         assertEquals(15000, offer.minOrderAmount());
@@ -410,12 +448,17 @@ class BrandComparisonServiceTest {
     void carriesTierModeThroughToOffer() {
         // 프론트가 "겹치는 쿠폰이 더 있다"(+a 표시)를 판단하는 근거라
         // 응답까지 그대로 나가야 한다.
-        OfferRecord cumulative = new OfferRecord("yogiyo", "굽네치킨", 5250, "최적", false,
-                "discount", null, "최적 5,250원", "2026-07-31T10:00:00+09:00",
-                "x.jpg", null, "cumulative", List.of(
-                        new DiscountTier(17000, 4000, null, null, null, null, null),
-                        new DiscountTier(25000, 1250, 5, 3000, null, null, null)),
-                null, null, null, null, null, false);
+        OfferRecord cumulative = OfferRecord.builder("yogiyo", "굽네치킨")
+                .amount(5250)
+                .qualifier("최적")
+                .offerType("discount")
+                .rawText("최적 5,250원")
+                .capturedAt("2026-07-31T10:00:00+09:00")
+                .screenshotPath("x.jpg")
+                .tierMode("cumulative")
+                .tiers(List.of( new DiscountTier(17000, 4000, null, null, null, null, null), new DiscountTier(25000, 1250, 5, 3000, null, null, null)))
+                .soldOut(false)
+                .build();
         Offer offer = serviceWith(List.of(cumulative), "brands: {}")
                 .compare().get(0).offers().get(0);
         assertEquals("cumulative", offer.tierMode());
@@ -456,9 +499,15 @@ class BrandComparisonServiceTest {
     /** 종료일·캡처시각을 지정하는 레코드. */
     private OfferRecord recExpiring(String platform, String brand, Integer amount,
                                     String expiresAt, String capturedAt) {
-        return new OfferRecord(platform, brand, amount, null, false,
-                "discount", null, amount + "원", capturedAt, "path.jpg",
-                null, null, null, null, expiresAt, null, null, null, false);
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .offerType("discount")
+                .rawText(amount + "원")
+                .capturedAt(capturedAt)
+                .screenshotPath("path.jpg")
+                .expiresAt(expiresAt)
+                .soldOut(false)
+                .build();
     }
 
     @Test
@@ -554,9 +603,16 @@ class BrandComparisonServiceTest {
 
     private OfferRecord recWithTiers(String platform, String brand, Integer amount,
                                      String expiresAt, List<DiscountTier> tiers) {
-        return new OfferRecord(platform, brand, amount, null, false,
-                "discount", null, amount + "원", "2026-08-01T10:00:00+09:00", "path.jpg",
-                null, null, tiers, null, expiresAt, null, null, null, false);
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .offerType("discount")
+                .rawText(amount + "원")
+                .capturedAt("2026-08-01T10:00:00+09:00")
+                .screenshotPath("path.jpg")
+                .tiers(tiers)
+                .expiresAt(expiresAt)
+                .soldOut(false)
+                .build();
     }
 
     @Test
@@ -646,8 +702,8 @@ class BrandComparisonServiceTest {
         assertEquals(3, result.get(0).offers().get(0).tiers().size(), "품절 구간은 만료가 아니라 그대로 있다");
     }
 
-    // Task 8: 구조 칸(amount:)을 쓰는 새 모양이다. 문장(period/extra)은 여전히 손으로
-    // 적을 수 있지만, 오퍼로 설 때 읽는 칸은 amount:/minOrder:/targeted:/firstCome: 뿐이다.
+    // Task 8: 구조 칸(amount:)을 쓰는 모양이다. 오퍼로 설 때 읽는 칸은
+    // amount:/minOrder:/targeted:/firstCome:/opensAt: 뿐이고, 화면 문구(기간 등)는 서버가 만든다.
     private static final String BANNER_YAML = """
             banners:
               - id: goobne-20260817
@@ -655,33 +711,30 @@ class BrandComparisonServiceTest {
                 platform: yogiyo
                 url: https://example.test/a
                 amount: {won: 6500}
-                period: 매일 오후 3시부터 선착순
+                opensAt: "15:00"
                 minOrder: 25000
-                startsOn: 2026-08-17
-                endsOn: 2026-08-23
+                startsAt: '2026-08-17T00:00:00'
+                endsAt: '2026-08-23T23:59:59'
               - id: allapps-20260817
                 platform: baemin
                 url: https://example.test/b
                 amount: {won: 5000}
-                period: 상시
-                startsOn: 2026-08-17
-                endsOn: 2026-08-23
+                startsAt: '2026-08-17T00:00:00'
+                endsAt: '2026-08-23T23:59:59'
               - id: rate-20260817
                 brand: BBQ
                 platform: baemin
                 url: https://example.test/c
                 amount: {percent: 30}
-                period: 상시
-                startsOn: 2026-08-17
-                endsOn: 2026-08-23
+                startsAt: '2026-08-17T00:00:00'
+                endsAt: '2026-08-23T23:59:59'
               - id: random-20260817
                 brand: 두찜
                 platform: coupangeats
                 url: https://example.test/d
                 amount: {won: [3000, 8000], random: true}
-                period: 이번주
-                startsOn: 2026-08-17
-                endsOn: 2026-08-23
+                startsAt: '2026-08-17T00:00:00'
+                endsAt: '2026-08-23T23:59:59'
             """;
 
     @Test
@@ -731,18 +784,16 @@ class BrandComparisonServiceTest {
                     platform: coupangeats
                     url: https://example.test/hub
                     amount: {won: [null, 10000], random: true}
-                    period: 오늘
-                    startsOn: 2026-09-19
-                    endsOn: 2026-09-19
+                    startsAt: '2026-09-19T00:00:00'
+                    endsAt: '2026-09-19T23:59:59'
                   - id: coupangeats-weekly-puradak-20260919
                     group: g1
                     brand: 푸라닭
                     platform: coupangeats
                     url: https://example.test/hub
                     amount: {won: [null, 8000], random: true}
-                    period: 오늘
-                    startsOn: 2026-09-19
-                    endsOn: 2026-09-19
+                    startsAt: '2026-09-19T00:00:00'
+                    endsAt: '2026-09-19T23:59:59'
                 """;
         List<BrandComparison> cards = serviceWith(List.of(), brands, on("2026-09-19"), yaml).compare();
         Offer nomore = cards.stream().filter(c -> c.brand().name().equals("노모어피자")).findFirst().orElseThrow().offers().get(0);
@@ -768,8 +819,8 @@ class BrandComparisonServiceTest {
                     platform: own
                     url: https://www.kfckorea.com/promotion/promotionList/detail/955
                     amount: {buy: 1, get: 1, item: 징거버거}
-                    startsOn: 2026-10-11
-                    endsOn: 2026-10-12
+                    startsAt: '2026-10-11T00:00:00'
+                    endsAt: '2026-10-12T23:59:59'
                 """;
         List<BrandComparison> cards = serviceWith(List.of(), brands, on("2026-10-11"), yaml).compare();
         BrandComparison kfc = cards.stream().filter(c -> c.brand().name().equals("KFC")).findFirst().orElseThrow();
@@ -841,8 +892,7 @@ class BrandComparisonServiceTest {
         Offer offer = card.offers().get(0);
         assertEquals(6500, offer.amount());
         // 확정 오퍼는 이제 qualifier가 없다 — 배너 출처는 fromBanner가 이미 답한다(Task 8).
-        // 쿠폰을 겹친 사다리(옛 "최적")는 구조 칸에 대응이 없어 더는 만들지 않는다
-        // (Banner.compoundTiers는 Task 19가 정리할 다리로만 남는다).
+        // 쿠폰을 겹친 사다리(옛 "최적")는 구조 칸에 대응이 없어 더는 만들지 않는다.
         assertNull(offer.qualifier());
         assertTrue(offer.fromBanner());
         assertNull(offer.tierMode());
@@ -851,8 +901,8 @@ class BrandComparisonServiceTest {
         // 적어둔 최소주문금액이 조건으로 함께 들어가야 상세가 "미확인"으로
         // 남지 않는다.
         assertEquals(25000, offer.minOrderAmount());
-        // 기간 문구가 사라지면 아무 때나 받는 할인으로 읽힌다.
-        assertEquals("매일 오후 3시부터 선착순", offer.badge());
+        // 기간 문구가 사라지면 아무 때나 받는 할인으로 읽힌다. 문구는 opensAt 칸에서 서버가 만든다.
+        assertEquals("매일 오후 3시 오픈", offer.badge());
     }
 
     @Test
@@ -935,10 +985,10 @@ class BrandComparisonServiceTest {
                     platform: yogiyo
                     url: https://example.test/a
                     amount: {won: 6000}
-                    period: 오전 11시 선착순
+                    firstCome: issue
                     soldOut: true
-                    startsOn: 2026-08-20
-                    endsOn: 2026-08-20
+                    startsAt: '2026-08-20T00:00:00'
+                    endsAt: '2026-08-20T23:59:59'
                 """;
         Offer offer = serviceWith(List.of(), brands, on("2026-08-20"), yaml)
                 .compare().stream()
@@ -967,10 +1017,10 @@ class BrandComparisonServiceTest {
                     platform: yogiyo
                     url: https://example.test/a
                     amount: {won: 6000}
-                    period: 오전 11시 선착순
+                    firstCome: issue
                     soldOutOn: 2026-08-20
-                    startsOn: 2026-08-19
-                    endsOn: 2026-08-21
+                    startsAt: '2026-08-19T00:00:00'
+                    endsAt: '2026-08-21T23:59:59'
                 """;
 
         assertTrue(offerOf(brands, yaml, "2026-08-20").soldOut(), "그날은 매진");
@@ -990,8 +1040,9 @@ class BrandComparisonServiceTest {
     void dropsBannersThatCannotStandAsAnOffer() {
         // 정률·랜덤 배너는 이제 카드에도 선다(certainty가 EXACT가 아닐 뿐) - 그래서
         // "certainty == EXACT" 필터로는 이 테스트의 이름을 더는 못 지킨다. 진짜로 오퍼가
-        // 하나도 못 서는 두 경우만 남긴다: 브랜드가 없는 배너(앱 전체 행사)와, 구조 칸
-        // (amount:)이 없어 amountSpec을 못 만드는 옛 문장 모양 배너.
+        // 하나도 못 서는 두 경우만 남긴다: 브랜드가 없는 배너(앱 전체 행사)와, 금액 칸
+        // (amount:)이 없어 amountSpec을 못 만드는 배너. 문장 amount를 적은 옛 모양은
+        // 2026-10-15부터 배너 자체가 dropped라 여기까지 오지 않는다(BannerCatalogTest가 박는다).
         String brands = """
                 brands:
                   굽네치킨:
@@ -1006,32 +1057,27 @@ class BrandComparisonServiceTest {
                     platform: baemin
                     url: https://example.test/b
                     amount: {won: 5000}
-                    period: 상시
-                    startsOn: 2026-08-17
-                    endsOn: 2026-08-23
-                  - id: oldshape-20260817
+                    startsAt: '2026-08-17T00:00:00'
+                    endsAt: '2026-08-23T23:59:59'
+                  - id: noamount-20260817
                     brand: BBQ
                     platform: baemin
                     url: https://example.test/c
-                    amount: "8,000원"
-                    period: 상시
-                    startsOn: 2026-08-17
-                    endsOn: 2026-08-23
+                    startsAt: '2026-08-17T00:00:00'
+                    endsAt: '2026-08-23T23:59:59'
                   - id: goobne-20260817
                     brand: goobne
                     platform: yogiyo
                     url: https://example.test/a
                     amount: {won: 6500}
-                    period: 상시
-                    startsOn: 2026-08-17
-                    endsOn: 2026-08-23
+                    startsAt: '2026-08-17T00:00:00'
+                    endsAt: '2026-08-23T23:59:59'
                 """;
         List<String> names = serviceWith(List.of(), brands, on("2026-08-20"), yaml)
                 .compare().stream().map(c -> c.brand().name()).toList();
 
-        // 브랜드 없는 배너(붙을 카드가 없다)만 안 선다. 옛 문장 모양(BBQ)은 2026-09-23
-        // RULES 12로 다시 선다 - 문자열 금액을 옛 경로가 읽는다.
-        assertEquals(List.of("BBQ", "굽네치킨"), names);
+        // 브랜드 없는 배너(붙을 카드가 없다)와 금액 칸 없는 배너(BBQ, 붙을 값이 없다)는 안 선다.
+        assertEquals(List.of("굽네치킨"), names);
     }
 
     @Test

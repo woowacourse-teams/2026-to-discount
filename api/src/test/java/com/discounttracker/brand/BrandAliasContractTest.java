@@ -1,7 +1,7 @@
 package com.discounttracker.brand;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
@@ -36,12 +36,12 @@ class BrandAliasContractTest {
     Stream<DynamicTest> resolvesEveryCase() throws Exception {
         JsonNode c = contract();
         BrandCatalog catalog = new BrandCatalog(new ByteArrayResource(
-                c.get("brandsYml").asText().getBytes(StandardCharsets.UTF_8)));
+                c.get("brandsYml").asString().getBytes(StandardCharsets.UTF_8)));
         List<DynamicTest> tests = new ArrayList<>();
         for (JsonNode k : c.get("cases")) {
-            tests.add(DynamicTest.dynamicTest(k.get("name").asText(), () -> {
-                String raw = k.get("raw").asText();
-                assertEquals(k.get("canonical").asText(), catalog.canonical(raw), raw);
+            tests.add(DynamicTest.dynamicTest(k.get("name").asString(), () -> {
+                String raw = k.get("raw").asString();
+                assertEquals(k.get("canonical").asString(), catalog.canonical(raw), raw);
                 assertEquals(k.get("known").asBoolean(), catalog.knows(raw), raw);
             }));
         }
@@ -53,7 +53,7 @@ class BrandAliasContractTest {
     @SuppressWarnings("unchecked")
     void sampleIsDrawnFromTheLiveCatalog() throws Exception {
         Map<String, Map<String, Object>> sample = (Map<String, Map<String, Object>>)
-                new Yaml().<Map<String, Object>>load(contract().get("brandsYml").asText()).get("brands");
+                new Yaml().<Map<String, Object>>load(contract().get("brandsYml").asString()).get("brands");
         Map<String, Map<String, Object>> live;
         try (InputStream in = new ClassPathResource("brands.yml").getInputStream()) {
             live = (Map<String, Map<String, Object>>) new Yaml().<Map<String, Object>>load(in).get("brands");
