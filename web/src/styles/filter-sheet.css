@@ -158,10 +158,10 @@
   gap: 6px;
   margin-left: auto;
 }
-/* 390px에서 숨긴 목록이 화면 밖으로 밀렸다. 모바일은 정렬과 나머지 조작을 두 줄로 나눈다(#81). */
+/* 숨긴 목록이 있을 때만 두 줄을 쓴다. 마지막 항목 복원 후에는 기존 한 줄 배치로 돌아간다(#81). */
 @media (max-width: 600px) {
-  .quick-bar__actions { flex-basis: 100%; margin-left: 0; justify-content: space-between; }
-  .quick-bar__actions .quick-bar__switch { margin-left: 0; }
+  .quick-bar:has(.quick-bar__hidden) .quick-bar__actions { flex-basis: 100%; margin-left: 0; justify-content: space-between; }
+  .quick-bar:has(.quick-bar__hidden) .quick-bar__switch { margin-left: 0; }
 }
 /* 정렬 둘은 "하나 고르기"다. 홈 하나에 넣어 그 뜻을 형태로 보여 준다(B안). */
 .quick-bar__sorts {
