@@ -169,7 +169,7 @@
   gap: 0;
   flex: none; /* 줄어들면 고른 칩(굵은 글씨)이 판 밖으로 튀어나온다(2026-10-14 360px 실측) */
   padding: 3px;
-  background: var(--sale); /* 판이 포인트 색, 고른 칸은 흰 버튼(2026-10-14 사용자) */
+  background: color-mix(in srgb, var(--sale) 14%, var(--surface)); /* 옅은 포인트 판, 고른 칸은 흰 버튼(2026-10-15 사용자: 연하게) */
   border-radius: 999px;
 }
 .quick-bar__chip {
@@ -180,7 +180,7 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #fff;
+  color: var(--sale);
   cursor: pointer;
   white-space: nowrap;
   transition: background .2s cubic-bezier(.2, .8, .2, 1), color .2s ease, box-shadow .2s ease;
@@ -208,7 +208,7 @@
 .quick-bar__switch { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: .78rem; color: var(--text); background: none; border: 0; padding: 4px 0 4px 6px; cursor: pointer; white-space: nowrap; }
 .quick-bar__switch-track { position: relative; width: 34px; height: 20px; border-radius: 999px; background: color-mix(in srgb, var(--text) 25%, var(--surface)); transition: background .2s ease; flex: none; }
 .quick-bar__switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .3); transition: transform .2s cubic-bezier(.2, 0, 0, 1); }
-.quick-bar__switch[aria-checked="true"] .quick-bar__switch-track { background: var(--sale); } /* old도 A안과 같은 강조색(2026-10-14 사용자) */
+.quick-bar__switch[aria-checked="true"] .quick-bar__switch-track { background: color-mix(in srgb, var(--sale) 55%, var(--surface)); } /* old도 A안과 같은 강조색(2026-10-14 사용자) */
 .quick-bar__switch[aria-checked="true"] .quick-bar__switch-track::after { transform: translateX(14px); }
 .quick-bar__switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .quick-bar__switch-track, .quick-bar__switch-track::after { transition: none; } }

@@ -28,7 +28,8 @@ export function splitOffers(all, include) {
     const bm = b.qualifier === '최대' ? 1 : 0
     return am - bm || (b.amount ?? -1) - (a.amount ?? -1)
   })
-  const best = sorted.filter(isBest).sort(byMinOrder)
+  // 동점 최고 중 신규를 캐러셀 첫 장으로(2026-10-15 사용자). 신규끼리, 나머지끼리는 최소주문 순서 그대로.
+  const best = sorted.filter(isBest).sort((a, b) => isUpdated(b) - isUpdated(a) || byMinOrder(a, b))
   if (best.length > 0) return { best, rest: sorted.filter((x) => !isBest(x)), hasBest: true, bundles }
   return { best: sorted.slice(0, 1), rest: sorted.slice(1), hasBest: false, bundles }
 }

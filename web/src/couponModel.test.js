@@ -189,3 +189,9 @@ test('1+1 묶음 행사는 대표, 하위와 따로 맨 위 줄로 간다(2026-1
   assert.deepEqual(rest, [b])
   assert.deepEqual(bundles, [bundle])
 })
+
+test('new offer is the first card among tied best offers', () => {
+  const offers = [{ platform: 'baemin', amount: 5000, minOrderAmount: 10000, isNew: false },
+    { platform: 'yogiyo', amount: 5000, minOrderAmount: 20000, isNew: true }]
+  assert.deepEqual(splitOffers(offers).best.map((o) => o.platform), ['yogiyo', 'baemin'])
+})
