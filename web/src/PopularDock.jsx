@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { BrandLogo } from './logos.jsx'
 import { RankChange } from './PopularStrip.jsx'
@@ -21,14 +21,16 @@ function Cells({ row }) {
 }
 
 /**
- * 하단 오늘 인기(2026-10-15 사용자: 배너 도크 자리를 인기 순위로). 위 띠는 10-15 사용자 지시로 빼고 왼쪽 아래에
- * 늘 한 줄로 떠서 1~5위를 차례로 굴린다(실검 꼴). 누르면 다섯 줄로 펼치고, 한 줄을 누르면 그 카드로 간다.
+ * 하단 인기 브랜드(2026-10-15 사용자: 배너 도크 자리를 인기 순위로). 한 덩어리다. 접혀 있을 때는 한 줄만 보이며
+ * 1~5위를 차례로 굴리고(실검 꼴), 누르면 위로 다섯 줄 높이로 펼쳐지며 보이던 브랜드가 제 순위 자리로 미끄러진다.
+ * 펼친 뒤 한 줄을 누르면 그 카드로 가고, 바깥을 누르면 접힌다.
  * 근거: 10-14 17:25 이후 띠는 본 방문자 약 10%가 눌렀고 배너는 약 2%(PostHog, 백로그 "배너를 리스트 안으로").
  */
 export default function PopularDock({ brands, onPick }) {
   const top = popularToday(brands)
   const [i, setI] = useState(0)
   const [open, setOpen] = useState(false)
+  const ref = useRef(null)
 
   const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
   useEffect(() => {
@@ -38,39 +40,42 @@ export default function PopularDock({ brands, onPick }) {
     return () => clearInterval(t)
   }, [open, reduce, top.length])
 
+  useEffect(() => {
+    if (!open) return undefined
+    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
+    document.addEventListener('pointerdown', close)
+    return () => document.removeEventListener('pointerdown', close)
+  }, [open])
+
   if (top.length < STRIP_MIN) return null
-  const cur = top[i % top.length]
-  const pick = (row, where) => {
+  const cur = i % top.length
+  const toggle = () => { setOpen(true); track('quick_filter', { key: 'popular_dock_toggle', on: true }) }
+  const pick = (row) => {
     setOpen(false)
     onPick(row.brand.name)
-    track('quick_filter', { key: 'popular_dock', brand: row.brand.name, position: row.rank, change: row.change, where })
+    track('quick_filter', { key: 'popular_dock', brand: row.brand.name, position: row.rank, change: row.change, where: 'list' })
   }
   return (
-    <aside className={`pop-dock pop-dock--shown${open ? ' pop-dock--open' : ''}`} aria-label="오늘 인기">
-      {open && (
-        <ol className="pop-dock__list">
-          {top.map((row) => (
-            <li key={row.brand.name}>
-              <button type="button" className="pop-dock__row" onClick={() => pick(row, 'list')}>
+    <aside ref={ref} className={`pop-dock${open ? ' pop-dock--open' : ''}`} style={{ '--rows': open ? top.length : 1 }} aria-label="인기 브랜드">
+      <span className="pop-dock__label" aria-hidden="true">인기 브랜드</span>
+      <ol className="pop-dock__list">
+        {top.map((row, n) => {
+          const on = open || n === cur
+          return (
+            <li key={row.brand.name} className={`pop-dock__item${on ? ' is-on' : ''}`} style={{ '--slot': open ? n : 0 }} aria-hidden={!on}>
+              <button
+                type="button"
+                className="pop-dock__row"
+                tabIndex={on ? 0 : -1}
+                aria-label={open ? `${row.rank}위 ${row.brand.name}` : '인기 브랜드 펼치기'}
+                onClick={() => (open ? pick(row) : toggle())}
+              >
                 <Cells row={row} />
               </button>
             </li>
-          ))}
-        </ol>
-      )}
-      <button
-        type="button"
-        className="pop-dock__bar"
-        aria-expanded={open}
-        aria-label={`오늘 인기 순위 ${open ? '접기' : '펼치기'}`}
-        onClick={() => { setOpen((o) => !o); track('quick_filter', { key: 'popular_dock_toggle', on: !open }) }}
-      >
-        <span className="pop-dock__label">인기 브랜드</span>
-        <span className="pop-dock__tick" key={cur.brand.name} aria-hidden="true">
-          <Cells row={cur} />
-        </span>
-        <span className="pop-dock__caret" aria-hidden="true">{open ? '▾' : '▴'}</span>
-      </button>
+          )
+        })}
+      </ol>
     </aside>
   )
 }
