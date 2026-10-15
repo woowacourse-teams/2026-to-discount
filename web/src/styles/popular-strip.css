@@ -57,3 +57,7 @@
 
 /* 목록 안 한정 오퍼(배너 캐러셀, 2026-10-15). 카드 격자 한 줄을 다 쓴다 */
 .inline-banners { grid-column: 1 / -1; }
+
+/* 새벽 안내(survey-dock.css .night-notice)도 왼쪽 아래라 접힌 인기 브랜드 위로 올린다. 펼친 동안은 순위를 가리지 않게 숨긴다(2026-10-16 사용자) */
+html:has(.pop-dock) .night-notice { bottom: calc(12px + env(safe-area-inset-bottom, 0px) + 50px + 18px); }
+html:has(.pop-dock--open) .night-notice { visibility: hidden; }
