@@ -190,7 +190,7 @@ function Carousel({ brand, best, position, idx, setIdx }) {
     let touched = false
     const mark = () => { touched = true }
     const keep = () => { if (!touched && root.scrollLeft !== 0) root.scrollLeft = 0 }
-    const marks = ['pointerdown', 'touchstart', 'wheel', 'focusin', 'keydown']
+    const marks = ['pointerdown', 'pointermove', 'touchstart', 'touchmove', 'wheel', 'focusin', 'keydown']   // 끄는 도중도 사람이다
     marks.forEach((t) => root.addEventListener(t, mark, { passive: true }))
     root.addEventListener('scroll', keep, { passive: true })
     keep()                                            // 효과가 붙기 전에 이미 붙어 버린 경우

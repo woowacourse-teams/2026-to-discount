@@ -81,7 +81,7 @@
 /* iOS 사파리(2026-10-15 ios-shot 재현): 그림자 filter가 걸린 조상 안의 가로 스크롤은 처음 그린 층을 다시 안 그렸다.
    쿠폰 흰 바탕(마스크)이 빠지고, 글꼴이 늦게 와도 금액과 "원 할인"이 겹친 채, 장 위치도 어긋났다. 넘김이 든 줄은 그림자를 쿠폰마다 단다 */
 .cc-deal:has(.cc-carousel) { filter: none; }
-.cc-carousel .cc-tkw { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .12)) drop-shadow(0 6px 16px rgba(0, 0, 0, .10)); }
+.cc-carousel .cc-tkw, .cc-deal:has(.cc-carousel) .cc-bundle { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .12)) drop-shadow(0 6px 16px rgba(0, 0, 0, .10)); }
 /* 가운데 정렬 캐러셀: 간격 7px, 트랙 좌우 15px, 쿠폰 = 줄 폭 - 30px. 어느 쿠폰을 가운데 둬도 양쪽 15px, 이웃이 있으면 간격 7px 뒤 끝 8px만 보인다 */
 .cc-carousel { display: flex; gap: 7px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 18px calc(5cqw + 15px) 28px; margin: -18px 0 -28px; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; }
 .cc-carousel::-webkit-scrollbar { display: none; }

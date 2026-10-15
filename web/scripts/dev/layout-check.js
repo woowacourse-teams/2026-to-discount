@@ -2,13 +2,15 @@
 // 사진만으로는 같은 깨짐이 되풀이됐다(넘김이 둘째 장으로 열림, 금액과 "원 할인" 겹침, 표 칩 넘침).
 // 실제 iOS 사파리 안에서 구조를 재서 러너(localhost:8099)로 보내고, 화면 아래에도 적어 사진에 남긴다.
 // ?css=<CSS> 를 주면 앱보다 먼저 스타일을 넣는다. 고칠 후보 여럿을 한 번의 실행에서 주소만 바꿔 견준다.
+// ?sheet=<브랜드> 면 5초에 그 카드의 "자세히" 시트를 열어 표 칩까지 잰다(접힌 화면에는 표가 없다).
 (function () {
   const q = new URLSearchParams(location.search)
   const css = q.get('css')
   if (css) {
     const st = document.createElement('style')
     st.textContent = css
-    (document.head || document.documentElement).appendChild(st)
+    const host = document.head || document.documentElement
+    host.appendChild(st)
   }
   const rectOf = (node) => {
     const r = document.createRange()
@@ -16,7 +18,9 @@
     return r.getBoundingClientRect()
   }
   const cross = (a, b) => a.right > b.left + 1 && b.right > a.left + 1 && a.bottom > b.top + 1 && b.bottom > a.top + 1
-  const brandOf = (el) => el.closest('[data-brand]')?.dataset.brand || '?'
+  // 시트는 카드 밖(포털)에 그려진다. 시트 이름표("<브랜드> 할인 자세히")에서 브랜드를 읽는다
+  const brandOf = (el) => el.closest('[data-brand]')?.dataset.brand
+    || el.closest('.cc-sheet')?.getAttribute('aria-label')?.replace(/ 할인 자세히$/, '') || '?'
 
   function measure() {
     const fails = []
@@ -30,6 +34,7 @@
     }
     const grid = document.querySelector('.brand-grid')
     const gw = grid ? grid.getBoundingClientRect().width : innerWidth
+    if (!document.querySelector('article[data-brand]')) fails.push('카드가 0장이다(데이터나 화면이 안 떴다)')
     // 첫 화면 카드만 본다(content-visibility로 화면 밖 카드는 아직 안 그렸다)
     const cards = [...document.querySelectorAll('article[data-brand]')].filter((a) => a.getBoundingClientRect().top < innerHeight)
     for (const a of cards) {
@@ -59,6 +64,7 @@
       const text = [...amt.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim())
       if (small && text && cross(rectOf(text), small.getBoundingClientRect())) fails.push(`${brandOf(amt)}: 금액 "${text.textContent.trim()}"과 "${small.textContent}"가 겹친다`)
     }
+    if (q.get('sheet') && !document.querySelector('.cc-sheet .cc-t-chips')) fails.push(`${q.get('sheet')}: 상세 시트의 표를 못 열었다(검사 대상 없음)`)
     for (const chips of document.querySelectorAll('.cc-t-chips')) {
       const cell = chips.getBoundingClientRect()
       for (const ch of chips.children) {
@@ -80,6 +86,13 @@
 
   // load 이벤트에 기대지 않는다(2026-10-15 iOS에서 첫 탭만 보고했다). 스크립트 시작 뒤 9초에 잰다.
   // ?nudge=1 이면 6초에 넘김을 한 번 숨겼다 다시 보여(배치와 그림을 새로 하게) 고칠 후보로 견준다.
+  if (q.get('sheet')) {
+    setTimeout(() => {
+      const card = document.querySelector(`article[data-brand="${q.get('sheet')}"]`)
+      const hint = card && card.querySelector('.cc-hint')
+      if (hint) hint.click()
+    }, 5000)
+  }
   if (q.get('nudge')) {
     setTimeout(() => {
       for (const c of document.querySelectorAll('.cc-carousel')) { c.style.display = 'none'; void c.offsetHeight; c.style.display = '' }

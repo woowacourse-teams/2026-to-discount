@@ -14,7 +14,7 @@ on:
     inputs:
       urls: { description: '찍을 주소(공백으로 여럿, local이 아닐 때)', default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
       local: { description: '이 브랜치 web을 러너에서 띄워 검사하고 찍기', default: 'false' }
-      paths: { description: 'local일 때 찍을 경로(공백으로 여럿)', default: '/?home=a&expect=carousel /?home=old' }
+      paths: { description: 'local일 때 찍을 경로(공백으로 여럿)', default: '/?home=a&expect=carousel /?home=a&sheet=KFC /?home=old' }
   pull_request:
     paths: ['web/**', '.github/workflows/ios-shot.yml']
   workflow_run:
@@ -23,6 +23,10 @@ on:
     branches: [main]
 permissions:
   contents: read
+# 같은 브랜치(PR)에 push가 이어지면 앞 실행을 끊는다. macOS 작업이 쌓이지 않게
+concurrency:
+  group: ios-shot-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   shot:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
@@ -30,7 +34,7 @@ jobs:
     timeout-minutes: 30
     env:
       LOCAL: ${{ github.event_name == 'pull_request' || inputs.local == 'true' }}
-      PATHS: ${{ inputs.paths || '/?home=a&expect=carousel /?home=old' }}
+      PATHS: ${{ inputs.paths || '/?home=a&expect=carousel /?home=a&sheet=KFC /?home=old' }}
       URLS: ${{ inputs.urls || 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }}
     steps:
       - uses: actions/checkout@v4
@@ -90,6 +94,7 @@ jobs:
         run: |
           set -o pipefail
           cp -r "$RUNNER_TEMP/reports" shots/ 2>/dev/null || true
+          cp /tmp/preview.log /tmp/report.log shots/ 2>/dev/null || true   # 서버가 안 떴을 때 원인
           python3 web/scripts/dev/layout-report.py summary "$RUNNER_TEMP/reports" shots/index.txt | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
