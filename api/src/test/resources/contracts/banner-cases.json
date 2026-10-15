@@ -541,7 +541,7 @@
      }
     }
    ],
-   "problem": "섞였다"
+   "problem": "옛 칸"
   },
   {
    "name": "superdeal-capped-add",
@@ -778,6 +778,6 @@
  },
  "bannerOps": {
   "note": "banner_ops.py(beggars-ops 정본, tracker 사본)의 머리말 docstring 뒤 본문 sha256. 두 사본이 바이트 단위로 같아야 한다. 정본을 고치면 여기도 고친다",
-  "bodySha256": "3695a8a31cb7adf5730f36387fcf9e3f546467c32927898360470964db35a253"
+  "bodySha256": "8bd7d073e07aebe7f98be7a58a75d9abec23aff8dbc78277985bb0114b631c41"
  }
 }
