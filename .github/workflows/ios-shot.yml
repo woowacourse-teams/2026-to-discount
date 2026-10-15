@@ -1,24 +1,65 @@
-# 실제 iOS 사파리(시뮬레이터)로 운영 웹을 찍는다. 윈도 웹킷은 iOS 배치 버그를 재현하지 못한다(2026-10-13).
-# main 배포(미러) 뒤 자동으로, 또는 Actions에서 주소를 넣어 수동으로 돈다. 결과는 실행의 아티팩트 ios-shots.
+# 실제 iOS 사파리(시뮬레이터)로 웹을 찍는다. 윈도 웹킷은 iOS 배치 버그를 재현하지 못한다(2026-10-13).
+# main 배포(미러) 뒤에는 운영 주소를 찍기만 한다. 결과는 실행의 아티팩트 ios-shots.
 # 프리뷰(Vercel 보호)는 저장소 시크릿 VERCEL_BYPASS(Vercel 보호 우회 값)가 있으면 주소에 우회 쿼리를 붙여 연다(2026-10-14).
 # 없으면 프리뷰는 로그인 화면이 찍힌다. 시크릿 값은 Actions 로그에서 가려지고, index.txt에는 원래 주소만 적는다.
+#
+# 병합 전 검사(2026-10-15): web을 고친 PR, 또는 수동 실행의 local=true면 그 브랜치 web을 러너에서 빌드해
+# http://localhost:5173 으로 띄우고, API는 고정 시험 데이터를 주는 가짜 API(localhost:8099)를 쓴다. 빌드한 index.html 맨 앞에 web/scripts/dev/layout-check.js를
+# 넣어 iOS 사파리 안에서 배치를 재고(넘김 첫 장, 금액 글자 겹침, 표 칩 넘침, 가로 넘침, 무너진 카드 폭) 하나라도
+# 어긋나면 실패로 끝낸다. 사진만 보던 동안 같은 깨짐이 되풀이됐다. paths에 `/?home=a&css=<인코딩한 CSS>`를 여럿 주면
+# 고칠 후보를 한 번에 견준다. 예: gh workflow run ios-shot.yml --ref <브랜치> -f local=true
 name: ios-shot
 on:
   workflow_dispatch:
     inputs:
-      urls: { description: 찍을 주소(공백으로 여럿), default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
+      urls: { description: '찍을 주소(공백으로 여럿, local이 아닐 때)', default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
+      local: { description: '이 브랜치 web을 러너에서 띄워 검사하고 찍기', default: 'false' }
+      paths: { description: 'local일 때 찍을 경로(공백으로 여럿)', default: '/?home=a&expect=carousel /?home=a&sheet=KFC /?home=old' }
+  pull_request:
+    paths: ['web/**', '.github/workflows/ios-shot.yml']
   workflow_run:
     workflows: [Mirror to deploy repos]
     types: [completed]
     branches: [main]
+permissions:
+  contents: read
+# 같은 브랜치(PR)에 push가 이어지면 앞 실행을 끊는다. macOS 작업이 쌓이지 않게
+concurrency:
+  group: ios-shot-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   shot:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: macos-15
     timeout-minutes: 30
     env:
+      LOCAL: ${{ github.event_name == 'pull_request' || inputs.local == 'true' }}
+      PATHS: ${{ inputs.paths || '/?home=a&expect=carousel /?home=a&sheet=KFC /?home=old' }}
       URLS: ${{ inputs.urls || 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }}
     steps:
+      - uses: actions/checkout@v4
+        if: env.LOCAL == 'true'
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        if: env.LOCAL == 'true'
+        with: { node-version: '24', cache: npm, cache-dependency-path: web/package-lock.json }
+      - name: 이 브랜치 web 띄우기(배치 검사 넣음)
+        if: env.LOCAL == 'true'
+        working-directory: web
+        run: |
+          npm ci --no-audit --no-fund
+          node scripts/build-logo-manifest.mjs
+          # API는 러너의 가짜 API(layout-report.py, 고정 시험 데이터). 운영 데이터는 날마다 바뀌어 검사가 헛돌았다
+          VITE_API_BASE_URL=http://localhost:8099 npx vite build
+          cp scripts/dev/layout-check.js dist/
+          sed -i '' 's|<head>|<head><script src="/layout-check.js"></script>|' dist/index.html
+          grep -q layout-check.js dist/index.html
+          nohup npx vite preview --host --port 5173 --strictPort > /tmp/preview.log 2>&1 &   # --host: 127.0.0.1, [::1]로도 연다(출처가 다른 첫 방문)
+          nohup python3 scripts/dev/layout-report.py serve "$RUNNER_TEMP/reports" > /tmp/report.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:5173/ > /dev/null && break; sleep 1; done
+          # 경로는 localhost:5173 뒤에 붙인다. http로 시작하면 그대로 쓴다(127.0.0.1은 저장소와 캐시가 따로인 첫 방문이 된다)
+          URLS=""; for p in $PATHS; do case "$p" in http*) URLS="$URLS $p";; *) URLS="$URLS http://localhost:5173$p";; esac; done
+          echo "URLS=$URLS" >> $GITHUB_ENV
       - name: Vercel 배포 기다리기
         if: github.event_name == 'workflow_run'
         run: sleep 120
@@ -31,7 +72,8 @@ jobs:
           xcrun simctl launch "$UDID" com.apple.mobilesafari || true; sleep 20
       - name: 찍기
         env:
-          BYPASS: ${{ secrets.VERCEL_BYPASS }}
+          # 브랜치 코드를 빌드해 돌리는 작업(local)에는 우회 시크릿을 넘기지 않는다. 빌드 중 남은 프로세스가 읽을 수 있다
+          BYPASS: ${{ env.LOCAL != 'true' && secrets.VERCEL_BYPASS || '' }}
         run: |
           mkdir shots; n=0
           for u in $URLS; do
@@ -44,10 +86,17 @@ jobs:
               fi;;
             esac
             xcrun simctl openurl "$UDID" "$open" || { sleep 30; xcrun simctl openurl "$UDID" "$open"; }
-            sleep 15
+            sleep 20
             xcrun simctl io "$UDID" screenshot "shots/$n.png"
             echo "$n $u" >> shots/index.txt
           done
+      - name: 배치 검사 결과
+        if: env.LOCAL == 'true'
+        run: |
+          set -o pipefail
+          cp -r "$RUNNER_TEMP/reports" shots/ 2>/dev/null || true
+          cp /tmp/preview.log /tmp/report.log shots/ 2>/dev/null || true   # 서버가 안 떴을 때 원인
+          python3 web/scripts/dev/layout-report.py summary "$RUNNER_TEMP/reports" shots/index.txt | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: ios-shots, path: shots }

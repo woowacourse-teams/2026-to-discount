@@ -534,6 +534,10 @@
 .banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
 /* 2026-10-15 사용자: 하단 도크 좌우 폭을 줄여 덜 거슬리게. 안쪽 여백만 더한다 */
 .banner-dock { padding-inline: 20px; }
+/* 고정된 도크 안 배너가 갈아탈 때 오른쪽 밖으로 나가면 iOS가 페이지를 넓게(가로 넘침 80px) 다시 배치했고, 그때
+   넘김 쿠폰의 금액 글자가 낡은 그림으로 겹쳐 남았다(2026-10-16 ios-shot 배치 검사). 가로로 나가는 것만 자른다.
+   닫기 단추(-9px)는 안쪽 여백 20px 안이라 잘리지 않는다. */
+.banner-dock { overflow-x: clip; }
 /* 하단 도크에서는 배너 카드의 바닥선에 맞춘다(도크 패딩만큼 올린다). */
 
 .banner-dock__inner .banner__ctl { bottom: calc(var(--dock-pad-bottom) + 6px); right: calc(var(--dock-pad-x, 1rem) + 6px); }
