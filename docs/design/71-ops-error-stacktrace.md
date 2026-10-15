@@ -1,5 +1,7 @@
 # Design: 운영 오류 목록의 전체 스택트레이스 조회
 
+> 2026-10-15: 실제 서버 및 실행 환경 경로 표기를 외부 설정 이름 또는 용도로 정정했다. 설계 결정은 유지한다.
+
 이슈: [#71](https://github.com/woowacourse-teams/2026-to-discount/issues/71)
 상태: 운영 배포 및 실제 Loki 원문과 운영 /ops 화면의 격리 인수 검증 완료.
 
@@ -144,7 +146,7 @@
 ## 구현 및 로컬 검증 기록
 
 - 2026-10-14: 기존 localhost:4173 데모에 반영. 운영 스냅샷을 사용하며 목록은 자동 갱신하지 않는다. 상세는 SSH 단건 명령으로 운영 서버에서 조회한다.
-- 읽기 토큰은 운영 서버의 `/home/ubuntu/.grafana_logs_read`에 0600으로 저장돼 있으며 Loki 조회 권한을 확인했다. 토큰 값은 로컬로 가져오지 않았다.
+- 읽기 토큰은 운영 서버의 비공개 읽기 토큰 파일에 0600으로 저장돼 있으며 Loki 조회 권한을 확인했다. 토큰 값은 로컬로 가져오지 않았다.
 - Python 전체 테스트 290개 통과. 새 backend 테스트 18개와 SSH 및 스냅샷 테스트 5개 포함.
 - 오류 상세, 묶기, 스키마, 알림 및 외부 가용성 JavaScript 검사 통과. Python 문법, JavaScript 문법, 배포 쉘 문법과 `git diff --check` 통과.
 - 브라우저에서 API 화면, 운영 WARN 이력과 추세 표시 확인. 운영 ERROR 기록은 0건이므로 실제 운영 스택트레이스 표시까지 검증한 것은 아니다. 원인 예외와 프레임 보존은 mock Loki 응답으로 검증했다.
@@ -160,7 +162,7 @@
 ## 운영 배포 기록
 
 - 구현 PR: [beggars-ops #15](https://github.com/nn98/beggars-ops/pull/15), main 병합 커밋 `34189bafad6bbc87113b4d4330f88c63f2c3882f`.
-- [운영 배포 실행](https://github.com/nn98/beggars-ops/actions/runs/38500887209) 성공. 배포 전 코드 및 설정 14개를 `/home/ubuntu/ops-backup-71-20261014T112426`에 백업했다. 토큰 파일은 백업에 포함하지 않았다.
+- [운영 배포 실행](https://github.com/nn98/beggars-ops/actions/runs/38500887209) 성공. 배포 전 코드 및 설정 14개를 비공개 배포 백업 위치에 백업했다. 토큰 파일은 백업에 포함하지 않았다.
 - `ops-errors`, `ops-apply`, `ops-fast-check.timer` active. `nginx -t` 성공. 조회 서비스 health 200 및 알 수 없는 ID의 not_found 응답 확인.
 - 미인증 `/ops/errors/{id}`와 새 모듈 요청은 401. `/api/brands`, `/api/banners`는 200.
 - 서버의 logs:read 파일 권한은 0600이며 Loki query_range는 HTTP 200, success를 반환했다. 운영 API ERROR 결과와 목록은 0건이다.

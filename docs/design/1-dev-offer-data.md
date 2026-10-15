@@ -1,5 +1,7 @@
 # Design: 개발 환경의 실제 오퍼 데이터 적용
 
+> 2026-10-15: 실제 서버 및 실행 환경 경로 표기를 외부 설정 이름 또는 용도로 정정했다. 설계 결정은 유지한다.
+
 - 이슈: https://github.com/woowacourse-teams/2026-to-discount/issues/62
 - 상태: GitHub Actions 수동 실행 방식 승인 및 구현 중
 
@@ -36,7 +38,7 @@
 ## 5. 제약사항
 
 - 개발 API는 DISCOUNT_EXPORT_PATH로 외부 파일을 읽는다.
-- 저장소 설정의 개발 경로는 /var/lib/todiscount-be-dev/export.json이다. 실제 서버 환경과 운영 원장 경로는 구현 전에 확인한다.
+- 저장소 설정의 개발 경로는 `DISCOUNT_EXPORT_PATH`로 지정한 외부 파일이다. 실제 서버 환경과 운영 원장 경로는 구현 전에 확인한다.
 - API의 /api/brands는 가공 응답이므로 원장 export.json으로 그대로 저장하지 않는다.
 - 원장 사본은 공개 저장소와 Actions 공개 산출물에 넣지 않는다.
 - 운영 원장은 읽기만 하고 개발 전용 경로만 갱신한다.
@@ -105,7 +107,7 @@
 ## 11. 미해결 사항
 
 - 수동 실행 방식은 2026-10-12 사용자 승인
-- 운영 원장 /home/ubuntu/delivery-discount-api/data/export.json 및 ubuntu 읽기 권한 확인 완료
+- 운영 원장 위치와 읽기 전용 접근 권한 확인 완료. 실제 값은 비공개 설정에서 관리
 - 운영 원장 읽기 전용 SSH 키와 호스트 키 시크릿 등록
 - 개발 서버 SSH가 현재 시간 초과되므로 갱신 도구 설치 확인 필요
 - 수동 실행 버튼 등록을 위한 main 워크플로 파일 반영 필요
