@@ -111,6 +111,13 @@ test('조건 표: 구간마다 한 줄, 멤버십은 오퍼 값을 이어받아 
   assert.equal(conditionTable(o('baemin', 7000, { membership: 'baeminClub', tiers: [{ amount: 7000, minOrder: 1 }] })).rows[0].chips[0].text, '배민클럽')
 })
 
+test('조건 표: 선착순 구간 메모는 여는 시각과 나머지를 칩 둘로 가른다', () => {
+  const x = o('baemin', 5000, { tiers: [{ amount: 5000, note: '오전 10시 오픈 선착순' }, { amount: 3000, minOrder: 20000 }] })
+  assert.deepEqual(conditionTable(x).rows[0].chips, [{ kind: 'note', text: '오전 10시 오픈' }, { kind: 'note', text: '선착순' }])
+  const y = o('baemin', 5000, { tiers: [{ amount: 5000, note: '사용(발급X) 선착순' }, { amount: 3000 }] })
+  assert.deepEqual(conditionTable(y).rows[0].chips, [{ kind: 'note', text: '사용(발급X) 선착순' }])
+})
+
 test('긴 이름은 별칭에서 가장 짧은 한글 이름으로, 짧으면 그대로', () => {
   const tmp = { name: '토핑몬스터피자TMPPIZZA', searchAliases: ['토핑몬스터피자', '토핑몬스터', '토핑 몬스터 피자', 'tmp pizza'] }
   assert.equal(shortBrandName(tmp), '토핑몬스터')

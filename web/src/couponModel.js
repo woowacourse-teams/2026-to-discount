@@ -76,6 +76,15 @@ const won = (n) => `${n.toLocaleString('ko-KR')}원`
  * 구간이 둘 이상이거나 구간에 채널, 멤버십, 조건, 기한이 붙었을 때만 줄을 낸다(구간 하나가 쿠폰과 같으면 중복).
  * 계산식(최적)은 배지 아래에 이미 있으니 표에 넣지 않는다.
  */
+// 여는 시각이 앞에 붙은 구간 메모("오전 10시 오픈 선착순")는 칩 둘로 가른다. 한 칩이면 좁은 칸에서 넘치거나
+// 줄이 낱말 사이로 끊겼다(2026-10-15 사용자: 따로 붙이든가). 시각 꼴은 배지 읽기(badgesOf)와 같다.
+const OPENS_NOTE = /^((?:오전|오후)\s*\d+시(?:\s*\d+분)?\s*오픈)\s+(.+)$/
+const noteChips = (note) => {
+  if (!note) return []
+  const m = note.match(OPENS_NOTE)
+  return (m ? [m[1], m[2]] : [note]).map((text) => ({ kind: 'note', text }))
+}
+
 export function conditionTable(offer) {
   const tiers = Array.isArray(offer.tiers) ? [...offer.tiers].sort((a, b) => b.amount - a.amount) : []
   // 구간이 자기 멤버십을 말하지 않으면 오퍼 전체의 값을 따른다(운영 OfferDetail과 같다). 필드가 없는 옛 행은 badge 끝말로.
@@ -96,7 +105,7 @@ export function conditionTable(offer) {
       extra: t.percent != null ? `${t.percent}%${t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''}` : sumOf(t),
       chips: [t.channel && { kind: 'channel', text: t.channel },
         mem && { kind: 'membership', text: MEMBERSHIP_LABEL[offer.platform] ?? (offer.badge ?? mem), platform: offer.platform },
-        t.note && { kind: 'note', text: t.note },
+        ...noteChips(t.note),
         t.expiresAt && t.expiresAt !== offer.expiresAt && { kind: 'until', text: `~${t.expiresAt.slice(5).replace('-', '.')}` }].filter(Boolean),
       min: min != null ? `${won(min)}↑` : '최소주문 미확인', // 펼친 상세에서만(사용자 2026-10-05). 대표 줄은 비운다
     }
