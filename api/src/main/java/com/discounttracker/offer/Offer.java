@@ -30,7 +30,8 @@ public record Offer(String platform, Integer amount, String qualifier,
                     // 중복이었다. 웹이 읽어야 해서 이행 기간에 응답에 싣는다.
                     boolean fromBanner,
                     // 선착순 배너에서 세운 오퍼인가. 상시 원장 오퍼와 다른 쿠폰이라 따로 된 칸에
-                    // 선다(2026-09-30). 웹이 오퍼 키를 서버 칸과 같게 만들려고 읽는다.
+                    // 선다(2026-09-30). 웹이 오퍼 키를 서버 칸과 같게 만들려고 읽는다. 선착순을 구간으로
+                    // 붙인 상시 오퍼는 선착순이 대표 금액을 낼 때 true다(푸시 제목 "선착순", 클릭 기록).
                     boolean firstCome,
                     // 이 금액을 액면대로 견줄 수 있나. 원장 qualifier에서 끌어낸다.
                     Certainty certainty,
@@ -242,6 +243,62 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
                 soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew);
+    }
+
+    /**
+     * 같은 앱의 선착순 오퍼를 이 상시 오퍼의 한 구간으로 붙인다(2026-10-15 사용자: 선착순을 상시의
+     * 구간으로 합친다, tracker REFACTOR-BACKLOG 15). 전에는 금액 큰 쪽 하나만 서서, 소진을 못 본
+     * 사이에는 끝난 선착순이 상시를 가렸고 선착순이 서면 상시가 카드에서 사라졌다.
+     *
+     * <p>선착순 구간에는 소진 여부와 선착순 오퍼의 조건 문구("오전 10시 오픈 선착순")를 그대로 단다.
+     * 오퍼 전체의 조건은 상시 것이다 - 선착순 조건을 오퍼에 두면 모든 구간에 걸린 것처럼 읽힌다
+     * ({@link DiscountTier} note). 대표 금액과 그 금액의 최소주문, 배지, 링크는 받을 수 있는 큰 쪽이
+     * 낸다(한쪽이 품절이면 다른 쪽). 오퍼는 두 쪽 다 품절일 때만 품절이다. 멤버십은 받을 수 있는 구간
+     * 중 덜 제한적인 값이다(ADR-029). 붙일 수 없으면(선착순이 이미 사다리, 상시가 겹쳐 쓰는 사다리, 금액 모름) null.
+     */
+    public Offer withFirstComeTier(Offer first) {
+        if (first.tiers != null || amount == null || first.amount == null) return null;
+        if (CUMULATIVE_TIER_MODE.equals(tierMode)) return null;   // 택일 쿠폰을 겹쳐 쓰는 사다리에 못 끼운다
+        List<DiscountTier> ladder = new java.util.ArrayList<>();
+        String until = java.util.Objects.equals(first.expiresAt, expiresAt) ? null : first.expiresAt;
+        // 멤버십은 구간마다 단다. 웹은 구간에 멤버십이 없으면 오퍼 것을 물려 그린다 - 상시가 배민클럽
+        // 전용이면 선착순 구간까지 배민클럽으로 읽혔다(2026-10-15 두찜 배민 비교). 오퍼 값은 덜 제한적인
+        // 쪽이다(ADR-029, Membership#restriction).
+        ladder.add(new DiscountTier(first.minOrderAmount, first.amount, null, null, null,
+                first.soldOut ? Boolean.TRUE : null, until, first.firstComeNote(), tierKey(first.membership)));
+        String own = tierKey(membership);
+        if (tiers != null) {
+            for (DiscountTier t : tiers) {
+                ladder.add(t.membership() != null || own == null ? t : new DiscountTier(t.minOrder(), t.amount(),
+                        t.percent(), t.cap(), t.channel(), t.soldOut(), t.expiresAt(), t.note(), own));
+            }
+        } else {
+            ladder.add(new DiscountTier(minOrderAmount, amount, null, null, null, soldOut ? Boolean.TRUE : null,
+                    null, null, own));
+        }
+        // 상시가 품절이면 살아 있는 선착순이 금액이 작아도 대표다. 둘 다 살아 있으면 큰 쪽(같으면 상시).
+        boolean firstLeads = !first.soldOut && (soldOut || first.amount > amount);
+        Offer lead = firstLeads ? first : this;
+        // 오퍼 멤버십은 받을 수 있는 구간끼리만 견준다. 소진된 선착순의 "모름"이 배민클럽 전용 상시를
+        // "누구나"로 바꿔 멤버십 필터와 배지를 빠뜨렸다(2026-10-15 리뷰, 두찜 배민).
+        Membership merged = first.soldOut ? membership : soldOut ? first.membership
+                : first.membership.restriction() < membership.restriction() ? first.membership : membership;
+        return new Offer(platform, lead.amount, qualifier, status, lead.rawText, screenshotPath, capturedAt,
+                lead.minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, lead.badge,
+                soldOut && first.soldOut, lead.link, merged, fromBanner, firstLeads, certainty, kind,
+                earlier(firstSeenAt, first.firstSeenAt), isNew);
+    }
+
+    /** 구간에 적을 멤버십 키. 모르면 null(구간 칸이 비면 "모름"이다). */
+    private static String tierKey(Membership m) {
+        return m == null || m == Membership.UNKNOWN ? null : m.key();
+    }
+
+    /** 선착순 구간에 붙일 말. 조건 문구가 여는 시각(배지)을 안 담으면 앞에 붙인다. 지금 화면에 나가는 두 문구다. */
+    private String firstComeNote() {
+        if (conditions == null) return badge;
+        if (badge == null || conditions.contains(badge)) return conditions;
+        return badge + " " + conditions;
     }
 
     /** 이력이 판정한 신규 여부를 단다. null = 모름. */
