@@ -15,7 +15,7 @@
 .rank-change--down { color: #4c6ef5; }
 .rank-change--same { color: var(--text-muted); }
 
-/* 하단 오늘 인기(PopularDock.jsx, 2026-10-15). 위 띠가 화면 밖일 때 오른쪽 아래에 한 줄로 떠 1~5위를 굴린다 */
+/* 하단 오늘 인기(PopularDock.jsx, 2026-10-15). 위 띠 대신 왼쪽 아래에 늘 한 줄로 떠 1~5위를 굴린다 */
 .pop-dock {
   position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 14; /* 오른쪽 아래는 맨 위로 버튼 자리 */
   width: min(260px, calc(100% - 88px));
@@ -42,7 +42,7 @@
 .pop-dock__list { margin: 0 0 6px; padding: 4px; list-style: none; }
 .pop-dock__row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: .84rem; color: var(--text); cursor: pointer; text-align: left; }
 .pop-dock__row:active { background: color-mix(in srgb, var(--sale) 8%, var(--surface)); }
-.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img { width: 20px; height: 20px; min-width: 20px; border-radius: 6px; }
+.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img, .pop-dock__tick .brand-logo, .pop-dock__tick .brand-logo img { width: 20px; height: 20px; min-width: 20px; border-radius: 6px; }
 @media (prefers-reduced-motion: reduce) { .pop-dock, .pop-dock__tick { transition: none; animation: none; } }
 
 /* 목록 안 한정 오퍼(배너 캐러셀, 2026-10-15). 카드 격자 한 줄을 다 쓴다 */
