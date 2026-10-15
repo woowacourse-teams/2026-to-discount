@@ -18,7 +18,7 @@
 /* 하단 오늘 인기(PopularDock.jsx, 2026-10-15). 위 띠 대신 왼쪽 아래에 늘 한 줄로 떠 1~5위를 굴린다 */
 .pop-dock {
   position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 14; /* 오른쪽 아래는 맨 위로 버튼 자리 */
-  width: min(260px, calc(100% - 88px));
+  width: min(300px, calc(100% - 80px));
   opacity: 0; visibility: hidden; transform: translateY(8px);
   transition: opacity .2s ease, transform .2s cubic-bezier(.16, 1, .3, 1), visibility .2s;
 }
@@ -28,8 +28,8 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
 }
 .pop-dock__bar {
-  display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px;
-  font: inherit; font-size: .82rem; color: var(--text); cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px;
+  font: inherit; font-size: .95rem; color: var(--text); cursor: pointer; text-align: left;
 }
 .pop-dock__bar:active { transform: scale(.98); }
 .pop-dock__bar:focus-visible, .pop-dock__row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -40,9 +40,9 @@
 .pop-dock__caret { flex: none; color: var(--text-muted); font-size: .7rem; }
 @keyframes pop-dock-roll { from { opacity: 0; transform: translateY(70%); } to { opacity: 1; transform: none; } }
 .pop-dock__list { margin: 0 0 6px; padding: 4px; list-style: none; }
-.pop-dock__row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: .84rem; color: var(--text); cursor: pointer; text-align: left; }
+.pop-dock__row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: .95rem; color: var(--text); cursor: pointer; text-align: left; }
 .pop-dock__row:active { background: color-mix(in srgb, var(--sale) 8%, var(--surface)); }
-.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img, .pop-dock__tick .brand-logo, .pop-dock__tick .brand-logo img { width: 20px; height: 20px; min-width: 20px; border-radius: 6px; }
+.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img, .pop-dock__tick .brand-logo, .pop-dock__tick .brand-logo img { width: 26px; height: 26px; min-width: 26px; border-radius: 6px; }
 @media (prefers-reduced-motion: reduce) { .pop-dock, .pop-dock__tick { transition: none; animation: none; } }
 
 /* 목록 안 한정 오퍼(배너 캐러셀, 2026-10-15). 카드 격자 한 줄을 다 쓴다 */
