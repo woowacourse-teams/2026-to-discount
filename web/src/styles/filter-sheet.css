@@ -142,6 +142,7 @@
    같은 줄에 나란히 두면 어느 것이 정렬인지 안 읽힌다(2026-09-24 사용자). */
 .quick-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
@@ -149,6 +150,18 @@
      작아서 카드 선에 맞추면 그 위가 휑하다(2026-09-24 사용자). */
   margin: 0;
   padding: 12px 0 0; /* 메뉴 바와 정렬 칩, 정렬 칩과 첫 카드 간격을 같게(12px, 2026-10-05 사용자) */
+}
+.quick-bar__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+/* 390px에서 숨긴 목록이 화면 밖으로 밀렸다. 모바일은 정렬과 나머지 조작을 두 줄로 나눈다(#81). */
+@media (max-width: 600px) {
+  .quick-bar__actions { flex-basis: 100%; margin-left: 0; justify-content: space-between; }
+  .quick-bar__actions .quick-bar__switch { margin-left: 0; }
 }
 /* 정렬 둘은 "하나 고르기"다. 홈 하나에 넣어 그 뜻을 형태로 보여 준다(B안). */
 .quick-bar__sorts {
