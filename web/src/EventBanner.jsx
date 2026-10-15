@@ -482,9 +482,9 @@ export default function EventBanner({ banners, dockOnly = false, inline = false 
   // 떠 있는 조건이 이미 여기 상태로 있으니 그 조건으로 직접 센다 — 하단
   // 배너는 화면에 고정이라 떠 있으면 곧 보이는 것이다.
   useEffect(() => {
-    if (topVisible || dismissed || !current) return
+    if (inline || topVisible || dismissed || !current) return // 목록 안 배너에는 하단 도크가 없다
     markSeen(current, 'bottom')
-  }, [topVisible, dismissed, current])
+  }, [inline, topVisible, dismissed, current])
 
   // 상단 배너가 화면에서 벗어나면 하단으로 넘긴다. 스크롤 픽셀값이 아니라
   // 관찰로 하는 이유는 배너 높이가 내용(extra 유무, 금액 길이, 화면 폭)에
@@ -515,7 +515,7 @@ export default function EventBanner({ banners, dockOnly = false, inline = false 
   useEffect(() => {
     const root = document.documentElement
     const set = (h) => root.style.setProperty('--banner-dock-h', `${h}px`)
-    const shown = !topVisible && !dismissed
+    const shown = !inline && !topVisible && !dismissed
     root.classList.toggle('has-bottom-banner', shown)
 
     const el = dockRef.current
@@ -526,7 +526,7 @@ export default function EventBanner({ banners, dockOnly = false, inline = false 
     const ro = new ResizeObserver(([entry]) => set(entry.contentRect.height))
     ro.observe(el)
     return () => { ro.disconnect(); root.classList.remove('has-bottom-banner') }
-  }, [topVisible, dismissed])
+  }, [inline, topVisible, dismissed])
 
   if (count === 0) return null
 
