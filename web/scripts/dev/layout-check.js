@@ -21,7 +21,13 @@
   function measure() {
     const fails = []
     const over = document.documentElement.scrollWidth - innerWidth
-    if (over > 1) fails.push(`page: 가로 넘침 ${over}px`)
+    if (over > 1) {
+      // 넘치는 요소 중 조상이 안 넘치는 것(가장 바깥)만 짚는다
+      const wide = [...document.body.querySelectorAll('*')].filter((e) => e.getBoundingClientRect().right > innerWidth + 1
+        && !(e.parentElement && e.parentElement.getBoundingClientRect().right > innerWidth + 1))
+      const name = (e) => e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).join('.') : '')
+      fails.push(`page: 가로 넘침 ${over}px (${wide.slice(0, 4).map((e) => `${name(e)} 오른쪽 ${Math.round(e.getBoundingClientRect().right)}`).join(', ')})`)
+    }
     const grid = document.querySelector('.brand-grid')
     const gw = grid ? grid.getBoundingClientRect().width : innerWidth
     // 첫 화면 카드만 본다(content-visibility로 화면 밖 카드는 아직 안 그렸다)
@@ -35,7 +41,13 @@
       if (c.getBoundingClientRect().top > innerHeight) continue
       const dots = [...c.parentElement.querySelectorAll('.cc-dots i')]
       const dot = dots.findIndex((i) => i.classList.contains('on'))
-      carousels.push({ brand: brandOf(c), scrollLeft: Math.round(c.scrollLeft), width: Math.round(c.clientWidth), dot })
+      // 화면 가운데에서 실제로 눌리는 장(배치 기준). 그림이 다른 장을 보여 주면 사진과 이 값이 어긋난다
+      const cr = c.getBoundingClientRect()
+      const hit = document.elementFromPoint(cr.left + cr.width / 2, cr.top + cr.height / 2)
+      const slides = [...c.children]
+      const hitIdx = slides.findIndex((sl) => sl.contains(hit))
+      carousels.push({ brand: brandOf(c), scrollLeft: Math.round(c.scrollLeft), width: Math.round(c.clientWidth), dot, hitIdx,
+        slideLeft: slides.map((sl) => Math.round(sl.getBoundingClientRect().left - cr.left)) })
       if (c.scrollLeft > 2 || dot > 0) fails.push(`${brandOf(c)}: 넘김이 첫 장이 아니다(scrollLeft ${Math.round(c.scrollLeft)}, 점 ${dot + 1})`)
     }
     for (const amt of document.querySelectorAll('.cc-amt')) {
@@ -51,7 +63,8 @@
         if (r.right > cell.right + 1) fails.push(`${brandOf(chips)}: 표 칩 "${ch.textContent}"이 칸을 ${Math.round(r.right - cell.right)}px 넘는다`)
       }
     }
-    return { url: location.href, w: innerWidth, ua: navigator.userAgent, carousels, fails }
+    const vv = window.visualViewport
+    return { url: location.href, w: innerWidth, vv: vv ? { x: Math.round(vv.offsetLeft), scale: vv.scale } : null, ua: navigator.userAgent, carousels, fails }
   }
 
   function report(res) {
@@ -62,8 +75,16 @@
     fetch('http://localhost:8099/report', { method: 'POST', body: JSON.stringify(res) }).catch(() => {})
   }
 
-  addEventListener('load', () => {
-    const fonts = document.fonts ? document.fonts.ready : Promise.resolve()
-    fonts.then(() => setTimeout(() => report(measure()), 3000))
-  })
+  // load 이벤트에 기대지 않는다(2026-10-15 iOS에서 첫 탭만 보고했다). 스크립트 시작 뒤 9초에 잰다.
+  // ?nudge=1 이면 6초에 넘김을 한 번 숨겼다 다시 보여(배치와 그림을 새로 하게) 고칠 후보로 견준다.
+  if (q.get('nudge')) {
+    setTimeout(() => {
+      for (const c of document.querySelectorAll('.cc-carousel')) { c.style.display = 'none'; void c.offsetHeight; c.style.display = '' }
+    }, 6000)
+  }
+  setTimeout(() => {
+    let res
+    try { res = measure() } catch (e) { res = { url: location.href, fails: ['검사 오류: ' + e.message] } }
+    report(res)
+  }, 9000)
 })()
