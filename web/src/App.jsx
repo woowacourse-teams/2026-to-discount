@@ -8,7 +8,6 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
 import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
-import PopularStrip from './PopularStrip.jsx'
 import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
@@ -694,14 +693,6 @@ export default function App({ initial = null }) {
         )}
         </div>
         </div>
-      )}
-
-      {/* 오늘 인기 띠(2026-10-14 시안). 누르면 그 카드로 간다(링크로 들어온 브랜드와 같은 길) */}
-      {visibleBrands && (
-        <PopularStrip
-          brands={visibleBrands}
-          onPick={(name) => { setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name))) }}
-        />
       )}
 
       {/* 신규를 고르면 정렬 줄 아래 한 줄 안내(2026-10-05 사용자 문구) */}
