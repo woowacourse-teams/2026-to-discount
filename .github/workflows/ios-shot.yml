@@ -2,11 +2,14 @@
 # main 배포(미러) 뒤 자동으로, 또는 Actions에서 주소를 넣어 수동으로 돈다. 결과는 실행의 아티팩트 ios-shots.
 # 프리뷰(Vercel 보호)는 저장소 시크릿 VERCEL_BYPASS(Vercel 보호 우회 값)가 있으면 주소에 우회 쿼리를 붙여 연다(2026-10-14).
 # 없으면 프리뷰는 로그인 화면이 찍힌다. 시크릿 값은 Actions 로그에서 가려지고, index.txt에는 원래 주소만 적는다.
+# local=true면 실행한 브랜치의 web을 러너에서 빌드해 http://localhost:5173 으로 띄워 찍는다(2026-10-15). 프리뷰 보호와
+# 상관없이 병합 전에 iOS를 볼 수 있다. 운영 API가 이 출처를 허용한다. 예: gh workflow run ios-shot.yml --ref <브랜치> -f local=true
 name: ios-shot
 on:
   workflow_dispatch:
     inputs:
       urls: { description: 찍을 주소(공백으로 여럿), default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
+      local: { description: 이 브랜치 web을 러너에서 띄워 찍기(true면 urls의 운영 주소 대신 localhost:5173), default: 'false' }
   workflow_run:
     workflows: [Mirror to deploy repos]
     types: [completed]
@@ -17,8 +20,23 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 30
     env:
-      URLS: ${{ inputs.urls || 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }}
+      URLS: ${{ inputs.local == 'true' && 'http://localhost:5173/?home=a http://localhost:5173/?home=old' || inputs.urls || 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }}
     steps:
+      - uses: actions/checkout@v4
+        if: inputs.local == 'true'
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@v4
+        if: inputs.local == 'true'
+        with: { node-version: '24', cache: npm, cache-dependency-path: web/package-lock.json }
+      - name: 이 브랜치 web 띄우기
+        if: inputs.local == 'true'
+        working-directory: web
+        run: |
+          npm ci --no-audit --no-fund
+          node scripts/build-logo-manifest.mjs
+          npx vite build
+          nohup npx vite preview --port 5173 --strictPort > /tmp/preview.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:5173/ > /dev/null && break; sleep 1; done
       - name: Vercel 배포 기다리기
         if: github.event_name == 'workflow_run'
         run: sleep 120
