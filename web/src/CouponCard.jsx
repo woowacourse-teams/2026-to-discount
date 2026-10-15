@@ -194,7 +194,13 @@ function Carousel({ brand, best, position, idx, setIdx }) {
     marks.forEach((t) => root.addEventListener(t, mark, { passive: true }))
     root.addEventListener('scroll', keep, { passive: true })
     keep()                                            // 효과가 붙기 전에 이미 붙어 버린 경우
-    document.fonts?.ready.then(keep)                  // 글꼴이 들어와 다시 배치된 뒤
+    // 글꼴이 들어와 다시 배치된 뒤: 되돌리고, 넘김 층을 한 번 다시 그리게 한다. iOS는 이 층을 글꼴 전 그림으로 남겨
+    // 금액과 "원 할인"이 겹쳐 보였다(2026-10-16 ios-shot에서 이 후보만 늘 바로 그렸다).
+    document.fonts?.ready.then(() => {
+      keep()
+      root.style.transform = 'translateZ(0)'
+      requestAnimationFrame(() => { root.style.transform = '' })
+    })
     return () => {
       marks.forEach((t) => root.removeEventListener(t, mark))
       root.removeEventListener('scroll', keep)
