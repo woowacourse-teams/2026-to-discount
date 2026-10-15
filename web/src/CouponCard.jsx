@@ -178,6 +178,24 @@ function Carousel({ brand, best, position, idx, setIdx }) {
     track('coupon_carousel_swipe', { brand: brand.name, from: shownIdx.current, to: idx, count: best.length, platform: best[idx]?.platform ?? 'none' })
     shownIdx.current = idx
   }, [idx])
+  // iOS 사파리는 첫 배치 중에 넘김을 스스로 둘째 장에 붙였다(2026-10-15 ios-shot 배치 검사: scrollLeft 360, 점 2).
+  // 사람이 손대기 전(터치, 마우스, 휠, 키보드 포커스)에 일어난 스크롤은 첫 장으로 되돌린다. 폭은 재지 않는다.
+  useEffect(() => {
+    const root = ref.current
+    if (!root) return undefined
+    let touched = false
+    const mark = () => { touched = true }
+    const keep = () => { if (!touched && root.scrollLeft !== 0) root.scrollLeft = 0 }
+    const marks = ['pointerdown', 'touchstart', 'wheel', 'focusin', 'keydown']
+    marks.forEach((t) => root.addEventListener(t, mark, { passive: true }))
+    root.addEventListener('scroll', keep, { passive: true })
+    keep()                                            // 효과가 붙기 전에 이미 붙어 버린 경우
+    document.fonts?.ready.then(keep)                  // 글꼴이 들어와 다시 배치된 뒤
+    return () => {
+      marks.forEach((t) => root.removeEventListener(t, mark))
+      root.removeEventListener('scroll', keep)
+    }
+  }, [])
   useEffect(() => {
     const root = ref.current
     if (!root || typeof IntersectionObserver === 'undefined') return undefined
