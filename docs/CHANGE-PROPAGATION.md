@@ -101,7 +101,7 @@
 - **묶인 이유**: 같은 칸 이름이 다섯 저장소 위치에 적혀 있다.
 - **끊기면**: 배너가 조용히 사라지거나(`toBanner`가 null), 표식이 안 붙거나, 발행이 거부된다. 셋 다 화면을 봐야 안다.
 - **실제 사고**: 수집기가 `firstCome`을 안 쓰는데 웹이 그 칸만 읽게 바뀌어 선착순 표식이 사라질 뻔했다(2026-09-24). 따옴표 없는 `startsAt`을 snakeyaml이 `Date`로 만들어 배너가 통째로 버려졌다(2026-09-24).
-- **막는 것**: `BannerCatalogTest`의 옛 모양과 새 모양 대조 테스트, ops의 검사 넷.
+- **막는 것**: `BannerCatalogTest`(옛 모양은 사유와 함께 dropped), ops의 검사 넷. 콘솔 `check_amount_field`는 문자열 amount를 거절한다. 콘솔이 API보다 느슨하면 승인한 배너가 dropped로 빠지고 알림이 멈춘다(2026-10-15).
 
 ## 3. 묶음 배너 (group)
 
@@ -124,10 +124,9 @@
 | --- | --- |
 | 배민 | `banner_routine.brand_min_orders()` (export.json) + `previous_for` |
 | 쿠팡이츠 | `banner_routine.ce_min_order()` (export.json, 지난 배너, 쿠폰함 원장) |
-| 문장에서 되짚기 | `api/.../banner/Banner.java#effectiveMinOrder` |
 | 열린 뒤 대조 | `banner_routine.verify_opened_min_orders()` |
 
-- **묶인 이유**: 같은 숫자를 네 곳이 서로 다른 근거로 안다.
+- **묶인 이유**: 같은 숫자를 세 곳이 서로 다른 근거로 안다.
 - **원칙**: 지어내지 않는다. 모르면 비우고 화면이 "최소주문 미확인"으로 뜬다.
 - **끊기면**: 틀린 문턱이 화면에 뜬다. 없는 것보다 나쁘다.
 
