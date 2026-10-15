@@ -10,8 +10,10 @@
   if (css) {
     const st = document.createElement('style')
     st.textContent = css
-    const host = document.head || document.documentElement
-    host.appendChild(st)
+    // 문서보다 먼저 돌면(엣지 CDP 주입) 붙일 자리가 아직 없다. 그때는 문서가 생긴 뒤 붙인다
+    const add = () => (document.head || document.documentElement).appendChild(st)
+    if (document.head || document.documentElement) add()
+    else document.addEventListener('readystatechange', add, { once: true })
   }
   const rectOf = (node) => {
     const r = document.createRange()
@@ -58,6 +60,9 @@
       carousels.push({ brand: brandOf(c), scrollLeft: Math.round(c.scrollLeft), width: Math.round(c.clientWidth), dot, hitIdx,
         slideLeft: slides.map((sl) => Math.round(sl.getBoundingClientRect().left - cr.left)) })
       // 가운데에서 다른 장이 눌리면(hitIdx > 0) 그것도 실패. -1(가운데가 화면 밖이거나 다른 것이 덮음)은 판정하지 않는다
+      // 장 폭이 무너지면(iOS가 컨테이너 폭을 0으로 읽음) 장들이 한 자리에 겹친다(2026-10-16 장 위치 [0, 0])
+      const narrow = slides.filter((sl) => sl.getBoundingClientRect().width < cr.width * 0.5).length
+      if (narrow) fails.push(`${brandOf(c)}: 넘김 장 ${narrow}개의 폭이 무너졌다(넘김 폭 ${Math.round(cr.width)}px)`)
       if (c.scrollLeft > 2 || dot > 0 || hitIdx > 0) fails.push(`${brandOf(c)}: 넘김이 첫 장이 아니다(scrollLeft ${Math.round(c.scrollLeft)}, 점 ${dot + 1}, 가운데 장 ${hitIdx + 1})`)
     }
     // ?expect=carousel: 시험 데이터는 넘김 카드가 맨 위다. 없으면 검사가 헛돈 것이라 실패로 친다
