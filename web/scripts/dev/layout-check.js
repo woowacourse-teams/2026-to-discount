@@ -50,6 +50,8 @@
         slideLeft: slides.map((sl) => Math.round(sl.getBoundingClientRect().left - cr.left)) })
       if (c.scrollLeft > 2 || dot > 0) fails.push(`${brandOf(c)}: 넘김이 첫 장이 아니다(scrollLeft ${Math.round(c.scrollLeft)}, 점 ${dot + 1})`)
     }
+    // ?expect=carousel: 시험 데이터는 넘김 카드가 맨 위다. 없으면 검사가 헛돈 것이라 실패로 친다
+    if (q.get('expect') === 'carousel' && carousels.length === 0) fails.push('첫 화면에 넘김 카드가 없다(검사 대상 없음)')
     for (const amt of document.querySelectorAll('.cc-amt')) {
       if (amt.getBoundingClientRect().top > innerHeight) continue
       const small = amt.querySelector('small')

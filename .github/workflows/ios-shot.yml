@@ -4,7 +4,7 @@
 # 없으면 프리뷰는 로그인 화면이 찍힌다. 시크릿 값은 Actions 로그에서 가려지고, index.txt에는 원래 주소만 적는다.
 #
 # 병합 전 검사(2026-10-15): web을 고친 PR, 또는 수동 실행의 local=true면 그 브랜치 web을 러너에서 빌드해
-# http://localhost:5173(운영 API가 허용하는 출처)으로 띄운다. 빌드한 index.html 맨 앞에 web/scripts/dev/layout-check.js를
+# http://localhost:5173 으로 띄우고, API는 고정 시험 데이터를 주는 가짜 API(localhost:8099)를 쓴다. 빌드한 index.html 맨 앞에 web/scripts/dev/layout-check.js를
 # 넣어 iOS 사파리 안에서 배치를 재고(넘김 첫 장, 금액 글자 겹침, 표 칩 넘침, 가로 넘침, 무너진 카드 폭) 하나라도
 # 어긋나면 실패로 끝낸다. 사진만 보던 동안 같은 깨짐이 되풀이됐다. paths에 `/?home=a&css=<인코딩한 CSS>`를 여럿 주면
 # 고칠 후보를 한 번에 견준다. 예: gh workflow run ios-shot.yml --ref <브랜치> -f local=true
@@ -14,7 +14,7 @@ on:
     inputs:
       urls: { description: 찍을 주소(공백으로 여럿, local이 아닐 때), default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
       local: { description: 이 브랜치 web을 러너에서 띄워 검사하고 찍기, default: 'false' }
-      paths: { description: local일 때 찍을 경로(공백으로 여럿), default: '/?home=a /?home=old' }
+      paths: { description: local일 때 찍을 경로(공백으로 여럿), default: '/?home=a&expect=carousel /?home=old' }
   pull_request:
     paths: ['web/**', '.github/workflows/ios-shot.yml']
   workflow_run:
@@ -28,7 +28,7 @@ jobs:
     timeout-minutes: 30
     env:
       LOCAL: ${{ github.event_name == 'pull_request' || inputs.local == 'true' }}
-      PATHS: ${{ inputs.paths || '/?home=a /?home=old' }}
+      PATHS: ${{ inputs.paths || '/?home=a&expect=carousel /?home=old' }}
       URLS: ${{ inputs.urls || 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }}
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +43,8 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           node scripts/build-logo-manifest.mjs
-          npx vite build
+          # API는 러너의 가짜 API(layout-report.py, 고정 시험 데이터). 운영 데이터는 날마다 바뀌어 검사가 헛돌았다
+          VITE_API_BASE_URL=http://localhost:8099 npx vite build
           cp scripts/dev/layout-check.js dist/
           sed -i '' 's|<head>|<head><script src="/layout-check.js"></script>|' dist/index.html
           grep -q layout-check.js dist/index.html
