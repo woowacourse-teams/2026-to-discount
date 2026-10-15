@@ -54,7 +54,7 @@ jobs:
           cp scripts/dev/layout-check.js dist/
           sed -i '' 's|<head>|<head><script src="/layout-check.js"></script>|' dist/index.html
           grep -q layout-check.js dist/index.html
-          nohup npx vite preview --port 5173 --strictPort > /tmp/preview.log 2>&1 &
+          nohup npx vite preview --host --port 5173 --strictPort > /tmp/preview.log 2>&1 &   # --host: 127.0.0.1, [::1]로도 연다(출처가 다른 첫 방문)
           nohup python3 scripts/dev/layout-report.py serve "$RUNNER_TEMP/reports" > /tmp/report.log 2>&1 &
           for i in $(seq 1 60); do curl -sf http://localhost:5173/ > /dev/null && break; sleep 1; done
           # 경로는 localhost:5173 뒤에 붙인다. http로 시작하면 그대로 쓴다(127.0.0.1은 저장소와 캐시가 따로인 첫 방문이 된다)

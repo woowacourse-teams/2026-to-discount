@@ -224,7 +224,14 @@ export default function App({ initial = null }) {
     try {
       const q = new URLSearchParams(window.location.search)
       const { arm } = currentHomeArm(getAnalyticsContext().visitorId)
-      if (arm === 'coupon') startTransition(() => { setHomeA(true); setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
+      if (arm === 'coupon') {
+        const show = () => startTransition(() => { setHomeA(true); setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
+        // 쿠폰 카드 CSS를 받은 뒤에 바꾼다. 첫 방문(캐시 없음)에는 카드가 CSS보다 먼저 그려져 스타일 없는 카드가 잠깐
+        // 보였고, iOS는 그때의 넘김 그림(장 위치 [0, 0], 금액과 "원 할인" 겹침, 가로 넘침)을 남겼다(2026-10-16 ios-shot).
+        // 서버가 쿠폰 카드로 그렸으면 CSS가 이미 <head>에 있다.
+        if (initial?.arm === 'coupon') show()
+        else import('./styles/coupon-card.css').then(show, show)
+      }
       // 서버가 쿠폰 카드로 그렸는데 배정이 운영 카드면(쿠키가 낡음) 운영 카드로 돌린다.
       else if (initial?.arm === 'coupon') startTransition(() => { setHomeA(false); setHomeCompact(false) })
     } catch { /* 주소를 못 읽으면 운영 카드 */ }
