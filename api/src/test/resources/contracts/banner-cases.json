@@ -115,67 +115,6 @@
    ]
   },
   {
-   "name": "legacy-dates",
-   "why": "옛 모양(startsOn/endsOn, 문장 amount, limit). 끝은 그날 23:59:59로 읽는다(확정 규칙 2절)",
-   "banners": [
-    {
-     "id": "gongcha-20260928",
-     "brand": "공차",
-     "platform": "own",
-     "url": "https://example.test/gongcha",
-     "amount": "최대 20,000원, 50% 적립",
-     "period": "9/28~9/30",
-     "extra": "5,000원↑",
-     "minOrder": 5000,
-     "limit": "cashback",
-     "startsOn": "2026-09-28",
-     "endsOn": "2026-09-30",
-     "priority": 2
-    }
-   ],
-   "activeIds": [
-    "gongcha-20260928"
-   ],
-   "tags": {
-    "gongcha-20260928": "cashback"
-   },
-   "response": [
-    {
-     "id": "gongcha-20260928",
-     "brand": "공차",
-     "platform": "own",
-     "url": "https://example.test/gongcha",
-     "amount": "최대 20,000원, 50% 적립",
-     "period": "9/28~9/30",
-     "extra": "5,000원↑",
-     "minOrder": 5000,
-     "color": null,
-     "startsAt": "2026-09-28T00:00:00",
-     "endsAt": "2026-09-30T23:59:59",
-     "soldOut": false,
-     "soldOutOn": null,
-     "priority": 2,
-     "brands": null,
-     "spec": null,
-     "brandLabels": null,
-     "group": null,
-     "via": null,
-     "amountSpec": {
-      "wonMin": null,
-      "wonMax": null,
-      "percent": null,
-      "random": false,
-      "kind": "cashback",
-      "range": false
-     },
-     "targeted": false,
-     "firstCome": null,
-     "untilSoldOut": null,
-     "members": null
-    }
-   ]
-  },
-  {
    "name": "ce-event-group",
    "why": "수집기가 만드는 쿠팡이츠 행사 제안(브랜드마다 한 장, 같은 group). 구성원 하나만 소진",
    "banners": [
@@ -293,17 +232,18 @@
   },
   {
    "name": "outside-window",
-   "why": "어제 끝난 옛 모양, 내일 시작하는 새 모양. 응답에 없다",
+   "why": "어제 끝난 배너, 내일 시작하는 배너. 응답에 없다",
    "banners": [
     {
      "id": "old-20260928",
      "brand": "BBQ",
      "platform": "baemin",
      "url": "https://example.test/bbq",
-     "amount": "6,000원",
-     "period": "오늘",
-     "startsOn": "2026-09-28",
-     "endsOn": "2026-09-28"
+     "amount": {
+      "won": 6000
+     },
+     "startsAt": "2026-09-28T00:00:00",
+     "endsAt": "2026-09-28T23:59:59"
     },
     {
      "id": "new-20260930",
@@ -532,46 +472,6 @@
    "problem": null
   },
   {
-   "name": "legacy-limit-items-add",
-   "why": "옛 수집기가 내던 모양. 새로 쓰면 거부한다",
-   "file": [],
-   "ops": [
-    {
-     "op": "add",
-     "why": "옛 모양",
-     "auto": false,
-     "banner": {
-      "id": "coupangeats-weekly-20260929",
-      "platform": "coupangeats",
-      "brand": "청년피자",
-      "brands": [
-       "청년피자",
-       "60계치킨"
-      ],
-      "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
-      "amount": "최대 10,000/8,000원",
-      "period": "오늘",
-      "extra": "청년피자 · 60계치킨",
-      "limit": "random",
-      "items": [
-       {
-        "brand": "청년피자",
-        "amount": 10000
-       },
-       {
-        "brand": "60계치킨",
-        "amount": 8000
-       }
-      ],
-      "startsOn": "2026-09-29",
-      "endsOn": "2026-09-29",
-      "priority": 6
-     }
-    }
-   ],
-   "problem": "옛 구조 칸"
-  },
-  {
    "name": "expire-new-shape",
    "why": "새 모양 배너를 내리면 endsAt이 바뀐다(감사 #3)",
    "file": [
@@ -592,28 +492,6 @@
     "startsAt": "2026-09-28T23:59:59",
     "endsAt": "2026-09-28T23:59:59",
     "endsOn": null
-   }
-  },
-  {
-   "name": "expire-legacy-shape",
-   "why": "옛 모양 배너를 내리면 endsOn이 바뀐다",
-   "file": [
-    "cases:legacy-dates:0"
-   ],
-   "ops": [
-    {
-     "op": "expire",
-     "why": "화면에 없다",
-     "auto": false,
-     "id": "gongcha-20260928",
-     "endsOn": "2026-09-28"
-    }
-   ],
-   "problem": null,
-   "after": {
-    "id": "gongcha-20260928",
-    "endsOn": "2026-09-28",
-    "endsAt": null
    }
   },
   {
@@ -900,6 +778,6 @@
  },
  "bannerOps": {
   "note": "banner_ops.py(beggars-ops 정본, tracker 사본)의 머리말 docstring 뒤 본문 sha256. 두 사본이 바이트 단위로 같아야 한다. 정본을 고치면 여기도 고친다",
-  "bodySha256": "6af39d5ccd3ffa20f66b399c8243b573c937e978da473932afe44cbf09630c6e"
+  "bodySha256": "3695a8a31cb7adf5730f36387fcf9e3f546467c32927898360470964db35a253"
  }
 }

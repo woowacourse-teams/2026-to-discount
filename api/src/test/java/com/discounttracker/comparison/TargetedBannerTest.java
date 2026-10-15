@@ -37,8 +37,8 @@ class TargetedBannerTest {
                   brand: bhc
                   platform: baemin
                   url: https://baemin.go.link/5H0ry
-                  startsOn: 2026-09-12
-                  endsOn: 2026-09-12
+                  startsAt: '2026-09-12T00:00:00'
+                  endsAt: '2026-09-12T23:59:59'
                   priority: 1
                   %s
                 """.formatted(extraYaml);

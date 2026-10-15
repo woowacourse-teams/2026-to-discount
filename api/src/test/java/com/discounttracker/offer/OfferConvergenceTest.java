@@ -128,7 +128,7 @@ class OfferConvergenceTest {
     @Test
     void bannerProseNeverBecomesATierNote() {
         // 한때 배너 conditions를 그 구간 note로 내렸다가 되돌렸다
-        // (2026-09-12). Banner.displayConditions()는 "extra에서 최소주문
+        // (2026-09-12). 그때의 Banner.displayConditions()(2026-10-15에 지움)는 "extra에서 최소주문
         // 언급만 뺀 값"이라, 여러 브랜드를 나열한 배너에서는 브랜드 목록이
         // 그대로 딸려 온다. 라이브에 이런 것들이 나갔다:
         //

@@ -274,34 +274,6 @@ class BannerOfferCertaintyTest {
         assertEquals(1, banners.active().size(), "레일에는 여전히 뜬다");
     }
 
-    @Test
-    void oldSentenceShapeBannerStandsAsAnOfferToo() {
-        // 2026-09-23 RULES 12로 뒤집혔다. Task 8이 여기서 문장 모양을 건너뛰게 했는데,
-        // 라이브 배너 9장이 전부 문장 모양이라 브랜드 카드의 배너 오퍼가 통째로
-        // 사라졌다(조용한 회귀 - 레일은 그대로 떴다). 이제 옛 경로로 내려가 선다.
-        String yaml = """
-                banners:
-                  - id: oldshape-20260922
-                    brand: 교촌치킨
-                    platform: baemin
-                    url: "https://example.test/old"
-                    amount: "8,000원"
-                    period: 8/11 하루만
-                    extra: "20,000원↑, 선착순 300명"
-                    startsOn: 2026-09-22
-                    endsOn: 2026-09-22
-                """;
-        BannerCatalog banners = new BannerCatalog(
-                new ByteArrayResource(yaml.getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
-        BrandComparisonService svc =
-                new BrandComparisonService(new OfferRepository(null), emptyBrands(), banners, CLOCK, "");
-
-        assertEquals(1, svc.compare().size(), "구조 칸이 없어도 문자열 금액에서 오퍼가 선다");
-        assertEquals(8000, svc.compare().get(0).offers().get(0).amount());
-        assertEquals(1, banners.active().size(), "레일에는 여전히 뜬다");
-        assertEquals("8,000원", banners.active().get(0).amount());
-    }
-
     private static final String BHC_FIRST_COME_BANNER = """
             banners:
               - id: bhc-open-20260922

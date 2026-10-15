@@ -93,9 +93,6 @@ public class BrandController {
         // id가 겹치면 "이 id의 배너"가 파일 순서로 정해진다. 콘솔로 올릴 때는 막지만
         // 파일을 손으로 고치면 그 검사를 지나간다 - 여기서 한 번 더 막는다(2026-09-24).
         List<String> duplicateIds = banners.duplicateIds();
-        // 옛 칸과 새 칸을 같이 적은 배너. 여태 안에서만 알고 응답에 안 실렸다.
-        // 통과는 시키되 알린다 - 이행기에는 섞인 배너가 정상으로 남는다.
-        List<String> mixed = banners.mixedShape();
         boolean bannersOk = parsed && unknown.isEmpty() && dropped.isEmpty() && duplicateIds.isEmpty();
         BannerNotificationService.ReloadResult push = bannersOk
                 ? notifications.onReload(banners.all())
@@ -110,7 +107,6 @@ public class BrandController {
                 Map.entry("dropped", dropped),
                 Map.entry("droppedReasons", banners.droppedReasons()),
                 Map.entry("duplicateIds", duplicateIds),
-                Map.entry("mixedShape", mixed),
                 Map.entry("pushActivated", push.activated()),
                 Map.entry("pushImmediateRequested", push.immediateRequested()),
                 Map.entry("pushImmediateAllowed", push.immediateAllowed()),

@@ -702,8 +702,8 @@ class BrandComparisonServiceTest {
         assertEquals(3, result.get(0).offers().get(0).tiers().size(), "품절 구간은 만료가 아니라 그대로 있다");
     }
 
-    // Task 8: 구조 칸(amount:)을 쓰는 새 모양이다. 문장(period/extra)은 여전히 손으로
-    // 적을 수 있지만, 오퍼로 설 때 읽는 칸은 amount:/minOrder:/targeted:/firstCome: 뿐이다.
+    // Task 8: 구조 칸(amount:)을 쓰는 모양이다. 오퍼로 설 때 읽는 칸은
+    // amount:/minOrder:/targeted:/firstCome:/opensAt: 뿐이고, 화면 문구(기간 등)는 서버가 만든다.
     private static final String BANNER_YAML = """
             banners:
               - id: goobne-20260817
@@ -711,33 +711,30 @@ class BrandComparisonServiceTest {
                 platform: yogiyo
                 url: https://example.test/a
                 amount: {won: 6500}
-                period: 매일 오후 3시부터 선착순
+                opensAt: "15:00"
                 minOrder: 25000
-                startsOn: 2026-08-17
-                endsOn: 2026-08-23
+                startsAt: '2026-08-17T00:00:00'
+                endsAt: '2026-08-23T23:59:59'
               - id: allapps-20260817
                 platform: baemin
                 url: https://example.test/b
                 amount: {won: 5000}
-                period: 상시
-                startsOn: 2026-08-17
-                endsOn: 2026-08-23
+                startsAt: '2026-08-17T00:00:00'
+                endsAt: '2026-08-23T23:59:59'
               - id: rate-20260817
                 brand: BBQ
                 platform: baemin
                 url: https://example.test/c
                 amount: {percent: 30}
-                period: 상시
-                startsOn: 2026-08-17
-                endsOn: 2026-08-23
+                startsAt: '2026-08-17T00:00:00'
+                endsAt: '2026-08-23T23:59:59'
               - id: random-20260817
                 brand: 두찜
                 platform: coupangeats
                 url: https://example.test/d
                 amount: {won: [3000, 8000], random: true}
-                period: 이번주
-                startsOn: 2026-08-17
-                endsOn: 2026-08-23
+                startsAt: '2026-08-17T00:00:00'
+                endsAt: '2026-08-23T23:59:59'
             """;
 
     @Test
@@ -787,18 +784,16 @@ class BrandComparisonServiceTest {
                     platform: coupangeats
                     url: https://example.test/hub
                     amount: {won: [null, 10000], random: true}
-                    period: 오늘
-                    startsOn: 2026-09-19
-                    endsOn: 2026-09-19
+                    startsAt: '2026-09-19T00:00:00'
+                    endsAt: '2026-09-19T23:59:59'
                   - id: coupangeats-weekly-puradak-20260919
                     group: g1
                     brand: 푸라닭
                     platform: coupangeats
                     url: https://example.test/hub
                     amount: {won: [null, 8000], random: true}
-                    period: 오늘
-                    startsOn: 2026-09-19
-                    endsOn: 2026-09-19
+                    startsAt: '2026-09-19T00:00:00'
+                    endsAt: '2026-09-19T23:59:59'
                 """;
         List<BrandComparison> cards = serviceWith(List.of(), brands, on("2026-09-19"), yaml).compare();
         Offer nomore = cards.stream().filter(c -> c.brand().name().equals("노모어피자")).findFirst().orElseThrow().offers().get(0);
@@ -824,8 +819,8 @@ class BrandComparisonServiceTest {
                     platform: own
                     url: https://www.kfckorea.com/promotion/promotionList/detail/955
                     amount: {buy: 1, get: 1, item: 징거버거}
-                    startsOn: 2026-10-11
-                    endsOn: 2026-10-12
+                    startsAt: '2026-10-11T00:00:00'
+                    endsAt: '2026-10-12T23:59:59'
                 """;
         List<BrandComparison> cards = serviceWith(List.of(), brands, on("2026-10-11"), yaml).compare();
         BrandComparison kfc = cards.stream().filter(c -> c.brand().name().equals("KFC")).findFirst().orElseThrow();
@@ -897,8 +892,7 @@ class BrandComparisonServiceTest {
         Offer offer = card.offers().get(0);
         assertEquals(6500, offer.amount());
         // 확정 오퍼는 이제 qualifier가 없다 — 배너 출처는 fromBanner가 이미 답한다(Task 8).
-        // 쿠폰을 겹친 사다리(옛 "최적")는 구조 칸에 대응이 없어 더는 만들지 않는다
-        // (Banner.compoundTiers는 Task 19가 정리할 다리로만 남는다).
+        // 쿠폰을 겹친 사다리(옛 "최적")는 구조 칸에 대응이 없어 더는 만들지 않는다.
         assertNull(offer.qualifier());
         assertTrue(offer.fromBanner());
         assertNull(offer.tierMode());
@@ -907,8 +901,8 @@ class BrandComparisonServiceTest {
         // 적어둔 최소주문금액이 조건으로 함께 들어가야 상세가 "미확인"으로
         // 남지 않는다.
         assertEquals(25000, offer.minOrderAmount());
-        // 기간 문구가 사라지면 아무 때나 받는 할인으로 읽힌다.
-        assertEquals("매일 오후 3시부터 선착순", offer.badge());
+        // 기간 문구가 사라지면 아무 때나 받는 할인으로 읽힌다. 문구는 opensAt 칸에서 서버가 만든다.
+        assertEquals("매일 오후 3시 오픈", offer.badge());
     }
 
     @Test
@@ -991,10 +985,10 @@ class BrandComparisonServiceTest {
                     platform: yogiyo
                     url: https://example.test/a
                     amount: {won: 6000}
-                    period: 오전 11시 선착순
+                    firstCome: issue
                     soldOut: true
-                    startsOn: 2026-08-20
-                    endsOn: 2026-08-20
+                    startsAt: '2026-08-20T00:00:00'
+                    endsAt: '2026-08-20T23:59:59'
                 """;
         Offer offer = serviceWith(List.of(), brands, on("2026-08-20"), yaml)
                 .compare().stream()
@@ -1023,10 +1017,10 @@ class BrandComparisonServiceTest {
                     platform: yogiyo
                     url: https://example.test/a
                     amount: {won: 6000}
-                    period: 오전 11시 선착순
+                    firstCome: issue
                     soldOutOn: 2026-08-20
-                    startsOn: 2026-08-19
-                    endsOn: 2026-08-21
+                    startsAt: '2026-08-19T00:00:00'
+                    endsAt: '2026-08-21T23:59:59'
                 """;
 
         assertTrue(offerOf(brands, yaml, "2026-08-20").soldOut(), "그날은 매진");
@@ -1046,8 +1040,9 @@ class BrandComparisonServiceTest {
     void dropsBannersThatCannotStandAsAnOffer() {
         // 정률·랜덤 배너는 이제 카드에도 선다(certainty가 EXACT가 아닐 뿐) - 그래서
         // "certainty == EXACT" 필터로는 이 테스트의 이름을 더는 못 지킨다. 진짜로 오퍼가
-        // 하나도 못 서는 두 경우만 남긴다: 브랜드가 없는 배너(앱 전체 행사)와, 구조 칸
-        // (amount:)이 없어 amountSpec을 못 만드는 옛 문장 모양 배너.
+        // 하나도 못 서는 두 경우만 남긴다: 브랜드가 없는 배너(앱 전체 행사)와, 금액 칸
+        // (amount:)이 없어 amountSpec을 못 만드는 배너. 문장 amount를 적은 옛 모양은
+        // 2026-10-15부터 배너 자체가 dropped라 여기까지 오지 않는다(BannerCatalogTest가 박는다).
         String brands = """
                 brands:
                   굽네치킨:
@@ -1062,32 +1057,27 @@ class BrandComparisonServiceTest {
                     platform: baemin
                     url: https://example.test/b
                     amount: {won: 5000}
-                    period: 상시
-                    startsOn: 2026-08-17
-                    endsOn: 2026-08-23
-                  - id: oldshape-20260817
+                    startsAt: '2026-08-17T00:00:00'
+                    endsAt: '2026-08-23T23:59:59'
+                  - id: noamount-20260817
                     brand: BBQ
                     platform: baemin
                     url: https://example.test/c
-                    amount: "8,000원"
-                    period: 상시
-                    startsOn: 2026-08-17
-                    endsOn: 2026-08-23
+                    startsAt: '2026-08-17T00:00:00'
+                    endsAt: '2026-08-23T23:59:59'
                   - id: goobne-20260817
                     brand: goobne
                     platform: yogiyo
                     url: https://example.test/a
                     amount: {won: 6500}
-                    period: 상시
-                    startsOn: 2026-08-17
-                    endsOn: 2026-08-23
+                    startsAt: '2026-08-17T00:00:00'
+                    endsAt: '2026-08-23T23:59:59'
                 """;
         List<String> names = serviceWith(List.of(), brands, on("2026-08-20"), yaml)
                 .compare().stream().map(c -> c.brand().name()).toList();
 
-        // 브랜드 없는 배너(붙을 카드가 없다)만 안 선다. 옛 문장 모양(BBQ)은 2026-09-23
-        // RULES 12로 다시 선다 - 문자열 금액을 옛 경로가 읽는다.
-        assertEquals(List.of("BBQ", "굽네치킨"), names);
+        // 브랜드 없는 배너(붙을 카드가 없다)와 금액 칸 없는 배너(BBQ, 붙을 값이 없다)는 안 선다.
+        assertEquals(List.of("굽네치킨"), names);
     }
 
     @Test

@@ -37,16 +37,10 @@ import java.util.Map;
  * 적혀 로고 파일(굽네치킨.png)을 못 찾고 폴백 글자만 떴다. brands.yml의
  * 별칭표가 이미 서버에 있으니 여기서 한 번 통과시킨다.
  *
- * <p><b>두 모양 읽기는 옛 모양 전용이다(RULES 11, Task 19).</b> 2026-09-29에 {@code items}와
- * {@code amountRange}는 읽는 길에서 뺐다 - 이미 읽히지 않던 칸이다(감사 #5). {@link #toBanner}가
- * {@code amount}가 문자열인지 지도인지, {@code startsOn}/{@code endsOn}(날짜)인지
- * {@code startsAt}/{@code endsAt}(시각)인지를 매번 나눠 읽는다. 지울 수 있는 조건은
- * 라이브 {@code banners.yml}에 옛 모양(문자열 {@code amount}, 옛 {@code limit}/{@code usage}/
- * {@code items}/{@code amountRange})을 쓰는 행이 0건일 때다 - 그 전에는 만료된 95장이라도
- * 다시 읽혀야 한다(RULES 9). 몇 건 남았는지는 이미 있는
- * {@code python tools/convert_banners.py --file <banners.yml>}(beggars-ops, Task 11이
- * 만든 것, 새로 만들지 않는다)로 센다 - "N장 중 M장 새 모양, K장 옛 모양 그대로"를
- * 찍어 준다. K가 0이면 지울 수 있다.
+ * <p>파일은 새 모양만 읽는다. 문장 칸(문자열 {@code amount}, {@code period}, {@code extra}),
+ * 날짜 칸({@code startsOn}/{@code endsOn}), 옛 {@code limit}/{@code usage}를 읽던 길은
+ * 2026-10-15에 운영 파일의 옛 모양이 0장이 되어 지웠다(tracker REFACTOR-BACKLOG Task 19).
+ * 옛 배너 원본은 beggars-ops {@code archive/}에 있다.
  */
 @Component
 public class BannerCatalog {
@@ -80,9 +74,6 @@ public class BannerCatalog {
      * reload 응답과 로그에 사유를 같이 싣는다.
      */
     private volatile Map<String, String> droppedReasons = Map.of();
-
-    /** 옛 칸과 새 칸을 같이 적은 배너의 id. reload 응답에 실어 사람이 바로 안다. */
-    private volatile List<String> mixed = List.of();
 
     /**
      * 둘 이상이 나눠 쓴 id. {@link #reload()}가 채운다.
@@ -323,8 +314,7 @@ public class BannerCatalog {
     /**
      * 필수 필드(id, url, 시작·종료 시각)가 빠져 버린 항목의 id.
      *
-     * <p>Task 6부터 amount·period는 더는 필수가 아니다 - 문장 칸이 비어도 구조 칸
-     * ({@code amount:} 덩이)에서 만들 수 있기 때문이다.
+     * <p>{@code amount}는 필수가 아니다. 화면 문구는 구조 칸({@code amount:} 덩이)에서 만든다.
      */
     /** {@link #dropped()}의 id별 사유. 파일 순서를 지킨다. */
     public Map<String, String> droppedReasons() {
@@ -340,10 +330,6 @@ public class BannerCatalog {
         return dropped;
     }
 
-    public List<String> mixedShape() {
-        return mixed;
-    }
-
     @SuppressWarnings("unchecked")
     private List<Banner> read() {
         if (!source.exists()) return List.of();
@@ -357,12 +343,8 @@ public class BannerCatalog {
             List<Banner> parsed = new ArrayList<>();
             List<String> skipped = new ArrayList<>();
             Map<String, String> reasons = new java.util.LinkedHashMap<>();
-            List<String> mixedIds = new ArrayList<>();
             for (Object item : list) {
                 if (item instanceof Map<?, ?> map) {
-                    if (mixedShape((Map<String, Object>) map)) {
-                        mixedIds.add(map.get("id") == null ? "(id 없음)" : String.valueOf(map.get("id")));
-                    }
                     String[] why = new String[1];
                     Banner banner = toBanner((Map<String, Object>) map, brands, r -> why[0] = r);
                     if (banner != null) {
@@ -377,7 +359,6 @@ public class BannerCatalog {
             }
             dropped = List.copyOf(skipped);
             droppedReasons = java.util.Collections.unmodifiableMap(reasons);
-            mixed = List.copyOf(mixedIds);
             return List.copyOf(parsed);
         } catch (IOException e) {
             // 파일이 사라졌거나 못 읽는 경우. 부르는 쪽(reload)이 이전 목록을
@@ -400,8 +381,6 @@ public class BannerCatalog {
         String platform = text(attrs.get("platform"));
         if (platform == null) platform = Banner.OWN;
         String url = text(attrs.get("url"));
-        // 구조 필드(설계 25, 2026-09-18). 문장 칸(amount, period, extra)이 비어 있으면
-        // 여기서 만든다. 적혀 있으면 그 문장이 이긴다(이행 기간 규칙).
         BannerSpec spec;
         try {
             spec = spec(attrs);
@@ -409,45 +388,19 @@ public class BannerCatalog {
             why.accept("문구 칸을 못 읽었다: " + e.getMessage());
             return null;
         }
-        java.time.LocalDateTime startsAt = moment(attrs.get("startsAt"), attrs.get("startsOn"), false);
-        java.time.LocalDateTime endsAt = moment(attrs.get("endsAt"), attrs.get("endsOn"), true);
+        java.time.LocalDateTime startsAt = moment(attrs.get("startsAt"));
+        java.time.LocalDateTime endsAt = moment(attrs.get("endsAt"));
+        // 문자열 amount("7,000원")는 옛 모양이다. 금액 없는 배너로 조용히 서지 않게 사유를 남기고 뺀다.
+        if (attrs.get("amount") instanceof String) {
+            why.accept("amount가 문장이다(옛 모양). amount: {won: 7000} 꼴로 적는다");
+            return null;
+        }
         BannerAmount amountSpec;
         try {
             amountSpec = BannerAmount.of(attrs.get("amount"));
         } catch (IllegalArgumentException e) {
             why.accept("amount를 못 읽었다: " + e.getMessage());
             return null;
-        }
-        String amount = attrs.get("amount") instanceof String s ? s : null;
-        String period = text(attrs.get("period"));
-        String extraForLegacy = text(attrs.get("extra"));
-        // 옛 배너(RULES 8·9로 그대로 남은, 문장 칸뿐인 배너들)는 firstCome/targeted/
-        // amountSpec이 비어 있을 수 있다. 웹의 bannerTag는 이제 그 세 칸만 읽으므로
-        // (Task 18) 여기서 한 번만 옛 limit/usage 칸으로 채운다. 새로 적는 배너가
-        // firstCome/targeted를 직접 쓰면 그 값이 이긴다.
-        //
-        // period·extra 문장을 정규식으로 되짚는 길은 만들지 않는다(fix round 2,
-        // 리뷰어 지적). "적립금은 본 행사에 사용 불가", "가을맞이 신규 오픈 매장
-        // 한정" 같은 문장이 오탐을 낸다 - 이 재설계 자체가 생성 문구를 다시 파싱해서
-        // 틀린 답을 내던 자리를 없애려는 것이었고, RULES 9로 옛 모양 배너가 무기한
-        // 남으므로 "이행기용" 파서는 만료되지 않는다. 실측(운영 파일 확인, fix round
-        // 2)으로 확인한 살아있는 배너 9장은 운영자가 firstCome/limit을 직접 적어서
-        // 해결했다 - 문장 파싱 없이도 표식이 산다.
-        String legacyLimit = text(attrs.get("limit"));
-        String firstCome = text(attrs.get("firstCome"));
-        if (firstCome == null && "first_come".equals(legacyLimit)) {
-            String usage = text(attrs.get("usage"));
-            firstCome = usage != null ? usage : "use";
-        }
-        Boolean targeted = flag(attrs.get("targeted"));
-        if (targeted == null && "targeted".equals(legacyLimit)) targeted = true;
-        // 캐시백·랜덤은 amountSpec.kind/amountSpec.random에 산다 - bannerTag가 거기서
-        // 읽는다. 옛 배너는 amount가 문자열이라 amountSpec이 아예 null로 오므로, limit만
-        // 남아 있으면 표식이 필요로 하는 최소한의 값만 채운 amountSpec을 만든다.
-        if (amountSpec == null && "cashback".equals(legacyLimit)) {
-            amountSpec = new BannerAmount(null, null, null, false, AmountKind.CASHBACK);
-        } else if (amountSpec == null && "random".equals(legacyLimit)) {
-            amountSpec = new BannerAmount(null, null, null, true, AmountKind.DISCOUNT);
         }
         // platform은 선택이다(2026-09-18). 없거나 "own"이면 브랜드 자체 앱이나
         // 사이트의 행사다 — 뚜레쥬르 네이버페이 적립처럼 배달앱 밖에서 여는 행사가
@@ -456,8 +409,8 @@ public class BannerCatalog {
             List<String> missing = new ArrayList<>();
             if (id == null) missing.add("id");
             if (url == null) missing.add("url");
-            if (startsAt == null) missing.add("startsAt(startsOn)");
-            if (endsAt == null) missing.add("endsAt(endsOn)");
+            if (startsAt == null) missing.add("startsAt");
+            if (endsAt == null) missing.add("endsAt");
             why.accept("필수 칸이 비었거나 못 읽었다: " + String.join(", ", missing));
             return null;
         }
@@ -478,7 +431,6 @@ public class BannerCatalog {
         }
         if (brand == null && many != null) brand = many.get(0);
         Integer minOrder = number(attrs.get("minOrder"));
-        String extra = extraForLegacy;
         // 끝이 시작보다 앞이면 build()가 던진다. 그 한 장만 건너뛴다(dropped).
         if (endsAt.isBefore(startsAt)) {
             why.accept("endsAt(" + endsAt + ")이 startsAt(" + startsAt + ")보다 앞이다");
@@ -504,18 +456,15 @@ public class BannerCatalog {
                 .group(text(attrs.get("group")))
                 .via(text(attrs.get("via")))
                 .amountSpec(amountSpec)
-                .targeted(targeted)
-                .firstCome(firstCome)
+                .targeted(flag(attrs.get("targeted")))
+                .firstCome(text(attrs.get("firstCome")))
                 .untilSoldOut(flag(attrs.get("untilSoldOut")))
-                .amount(amount)
-                .period(period)
-                .extra(extra)
                 .build();
-        // 문장 칸이 비면 구조 칸에서 만든다. 적혀 있으면 그 문장이 이긴다(이행 기간 규칙).
+        // 화면 문구 셋은 구조 칸에서 만든다(설계 25).
         return banner.toBuilder()
-                .amount(amount != null ? amount : BannerText.amount(amountSpec))
-                .period(period != null ? period : BannerText.period(banner))
-                .extra(banner.extra() != null ? banner.extra() : BannerText.extra(banner))
+                .amount(BannerText.amount(amountSpec))
+                .period(BannerText.period(banner))
+                .extra(BannerText.extra(banner))
                 .build();
     }
 
@@ -526,38 +475,21 @@ public class BannerCatalog {
         return spec.isEmpty() ? null : spec;
     }
 
-    /** 옛 날짜 칸과 새 시각 칸을 다 받는다. 날짜만 있으면 하루의 시작과 끝으로 채운다. */
-    private static java.time.LocalDateTime moment(Object at, Object on, boolean endOfDay) {
+    /** 시각 칸을 읽는다. 못 읽으면 null이고 부르는 쪽이 그 한 장을 dropped로 돌린다. */
+    private static java.time.LocalDateTime moment(Object at) {
         // 따옴표 없는 2026-09-24T09:00:00을 snakeyaml이 Date로 만든다. 그 toString은
         // "Thu Sep 24 09:00:00 KST 2026"이라 LocalDateTime.parse가 못 읽고, 배너가
-        // 통째로 버려졌다 - 날짜 칸(date)은 이미 이 처리를 하는데 시각 칸만 빠져
-        // 있었다(2026-09-24). yml은 시각을 UTC로 읽으므로 같은 시간대로 되돌린다.
+        // 통째로 버려졌다(2026-09-24). yml은 시각을 UTC로 읽으므로 같은 시간대로 되돌린다.
         if (at instanceof Date d) {
             return d.toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
         }
         String s = text(at);
-        if (s != null) {
-            try {
-                return java.time.LocalDateTime.parse(s.replace(" ", "T"));
-            } catch (java.time.format.DateTimeParseException e) {
-                return null;
-            }
+        if (s == null) return null;
+        try {
+            return java.time.LocalDateTime.parse(s.replace(" ", "T"));
+        } catch (java.time.format.DateTimeParseException e) {
+            return null;
         }
-        LocalDate d = date(on);
-        if (d == null) return null;
-        // 그날 23:59:59까지 산다(확정 규칙 2절). 23:59로 채우면 마지막 59초가 잘린다 -
-        // Banner.Builder.endsOn은 이미 이 값이었는데 파일을 읽는 이 길만 23:59였다(감사 2026-09-29 #4).
-        return endOfDay ? d.atTime(23, 59, 59) : d.atStartOfDay();
-    }
-
-    /** 옛 칸과 새 칸을 같이 적었나. 어느 쪽이 이기는지 파일만 봐서는 모른다(드리프트 2). */
-    private static boolean mixedShape(Map<String, Object> attrs) {
-        boolean dates = attrs.get("startsOn") != null || attrs.get("endsOn") != null;
-        boolean moments = attrs.get("startsAt") != null || attrs.get("endsAt") != null;
-        boolean sentences = attrs.get("amount") instanceof String
-                || attrs.get("period") != null || attrs.get("extra") != null;
-        boolean structured = attrs.get("amount") instanceof Map<?, ?>;
-        return (dates && moments) || (sentences && structured);
     }
 
     /** yes/true/1 무엇으로 적어도 참으로 읽는다. 손으로 고치는 파일이다. */
