@@ -3,8 +3,22 @@ import { track } from './analytics.js'
 import { BrandLogo } from './logos.jsx'
 import { RankChange } from './PopularStrip.jsx'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
+import { bestConfirmedAmount } from './filters.js'
 
 const ROLL_MS = 3500
+
+// 한 줄: 증감(작게), 로고, 이름(넘치면 ...), 최고 할인. 목록과 굴림 줄이 같은 칸을 쓴다(2026-10-15 사용자)
+function Cells({ row }) {
+  const amount = bestConfirmedAmount(row.brand.offers ?? [])
+  return (
+    <>
+      <span className="pop-dock__change"><RankChange change={row.change} /></span>
+      <BrandLogo name={row.brand.name} size={20} />
+      <span className="pop-dock__name">{row.brand.shortName ?? row.brand.name}</span>
+      <span className="pop-dock__amount">{amount == null ? '' : `${amount.toLocaleString('ko-KR')}원`}</span>
+    </>
+  )
+}
 
 /**
  * 하단 오늘 인기(2026-10-15 사용자: 배너 도크 자리를 인기 순위로). 위 띠는 10-15 사용자 지시로 빼고 왼쪽 아래에
@@ -38,10 +52,7 @@ export default function PopularDock({ brands, onPick }) {
           {top.map((row) => (
             <li key={row.brand.name}>
               <button type="button" className="pop-dock__row" onClick={() => pick(row, 'list')}>
-                <span className="pop-dock__rank">{row.rank}</span>
-                <BrandLogo name={row.brand.name} size={20} />
-                <span className="pop-dock__name">{row.brand.shortName ?? row.brand.name}</span>
-                <RankChange change={row.change} />
+                <Cells row={row} />
               </button>
             </li>
           ))}
@@ -56,10 +67,7 @@ export default function PopularDock({ brands, onPick }) {
       >
         <span className="pop-dock__label">인기 브랜드</span>
         <span className="pop-dock__tick" key={cur.brand.name} aria-hidden="true">
-          <span className="pop-dock__rank">{cur.rank}</span>
-          <BrandLogo name={cur.brand.name} size={20} />
-          <span className="pop-dock__name">{cur.brand.shortName ?? cur.brand.name}</span>
-          <RankChange change={cur.change} />
+          <Cells row={cur} />
         </span>
         <span className="pop-dock__caret" aria-hidden="true">{open ? '▾' : '▴'}</span>
       </button>
