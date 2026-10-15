@@ -5,7 +5,8 @@
 // ?sheet=<브랜드> 면 5초에 그 카드의 "자세히" 시트를 열어 표 칩까지 잰다(접힌 화면에는 표가 없다).
 (function () {
   const q = new URLSearchParams(location.search)
-  const css = q.get('css')
+  // 개발 빌드의 "DEV" 띠(position: fixed, 오른쪽 밖으로 삐져나감)가 iOS에서 가로 넘침 78px를 만들었다. 운영 사용자에게는 없다
+  const css = '.dev-badge{display:none!important}' + (q.get('css') || '')
   if (css) {
     const st = document.createElement('style')
     st.textContent = css
@@ -92,6 +93,17 @@
       const hint = card && card.querySelector('.cc-hint')
       if (hint) hint.click()
     }, 5000)
+  }
+  // ?repaint=display|scroll|transform: 글꼴이 들어온 뒤 넘김을 다시 그리게 하는 후보(금액 글자 겹침이 낡은 그림이다)
+  const repaint = q.get('repaint')
+  if (repaint && document.fonts) {
+    document.fonts.ready.then(() => setTimeout(() => {
+      for (const c of document.querySelectorAll('.cc-carousel')) {
+        if (repaint === 'display') { c.style.display = 'none'; void c.offsetHeight; c.style.display = '' }
+        if (repaint === 'scroll') { c.scrollLeft = 1; requestAnimationFrame(() => { c.scrollLeft = 0 }) }
+        if (repaint === 'transform') { c.style.transform = 'translateZ(0)'; requestAnimationFrame(() => { c.style.transform = '' }) }
+      }
+    }, 300))
   }
   if (q.get('nudge')) {
     setTimeout(() => {
