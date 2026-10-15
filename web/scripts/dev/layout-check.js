@@ -28,8 +28,11 @@
     const over = document.documentElement.scrollWidth - innerWidth
     if (over > 1) {
       // 넘치는 요소 중 조상이 안 넘치는 것(가장 바깥)만 짚는다
+      // 스크롤하거나 자르는 상자 안에서 넘친 것(카테고리 탭 등)은 페이지를 넓히지 않는다. 그런 조상이 없는 것만 짚는다
+      const clipped = (e) => { for (let a = e.parentElement; a && a !== document.body; a = a.parentElement) {
+        if (getComputedStyle(a).overflowX !== 'visible') return true } return false }
       const wide = [...document.body.querySelectorAll('*')].filter((e) => e.getBoundingClientRect().right > innerWidth + 1
-        && !(e.parentElement && e.parentElement.getBoundingClientRect().right > innerWidth + 1))
+        && !clipped(e) && !(e.parentElement && e.parentElement.getBoundingClientRect().right > innerWidth + 1))
       const name = (e) => e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).join('.') : '')
       fails.push(`page: 가로 넘침 ${over}px (${wide.slice(0, 4).map((e) => `${name(e)} 오른쪽 ${Math.round(e.getBoundingClientRect().right)}`).join(', ')})`)
     }
