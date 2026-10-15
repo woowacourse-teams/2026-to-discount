@@ -532,6 +532,8 @@
               visibility 200ms;
 }
 .banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
+/* 2026-10-15 사용자: 하단 도크 좌우 폭을 줄여 덜 거슬리게. 안쪽 여백만 더한다 */
+.banner-dock { padding-inline: 20px; }
 /* 하단 도크에서는 배너 카드의 바닥선에 맞춘다(도크 패딩만큼 올린다). */
 
 .banner-dock__inner .banner__ctl { bottom: calc(var(--dock-pad-bottom) + 6px); right: calc(var(--dock-pad-x, 1rem) + 6px); }

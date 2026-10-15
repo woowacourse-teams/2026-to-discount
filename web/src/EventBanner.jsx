@@ -16,8 +16,8 @@ import { bannerProps } from './bannerAnalytics.js'
 import { bannerMemberLabels, memberMinOrderText, memberText } from './bannerMembers.js'
 import { OWN } from './platforms.js'
 
-// 넘어가는 간격. 4.3초에서 1초 늘렸다(사용자 결정 2026-09-16).
-const ROTATE_MS = 5300
+// 넘어가는 간격. 4.3초에서 1초 늘렸다(사용자 결정 2026-09-16). 2026-10-15 사용자: 눈에 덜 거슬리게 8초로.
+const ROTATE_MS = 8000
 // 한 칸 미끄러지는 시간. 브라우저 smooth 스크롤(~300ms)보다 0.5초 느리게.
 const SLIDE_MS = 800
 // 장 사이 간격(App.css .banner-track gap과 같은 값).

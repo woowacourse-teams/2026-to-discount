@@ -3,6 +3,7 @@ import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffec
 import { flushSync } from 'react-dom'
 import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
 import { setFilterContext, track } from './analytics.js'
+import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
 import TopBarA from './TopBarA.jsx'
@@ -104,7 +105,7 @@ export default function App({ initial = null }) {
   const pushToggleRef = useCallback((el) => { startTransition(() => setPushToggleSlot(el)) }, [])
   const [brands, setBrands] = useState(initial?.brands ?? null)
   // null은 아직 못 받음(자리만 잡는다), []는 받았는데 0건.
-  const [, setBanners] = useState(initial?.banners ?? null)
+  const [banners, setBanners] = useState(initial?.banners ?? null)
   const [error, setError] = useState(null)
   // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
   const [surveyOn, setSurveyOn] = useState(false)
@@ -622,7 +623,7 @@ export default function App({ initial = null }) {
           (2026-09-30 브랜드 페이지 CLS 0.9). 받았는데 0건이면 자리를 거둔다. */}
       {/* 쿠폰 카드 쪽은 위 배너 캐러셀 없이 처음부터 하단 도크로만(2026-10-05 사용자: 목록 안 한 줄은 별로) */}
       {/* 2026-10-05 사용자: 운영 카드 쪽도 하단 도크로 */}
-      {/* 2026-10-15 사용자: 하단 배너 도크를 내린다. 닫기(353명)가 클릭(201명)보다 많았고, 배너 오퍼는 카드에 같은 금액으로 다 있다. 배너 자료는 허브 링크(setHubLinks)에 계속 쓴다 */}
+      {banners ? <EventBanner banners={banners} dockOnly /> : null}
       <PushNotificationSetting toggleSlot={pushToggleSlot} />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
