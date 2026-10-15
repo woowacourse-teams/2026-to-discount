@@ -12,15 +12,17 @@ name: ios-shot
 on:
   workflow_dispatch:
     inputs:
-      urls: { description: 찍을 주소(공백으로 여럿, local이 아닐 때), default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
-      local: { description: 이 브랜치 web을 러너에서 띄워 검사하고 찍기, default: 'false' }
-      paths: { description: local일 때 찍을 경로(공백으로 여럿), default: '/?home=a&expect=carousel /?home=old' }
+      urls: { description: '찍을 주소(공백으로 여럿, local이 아닐 때)', default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
+      local: { description: '이 브랜치 web을 러너에서 띄워 검사하고 찍기', default: 'false' }
+      paths: { description: 'local일 때 찍을 경로(공백으로 여럿)', default: '/?home=a&expect=carousel /?home=old' }
   pull_request:
     paths: ['web/**', '.github/workflows/ios-shot.yml']
   workflow_run:
     workflows: [Mirror to deploy repos]
     types: [completed]
     branches: [main]
+permissions:
+  contents: read
 jobs:
   shot:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
@@ -65,7 +67,8 @@ jobs:
           xcrun simctl launch "$UDID" com.apple.mobilesafari || true; sleep 20
       - name: 찍기
         env:
-          BYPASS: ${{ secrets.VERCEL_BYPASS }}
+          # 브랜치 코드를 빌드해 돌리는 작업(local)에는 우회 시크릿을 넘기지 않는다. 빌드 중 남은 프로세스가 읽을 수 있다
+          BYPASS: ${{ env.LOCAL != 'true' && secrets.VERCEL_BYPASS || '' }}
         run: |
           mkdir shots; n=0
           for u in $URLS; do
@@ -86,9 +89,8 @@ jobs:
         if: env.LOCAL == 'true'
         run: |
           set -o pipefail
-          n=$(wc -l < shots/index.txt)
           cp -r "$RUNNER_TEMP/reports" shots/ 2>/dev/null || true
-          python3 web/scripts/dev/layout-report.py summary "$RUNNER_TEMP/reports" "$n" | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 web/scripts/dev/layout-report.py summary "$RUNNER_TEMP/reports" shots/index.txt | tee -a "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: ios-shots, path: shots }

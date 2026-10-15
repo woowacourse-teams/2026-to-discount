@@ -48,7 +48,8 @@
       const hitIdx = slides.findIndex((sl) => sl.contains(hit))
       carousels.push({ brand: brandOf(c), scrollLeft: Math.round(c.scrollLeft), width: Math.round(c.clientWidth), dot, hitIdx,
         slideLeft: slides.map((sl) => Math.round(sl.getBoundingClientRect().left - cr.left)) })
-      if (c.scrollLeft > 2 || dot > 0) fails.push(`${brandOf(c)}: 넘김이 첫 장이 아니다(scrollLeft ${Math.round(c.scrollLeft)}, 점 ${dot + 1})`)
+      // 가운데에서 다른 장이 눌리면(hitIdx > 0) 그것도 실패. -1(가운데가 화면 밖이거나 다른 것이 덮음)은 판정하지 않는다
+      if (c.scrollLeft > 2 || dot > 0 || hitIdx > 0) fails.push(`${brandOf(c)}: 넘김이 첫 장이 아니다(scrollLeft ${Math.round(c.scrollLeft)}, 점 ${dot + 1}, 가운데 장 ${hitIdx + 1})`)
     }
     // ?expect=carousel: 시험 데이터는 넘김 카드가 맨 위다. 없으면 검사가 헛돈 것이라 실패로 친다
     if (q.get('expect') === 'carousel' && carousels.length === 0) fails.push('첫 화면에 넘김 카드가 없다(검사 대상 없음)')

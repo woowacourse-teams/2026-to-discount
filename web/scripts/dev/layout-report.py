@@ -1,7 +1,7 @@
 """iOS 배치 검사(layout-check.js)의 가짜 API와 결과 수신. ios-shot의 local 모드가 쓴다.
 
     python3 layout-report.py serve <폴더>        # 127.0.0.1:8099. GET /api/*는 fixtures/의 고정 응답, POST /report는 <폴더>/<n>.json
-    python3 layout-report.py summary <폴더> <수>  # 마크다운 요약을 찍고, 실패가 있거나 보고가 <수>보다 적으면 종료 코드 1
+    python3 layout-report.py summary <폴더> <index.txt>  # 마크다운 요약. 실패가 있거나 index.txt의 주소 중 보고 없는 것이 있으면 종료 코드 1
 
 검사용 빌드는 VITE_API_BASE_URL=http://localhost:8099로 이 서버를 API로 쓴다. 운영 데이터는 날마다 바뀌어
 넘김(동점 최고) 카드가 첫 화면에 없는 날은 검사가 헛돌았다(2026-10-15). fixtures/brands.json은 운영 응답을 잘라
@@ -11,6 +11,7 @@ import http.server
 import json
 import sys
 import time
+from urllib.parse import unquote
 from pathlib import Path
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -56,7 +57,8 @@ def serve(out: Path) -> None:
     http.server.ThreadingHTTPServer(("127.0.0.1", 8099), Handler).serve_forever()
 
 
-def summary(out: Path, expected: int) -> int:
+def summary(out: Path, index: Path) -> int:
+    expected = [line.split(" ", 1)[1].strip() for line in index.read_text(encoding="utf-8").splitlines() if " " in line]
     reports = []
     for f in sorted(out.glob("*.json")):
         try:
@@ -70,9 +72,11 @@ def summary(out: Path, expected: int) -> int:
         bad += bool(fails)
         lines.append(f"- {'실패' if fails else '통과'} `{r.get('url')}` 넘김 {r.get('carousels')}")
         lines += [f"  - {x}" for x in fails]
-    if len(reports) < expected:
-        bad += 1
-        lines.append(f"- 실패: 보고가 {len(reports)}건이다({expected}건 기대). 페이지가 검사를 못 돌렸다")
+    seen = {unquote(str(r.get("url"))) for r in reports}     # 사파리가 css= 인코딩을 바꿔 적을 수 있다
+    for url in expected:
+        if unquote(url) not in seen:
+            bad += 1
+            lines.append(f"- 실패 `{url}`: 보고가 없다. 페이지가 검사를 못 돌렸다")
     print("\n".join(lines))
     return 1 if bad else 0
 
@@ -82,4 +86,4 @@ if __name__ == "__main__":
     if mode == "serve":
         serve(folder)
     else:
-        sys.exit(summary(folder, int(sys.argv[3])))
+        sys.exit(summary(folder, Path(sys.argv[3])))
