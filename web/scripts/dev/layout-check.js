@@ -2,7 +2,7 @@
 // 사진만으로는 같은 깨짐이 되풀이됐다(넘김이 둘째 장으로 열림, 금액과 "원 할인" 겹침, 표 칩 넘침).
 // 실제 iOS 사파리 안에서 구조를 재서 러너(localhost:8099)로 보내고, 화면 아래에도 적어 사진에 남긴다.
 // ?css=<CSS> 를 주면 앱보다 먼저 스타일을 넣는다. 고칠 후보 여럿을 한 번의 실행에서 주소만 바꿔 견준다.
-// ?sheet=<브랜드> 면 5초에 그 카드의 "자세히" 시트를 열어 표 칩까지 잰다(접힌 화면에는 표가 없다).
+// ?sheet=<브랜드> 면 그 카드의 "자세히" 시트를 열어 표 칩까지 잰다(접힌 화면에는 표가 없다).
 (function () {
   const q = new URLSearchParams(location.search)
   // 개발 빌드의 "DEV" 띠(position: fixed, 오른쪽 밖으로 삐져나감)가 iOS에서 가로 넘침 78px를 만들었다. 운영 사용자에게는 없다
@@ -88,34 +88,26 @@
     fetch('http://localhost:8099/report', { method: 'POST', body: JSON.stringify(res) }).catch(() => {})
   }
 
-  // load 이벤트에 기대지 않는다(2026-10-15 iOS에서 첫 탭만 보고했다). 스크립트 시작 뒤 9초에 잰다.
-  // ?nudge=1 이면 6초에 넘김을 한 번 숨겼다 다시 보여(배치와 그림을 새로 하게) 고칠 후보로 견준다.
-  if (q.get('sheet')) {
+  // 카드가 뜰 때까지(최대 15초) 기다렸다가 잰다. 고정 9초는 첫 방문(사파리, 가짜 API, 글꼴이 다 처음)에 카드가
+  // 아직 없어 "카드 0장"으로 실패했다(2026-10-16 PR #86 검사). load 이벤트에는 기대지 않는다(첫 탭만 보고했다).
+  // ?sheet=<브랜드> 면 카드가 뜬 1초 뒤 그 카드의 "자세히" 시트를 연다.
+  const t0 = Date.now()
+  const ready = (cb) => {
+    if (document.querySelector('article[data-brand]') || Date.now() - t0 > 15000) cb()
+    else setTimeout(() => ready(cb), 300)
+  }
+  ready(() => {
+    if (q.get('sheet')) {
+      setTimeout(() => {
+        const card = document.querySelector(`article[data-brand="${q.get('sheet')}"]`)
+        const hint = card && card.querySelector('.cc-hint')
+        if (hint) hint.click()
+      }, 1000)
+    }
     setTimeout(() => {
-      const card = document.querySelector(`article[data-brand="${q.get('sheet')}"]`)
-      const hint = card && card.querySelector('.cc-hint')
-      if (hint) hint.click()
-    }, 5000)
-  }
-  // ?repaint=display|scroll|transform: 글꼴이 들어온 뒤 넘김을 다시 그리게 하는 후보(금액 글자 겹침이 낡은 그림이다)
-  const repaint = q.get('repaint')
-  if (repaint && document.fonts) {
-    document.fonts.ready.then(() => setTimeout(() => {
-      for (const c of document.querySelectorAll('.cc-carousel')) {
-        if (repaint === 'display') { c.style.display = 'none'; void c.offsetHeight; c.style.display = '' }
-        if (repaint === 'scroll') { c.scrollLeft = 1; requestAnimationFrame(() => { c.scrollLeft = 0 }) }
-        if (repaint === 'transform') { c.style.transform = 'translateZ(0)'; requestAnimationFrame(() => { c.style.transform = '' }) }
-      }
-    }, 300))
-  }
-  if (q.get('nudge')) {
-    setTimeout(() => {
-      for (const c of document.querySelectorAll('.cc-carousel')) { c.style.display = 'none'; void c.offsetHeight; c.style.display = '' }
-    }, 6000)
-  }
-  setTimeout(() => {
-    let res
-    try { res = measure() } catch (e) { res = { url: location.href, fails: ['검사 오류: ' + e.message] } }
-    report(res)
-  }, 9000)
+      let res
+      try { res = measure() } catch (e) { res = { url: location.href, fails: ['검사 오류: ' + e.message] } }
+      report(res)
+    }, 3000)
+  })
 })()
