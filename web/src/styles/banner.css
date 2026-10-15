@@ -42,7 +42,7 @@
 }
 /* 상단은 밝은 틴트에 진한 글자, 하단은 진한 브랜드색에 흰 글자다. 하단은
    카드 위에 겹쳐 뜨는 층이라 밝은 틴트로는 카드와 구분이 약하다. */
-.banner--top {
+.banner--top, .banner--inline {
   --banner-bg-c: var(--banner-plate);
   --banner-line-c: var(--banner-plate-line);
   --banner-ink-c: #f5f5f4;

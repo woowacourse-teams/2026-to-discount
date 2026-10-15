@@ -340,7 +340,7 @@ function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, 
 
 // 배너 로고 오른쪽 위 스티키 탭. 구조 필드(limit)가 있으면 그것, 없으면 기간·조건 문구에서 짐작.
 // dockOnly: 위 캐러셀 없이 처음부터 하단 도크로만(메인 화면 A/B 쿠폰 카드 쪽, 2026-10-05). 노출은 position 'bottom'으로 센다.
-export default function EventBanner({ banners, dockOnly = false }) {
+export default function EventBanner({ banners, dockOnly = false, inline = false }) {
   const [index, setIndex] = useState(0)
   const [hovered, setHovered] = useState(false)
   // 사용자가 멈춤 버튼으로 세운 상태. 손을 올린 것과 달리 다시 누를 때까지 간다.
@@ -578,9 +578,9 @@ export default function EventBanner({ banners, dockOnly = false }) {
                 /* 사본은 같은 id가 두 번 서므로 칸 번호로 가른다. */
                 key={`${b.id}:${i}`}
                 banner={b}
-                position="top"
+                position={inline ? 'inline' : 'top'}
                 slot={slotOf(b)}
-                onSeen={() => markSeen(b, 'top')}
+                onSeen={() => markSeen(b, inline ? 'inline' : 'top')}
               />
             ))}
           </div>
@@ -592,7 +592,7 @@ export default function EventBanner({ banners, dockOnly = false }) {
       {/* 하단 배너는 항상 DOM에 있고 보임 상태만 토글한다 — 언마운트하면
           되돌아올 때 내려가는 전환이 안 보인다. 안 보일 때는
           visibility:hidden이라 탭 순서에서도 빠진다(App.css). */}
-      <div
+      {!inline && <div
         ref={dockRef}
         className={`banner-dock ${!topVisible && !dismissed ? 'banner-dock--shown' : ''}`}
         {...hoverProps}
@@ -648,7 +648,7 @@ export default function EventBanner({ banners, dockOnly = false }) {
             />
           )}
         </div>
-      </div>
+      </div>}
     </>
   )
 }

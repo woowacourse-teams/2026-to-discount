@@ -9,6 +9,7 @@ import { PLATFORMS } from './logos.jsx'
 import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
 import PopularStrip from './PopularStrip.jsx'
+import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
@@ -623,7 +624,8 @@ export default function App({ initial = null }) {
           (2026-09-30 브랜드 페이지 CLS 0.9). 받았는데 0건이면 자리를 거둔다. */}
       {/* 쿠폰 카드 쪽은 위 배너 캐러셀 없이 처음부터 하단 도크로만(2026-10-05 사용자: 목록 안 한 줄은 별로) */}
       {/* 2026-10-05 사용자: 운영 카드 쪽도 하단 도크로 */}
-      {banners ? <EventBanner banners={banners} dockOnly /> : null}
+      {/* 2026-10-15 사용자: 하단 도크는 배너 대신 오늘 인기. 배너(한정 오퍼)는 목록 3번째 카드 뒤에 선다 */}
+      {visibleBrands && <PopularDock brands={visibleBrands} onPick={(name) => { setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name))) }} />}
       <PushNotificationSetting toggleSlot={pushToggleSlot} />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
@@ -812,9 +814,13 @@ export default function App({ initial = null }) {
           {visibleBrands.slice(0, shown).map((b, index) => {
             const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name), onInteract: clearLinked }
-            return homeA
+            const card = homeA
               ? <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
               : <BrandCard key={b.name} {...props} />
+            // 한정 오퍼(배너)는 3번째 카드 뒤 한 칸(2026-10-15 사용자). 첫 자리는 신규·최고 할인 몫이다.
+            return index === 2 && banners?.length
+              ? [card, <div key="inline-banners" className="inline-banners"><EventBanner banners={banners} inline /></div>]
+              : card
           })}
         </div>
       )}
