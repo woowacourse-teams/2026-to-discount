@@ -532,8 +532,8 @@
               visibility 200ms;
 }
 .banner-dock--shown { visibility: visible; opacity: 1; transform: none; }
-/* 2026-10-15 사용자: 하단 도크 좌우 폭을 줄여 덜 거슬리게. 안쪽 여백만 더한다 */
-.banner-dock { padding-inline: 20px; }
+/* 2026-10-15 사용자: 하단 도크를 작게, 오른쪽에 붙여 덜 거슬리게 */
+.banner-dock { left: auto; right: 12px; width: min(280px, calc(100% - 24px)); margin: 0; bottom: 12px; }
 /* 하단 도크에서는 배너 카드의 바닥선에 맞춘다(도크 패딩만큼 올린다). */
 
 .banner-dock__inner .banner__ctl { bottom: calc(var(--dock-pad-bottom) + 6px); right: calc(var(--dock-pad-x, 1rem) + 6px); }
@@ -568,3 +568,13 @@
 /* 배너를 받기 전 자리. 실측 높이(2026-09-30): 360px 폭 103px, 412px 폭 88px. */
 .banner-slot--pending { min-height: 103px; }
 @media (min-width: 400px) { .banner-slot--pending { min-height: 88px; } }
+
+/* 2026-10-15 사용자: 하단 도크는 작게. 로고, 글자, 여백을 줄이고 카운터는 숨긴다(넘김 링만 남김) */
+.banner-dock .banner__logo { --logo: 40px; --logo-radius: 10px; }
+.banner-dock .banner__link { padding: 10px 12px; gap: 10px; }
+.banner-dock .banner__amount { font-size: 1.05rem; }
+.banner-dock .banner__brand, .banner-dock .banner__period, .banner-dock .banner__extra { font-size: .72rem; }
+.banner-dock .banner__platform { display: none; }
+.banner-dock .banner__counter { display: none; }
+.banner-dock .banner__ctl { bottom: 18px; right: 10px; }
+.banner-dock .banner__logo { padding-left: 12px; }
