@@ -19,6 +19,19 @@ api/gradle/wrapper/gradle-wrapper.jar
 api/gradle/wrapper/gradle-wrapper.properties
 api/gradlew
 api/gradlew.bat
+api/load-tests/.gitignore
+api/load-tests/README.md
+api/load-tests/actions_api.py
+api/load-tests/cloud-run.py
+api/load-tests/compression-experiment.py
+api/load-tests/read-api.js
+api/load-tests/run.py
+api/load-tests/runner-preflight.py
+api/load-tests/server-monitor.py
+api/load-tests/server-snapshot.py
+api/load-tests/summarize.py
+api/load-tests/test_actions_runner.py
+api/load-tests/test_guard.py
 api/settings.gradle
 api/src/main/java/com/discounttracker/DiscountApiApplication.java
 api/src/main/java/com/discounttracker/analytics/AnalyticsEventService.java
@@ -144,6 +157,7 @@ api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/BrandHistoryEndpointTest.java
 api/src/test/java/com/discounttracker/web/DevelopmentCorsTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
+api/src/test/java/com/discounttracker/web/JsonCompressionIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PerformanceMetricsIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PushAdminControllerTest.java
 api/src/test/java/com/discounttracker/web/PushAdminCorsTest.java
@@ -353,7 +367,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 154 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 168 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 151 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이

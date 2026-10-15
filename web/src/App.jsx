@@ -428,6 +428,21 @@ export default function App({ initial = null }) {
   // React가 그 경계를 버리고 다시 그린다(#421). 브라우저 값 반영은 급하지 않다.
   useEffect(() => { startTransition(() => setHidden(readHidden())) }, [])
   const [hiddenOpen, setHiddenOpen] = useState(false)
+  const hiddenToggleRef = useRef(null)
+  const primarySortRef = useRef(null)
+  const closeHidden = () => {
+    // aria-hidden을 적용하기 전에 포커스를 목록 밖으로 옮긴다.
+    hiddenToggleRef.current?.focus({ preventScroll: true })
+    setHiddenOpen(false)
+  }
+  const showHiddenBrand = (name) => {
+    const next = showBrand(hidden, name)
+    // 마지막 항목을 복원하면 여는 버튼도 사라지므로 정렬 버튼을 사용한다.
+    const target = Object.keys(next).length ? hiddenToggleRef : primarySortRef
+    target.current?.focus({ preventScroll: true })
+    if (Object.keys(next).length === 0) setHiddenOpen(false)
+    setHidden(next)
+  }
   const bestOf = useCallback(
     (b) => displayBestAmount(b.offers, includesFrom(filters)), [filters])
   // 바로 숨기지 않는다. 어떻게 숨길지 물어본 뒤에 숨긴다.
@@ -624,6 +639,7 @@ export default function App({ initial = null }) {
             return (
               <button
                 key={key}
+                ref={key === 'amount' ? primarySortRef : undefined}
                 type="button"
                 className={`quick-bar__chip${on ? ' quick-bar__chip--on' : ''}`}
                 aria-pressed={on}
@@ -639,7 +655,8 @@ export default function App({ initial = null }) {
             )
           })}
         </div>
-        {/* N천원 이상만(2026-10-03, 사용자): 같은 줄 오른쪽 끝. 시트의 같은 칸과 한 상태, 기본은 켜짐.
+        <div className="quick-bar__actions">
+        {/* N천원 이상만: 시트의 같은 칸과 한 상태, 기본은 켜짐.
             2026-10-13 사용자: 금액은 시트에서 고르고 적용해야 바뀐다. */}
         <button
           type="button"
@@ -659,15 +676,21 @@ export default function App({ initial = null }) {
         {Object.keys(hidden).length > 0 && (
           <button
             type="button"
+            ref={hiddenToggleRef}
             className="quick-bar__hidden"
             aria-expanded={hiddenOpen}
-            onClick={() => { setHiddenOpen((v) => !v); if (!hiddenOpen) track('hidden_open') }}
+            aria-controls="hidden-brands"
+            onClick={() => {
+              if (hiddenOpen) closeHidden()
+              else { setHiddenOpen(true); track('hidden_open') }
+            }}
           >
             숨긴 목록
             <span className="quick-bar__hidden-count">{Object.keys(hidden).length}</span>
             {revived.length > 0 && <span className="quick-bar__hidden-dot" aria-hidden="true" />}
           </button>
         )}
+        </div>
         </div>
       )}
 
@@ -700,14 +723,8 @@ export default function App({ initial = null }) {
           hidden={hidden}
           revived={revived}
           open={hiddenOpen}
-          onClose={() => setHiddenOpen(false)}
-          onShow={(name) => setHidden((prev) => {
-            const next = showBrand(prev, name)
-            // 다 되살리면 펼침을 끈다. 안 끄면 다음에 하나 숨겼을 때 누르지도
-            // 않은 목록이 펼쳐진 채로 뜬다(2026-09-25 사용자).
-            if (Object.keys(next).length === 0) setHiddenOpen(false)
-            return next
-          })}
+          onClose={closeHidden}
+          onShow={showHiddenBrand}
           onRule={(name, rule) => setHidden((prev) => setRule(prev, name, rule))}
         />
         </Suspense>

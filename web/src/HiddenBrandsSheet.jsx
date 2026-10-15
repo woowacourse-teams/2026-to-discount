@@ -16,12 +16,12 @@ export default function HiddenBrandsSheet({ hidden, revived = [], open, onClose,
   // 닫혀 있어도 DOM에 남긴다. 붙였다 뗐다 하면 높이를 잴 수 없어 펼치는 동작이
   // 한 칸 튀어 버린다. 여닫기는 CSS 전환이 맡는다.
   return (
-    <div className={`hidden-wrap${open ? ' hidden-wrap--open' : ''}`} aria-hidden={!open}>
+    <div id="hidden-brands" className={`hidden-wrap${open ? ' hidden-wrap--open' : ''}`} aria-hidden={!open} inert={open ? undefined : ''}>
     {/* 잘리는 층과 보이는 층을 나눈다. 접었을 때 높이가 0이 되려면 안쪽 여백과
         테두리가 잘리는 층 안에 있어야 한다 - 밖에 두면 접어도 26px가 남는다
         (2026-09-24 실측). */}
     <div className="hidden-clip">
-    <div className="hidden-sheet" role="dialog" aria-modal="true" aria-label="숨긴 브랜드">
+    <div className="hidden-sheet" role="region" aria-label="숨긴 브랜드">
       <div className="hidden-sheet__head">
         <strong>숨긴 브랜드 {names.length}개</strong>
         <button type="button" className="hidden-sheet__close" onClick={onClose} aria-label="닫기">×</button>
