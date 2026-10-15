@@ -183,7 +183,12 @@ function Carousel({ brand, best, position, idx, setIdx }) {
     if (!root || typeof IntersectionObserver === 'undefined') return undefined
     const slides = [...root.children]
     const io = new IntersectionObserver((entries) => {
-      for (const e of entries) if (e.isIntersecting) setIdx(slides.indexOf(e.target))
+      // 한 번에 여럿이 보이면(첫 그리기) 마지막 것이 아니라 가장 많이 보이는 것, 같으면 앞 장(2026-10-15: 신규 첫 장인데 점과 배지가 둘째를 가리켰다)
+      const seen = entries.filter((e) => e.isIntersecting)
+      if (seen.length === 0) return
+      const top = seen.reduce((a, b) => (b.intersectionRatio > a.intersectionRatio + 0.01
+        || (Math.abs(b.intersectionRatio - a.intersectionRatio) <= 0.01 && slides.indexOf(b.target) < slides.indexOf(a.target)) ? b : a))
+      setIdx(slides.indexOf(top.target))
     }, { root, threshold: 0.6 })
     slides.forEach((el) => io.observe(el))
     return () => io.disconnect()

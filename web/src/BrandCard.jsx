@@ -1,7 +1,7 @@
 import { memo, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
-import { comparable, displayBestAmount, offerKey, bundleFirst, isBundle } from './filters.js'
+import { comparable, displayBestAmount, offerKey, bundleFirst, isBundle, isUpdated } from './filters.js'
 import { BrandLogo } from './logos.jsx'
 import BestHistoryChart from './BestHistoryChart.jsx'
 import OfferChip from './OfferChip.jsx'
@@ -63,7 +63,8 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
   const bundleOffers = useMemo(() => (brand.offers.every(isBundle) ? [] : brand.offers.filter(isBundle)), [brand.offers])
   const [heroOffers, restOffers] = useMemo(() => {
     const pool = sortedOffers.filter((o) => !bundleOffers.includes(o))
-    const best = pool.filter(isBest)
+    // 동점 최고 중 신규를 맨 앞으로(2026-10-15 사용자, 새 홈 캐러셀과 같게). 나머지 순서는 그대로.
+    const best = pool.filter(isBest).sort((x, y) => isUpdated(y) - isUpdated(x))
     return best.length > 0
       ? [best, pool.filter((o) => !isBest(o))]
       : [pool.slice(0, 1), pool.slice(1)]
