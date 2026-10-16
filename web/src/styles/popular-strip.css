@@ -15,49 +15,60 @@
 .rank-change--down { color: #4c6ef5; }
 .rank-change--same { color: var(--text-muted); }
 
-/* 인기 브랜드(PopularDock.jsx). 2026-10-17 사용자: 하단 고정에서 상단 바의 검색과 분류 사이로.
-   접히면 바 안의 한 줄(1~5위를 굴린다), 누르면 그 줄에서 아래로 다섯 줄 판이 펼쳐져 목록을 덮는다. 바 높이는 그대로다. */
+/* 인기 브랜드(PopularDock.jsx). 상단 바의 검색과 분류 사이 한 줄(2026-10-17 사용자).
+   접히면 [HOT | 굴러가는 한 줄 | 펼치기]. 펼치면 바 바로 아래로 화면 폭을 다 쓰는 판이 열리고(테두리 없이 위 실선 하나와
+   아래 그림자), 뒤는 옅게 가린다. 레퍼런스: 네이버·다음 실시간 검색어, 무신사 인기 검색어 펼침. */
 .pop-dock {
-  --row: 38px;
-  position: relative; z-index: 3; display: flex; align-items: center; gap: 8px;
-  height: var(--row); padding: 0 12px 0 16px;
+  --row: 34px; --lx: 62px;
+  position: relative; z-index: 3; isolation: isolate; height: var(--row);
 }
-.pop-dock__label { flex: none; color: var(--sale); font-size: .74rem; font-weight: 800; letter-spacing: -0.02em; }
-.pop-dock__list { position: relative; flex: 1; min-width: 0; height: var(--row); margin: 0; padding: 0; list-style: none; isolation: isolate; }
-/* 펼친 판: 줄 뒤에 깔리고 높이만 늘어난다 */
-.pop-dock__list::before {
-  content: ""; position: absolute; z-index: -1; left: -8px; right: -6px; top: 0;
-  height: calc(var(--row) * var(--rows)); border-radius: 12px; background: var(--surface);
-  transition: height .32s cubic-bezier(.16, 1, .3, 1), box-shadow .2s ease;
+.pop-dock__label {
+  position: absolute; left: 16px; top: 0; height: var(--row); display: inline-flex; align-items: center; gap: 1px;
+  color: var(--sale); font-size: .78rem; font-weight: 900; letter-spacing: .02em;
 }
-.pop-dock--open .pop-dock__list::before { top: -2px; height: calc(var(--row) * var(--rows) + 8px); border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0, 0, 0, .14); }
+.pop-dock__list { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
+/* 펼친 판: 바 폭 그대로, 위 실선 하나와 아래로 번지는 그림자만 */
+.pop-dock::before {
+  content: ""; position: absolute; z-index: -1; left: 0; right: 0; top: var(--row); height: 0;
+  background: var(--surface); border-top: 1px solid transparent;
+  transition: height .3s cubic-bezier(.16, 1, .3, 1);
+}
+.pop-dock--open { background: var(--surface); }
+.pop-dock--open::before { height: calc(var(--row) * var(--rows) + 10px); border-top-color: var(--border); box-shadow: 0 14px 20px -12px rgba(0, 0, 0, .18); }
 .pop-dock__item {
-  position: absolute; left: 0; right: 0; top: 0; height: var(--row);
+  position: absolute; top: 0; left: var(--lx); right: 44px; height: var(--row);
   transform: translateY(calc(var(--row) * var(--slot)));
   opacity: 0; pointer-events: none;
-  transition: transform .32s cubic-bezier(.16, 1, .3, 1), opacity .25s ease;
+  transition: transform .3s cubic-bezier(.16, 1, .3, 1), left .3s cubic-bezier(.16, 1, .3, 1), right .3s cubic-bezier(.16, 1, .3, 1), top .3s ease, opacity .2s ease;
 }
+.pop-dock--open .pop-dock__item { top: 5px; left: 10px; right: 10px; }
 .pop-dock__item.is-on { opacity: 1; pointer-events: auto; }
 .pop-dock__row {
   display: grid; grid-template-columns: 2.4em auto minmax(0, 1fr) 7ch; align-items: center; gap: 7px;
-  width: 100%; height: 100%; padding: 0 40px 0 2px; border: 0; border-radius: 8px; background: none;
-  font: inherit; font-size: .88rem; color: var(--text); cursor: pointer; text-align: left;
+  width: 100%; height: 100%; padding: 0 6px; border: 0; border-radius: 8px; background: none;
+  font: inherit; font-size: .86rem; color: var(--text); cursor: pointer; text-align: left;
+  transition: background-color .15s ease;
 }
+@media (hover: hover) { .pop-dock__row:hover { background: color-mix(in srgb, var(--text) 4%, var(--surface)); } }
 .pop-dock__row:active { background: color-mix(in srgb, var(--sale) 8%, var(--surface)); }
 .pop-dock__row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img { width: 26px; height: 26px; min-width: 26px; padding: 0; border-radius: 7px; object-fit: contain; }
+.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img { width: 24px; height: 24px; min-width: 24px; padding: 0; border-radius: 6px; object-fit: contain; }
 .pop-dock__change { display: flex; align-items: baseline; gap: 3px; font-size: .68rem; white-space: nowrap; }
 .pop-dock__rank { min-width: 1em; color: var(--text); font-size: .84rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .pop-dock__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* 다섯 자리 금액(12,000원) 너비를 늘 잡고 왼쪽 정렬 */
 .pop-dock__amount { font-weight: 700; color: var(--sale); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.pop-dock__go {
-  position: absolute; top: 50%; right: 2px; transform: translateY(-50%); display: grid; place-items: center;
-  width: 28px; height: 28px; border: 0; border-radius: 7px; background: color-mix(in srgb, var(--sale) 10%, var(--surface));
-  color: var(--sale); cursor: pointer;
+.pop-dock__more {
+  position: absolute; right: 10px; top: calc(var(--row) / 2); transform: translateY(-50%); display: grid; place-items: center;
+  width: 30px; height: 30px; border: 0; border-radius: 8px; background: none; color: var(--text-muted); cursor: pointer;
 }
-.pop-dock__go:active { transform: translateY(-50%) scale(.94); }
-.pop-dock__go:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-@media (prefers-reduced-motion: reduce) { .pop-dock__list::before, .pop-dock__item { transition: none; } }
+.pop-dock__more svg { transition: transform .25s ease; }
+.pop-dock--open .pop-dock__more svg { transform: rotate(180deg); }
+.pop-dock__more:active { background: color-mix(in srgb, var(--text) 6%, var(--surface)); }
+.pop-dock__more:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* 펼친 동안 뒤를 옅게 가린다. 누르면 접힌다(PopularDock 바깥 누름) */
+.pop-dock__dim { position: fixed; inset: 0; z-index: 59; background: rgba(0, 0, 0, .28); animation: pop-dim-in .2s ease; }
+@keyframes pop-dim-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .pop-dock::before, .pop-dock__item, .pop-dock__more svg { transition: none; } .pop-dock__dim { animation: none; } }
 /* 목록 안 한정 오퍼(배너 캐러셀, 2026-10-15). 카드 격자 한 줄을 다 쓴다 */
 .inline-banners { grid-column: 1 / -1; }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { BrandLogo } from './logos.jsx'
 import { RankChange } from './PopularStrip.jsx'
@@ -22,10 +23,11 @@ function Cells({ row }) {
 }
 
 /**
- * 인기 브랜드(2026-10-15 사용자: 배너 도크 자리를 인기 순위로, 2026-10-17 상단 바의 검색과 분류 사이로). 한 덩어리다. 접혀 있을 때는 한 줄만 보이며
- * 1~5위를 차례로 굴리고(실검 꼴), 누르면 아래로 다섯 줄 높이로 펼쳐져 목록을 덮으며 보이던 브랜드가 제 순위 자리로 미끄러진다.
- * 카드로 가는 것은 바로가기 아이콘뿐이고, 줄의 나머지는 펼치고 접는다(2026-10-16 사용자). 바깥을 눌러도 접힌다.
- * 근거: 10-14 17:25 이후 띠는 본 방문자 약 10%가 눌렀고 배너는 약 2%(PostHog, 백로그 "배너를 리스트 안으로").
+ * 인기 브랜드(2026-10-15 사용자: 배너 도크 자리를 인기 순위로, 2026-10-17 상단 바의 검색과 분류 사이로). 한 덩어리다.
+ * 접혀 있으면 한 줄에서 1~5위를 차례로 굴린다(실검 꼴). 줄(순위, 로고, 이름, 금액)을 누르면 그 카드로 가고,
+ * 오른쪽 펼치기 단추만 펼친다(2026-10-17 사용자). 펼치면 바 아래로 화면 폭을 다 쓰는 판이 열리고 보이던 브랜드가
+ * 제 순위 자리로 미끄러진다. 뒤는 옅게 가린다(네이버·다음 실검, 무신사 인기 검색어 펼침 꼴). 바깥을 누르면 접힌다.
+ * 근거: 10-14 17:25 이후 띠는 본 방문자 약 6%가 눌렀고 배너는 약 4%(PostHog, 2026-10-17 조회).
  */
 export default function PopularDock({ brands, onPick }) {
   const top = popularToday(brands)
@@ -51,38 +53,34 @@ export default function PopularDock({ brands, onPick }) {
   if (top.length < STRIP_MIN) return null
   const cur = i % top.length
   const toggle = () => { setOpen(!open); track('quick_filter', { key: 'popular_dock_toggle', on: !open }) }
-  const pick = (row, where = 'list') => {
+  const pick = (row, where) => {
     setOpen(false)
     onPick(row.brand.name)
     track('quick_filter', { key: 'popular_dock', brand: row.brand.name, position: row.rank, change: row.change, where })
   }
   return (
-    <aside ref={ref} className={`pop-dock${open ? ' pop-dock--open' : ''}`} style={{ '--rows': open ? top.length : 1 }} aria-label="인기 브랜드">
-      <span className="pop-dock__label" aria-hidden="true">인기 브랜드</span>
-      <ol className="pop-dock__list">
-        {top.map((row, n) => {
-          const on = open || n === cur
-          return (
-            <li key={row.brand.name} className={`pop-dock__item${on ? ' is-on' : ''}`} style={{ '--slot': open ? n : 0 }} aria-hidden={!on}>
-              <button
-                type="button"
-                className="pop-dock__row"
-                tabIndex={on ? 0 : -1}
-                aria-label={open ? '인기 브랜드 접기' : '인기 브랜드 펼치기'}
-                aria-expanded={open}
-                onClick={toggle}
-              >
-                <Cells row={row} />
-              </button>
-              {/* 바로가기: 이것만 그 카드로 가고 줄의 나머지는 펼친다(2026-10-16 사용자) */}
-              <button type="button" className="pop-dock__go" tabIndex={on ? 0 : -1} aria-label={`${row.brand.name} 카드로 가기`}
-                onClick={() => pick(row, open ? 'list' : 'rolling')}>
-                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M6 3.5h6.5V10M12.5 3.5 4 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </button>
-            </li>
-          )
-        })}
-      </ol>
-    </aside>
+    <>
+      {/* 상단 바는 transform이 있어 그 안의 fixed가 바에 갇힌다. 가림막은 body로 내보내 바(z 60) 바로 밑에 깐다 */}
+      {open && createPortal(<div className="pop-dock__dim" aria-hidden="true" />, document.body)}
+      <aside ref={ref} className={`pop-dock${open ? ' pop-dock--open' : ''}`} style={{ '--rows': top.length }} aria-label="인기 브랜드">
+        <span className="pop-dock__label"><span aria-hidden="true">🔥</span>HOT</span>
+        <ol className="pop-dock__list">
+          {top.map((row, n) => {
+            const on = open || n === cur
+            return (
+              <li key={row.brand.name} className={`pop-dock__item${on ? ' is-on' : ''}`} style={{ '--slot': open ? n + 1 : 0 }} aria-hidden={!on}>
+                <button type="button" className="pop-dock__row" tabIndex={on ? 0 : -1} aria-label={`${row.rank}위 ${row.brand.name} 카드로 가기`}
+                  onClick={() => pick(row, open ? 'list' : 'rolling')}>
+                  <Cells row={row} />
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+        <button type="button" className="pop-dock__more" aria-expanded={open} aria-label={open ? '인기 브랜드 접기' : '인기 브랜드 펼치기'} onClick={toggle}>
+          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+      </aside>
+    </>
   )
 }
