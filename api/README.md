@@ -258,7 +258,7 @@ banners:
     startsAt: '2026-10-14T00:00:00'
     endsAt: '2026-10-14T23:59:59'
     priority: 2                    # 생략 시 999. 낮을수록 먼저
-    firstCome: use                 # 선착순(사용 선착순). 상시 할인과 다른 칸에 선다
+    firstCome: use                 # 선착순(사용 선착순). 같은 앱 상시 할인과 금액이 다르면 그 오퍼의 한 구간으로 붙는다
     opensAt: '11:00'
     minOrder: 25000
     soldOutOn: 2026-10-14          # 이날 소진. 기계 관측이 적는다

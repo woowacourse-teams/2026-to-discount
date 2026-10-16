@@ -149,6 +149,9 @@ function ComboInfo({ o, text }) {
   )
 }
 
+// 서버 렌더에서는 layout effect가 돌지 않고 경고만 남긴다(App.jsx와 같은 꼴).
+const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
 // 동점 최고: 오퍼마다 단독 쿠폰과 같은 쿠폰 하나, 가로 캐러셀(CSS 스크롤 스냅)에 나란히. 배지는 그 쿠폰 오른쪽 위 포스트잇.
 // 현재 위치 점은 IntersectionObserver로만 갱신한다(스크롤 이벤트, 폭 재기 없음). 서버 렌더와 마운트 전에는 첫 점이 켜져 있다.
 function Carousel({ brand, best, position, idx, setIdx }) {
@@ -178,6 +181,31 @@ function Carousel({ brand, best, position, idx, setIdx }) {
     track('coupon_carousel_swipe', { brand: brand.name, from: shownIdx.current, to: idx, count: best.length, platform: best[idx]?.platform ?? 'none' })
     shownIdx.current = idx
   }, [idx])
+  // iOS 사파리는 첫 배치 중에 넘김을 스스로 둘째 장에 붙였다(2026-10-15 ios-shot 배치 검사: scrollLeft 360, 점 2).
+  // 사람이 손대기 전(터치, 마우스, 휠, 키보드 포커스)에 일어난 스크롤은 첫 장으로 되돌린다. 폭은 재지 않는다.
+  // 첫 그림 전에 되돌리려고 layout effect다(그 사이 둘째 장이 한 번 보이지 않게).
+  useIsoLayoutEffect(() => {
+    const root = ref.current
+    if (!root) return undefined
+    let touched = false
+    const mark = () => { touched = true }
+    const keep = () => { if (!touched && root.scrollLeft !== 0) root.scrollLeft = 0 }
+    const marks = ['pointerdown', 'pointermove', 'touchstart', 'touchmove', 'wheel', 'focusin', 'keydown']   // 끄는 도중도 사람이다
+    marks.forEach((t) => root.addEventListener(t, mark, { passive: true }))
+    root.addEventListener('scroll', keep, { passive: true })
+    keep()                                            // 효과가 붙기 전에 이미 붙어 버린 경우
+    // 글꼴이 들어와 다시 배치된 뒤: 되돌리고, 넘김 층을 한 번 다시 그리게 한다. iOS는 이 층을 글꼴 전 그림으로 남겨
+    // 금액과 "원 할인"이 겹쳐 보였다(2026-10-16 ios-shot에서 이 후보만 늘 바로 그렸다).
+    document.fonts?.ready.then(() => {
+      keep()
+      root.style.transform = 'translateZ(0)'
+      requestAnimationFrame(() => { root.style.transform = '' })
+    })
+    return () => {
+      marks.forEach((t) => root.removeEventListener(t, mark))
+      root.removeEventListener('scroll', keep)
+    }
+  }, [])
   useEffect(() => {
     const root = ref.current
     if (!root || typeof IntersectionObserver === 'undefined') return undefined

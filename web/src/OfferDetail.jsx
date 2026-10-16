@@ -1,5 +1,5 @@
 import { MEMBERSHIP_LABEL, isBundle } from './filters.js'
-import { formulaOf } from './couponModel.js'
+import { formulaOf, noteParts } from './couponModel.js'
 import { PlatformBadge, PLATFORM_BY_KEY } from './logos.jsx'
 import { OWN, OWN_LABEL } from './platforms.js'
 import { won } from './OfferChip.jsx'
@@ -91,7 +91,7 @@ export default function OfferDetail({ offer, brandName }) {
                       {MEMBERSHIP_LABEL[offer.platform] ?? t.membership}
                     </span>
                   )}
-                  {t.note && <span className="detail__channel">{t.note}</span>}
+                  {noteParts(t.note).map((n) => <span key={n} className="detail__channel">{n}</span>)}
                 </span>
                 <span className="detail__tier-expiry">
                   {/* 구간마다 끝나는 날이 다를 수 있다(배민 청년피자 일반

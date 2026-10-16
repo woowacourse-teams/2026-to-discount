@@ -77,12 +77,20 @@
 .cc-stub svg { width: 26px; height: 26px; }
 
 /* 같은 금액이 여러 앱이면 우열을 꾸며내지 않는다: 쿠폰마다 하나씩 가로 캐러셀(CSS 스크롤 스냅). 그림자가 잘리지 않게 안쪽 여백을 둔다 */
-.cc-carousel-wrap { flex: 1; min-width: 0; container-type: inline-size; }
+/* 넘김 폭은 컨테이너 단위(cqw) 대신 %로 잰다. iOS가 넘김 감싸개(container-type)의 폭을 0으로 읽은 채 남겨 장 폭이 0이
+   되고(장 위치 [0, 0]), 그때 쿠폰 배지가 화면 밖으로 밀려 페이지가 78px 넓어지고 금액 글자가 겹쳐 그려졌다
+   (2026-10-16 ios-shot 배치 검사, 감싸개의 container-type을 뺀 후보만 늘 바로 그렸다). 여백과 장 폭 공식은 그대로다:
+   안쪽 폭 = 폭 - 2 x (5% + 15px) = 90% - 30px = 장 폭(100%). */
+.cc-carousel-wrap { flex: 1; min-width: 0; }
+/* iOS 사파리(2026-10-15 ios-shot 재현): 그림자 filter가 걸린 조상 안의 가로 스크롤은 처음 그린 층을 다시 안 그렸다.
+   쿠폰 흰 바탕(마스크)이 빠지고, 글꼴이 늦게 와도 금액과 "원 할인"이 겹친 채, 장 위치도 어긋났다. 넘김이 든 줄은 그림자를 쿠폰마다 단다 */
+.cc-deal:has(.cc-carousel) { filter: none; }
+.cc-carousel .cc-tkw, .cc-deal:has(.cc-carousel) .cc-bundle { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .12)) drop-shadow(0 6px 16px rgba(0, 0, 0, .10)); }
 /* 가운데 정렬 캐러셀: 간격 7px, 트랙 좌우 15px, 쿠폰 = 줄 폭 - 30px. 어느 쿠폰을 가운데 둬도 양쪽 15px, 이웃이 있으면 간격 7px 뒤 끝 8px만 보인다 */
-.cc-carousel { display: flex; gap: 7px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 18px calc(5cqw + 15px) 28px; margin: -18px 0 -28px; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; }
+.cc-carousel { display: flex; gap: 7px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 18px calc(5% + 15px) 28px; margin: -18px 0 -28px; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; }
 .cc-carousel::-webkit-scrollbar { display: none; }
 .cc-carousel.cc-dragging { scroll-snap-type: none; cursor: grabbing; user-select: none; }
-.cc-slide { flex: 0 0 calc(90cqw - 30px); /* 2026-10-05 사용자: 10% 줄여 양옆 노출을 5%씩 늘림 */ scroll-snap-align: center; position: relative; display: flex; }
+.cc-slide { flex: 0 0 100%; /* = 감싸개 폭의 90% - 30px(2026-10-05 사용자: 10% 줄여 양옆 노출을 5%씩 늘림) */ scroll-snap-align: center; position: relative; display: flex; }
 .cc-slide .cc-tkw { width: 100%; }
 .cc-dots { display: flex; justify-content: center; gap: 5px; margin-top: 10px; }
 /* 선 모양 점: 지금 쿠폰은 길게 */
@@ -114,7 +122,8 @@
 .cc-t-amt { color: var(--text); font-weight: 600; white-space: nowrap; }
 .cc-t-amt small { margin-left: 4px; font-size: 12.6px; font-weight: 400; color: var(--text-muted); }
 .cc-t-chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.cc-t-chips .detail__channel { font-size: 12.6px; }
+/* 표 안의 칩은 칸 안에서 줄을 바꾼다. 한 줄로 두면 긴 구간 메모("오전 10시 오픈 선착순")가 오른쪽 최소주문을 덮었다(2026-10-15). */
+.cc-t-chips .detail__channel { font-size: 12.6px; white-space: normal; word-break: keep-all; }
 .cc-t-min { white-space: nowrap; text-align: right; }
 .cc-t-head { grid-column: 1 / -1; display: flex; --pb: 18px; }
 .cc-tbl > .cc-t-head { border-top: 0; }
@@ -372,8 +381,8 @@
 /* 2026-10-07 사용자: 캐러셀이 작아 보여 반대로 캐러셀 쿠폰을 단일 쿠폰(카드 폭 - 30px의 96%) 크기에 맞춘다 */
 .cc--compact .cc-main-in > .cc-tkw { width: calc((100% - 30px) * .96); }
 .cc--compact > .cc-hint { width: calc((100% - 30px) * .96 * .294 + (100% - (100% - 30px) * .96) / 2); }
-.cc--compact .cc-slide { flex-basis: calc((100cqw - 30px) * .96); }
-.cc--compact .cc-carousel { padding-inline: calc(2cqw + 14.4px); }
+.cc--compact .cc-slide { flex-basis: 100%; } /* = (감싸개 폭 - 30px) x .96 */
+.cc--compact .cc-carousel { padding-inline: calc(2% + 14.4px); }
 .cc--compact > .cc-deal { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 7px); }
 .cc--compact:not(.cc--open)::after { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 198px - 2 * var(--pad)); }
 @container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 198px); } }
