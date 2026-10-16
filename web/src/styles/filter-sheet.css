@@ -180,7 +180,8 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--sale);
+  /* 연한 주황 판 위 안 고른 쪽 글씨. --sale 그대로는 대비 4.08:1이라(Lighthouse 2026-10-17) 조금 어둡게 4.7:1 */
+  color: color-mix(in srgb, var(--sale) 90%, #000);
   cursor: pointer;
   white-space: nowrap;
   transition: background .2s cubic-bezier(.2, .8, .2, 1), color .2s ease, box-shadow .2s ease;

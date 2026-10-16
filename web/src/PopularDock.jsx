@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { BrandLogo } from './logos.jsx'
@@ -6,6 +6,7 @@ import { RankChange } from './PopularStrip.jsx'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
 import { bestConfirmedAmount } from './filters.js'
 
+let impressed = false
 const ROLL_MS = 5500 // 2026-10-16 사용자: 넘어가는 시간을 늘려(3.5초 -> 5.5초)
 
 // 한 줄: 증감(작게), 로고, 이름(넘치면 ...), 최고 할인. 목록과 굴림 줄이 같은 칸을 쓴다(2026-10-15 사용자)
@@ -30,7 +31,7 @@ function Cells({ row }) {
  * 근거: 10-14 17:25 이후 띠는 본 방문자 약 6%가 눌렀고 배너는 약 4%(PostHog, 2026-10-17 조회).
  */
 export default function PopularDock({ brands, onPick }) {
-  const top = popularToday(brands)
+  const top = useMemo(() => popularToday(brands), [brands])
   const [i, setI] = useState(0)
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -45,14 +46,25 @@ export default function PopularDock({ brands, onPick }) {
 
   useEffect(() => {
     if (!open) return undefined
-    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
+    const close = (e) => {
+      if (ref.current?.contains(e.target)) return
+      setOpen(false)
+      track('quick_filter', { key: 'popular_dock_toggle', on: false, via: 'outside' })
+    }
     document.addEventListener('pointerdown', close)
     return () => document.removeEventListener('pointerdown', close)
   }, [open])
 
+  // 노출: 페이지마다 한 번, 그때 보인 1위와 줄 수(2026-10-17 사용자: 이벤트 싹 붙이기). 상단 바가 바뀌어 다시 붙어도 한 번이다(모듈 변수).
+  useEffect(() => {
+    if (impressed || top.length < STRIP_MIN) return
+    impressed = true
+    track('popular_dock_impression', { brand: top[0].brand.name, count: top.length })
+  }, [top])
+
   if (top.length < STRIP_MIN) return null
   const cur = i % top.length
-  const toggle = () => { setOpen(!open); track('quick_filter', { key: 'popular_dock_toggle', on: !open }) }
+  const toggle = () => { setOpen(!open); track('quick_filter', { key: 'popular_dock_toggle', on: !open, via: 'button' }) }
   const pick = (row, where) => {
     setOpen(false)
     onPick(row.brand.name)

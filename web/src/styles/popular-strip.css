@@ -19,11 +19,13 @@
    접히면 [HOT | 굴러가는 한 줄 | 펼치기]. 펼치면 바 바로 아래로 화면 폭을 다 쓰는 판이 열리고(테두리 없이 위 실선 하나와
    아래 그림자), 뒤는 옅게 가린다. 레퍼런스: 네이버·다음 실시간 검색어, 무신사 인기 검색어 펼침. */
 .pop-dock {
-  --row: 34px; --lx: 62px;
+  --row: 34px; --lx: 66px; --gut: 1.25rem;
   position: relative; z-index: 3; isolation: isolate; height: var(--row);
+  /* PC에서도 검색 줄, 분류 줄과 같은 본문 폭(880px, topbar-b.css)에 맞춘다(2026-10-17 사용자) */
+  max-width: 880px; margin: 0 auto;
 }
 .pop-dock__label {
-  position: absolute; left: 16px; top: 0; height: var(--row); display: inline-flex; align-items: center; gap: 1px;
+  position: absolute; left: var(--gut); top: 0; height: var(--row); display: inline-flex; align-items: center; gap: 1px;
   color: var(--sale); font-size: .78rem; font-weight: 900; letter-spacing: .02em;
 }
 .pop-dock__list { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
@@ -41,7 +43,9 @@
   opacity: 0; pointer-events: none;
   transition: transform .3s cubic-bezier(.16, 1, .3, 1), left .3s cubic-bezier(.16, 1, .3, 1), right .3s cubic-bezier(.16, 1, .3, 1), top .3s ease, opacity .2s ease;
 }
-.pop-dock--open .pop-dock__item { top: 5px; left: 10px; right: 10px; }
+.pop-dock--open .pop-dock__item { top: 5px; left: calc(var(--gut) - 6px); right: calc(var(--gut) - 6px); }
+/* 펼친 줄 사이 얇은 선: 브랜드끼리 갈라 보이게(2026-10-17 사용자) */
+.pop-dock--open .pop-dock__item:not(:first-child)::before { content: ""; position: absolute; left: 6px; right: 6px; top: 0; height: 1px; background: var(--border); }
 .pop-dock__item.is-on { opacity: 1; pointer-events: auto; }
 .pop-dock__row {
   display: grid; grid-template-columns: 2.4em auto minmax(0, 1fr) 7ch; align-items: center; gap: 7px;
@@ -59,7 +63,7 @@
 /* 다섯 자리 금액(12,000원) 너비를 늘 잡고 왼쪽 정렬 */
 .pop-dock__amount { font-weight: 700; color: var(--sale); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pop-dock__more {
-  position: absolute; right: 10px; top: calc(var(--row) / 2); transform: translateY(-50%); display: grid; place-items: center;
+  position: absolute; right: calc(var(--gut) - 8px); top: calc(var(--row) / 2); transform: translateY(-50%); display: grid; place-items: center;
   width: 30px; height: 30px; border: 0; border-radius: 8px; background: none; color: var(--text-muted); cursor: pointer;
 }
 .pop-dock__more svg { transition: transform .25s ease; }
@@ -72,3 +76,4 @@
 @media (prefers-reduced-motion: reduce) { .pop-dock::before, .pop-dock__item, .pop-dock__more svg { transition: none; } .pop-dock__dim { animation: none; } }
 /* 목록 안 한정 오퍼(배너 캐러셀, 2026-10-15). 카드 격자 한 줄을 다 쓴다 */
 .inline-banners { grid-column: 1 / -1; }
+@media (min-width: 900px) { .pop-dock--open::before { border-radius: 0 0 12px 12px; } } /* PC는 본문 폭 판이라 아래 모서리만 둥글게 */
