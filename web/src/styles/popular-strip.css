@@ -17,7 +17,7 @@
 
 /* 하단 인기 브랜드(PopularDock.jsx, 2026-10-15). 접히면 한 줄, 누르면 위로 다섯 줄 높이로 펼쳐지며 줄이 제 순위 자리로 간다 */
 .pop-dock {
-  --row: 44px;
+  --row: 50px;
   position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 14; /* 오른쪽 아래는 맨 위로 버튼 자리 */
   width: min(300px, calc(100% - 80px));
   background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
@@ -42,14 +42,15 @@
 .pop-dock--open .pop-dock__item { top: 8px; }
 .pop-dock__item.is-on { opacity: 1; pointer-events: auto; }
 .pop-dock__row {
-  display: grid; grid-template-columns: 1.7em auto minmax(0, 1fr) 7.2ch; align-items: center; gap: 8px;
-  width: 100%; height: 100%; padding: 0 12px; border: 0; border-radius: 10px; background: none;
+  display: grid; grid-template-columns: 2.6em auto minmax(0, 1fr) 7.2ch; align-items: center; gap: 8px;
+  width: 100%; height: 100%; padding: 0 8px 0 10px; border: 0; border-radius: 10px; background: none;
   font: inherit; font-size: .92rem; color: var(--text); cursor: pointer; text-align: left;
 }
 .pop-dock__row:active { background: color-mix(in srgb, var(--sale) 8%, var(--surface)); }
 .pop-dock__row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img { width: 24px; height: 24px; min-width: 24px; border-radius: 6px; }
-.pop-dock__change { font-size: .7rem; text-align: left; }
+/* 로고 크게, 여백 없이(2026-10-16 사용자: 로고가 너무 작다) */
+.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img { width: 34px; height: 34px; min-width: 34px; padding: 0; border-radius: 8px; object-fit: contain; }
+.pop-dock__change { display: flex; align-items: baseline; gap: 3px; font-size: .7rem; text-align: left; white-space: nowrap; }
 .pop-dock__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* 다섯 자리 금액(12,000원) 너비를 늘 잡고 왼쪽 정렬 */
 .pop-dock__amount { font-weight: 700; color: var(--sale); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: left; }
@@ -59,7 +60,7 @@
 .inline-banners { grid-column: 1 / -1; }
 
 /* 새벽 안내(survey-dock.css .night-notice)도 왼쪽 아래라 접힌 인기 브랜드 위로 올린다. 펼친 동안은 순위를 가리지 않게 숨긴다(2026-10-16 사용자) */
-html:has(.pop-dock) .night-notice { bottom: calc(12px + env(safe-area-inset-bottom, 0px) + 50px + 18px); }
+html:has(.pop-dock) .night-notice { bottom: calc(12px + env(safe-area-inset-bottom, 0px) + 56px + 18px); }
 html:has(.pop-dock--open) .night-notice { visibility: hidden; }
 
 /* 로고와 이름 묶음: 칸 배치는 그대로 두고 누른 자리만 가른다 */
@@ -74,4 +75,4 @@ html:has(.pop-dock--open) .night-notice { visibility: hidden; }
 }
 .pop-dock__go:active { transform: translateY(-50%) scale(.94); }
 .pop-dock__go:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.pop-dock__rank { color: var(--text-muted); font-weight: 600; }
+.pop-dock__rank { min-width: 1em; color: var(--text); font-size: .86rem; font-weight: 800; font-variant-numeric: tabular-nums; }

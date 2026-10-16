@@ -12,9 +12,9 @@ function Cells({ row }) {
   const amount = bestConfirmedAmount(row.brand.offers ?? [])
   return (
     <>
-      {/* 등락이 없으면 화살표 대신 순위(2026-10-16 사용자) */}
-      <span className="pop-dock__change">{row.change === 0 ? <span className="pop-dock__rank" aria-label={`${row.rank}위`}>{row.rank}</span> : <RankChange change={row.change} />}</span>
-      <BrandLogo name={row.brand.name} size={20} />
+      {/* 순위 옆에 등락, 그대로면 순위만(2026-10-16 사용자) */}
+      <span className="pop-dock__change"><span className="pop-dock__rank" aria-label={`${row.rank}위`}>{row.rank}</span>{row.change !== 0 && <RankChange change={row.change} />}</span>
+      <BrandLogo name={row.brand.name} size={32} />
       <span className="pop-dock__name">{row.brand.shortName ?? row.brand.name}</span>
       <span className="pop-dock__amount">{amount == null ? '' : `${amount.toLocaleString('ko-KR')}원`}</span>
     </>
@@ -24,7 +24,7 @@ function Cells({ row }) {
 /**
  * 하단 인기 브랜드(2026-10-15 사용자: 배너 도크 자리를 인기 순위로). 한 덩어리다. 접혀 있을 때는 한 줄만 보이며
  * 1~5위를 차례로 굴리고(실검 꼴), 누르면 위로 다섯 줄 높이로 펼쳐지며 보이던 브랜드가 제 순위 자리로 미끄러진다.
- * 펼친 뒤 한 줄을 누르면 그 카드로 가고, 바깥을 누르면 접힌다.
+ * 카드로 가는 것은 바로가기 아이콘뿐이고, 줄의 나머지는 펼치고 접는다(2026-10-16 사용자). 바깥을 눌러도 접힌다.
  * 근거: 10-14 17:25 이후 띠는 본 방문자 약 10%가 눌렀고 배너는 약 2%(PostHog, 백로그 "배너를 리스트 안으로").
  */
 export default function PopularDock({ brands, onPick }) {
@@ -50,7 +50,7 @@ export default function PopularDock({ brands, onPick }) {
 
   if (top.length < STRIP_MIN) return null
   const cur = i % top.length
-  const toggle = () => { setOpen(true); track('quick_filter', { key: 'popular_dock_toggle', on: true }) }
+  const toggle = () => { setOpen(!open); track('quick_filter', { key: 'popular_dock_toggle', on: !open }) }
   const pick = (row, where = 'list') => {
     setOpen(false)
     onPick(row.brand.name)
@@ -68,8 +68,9 @@ export default function PopularDock({ brands, onPick }) {
                 type="button"
                 className="pop-dock__row"
                 tabIndex={on ? 0 : -1}
-                aria-label={open ? `${row.rank}위 ${row.brand.name}` : '인기 브랜드 펼치기'}
-                onClick={() => (open ? pick(row) : toggle())}
+                aria-label={open ? '인기 브랜드 접기' : '인기 브랜드 펼치기'}
+                aria-expanded={open}
+                onClick={toggle}
               >
                 <Cells row={row} />
               </button>
