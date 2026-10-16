@@ -27,16 +27,22 @@ async function srcFiles(dir = 'src/') {
   for (const e of await readdir(new URL(dir, root), { withFileTypes: true })) {
     const p = `${dir}${e.name}`
     if (e.isDirectory()) out.push(...await srcFiles(`${p}/`))
-    else if (/\.(js|jsx)$/.test(e.name) && !/\.test\.js$/.test(e.name)) out.push(p)
+    else if (/\.(js|jsx)$/.test(e.name) && !/\.(test|spec)\.jsx?$/.test(e.name)) out.push(p)
   }
   return out
 }
 const scanned = []
 for (const p of await srcFiles()) {
   let text = await source(p)
-  if (p === 'src/analytics.js') text = text.slice(text.indexOf('export function startAnalytics()'))
+  if (p === 'src/analytics.js') {
+    const at = text.indexOf('export function startAnalytics()')
+    assert.notEqual(at, -1, 'src/analytics.js에서 startAnalytics를 못 찾았다. 이름이 바뀌면 여기를 고친다')
+    text = text.slice(at)
+  }
   scanned.push(...staticTrackEvents(p, text))
-}const controllerSource = await readFile(
+}
+
+const controllerSource = await readFile(
   apiFile('src', 'main', 'java', 'com', 'discounttracker', 'analytics', 'EventController.java'),
   'utf8',
 )

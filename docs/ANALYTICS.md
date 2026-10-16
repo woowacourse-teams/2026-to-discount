@@ -105,7 +105,9 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `category_change` | 분류 선택 | `category`, `from`(`bar`/`sheet`) |
 | `platform_filter_toggle` | 배달앱 켜고 끔 | `platform`, `from`(`bar`/`sheet`) |
 | `filter_sheet_open` | 바의 필터 버튼으로 시트 열기(옛 B안 시트, 2026-09-16 A 바에 병합) | 없음 |
-| `quick_filter` | 배너 아래 빠른 필터 줄(09-19~) | `key`(`minOrder`/`random`), `dir`, `on` |
+| `quick_filter` | 배너 아래 빠른 필터 줄(09-19~), 오늘 인기 띠(10-14~ `popular_strip`), 상단 HOT 순위(10-16~) | `key`(`minOrder`/`random`/`popular_strip`/`popular_dock`/`popular_dock_toggle`), `dir`, `on`. `popular_dock`: 순위 줄을 눌러 그 카드로 감, `brand`, `position`, `change`, `where`(`rolling` 접힌 한 줄 / `list` 펼친 목록). `popular_dock_toggle`: 펼침과 접힘, `on`, `via`(`button` 오른쪽 단추 / `outside` 바깥 누름, 10-17~) |
+| `popular_dock_impression` | 상단 HOT 순위가 보임. 페이지마다 한 번(10-17~) | `brand`(그때 1위), `count`(줄 수). 지금 거른 목록 기준 |
+| `sheet_tab` | 쿠폰 카드 시트의 할인 상세 / 할인 기록 탭(10-17~) | `brand`, `tab`(`detail`/`history`) |
 | `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
 | `filters_reset` | 초기화 버튼 | 없음 |
 | `home_click` | (2026-10-13 버튼째 뺐다. 그 전 기록에만 있다) 바의 홈 버튼 | 없음 |
