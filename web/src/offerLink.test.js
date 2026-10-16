@@ -24,6 +24,7 @@ test('클릭 속성은 운영 카드와 같은 키', () => {
 })
 
 test('쿠팡이츠: 탭 앱 링크든 무엇이든 공유 링크 하나로 연다(2026-10-12 사용자)', () => {
-  assert.equal(offerLink({ platform: 'coupangeats', link: 'coupangeats://Web?url=x' }, {}, 'BBQ'), COUPANGEATS_LINK)
+  assert.equal(offerLink({ platform: 'coupangeats', link: 'coupangeats://Web?url=x' }, {}, 'BBQ'), 'coupangeats://Web?url=x')
+  assert.equal(offerLink({ platform: 'coupangeats', link: 'https://share.coupangeats.com/old' }, {}, 'BBQ'), COUPANGEATS_LINK)
   assert.equal(offerLink({ platform: 'coupangeats' }, {}, 'BBQ'), COUPANGEATS_LINK)
 })
