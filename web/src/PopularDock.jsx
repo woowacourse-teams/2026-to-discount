@@ -5,19 +5,17 @@ import { RankChange } from './PopularStrip.jsx'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
 import { bestConfirmedAmount } from './filters.js'
 
-const ROLL_MS = 3500
+const ROLL_MS = 5500 // 2026-10-16 사용자: 넘어가는 시간을 늘려(3.5초 -> 5.5초)
 
 // 한 줄: 증감(작게), 로고, 이름(넘치면 ...), 최고 할인. 목록과 굴림 줄이 같은 칸을 쓴다(2026-10-15 사용자)
 function Cells({ row }) {
   const amount = bestConfirmedAmount(row.brand.offers ?? [])
   return (
     <>
-      <span className="pop-dock__change"><RankChange change={row.change} /></span>
-      {/* 접힌 줄에서 로고와 이름을 누르면 바로 그 카드로, 나머지를 누르면 펼친다(2026-10-16 사용자) */}
-      <span className="pop-dock__brand">
-        <BrandLogo name={row.brand.name} size={20} />
-        <span className="pop-dock__name">{row.brand.shortName ?? row.brand.name}</span>
-      </span>
+      {/* 등락이 없으면 화살표 대신 순위(2026-10-16 사용자) */}
+      <span className="pop-dock__change">{row.change === 0 ? <span className="pop-dock__rank" aria-label={`${row.rank}위`}>{row.rank}</span> : <RankChange change={row.change} />}</span>
+      <BrandLogo name={row.brand.name} size={20} />
+      <span className="pop-dock__name">{row.brand.shortName ?? row.brand.name}</span>
       <span className="pop-dock__amount">{amount == null ? '' : `${amount.toLocaleString('ko-KR')}원`}</span>
     </>
   )
@@ -71,9 +69,14 @@ export default function PopularDock({ brands, onPick }) {
                 className="pop-dock__row"
                 tabIndex={on ? 0 : -1}
                 aria-label={open ? `${row.rank}위 ${row.brand.name}` : '인기 브랜드 펼치기'}
-                onClick={(e) => (open ? pick(row) : e.target.closest('.pop-dock__brand') ? pick(row, 'rolling') : toggle())}
+                onClick={() => (open ? pick(row) : toggle())}
               >
                 <Cells row={row} />
+              </button>
+              {/* 바로가기: 이것만 그 카드로 가고 줄의 나머지는 펼친다(2026-10-16 사용자) */}
+              <button type="button" className="pop-dock__go" tabIndex={on ? 0 : -1} aria-label={`${row.brand.name} 카드로 가기`}
+                onClick={() => pick(row, open ? 'list' : 'rolling')}>
+                <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M6 3.5h6.5V10M12.5 3.5 4 12" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
             </li>
           )

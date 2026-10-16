@@ -64,3 +64,14 @@ html:has(.pop-dock--open) .night-notice { visibility: hidden; }
 
 /* 로고와 이름 묶음: 칸 배치는 그대로 두고 누른 자리만 가른다 */
 .pop-dock__brand { display: contents; }
+
+/* 바로가기 아이콘: 줄 오른쪽 끝, 줄 단추와 겹치지 않게 자리를 비운다 */
+.pop-dock__row { padding-right: 44px; }
+.pop-dock__go {
+  position: absolute; top: 50%; right: 6px; transform: translateY(-50%); display: grid; place-items: center;
+  width: 32px; height: 32px; border: 0; border-radius: 8px; background: color-mix(in srgb, var(--sale) 10%, var(--surface));
+  color: var(--sale); cursor: pointer;
+}
+.pop-dock__go:active { transform: translateY(-50%) scale(.94); }
+.pop-dock__go:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pop-dock__rank { color: var(--text-muted); font-weight: 600; }
