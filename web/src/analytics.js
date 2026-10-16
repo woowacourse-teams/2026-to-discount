@@ -59,7 +59,7 @@ const makeContext = () => ({
 let filterContext = {}
 let homeCtx = null
 const homeContext = () => {
-  const { arm, forced } = currentHomeArm(getAnalyticsContext().visitorId)
+  const { arm, forced } = currentHomeArm()
   return forced ? { home: arm, home_forced: '1' } : { home: arm }
 }
 

@@ -267,7 +267,7 @@ web/src/hiddenBrands.test.js
 web/src/historyChart.js
 web/src/historyChart.test.js
 web/src/homeExperiment.js
-web/src/homeExperiment.test.js
+web/src/homeRollout.test.js
 web/src/linkReturn.js
 web/src/linkReturn.test.js
 web/src/logoManifest.js
@@ -475,7 +475,7 @@ HTTP 경계:
 | `historyChart.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `historyChart.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeExperiment.js` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `homeExperiment.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `homeRollout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoManifest.js` | 런타임 모듈, 세부 책임은 코드 확인 |

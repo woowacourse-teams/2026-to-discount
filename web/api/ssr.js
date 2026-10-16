@@ -35,7 +35,7 @@ export default async function handler(req, res) {
   let body = template
   try {
     const data = await loadData()
-    // 미들웨어가 쿠키(dk_home=coupon)를 보고 붙인 내부 표시. 쿠폰 카드 쪽이면 처음부터 그 안으로 그린다.
+    // 미들웨어가 붙인 내부 표시(?home=old가 아니면 늘 붙는다, 2026-10-17 A/B 결론). 쿠폰 카드로 처음부터 그린다.
     if (new URL(req.url, 'http://x').searchParams.get('__arm') === 'coupon') data.arm = 'coupon'
     body = inject(template, await render(data), data)
     // 쿠폰 카드 CSS를 첫 페인트 전에 받는다. 지연 로드 조각이 나중에 같은 주소를 보면 다시 받지 않는다.
