@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { apiFile } from './api-repo.mjs'
 
 // 웹 소스는 이 저장소 뿌리에서, 허용 목록은 API 저장소에서 읽는다(api-repo.mjs).
@@ -20,57 +20,28 @@ function staticTrackEvents(path, contents) {
   return staticCalls.map((match) => match[2])
 }
 
-const appSource = await source('src/App.jsx')
-// App.jsx에서 떼어 낸 카드와 칩. offer_link_click·brand_expand·brand_impression을 여기서 쏜다.
-const brandCardSource = await source('src/BrandCard.jsx')
-const offerChipSource = await source('src/OfferChip.jsx')
-// 메인 화면 A/B의 쿠폰 카드(2026-10-04). 목록에서 빠져 있어 이 카드가 쏘는 이벤트는 대조되지 않았다.
-const couponCardSource = await source('src/CouponCard.jsx')
-const bannerSource = await source('src/EventBanner.jsx')
-// 상단 바(옛 A안 — 2026-09-15 B를 내리고 하나로 통일). 이 파일이 목록에서 빠져 있으면 A안에서만 쏘는 이벤트가
-// 허용 목록에 없어도 검사를 통과한다 — 정확히 그렇게 여섯 종이 서버에서
-// 버려지고 있었다.
-const topBarASource = await source('src/TopBarA.jsx')
-// 설문 카드. 이 파일이 목록에서 빠지면 survey_impression·survey_dismiss가
-// 서버 허용 목록에 없어도 검사를 통과하고, 서버가 조용히 버린다.
-const surveyCardSource = await source('src/SurveyCard.jsx')
-const surveyDockSource = await source('src/SurveyDock.jsx')
-const historyChartSource = await source('src/BestHistoryChart.jsx')
-// 필터 시트. membership_toggle(시트의 멤버십 칩)을 여기서 쏜다.
-const filterSheetSource = await source('src/FilterSheet.jsx')
-// 푸시 설정. 구독 결과 이벤트도 자체 API 원장으로 릴레이하므로 목록에서
-// 빠지면 API가 이름을 모른 채 조용히 버린다.
-const pushNotificationSettingSource = await source('src/PushNotificationSetting.jsx')
-// 실사용 측정(앱 열림, 바이탈, 오류). 2026-10-14
-const telemetrySource = await source('src/telemetry.js')
-const analyticsSource = await source('src/analytics.js')
-// 배달앱 링크. 앱이 안 열렸을 때 link_fallback을 여기서 쏜다.
-const offerLinkSource = await source('src/offerLink.js')
-const startAnalyticsSource = analyticsSource.slice(
-  analyticsSource.indexOf('export function startAnalytics()'),
-)
-const controllerSource = await readFile(
+// 웹 src 전체를 훑는다. 예전엔 파일을 손으로 적어, 목록에서 빠진 파일(2026-10-17 PopularDock.jsx 등)의 이벤트는
+// 서버 허용 목록과 대조되지 않았다. analytics.js는 track 정의가 있어 startAnalytics 아래만 본다. 테스트 파일은 뺀다.
+async function srcFiles(dir = 'src/') {
+  const out = []
+  for (const e of await readdir(new URL(dir, root), { withFileTypes: true })) {
+    const p = `${dir}${e.name}`
+    if (e.isDirectory()) out.push(...await srcFiles(`${p}/`))
+    else if (/\.(js|jsx)$/.test(e.name) && !/\.test\.js$/.test(e.name)) out.push(p)
+  }
+  return out
+}
+const scanned = []
+for (const p of await srcFiles()) {
+  let text = await source(p)
+  if (p === 'src/analytics.js') text = text.slice(text.indexOf('export function startAnalytics()'))
+  scanned.push(...staticTrackEvents(p, text))
+}const controllerSource = await readFile(
   apiFile('src', 'main', 'java', 'com', 'discounttracker', 'analytics', 'EventController.java'),
   'utf8',
 )
 
-const emittedEvents = new Set([
-  ...staticTrackEvents('src/App.jsx', appSource),
-  ...staticTrackEvents('src/BrandCard.jsx', brandCardSource),
-  ...staticTrackEvents('src/OfferChip.jsx', offerChipSource),
-  ...staticTrackEvents('src/CouponCard.jsx', couponCardSource),
-  ...staticTrackEvents('src/EventBanner.jsx', bannerSource),
-  ...staticTrackEvents('src/TopBarA.jsx', topBarASource),
-  ...staticTrackEvents('src/SurveyCard.jsx', surveyCardSource),
-  ...staticTrackEvents('src/SurveyDock.jsx', surveyDockSource),
-  ...staticTrackEvents('src/BestHistoryChart.jsx', historyChartSource),
-  ...staticTrackEvents('src/FilterSheet.jsx', filterSheetSource),
-  ...staticTrackEvents('src/PushNotificationSetting.jsx', pushNotificationSettingSource),
-  ...staticTrackEvents('src/telemetry.js', telemetrySource),
-  ...staticTrackEvents('src/analytics.js#startAnalytics', startAnalyticsSource),
-  ...staticTrackEvents('src/offerLink.js', offerLinkSource),
-  'page_exit',
-])
+const emittedEvents = new Set([...scanned, 'page_exit'])
 
 const allowedBlock = controllerSource.match(/ALLOWED_EVENTS\s*=\s*Set\.of\(([\s\S]*?)\);/)
 assert.ok(allowedBlock, 'EventController.ALLOWED_EVENTS를 찾을 수 없습니다.')

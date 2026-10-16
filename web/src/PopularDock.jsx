@@ -45,14 +45,26 @@ export default function PopularDock({ brands, onPick }) {
 
   useEffect(() => {
     if (!open) return undefined
-    const close = (e) => { if (!ref.current?.contains(e.target)) setOpen(false) }
+    const close = (e) => {
+      if (ref.current?.contains(e.target)) return
+      setOpen(false)
+      track('quick_filter', { key: 'popular_dock_toggle', on: false, via: 'outside' })
+    }
     document.addEventListener('pointerdown', close)
     return () => document.removeEventListener('pointerdown', close)
   }, [open])
 
+  // 노출: 페이지마다 한 번, 그때 1위와 줄 수(2026-10-17 사용자: 이벤트 싹 붙이기)
+  const seen = useRef(false)
+  useEffect(() => {
+    if (seen.current || top.length < STRIP_MIN) return
+    seen.current = true
+    track('popular_dock_impression', { brand: top[0].brand.name, count: top.length })
+  }, [top])
+
   if (top.length < STRIP_MIN) return null
   const cur = i % top.length
-  const toggle = () => { setOpen(!open); track('quick_filter', { key: 'popular_dock_toggle', on: !open }) }
+  const toggle = () => { setOpen(!open); track('quick_filter', { key: 'popular_dock_toggle', on: !open, via: 'button' }) }
   const pick = (row, where) => {
     setOpen(false)
     onPick(row.brand.name)
