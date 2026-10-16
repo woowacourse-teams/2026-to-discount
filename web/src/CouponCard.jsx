@@ -317,11 +317,15 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
     if (d?.active) settleSheet(d.dy, Date.now() - d.t < 300)
   }
   // 마우스(데스크톱)
+  const sheetBodyRef = useRef(null)
+  const sheetHistRef = useRef(null)
   const onSheetDown = (e) => { if (e.pointerType === 'mouse' && e.button === 0) dragStart(e.clientY, e.target) }
   const onSheetMove = (e) => { if (e.pointerType === 'mouse' && dragMove(e.clientY)) e.currentTarget.setPointerCapture?.(e.pointerId) }
   const onSheetUp = (e) => { if (e.pointerType === 'mouse') dragEnd() }
   const onCardClick = (e) => {
     if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging, .cc-combo__btn')) return
+    // 바로가기(인기 브랜드, #brand-이름)로 카드 안에서 펼쳐진 상태면 시트 대신 접는다(2026-10-16 사용자: 못 접는다)
+    if (phase === 'open' || phase === 'enter') { toggle(); return }
     if (!canExpand) return
     onInteract?.()
     track('brand_expand', { brand: brand.name, category: brand.category ?? 'none', via: 'sheet' })
@@ -479,8 +483,8 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
               <strong>{brand.shortName ?? brand.name}</strong>
               <button type="button" className="cc-sheet__close" aria-label="닫기" onClick={() => setSheet(false)}>×</button>
             </div>
-            <div className="cc-sheet__body">
-              <BestHistoryChart brand={brand.name} />
+            <SheetTabs bodyRef={sheetBodyRef} histRef={sheetHistRef} brand={brand.name} />
+            <div className="cc-sheet__body" ref={sheetBodyRef}>
               {[...best, ...rest].map((o, i) => {
                 // 중복 할인 계산식은 시트에서 뺐다(2026-10-07 사용자: 표 첫 줄에 이미 계산이 보인다)
                 const tb = conditionTable(o)
@@ -492,11 +496,43 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                   </div>
                 )
               })}
+              <section className="cc-sheet__hist" ref={sheetHistRef} aria-label="할인 기록"><BestHistoryChart brand={brand.name} /></section>
             </div>
           </div>
         </div>
         </>, document.body)}
     </article>
+  )
+}
+
+// 시트 얇은 탭바(2026-10-16 사용자): 할인 상세 / 할인 기록. 둘 다 한 화면에 이어 있고 탭은 그 자리로 스크롤만 한다.
+// 스크롤하면 지금 보이는 쪽 탭이 켜진다. 그래프가 없는 브랜드는 CSS(:has)가 탭바를 숨긴다.
+function SheetTabs({ bodyRef, histRef, brand }) {
+  const [onHist, setOnHist] = useState(false)
+  useEffect(() => {
+    const body = bodyRef.current
+    if (!body) return undefined
+    // 그래프 위 끝이 본문 가운데보다 위로 오거나 끝까지 내렸으면 기록 탭
+    const sync = () => {
+      const h = histRef.current
+      if (!h) return
+      const atEnd = body.scrollTop + body.clientHeight >= body.scrollHeight - 4
+      setOnHist(atEnd || h.offsetTop - body.scrollTop < body.clientHeight / 2)
+    }
+    body.addEventListener('scroll', sync, { passive: true })
+    return () => body.removeEventListener('scroll', sync)
+  }, [bodyRef, histRef])
+  const go = (hist) => {
+    const body = bodyRef.current
+    if (!body) return
+    track('sheet_tab', { brand, tab: hist ? 'history' : 'detail' })
+    body.scrollTo({ top: hist ? histRef.current.offsetTop - 8 : 0, behavior: 'smooth' })
+  }
+  return (
+    <div className="cc-sheet__tabs" role="tablist" aria-label="보기">
+      <button type="button" role="tab" aria-selected={!onHist} onClick={() => go(false)}>할인 상세</button>
+      <button type="button" role="tab" aria-selected={onHist} onClick={() => go(true)}>할인 기록</button>
+    </div>
   )
 }
 

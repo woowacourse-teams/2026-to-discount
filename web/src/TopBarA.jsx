@@ -143,6 +143,7 @@ export default function TopBarA({
   resetFilters,
   onOpenSheet,
   sheetOpen,
+  popular,
 }) {
   // Set 하나짜리를 단일 선택처럼 읽는다. 비어 있으면 "전체"다.
   // 신규(2026-10-05): 쿠폰 카드 쪽과 같은 규칙. 켜면 분류를 풀고 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
@@ -242,6 +243,7 @@ export default function TopBarA({
       {/* 분류 캐러셀. 버튼을 눌러 패널을 여는 대신 그냥 깔아둔다 —
           분류를 고르는 건 이 화면의 주된 조작이고, 한 번 더 누르게
           하면 그만큼 안 쓴다. 좁으면 옆으로 흐른다. */}
+      {popular /* 실시간 인기 순위: 위 줄과 분류 사이(2026-10-17 사용자) */}
       <nav className="cat-bar" aria-label="분류">
         <span className={`menu-bar__more menu-bar__more--left${catMore.left ? ' menu-bar__more--on' : ''}`} aria-hidden="true">‹</span>
         <span className={`menu-bar__more menu-bar__more--right${catMore.right ? ' menu-bar__more--on' : ''}`} aria-hidden="true">›</span>

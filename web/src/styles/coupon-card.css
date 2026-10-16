@@ -427,3 +427,16 @@
 /* 2026-10-13 재발(카카오톡 인앱, 글자 크기 '가가'): iOS 글자 크기 조절이 컨테이너 단위(cqw) 글자를 배치 뒤에 키워
    금액과 최소주문 글자가 제자리에서 겹쳤다. 쿠폰 칸은 카드 폭에 맞춘 크기라 조절을 끈다 */
 .cc-ticket, .cc--compact, .cc-carousel-wrap, .cc-sheet__item { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* 카드 안에서 펼친 쿠폰도 시트처럼: 쿠폰과 쿠폰 사이는 넓게, 한 쿠폰의 하위 줄(표)은 붙여서(2026-10-16 사용자) */
+.cc.cc--open .cc-deal--more:not(:first-child) { margin-top: 28px; }
+.cc.cc--open .cc-tbl { margin-top: 6px; }.cc.cc--open .cc-more > .cc-deal--more:first-child { margin-top: 28px; }
+/* 시트 얇은 탭바(2026-10-16 사용자): 할인 상세 / 할인 기록. 그래프는 쿠폰 아래, 탭은 그 자리로 스크롤 */
+.cc-sheet__tabs { flex: none; display: flex; gap: 18px; padding: 0 20px; border-bottom: 1px solid var(--border); }
+.cc-sheet__tabs button { all: unset; cursor: pointer; padding: 6px 0 7px; font-size: 14px; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.cc-sheet__tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--sale); }
+.cc-sheet__tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cc-sheet:not(:has(.hist)) .cc-sheet__tabs { display: none; }
+.cc-sheet__body { position: relative; }
+.cc-sheet__hist { margin-top: 20px; }
+.cc-sheet__hist:empty { display: none; }
+.cc-sheet__head { padding-bottom: 8px; }

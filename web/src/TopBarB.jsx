@@ -89,7 +89,7 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
   )
 }
 
-export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, search, setSearch, onSearchSubmit, brands, isFiltered, resetFilters, sheetOpen, onOpenSheet }) {
+export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, search, setSearch, onSearchSubmit, brands, isFiltered, resetFilters, sheetOpen, onOpenSheet, popular }) {
   // 지금 상단 바(TopBarA)와 같은 규칙: 분류는 하나만, '전체'나 같은 분류를 다시 누르면 전체로. 계측도 같은 이벤트.
   const toggleCategory = (key) => {
     setFilters((f) => ({ ...f, search: '', updatedOnly: false, categories: key === 'all' || f.categories.has(key) ? new Set() : new Set([key]) }))
@@ -142,6 +142,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           </button>
         </div>
       </div>
+      {popular /* 실시간 인기 순위: 검색과 분류 사이(2026-10-17 사용자) */}
       <MenuBar selected={menuSelected} onToggle={toggleCategory} leading={leading} />
     </div>
   )
