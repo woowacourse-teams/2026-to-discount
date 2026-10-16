@@ -1,5 +1,40 @@
 # 배거스 웹 첫 화면 변경 이력 (2026-07-27 ~ 2026-10-16)
 
+## 개요
+
+웹 첫 화면은 브랜드와 배달앱을 맞댄 표에서 시작해 지금의 쿠폰 카드 안까지 다섯 구간을 거쳤다. 번호는 아래 시점 번호다.
+
+| 구간 | 기간 | 시점 | 바뀐 것 |
+|---|---|---|---|
+| 표에서 카드로 | 2026-07-27 ~ 2026-07-31 | 01 ~ 04 | 브랜드와 앱을 맞댄 표를 브랜드 카드로 바꿨다. 로고, 분류 바, 펼치는 상세, 검색이 붙었다. |
+| 배너와 최고 할인 | 2026-08-13 ~ 2026-08-16 | 05 ~ 06 | 맨 위에 당일 행사 배너를 두고, 카드마다 그 브랜드의 최고 할인 하나를 크게 세웠다. |
+| 상단 바 A/B | 2026-08-20 ~ 2026-09-16 | 07 ~ 09 | 상단 바 두 안을 방문자 반반으로 견준 뒤(A/B 실험) A안으로 합쳤다. 배너를 크게 고쳤고 설문과 브랜드 자동완성이 들어왔다. |
+| 탐색 도구와 기반 | 2026-09-21 ~ 2026-10-02 | 10 ~ 12 | 빠른 정렬 바, 브랜드 숨기기, 알림 버튼이 생겼다. 화면 코드를 영역별로 나누고 홈을 서버가 미리 그리게 했다. |
+| 메인 화면 A/B | 2026-10-04 ~ 2026-10-16 | 13 ~ 18 | 대표 쿠폰 한 장을 크게 보이는 쿠폰 카드 안을 기존 안과 견주고 있다. 배너는 하단 도크로 내렸고, 첫 방문 안내는 넣었다가 뺐다. 오늘 인기 띠와 신규 맨 위 정렬이 들어왔다. |
+
+## 한눈에 보는 화면 변화
+
+A/B 기간은 새로 넣은 안(07과 08은 상단 바 A안, 13부터는 쿠폰 카드 안)을 실었다.
+
+### 폰
+
+<table>
+<tr><td align="center"><img alt="01. 2026-07-27 폰 화면" src="img/01-20260727-mobile.png" width="110"><br><sub>01. 2026-07-27</sub></td><td align="center"><img alt="02. 2026-07-28 폰 화면" src="img/02-20260728-mobile.png" width="110"><br><sub>02. 2026-07-28</sub></td><td align="center"><img alt="03. 2026-07-29 폰 화면" src="img/03-20260729-mobile.png" width="110"><br><sub>03. 2026-07-29</sub></td><td align="center"><img alt="04. 2026-07-31 폰 화면" src="img/04-20260731-mobile.png" width="110"><br><sub>04. 2026-07-31</sub></td><td align="center"><img alt="05. 2026-08-13 폰 화면" src="img/05-20260813-mobile.png" width="110"><br><sub>05. 2026-08-13</sub></td><td align="center"><img alt="06. 2026-08-16 폰 화면" src="img/06-20260816-mobile.png" width="110"><br><sub>06. 2026-08-16</sub></td></tr>
+<tr><td align="center"><img alt="07. 2026-08-20 폰 화면" src="img/07-20260820-va-mobile.png" width="110"><br><sub>07. 2026-08-20</sub></td><td align="center"><img alt="08. 2026-09-02 폰 화면" src="img/08-20260902-va-mobile.png" width="110"><br><sub>08. 2026-09-02</sub></td><td align="center"><img alt="09. 2026-09-16 폰 화면" src="img/09-20260916-mobile.png" width="110"><br><sub>09. 2026-09-16</sub></td><td align="center"><img alt="10. 2026-09-21 폰 화면" src="img/10-20260921-mobile.png" width="110"><br><sub>10. 2026-09-21</sub></td><td align="center"><img alt="11. 2026-09-25 폰 화면" src="img/11-20260925-mobile.png" width="110"><br><sub>11. 2026-09-25</sub></td><td align="center"><img alt="12. 2026-10-02 폰 화면" src="img/12-20261002-mobile.png" width="110"><br><sub>12. 2026-10-02</sub></td></tr>
+<tr><td align="center"><img alt="13. 2026-10-04 폰 화면" src="img/13-20261004-a-mobile.png" width="110"><br><sub>13. 2026-10-04</sub></td><td align="center"><img alt="14. 2026-10-07 폰 화면" src="img/14-20261007-a-mobile.png" width="110"><br><sub>14. 2026-10-07</sub></td><td align="center"><img alt="15. 2026-10-11 폰 화면" src="img/15-20261011-a-mobile.png" width="110"><br><sub>15. 2026-10-11</sub></td><td align="center"><img alt="16. 2026-10-13 폰 화면" src="img/16-20261013-a-mobile.png" width="110"><br><sub>16. 2026-10-13</sub></td><td align="center"><img alt="17. 2026-10-14 폰 화면" src="img/17-20261014-a-mobile.png" width="110"><br><sub>17. 2026-10-14</sub></td><td align="center"><img alt="18. 2026-10-16 폰 화면" src="img/18-20261016-a-mobile.png" width="110"><br><sub>18. 2026-10-16</sub></td></tr>
+</table>
+
+### PC
+
+<table>
+<tr><td align="center"><img alt="01. 2026-07-27 PC 화면" src="img/01-20260727-pc.png" width="250"><br><sub>01. 2026-07-27</sub></td><td align="center"><img alt="02. 2026-07-28 PC 화면" src="img/02-20260728-pc.png" width="250"><br><sub>02. 2026-07-28</sub></td><td align="center"><img alt="03. 2026-07-29 PC 화면" src="img/03-20260729-pc.png" width="250"><br><sub>03. 2026-07-29</sub></td></tr>
+<tr><td align="center"><img alt="04. 2026-07-31 PC 화면" src="img/04-20260731-pc.png" width="250"><br><sub>04. 2026-07-31</sub></td><td align="center"><img alt="05. 2026-08-13 PC 화면" src="img/05-20260813-pc.png" width="250"><br><sub>05. 2026-08-13</sub></td><td align="center"><img alt="06. 2026-08-16 PC 화면" src="img/06-20260816-pc.png" width="250"><br><sub>06. 2026-08-16</sub></td></tr>
+<tr><td align="center"><img alt="07. 2026-08-20 PC 화면" src="img/07-20260820-va-pc.png" width="250"><br><sub>07. 2026-08-20</sub></td><td align="center"><img alt="08. 2026-09-02 PC 화면" src="img/08-20260902-va-pc.png" width="250"><br><sub>08. 2026-09-02</sub></td><td align="center"><img alt="09. 2026-09-16 PC 화면" src="img/09-20260916-pc.png" width="250"><br><sub>09. 2026-09-16</sub></td></tr>
+<tr><td align="center"><img alt="10. 2026-09-21 PC 화면" src="img/10-20260921-pc.png" width="250"><br><sub>10. 2026-09-21</sub></td><td align="center"><img alt="11. 2026-09-25 PC 화면" src="img/11-20260925-pc.png" width="250"><br><sub>11. 2026-09-25</sub></td><td align="center"><img alt="12. 2026-10-02 PC 화면" src="img/12-20261002-pc.png" width="250"><br><sub>12. 2026-10-02</sub></td></tr>
+<tr><td align="center"><img alt="13. 2026-10-04 PC 화면" src="img/13-20261004-a-pc.png" width="250"><br><sub>13. 2026-10-04</sub></td><td align="center"><img alt="14. 2026-10-07 PC 화면" src="img/14-20261007-a-pc.png" width="250"><br><sub>14. 2026-10-07</sub></td><td align="center"><img alt="15. 2026-10-11 PC 화면" src="img/15-20261011-a-pc.png" width="250"><br><sub>15. 2026-10-11</sub></td></tr>
+<tr><td align="center"><img alt="16. 2026-10-13 PC 화면" src="img/16-20261013-a-pc.png" width="250"><br><sub>16. 2026-10-13</sub></td><td align="center"><img alt="17. 2026-10-14 PC 화면" src="img/17-20261014-a-pc.png" width="250"><br><sub>17. 2026-10-14</sub></td><td align="center"><img alt="18. 2026-10-16 PC 화면" src="img/18-20261016-a-pc.png" width="250"><br><sub>18. 2026-10-16</sub></td></tr>
+</table>
+
 웹 커밋 730개(`git log origin/main -- web`)에서 18개 시점을 골라, 그 시점 코드를 운영 빌드로 띄우고 폰(360x780)과 PC(1440x900) 첫 화면을 찍었다.
 고른 기준은 날짜별 `web/src` 변경 줄 수(그날 커밋들의 추가+삭제 합), 제목에 redesign, 개편, A/B, 새 화면이 붙은 커밋, 새 컴포넌트 파일이 들어온 때다. 하루 이틀 이어진 작업은 끝난 날 main(first-parent) 마지막 커밋 하나로 묶었다. 첫 배포(2026-07-28 `321fc909`)와 현재 main(`c29c422d`)은 넣었다.
 화면 속 브랜드와 금액은 모두 2026-10-16 오전 운영 API 값이다. 그 날짜의 실제 할인이 아니다.
