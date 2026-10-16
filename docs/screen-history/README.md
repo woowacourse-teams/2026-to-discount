@@ -43,7 +43,7 @@
 - 고른 근거: 웹 첫 커밋 `a7192aa5`(feat: 교차 비교 React 화면 추가)가 들어온 날. lockfile이 들어온 그날 마지막 커밋으로 찍었다. `web/src` 4개 파일 96줄.
 - 데이터: 운영 API `/api/brands`. 이 코드는 `/api`를 개발 서버 프록시(localhost:8080)로 보내서 미리보기 프록시를 운영 API로 돌렸다.
 
-<img src="img/01-20260727-mobile.png" width="240"> <img src="img/01-20260727-pc.png" width="576">
+<img alt="01. 2026-07-27 첫 화면, 브랜드와 앱을 맞댄 표. 폰 화면" src="img/01-20260727-mobile.png" width="240"> <img alt="01. 2026-07-27 첫 화면, 브랜드와 앱을 맞댄 표. PC 화면" src="img/01-20260727-pc.png" width="576">
 
 ## 02. 2026-07-28 첫 배포, 카드형 화면으로 재설계
 
@@ -53,7 +53,7 @@
 - 폰에서 카드가 오른쪽으로 넘친다. 금액 칩을 줄바꿈 없이 한 줄로 둔 그 시점 코드(`85c4f158`) 그대로다.
 - 데이터: 운영 API `/api/brands`.
 
-<img src="img/02-20260728-mobile.png" width="240"> <img src="img/02-20260728-pc.png" width="576">
+<img alt="02. 2026-07-28 첫 배포, 카드형 화면으로 재설계. 폰 화면" src="img/02-20260728-mobile.png" width="240"> <img alt="02. 2026-07-28 첫 배포, 카드형 화면으로 재설계. PC 화면" src="img/02-20260728-pc.png" width="576">
 
 ## 03. 2026-07-29 로고, 카테고리 바, 펼치는 브랜드 카드
 
@@ -62,7 +62,7 @@
 - 고른 근거: 2026-07-28 1207줄, 2026-07-29 1319줄. 02 대비 +824 -218, 커밋 24개. 방문 측정(`analytics.js`)도 이때 들어왔다.
 - 데이터: 운영 API `/api/brands`.
 
-<img src="img/03-20260729-mobile.png" width="240"> <img src="img/03-20260729-pc.png" width="576">
+<img alt="03. 2026-07-29 로고, 카테고리 바, 펼치는 브랜드 카드. 폰 화면" src="img/03-20260729-mobile.png" width="240"> <img alt="03. 2026-07-29 로고, 카테고리 바, 펼치는 브랜드 카드. PC 화면" src="img/03-20260729-pc.png" width="576">
 
 ## 04. 2026-07-31 '오늘의 할인' 로고, 검색과 금액대 보기
 
@@ -71,7 +71,7 @@
 - 고른 근거: 2026-07-30 1169줄(검색, 금액대 슬라이더, 검색창 고정), 2026-07-31 385줄. 이틀을 07-31 마지막 커밋으로 묶었다. 03 대비 +825 -145, 커밋 25개.
 - 데이터: 운영 API `/api/brands`.
 
-<img src="img/04-20260731-mobile.png" width="240"> <img src="img/04-20260731-pc.png" width="576">
+<img alt="04. 2026-07-31 '오늘의 할인' 로고, 검색과 금액대 보기. 폰 화면" src="img/04-20260731-mobile.png" width="240"> <img alt="04. 2026-07-31 '오늘의 할인' 로고, 검색과 금액대 보기. PC 화면" src="img/04-20260731-pc.png" width="576">
 
 ## 05. 2026-08-13 행사 배너와 한 줄 고정 타이틀바
 
@@ -81,7 +81,7 @@
 - 배너가 고정 타이틀바 밑에 깔리고 아래에 빈칸이 남는다. 배너를 타이틀바보다 먼저 그리는 그 시점 구조 그대로다. 이 무렵 배포는 별도 배포 저장소에서 나갔다. 그 저장소의 같은 시각 커밋과 `App.jsx`, `App.css`, `EventBanner.jsx`가 같음을 확인했다.
 - 데이터: 운영 API `/api/brands`, `/api/banners`.
 
-<img src="img/05-20260813-mobile.png" width="240"> <img src="img/05-20260813-pc.png" width="576">
+<img alt="05. 2026-08-13 행사 배너와 한 줄 고정 타이틀바. 폰 화면" src="img/05-20260813-mobile.png" width="240"> <img alt="05. 2026-08-13 행사 배너와 한 줄 고정 타이틀바. PC 화면" src="img/05-20260813-pc.png" width="576">
 
 ## 06. 2026-08-16 브랜드 카드 리워크, 최고 할인 단독 배치
 
@@ -91,7 +91,7 @@
 - 배너가 타이틀바 밑에 깔리는 것은 05와 같다. 배포 저장소의 같은 시각 커밋과 세 파일이 같다.
 - 데이터: 운영 API `/api/brands`, `/api/banners`. 이때부터 2026-09-11까지는 같은 오리진 `/api`를 Vercel이 넘겼다. 미리보기 프록시가 그 자리를 대신했다(주소 바꾸기 없음).
 
-<img src="img/06-20260816-mobile.png" width="240"> <img src="img/06-20260816-pc.png" width="576">
+<img alt="06. 2026-08-16 브랜드 카드 리워크, 최고 할인 단독 배치. 폰 화면" src="img/06-20260816-mobile.png" width="240"> <img alt="06. 2026-08-16 브랜드 카드 리워크, 최고 할인 단독 배치. PC 화면" src="img/06-20260816-pc.png" width="576">
 
 ## 07. 2026-08-20 상단 바 A/B 시작
 
@@ -102,11 +102,11 @@
 
 A안 (`?variant=a`)
 
-<img src="img/07-20260820-va-mobile.png" width="240"> <img src="img/07-20260820-va-pc.png" width="576">
+<img alt="07. 2026-08-20 상단 바 A/B 시작. 폰 화면, 상단 바 A안" src="img/07-20260820-va-mobile.png" width="240"> <img alt="07. 2026-08-20 상단 바 A/B 시작. PC 화면, 상단 바 A안" src="img/07-20260820-va-pc.png" width="576">
 
 B안 (`?variant=b`)
 
-<img src="img/07-20260820-vb-mobile.png" width="240"> <img src="img/07-20260820-vb-pc.png" width="576">
+<img alt="07. 2026-08-20 상단 바 A/B 시작. 폰 화면, 상단 바 B안" src="img/07-20260820-vb-mobile.png" width="240"> <img alt="07. 2026-08-20 상단 바 A/B 시작. PC 화면, 상단 바 B안" src="img/07-20260820-vb-pc.png" width="576">
 
 ## 08. 2026-09-02 설문, 자동완성, 브랜드 페이지
 
@@ -118,11 +118,11 @@ B안 (`?variant=b`)
 
 A안 (`?variant=a`)
 
-<img src="img/08-20260902-va-mobile.png" width="240"> <img src="img/08-20260902-va-pc.png" width="576">
+<img alt="08. 2026-09-02 설문, 자동완성, 브랜드 페이지. 폰 화면, 상단 바 A안" src="img/08-20260902-va-mobile.png" width="240"> <img alt="08. 2026-09-02 설문, 자동완성, 브랜드 페이지. PC 화면, 상단 바 A안" src="img/08-20260902-va-pc.png" width="576">
 
 B안 (`?variant=b`)
 
-<img src="img/08-20260902-vb-mobile.png" width="240"> <img src="img/08-20260902-vb-pc.png" width="576">
+<img alt="08. 2026-09-02 설문, 자동완성, 브랜드 페이지. 폰 화면, 상단 바 B안" src="img/08-20260902-vb-mobile.png" width="240"> <img alt="08. 2026-09-02 설문, 자동완성, 브랜드 페이지. PC 화면, 상단 바 B안" src="img/08-20260902-vb-pc.png" width="576">
 
 ## 09. 2026-09-16 상단 바 A/B 종료, 배너 v3
 
@@ -131,7 +131,7 @@ B안 (`?variant=b`)
 - 고른 근거: 2026-09-15 1170줄(그중 삭제 1090줄, A/B 정리), 2026-09-16 2232줄. 08 대비 +1490 -1183, 커밋 53개.
 - 데이터: 운영 API `/api/brands`, `/api/banners`.
 
-<img src="img/09-20260916-mobile.png" width="240"> <img src="img/09-20260916-pc.png" width="576">
+<img alt="09. 2026-09-16 상단 바 A/B 종료, 배너 v3. 폰 화면" src="img/09-20260916-mobile.png" width="240"> <img alt="09. 2026-09-16 상단 바 A/B 종료, 배너 v3. PC 화면" src="img/09-20260916-pc.png" width="576">
 
 ## 10. 2026-09-21 빠른 정렬 바, 스티키 탭 배지
 
@@ -140,7 +140,7 @@ B안 (`?variant=b`)
 - 고른 근거: 2026-09-19 636줄, 09-20 251줄, 09-21 133줄. 09 대비 +640 -173, 커밋 55개.
 - 데이터: 운영 API `/api/brands`, `/api/banners`.
 
-<img src="img/10-20260921-mobile.png" width="240"> <img src="img/10-20260921-pc.png" width="576">
+<img alt="10. 2026-09-21 빠른 정렬 바, 스티키 탭 배지. 폰 화면" src="img/10-20260921-mobile.png" width="240"> <img alt="10. 2026-09-21 빠른 정렬 바, 스티키 탭 배지. PC 화면" src="img/10-20260921-pc.png" width="576">
 
 ## 11. 2026-09-25 브랜드 숨기기, 알림 버튼
 
@@ -149,7 +149,7 @@ B안 (`?variant=b`)
 - 고른 근거: 2026-09-23 1701줄, 2026-09-24 1430줄. 10 대비 +2552 -100, 커밋 31개. 새 파일 `HiddenBrandsSheet.jsx`, `HideBrandAsk.jsx`, `PushNotificationSetting.jsx`.
 - 데이터: 운영 API `/api/brands`, `/api/banners`.
 
-<img src="img/11-20260925-mobile.png" width="240"> <img src="img/11-20260925-pc.png" width="576">
+<img alt="11. 2026-09-25 브랜드 숨기기, 알림 버튼. 폰 화면" src="img/11-20260925-mobile.png" width="240"> <img alt="11. 2026-09-25 브랜드 숨기기, 알림 버튼. PC 화면" src="img/11-20260925-pc.png" width="576">
 
 ## 12. 2026-10-02 파일 분리와 서버 렌더(화면은 그대로)
 
@@ -158,7 +158,7 @@ B안 (`?variant=b`)
 - 고른 근거: 2026-09-29 하루 9217줄로 전체 기간 최대. 11 대비 +4775 -4878, 커밋 42개.
 - 데이터: 운영 API `/api/brands`, `/api/banners`. SSR 대신 템플릿으로 찍었다(찍은 방법 참고).
 
-<img src="img/12-20261002-mobile.png" width="240"> <img src="img/12-20261002-pc.png" width="576">
+<img alt="12. 2026-10-02 파일 분리와 서버 렌더(화면은 그대로). 폰 화면" src="img/12-20261002-mobile.png" width="240"> <img alt="12. 2026-10-02 파일 분리와 서버 렌더(화면은 그대로). PC 화면" src="img/12-20261002-pc.png" width="576">
 
 ## 13. 2026-10-04 메인 화면 A/B 시작, 쿠폰 카드 안
 
@@ -169,11 +169,11 @@ B안 (`?variant=b`)
 
 쿠폰 카드 안 (`?home=a`)
 
-<img src="img/13-20261004-a-mobile.png" width="240"> <img src="img/13-20261004-a-pc.png" width="576">
+<img alt="13. 2026-10-04 메인 화면 A/B 시작, 쿠폰 카드 안. 폰 화면, 쿠폰 카드 안" src="img/13-20261004-a-mobile.png" width="240"> <img alt="13. 2026-10-04 메인 화면 A/B 시작, 쿠폰 카드 안. PC 화면, 쿠폰 카드 안" src="img/13-20261004-a-pc.png" width="576">
 
 기존 안 (`?home=old`)
 
-<img src="img/13-20261004-old-mobile.png" width="240"> <img src="img/13-20261004-old-pc.png" width="576">
+<img alt="13. 2026-10-04 메인 화면 A/B 시작, 쿠폰 카드 안. 폰 화면, 기존 안" src="img/13-20261004-old-mobile.png" width="240"> <img alt="13. 2026-10-04 메인 화면 A/B 시작, 쿠폰 카드 안. PC 화면, 기존 안" src="img/13-20261004-old-pc.png" width="576">
 
 ## 14. 2026-10-07 토스풍 손질, 하단 배너 도크, 신규 탭
 
@@ -184,11 +184,11 @@ B안 (`?variant=b`)
 
 쿠폰 카드 안 (`?home=a`)
 
-<img src="img/14-20261007-a-mobile.png" width="240"> <img src="img/14-20261007-a-pc.png" width="576">
+<img alt="14. 2026-10-07 토스풍 손질, 하단 배너 도크, 신규 탭. 폰 화면, 쿠폰 카드 안" src="img/14-20261007-a-mobile.png" width="240"> <img alt="14. 2026-10-07 토스풍 손질, 하단 배너 도크, 신규 탭. PC 화면, 쿠폰 카드 안" src="img/14-20261007-a-pc.png" width="576">
 
 기존 안 (`?home=old`)
 
-<img src="img/14-20261007-old-mobile.png" width="240"> <img src="img/14-20261007-old-pc.png" width="576">
+<img alt="14. 2026-10-07 토스풍 손질, 하단 배너 도크, 신규 탭. 폰 화면, 기존 안" src="img/14-20261007-old-mobile.png" width="240"> <img alt="14. 2026-10-07 토스풍 손질, 하단 배너 도크, 신규 탭. PC 화면, 기존 안" src="img/14-20261007-old-pc.png" width="576">
 
 ## 15. 2026-10-11 할인 그래프(시트), 신규 탭 강조
 
@@ -199,11 +199,11 @@ B안 (`?variant=b`)
 
 쿠폰 카드 안 (`?home=a`)
 
-<img src="img/15-20261011-a-mobile.png" width="240"> <img src="img/15-20261011-a-pc.png" width="576">
+<img alt="15. 2026-10-11 할인 그래프(시트), 신규 탭 강조. 폰 화면, 쿠폰 카드 안" src="img/15-20261011-a-mobile.png" width="240"> <img alt="15. 2026-10-11 할인 그래프(시트), 신규 탭 강조. PC 화면, 쿠폰 카드 안" src="img/15-20261011-a-pc.png" width="576">
 
 기존 안 (`?home=old`)
 
-<img src="img/15-20261011-old-mobile.png" width="240"> <img src="img/15-20261011-old-pc.png" width="576">
+<img alt="15. 2026-10-11 할인 그래프(시트), 신규 탭 강조. 폰 화면, 기존 안" src="img/15-20261011-old-mobile.png" width="240"> <img alt="15. 2026-10-11 할인 그래프(시트), 신규 탭 강조. PC 화면, 기존 안" src="img/15-20261011-old-pc.png" width="576">
 
 ## 16. 2026-10-13 첫 방문 안내
 
@@ -214,11 +214,11 @@ B안 (`?variant=b`)
 
 쿠폰 카드 안 (`?home=a`)
 
-<img src="img/16-20261013-a-mobile.png" width="240"> <img src="img/16-20261013-a-pc.png" width="576">
+<img alt="16. 2026-10-13 첫 방문 안내. 폰 화면, 쿠폰 카드 안" src="img/16-20261013-a-mobile.png" width="240"> <img alt="16. 2026-10-13 첫 방문 안내. PC 화면, 쿠폰 카드 안" src="img/16-20261013-a-pc.png" width="576">
 
 기존 안 (`?home=old`)
 
-<img src="img/16-20261013-old-mobile.png" width="240"> <img src="img/16-20261013-old-pc.png" width="576">
+<img alt="16. 2026-10-13 첫 방문 안내. 폰 화면, 기존 안" src="img/16-20261013-old-mobile.png" width="240"> <img alt="16. 2026-10-13 첫 방문 안내. PC 화면, 기존 안" src="img/16-20261013-old-pc.png" width="576">
 
 ## 17. 2026-10-14 오늘 인기 띠, 첫 방문 안내 철회
 
@@ -229,11 +229,11 @@ B안 (`?variant=b`)
 
 쿠폰 카드 안 (`?home=a`)
 
-<img src="img/17-20261014-a-mobile.png" width="240"> <img src="img/17-20261014-a-pc.png" width="576">
+<img alt="17. 2026-10-14 오늘 인기 띠, 첫 방문 안내 철회. 폰 화면, 쿠폰 카드 안" src="img/17-20261014-a-mobile.png" width="240"> <img alt="17. 2026-10-14 오늘 인기 띠, 첫 방문 안내 철회. PC 화면, 쿠폰 카드 안" src="img/17-20261014-a-pc.png" width="576">
 
 기존 안 (`?home=old`)
 
-<img src="img/17-20261014-old-mobile.png" width="240"> <img src="img/17-20261014-old-pc.png" width="576">
+<img alt="17. 2026-10-14 오늘 인기 띠, 첫 방문 안내 철회. 폰 화면, 기존 안" src="img/17-20261014-old-mobile.png" width="240"> <img alt="17. 2026-10-14 오늘 인기 띠, 첫 방문 안내 철회. PC 화면, 기존 안" src="img/17-20261014-old-pc.png" width="576">
 
 ## 18. 2026-10-16 현재 main, 신규 탭 없애고 신규를 맨 위로
 
@@ -244,8 +244,8 @@ B안 (`?variant=b`)
 
 쿠폰 카드 안 (`?home=a`)
 
-<img src="img/18-20261016-a-mobile.png" width="240"> <img src="img/18-20261016-a-pc.png" width="576">
+<img alt="18. 2026-10-16 현재 main, 신규 탭 없애고 신규를 맨 위로. 폰 화면, 쿠폰 카드 안" src="img/18-20261016-a-mobile.png" width="240"> <img alt="18. 2026-10-16 현재 main, 신규 탭 없애고 신규를 맨 위로. PC 화면, 쿠폰 카드 안" src="img/18-20261016-a-pc.png" width="576">
 
 기존 안 (`?home=old`)
 
-<img src="img/18-20261016-old-mobile.png" width="240"> <img src="img/18-20261016-old-pc.png" width="576">
+<img alt="18. 2026-10-16 현재 main, 신규 탭 없애고 신규를 맨 위로. 폰 화면, 기존 안" src="img/18-20261016-old-mobile.png" width="240"> <img alt="18. 2026-10-16 현재 main, 신규 탭 없애고 신규를 맨 위로. PC 화면, 기존 안" src="img/18-20261016-old-pc.png" width="576">
