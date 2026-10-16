@@ -294,6 +294,8 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const onSheetUp = (e) => { if (e.pointerType === 'mouse') dragEnd() }
   const onCardClick = (e) => {
     if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging, .cc-combo__btn')) return
+    // 바로가기(인기 브랜드, #brand-이름)로 카드 안에서 펼쳐진 상태면 시트 대신 접는다(2026-10-16 사용자: 못 접는다)
+    if (phase === 'open' || phase === 'enter') { toggle(); return }
     if (!canExpand) return
     onInteract?.()
     track('brand_expand', { brand: brand.name, category: brand.category ?? 'none', via: 'sheet' })
