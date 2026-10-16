@@ -17,3 +17,12 @@
 .hist__guide { stroke: var(--sale); stroke-width: 1.2; pointer-events: none; } /* 값 표시와 점을 잇는 선 */
 .hist__tip { position: absolute; box-sizing: border-box; height: 40px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 2px; font-size: 12.5px; line-height: 1.25; white-space: nowrap; pointer-events: none; letter-spacing: -0.02em; color: var(--text-muted); } /* 말풍선 판 없이 값만 띄운다 */
 .hist__tip b { font-size: 15px; font-weight: 800; color: var(--sale); }
+/* 작고 촘촘하게, 시트 머리 바로 밑에 붙인다(2026-10-16 사용자: 헤더 위아래 여백을 확 줄이고 위에 밀착) */
+.hist { margin: 0 0 12px; padding-bottom: 6px; border-radius: 12px; }
+.hist__head { margin-bottom: 4px; padding: 6px 8px 6px 14px; }
+.hist__title { font-size: 16px; }
+.hist__tabs { padding: 2px; }
+.hist__tab { font-size: 12.5px; padding: 3px 10px; }
+.hist__tip { height: 34px; font-size: 11.5px; }
+.hist__tip b { font-size: 13.5px; }
+.cc-sheet__body:has(> .hist:first-child) { padding-top: 0; }

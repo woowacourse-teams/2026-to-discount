@@ -1,12 +1,12 @@
 // 브랜드 최고 할인 곡선(2026-10-10 계단 → 꺾은선, 2026-10-14 곡선). 실선 = 그날 본 값, 점선 = 못 봐서 이어 그린 값, 끊김 = 할인 없음.
 export const W = 320
-export const H = 150
+export const H = 128 // 2026-10-16 사용자: 더 작고 촘촘하게(150 -> 128)
 export const GUTTER = 28 // 금액 축 숫자 자리
 export const RIGHT = 8
-export const TOP = 46 // 말풍선 자리(PILL_H + 간격)
+export const TOP = 40 // 말풍선 자리(PILL_H + 간격)
 export const BOTTOM = 18 // 날짜 축 자리
 export const PILL_W = 112 // 두 줄 값 표시 "9/23" / "10,000원 할인" (좁으면 끝에서 잘렸다) (눌렀을 때 말풍선과 같은 모양)
-export const PILL_H = 40
+export const PILL_H = 34 // hist.css .hist__tip height와 같다
 const STEP = 1000
 
 // 최솟값 아래 1,000원 단위 바닥 ~ 최댓값 이상 1,000원 단위 천장. 0에서 시작하지 않는다.
