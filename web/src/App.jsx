@@ -820,6 +820,8 @@ export default function App({ initial = null }) {
               ? <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
               : <BrandCard key={b.name} {...props} />
             // 한정 오퍼(배너)는 3번째 카드 뒤 한 칸(2026-10-15 사용자). 첫 자리는 신규·최고 할인 몫이다.
+            // 배너를 받기 전(null)에는 그 자리를 잡아 둔다. 늦게 끼어들면 아래 카드가 밀린다(CodeRabbit #88, 2026-09-30 CLS 0.9와 같은 꼴)
+            if (index === 2 && banners == null) return [card, <div key="inline-banners" className="inline-banners banner-slot banner-slot--pending" aria-hidden="true" />]
             return index === 2 && banners?.length
               ? [card, <div key="inline-banners" className="inline-banners"><EventBanner banners={banners} inline /></div>]
               : card
