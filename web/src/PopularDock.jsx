@@ -13,8 +13,11 @@ function Cells({ row }) {
   return (
     <>
       <span className="pop-dock__change"><RankChange change={row.change} /></span>
-      <BrandLogo name={row.brand.name} size={20} />
-      <span className="pop-dock__name">{row.brand.shortName ?? row.brand.name}</span>
+      {/* 접힌 줄에서 로고와 이름을 누르면 바로 그 카드로, 나머지를 누르면 펼친다(2026-10-16 사용자) */}
+      <span className="pop-dock__brand">
+        <BrandLogo name={row.brand.name} size={20} />
+        <span className="pop-dock__name">{row.brand.shortName ?? row.brand.name}</span>
+      </span>
       <span className="pop-dock__amount">{amount == null ? '' : `${amount.toLocaleString('ko-KR')}원`}</span>
     </>
   )
@@ -50,10 +53,10 @@ export default function PopularDock({ brands, onPick }) {
   if (top.length < STRIP_MIN) return null
   const cur = i % top.length
   const toggle = () => { setOpen(true); track('quick_filter', { key: 'popular_dock_toggle', on: true }) }
-  const pick = (row) => {
+  const pick = (row, where = 'list') => {
     setOpen(false)
     onPick(row.brand.name)
-    track('quick_filter', { key: 'popular_dock', brand: row.brand.name, position: row.rank, change: row.change, where: 'list' })
+    track('quick_filter', { key: 'popular_dock', brand: row.brand.name, position: row.rank, change: row.change, where })
   }
   return (
     <aside ref={ref} className={`pop-dock${open ? ' pop-dock--open' : ''}`} style={{ '--rows': open ? top.length : 1 }} aria-label="인기 브랜드">
@@ -68,7 +71,7 @@ export default function PopularDock({ brands, onPick }) {
                 className="pop-dock__row"
                 tabIndex={on ? 0 : -1}
                 aria-label={open ? `${row.rank}위 ${row.brand.name}` : '인기 브랜드 펼치기'}
-                onClick={() => (open ? pick(row) : toggle())}
+                onClick={(e) => (open ? pick(row) : e.target.closest('.pop-dock__brand') ? pick(row, 'rolling') : toggle())}
               >
                 <Cells row={row} />
               </button>

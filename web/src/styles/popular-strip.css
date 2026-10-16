@@ -61,3 +61,6 @@
 /* 새벽 안내(survey-dock.css .night-notice)도 왼쪽 아래라 접힌 인기 브랜드 위로 올린다. 펼친 동안은 순위를 가리지 않게 숨긴다(2026-10-16 사용자) */
 html:has(.pop-dock) .night-notice { bottom: calc(12px + env(safe-area-inset-bottom, 0px) + 50px + 18px); }
 html:has(.pop-dock--open) .night-notice { visibility: hidden; }
+
+/* 로고와 이름 묶음: 칸 배치는 그대로 두고 누른 자리만 가른다 */
+.pop-dock__brand { display: contents; }
