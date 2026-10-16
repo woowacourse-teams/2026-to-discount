@@ -357,6 +357,8 @@ export default function App({ initial = null }) {
   // 것이 하나도 없는데 이름만 남기면 빈 카드가 격자를 채운다.
   // 입력 중인 문자열이 아니라 사용자가 확정한 검색만 센다. 검색 개선(메뉴명, 미등록 브랜드 파악)을 위해
   // 확정한 검색어(40자까지)와 앞쪽 결과 브랜드 5개를 남긴다(2026-10-08 사용자). 하단 안내 문구에 적혀 있다.
+  // 인기 순위에서 브랜드를 고르면 그 카드로 간다(같은 이름을 다시 골라도 다시 가게 한 번 비운다)
+  const pickPopular = (name) => { setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name))) }
   const submitSearch = (raw, submitMethod) => {
     const query = raw.trim()
     // 검색을 확정하면 켜둔 분류를 푼다.
@@ -586,6 +588,7 @@ export default function App({ initial = null }) {
       {/* A/B 실험 종료(2026-09-15): 한 줄 바 + 분류 캐러셀(a안)로 통일.
           결론은 docs/HANDOFF-20260914.md §4 — b(시트)는 내렸다. */}
       {/* 메인 화면 A/B: 쿠폰 카드 쪽은 9월 실험의 B안 상단 바(검색 + 분류 메뉴 바, 앱·정렬은 시트) */}
+      {/* 2026-10-15 사용자: 배너 도크 대신 오늘 인기. 2026-10-17: 하단 고정에서 상단 바(검색과 분류 사이)로 */}
       {homeA ? (
         <TopBarB
           barRef={titleBarRef}
@@ -600,6 +603,7 @@ export default function App({ initial = null }) {
           resetFilters={resetFilters}
           sheetOpen={sheetOpen}
           onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
+          popular={visibleBrands && <PopularDock brands={visibleBrands} onPick={pickPopular} />}
         />
       ) : (
       <TopBarA
@@ -614,6 +618,7 @@ export default function App({ initial = null }) {
         resetFilters={resetFilters}
         sheetOpen={sheetOpen}
         onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
+        popular={visibleBrands && <PopularDock brands={visibleBrands} onPick={pickPopular} />}
       />
       )}
 
@@ -624,7 +629,6 @@ export default function App({ initial = null }) {
       {/* 쿠폰 카드 쪽은 위 배너 캐러셀 없이 처음부터 하단 도크로만(2026-10-05 사용자: 목록 안 한 줄은 별로) */}
       {/* 2026-10-05 사용자: 운영 카드 쪽도 하단 도크로 */}
       {/* 2026-10-15 사용자: 하단 도크는 배너 대신 오늘 인기. 배너(한정 오퍼)는 목록 3번째 카드 뒤에 선다 */}
-      {visibleBrands && <PopularDock brands={visibleBrands} onPick={(name) => { setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name))) }} />}
       <PushNotificationSetting toggleSlot={pushToggleSlot} />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액

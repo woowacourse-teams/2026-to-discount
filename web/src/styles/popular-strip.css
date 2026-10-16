@@ -15,64 +15,49 @@
 .rank-change--down { color: #4c6ef5; }
 .rank-change--same { color: var(--text-muted); }
 
-/* 하단 인기 브랜드(PopularDock.jsx, 2026-10-15). 접히면 한 줄, 누르면 위로 다섯 줄 높이로 펼쳐지며 줄이 제 순위 자리로 간다 */
+/* 인기 브랜드(PopularDock.jsx). 2026-10-17 사용자: 하단 고정에서 상단 바의 검색과 분류 사이로.
+   접히면 바 안의 한 줄(1~5위를 굴린다), 누르면 그 줄에서 아래로 다섯 줄 판이 펼쳐져 목록을 덮는다. 바 높이는 그대로다. */
 .pop-dock {
-  --row: 50px;
-  position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 14; /* 오른쪽 아래는 맨 위로 버튼 자리 */
-  width: min(300px, calc(100% - 80px));
-  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
+  --row: 38px;
+  position: relative; z-index: 3; display: flex; align-items: center; gap: 8px;
+  height: var(--row); padding: 0 12px 0 16px;
 }
-.pop-dock__label {
-  position: absolute; left: 12px; top: 0; transform: translateY(-55%); z-index: 1;
-  padding: 1px 7px; border-radius: 6px; background: var(--sale); color: #fff; font-size: .68rem; font-weight: 700;
+.pop-dock__label { flex: none; color: var(--sale); font-size: .74rem; font-weight: 800; letter-spacing: -0.02em; }
+.pop-dock__list { position: relative; flex: 1; min-width: 0; height: var(--row); margin: 0; padding: 0; list-style: none; isolation: isolate; }
+/* 펼친 판: 줄 뒤에 깔리고 높이만 늘어난다 */
+.pop-dock__list::before {
+  content: ""; position: absolute; z-index: -1; left: -8px; right: -6px; top: 0;
+  height: calc(var(--row) * var(--rows)); border-radius: 12px; background: var(--surface);
+  transition: height .32s cubic-bezier(.16, 1, .3, 1), box-shadow .2s ease;
 }
-.pop-dock__list {
-  position: relative; margin: 0; padding: 0; list-style: none; overflow: hidden;
-  height: calc(var(--row) * var(--rows) + 4px);
-  transition: height .32s cubic-bezier(.16, 1, .3, 1);
-}
-.pop-dock--open .pop-dock__list { padding-top: 6px; height: calc(var(--row) * var(--rows) + 12px); }
+.pop-dock--open .pop-dock__list::before { top: -2px; height: calc(var(--row) * var(--rows) + 8px); border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0, 0, 0, .14); }
 .pop-dock__item {
-  position: absolute; left: 0; right: 0; top: 2px; height: var(--row);
+  position: absolute; left: 0; right: 0; top: 0; height: var(--row);
   transform: translateY(calc(var(--row) * var(--slot)));
   opacity: 0; pointer-events: none;
   transition: transform .32s cubic-bezier(.16, 1, .3, 1), opacity .25s ease;
 }
-.pop-dock--open .pop-dock__item { top: 8px; }
 .pop-dock__item.is-on { opacity: 1; pointer-events: auto; }
 .pop-dock__row {
-  display: grid; grid-template-columns: 2.6em auto minmax(0, 1fr) 7.2ch; align-items: center; gap: 8px;
-  width: 100%; height: 100%; padding: 0 8px 0 10px; border: 0; border-radius: 10px; background: none;
-  font: inherit; font-size: .92rem; color: var(--text); cursor: pointer; text-align: left;
+  display: grid; grid-template-columns: 2.4em auto minmax(0, 1fr) 7ch; align-items: center; gap: 7px;
+  width: 100%; height: 100%; padding: 0 40px 0 2px; border: 0; border-radius: 8px; background: none;
+  font: inherit; font-size: .88rem; color: var(--text); cursor: pointer; text-align: left;
 }
 .pop-dock__row:active { background: color-mix(in srgb, var(--sale) 8%, var(--surface)); }
 .pop-dock__row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-/* 로고 크게, 여백 없이(2026-10-16 사용자: 로고가 너무 작다) */
-.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img { width: 34px; height: 34px; min-width: 34px; padding: 0; border-radius: 8px; object-fit: contain; }
-.pop-dock__change { display: flex; align-items: baseline; gap: 3px; font-size: .7rem; text-align: left; white-space: nowrap; }
+.pop-dock__row .brand-logo, .pop-dock__row .brand-logo img { width: 26px; height: 26px; min-width: 26px; padding: 0; border-radius: 7px; object-fit: contain; }
+.pop-dock__change { display: flex; align-items: baseline; gap: 3px; font-size: .68rem; white-space: nowrap; }
+.pop-dock__rank { min-width: 1em; color: var(--text); font-size: .84rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .pop-dock__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* 다섯 자리 금액(12,000원) 너비를 늘 잡고 왼쪽 정렬 */
-.pop-dock__amount { font-weight: 700; color: var(--sale); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: left; }
-@media (prefers-reduced-motion: reduce) { .pop-dock__list, .pop-dock__item { transition: none; } }
-
-/* 목록 안 한정 오퍼(배너 캐러셀, 2026-10-15). 카드 격자 한 줄을 다 쓴다 */
-.inline-banners { grid-column: 1 / -1; }
-
-/* 새벽 안내(survey-dock.css .night-notice)도 왼쪽 아래라 접힌 인기 브랜드 위로 올린다. 펼친 동안은 순위를 가리지 않게 숨긴다(2026-10-16 사용자) */
-html:has(.pop-dock) .night-notice { bottom: calc(12px + env(safe-area-inset-bottom, 0px) + 56px + 18px); }
-html:has(.pop-dock--open) .night-notice { visibility: hidden; }
-
-/* 로고와 이름 묶음: 칸 배치는 그대로 두고 누른 자리만 가른다 */
-.pop-dock__brand { display: contents; }
-
-/* 바로가기 아이콘: 줄 오른쪽 끝, 줄 단추와 겹치지 않게 자리를 비운다 */
-.pop-dock__row { padding-right: 44px; }
+.pop-dock__amount { font-weight: 700; color: var(--sale); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pop-dock__go {
-  position: absolute; top: 50%; right: 6px; transform: translateY(-50%); display: grid; place-items: center;
-  width: 32px; height: 32px; border: 0; border-radius: 8px; background: color-mix(in srgb, var(--sale) 10%, var(--surface));
+  position: absolute; top: 50%; right: 2px; transform: translateY(-50%); display: grid; place-items: center;
+  width: 28px; height: 28px; border: 0; border-radius: 7px; background: color-mix(in srgb, var(--sale) 10%, var(--surface));
   color: var(--sale); cursor: pointer;
 }
 .pop-dock__go:active { transform: translateY(-50%) scale(.94); }
 .pop-dock__go:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.pop-dock__rank { min-width: 1em; color: var(--text); font-size: .86rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { .pop-dock__list::before, .pop-dock__item { transition: none; } }
+/* 목록 안 한정 오퍼(배너 캐러셀, 2026-10-15). 카드 격자 한 줄을 다 쓴다 */
+.inline-banners { grid-column: 1 / -1; }
