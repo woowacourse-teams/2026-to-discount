@@ -418,3 +418,7 @@
 /* 2026-10-13 재발(카카오톡 인앱, 글자 크기 '가가'): iOS 글자 크기 조절이 컨테이너 단위(cqw) 글자를 배치 뒤에 키워
    금액과 최소주문 글자가 제자리에서 겹쳤다. 쿠폰 칸은 카드 폭에 맞춘 크기라 조절을 끈다 */
 .cc-ticket, .cc--compact, .cc-carousel-wrap, .cc-sheet__item { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* 카드 안에서 펼친 표(인기 순위 바로가기 등)도 시트처럼 줄 간격을 넉넉히(2026-10-16 사용자: 다닥다닥 붙어 안 보인다) */
+.cc.cc--open .cc-tbl { margin-top: 14px; row-gap: 2px; font-size: 14px; }
+.cc.cc--open .cc-tbl > span { padding: 9px 0; }
+.cc.cc--open .cc-tbl > .cc-t-note { padding-top: 6px; }
