@@ -28,15 +28,10 @@ const card = (button, buttonSide, detail, detailSide) => ({ key: 'card', selecto
 const SORT = { key: 'sort', selector: '.quick-bar', text: '할인금액 높은순, 최소주문 낮은순으로 빠르게 모아 볼 수 있어요.' }
 const CATEGORY = '카테고리를 선택해 모아 볼 수 있어요.'
 
-// old = 운영 바(TopBarA: 앱 배지 + 검색 아이콘 + 분류 줄), coupon = TopBarB(검색창 + 분류 메뉴 + 필터 시트)
-export function guideSteps(arm) {
-  return arm === 'coupon'
-    ? [card('.brand-grid > :first-child .cc-ticket', 'left', '.brand-grid > :first-child .cc-hint', 'right'), SORT,
-      { key: 'category', selector: '.menu-bar', text: CATEGORY },
-      { key: 'search', selector: '.search-field', text: '브랜드를 검색할 수 있어요.' },
-      { key: 'filter', selector: '[aria-label="필터 열기"]', text: '필터 페이지에서 원하는 조건을 선택할 수 있어요.' }]
-    : [card('.brand-grid > :first-child .offer--best .offer__chip', 'right', '.brand-grid > :first-child .brand-card__expand', 'left'), SORT,
-      { key: 'category', selector: '.cat-bar', text: CATEGORY },
-      { key: 'platform', selector: '.page-head__apps', text: '원하는 플랫폼만 선택할 수 있어요.' },
-      { key: 'search', selector: '.search-control', text: '검색 버튼을 눌러 브랜드를 찾을 수 있어요.' }]
+// 상단 바(TopBarB: 검색창 + 분류 메뉴 + 필터 시트)와 쿠폰 카드 기준. 운영 카드 안은 2026-10-17에 지웠다.
+export function guideSteps() {
+  return [card('.brand-grid > :first-child .cc-ticket', 'left', '.brand-grid > :first-child .cc-hint', 'right'), SORT,
+    { key: 'category', selector: '.menu-bar', text: CATEGORY },
+    { key: 'search', selector: '.search-field', text: '브랜드를 검색할 수 있어요.' },
+    { key: 'filter', selector: '[aria-label="필터 열기"]', text: '필터 페이지에서 원하는 조건을 선택할 수 있어요.' }]
 }

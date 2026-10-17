@@ -6,7 +6,6 @@ import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
-import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
 import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
@@ -33,10 +32,9 @@ const SHIFT_PAUSE_MS = 400
 const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
-import { currentHomeArm } from './homeExperiment.js'
 import { shouldShowGuide } from './firstVisitGuide.js'
 import PushNotificationSetting from './PushNotificationSetting.jsx'
-import BrandCard, { brandCardId } from './BrandCard.jsx'
+import { brandCardId } from './cardId.js'
 import BrandGridSkeleton from './BrandGridSkeleton.jsx'
 import { setHubLinks } from './offerLink.js'
 import SiteFooter from './SiteFooter.jsx'
@@ -219,39 +217,31 @@ export default function App({ initial = null }) {
 
   const { search } = filters
   const [dev, setDev] = useState(false)
-  // 첫 화면은 서버가 그린 안(initial.arm)을 이어받는다(하이드레이션 일치). 미들웨어가 ?home=old가 아니면 쿠폰 카드로 그린다.
-  // 서버 렌더가 실패한 사전 렌더링 HTML(x-ssr: 0)만 운영 카드로 시작해 마운트 뒤 쿠폰 카드로 바뀐다.
-  const [homeA, setHomeA] = useState(initial?.arm === 'coupon')
-  const [homePhoto, setHomePhoto] = useState(false) // 시안 비교용 ?photo=1
-  const [homeCompact, setHomeCompact] = useState(initial?.arm === 'coupon') // 쿠폰 카드는 촘촘한 안이 기본
-    useEffect(() => {
-    // 메인 화면(homeExperiment.js): 2026-10-17부터 모두 쿠폰 카드, ?home=old만 운영 카드. 쿠폰 카드는 촘촘한 안이 기본(?compact=0이면 큰 안).
+  // 메인 화면은 쿠폰 카드 하나다(2026-10-17 A/B 결론, docs/metrics/HOME-AB-LOG.md. 운영 카드 코드는 지웠다).
+  // 촘촘한 안이 기본이고 ?compact=0이면 큰 안, ?photo=1은 시안 비교용. 첫 렌더는 서버와 같게 기본값으로 그린다.
+  const [homePhoto, setHomePhoto] = useState(false)
+  const [homeCompact, setHomeCompact] = useState(true)
+  useEffect(() => {
     try {
       const q = new URLSearchParams(window.location.search)
-      const { arm } = currentHomeArm()
-      if (arm === 'coupon') {
-        const show = () => startTransition(() => { setHomeA(true); setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
-        // 쿠폰 카드 CSS를 받은 뒤에 바꾼다. 첫 방문(캐시 없음)에는 카드가 CSS보다 먼저 그려져 스타일 없는 카드가 잠깐
-        // 보였고, iOS는 그때의 넘김 그림(장 위치 [0, 0], 금액과 "원 할인" 겹침, 가로 넘침)을 남겼다(2026-10-16 ios-shot).
-        // 서버가 쿠폰 카드로 그렸으면 CSS가 이미 <head>에 있다.
-        if (initial?.arm === 'coupon') show()
-        else import('./styles/coupon-card.css').then(show, show)
+      if (q.get('photo') === '1' || q.get('compact') === '0') {
+        startTransition(() => { setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
       }
-    } catch { /* 주소를 못 읽으면 운영 카드 */ }
+    } catch { /* 주소를 못 읽으면 기본 안 */ }
   }, [])
-  // 쿠폰 카드 CSS는 쿠폰 쪽일 때만 받는다(전역 규칙이 있어서). 서버 렌더면 이미 <head>에 있어 캐시로 끝난다.
-  useEffect(() => { if (homeA) import('./styles/coupon-card.css') }, [homeA])
+  // 쿠폰 카드 CSS. 서버 렌더와 그 실패 때 보내는 사전 렌더링 HTML 모두 <head>에 링크가 있어(api/ssr.js) 캐시로 끝난다.
+  // 개발 서버(vite)에서만 여기서 처음 받는다.
+  useEffect(() => { import('./styles/coupon-card.css') }, [])
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
   // 첫 방문 안내(firstVisitGuide.js). 2026-10-14부터 ?guide=1로만 뜬다. 카드가 그려진 뒤에 띄운다.
-  // 값은 띄울 안('coupon'|'old'). 바가 그 안으로 바뀐 뒤에만 그린다.
-  const [guideOn, setGuideOn] = useState(null)
+  const [guideOn, setGuideOn] = useState(false)
   const guideChecked = useRef(false)
   useEffect(() => {
     if (!brands?.length || guideChecked.current) return
     guideChecked.current = true
     try {
-      if (shouldShowGuide({ search: window.location.search })) setGuideOn(currentHomeArm().arm)
+      if (shouldShowGuide({ search: window.location.search })) setGuideOn(true)
     } catch { /* 못 읽으면 안내 없이 */ }
   }, [brands])
   useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
@@ -306,9 +296,7 @@ export default function App({ initial = null }) {
     ro.observe(el)
     setBarHeight(el.getBoundingClientRect().height)
     return () => ro.disconnect()
-    // 메인 화면 A/B로 바가 바뀌면(운영 바 -> B안 바) 새 바를 다시 잰다. 안 그러면 떼어 낸 옛 바를 재
-    // 높이 0이 되고, 행사 배너가 바 밑에 깔린다(2026-10-04 실측).
-  }, [homeA])
+  }, [])
 
   const isFiltered = !isDefaultFilters(filters)
   const resetFilters = () => {
@@ -599,8 +587,7 @@ export default function App({ initial = null }) {
           결론은 docs/HANDOFF-20260914.md §4 — b(시트)는 내렸다. */}
       {/* 메인 화면 A/B: 쿠폰 카드 쪽은 9월 실험의 B안 상단 바(검색 + 분류 메뉴 바, 앱·정렬은 시트) */}
       {/* 2026-10-15 사용자: 배너 도크 대신 오늘 인기. 2026-10-17: 하단 고정에서 상단 바(검색과 분류 사이)로 */}
-      {homeA ? (
-        <TopBarB
+      <TopBarB
           barRef={titleBarRef}
           pushToggleRef={pushToggleRef}
           filters={filters}
@@ -615,22 +602,6 @@ export default function App({ initial = null }) {
           onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
           popular={visibleBrands && <PopularDock brands={visibleBrands} onPick={pickPopular} />}
         />
-      ) : (
-      <TopBarA
-        barRef={titleBarRef}
-        pushToggleRef={pushToggleRef}
-        filters={filters}
-        setFilters={setFilters}
-        search={search}
-        onSearchSubmit={submitSearch}
-        brands={brands}
-        isFiltered={isFiltered}
-        resetFilters={resetFilters}
-        sheetOpen={sheetOpen}
-        onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
-        popular={visibleBrands && <PopularDock brands={visibleBrands} onPick={pickPopular} />}
-      />
-      )}
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
@@ -819,9 +790,7 @@ export default function App({ initial = null }) {
           {visibleBrands.slice(0, shown).map((b, index) => {
             const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name), onInteract: clearLinked }
-            const card = homeA
-              ? <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
-              : <BrandCard key={b.name} {...props} />
+            const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
             // 한정 오퍼(배너)는 3번째 카드 뒤 한 칸(2026-10-15 사용자). 첫 자리는 신규·최고 할인 몫이다.
             // 배너를 받기 전(null)에는 그 자리를 잡아 둔다. 늦게 끼어들면 아래 카드가 밀린다(CodeRabbit #88, 2026-09-30 CLS 0.9와 같은 꼴)
             if (index === 2 && banners == null) return [card, <div key="inline-banners" className="inline-banners banner-slot banner-slot--pending" aria-hidden="true" />]
@@ -854,9 +823,9 @@ export default function App({ initial = null }) {
 
       <SiteFooter />
 
-      {guideOn && guideOn === (homeA ? 'coupon' : 'old') && (
+      {guideOn && (
         <Suspense fallback={null}>
-          <FirstVisitGuide arm={guideOn} onClose={() => setGuideOn(null)} />
+          <FirstVisitGuide onClose={() => setGuideOn(false)} />
         </Suspense>
       )}
 

@@ -13,13 +13,13 @@ const scrollBehavior = () => (window.matchMedia?.('(prefers-reduced-motion: redu
 let viewSent = false
 const lockScroll = (e) => { if (!e.target.closest?.('.fvg-tip')) e.preventDefault() }
 
-export default function FirstVisitGuide({ arm, onClose }) {
+export default function FirstVisitGuide({ onClose }) {
   const [steps, setSteps] = useState(null)
   const [i, setI] = useState(0)
   const [rect, setRect] = useState(null)
 
   useEffect(() => {
-    const found = guideSteps(arm).filter((s) => document.querySelector(s.selector))
+    const found = guideSteps().filter((s) => document.querySelector(s.selector))
     if (found.length === 0) { onClose(); return undefined }
     markGuideSeen()
     setSteps(found)
@@ -36,7 +36,7 @@ export default function FirstVisitGuide({ arm, onClose }) {
       document.removeEventListener('touchmove', lockScroll)
       document.removeEventListener('wheel', lockScroll)
     }
-  }, [arm]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const step = steps?.[i]
   useLayoutEffect(() => {

@@ -19,7 +19,8 @@ async function load(name) {
   return (await import(pathToFileURL(out).href)).default
 }
 const Coupon = await load('CouponCard')
-const Brand = await load('BrandCard')
+// 운영 카드(BrandCard, 2026-10-17 삭제)가 같은 브랜드에 그리던 요소 수. 쿠폰 카드는 이보다 늘지 않는다.
+const OLD_CARD_ELEMENTS = { 단독최고: 124, 동점셋: 126, 최적: 71 }
 
 const o = (platform, amount, extra = {}) => ({ platform, amount, status: 'confirmed', minOrderAmount: 18000, ...extra })
 const BRANDS = {
@@ -32,7 +33,7 @@ const render = (C, brand) => renderToStaticMarkup(createElement(C, { brand, posi
 
 for (const [label, brand] of Object.entries(BRANDS)) {
   test(`카드당 요소 수: ${label}는 운영 카드 이하`, () => {
-    const c = count(render(Coupon, brand)), b = count(render(Brand, brand))
+    const c = count(render(Coupon, brand)), b = OLD_CARD_ELEMENTS[label]
     console.log(`  ${label}: 쿠폰 ${c} / 운영 ${b}`)
     assert.ok(c <= b, `쿠폰 카드 ${c}개 > 운영 카드 ${b}개`)
   })
@@ -54,5 +55,5 @@ test('배지는 이름 아래 줄, 복합은 맨 끝에 (i). 동점은 쿠폰마
 test('서버가 그리는 카드 컴포넌트는 lazy로 싣지 않는다', async () => {
   const { readFile } = await import('node:fs/promises')
   const app = await readFile(path.join(here, 'App.jsx'), 'utf8')
-  for (const card of ['CouponCard', 'BrandCard']) assert.doesNotMatch(app, new RegExp(`lazy\\(\\(\\) => import\\('\\./${card}\\.jsx'\\)\\)`), card)
+  for (const card of ['CouponCard']) assert.doesNotMatch(app, new RegExp(`lazy\\(\\(\\) => import\\('\\./${card}\\.jsx'\\)\\)`), card)
 })
