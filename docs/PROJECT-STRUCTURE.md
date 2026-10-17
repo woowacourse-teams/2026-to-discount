@@ -210,7 +210,6 @@ web/scripts/verify-search-filters.mjs
 web/src/App.css
 web/src/App.jsx
 web/src/BestHistoryChart.jsx
-web/src/BrandCard.jsx
 web/src/BrandGridSkeleton.jsx
 web/src/BrandSuggestions.jsx
 web/src/CouponCard.jsx
@@ -222,14 +221,12 @@ web/src/HiddenBrandsSheet.jsx
 web/src/HideBrandAsk.jsx
 web/src/MenuBar.jsx
 web/src/OfferChip.jsx
-web/src/OfferDetail.jsx
 web/src/PopularDock.jsx
 web/src/PopularStrip.jsx
 web/src/PushNotificationSetting.jsx
 web/src/SiteFooter.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
-web/src/TopBarA.jsx
 web/src/TopBarB.jsx
 web/src/analytics-context.js
 web/src/analytics.js
@@ -251,6 +248,7 @@ web/src/brandAutocomplete.test.js
 web/src/brandColor.js
 web/src/brandImpression.js
 web/src/brandImpression.test.js
+web/src/cardId.js
 web/src/cardShift.js
 web/src/cardShift.test.js
 web/src/couponCard.test.js
@@ -267,7 +265,6 @@ web/src/hiddenBrands.js
 web/src/hiddenBrands.test.js
 web/src/historyChart.js
 web/src/historyChart.test.js
-web/src/homeExperiment.js
 web/src/homeRollout.test.js
 web/src/linkReturn.js
 web/src/linkReturn.test.js
@@ -373,7 +370,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 168 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 156 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 153 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -419,7 +416,6 @@ HTTP 경계:
 | `App.css` | 스타일 진입점(styles/를 캐스케이드 순서대로 import) |
 | `App.jsx` | 브랜드 비교, 분류, 검색 화면 조립 |
 | `BestHistoryChart.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `BrandCard.jsx` | 브랜드 카드 한 장 |
 | `BrandGridSkeleton.jsx` | 로딩 중 카드 자리지킴 |
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `CouponCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -431,14 +427,12 @@ HTTP 경계:
 | `HideBrandAsk.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `MenuBar.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `OfferChip.jsx` | 앱별 할인 칩과 앱 링크 사다리 |
-| `OfferDetail.jsx` | 칩을 펼친 상세 조건 |
 | `PopularDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PopularStrip.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SiteFooter.jsx` | 서비스 안내 푸터 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `TopBarA.jsx` | 상단 바(앱 버튼·분류 캐러셀). 옛 A안, 2026-09-15부터 유일 |
 | `TopBarB.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
@@ -460,6 +454,7 @@ HTTP 경계:
 | `brandColor.js` | 배너 색 파생 |
 | `brandImpression.js` | 브랜드 헤더 노출 판정과 세션 중복 방지 |
 | `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
+| `cardId.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -476,7 +471,6 @@ HTTP 경계:
 | `hiddenBrands.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `historyChart.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `historyChart.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `homeExperiment.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeRollout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |

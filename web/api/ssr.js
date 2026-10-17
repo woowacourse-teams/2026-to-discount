@@ -31,15 +31,16 @@ export function inject(html, appHtml, data) {
     .replace('<html lang="ko">', '<html lang="ko" data-variant="a">')
 }
 
-export default async function handler(req, res) {
-  let body = template
+// 쿠폰 카드 CSS를 첫 페인트 전에 받는다. 지연 로드 조각이 나중에 같은 주소를 보면 다시 받지 않는다.
+// 서버 렌더가 실패해 사전 렌더링 HTML을 보낼 때도 붙인다 — 브라우저가 그리는 카드도 쿠폰 카드다(2026-10-17
+// 운영 카드 삭제 전에는 그 경로만 운영 카드가 먼저 보였다).
+const withCouponCss = (html) => html.replace('</head>', `<link rel="stylesheet" href="${couponCss}"></head>`)
+
+export default async function handler(_req, res) {
+  let body = withCouponCss(template)
   try {
     const data = await loadData()
-    // 미들웨어가 붙인 내부 표시(?home=old가 아니면 늘 붙는다, 2026-10-17 A/B 결론). 쿠폰 카드로 처음부터 그린다.
-    if (new URL(req.url, 'http://x').searchParams.get('__arm') === 'coupon') data.arm = 'coupon'
-    body = inject(template, await render(data), data)
-    // 쿠폰 카드 CSS를 첫 페인트 전에 받는다. 지연 로드 조각이 나중에 같은 주소를 보면 다시 받지 않는다.
-    if (data.arm === 'coupon') body = body.replace('</head>', `<link rel="stylesheet" href="${couponCss}"></head>`)
+    body = withCouponCss(inject(template, await render(data), data))
     res.setHeader('x-ssr', '1')
     // CDN이 5분 들고, 그 뒤 5분까지는 낡은 걸 주면서 뒤에서 새로 그린다.
     // 하루 세 번 바뀌는 금액이 최대 약 10분 늦는다(2026-10-14, 요청 수 줄이기). 실패한 응답은 CDN에 안 둔다.
