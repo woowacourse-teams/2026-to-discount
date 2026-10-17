@@ -14,6 +14,8 @@ const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
+// 설문을 새로 띄우는가. false면 코드를 이미 받은 사람(링크 다시 보기)과 dk_survey_force만 본다.
+const SURVEY_OPEN = false
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
 // 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
@@ -164,6 +166,9 @@ export default function App({ initial = null }) {
       setSurveyOn(true)
       return
     }
+    // 새 응답자에게는 띄우지 않는다(2026-10-17 사용자: 노출 중지, 응답 34건에서 정리).
+    // 이미 코드를 받은 사람은 위에서 계속 "링크 다시 확인하기"를 본다.
+    if (!SURVEY_OPEN) return
     // 두 번 닫았거나 최근에 닫았으면 서버에 묻지도 않는다.
     if (!surveyShouldShow()) return
     let alive = true

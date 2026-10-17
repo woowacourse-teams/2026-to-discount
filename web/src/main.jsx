@@ -23,6 +23,18 @@ function configured(value) {
 // 브라우저가 한가할 때(최대 4초). GA4도 쓴다 — 함수 안에만 두었더니 GA4 쪽 load 처리기가 ReferenceError로 죽어 GA4가 안 떴다(2026-10-14).
 const later = (fn) => ('requestIdleCallback' in window ? window.requestIdleCallback(fn, { timeout: 4000 }) : setTimeout(fn, 1500))
 
+// 배포 전에 열어 둔 화면이 지워진 옛 청크(FilterSheet, SurveyDock 등)를 부르면 import가 실패해
+// 필터 버튼이 아무 반응이 없다(PostHog client_error 7일 8건, 2026-10-17). 한 번만 새로고침해
+// 새 index.html을 받는다. 1분 안에 또 실패하면 새로고침하지 않고 오류를 그대로 둔다(무한 새로고침 방지).
+window.addEventListener('vite:preloadError', (event) => {
+  let last = 0
+  try { last = Number(sessionStorage.getItem('dk_chunk_reload')) || 0 } catch { /* 저장소 막힘 */ }
+  if (Date.now() - last < 60_000) return
+  try { sessionStorage.setItem('dk_chunk_reload', String(Date.now())) } catch { return }
+  event.preventDefault()
+  window.location.reload()
+})
+
 function startPostHog() {
   // SDK(압축 85KB)는 페이지 로드가 끝나고 브라우저가 한가할 때 받는다. 그 전 이벤트는
   // analytics.js가 쌓아 뒀다가 넘긴다(pendingPostHogEvents). 2026-09-30 Lighthouse: 첫 화면
