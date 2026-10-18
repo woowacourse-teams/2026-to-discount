@@ -130,7 +130,10 @@
 .cc-t-fx { color: #346538; }
 .cc-tbl > .cc-t-note { grid-column: 1 / -1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 인기순 순번: 왼쪽 위 북마크 리본(2026-10-18 사용자) */
-.cc-rank { position: absolute; top: 0; left: var(--pad); z-index: 2; min-width: 30px; padding: 4px 5px 12px; background: var(--sale); color: #fff; font-size: 15px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); pointer-events: none; } /* 왼쪽 끝 = 로고 왼쪽 끝 */
+.cc-rank { position: absolute; top: 0; left: var(--pad); z-index: 2; isolation: isolate; min-width: 30px; padding: 4px 5px 12px; color: #fff; font-size: 15px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; pointer-events: none; } /* 왼쪽 끝 = 로고 왼쪽 끝 */
+/* 리본 모양은 ::before에만 잘라 붙인다. 본체를 자르면 불꽃까지 잘린다 */
+.cc-rank::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--sale); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); }
+.cc-rank::after { content: "🔥"; position: absolute; top: -7px; left: -8px; font-size: 14px; line-height: 1; } /* 2026-10-18 사용자: 숫자 왼쪽 위 불꽃(HOT 라벨과 같은 이모지) */
 .cc--highlighted { outline: 2px solid #2f6fd1; outline-offset: 2px; }
 /* 숨긴 카드가 오른쪽 위로 쪼그라들며 사라진다(운영 카드와 같은 모션, 시간은 App.jsx의 값과 맞춘다) */
 .cc--leaving { pointer-events: none; transform-origin: 100% 0; animation: brand-card-leave .1s cubic-bezier(.55, 0, 1, .45) both; }
