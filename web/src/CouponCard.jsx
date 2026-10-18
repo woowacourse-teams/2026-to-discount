@@ -72,7 +72,8 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
   return (
     // 감싸개: 쿠폰(마스크로 홈을 판다)은 바깥으로 삐져나온 것을 잘라서, 업데이트 탭은 감싸개에 단다
     <div className="cc-tkw">
-    {isUpdated(o) && <span className="cc-upd">신규 할인</span>}
+    {/* 2026-10-18 사용자: 카드에서는 쿠폰 위 배지 대신 카드 왼쪽 위 NEW! 리본. 하단 시트는 그대로 */}
+    {where === 'sheet' && isUpdated(o) && <span className="cc-upd">신규 할인</span>}
     {/* 하단 시트: 배지는 쿠폰 위 한 줄(쿠폰은 카드 쿠폰과 같은 모양, 2026-10-07 사용자) */}
     {tags && <span className="cc-ticket__tags">{tags}</span>}
     {/* 쿠폰 어디를 눌러도 앱 링크로(2026-10-07 사용자): 이동 꼭지(a)를 대신 누른다 — 클릭 기록과 쿠팡이츠 안내가 그대로 간다.
@@ -394,7 +395,10 @@ function CouponCard({ brand, position, rank, highlighted, onInteract, include = 
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name} onClick={onCardClick}
              className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}${bundles.length > 0 && !canExpand && rest.length === 0 ? ' cc--bare' : ''}${stack ? ' cc--stack' : ''}`}>
-      {rank != null && <span className="cc-rank" aria-label={`인기 ${rank}위`}>{rank}</span>}
+      {/* 왼쪽 위 리본: 인기 순번, 아니면 신규 오퍼가 있을 때 NEW!(2026-10-18 사용자). 둘 다면 순번 */}
+      {rank != null
+        ? <span className="cc-rank" aria-label={`인기 ${rank}위`}>{rank}</span>
+        : brand.offers.some(isUpdated) && <span className="cc-rank cc-rank--new" aria-label="신규 할인">NEW!</span>}
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>
