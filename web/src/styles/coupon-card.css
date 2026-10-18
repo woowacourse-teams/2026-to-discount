@@ -131,8 +131,8 @@
 .cc-tbl > .cc-t-note { grid-column: 1 / -1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 인기순 순번: 왼쪽 위 북마크 리본(2026-10-18 사용자) */
 .cc-rank { position: absolute; top: 0; left: var(--pad); z-index: 2; isolation: isolate; min-width: 30px; padding: 4px 5px 12px; color: #fff; font-size: 15px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; pointer-events: none; } /* 왼쪽 끝 = 로고 왼쪽 끝 */
-.cc-rank--new { font-size: 12px; letter-spacing: .02em; } /* NEW!는 불꽃 없이 */
-.cc-rank.cc-rank--new::after { content: none; }
+.cc-rank--new { min-width: 0; padding: 1px 0 0; color: var(--sale); font-size: 12px; line-height: 14px; letter-spacing: .02em; } /* 로고 위 여백 안에 들어가게 작게 */ /* 2026-10-18 사용자: NEW!는 리본·불꽃 없이 글자만 */
+.cc-rank.cc-rank--new::before, .cc-rank.cc-rank--new::after { content: none; }
 /* 리본 모양은 ::before에만 잘라 붙인다. 본체를 자르면 불꽃까지 잘린다 */
 .cc-rank::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--sale); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); }
 .cc-rank::after { content: "🔥"; position: absolute; top: 1px; left: -10px; font-size: 14px; line-height: 1; } /* 카드가 위로 넘친 것을 자르므로 위로는 못 나간다 */ /* 2026-10-18 사용자: 숫자 왼쪽 위 불꽃(HOT 라벨과 같은 이모지) */
