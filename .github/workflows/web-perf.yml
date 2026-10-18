@@ -61,4 +61,5 @@ jobs:
           [ -n "$SLACK_OPS_TOKEN" ] || { echo "SLACK_OPS_TOKEN 없음 - 알림 생략"; exit 0; }
           TEXT="❌ GitHub Actions 실패: ${{ github.workflow }} (${{ github.repository }}, ${GITHUB_SHA::7})"$'\n'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           BODY=$(TEXT="$TEXT" python3 -c 'import json,os;print(json.dumps({"channel":os.environ["SLACK_OPS_CHANNEL"],"text":os.environ["TEXT"]}))')
-          curl -s -X POST https://slack.com/api/chat.postMessage -H "Authorization: Bearer $SLACK_OPS_TOKEN" -H "Content-type: application/json; charset=utf-8" --data "$BODY"
+          curl -s -X POST https://slack.com/api/chat.postMessage -H "Authorization: Bearer $SLACK_OPS_TOKEN" -H "Content-type: application/json; charset=utf-8" --data "$BODY" > slack.json || { echo "슬랙 연결 실패"; exit 1; }
+          grep -q '"ok":true' slack.json || { echo "슬랙 거부: $(cat slack.json)"; exit 1; }
