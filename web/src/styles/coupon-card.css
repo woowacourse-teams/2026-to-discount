@@ -130,7 +130,7 @@
 .cc-t-fx { color: #346538; }
 .cc-tbl > .cc-t-note { grid-column: 1 / -1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* 인기순 순번: 왼쪽 위 북마크 리본(2026-10-18 사용자) */
-.cc-rank { position: absolute; top: 0; left: 8px; z-index: 2; min-width: 22px; padding: 3px 4px 9px; background: var(--sale); color: #fff; font-size: 12px; font-weight: 700; line-height: 14px; text-align: center; font-variant-numeric: tabular-nums; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 6px), 0 100%); pointer-events: none; }
+.cc-rank { position: absolute; top: 0; left: var(--pad); z-index: 2; min-width: 30px; padding: 4px 5px 12px; background: var(--sale); color: #fff; font-size: 15px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); pointer-events: none; } /* 왼쪽 끝 = 로고 왼쪽 끝 */
 .cc--highlighted { outline: 2px solid #2f6fd1; outline-offset: 2px; }
 /* 숨긴 카드가 오른쪽 위로 쪼그라들며 사라진다(운영 카드와 같은 모션, 시간은 App.jsx의 값과 맞춘다) */
 .cc--leaving { pointer-events: none; transform-origin: 100% 0; animation: brand-card-leave .1s cubic-bezier(.55, 0, 1, .45) both; }
