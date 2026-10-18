@@ -52,6 +52,16 @@ test('인기순을 고르면 기본으로 켜진 할인금액보다 앞선다 �
   assert.deepEqual(sortBrands(brands, { sorts }).map((b) => b.name), ['나', '가'])
 })
 
+test('인기순은 HOT과 같은 24시간 순서다. 같으면 7일 수로 가른다(2026-10-18 사용자)', () => {
+  const brands = [
+    brand('주간1위', [o(5000)], { popularity: 90, popularityToday: 2 }),
+    brand('오늘1위', [o(5000)], { popularity: 10, popularityToday: 8 }),
+    brand('동점', [o(5000)], { popularity: 95, popularityToday: 2 }),
+  ]
+  const sorts = [{ key: 'popularity', dir: 'desc' }]
+  assert.deepEqual(sortBrands(brands, { sorts }).map((b) => b.name), ['오늘1위', '동점', '주간1위'])
+})
+
 test('자사 오퍼는 플랫폼 필터 밖이다 - 배달앱을 다 꺼도 남는다', () => {
   const brands = [{
     name: '백억커피',

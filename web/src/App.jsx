@@ -12,6 +12,7 @@ const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
+import { ranks } from './popularStrip.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
 // 설문을 새로 띄우는가. false면 코드를 이미 받은 사람(링크 다시 보기)과 dk_survey_force만 본다.
 const SURVEY_OPEN = false
@@ -484,6 +485,12 @@ export default function App({ initial = null }) {
     [brands, filters, hidden, bestOf],
   )
 
+  // 인기순일 때 카드 왼쪽 위 순번(2026-10-18 사용자). HOT과 같은 표라 순위가 서로 맞는다.
+  const popRanks = useMemo(
+    () => (visibleBrands && primarySort(filters).key === 'popularity' ? ranks(visibleBrands, 'popularityToday') : null),
+    [visibleBrands, filters],
+  )
+
   // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
   const revived = useMemo(
     () => (brands ? revivedNames(brands, hidden, bestOf) : []),
@@ -788,7 +795,7 @@ export default function App({ initial = null }) {
             /></Suspense>
           )}
           {visibleBrands.slice(0, shown).map((b, index) => {
-            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
+            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1, rank: popRanks?.get(b.name),
               highlighted: linkedBrand === brandCardId(b.name), onInteract: clearLinked }
             const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
             // 한정 오퍼(배너)는 3번째 카드 뒤 한 칸(2026-10-15 사용자). 첫 자리는 신규·최고 할인 몫이다.
