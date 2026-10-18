@@ -335,13 +335,13 @@ export default function App({ initial = null }) {
   // 배너 실패는 삼킨다. 카드 그리드와 달리 배너는 부가 정보라, 못 불러왔다는
   // 사실을 화면에 띄울 이유가 없다 — 빈 목록과 같게 다룬다.
   useEffect(() => {
-    // SSR이 실어 준 배너는 main.jsx가 하이드레이션 전에 허브 주소까지 반영했다.
-    if (initial?.banners) return
+    // SSR 배너는 CDN 캐시(최대 ~10분)라 고친 배너가 늦게 보였다(2026-10-18).
+    // SSR이 있어도 한 번 더 받아 바꿔 끼우고, 실패하면 SSR 것을 그대로 둔다.
     // 배너를 받으면 허브 주소도 같이 갱신한다 — 브랜드별 링크가 없는
     // 칩이 그 주소로 간다(setHubLinks 주석 참고).
     fetchBanners()
       .then((got) => { setHubLinks(got); setBanners(got) })
-      .catch(() => setBanners([]))
+      .catch(() => { if (!initial?.banners) setBanners([]) })
   }, [])
 
 
