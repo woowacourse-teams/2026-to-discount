@@ -6,7 +6,7 @@ import {
   isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount,
+  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinPopular,
 } from './filters.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
@@ -50,6 +50,27 @@ test('인기순을 고르면 기본으로 켜진 할인금액보다 앞선다 �
   ]
   const sorts = [{ key: 'amount', dir: 'desc' }, { key: 'popularity', dir: 'desc' }]
   assert.deepEqual(sortBrands(brands, { sorts }).map((b) => b.name), ['나', '가'])
+})
+
+test('기본 정렬이면 HOT 1~5위가 맨 앞에 순위대로 선다. 정렬을 바꾸면 안 세운다(2026-10-18 사용자)', () => {
+  const pop = (name, n) => brand(name, [o(5000)], { popularityToday: n })
+  const list = [pop('신규', 0), pop('가', 1), pop('나', 9), pop('다', 4), pop('라', 7), pop('마', 2), pop('바', 3)]
+  assert.deepEqual(pinPopular(list, defaultFilters()).map((b) => b.name), ['나', '라', '다', '바', '마', '신규', '가'])
+  const other = { ...defaultFilters(), sorts: [{ key: 'minOrder', dir: 'asc' }] }
+  assert.equal(pinPopular(list, other), list)
+  // HOT이 안 뜨는 때(세 곳 미만)는 그대로
+  const few = [pop('신규', 0), pop('가', 1), pop('나', 9)]
+  assert.equal(pinPopular(few, defaultFilters()), few)
+})
+
+test('인기순은 HOT과 같은 24시간 순서다. 같으면 7일 수로 가른다(2026-10-18 사용자)', () => {
+  const brands = [
+    brand('주간1위', [o(5000)], { popularity: 90, popularityToday: 2 }),
+    brand('오늘1위', [o(5000)], { popularity: 10, popularityToday: 8 }),
+    brand('동점', [o(5000)], { popularity: 95, popularityToday: 2 }),
+  ]
+  const sorts = [{ key: 'popularity', dir: 'desc' }]
+  assert.deepEqual(sortBrands(brands, { sorts }).map((b) => b.name), ['오늘1위', '동점', '주간1위'])
 })
 
 test('자사 오퍼는 플랫폼 필터 밖이다 - 배달앱을 다 꺼도 남는다', () => {

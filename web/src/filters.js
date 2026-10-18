@@ -1,3 +1,4 @@
+import { STRIP_MIN, popularToday } from './popularStrip.js'
 import { findBrandSuggestions } from './brandAutocomplete.js'
 // 필터·정렬 규칙. 상단 바(TopBarA)와 목록(App)이 같은
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
@@ -56,10 +57,11 @@ export const MEMBERSHIP_LABEL = Object.fromEntries(MEMBERSHIP_OPTIONS.map((m) =>
 
 // 정렬 기준(2026-09-19 개편). 방향이 있는 둘은 라벨 아래 높은순/낮은순 버튼, 나머지 둘은 칩 하나.
 // 정렬은 하나만 고른다(2026-09-19). sortBrands는 여럿도 받지만 화면은 하나만 넘긴다.
+// 2026-10-18 사용자: 인기순을 맨 앞으로(찾는 사람이 많다).
 export const SORT_KEYS = [
+  { key: 'popularity', label: '인기순', directional: false },
   { key: 'amount', label: '할인금액', directional: true },
   { key: 'minOrder', label: '최소주문금액', directional: true },
-  { key: 'popularity', label: '인기순', directional: false },
   { key: 'recent', label: '최신순', directional: false },
 ]
 
@@ -278,7 +280,9 @@ export function latestCaptured(offers) {
 
 function sortValue(brand, key, include) {
   if (key === 'minOrder') return lowestMinOrder(brand.offers)
-  if (key === 'popularity') return brand.popularity ?? 0
+  // 2026-10-18 사용자: 인기순은 HOT 목록(24시간 사람 수)과 같은 순서. 같으면 이번 주(7일) 수로 가른다.
+  // ponytail: 두 수를 한 값으로 접는다. 7일 수가 백만을 넘으면 자리 올림.
+  if (key === 'popularity') return (brand.popularityToday ?? 0) * 1e6 + (brand.popularity ?? 0)
   if (key === 'recent') return latestCaptured(brand.offers)
   return bestConfirmedAmount(brand.offers, include)
 }
@@ -361,6 +365,15 @@ export function applyFilters(brands, filters) {
   if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return sorted
   const isNew = (b) => hasNewBest(b.offers, include)
   return [...sorted.filter(isNew), ...sorted.filter((b) => !isNew(b))]
+}
+
+/** 기본 정렬이면 HOT 1~5위를 맨 앞에 순위대로(2026-10-18 사용자: 신규보다 앞). 숨김을 뺀 목록에 부른다(HOT과 같은 목록). */
+export function pinPopular(brands, filters) {
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return brands
+  const top = popularToday(brands)
+  if (top.length < STRIP_MIN) return brands
+  const pinned = new Set(top.map((r) => r.brand))
+  return [...top.map((r) => r.brand), ...brands.filter((b) => !pinned.has(b))]
 }
 
 /**
