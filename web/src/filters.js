@@ -1,3 +1,4 @@
+import { STRIP_MIN, popularToday } from './popularStrip.js'
 import { findBrandSuggestions } from './brandAutocomplete.js'
 // 필터·정렬 규칙. 상단 바(TopBarA)와 목록(App)이 같은
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
@@ -364,6 +365,15 @@ export function applyFilters(brands, filters) {
   if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return sorted
   const isNew = (b) => hasNewBest(b.offers, include)
   return [...sorted.filter(isNew), ...sorted.filter((b) => !isNew(b))]
+}
+
+/** 기본 정렬이면 HOT 1~5위를 맨 앞에 순위대로(2026-10-18 사용자: 신규보다 앞). 숨김을 뺀 목록에 부른다(HOT과 같은 목록). */
+export function pinPopular(brands, filters) {
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return brands
+  const top = popularToday(brands)
+  if (top.length < STRIP_MIN) return brands
+  const pinned = new Set(top.map((r) => r.brand))
+  return [...top.map((r) => r.brand), ...brands.filter((b) => !pinned.has(b))]
 }
 
 /**
