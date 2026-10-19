@@ -307,15 +307,15 @@ export default function PushNotificationSetting({ toggleSlot }) {
     }
   }
 
-  // 이미 켠 사람이 끄는 길: 제보 시트 아래 "할인 알림 끄기"(ReportButton.jsx)가 이 이벤트를 쏜다.
+  // 알림 켜고 끄는 길: 제보 시트 X 아래 종 아이콘(ReportButton.jsx)이 이 이벤트를 쏜다(2026-10-19 사용자).
   const toggleRef = useRef(toggle)
   // 렌더 중이 아니라 커밋 뒤에 바꾼다. 버려진 렌더의 toggle(다른 enabled)을 잡지 않게.
   useEffect(() => { toggleRef.current = toggle })
   useEffect(() => {
-    const off = () => { if (enabled) toggleRef.current('report_sheet') }
-    window.addEventListener('discount-push-disable', off)
-    return () => window.removeEventListener('discount-push-disable', off)
-  }, [enabled])
+    const flip = () => toggleRef.current('report_sheet')
+    window.addEventListener('discount-push-toggle', flip)
+    return () => window.removeEventListener('discount-push-toggle', flip)
+  }, [])
 
   if (availability === 'unsupported') return null
 

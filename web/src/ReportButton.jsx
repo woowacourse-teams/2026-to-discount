@@ -31,6 +31,7 @@ export default function ReportButton({ filters, hold, brands }) {
   const [brand, setBrand] = useState('')
   const [state, setState] = useState('idle') // idle | sending | sent | failed
   const [pushOn, setPushOn] = useState(false)
+  const canPush = typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator
   const [type, setType] = useState('')
   const [platform, setPlatform] = useState('')
   const listboxId = useId()
@@ -79,11 +80,11 @@ export default function ReportButton({ filters, hold, brands }) {
       setState('idle'); setText(''); setBrand(''); setType(''); setPlatform('')
       // 보내면 시트를 닫고 홈 위에 안내를 띄운다(2026-10-19 사용자: 쿠팡이츠 안내처럼)
       setOpen(false)
-      showNotice('제보해주셔서 감사합니다. 빠르게 처리하겠습니다!')
+      showNotice('제보해주셔서 감사합니다.\n빠르게 처리하겠습니다!')
       track('report_sent', { type, platform: plat })
     } catch (err) {
       setState('failed')
-      showNotice('전송이 실패했어요. 다시 시도해 주시겠어요?')
+      showNotice('전송이 실패했어요.\n다시 시도해 주시겠어요?')
       track('report_failed', { status: String(err?.message ?? '') })
     }
   }
@@ -106,6 +107,16 @@ export default function ReportButton({ filters, hold, brands }) {
             <button type="button" className="sheet__close" aria-label="닫기" onClick={close}>
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
+            {/* 알림 켜고 끄기: X 아래 종 아이콘(2026-10-19 사용자). 켜기·끄기는 PushNotificationSetting이 맡는다 */}
+            {canPush && (
+              <button type="button" className="report-sheet__push" aria-pressed={pushOn}
+                      aria-label={pushOn ? '할인 알림 끄기' : '할인 알림 켜기'} title={pushOn ? '할인 알림 끄기' : '할인 알림 켜기'}
+                      onClick={() => { window.dispatchEvent(new Event('discount-push-toggle')); setPushOn(!pushOn) }}>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />{!pushOn && <path d="M3 3l18 18" />}
+                </svg>
+              </button>
+            )}
             <h2 className="report-sheet__head">제보</h2>
             <div ref={bodyRef} className="sheet__body report-sheet__body">
             <Track label="제보 종류" thumb>
@@ -138,11 +149,7 @@ export default function ReportButton({ filters, hold, brands }) {
                     <button type="submit" className="report-sheet__send" disabled={!type || !text.trim() || state === 'sending'}>
               {state === 'sending' ? '보내는 중' : '보내기'}
             </button>
-            {pushOn && (
-              <button type="button" className="report-sheet__push-off" onClick={() => {
-                window.dispatchEvent(new Event('discount-push-disable')); setPushOn(false); close()
-              }}>할인 알림 끄기</button>
-            )}
+
             </div>
           </form>
         </div>,

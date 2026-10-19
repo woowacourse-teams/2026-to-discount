@@ -85,3 +85,8 @@
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* 알림 켜고 끄기: 닫기(X) 바로 아래(2026-10-19 사용자). 켜지면 강조색 */
+.report-sheet__push { position: absolute; top: calc(.55rem + 36px); right: .8rem; width: 32px; height: 32px; border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); cursor: pointer; display: grid; place-items: center; }
+.report-sheet__push[aria-pressed="true"] { color: var(--sale); }
+.report-sheet__push:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
