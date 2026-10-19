@@ -58,6 +58,7 @@ export default function ReportButton({ filters, hold, brands }) {
   const openSheet = () => {
     if (tip) { setTip(false); track('report_tip_closed', { reason: 'button' }) }
     setPushOn(read('discount-push-enabled') === '1')
+    if (state !== 'sending') setState('idle') // 닫힌 뒤 끝난 전송의 결과 문구를 다시 열 때 남기지 않는다
     setOpen(true)
     track('report_open')
   }

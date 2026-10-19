@@ -83,6 +83,8 @@ class ReportControllerTest {
             mvc.perform(report("10.0.0.4", "{\"type\":\"other\",\"text\":\"a\"}")).andExpect(status().isOk());
         }
         mvc.perform(report("10.0.0.4", "{\"type\":\"other\",\"text\":\"a\"}")).andExpect(status().isTooManyRequests());
+        // 첫 항목을 바꿔 보내도 nginx가 덧붙인 마지막 항목으로 센다.
+        mvc.perform(report("9.9.9.9, 10.0.0.4", "{\"type\":\"other\",\"text\":\"a\"}")).andExpect(status().isTooManyRequests());
         mvc.perform(report("10.0.0.5", "{\"type\":\"other\",\"text\":\"a\"}")).andExpect(status().isOk());
     }
 

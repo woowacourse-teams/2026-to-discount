@@ -73,7 +73,7 @@ public class ReportController {
                 || tooLong(body.filters(), MAX_URL) || tooLong(body.visitorId(), MAX_SHORT)) {
             return ResponseEntity.badRequest().body(Map.of("ok", false));
         }
-        String who = fingerprint.hash(request);
+        String who = fingerprint.hashForLimit(request);
         if (!allow(who, Instant.now())) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("ok", false));
         }
@@ -114,7 +114,12 @@ public class ReportController {
     }
 
     synchronized boolean allow(String key, Instant now) {
-        if (recent.size() > 10_000) recent.clear();
+        // 다 지우면 모든 사람의 제한이 풀린다. 하루 지난 기록만 걷는다.
+        if (recent.size() > 10_000) {
+            Instant cutoff = now.minus(Duration.ofDays(1));
+            recent.values().forEach(q -> { while (!q.isEmpty() && q.peekFirst().isBefore(cutoff)) q.pollFirst(); });
+            recent.values().removeIf(Deque::isEmpty);
+        }
         Deque<Instant> times = recent.computeIfAbsent(key, k -> new ArrayDeque<>());
         while (!times.isEmpty() && times.peekFirst().isBefore(now.minus(Duration.ofDays(1)))) {
             times.pollFirst();
