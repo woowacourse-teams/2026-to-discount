@@ -46,7 +46,9 @@
 .report-sheet__head { margin: 0; padding: 1rem 1.25rem .9rem; font-size: 1.05rem; font-weight: 800; flex: none; }
 .report-sheet__body { flex: 1; display: flex; flex-direction: column; gap: .6rem; padding-top: 0; }
 .report-sheet__body > * { flex: none; }
-.report-sheet__brand-wrap { position: relative; }.report-sheet__x { border: 0; background: none; color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+.report-sheet__brand-wrap { position: relative; }
+/* 후보는 시트 밖으로 넘치지 않게 흐름 안에 두고 5줄 높이에서 자체 스크롤. 넘치면 시트 본문이 스크롤된다. */
+.report-sheet .brand-suggestions { position: static; margin-top: .35rem; max-height: 12.5rem; overflow-y: auto; }.report-sheet__x { border: 0; background: none; color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer; }
 .report-sheet__text,
 .report-sheet__brand {
   box-sizing: border-box;
