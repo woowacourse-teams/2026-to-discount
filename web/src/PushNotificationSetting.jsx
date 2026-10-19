@@ -31,6 +31,8 @@ function storePushEnabled(enabled) {
   } catch {
     // 저장소가 막혀도 브라우저의 실제 Push 구독 상태를 사용한다.
   }
+  // 제보 시트의 종 아이콘이 결과를 따라가게 알린다(누를 때 미리 뒤집으면 권한 거부 때 틀린 상태가 남는다)
+  globalThis.dispatchEvent?.(new CustomEvent('discount-push-state', { detail: enabled }))
 }
 
 export default function PushNotificationSetting({ toggleSlot }) {
@@ -307,39 +309,21 @@ export default function PushNotificationSetting({ toggleSlot }) {
     }
   }
 
+  // 알림 켜고 끄는 길: 제보 시트 X 아래 종 아이콘(ReportButton.jsx)이 이 이벤트를 쏜다(2026-10-19 사용자).
+  const toggleRef = useRef(toggle)
+  // 렌더 중이 아니라 커밋 뒤에 바꾼다. 버려진 렌더의 toggle(다른 enabled)을 잡지 않게.
+  useEffect(() => { toggleRef.current = toggle })
+  useEffect(() => {
+    const flip = () => toggleRef.current('report_sheet')
+    window.addEventListener('discount-push-toggle', flip)
+    return () => window.removeEventListener('discount-push-toggle', flip)
+  }, [])
+
   if (availability === 'unsupported') return null
 
+  // 상단 종 버튼은 2026-10-19 제보 버튼으로 바뀌었다. 슬롯에는 켜고 끈 결과 말풍선만 남는다.
   const toggleControl = (
     <div className="push-settings-control">
-      <button
-        type="button"
-        className={`filter-reset-btn push-settings-btn${enabled ? ' filter-reset-btn--active' : ''}`}
-        aria-label={enabled ? '할인 알림 끄기' : '할인 알림 켜기'}
-        title={enabled ? '할인 알림 끄기' : '할인 알림 켜기'}
-        aria-pressed={enabled}
-        disabled={changing}
-        onClick={() => {
-          track('push_setting_clicked', { source: 'header', enabled: String(enabled), availability })
-          if (availability === 'ready') toggle('header')
-          else if (availability === 'ios-install') {
-            setIosGuideClosing(false)
-            setShowIosGuide(true)
-          }
-          else if (availability === 'denied') setFeedback('브라우저 설정에서 알림을 허용해 주세요')
-        }}
-      >
-        {enabled ? (
-          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a6 6 0 0 0-6 6c0 4.7-1.4 6.5-2.5 7.7A1.4 1.4 0 0 0 4.5 18h15a1.4 1.4 0 0 0 1-2.3C19.4 14.5 18 12.7 18 8a6 6 0 0 0-6-6Zm-2 18a2 2 0 0 0 4 0h-4Z" />
-          </svg>
-        ) : (
-          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M13.7 3.2A6 6 0 0 0 6 8c0 2.5-.4 4.2-1 5.4M18 8c0 4.7 1.4 6.5 2.5 7.7A1.4 1.4 0 0 1 19.5 18H8" />
-            <path d="M10 21h4M3 3l18 18" />
-          </svg>
-        )}
-      </button>
-
       {feedback && <div className="push-settings-feedback" role="status">{feedback}</div>}
     </div>
   )
@@ -444,7 +428,7 @@ export default function PushNotificationSetting({ toggleSlot }) {
               </li>
               <li>
                 <span className="ios-push-guide__step-number">3</span>
-                <span>추가된 앱을 열고 알림 아이콘을 다시 눌러 주세요.</span>
+                <span>추가된 앱을 열고 알림을 켜 주세요.</span>
               </li>
             </ol>
             <button type="button" className="ios-push-guide__confirm" onClick={closeIosGuide}>

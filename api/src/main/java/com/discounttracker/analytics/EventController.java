@@ -53,8 +53,9 @@ public class EventController {
             "banner_autoplay_toggle",
             "banner_impression", "banner_dismiss", "brand_search_submitted",
             "brand_impression",
-            // 웹 푸시 설정 클릭과 결과. 브라우저 SDK가 차단돼도 서버 릴레이로 남아야 한다.
-            "push_setting_clicked", "push_subscription_enabled", "push_subscription_disabled", "push_permission_denied",
+            // 웹 푸시 결과. 브라우저 SDK가 차단돼도 서버 릴레이로 남아야 한다.
+            // 상단 종 클릭(push_setting_clicked)은 2026-10-19 종을 제보 버튼으로 바꾸며 뺐다.
+            "push_subscription_enabled", "push_subscription_disabled", "push_permission_denied",
             "push_prompt_viewed", "push_prompt_enable_clicked", "push_prompt_closed",
             // 설문 노출·닫기는 프론트가 쏜다. 응답(survey_answer)은 SurveyService가
             // 직접 적는다 — 이 경로는 인증이 없어 위조하면 응답 수와 코드 발급
@@ -69,6 +70,8 @@ public class EventController {
             "history_point_select", "history_drag", "history_range_change", "sheet_tab",
             // 인기 브랜드 HOT 순위 노출(2026-10-17, PopularDock.jsx). 누름과 펼침은 quick_filter key=popular_dock, popular_dock_toggle
             "popular_dock_impression",
+            // 잘못된 정보 제보(2026-10-19, ReportButton.jsx): 버튼, 말풍선 노출과 닫기, 전송 결과. 글 내용은 안 싣는다.
+            "report_open", "report_tip_shown", "report_tip_closed", "report_sent", "report_failed",
             // 실사용 측정(2026-10-14, web/src/telemetry.js): 앱 열림 결과, 웹 바이탈, 클라이언트 오류.
             "app_open_result", "web_vitals", "client_error");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(

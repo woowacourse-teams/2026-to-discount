@@ -1,0 +1,97 @@
+/* 잘못된 정보 제보(ReportButton.jsx). 시트는 다른 하단 시트(cc-sheet 90~91)와 같은 층, 말풍선은 상단 바 위. */
+.report-btn-wrap { position: relative; display: flex; }
+
+.report-tip {
+  position: absolute;
+  z-index: 65;
+  top: calc(100% + 9px);
+  right: -4px;
+  width: max-content;
+  max-width: min(240px, calc(100vw - 2rem));
+  padding: .5rem 1.6rem .5rem .7rem;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: .78rem;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
+}
+.report-tip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: 14px;
+  width: 9px;
+  height: 9px;
+  background: var(--text);
+  transform: rotate(45deg);
+}
+.report-tip__x {
+  position: absolute;
+  top: 50%;
+  right: .3rem;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  padding: .2rem;
+  cursor: pointer;
+}
+
+/* 시트 틀, 손잡이, 닫기, 칩은 필터 시트(filter-sheet.css)의 것을 그대로 쓴다. 여기는 높이와 입력칸만. */
+.sheet.report-sheet { height: 60vh; height: 60dvh; max-height: none; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.report-sheet__head { margin: 0; padding: 1rem 1.25rem .9rem; font-size: 1.05rem; font-weight: 800; flex: none; }
+.report-sheet__body { flex: 1; display: flex; flex-direction: column; gap: .6rem; padding-top: 0; }
+.report-sheet__body > * { flex: none; }
+.report-sheet__brand-wrap { position: relative; }
+/* 후보는 시트 밖으로 넘치지 않게 흐름 안에 두고 5줄 높이에서 자체 스크롤. 넘치면 시트 본문이 스크롤된다. */
+.report-sheet .brand-suggestions { position: static; margin-top: .35rem; max-height: 12.5rem; overflow-y: auto; }.report-sheet__x { border: 0; background: none; color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+.report-sheet__text,
+.report-sheet__brand {
+  box-sizing: border-box;
+  width: 100%;
+  padding: .6rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* iOS 확대 방지 */
+}
+.report-sheet__text { flex: 1; min-height: 8rem; resize: none; }
+.report-sheet__count { align-self: flex-end; margin-top: -.3rem; color: var(--text-muted); font-size: .72rem; }
+.report-sheet__msg { margin: 0; font-size: .85rem; font-weight: 600; }
+.report-sheet__msg--err { color: var(--sale); }
+.report-sheet__send {
+  padding: .75rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--surface);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.report-sheet__send:disabled { opacity: .4; cursor: default; }
+.report-sheet__push-off {
+  align-self: center;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: .75rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* 알림 켜고 끄기: 닫기(X) 바로 아래(2026-10-19 사용자). 켜지면 강조색 */
+.report-sheet__push { position: absolute; top: calc(.55rem + 36px); right: .8rem; width: 32px; height: 32px; border: 0; border-radius: 999px; background: transparent; color: var(--text-muted); cursor: pointer; display: grid; place-items: center; }
+.report-sheet__push[aria-pressed="true"] { color: var(--sale); }
+.report-sheet__push:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 말풍선은 3초 뒤 흐려지며 사라진다(2026-10-19 사용자) */
+.report-tip { transition: opacity .4s ease; }
+.report-tip--out { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .report-tip { transition: none; } }
