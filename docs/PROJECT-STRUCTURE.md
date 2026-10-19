@@ -285,6 +285,8 @@ web/src/platformsContract.test.js
 web/src/popularStrip.js
 web/src/popularStrip.test.js
 web/src/posthog.js
+web/src/posthogDelivery.js
+web/src/posthogDelivery.test.js
 web/src/prerenderBreadcrumb.test.js
 web/src/privacy.js
 web/src/pushNotifications.js
@@ -491,6 +493,8 @@ HTTP 경계:
 | `popularStrip.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `popularStrip.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |
+| `posthogDelivery.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `posthogDelivery.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `prerenderBreadcrumb.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `privacy.js` | DNT/GPC 추적 거부 판정 |
 | `pushNotifications.js` | 런타임 모듈, 세부 책임은 코드 확인 |
