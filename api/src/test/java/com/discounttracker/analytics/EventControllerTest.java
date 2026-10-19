@@ -45,33 +45,19 @@ class EventControllerTest {
     }
 
     @Test
-    void acceptsPushSettingClicksWithPreClickState() throws Exception {
+    void acceptsReportEventsAndDropsRetiredBellClick() throws Exception {
+        // 상단 종 버튼은 2026-10-19 제보 버튼으로 바뀌어 push_setting_clicked는 더 받지 않는다.
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content("""
                             [
-                              {"event":"push_setting_clicked","visitorId":"v_push_click_denied",
-                               "sessionId":"s_push_click","props":{"source":"header",
-                               "enabled":"false","availability":"denied"}},
-                              {"event":"push_setting_clicked","visitorId":"v_push_click_enabled",
-                               "sessionId":"s_push_click","props":{"source":"header",
-                               "enabled":"true","availability":"ready"}}
+                              {"event":"report_open","visitorId":"v_report","sessionId":"s_report"},
+                              {"event":"report_tip_closed","visitorId":"v_report","sessionId":"s_report",
+                               "props":{"reason":"close_button"}},
+                              {"event":"push_setting_clicked","visitorId":"v_report","sessionId":"s_report"}
                             ]
                             """))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.accepted").value(2));
-
-        String logged = Files.readString(Path.of(logPath));
-        for (String state : new String[]{"denied", "enabled"}) {
-            String click = logged.lines()
-                    .filter(line -> line.contains("\"visitorId\":\"v_push_click_" + state + "\""))
-                    .reduce((first, second) -> second)
-                    .orElseThrow();
-            assertTrue(click.contains("\"event\":\"push_setting_clicked\""));
-            assertTrue(click.contains("\"source\":\"header\""));
-            assertTrue(click.contains("\"enabled\":\"" + state.equals("enabled") + "\""));
-            assertTrue(click.contains("\"availability\":\""
-                    + (state.equals("denied") ? "denied" : "ready") + "\""));
-        }
     }
 
     @Test

@@ -610,6 +610,7 @@ export default function App({ initial = null }) {
           sheetOpen={sheetOpen}
           onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
           popular={visibleBrands && <PopularDock brands={visibleBrands} onPick={pickPopular} />}
+          reportHold={guideOn}
         />
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가

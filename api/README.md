@@ -23,6 +23,8 @@
 | `DISCOUNT_HISTORY_PATH` | 할인 이력. tracker `data/history.json` | 저장소 샘플 |
 | `DISCOUNT_BANNERS_PATH` | 배너. 운영 서버 파일이 유일본이다 | 빈 목록 |
 | `DISCOUNT_EVENT_LOG_PATH` | 방문 이벤트 원장 | `data/events.jsonl` |
+| `DISCOUNT_REPORT_PATH` | 잘못된 정보 제보 원장(`POST /api/reports`, 한 줄에 JSON 하나). `file:` 안 붙임 | `data/reports.jsonl` |
+| `SLACK_REPORT_TOKEN`, `SLACK_REPORT_CHANNEL` | 제보를 띄울 슬랙 봇 토큰과 채널. 없으면 원장에만 남는다 | 없음 |
 
 경로 앞에는 `file:`을 붙인다(예: `DISCOUNT_EXPORT_PATH=file:/절대/경로/export.json`). 이벤트 원장만 붙이지
 않는다. 전체 설정과 기본값은 `src/main/resources/application.yml` 한 곳에 있다.

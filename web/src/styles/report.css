@@ -1,0 +1,102 @@
+/* 잘못된 정보 제보(ReportButton.jsx). 시트는 다른 하단 시트(cc-sheet 90~91)와 같은 층, 말풍선은 상단 바 위. */
+.report-btn-wrap { position: relative; display: flex; }
+
+.report-tip {
+  position: absolute;
+  z-index: 65;
+  top: calc(100% + 9px);
+  right: -4px;
+  width: max-content;
+  max-width: min(240px, calc(100vw - 2rem));
+  padding: .5rem 1.6rem .5rem .7rem;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--surface);
+  font-size: .78rem;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
+}
+.report-tip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: 14px;
+  width: 9px;
+  height: 9px;
+  background: var(--text);
+  transform: rotate(45deg);
+}
+.report-tip__x {
+  position: absolute;
+  top: 50%;
+  right: .3rem;
+  transform: translateY(-50%);
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  padding: .2rem;
+  cursor: pointer;
+}
+
+.report-dim {
+  position: fixed;
+  inset: 0;
+  z-index: 91;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, .5);
+}
+.report-sheet {
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+  border-radius: 20px 20px 0 0;
+  background: var(--surface);
+  color: var(--text);
+}
+.report-sheet__head { display: flex; align-items: center; justify-content: space-between; font-size: 1rem; }
+.report-sheet__x { border: 0; background: none; color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+.report-sheet__text,
+.report-sheet__brand {
+  box-sizing: border-box;
+  width: 100%;
+  padding: .6rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* iOS 확대 방지 */
+}
+.report-sheet__text { resize: vertical; }
+.report-sheet__count { align-self: flex-end; margin-top: -.3rem; color: var(--text-muted); font-size: .72rem; }
+.report-sheet__msg { margin: 0; font-size: .85rem; font-weight: 600; }
+.report-sheet__msg--err { color: var(--sale); }
+.report-sheet__send {
+  padding: .75rem;
+  border: 0;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--surface);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.report-sheet__send:disabled { opacity: .4; cursor: default; }
+.report-sheet__push-off {
+  align-self: center;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: .75rem;
+  text-decoration: underline;
+  cursor: pointer;
+}

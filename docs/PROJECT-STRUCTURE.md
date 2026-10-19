@@ -50,6 +50,8 @@ api/src/main/java/com/discounttracker/analytics/PostHogEventMapper.java
 api/src/main/java/com/discounttracker/analytics/PostHogForwardingWorker.java
 api/src/main/java/com/discounttracker/analytics/PostHogOutbox.java
 api/src/main/java/com/discounttracker/analytics/PostHogProperties.java
+api/src/main/java/com/discounttracker/analytics/ReportController.java
+api/src/main/java/com/discounttracker/analytics/SlackReporter.java
 api/src/main/java/com/discounttracker/analytics/SurveyController.java
 api/src/main/java/com/discounttracker/analytics/SurveyEligibility.java
 api/src/main/java/com/discounttracker/analytics/SurveyService.java
@@ -122,6 +124,7 @@ api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogForwardingWorkerTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogOutboxTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogPropertiesTest.java
+api/src/test/java/com/discounttracker/analytics/ReportControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyEligibilityTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyTextTest.java
@@ -224,6 +227,7 @@ web/src/OfferChip.jsx
 web/src/PopularDock.jsx
 web/src/PopularStrip.jsx
 web/src/PushNotificationSetting.jsx
+web/src/ReportButton.jsx
 web/src/SiteFooter.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
@@ -296,6 +300,8 @@ web/src/pushPrompt.js
 web/src/pushPrompt.test.js
 web/src/pushSyncRetry.js
 web/src/pushSyncRetry.test.js
+web/src/report.js
+web/src/report.test.js
 web/src/styles/banner.css
 web/src/styles/base.css
 web/src/styles/brand-card.css
@@ -312,6 +318,7 @@ web/src/styles/offer-tabs.css
 web/src/styles/overflow.css
 web/src/styles/platform-icons.css
 web/src/styles/popular-strip.css
+web/src/styles/report.css
 web/src/styles/status.css
 web/src/styles/survey-dock.css
 web/src/styles/survey.css
@@ -372,8 +379,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 168 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 156 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 171 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 160 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -385,7 +392,7 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 21 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 23 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 6 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
@@ -409,6 +416,7 @@ HTTP 경계:
 - `POST /api/push/displayed/{token}`
 - `POST /api/push/subscriptions`
 - `POST /api/reload`
+- `POST /api/reports`
 - `POST /api/survey`
 - `PUT /api/push/admin/next`
 
@@ -433,6 +441,7 @@ HTTP 경계:
 | `PopularDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PopularStrip.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `ReportButton.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SiteFooter.jsx` | 서비스 안내 푸터 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -505,6 +514,8 @@ HTTP 경계:
 | `pushPrompt.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `pushSyncRetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `pushSyncRetry.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `report.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `report.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
