@@ -25,12 +25,15 @@ public record BrandComparison(
         Integer maxConfirmedAmount,
         @JsonIgnore Integer maxHeldAmount,
         List<Offer> offers,
-        // 인기 점수(2026-09-19). 최근 14일 원장 이벤트의 클릭·펼침 가중합(PopularityIndex).
-        // 프론트 정렬 "인기순"이 쓴다. 0이면 기록 없음.
-        int popularity) {
+        // 인기(PopularityIndex). 링크나 배너를 누른 서로 다른 방문자 수. popularity는 이번 주(7일),
+        // popularityToday는 오늘(24시간). 프론트 정렬 "인기순"이 popularity를 쓴다. 0이면 기록 없음.
+        int popularity,
+        int popularityToday,
+        // 그 전 24시간(24~48시간 전) 사람 수. 웹이 오늘 인기 순위의 등락을 센다(2026-10-14).
+        int popularityYesterday) {
 
     public BrandComparison(Brand brand, Integer maxConfirmedAmount, Integer maxHeldAmount, List<Offer> offers) {
-        this(brand, maxConfirmedAmount, maxHeldAmount, offers, 0);
+        this(brand, maxConfirmedAmount, maxHeldAmount, offers, 0, 0, 0);
     }
 
     /** 카드 제목·로고 파일명이 쓰는 대표명. */
@@ -49,6 +52,18 @@ public record BrandComparison(
     @JsonProperty("searchAliases")
     public List<String> searchAliases() {
         return brand.searchAliases();
+    }
+
+    /** brands.yml의 짧은 이름. 카드 이름이 별칭 중 가장 짧은 것으로 줄어드는 대신 이것을 쓴다. 없으면 null. */
+    @JsonProperty("shortName")
+    public String shortName() {
+        return brand.shortName();
+    }
+
+    /** 그 브랜드에만 있는 대표 메뉴명. 메뉴로 검색해도 브랜드가 나오게 한다. */
+    @JsonProperty("menus")
+    public List<String> menus() {
+        return brand.menus();
     }
 
     /** 앱별 브랜드 쿠폰 바로가기. 플랫폼 키(ddangyo, baemin, ...) -> 링크. */

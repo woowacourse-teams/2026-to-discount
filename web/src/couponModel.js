@@ -1,6 +1,6 @@
 // 쿠폰 브랜드 카드(메인 화면 A안 16차)의 계산. 화면 없이 테스트한다.
 // 명세: tracker docs/superpowers/specs/2026-10-03-home-a-display-model.md
-import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated } from './filters.js'
+import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated, isBundle } from './filters.js'
 export { isUpdated }
 
 const byMinOrder = (a, b) => (a.minOrderAmount ?? Infinity) - (b.minOrderAmount ?? Infinity)
@@ -15,7 +15,12 @@ const QUALIFIER_BADGE = {
  * 견줄 수 있고 품절이 아닌 오퍼 중 가장 큰 금액, 동점은 하나를 골라 올리지 않는다.
  * 하위는 최대(불확정)를 뒤로 민 뒤 금액 큰 순. 최고가 없으면 그 순서의 맨 앞이 대표다.
  */
-export function splitOffers(offers, include) {
+export function splitOffers(all, include) {
+  // 1+1 묶음 행사는 대표, 하위와 따로 카드 맨 위 줄에 선다(2026-10-11 사용자: 오퍼 최상단).
+  const bundles = all.filter(isBundle)
+  const offers = all.filter((x) => !isBundle(x))
+  // 묶음 행사뿐인 브랜드는 그것이 대표다(대표 쿠폰 자리가 비면 카드가 안 그려진다).
+  if (offers.length === 0) return { best: bundles.slice(0, 1), rest: bundles.slice(1), hasBest: false, bundles: [] }
   const top = displayBestAmount(offers, include)
   const isBest = (x) => top != null && comparable(x, include) && !x.soldOut && x.amount === top
   const sorted = [...offers].sort((a, b) => {
@@ -23,9 +28,10 @@ export function splitOffers(offers, include) {
     const bm = b.qualifier === '최대' ? 1 : 0
     return am - bm || (b.amount ?? -1) - (a.amount ?? -1)
   })
-  const best = sorted.filter(isBest).sort(byMinOrder)
-  if (best.length > 0) return { best, rest: sorted.filter((x) => !isBest(x)), hasBest: true }
-  return { best: sorted.slice(0, 1), rest: sorted.slice(1), hasBest: false }
+  // 동점 최고 중 신규를 캐러셀 첫 장으로(2026-10-15 사용자). 신규끼리, 나머지끼리는 최소주문 순서 그대로.
+  const best = sorted.filter(isBest).sort((a, b) => isUpdated(b) - isUpdated(a) || byMinOrder(a, b))
+  if (best.length > 0) return { best, rest: sorted.filter((x) => !isBest(x)), hasBest: true, bundles }
+  return { best: sorted.slice(0, 1), rest: sorted.slice(1), hasBest: false, bundles }
 }
 
 export function minLabel(m) {
@@ -71,11 +77,24 @@ const won = (n) => `${n.toLocaleString('ko-KR')}원`
  * 구간이 둘 이상이거나 구간에 채널, 멤버십, 조건, 기한이 붙었을 때만 줄을 낸다(구간 하나가 쿠폰과 같으면 중복).
  * 계산식(최적)은 배지 아래에 이미 있으니 표에 넣지 않는다.
  */
+// 여는 시각이 앞에 붙은 구간 메모("오전 10시 오픈 선착순")는 칩 둘로 가른다. 한 칩이면 좁은 칸에서 넘치거나
+// 줄이 낱말 사이로 끊겼다(2026-10-15 사용자: 따로 붙이든가). 시각 꼴은 배지 읽기(badgesOf)와 같다.
+const OPENS_NOTE = /^((?:오전|오후)\s*\d+시(?:\s*\d+분)?\s*오픈)\s+(.+)$/
+export function noteParts(note) {
+  if (!note) return []
+  const m = note.match(OPENS_NOTE)
+  return m ? [m[1], m[2]] : [note]
+}
+const noteChips = (note) => noteParts(note).map((text) => ({ kind: 'note', text }))
+
 export function conditionTable(offer) {
   const tiers = Array.isArray(offer.tiers) ? [...offer.tiers].sort((a, b) => b.amount - a.amount) : []
   // 구간이 자기 멤버십을 말하지 않으면 오퍼 전체의 값을 따른다(운영 OfferDetail과 같다). 필드가 없는 옛 행은 badge 끝말로.
   const offerMem = offer.membership && offer.membership !== 'none' ? offer.membership : (offer.badge?.endsWith('전용쿠폰') ? 'badge' : null)
-  const memOf = (t) => (t.membership && t.membership !== 'none' ? t.membership : offerMem)
+  // 구간 하나라도 자기 멤버십을 밝히면, 밝히지 않은 구간은 오퍼 값을 물려받지 않는다. 선착순을 상시의 구간으로 합친
+  // 오퍼에서 상시(배민클럽 전용)의 멤버십이 멤버십을 모르는 선착순 구간에까지 붙었다(2026-10-16 CodeRabbit, PR #85).
+  const tierSays = tiers.some((t) => t.membership && t.membership !== 'none')
+  const memOf = (t) => (t.membership && t.membership !== 'none' ? t.membership : tierSays ? null : offerMem)
   const extra = (t) => t.channel || memOf(t) || t.note || (t.expiresAt && t.expiresAt !== offer.expiresAt)
   const rows = []
   // 최적(기본 할인 + 쿠폰을 겹친 값)은 겹친 구간마다 계산식을 붙인다: 30,000원↑ 7,000원 (5,000+2,000).
@@ -91,7 +110,7 @@ export function conditionTable(offer) {
       extra: t.percent != null ? `${t.percent}%${t.cap != null && t.cap !== t.amount ? `, 최대 ${won(t.cap)}` : ''}` : sumOf(t),
       chips: [t.channel && { kind: 'channel', text: t.channel },
         mem && { kind: 'membership', text: MEMBERSHIP_LABEL[offer.platform] ?? (offer.badge ?? mem), platform: offer.platform },
-        t.note && { kind: 'note', text: t.note },
+        ...noteChips(t.note),
         t.expiresAt && t.expiresAt !== offer.expiresAt && { kind: 'until', text: `~${t.expiresAt.slice(5).replace('-', '.')}` }].filter(Boolean),
       min: min != null ? `${won(min)}↑` : '최소주문 미확인', // 펼친 상세에서만(사용자 2026-10-05). 대표 줄은 비운다
     }
@@ -110,6 +129,7 @@ const weight = (t) => [...t].reduce((n, ch) => n + (/[ᄀ-ᇿ㄰-㆏가-힯一-�
  * 공백을 뺀 한글 포함 별칭 중 가장 짧은 것. 별칭이 없거나 더 길면 원래 이름(넘치면 CSS 말줄임).
  */
 export function shortBrandName(brand, limit = 10) {
+  if (brand.shortName) return brand.shortName // 사람이 정한 이름이 이긴다(2026-10-14 토핑몬스터피자)
   if (weight(brand.name) <= limit) return brand.name
   const cand = (brand.searchAliases ?? []).map((a) => a.replace(/\s+/g, '')).filter((a) => /[가-힣]/.test(a) && weight(a) < weight(brand.name))
   cand.sort((a, b) => weight(a) - weight(b))
@@ -131,6 +151,8 @@ export function channelOf(offer) {
 }
 
 export function amountText(offer) {
+  // 묶음 행사의 금액 칸은 정렬값(15,000)이다. 화면에는 원문("징거버거 1+1")을 쓴다.
+  if (isBundle(offer)) return offer.rawText ?? ''
   return offer.amount != null ? `${offer.amount.toLocaleString('ko-KR')}원` : (offer.rawText ?? '')
 }
 

@@ -1,8 +1,8 @@
 package com.discounttracker.push;
 
 import com.discounttracker.banner.Banner;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -26,6 +26,22 @@ public class PushMessageFactory {
         this.mapper = mapper;
     }
 
+    public String offerPayload(DailyOfferNotification.Target offer, String displayedUrl,
+                               String clickUrl, String notificationId) {
+        String benefit = String.format(java.util.Locale.KOREA, "%,d원 %s할인", offer.amount(),
+                offer.firstCome() ? "선착순 " : "");
+        try {
+            return mapper.writeValueAsString(Map.of(
+                    "title", offer.brand() + " " + benefit,
+                    "body", "할인 시간과 적용 조건을 확인해 보세요.",
+                    "url", clickUrl, "displayedUrl", displayedUrl,
+                    "notificationId", notificationId, "deliveryType", "new_offer",
+                    "offerCount", 1));
+        } catch (JacksonException e) {
+            throw new IllegalStateException("Push payload 생성 실패", e);
+        }
+    }
+
     public String payload(List<Banner> banners, String displayedUrl, String clickUrl,
                           String notificationId, String deliveryType) {
         Banner first = banners.get(0);
@@ -45,7 +61,7 @@ public class PushMessageFactory {
                     "deliveryType", deliveryType,
                     "bannerCount", banners.size(),
                     "bannerIds", banners.stream().map(Banner::id).toList()));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Push payload 생성 실패", e);
         }
     }

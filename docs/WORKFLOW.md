@@ -52,7 +52,7 @@ tracker(작업 사본) --커밋--> tracker origin
 ### 3-3. 웹 (mono/web): 프리뷰가 기본값
 
 1. mono에서 브랜치(`feature/…`)를 만들고 `npm test`와 `npm run build`를 돌린다.
-2. `web/`만 미러 저장소의 `preview/<이름>` 브랜치로 push한다. Vercel 프리뷰 주소는 `beggars-git-preview-<이름>-nn98s-projects.vercel.app`이다.
+2. mono에 `preview/<이름>` 브랜치를 push한다. CI(`mirror-deploy-repos.yml`)가 `web/`만 미러 저장소의 같은 이름 브랜치로 옮긴다(미러에 직접 push하지 않는다). Vercel 프리뷰 주소는 `beggars-git-preview-<이름>-nn98s-projects.vercel.app`이다.
 3. 360px 폭 스크린샷으로 확인한다(`web/scripts/dev/banner-shot.mjs`). 눈으로 보지 않은 변경은 올리지 않는다.
 4. 요청한 사람이 프리뷰를 승인하면 main에 합치고 push한다. 미러를 거쳐 운영에 나간다.
 5. 프리뷰 브랜치는 합친 뒤 지운다. 실험이 보류되면 브랜치 이름과 상태를 [`design/README.md`](design/README.md)에 적는다(예: `best-tag`).
@@ -82,7 +82,7 @@ CORS: 프리뷰 도메인 패턴은 `api/.../WebConfig.java`에 이미 열려 �
 - `banners.yml`과 `gifticons.yml`을 저장소에 넣지 않는다. 서버 파일이 유일본이다.
 - 미러 저장소 `main`에 직접 push하지 않는다.
 - 웹 변경을 프리뷰 없이 main에 올리지 않는다.
-- 예약 실행 시각(00:01, 08:30, 15:55, 각 25분에서 130분)에 폰을 만지지 않는다. 폰 잠금은 사람이 푼다. 자동화가 패턴을 넣지 않는다.
+- 예약 실행 시각(하루 세 번, 각 25분에서 130분)에 폰을 만지지 않는다. 폰 잠금은 사람이 푼다. 자동화가 패턴을 넣지 않는다.
 - 로그인이 필요한 화면과 자동 접근을 거부하는 곳은 수집하지 않는다(tracker 저장소(비공개) ADR-015-open-access-only-and-disclosure 참고).
 - 비밀(서버 키, 분석 토큰, 슬랙 토큰)은 저장소 밖에 둔다. 설문 자유 응답과 User-Agent 원문은 저장하지 않는다.
 

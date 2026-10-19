@@ -6,12 +6,14 @@ import { Fragment, memo, useEffect, useLayoutEffect, useMemo, useRef, useState }
 import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
-import { brandCardId } from './BrandCard.jsx'
+import { brandCardId } from './cardId.js'
 import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
-import { offerKey } from './filters.js'
+import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
-import './styles/coupon-card.css'
+import BestHistoryChart from './BestHistoryChart.jsx'
+// coupon-card.css는 여기서 싣지 않는다. :root 배경 같은 전역 규칙이 있어 운영 카드 쪽에 섞이면 안 된다.
+// 쿠폰 쪽일 때만 App이 따로 받고, 서버 렌더는 <head>에 링크를 단다(api/ssr.js).
 
 const Up = () => (
   <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2l4 5H7.2v3H4.8V7H2z" fill="currentColor" /></svg>
@@ -34,7 +36,7 @@ function Min({ value }) {
 
 // 품절은 운영 칩과 같다: 금액에 취소선, 옆에 "품절" 라벨.
 function Amt({ offer }) {
-  const hasNum = offer.amount != null
+  const hasNum = offer.amount != null && !isBundle(offer) // 묶음 행사의 금액 칸은 정렬값이다
   const num = hasNum ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
   return (
     <span className="cc-amt">
@@ -53,7 +55,7 @@ function OfferLinkA({ offer, brand, position, best, where, slot, expanded, class
        // 커스텀 스킴(coupangeats://, ddangyo://, baemin://)은 같은 탭에서 열어야 앱으로 간다(운영 칩과 같다).
        target={web ? '_blank' : undefined} rel={web ? 'noreferrer' : undefined}
        aria-label={`${brand.name} ${amountText(offer)}, 앱으로 이동`}
-       onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best, where, slot, expanded })); openWithNotice(e, href) }}>
+       onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, best, where, slot, expanded })); openWithNotice(e, href, { offerPrompt: true }) }}>
       {children}
     </a>
   )
@@ -70,20 +72,23 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
   return (
     // 감싸개: 쿠폰(마스크로 홈을 판다)은 바깥으로 삐져나온 것을 잘라서, 업데이트 탭은 감싸개에 단다
     <div className="cc-tkw">
-    {isUpdated(o) && <span className="cc-upd">신규 할인</span>}
+    {/* 2026-10-18 사용자: 카드에서는 쿠폰 위 배지 대신 카드 왼쪽 위 NEW! 리본. 하단 시트는 그대로 */}
+    {where === 'sheet' && isUpdated(o) && <span className="cc-upd">신규 할인</span>}
+    {/* 하단 시트: 배지는 쿠폰 위 한 줄(쿠폰은 카드 쿠폰과 같은 모양, 2026-10-07 사용자) */}
+    {tags && <span className="cc-ticket__tags">{tags}</span>}
     {/* 쿠폰 어디를 눌러도 앱 링크로(2026-10-07 사용자): 이동 꼭지(a)를 대신 누른다 — 클릭 기록과 쿠팡이츠 안내가 그대로 간다.
         카드의 나머지 영역은 하단 시트를 연다(onCardClick). */}
     <div className="cc-ticket" data-platform={o.platform} {...rest}
          onClick={(e) => { if (e.target.closest('a')) return; e.stopPropagation(); e.currentTarget.querySelector('a.cc-stub')?.click() }}>
       {/* tags: 하단 시트에서는 배지를 쿠폰 안 위쪽에 따로 둔다. 금액·최소주문은 세로 가운데 그대로 */}
-      {tags && <span className="cc-ticket__tags">{tags}</span>}
       <span className="cc-info">
         <PlatformBadge platformKey={o.platform} brand={brand.name} />
         <span className="cc-num"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} where={where} slot={slot} expanded={expanded} className="cc-stub"><LinkIcon /></OfferLinkA>
     </div>
-    {o.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
+    {/* 쿠팡이츠 안내: 카드에서는 이동 전 토스트로 대신하고, 하단 시트에서만 쿠폰 아래 문구를 둔다(2026-10-07 사용자) */}
+    {where === 'sheet' && o.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
     </div>
   )
 }
@@ -138,12 +143,15 @@ function ComboInfo({ o, text }) {
 >i</button>
       {pos && createPortal(
         <span ref={pop} className="cc-info__pop" role="tooltip" style={{ top: pos.top, right: pos.right }}>
-          고정 할인 쿠폰과 중복 할인 쿠폰을 합쳐<br />최적의 할인을 계산한 결과입니다.
+          요기요는 기본할인과 추가할인을 모두 받는<br />최소주문금액 기준으로 할인을 계산해요.
           {fx && <><br /><b>{fx}</b></>}
         </span>, document.body)}
     </span>
   )
 }
+
+// 서버 렌더에서는 layout effect가 돌지 않고 경고만 남긴다(App.jsx와 같은 꼴).
+const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 // 동점 최고: 오퍼마다 단독 쿠폰과 같은 쿠폰 하나, 가로 캐러셀(CSS 스크롤 스냅)에 나란히. 배지는 그 쿠폰 오른쪽 위 포스트잇.
 // 현재 위치 점은 IntersectionObserver로만 갱신한다(스크롤 이벤트, 폭 재기 없음). 서버 렌더와 마운트 전에는 첫 점이 켜져 있다.
@@ -174,12 +182,42 @@ function Carousel({ brand, best, position, idx, setIdx }) {
     track('coupon_carousel_swipe', { brand: brand.name, from: shownIdx.current, to: idx, count: best.length, platform: best[idx]?.platform ?? 'none' })
     shownIdx.current = idx
   }, [idx])
+  // iOS 사파리는 첫 배치 중에 넘김을 스스로 둘째 장에 붙였다(2026-10-15 ios-shot 배치 검사: scrollLeft 360, 점 2).
+  // 사람이 손대기 전(터치, 마우스, 휠, 키보드 포커스)에 일어난 스크롤은 첫 장으로 되돌린다. 폭은 재지 않는다.
+  // 첫 그림 전에 되돌리려고 layout effect다(그 사이 둘째 장이 한 번 보이지 않게).
+  useIsoLayoutEffect(() => {
+    const root = ref.current
+    if (!root) return undefined
+    let touched = false
+    const mark = () => { touched = true }
+    const keep = () => { if (!touched && root.scrollLeft !== 0) root.scrollLeft = 0 }
+    const marks = ['pointerdown', 'pointermove', 'touchstart', 'touchmove', 'wheel', 'focusin', 'keydown']   // 끄는 도중도 사람이다
+    marks.forEach((t) => root.addEventListener(t, mark, { passive: true }))
+    root.addEventListener('scroll', keep, { passive: true })
+    keep()                                            // 효과가 붙기 전에 이미 붙어 버린 경우
+    // 글꼴이 들어와 다시 배치된 뒤: 되돌리고, 넘김 층을 한 번 다시 그리게 한다. iOS는 이 층을 글꼴 전 그림으로 남겨
+    // 금액과 "원 할인"이 겹쳐 보였다(2026-10-16 ios-shot에서 이 후보만 늘 바로 그렸다).
+    document.fonts?.ready.then(() => {
+      keep()
+      root.style.transform = 'translateZ(0)'
+      requestAnimationFrame(() => { root.style.transform = '' })
+    })
+    return () => {
+      marks.forEach((t) => root.removeEventListener(t, mark))
+      root.removeEventListener('scroll', keep)
+    }
+  }, [])
   useEffect(() => {
     const root = ref.current
     if (!root || typeof IntersectionObserver === 'undefined') return undefined
     const slides = [...root.children]
     const io = new IntersectionObserver((entries) => {
-      for (const e of entries) if (e.isIntersecting) setIdx(slides.indexOf(e.target))
+      // 한 번에 여럿이 보이면(첫 그리기) 마지막 것이 아니라 가장 많이 보이는 것, 같으면 앞 장(2026-10-15: 신규 첫 장인데 점과 배지가 둘째를 가리켰다)
+      const seen = entries.filter((e) => e.isIntersecting)
+      if (seen.length === 0) return
+      const top = seen.reduce((a, b) => (b.intersectionRatio > a.intersectionRatio + 0.01
+        || (Math.abs(b.intersectionRatio - a.intersectionRatio) <= 0.01 && slides.indexOf(b.target) < slides.indexOf(a.target)) ? b : a))
+      setIdx(slides.indexOf(top.target))
     }, { root, threshold: 0.6 })
     slides.forEach((el) => io.observe(el))
     return () => io.disconnect()
@@ -225,8 +263,8 @@ function Ticket({ brand, best, hasBest, position, idx, setIdx }) {
 // phase: false(접힘, DOM에 없음) → 'enter'(내용을 0fr로 먼저 DOM에 넣음) → 'open'(두 프레임 뒤 1fr) → 'leave'(0fr로 닫는 중) → false.
 const OPEN_MS = 280
 const LEAVE_MS = 220
-function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false, compact = false }) {
-  const { best, rest, hasBest } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
+function CouponCard({ brand, position, rank, highlighted, onInteract, include = null, onHide, leaving = false, photo = false, compact = false }) {
+  const { best, rest, hasBest, bundles } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   const [phase, setPhase] = useState(false)
   const [cur, setCur] = useState(0) // 캐러셀에서 보이는 쿠폰. 브랜드명 옆 배지가 이걸 따른다
   const [settled, setSettled] = useState(false) // 다 열린 뒤에는 overflow를 풀어 쿠폰 그림자가 잘리지 않게 한다
@@ -280,11 +318,15 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
     if (d?.active) settleSheet(d.dy, Date.now() - d.t < 300)
   }
   // 마우스(데스크톱)
+  const sheetBodyRef = useRef(null)
+  const sheetHistRef = useRef(null)
   const onSheetDown = (e) => { if (e.pointerType === 'mouse' && e.button === 0) dragStart(e.clientY, e.target) }
   const onSheetMove = (e) => { if (e.pointerType === 'mouse' && dragMove(e.clientY)) e.currentTarget.setPointerCapture?.(e.pointerId) }
   const onSheetUp = (e) => { if (e.pointerType === 'mouse') dragEnd() }
   const onCardClick = (e) => {
     if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging, .cc-combo__btn')) return
+    // 바로가기(인기 브랜드, #brand-이름)로 카드 안에서 펼쳐진 상태면 시트 대신 접는다(2026-10-16 사용자: 못 접는다)
+    if (phase === 'open' || phase === 'enter') { toggle(); return }
     if (!canExpand) return
     onInteract?.()
     track('brand_expand', { brand: brand.name, category: brand.category ?? 'none', via: 'sheet' })
@@ -352,7 +394,11 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const listed = stack ? [...best.filter((o) => o !== top[0]), ...rest] : rest
   return (
     <article id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name} onClick={onCardClick}
-             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}${stack ? ' cc--stack' : ''}`}>
+             className={`cc${open ? ' cc--open' : ''}${settled ? ' cc--settled' : ''}${highlighted ? ' cc--highlighted' : ''}${leaving ? ' cc--leaving' : ''}${photo ? ' cc--photo' : ''}${compact ? ' cc--compact' : ''}${bundles.length > 0 && !canExpand && rest.length === 0 ? ' cc--bare' : ''}${stack ? ' cc--stack' : ''}`}>
+      {/* 왼쪽 위 리본: 인기 순번, 아니면 신규 오퍼가 있을 때 NEW!(2026-10-18 사용자). 둘 다면 순번 */}
+      {rank != null
+        ? <span className="cc-rank" aria-label={`인기 ${rank}위`}>{rank}</span>
+        : brand.offers.some(isUpdated) && <span className="cc-rank cc-rank--new" aria-label="신규 할인">NEW!</span>}
       <BrandLogo name={brand.name} size={64} />
       {/* 로고 오른쪽 고정 크기 블록(높이 = 로고): 1줄 이름+배지, 2줄 설명/계산식. 비어도 자리 유지 */}
       <div className="cc-head" ref={headRef}>
@@ -365,7 +411,19 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         {/* 2줄: 배지(예전 계산식 자리). 계산식은 복합 배지의 (i) 설명으로 옮겼다(2026-10-06 사용자) */}
         {best[cur] && <div className="cc-fx cc-badges"><Tags o={best[cur]} /></div>}
       </div>
-      <div className="cc-deal cc-deal--main"><div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div></div>
+      {/* 1+1 묶음 행사는 대표 쿠폰 위 한 줄(2026-10-11 사용자: 오퍼 최상단). 금액 비교 밖이라 대표를 뺏지 않는다. */}
+      {/* 감싸는 div는 묶음이 있을 때만. 모든 카드에 두면 쿠폰이 사라진다(2026-10-11 회귀). */}
+      <div className="cc-deal cc-deal--main">{bundles.length === 0
+        ? <div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
+        : <div className="cc-deal-col">
+            {bundles.map((o) => (
+              <OfferLinkA key={offerKey(o)} offer={o} brand={brand} position={position} best={false} where="main" slot="bundle" className="cc-bundle">
+                <span className="cc-bundle-tag">행사</span><b>{o.rawText}</b><LinkIcon />
+              </OfferLinkA>
+            ))}
+            <div className="cc-main-in"><Ticket brand={brand} best={best} hasBest={hasBest} position={position} idx={cur} setIdx={setCur} /></div>
+          </div>}
+      </div>
       {/* 최고 오퍼는 메인 쿠폰에 이미 있으니 쿠폰으로 다시 그리지 않고, 상세 표만 메인 쿠폰 바로 아래에 둔다 */}
       {bestTables.length > 0 && (
         <div className="cc-x"><div className="cc-x-in">
@@ -427,26 +485,59 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             <div className="cc-sheet__grip" aria-hidden="true" />
             <div className="cc-sheet__head">
               <BrandLogo name={brand.name} size={40} />
-              <strong>{brand.name}</strong>
+              <strong>{brand.shortName ?? brand.name}</strong>
               <button type="button" className="cc-sheet__close" aria-label="닫기" onClick={() => setSheet(false)}>×</button>
             </div>
-            <div className="cc-sheet__body">
+            <SheetTabs bodyRef={sheetBodyRef} histRef={sheetHistRef} brand={brand.name} />
+            <div className="cc-sheet__body" ref={sheetBodyRef}>
               {[...best, ...rest].map((o, i) => {
-                const f = formulaOf(o)
+                // 중복 할인 계산식은 시트에서 뺐다(2026-10-07 사용자: 표 첫 줄에 이미 계산이 보인다)
                 const tb = conditionTable(o)
-                const hasTbl = tb.rows.length > 0 || tb.note || f
+                const hasTbl = tb.rows.length > 0 || tb.note
                 return (
                   <div key={offerKey(o)} className="cc-sheet__item">
                     <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded tags={<Tags o={o} />} />
-                    {hasTbl && <DetailTable t={tb} i={0} fx={f} />}
+                    {hasTbl && <DetailTable t={tb} i={0} />}
                   </div>
                 )
               })}
+              <section className="cc-sheet__hist" ref={sheetHistRef} aria-label="할인 기록"><BestHistoryChart brand={brand.name} /></section>
             </div>
           </div>
         </div>
         </>, document.body)}
     </article>
+  )
+}
+
+// 시트 얇은 탭바(2026-10-16 사용자): 할인 상세 / 할인 기록. 둘 다 한 화면에 이어 있고 탭은 그 자리로 스크롤만 한다.
+// 스크롤하면 지금 보이는 쪽 탭이 켜진다. 그래프가 없는 브랜드는 CSS(:has)가 탭바를 숨긴다.
+function SheetTabs({ bodyRef, histRef, brand }) {
+  const [onHist, setOnHist] = useState(false)
+  useEffect(() => {
+    const body = bodyRef.current
+    if (!body) return undefined
+    // 그래프 위 끝이 본문 가운데보다 위로 오거나 끝까지 내렸으면 기록 탭
+    const sync = () => {
+      const h = histRef.current
+      if (!h) return
+      const atEnd = body.scrollTop + body.clientHeight >= body.scrollHeight - 4
+      setOnHist(atEnd || h.offsetTop - body.scrollTop < body.clientHeight / 2)
+    }
+    body.addEventListener('scroll', sync, { passive: true })
+    return () => body.removeEventListener('scroll', sync)
+  }, [bodyRef, histRef])
+  const go = (hist) => {
+    const body = bodyRef.current
+    if (!body) return
+    track('sheet_tab', { brand, tab: hist ? 'history' : 'detail' })
+    body.scrollTo({ top: hist ? histRef.current.offsetTop - 8 : 0, behavior: 'smooth' })
+  }
+  return (
+    <div className="cc-sheet__tabs" role="tablist" aria-label="보기">
+      <button type="button" role="tab" aria-selected={!onHist} onClick={() => go(false)}>할인 상세</button>
+      <button type="button" role="tab" aria-selected={onHist} onClick={() => go(true)}>할인 기록</button>
+    </div>
   )
 }
 

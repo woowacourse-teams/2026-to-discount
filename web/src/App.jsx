@@ -6,15 +6,21 @@ import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
-import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
+import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
+const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount } from './filters.js'
+import { CATEGORIES, applyFilters, pinPopular, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
+import { STRIP_MIN, popularToday, ranks } from './popularStrip.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
+// 설문을 새로 띄우는가. false면 코드를 이미 받은 사람(링크 다시 보기)과 dk_survey_force만 본다.
+const SURVEY_OPEN = false
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
-const CouponCard = lazy(() => import('./CouponCard.jsx'))
+// 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
+// 서버 화면을 버리고 다시 그렸다(React #421 x 카드 수, TBT 2.3초, 2026-10-14). 15KB.
+import CouponCard from './CouponCard.jsx'
 import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import { captureRects, playShift, readCards } from './cardShift.js'
 
@@ -27,9 +33,9 @@ const SHIFT_PAUSE_MS = 400
 const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
 import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
 import { getAnalyticsContext } from './analytics-context.js'
-import { currentHomeArm } from './homeExperiment.js'
+import { shouldShowGuide } from './firstVisitGuide.js'
 import PushNotificationSetting from './PushNotificationSetting.jsx'
-import BrandCard, { brandCardId } from './BrandCard.jsx'
+import { brandCardId } from './cardId.js'
 import BrandGridSkeleton from './BrandGridSkeleton.jsx'
 import { setHubLinks } from './offerLink.js'
 import SiteFooter from './SiteFooter.jsx'
@@ -51,6 +57,7 @@ function analyticsFilterContext(filters) {
     // 2026-10-05 추가: 신규 보기, 5천원 이상만, 꺼 둔 멤버십(없으면 빈 값)
     fNew: !!filters.updatedOnly,
     fMin5k: !!filters.minAmount5k,
+    fMinAmount: filters.minAmount,
     fMemberOff: ['baemin', 'coupangeats'].filter((k) => !(filters.memberships?.has(k) ?? true)).join('+') || 'none',
   }
 }
@@ -92,6 +99,11 @@ function routeFilters() {
 // 그리고 같은 값을 다시 부르지 않는다. 첫 렌더는 서버와 같아야 하므로 브라우저에만 있는 값
 // (localStorage, 시각, 화면 폭)은 전부 effect에서 읽는다.
 export default function App({ initial = null }) {
+  const [pushToggleSlot, setPushToggleSlot] = useState(null)
+  // 알림 토글 자리는 ref가 붙을 때 받는다. 급한 업데이트로 받으면 하이드레이션 중인 쿠폰 카드(Suspense)가
+  // 업데이트를 받아 통째로 다시 그려져, a홈이 서버 화면 -> 운영 카드 -> 쿠폰 카드로 바뀌어 보였다(React #421,
+  // 2026-10-08 8035491부터, 10-12 사용자 발견). 전환으로 두면 하이드레이션이 끝난 뒤 처리된다.
+  const pushToggleRef = useCallback((el) => { startTransition(() => setPushToggleSlot(el)) }, [])
   const [brands, setBrands] = useState(initial?.brands ?? null)
   // null은 아직 못 받음(자리만 잡는다), []는 받았는데 0건.
   const [banners, setBanners] = useState(initial?.banners ?? null)
@@ -153,6 +165,9 @@ export default function App({ initial = null }) {
       setSurveyOn(true)
       return
     }
+    // 새 응답자에게는 띄우지 않는다(2026-10-17 사용자: 노출 중지, 응답 34건에서 정리).
+    // 이미 코드를 받은 사람은 위에서 계속 "링크 다시 확인하기"를 본다.
+    if (!SURVEY_OPEN) return
     // 두 번 닫았거나 최근에 닫았으면 서버에 묻지도 않는다.
     if (!surveyShouldShow()) return
     let alive = true
@@ -167,12 +182,18 @@ export default function App({ initial = null }) {
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
   const [filters, setFilters] = useState(routeFilters)
+  // 시트에서 고른 기준 금액은 이 브라우저에 남는다. 서버 렌더와 첫 화면을 맞추려고 effect에서 읽는다.
+  useEffect(() => {
+    const n = readMinAmount()
+    if (n) setFilters((f) => ({ ...f, minAmount: n }))
+  }, [])
   // 필터 시트(옛 B안을 A 바에 병합, 2026-09-16). 시트가 draft를 만들어
   // 통째로 돌려주므로 "적용" 한 번에 setFilters 한 번이다.
   const [sheetOpen, setSheetOpen] = useState(false)
   useBackClose(sheetOpen, () => setSheetOpen(false))
   const applyFromSheet = (draft) => {
     setFilters(draft)
+    saveMinAmount(draft.minAmount)
     setSheetOpen(false)
     track('filters_apply', {
       platforms: draft.platforms.size,
@@ -181,6 +202,7 @@ export default function App({ initial = null }) {
       random: draft.includeRandom,
       menu: draft.includeMenu,
       min5k: draft.minAmount5k,
+      minAmount: draft.minAmount,
       memberships: [...(draft.memberships ?? [])].sort().join('+') || 'none',
       updatedOnly: !!draft.updatedOnly,
     })
@@ -196,23 +218,33 @@ export default function App({ initial = null }) {
 
   const { search } = filters
   const [dev, setDev] = useState(false)
-  // 서버 렌더링 첫 화면은 늘 운영 카드다(하이드레이션 일치). 마운트 뒤 A/B 배정이 쿠폰 카드면 바꾼다.
-  // 서버가 쿠키(dk_home)로 쿠폰 카드 쪽을 알아 처음부터 그렸으면(initial.arm) 그대로 이어받는다 — 깜빡임이 없다.
-  const [homeA, setHomeA] = useState(initial?.arm === 'coupon')
-  const [homePhoto, setHomePhoto] = useState(false) // 시안 비교용 ?photo=1
-  const [homeCompact, setHomeCompact] = useState(initial?.arm === 'coupon') // 쿠폰 카드는 촘촘한 안이 기본
-    useEffect(() => {
-    // 메인 화면 A/B(homeExperiment.js): 2026-10-05 00:00부터 방문자 반반. 쿠폰 카드는 촘촘한 안이 기본(?compact=0이면 큰 안).
+  // 메인 화면은 쿠폰 카드 하나다(2026-10-17 A/B 결론, docs/metrics/HOME-AB-LOG.md. 운영 카드 코드는 지웠다).
+  // 촘촘한 안이 기본이고 ?compact=0이면 큰 안, ?photo=1은 시안 비교용. 첫 렌더는 서버와 같게 기본값으로 그린다.
+  const [homePhoto, setHomePhoto] = useState(false)
+  const [homeCompact, setHomeCompact] = useState(true)
+  useEffect(() => {
     try {
       const q = new URLSearchParams(window.location.search)
-      const { arm } = currentHomeArm(getAnalyticsContext().visitorId)
-      if (arm === 'coupon') startTransition(() => { setHomeA(true); setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
-      // 서버가 쿠폰 카드로 그렸는데 배정이 운영 카드면(쿠키가 낡음) 운영 카드로 돌린다.
-      else if (initial?.arm === 'coupon') startTransition(() => { setHomeA(false); setHomeCompact(false) })
-    } catch { /* 주소를 못 읽으면 운영 카드 */ }
+      if (q.get('photo') === '1' || q.get('compact') === '0') {
+        startTransition(() => { setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
+      }
+    } catch { /* 주소를 못 읽으면 기본 안 */ }
   }, [])
+  // 쿠폰 카드 CSS. 서버 렌더와 그 실패 때 보내는 사전 렌더링 HTML 모두 <head>에 링크가 있어(api/ssr.js) 캐시로 끝난다.
+  // 개발 서버(vite)에서만 여기서 처음 받는다.
+  useEffect(() => { import('./styles/coupon-card.css') }, [])
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
+  // 첫 방문 안내(firstVisitGuide.js). 2026-10-14부터 ?guide=1로만 뜬다. 카드가 그려진 뒤에 띄운다.
+  const [guideOn, setGuideOn] = useState(false)
+  const guideChecked = useRef(false)
+  useEffect(() => {
+    if (!brands?.length || guideChecked.current) return
+    guideChecked.current = true
+    try {
+      if (shouldShowGuide({ search: window.location.search })) setGuideOn(true)
+    } catch { /* 못 읽으면 안내 없이 */ }
+  }, [brands])
   useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
 
@@ -265,26 +297,12 @@ export default function App({ initial = null }) {
     ro.observe(el)
     setBarHeight(el.getBoundingClientRect().height)
     return () => ro.disconnect()
-    // 메인 화면 A/B로 바가 바뀌면(운영 바 -> B안 바) 새 바를 다시 잰다. 안 그러면 떼어 낸 옛 바를 재
-    // 높이 0이 되고, 행사 배너가 바 밑에 깔린다(2026-10-04 실측).
-  }, [homeA])
+  }, [])
 
   const isFiltered = !isDefaultFilters(filters)
   const resetFilters = () => {
     setFilters(defaultFilters())
     track('filters_reset')
-  }
-  // 첫 화면: 브랜드 경로(/brand/<이름>)면 전체 목록으로 나가고, 아니면
-  // 필터·검색을 풀고 맨 위로. 시트가 열려 있으면 닫는다.
-  const goHome = () => {
-    track('home_click')
-    if (typeof window !== 'undefined' && window.location.pathname !== '/') {
-      window.location.assign('/')
-      return
-    }
-    setSheetOpen(false)
-    setFilters(defaultFilters())
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // URL 해시(#brand-이름)로 카드 하나를 콕 집어 공유할 수 있게 한다.
@@ -317,13 +335,13 @@ export default function App({ initial = null }) {
   // 배너 실패는 삼킨다. 카드 그리드와 달리 배너는 부가 정보라, 못 불러왔다는
   // 사실을 화면에 띄울 이유가 없다 — 빈 목록과 같게 다룬다.
   useEffect(() => {
-    // SSR이 실어 준 배너는 main.jsx가 하이드레이션 전에 허브 주소까지 반영했다.
-    if (initial?.banners) return
+    // SSR 배너는 CDN 캐시(최대 ~10분)라 고친 배너가 늦게 보였다(2026-10-18).
+    // SSR이 있어도 한 번 더 받아 바꿔 끼우고, 실패하면 SSR 것을 그대로 둔다.
     // 배너를 받으면 허브 주소도 같이 갱신한다 — 브랜드별 링크가 없는
     // 칩이 그 주소로 간다(setHubLinks 주석 참고).
     fetchBanners()
       .then((got) => { setHubLinks(got); setBanners(got) })
-      .catch(() => setBanners([]))
+      .catch(() => { if (!initial?.banners) setBanners([]) })
   }, [])
 
 
@@ -336,8 +354,10 @@ export default function App({ initial = null }) {
   //
   // 오퍼를 걷어내고 나서 남는 게 없는 카드는 뺀다. 그 브랜드에서 볼
   // 것이 하나도 없는데 이름만 남기면 빈 카드가 격자를 채운다.
-  // 입력 중인 문자열이 아니라 사용자가 확정한 검색만 센다. 원문은 보내지
-  // 않고 길이만 남겨, 검색 행동은 분석하되 자유 입력 개인정보는 수집하지 않는다.
+  // 입력 중인 문자열이 아니라 사용자가 확정한 검색만 센다. 검색 개선(메뉴명, 미등록 브랜드 파악)을 위해
+  // 확정한 검색어(40자까지)와 앞쪽 결과 브랜드 5개를 남긴다(2026-10-08 사용자). 하단 안내 문구에 적혀 있다.
+  // 인기 순위에서 브랜드를 고르면 그 카드로 간다(같은 이름을 다시 골라도 다시 가게 한 번 비운다)
+  const pickPopular = (name) => { setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name))) }
   const submitSearch = (raw, submitMethod) => {
     const query = raw.trim()
     // 검색을 확정하면 켜둔 분류를 푼다.
@@ -353,16 +373,18 @@ export default function App({ initial = null }) {
       ? { ...filters, search: query }
       : { ...filters, search: query, categories: new Set() }
     setFilters(nextFilters)
-    if (query === '') return
+    if (query === '' || submitMethod === 'live') return
 
     // 상태 반영 뒤 effect를 기다리면 이 이벤트만 이전 검색 맥락을 가진다.
     // 제출로 확정한 조건을 먼저 알려 같은 이벤트에도 최신 fSearch를 싣는다.
     setFilterContext(analyticsFilterContext(nextFilters))
+    const results = brands ? applyFilters(brands, nextFilters) : null
     track('brand_search_submitted', {
       inputLength: query.length,
-      resultCount: brands
-        ? applyFilters(brands, nextFilters).length
-        : undefined,
+      resultCount: results ? results.length : undefined,
+      // 전화번호 같은 긴 숫자열은 가린다. 서버(EventController.maskDigits)와 같은 규칙.
+      query: query.replace(/\d[\d\s-]{4,}\d/g, '#').slice(0, 40),
+      results: results ? results.slice(0, 5).map((b) => b.name).join(',') : undefined,
       submitMethod,
     })
   }
@@ -388,6 +410,10 @@ export default function App({ initial = null }) {
   // 올려 새 목록을 처음부터 보게 한다 — 첫 렌더에는 건너뛴다(들어오자마자
   // 스크롤이 튀면 안 된다).
   const firstGrid = useRef(true)
+  // 서버가 그린 첫 목록은 떠오르는 애니메이션 없이 바로 보인다. opacity 0에서 시작하면 그동안 최대 콘텐츠
+  // 표시(LCP)가 안 찍혀 쿠폰 홈 실사용 LCP p75가 1.6초로 운영 카드(0.8초)의 두 배였다(2026-10-14).
+  // ponytail: 처음 조건으로 되돌아오면 그때도 애니메이션이 없다. 거슬리면 첫 마운트 여부를 따로 든다.
+  const [stillKey] = useState(gridKey)
   useEffect(() => {
     if (firstGrid.current) {
       firstGrid.current = false
@@ -403,6 +429,21 @@ export default function App({ initial = null }) {
   // React가 그 경계를 버리고 다시 그린다(#421). 브라우저 값 반영은 급하지 않다.
   useEffect(() => { startTransition(() => setHidden(readHidden())) }, [])
   const [hiddenOpen, setHiddenOpen] = useState(false)
+  const hiddenToggleRef = useRef(null)
+  const primarySortRef = useRef(null)
+  const closeHidden = () => {
+    // aria-hidden을 적용하기 전에 포커스를 목록 밖으로 옮긴다.
+    hiddenToggleRef.current?.focus({ preventScroll: true })
+    setHiddenOpen(false)
+  }
+  const showHiddenBrand = (name) => {
+    const next = showBrand(hidden, name)
+    // 마지막 항목을 복원하면 여는 버튼도 사라지므로 정렬 버튼을 사용한다.
+    const target = Object.keys(next).length ? hiddenToggleRef : primarySortRef
+    target.current?.focus({ preventScroll: true })
+    if (Object.keys(next).length === 0) setHiddenOpen(false)
+    setHidden(next)
+  }
   const bestOf = useCallback(
     (b) => displayBestAmount(b.offers, includesFrom(filters)), [filters])
   // 바로 숨기지 않는다. 어떻게 숨길지 물어본 뒤에 숨긴다.
@@ -440,9 +481,17 @@ export default function App({ initial = null }) {
   }, [])
 
   const visibleBrands = useMemo(
-    () => (brands ? applyHidden(applyFilters(brands, filters), hidden, bestOf) : brands),
+    () => (brands ? pinPopular(applyHidden(applyFilters(brands, filters), hidden, bestOf), filters) : brands),
     [brands, filters, hidden, bestOf],
   )
+
+  // 카드 왼쪽 위 순번(2026-10-18 사용자). 인기순이면 전부, 그 밖에는 맨 앞에 세운 HOT 1~5위만. HOT과 같은 표라 순위가 맞는다.
+  const popRanks = useMemo(() => {
+    if (!visibleBrands) return null
+    if (primarySort(filters).key === 'popularity') return ranks(visibleBrands, 'popularityToday')
+    const top = popularToday(visibleBrands)
+    return visibleBrands[0] === top[0]?.brand && top.length >= STRIP_MIN ? new Map(top.map((r) => [r.brand.name, r.rank])) : null
+  }, [visibleBrands, filters])
 
   // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
   const revived = useMemo(
@@ -546,9 +595,10 @@ export default function App({ initial = null }) {
       {/* A/B 실험 종료(2026-09-15): 한 줄 바 + 분류 캐러셀(a안)로 통일.
           결론은 docs/HANDOFF-20260914.md §4 — b(시트)는 내렸다. */}
       {/* 메인 화면 A/B: 쿠폰 카드 쪽은 9월 실험의 B안 상단 바(검색 + 분류 메뉴 바, 앱·정렬은 시트) */}
-      {homeA ? (
-        <TopBarB
+      {/* 2026-10-15 사용자: 배너 도크 대신 오늘 인기. 2026-10-17: 하단 고정에서 상단 바(검색과 분류 사이)로 */}
+      <TopBarB
           barRef={titleBarRef}
+          pushToggleRef={pushToggleRef}
           filters={filters}
           setFilters={setFilters}
           search={search}
@@ -559,22 +609,8 @@ export default function App({ initial = null }) {
           resetFilters={resetFilters}
           sheetOpen={sheetOpen}
           onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
+          popular={visibleBrands && <PopularDock brands={visibleBrands} onPick={pickPopular} />}
         />
-      ) : (
-      <TopBarA
-        barRef={titleBarRef}
-        filters={filters}
-        setFilters={setFilters}
-        search={search}
-        onSearchSubmit={submitSearch}
-        brands={brands}
-        isFiltered={isFiltered}
-        resetFilters={resetFilters}
-        sheetOpen={sheetOpen}
-        onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
-        onHome={goHome}
-      />
-      )}
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
@@ -582,8 +618,8 @@ export default function App({ initial = null }) {
           (2026-09-30 브랜드 페이지 CLS 0.9). 받았는데 0건이면 자리를 거둔다. */}
       {/* 쿠폰 카드 쪽은 위 배너 캐러셀 없이 처음부터 하단 도크로만(2026-10-05 사용자: 목록 안 한 줄은 별로) */}
       {/* 2026-10-05 사용자: 운영 카드 쪽도 하단 도크로 */}
-      {banners ? <EventBanner banners={banners} dockOnly /> : null}
-      <PushNotificationSetting />
+      {/* 2026-10-15 사용자: 하단 도크는 배너 대신 오늘 인기. 배너(한정 오퍼)는 목록 3번째 카드 뒤에 선다 */}
+      <PushNotificationSetting toggleSlot={pushToggleSlot} />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
           높은순, 최소주문 낮은순. 랜덤쿠폰 토글은 2026-09-21에 여기서 뺐다(사용자) — 뽑기
@@ -591,13 +627,14 @@ export default function App({ initial = null }) {
           상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
       {brands && (
         <div className="quick-bar">
-        <div className="quick-bar__sorts" role="group" aria-label="빠른 필터">
+        <div className="quick-bar__sorts" role="group" aria-label="정렬">
           {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문 낮은순']].map(([key, dir, label]) => {
             const first = primarySort(filters)
             const on = first.key === key && first.dir === dir
             return (
               <button
                 key={key}
+                ref={key === 'amount' ? primarySortRef : undefined}
                 type="button"
                 className={`quick-bar__chip${on ? ' quick-bar__chip--on' : ''}`}
                 aria-pressed={on}
@@ -613,7 +650,9 @@ export default function App({ initial = null }) {
             )
           })}
         </div>
-        {/* 5천원 이상만(2026-10-03, 사용자): 정렬 묶음에서 빼 같은 줄 오른쪽 끝의 ON/OFF 스위치로. 시트의 같은 칸과 한 상태, 기본은 켜짐. */}
+        <div className="quick-bar__actions">
+        {/* N천원 이상만: 시트의 같은 칸과 한 상태, 기본은 켜짐.
+            2026-10-13 사용자: 금액은 시트에서 고르고 적용해야 바뀐다. */}
         <button
           type="button"
           role="switch"
@@ -621,10 +660,10 @@ export default function App({ initial = null }) {
           className="quick-bar__switch"
           onClick={() => {
             setFilters((f) => ({ ...f, minAmount5k: !f.minAmount5k }))
-            track('quick_filter', { key: 'min5k', on: !filters.minAmount5k })
+            track('quick_filter', { key: 'min5k', on: !filters.minAmount5k, amount: filters.minAmount })
           }}
         >
-          <span>5천원 이상만</span>
+          <span>{minAmountLabel(filters.minAmount)} 이상만</span>
           <span className="quick-bar__switch-track" aria-hidden="true" />
         </button>
         {/* 숨긴 목록은 정렬과 다른 일이라 오른쪽에 따로 선다. 떠 있는 알약으로 두었더니
@@ -632,15 +671,21 @@ export default function App({ initial = null }) {
         {Object.keys(hidden).length > 0 && (
           <button
             type="button"
+            ref={hiddenToggleRef}
             className="quick-bar__hidden"
             aria-expanded={hiddenOpen}
-            onClick={() => { setHiddenOpen((v) => !v); if (!hiddenOpen) track('hidden_open') }}
+            aria-controls="hidden-brands"
+            onClick={() => {
+              if (hiddenOpen) closeHidden()
+              else { setHiddenOpen(true); track('hidden_open') }
+            }}
           >
             숨긴 목록
             <span className="quick-bar__hidden-count">{Object.keys(hidden).length}</span>
             {revived.length > 0 && <span className="quick-bar__hidden-dot" aria-hidden="true" />}
           </button>
         )}
+        </div>
         </div>
       )}
 
@@ -665,14 +710,8 @@ export default function App({ initial = null }) {
           hidden={hidden}
           revived={revived}
           open={hiddenOpen}
-          onClose={() => setHiddenOpen(false)}
-          onShow={(name) => setHidden((prev) => {
-            const next = showBrand(prev, name)
-            // 다 되살리면 펼침을 끈다. 안 끄면 다음에 하나 숨겼을 때 누르지도
-            // 않은 목록이 펼쳐진 채로 뜬다(2026-09-25 사용자).
-            if (Object.keys(next).length === 0) setHiddenOpen(false)
-            return next
-          })}
+          onClose={closeHidden}
+          onShow={showHiddenBrand}
           onRule={(name, rule) => setHidden((prev) => setRule(prev, name, rule))}
         />
         </Suspense>
@@ -680,7 +719,7 @@ export default function App({ initial = null }) {
 
       {error && (
         <div className="load-error" role="alert">
-          <p className="load-error__title">할인 정보를 불러오지 못했습니다.</p>
+          <p className="load-error__title">할인 정보를 못 불러옴</p>
           <p className="load-error__detail">{error}</p>
           <button
             type="button"
@@ -702,7 +741,7 @@ export default function App({ initial = null }) {
         <div className="msg">
           {search.trim() ? (
             <>
-              <p>&quot;{search}&quot;와 이름이 겹치는 브랜드가 없습니다.</p>
+              <p>&quot;{search}&quot; 검색 결과 없음</p>
               {filters.platforms.size < PLATFORMS.length && (
                 <p>
                   지금 {filters.platforms.size}개 앱만 켜져 있습니다.
@@ -720,7 +759,7 @@ export default function App({ initial = null }) {
               </button>
             </>
           ) : (
-            <p>이 분류엔 브랜드가 없습니다.</p>
+            <p>브랜드 없음</p>
           )}
         </div>
       )}
@@ -738,7 +777,7 @@ export default function App({ initial = null }) {
         // diff) 다른 브랜드로 순간이동한 것처럼 튄다. 새로 마운트되면
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
-        <div className="brand-grid" key={gridKey} ref={gridRef}>
+        <div className={gridKey === stillKey ? 'brand-grid brand-grid--still' : 'brand-grid'} key={gridKey} ref={gridRef}>
           {/* 브랜드 카드와 같은 칸에 놓는다 — 요청대로 맨 앞칸. 필터를
               바꾸면 그리드 전체가 새로 마운트되니 이 카드도 같이 날아가지만,
               발급된 코드는 App이 들고 있어(surveyCode) 다시 열면 그대로
@@ -758,11 +797,15 @@ export default function App({ initial = null }) {
             /></Suspense>
           )}
           {visibleBrands.slice(0, shown).map((b, index) => {
-            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
+            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1, rank: popRanks?.get(b.name),
               highlighted: linkedBrand === brandCardId(b.name), onInteract: clearLinked }
-            return homeA
-              ? <Suspense key={b.name} fallback={<BrandCard {...props} />}><CouponCard {...props} photo={homePhoto} compact={homeCompact} /></Suspense>
-              : <BrandCard key={b.name} {...props} />
+            const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
+            // 한정 오퍼(배너)는 3번째 카드 뒤 한 칸(2026-10-15 사용자). 첫 자리는 신규·최고 할인 몫이다.
+            // 배너를 받기 전(null)에는 그 자리를 잡아 둔다. 늦게 끼어들면 아래 카드가 밀린다(CodeRabbit #88, 2026-09-30 CLS 0.9와 같은 꼴)
+            if (index === 2 && banners == null) return [card, <div key="inline-banners" className="inline-banners banner-slot banner-slot--pending" aria-hidden="true" />]
+            return index === 2 && banners?.length
+              ? [card, <div key="inline-banners" className="inline-banners"><EventBanner banners={banners} inline /></div>]
+              : card
           })}
         </div>
       )}
@@ -773,9 +816,9 @@ export default function App({ initial = null }) {
         <button type="button" className="list-end-more"
                 onClick={() => {
                   setFilters((f) => ({ ...f, minAmount5k: false }))
-                  track('quick_filter', { key: 'min5k', on: false, from: 'list_end' })
+                  track('quick_filter', { key: 'min5k', on: false, from: 'list_end', amount: filters.minAmount })
                 }}>
-          5천원 미만도 보기
+          {minAmountLabel(filters.minAmount)} 미만도 보기
         </button>
       )}
 
@@ -788,6 +831,12 @@ export default function App({ initial = null }) {
       )}
 
       <SiteFooter />
+
+      {guideOn && (
+        <Suspense fallback={null}>
+          <FirstVisitGuide onClose={() => setGuideOn(false)} />
+        </Suspense>
+      )}
 
       {/* 새벽 안내 — 맨 위로 버튼 맞은편(왼쪽 아래), 하단 배너 위. */}
       {isNight && (

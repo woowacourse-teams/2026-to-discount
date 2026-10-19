@@ -1,7 +1,7 @@
 package com.discounttracker.banner;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
@@ -25,24 +25,24 @@ class PlatformContractTest {
 
     @Test
     void ownIsTheContractValue() throws Exception {
-        assertEquals(read("platforms.json").get("own").asText(), Banner.OWN);
+        assertEquals(read("platforms.json").get("own").asString(), Banner.OWN);
     }
 
     @Test
     void bannerOptionsAreOwnThenEveryDeliveryApp() throws Exception {
         JsonNode c = read("platforms.json");
         List<String> expected = new ArrayList<>(List.of(Banner.OWN));
-        c.get("delivery").forEach(p -> expected.add(p.get("key").asText()));
+        c.get("delivery").forEach(p -> expected.add(p.get("key").asString()));
         List<String> options = new ArrayList<>();
-        c.get("bannerOptions").forEach(p -> options.add(p.asText()));
+        c.get("bannerOptions").forEach(p -> options.add(p.asString()));
         assertEquals(expected, options);
     }
 
     @Test
     void everyPlatformInTheBannerContractIsABannerOption() throws Exception {
         List<String> options = new ArrayList<>();
-        read("platforms.json").get("bannerOptions").forEach(p -> options.add(p.asText()));
-        List<String> seen = read("banner-cases.json").findValuesAsText("platform");
+        read("platforms.json").get("bannerOptions").forEach(p -> options.add(p.asString()));
+        List<String> seen = read("banner-cases.json").findValuesAsString("platform");
         assertTrue(seen.size() > 0);
         for (String p : seen) assertTrue(options.contains(p), p);
     }

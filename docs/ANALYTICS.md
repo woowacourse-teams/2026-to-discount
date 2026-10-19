@@ -77,7 +77,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
-| `page_view` | 페이지 로드 1회 | 없음 |
+| `page_view` | 페이지 로드 1회 | `inApp`(카카오톡 인앱), `standalone`(홈 화면 설치로 염) |
 | `page_exit` | 탭을 떠날 때 | `dwellMs` (보고 있던 시간, 백그라운드 제외) |
 
 ### 무엇을 눌렀나
@@ -92,6 +92,11 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `brand_expand` | 브랜드 카드를 펼침 | `brand`, `category` |
 | `brands_retry` | 목록 불러오기 실패 후 재시도 | 없음 |
 | `scroll_to_top` | "맨 위로" | 없음 |
+| `app_return` | (2026-10-14) 할인 링크나 배너로 배달앱에 갔다가 이 화면으로 돌아옴. 새 탭에서 돌아오면 화면이 다시 보일 때, 같은 탭이면 다시 열릴 때 한 번. 6시간 넘게 떠나 있었으면 안 보낸다 | `brand`, `platform`, `where`(누른 자리), `awayMs`(떠나 있던 시간), `reloaded`(같은 탭으로 다시 열림) |
+| `link_fallback` | (2026-10-14) 쿠팡이츠 앱이 4초 안에 안 열려 공유 링크로 넘김(링크 실패 신호) | `platform` |
+| `app_open_result` | (2026-10-14, telemetry.js) 배달앱 링크로 이동한 뒤 2.5초 안에 화면이 가려졌는지(앱이 떴는지) 한 번. 쿠팡이츠는 안내 뒤 실제 이동부터 잰다 | `platform`, `scheme`, `opened`, `signal`(hidden/pagehide/timeout), `blurred`, `inApp` |
+| `web_vitals` | (2026-10-14, telemetry.js) 페이지가 처음 가려질 때 한 번. 헤드리스(측정 도구)는 안 보낸다 | `lcp`, `inp`, `cls`, `ttfb`(ms, cls는 소수), `inApp` |
+| `client_error` | (2026-10-14, telemetry.js) 잡히지 않은 오류, 거부된 Promise, 하이드레이션 복구, 에러 바운더리. 페이지당 5건, 같은 메시지 한 번 | `kind`(error/rejection/recoverable/boundary), `message`(120자), `where`(컴포넌트 스택 첫 줄), `inApp` |
 
 ### 조건을 어떻게 고르나 (`from`: `bar` = 펼친 바, `sheet` = 필터 시트)
 
@@ -100,10 +105,13 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `category_change` | 분류 선택 | `category`, `from`(`bar`/`sheet`) |
 | `platform_filter_toggle` | 배달앱 켜고 끔 | `platform`, `from`(`bar`/`sheet`) |
 | `filter_sheet_open` | 바의 필터 버튼으로 시트 열기(옛 B안 시트, 2026-09-16 A 바에 병합) | 없음 |
-| `quick_filter` | 배너 아래 빠른 필터 줄(09-19~) | `key`(`minOrder`/`random`), `dir`, `on` |
+| `quick_filter` | 배너 아래 빠른 필터 줄(09-19~), 오늘 인기 띠(10-14~ `popular_strip`), 상단 HOT 순위(10-16~) | `key`(`minOrder`/`random`/`popular_strip`/`popular_dock`/`popular_dock_toggle`), `dir`, `on`. `popular_dock`: 순위 줄을 눌러 그 카드로 감, `brand`, `position`, `change`, `where`(`rolling` 접힌 한 줄 / `list` 펼친 목록). `popular_dock_toggle`: 펼침과 접힘, `on`, `via`(`button` 오른쪽 단추 / `outside` 바깥 누름, 10-17~) |
+| `popular_dock_impression` | 상단 HOT 순위가 보임. 페이지마다 한 번(10-17~) | `brand`(그때 1위), `count`(줄 수). 지금 거른 목록 기준 |
+| `sheet_tab` | 쿠폰 카드 시트의 할인 상세 / 할인 기록 탭(10-17~) | `brand`, `tab`(`detail`/`history`) |
 | `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
 | `filters_reset` | 초기화 버튼 | 없음 |
-| `home_click` | 바의 홈 버튼. 필터와 검색을 풀고 맨 위로(브랜드 경로면 전체 목록으로) | 없음 |
+| `home_click` | (2026-10-13 버튼째 뺐다. 그 전 기록에만 있다) 바의 홈 버튼 | 없음 |
+| `first_guide` | (2026-10-14 안내째 뺐다. 10-12 23:23 ~ 10-14 기록에만 있다. 안내 뒤 신규 첫 세션 전환이 직접 유입 29%→14%, 첫 단계에서 나간 106명 전환 0) 첫 방문 안내(FirstVisitGuide). 첫 세션 첫 화면에서 한 번 | `action`(view/prev/next/skip/back/done), `step`, `index`, `total`, `arm`. back은 폰의 뒤로 버튼으로 닫은 것 |
 | `membership_toggle` | 멤버십 라벨 (아직 미구현 기능) | `platform`, `state:'soon'`, `from` |
 | `brand_search_submitted` | 비어 있지 않은 검색어를 엔터나 검색 버튼으로 확정 | `inputLength`, `resultCount`(목록 로드 전에는 생략), `submitMethod`(`enter`/`button`) |
 

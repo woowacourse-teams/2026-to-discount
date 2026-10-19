@@ -82,27 +82,28 @@
   flex: none;
   display: flex;
   gap: .6rem;
-  padding: .75rem 1.25rem calc(.75rem + env(safe-area-inset-bottom));
+  padding: .5rem 1rem calc(.5rem + env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
 }
 /* 좁은 화면에서 글자가 두 줄로 접혔다. 손가락 높이(.7rem 상하 여백)는
    지키고 글자와 좌우 여백만 줄여 한 줄에 넣는다. */
 .sheet__reset, .sheet__apply {
   border-radius: 12px;
-  padding: .7rem .75rem;
-  font-size: .86rem;
+  padding: .9rem 1rem;
+  font-size: 1rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 }
 .sheet__reset {
   flex: none;
-  min-width: 76px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-muted);
+  min-width: 88px;
+  border: 0;
+  background: color-mix(in srgb, var(--text) 4%, var(--surface));
+  color: var(--sale);
+  font-weight: 700;
 }
-.sheet__reset:disabled { opacity: .45; cursor: default; }
+.sheet__reset:disabled { opacity: .6; cursor: default; }
 .sheet__apply {
   flex: 1;
   border: 0;
@@ -141,6 +142,7 @@
    같은 줄에 나란히 두면 어느 것이 정렬인지 안 읽힌다(2026-09-24 사용자). */
 .quick-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
@@ -149,13 +151,25 @@
   margin: 0;
   padding: 12px 0 0; /* 메뉴 바와 정렬 칩, 정렬 칩과 첫 카드 간격을 같게(12px, 2026-10-05 사용자) */
 }
+.quick-bar__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+/* 숨긴 목록이 있을 때만 두 줄을 쓴다. 마지막 항목 복원 후에는 기존 한 줄 배치로 돌아간다(#81). */
+@media (max-width: 600px) {
+  .quick-bar:has(.quick-bar__hidden) .quick-bar__actions { flex-basis: 100%; margin-left: 0; justify-content: space-between; }
+  .quick-bar:has(.quick-bar__hidden) .quick-bar__switch { margin-left: 0; }
+}
 /* 정렬 둘은 "하나 고르기"다. 홈 하나에 넣어 그 뜻을 형태로 보여 준다(B안). */
 .quick-bar__sorts {
   display: flex;
   gap: 0;
-  min-width: 0;
+  flex: none; /* 줄어들면 고른 칩(굵은 글씨)이 판 밖으로 튀어나온다(2026-10-14 360px 실측) */
   padding: 3px;
-  background: var(--border, #eceef1);
+  background: color-mix(in srgb, var(--sale) 14%, var(--surface)); /* 옅은 포인트 판, 고른 칸은 흰 버튼(2026-10-15 사용자: 연하게) */
   border-radius: 999px;
 }
 .quick-bar__chip {
@@ -166,17 +180,18 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-muted, #6f767f);
+  /* 연한 주황 판 위 안 고른 쪽 글씨. --sale 그대로는 대비 4.08:1이라(Lighthouse 2026-10-17) 조금 어둡게 4.7:1 */
+  color: color-mix(in srgb, var(--sale) 90%, #000);
   cursor: pointer;
   white-space: nowrap;
   transition: background .2s cubic-bezier(.2, .8, .2, 1), color .2s ease, box-shadow .2s ease;
 }
-/* 고른 쪽만 홈 위로 떠오른다. 색을 통째로 뒤집지 않아 카드의 배지와 안 싸운다. */
+/* 고른 쪽은 흰 버튼에 포인트 색 글씨 */
 .quick-bar__chip--on {
-  background: var(--bg, #fff);
-  color: var(--text, #111);
+  background: #fff;
+  color: var(--sale);
   font-weight: 700;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, .14);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, .16); /* 주황 판 위에서도 보이는 옅은 그림자 */
 }
 .quick-bar__chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -194,15 +209,49 @@
 .quick-bar__switch { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font: inherit; font-size: .78rem; color: var(--text); background: none; border: 0; padding: 4px 0 4px 6px; cursor: pointer; white-space: nowrap; }
 .quick-bar__switch-track { position: relative; width: 34px; height: 20px; border-radius: 999px; background: color-mix(in srgb, var(--text) 25%, var(--surface)); transition: background .2s ease; flex: none; }
 .quick-bar__switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .3); transition: transform .2s cubic-bezier(.2, 0, 0, 1); }
-.quick-bar__switch[aria-checked="true"] .quick-bar__switch-track { background: var(--accent, #171717); }
+.quick-bar__switch[aria-checked="true"] .quick-bar__switch-track { background: color-mix(in srgb, var(--sale) 55%, var(--surface)); } /* old도 A안과 같은 강조색(2026-10-14 사용자) */
 .quick-bar__switch[aria-checked="true"] .quick-bar__switch-track::after { transform: translateX(14px); }
 .quick-bar__switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .quick-bar__switch-track, .quick-bar__switch-track::after { transition: none; } }
 
-/* 좁은 화면(340px 이하): 정렬 두 칩과 "5천원 이상만" 스위치가 한 줄에 다 안 들어가 칩이 스위치 글자에 붙었다(2026-10-05 320px 실측). 글자와 여백만 줄인다. */
-@media (max-width: 340px) {
+/* 좁은 화면(380px 이하, 2026-10-14 360px에서 오른쪽 칩이 판 밖으로 나와 넓힘): 정렬 두 칩과 "5천원 이상만" 스위치가 한 줄에 다 안 들어가 칩이 스위치 글자에 붙었다(2026-10-05 320px 실측). 글자와 여백만 줄인다. */
+@media (max-width: 380px) {
   .quick-bar__chip { font-size: .72rem; padding: .32rem .5rem; }
   .quick-bar__switch { font-size: .72rem; gap: 6px; padding-left: 4px; }
   .quick-bar__switch-track { width: 30px; height: 18px; }
   .quick-bar__switch-track::after { width: 14px; height: 14px; }
 }
+
+/* 시트 본문 끝까지 스크롤해도 뒤 목록으로 넘어가지 않는다. 배경에서 끌어도 뒤가 안 움직인다(2026-10-08 사용자) */
+.sheet__body { overscroll-behavior: contain; }
+.sheet-scrim { touch-action: none; }
+.sheet { touch-action: pan-y; }
+
+/* 기준 금액 끌기 막대(2026-10-14 사용자). 채운 쪽은 강조색. */
+.sheet__range { display: block; margin: 4px 2px 18px; }
+.sheet__range input { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; touch-action: none; } /* 막대를 좌우로 끄는 동안 시트가 위아래로 안 따라간다 */
+.sheet__range input::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(to right, var(--sale) var(--fill), var(--border) var(--fill)); }
+.sheet__range input::-moz-range-track { height: 6px; border-radius: 999px; background: var(--border); }
+.sheet__range input::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--sale); }
+.sheet__range input::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: #fff; border: 2px solid var(--sale); box-shadow: 0 1px 4px rgba(0, 0, 0, .2); }
+.sheet__range input::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid var(--sale); box-shadow: 0 1px 4px rgba(0, 0, 0, .2); }
+.sheet__range input:focus-visible { outline: 2px solid var(--sale); outline-offset: 2px; border-radius: 6px; }
+.sheet__range-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+
+/* 한 줄 캐러셀 트랙(2026-10-14 사용자: 여러 줄 칩과 테두리 버튼이 눈 아프다. turbom /map 패턴).
+   회색 판 하나에 칩을 한 줄로 깔고, 넘치면 옆으로 민다. 고른 칸은 흰 판 + 강조색 글씨. */
+.sheet__track { position: relative; }
+.sheet__track::before, .sheet__track::after { content: ''; position: absolute; top: 0; bottom: 0; width: 28px; z-index: 2; pointer-events: none; opacity: 0; transition: opacity .18s ease; border-radius: 999px; }
+.sheet__track::before { left: 0; background: linear-gradient(to right, var(--surface), transparent); }
+.sheet__track::after { right: 0; background: linear-gradient(to left, var(--surface), transparent); }
+.sheet__track--l::before, .sheet__track--r::after { opacity: 1; }
+.sheet__track .sheet__chips { position: relative; flex-wrap: nowrap; gap: 2px; overflow-x: auto; scrollbar-width: none; padding: 3px; border-radius: 999px; background: color-mix(in srgb, var(--text) 4%, var(--surface)); scroll-behavior: smooth; }
+.sheet__track .sheet__chips::-webkit-scrollbar { display: none; }
+.sheet__track .sheet__chip { position: relative; z-index: 1; flex: none; white-space: nowrap; border: 0; background: none; padding: .42rem .85rem; font-size: .85rem; color: var(--text-muted); }
+.sheet__track .sheet__chip:hover:not(.sheet__chip--on) { color: var(--text); }
+.sheet__track .sheet__chip--on { background: var(--surface); color: var(--sale); font-weight: 700; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
+.sheet__track .sheet__chip--soon { opacity: .45; }
+/* 하나 고르기 트랙은 칸마다 판을 칠하지 않고 흰 판 하나가 미끄러진다 */
+.sheet__chips--thumb .sheet__chip--on { background: none; box-shadow: none; }
+.sheet__thumb { position: absolute; top: 3px; bottom: 3px; border-radius: 999px; background: var(--surface); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); transition: left .28s cubic-bezier(.2, .8, .2, 1), width .28s cubic-bezier(.2, .8, .2, 1); }
+@media (prefers-reduced-motion: reduce) { .sheet__thumb { transition: none; } }

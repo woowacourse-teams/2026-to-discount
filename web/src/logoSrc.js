@@ -3,7 +3,7 @@
 // `node --test`가 .jsx를 못 읽어서(ERR_UNKNOWN_FILE_EXTENSION) 순수 함수가
 // 컴포넌트 파일에 있으면 테스트를 못 붙인다. 색 추출(brandColor.js)도 이
 // 함수만 필요하지 컴포넌트는 안 쓴다.
-import { LOGO_MANIFEST } from './logoManifest.js'
+import { LOGO_MANIFEST, LOGO_WEBP } from './logoManifest.js'
 
 function assetSrc(base, name) {
   return `${base}/${encodeURIComponent(name)}.png`
@@ -33,6 +33,8 @@ export function brandLogoSrc(name) {
   const fileName = logoFileName(name)
   const version = LOGO_MANIFEST[fileName]
   if (!version) return null
+  // WebP 이름에 PNG 해시가 들어 있어 ?v가 필요 없다(같은 내용이면 같은 주소).
+  if (LOGO_WEBP.has(fileName)) return `/logos/webp/${encodeURIComponent(fileName)}.${version}.webp`
   return `${assetSrc('/logos', fileName)}?v=${version}`
 }
 

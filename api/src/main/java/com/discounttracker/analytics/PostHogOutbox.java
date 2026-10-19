@@ -1,6 +1,7 @@
 package com.discounttracker.analytics;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -67,7 +68,7 @@ public class PostHogOutbox {
                 delivery = mapper.readValue(path.toFile(), PostHogDelivery.class);
                 validatePersistedDelivery(path, delivery);
                 delivery = normalizePayloadUuid(delivery);
-            } catch (IOException ex) {
+            } catch (JacksonException ex) {
                 quarantineCorrupt(path, ex);
                 continue;
             } catch (IllegalArgumentException ex) {

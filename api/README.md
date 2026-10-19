@@ -1,69 +1,82 @@
 # 배거스 API
 
-배달앱별 브랜드 할인을 한 화면에서 비교하는 MVP의 백엔드(Spring Boot).
-데이터는 tracker 저장소(비공개)의 파이썬 파이프라인이 판독해 공급한다.
-프론트엔드는 같은 저장소의 [web/](../web)이다. 구조와 배포 경로는
+배달앱별 브랜드 할인을 한 화면에서 비교하는 서비스의 서버다. Spring Boot(자바 웹 서버 프레임워크)로
+만들었고 DB 없이 파일만 읽고 쓴다. 할인 데이터는 비공개 tracker 저장소의 수집 파이프라인이 만들어 서버에
+올린다. 웹은 같은 저장소의 [web/](../web)이다. 저장소와 배포 경로 전체는
 [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)에 있다.
+
+- 갱신: 2026-10-14(저장소 통합 뒤 낡은 실행, 배포, 배너 절을 고쳤다)
 
 ## 실행
 
-1. 데이터 갱신 (delivery-discount-tracker 레포에서):
-   ```
-   python export_data.py
-   cp data/export.json ../delivery-discount-api/src/main/resources/data/export.json
-   ```
-   `src/main/resources/data/export.json`은 테스트 픽스처 겸 기본값으로
-   운영 데이터 스냅샷이 커밋돼 있다([ADR-007](docs/decisions/ADR-007-commit-export-snapshot-for-tests.md)).
-   이 단계를 생략해도 동작하지만, 최신 데이터로 보려면 여전히 갱신해야
-   한다.
-2. API 기동: `./gradlew bootRun` (http://localhost:8080)
-3. 프론트 기동 (delivery-discount-web 레포에서): `npm install && npm run dev` (http://localhost:5173)
-4. 데이터만 갱신했다면 재기동 대신: `curl -X POST http://localhost:8080/api/reload`
-   (원장 `export.json`과 배너 `banners.yml`을 같이 다시 읽는다)
+1. API: `./gradlew bootRun` (http://localhost:8080)
+2. 웹: `cd ../web && npm install && npm run dev` (http://localhost:5173)
+
+기본 입력은 저장소 안의 샘플이다. `src/main/resources/data/export.json`은 `rawText`가 전부 "[샘플]"로
+시작하는 스키마 샘플이라, 화면에 그 글자가 보이면 실데이터를 안 읽고 있는 것이다
+([ADR-009](docs/decisions/ADR-009-synthetic-fixture-over-production-snapshot.md)). 실데이터로 보려면
+환경변수로 jar 밖 파일을 가리킨다([ADR-001](docs/decisions/ADR-001-external-export-path.md)).
+
+| 환경변수 | 가리키는 파일 | 기본값 |
+| --- | --- | --- |
+| `DISCOUNT_EXPORT_PATH` | 오퍼 목록. tracker `data/export.json` | 저장소 샘플 |
+| `DISCOUNT_HISTORY_PATH` | 할인 이력. tracker `data/history.json` | 저장소 샘플 |
+| `DISCOUNT_BANNERS_PATH` | 배너. 운영 서버 파일이 유일본이다 | 빈 목록 |
+| `DISCOUNT_EVENT_LOG_PATH` | 방문 이벤트 원장 | `data/events.jsonl` |
+
+경로 앞에는 `file:`을 붙인다(예: `DISCOUNT_EXPORT_PATH=file:/절대/경로/export.json`). 이벤트 원장만 붙이지
+않는다. 전체 설정과 기본값은 `src/main/resources/application.yml` 한 곳에 있다.
+
+파일만 바꿨다면 재기동 대신 `POST /api/reload`가 오퍼, 이력, 배너, 인기를 다시 읽는다. 응답의
+`bannersOk`가 `false`면 배너 파일에 문제가 있다(`unknownBrands`, `dropped`, `duplicateIds`를 본다).
+운영에서는 nginx가 이 경로에 Basic Auth(아이디와 비밀번호를 묻는 가장 단순한 웹 인증)를 건다.
 
 ## 배포 (bebeggars.duckdns.org)
 
-OCI 인스턴스, systemd(`delivery-discount-api.service`) + nginx(TLS
-종료, `/`를 8088로 프록시). 데이터는 jar에 안 박고 외부 파일로 읽는다.
-이유와 구조는 [docs/decisions/ADR-001-external-export-path.md](docs/decisions/ADR-001-external-export-path.md).
+세 가지가 서로 다른 길로 서버에 닿는다.
 
-데이터 갱신(재배포 불필요):
+| 무엇 | 길 |
+| --- | --- |
+| 코드 | mono `main` push, 미러 저장소 `nn98/delivery-discount-api`, 운영 서버에 붙은 러너(미러의 워크플로를 실행하는 기계)가 `./gradlew build`(테스트 포함), `systemctl restart`, `/api/brands` 헬스체크. 헬스체크가 30초 안에 안 되면 이전 jar로 되돌린다 |
+| 오퍼와 이력 | tracker 수집 8단계(`deploy_export.py`)가 서버에 올리고 reload한다. 다른 데이터 배포 경로는 없다 |
+| 배너 | 운영 콘솔(`/ops/`, beggars-ops)이 서버의 `banners.yml`을 고치고 reload한다 |
 
-```bash
-scp data/export.json <서버>:<서버>/delivery-discount-api/data/export.json
-curl -X POST https://bebeggars.duckdns.org/api/reload
-```
+재시작하는 동안 약 5초 응답이 끊긴다. Spring Boot 4.1부터는 내릴 때 처리 중인 요청을 끝내고 내린다
+(우아한 종료, graceful shutdown, [ADR-012](docs/decisions/ADR-012-spring-boot-4-jackson-3.md)). 서버 앞단은 HTTPS를 받아
+넘겨주는 웹 서버 nginx이고, 리눅스 서비스 관리자 systemd의 유닛 `delivery-discount-api.service`가 jar를 띄운다.
 
 ## 구조
 
-패키지는 계층(model/service/dao)이 아니라 **도메인**으로 나눈다. 한 가지를
-고치려고 여러 패키지를 헤집지 않아도 되게 하는 게 목적이다.
+패키지는 계층(model, service, dao)이 아니라 **도메인**으로 나눈다
+([ADR-002](docs/decisions/ADR-002-domain-packages-and-single-brand-source.md)). 한 가지를 고치려고 여러
+패키지를 헤집지 않게 하는 것이 목적이다.
 
-- `brand/`: 브랜드에 대해 우리가 아는 것
-  - `BrandCatalog`: `brands.yml`을 읽어 별칭, 카테고리, 바로가기를 제공
-  - `Brand`, `Category`: 브랜드 정보와 분류
-- `banner/`: 당일 행사 배너(원장에서 파생되지 않고 사람이 적는 것)
-  - `BannerCatalog`: `banners.yml`을 읽고, 오늘 띄울 것만 정렬해 돌려준다
-  - `Banner`: 배너 한 건
-- `offer/`: 원장에서 온 할인 데이터
-  - `OfferRepository`: export.json 읽기(리로드 가능)
-  - `OfferRecord`(원장 한 줄), `Offer`(화면의 칩 하나), `OfferStatus`(확정/보류)
-- `comparison/`: 브랜드 단위로 묶어 비교
-  - `BrandComparisonService`: 별칭 묶기, 앱별 중복 정리, 정렬
-  - `BrandComparison`: 카드 하나. 정렬 규칙(`byBestDiscount`)도 여기 있다
-- `web/`: 바깥과 닿는 부분
-  - `BrandController`: GET /api/brands, POST /api/reload
-  - `BannerController`: GET /api/banners
-  - `WebConfig`: CORS 허용 오리진의 정본. 로컬 개발 서버, 운영 `beggars-five.vercel.app`,
-    Vercel 프리뷰 주소를 패턴으로 연다. 프론트를 새 주소에 배포하면 여기에 더한다.
-- `analytics/`: 방문 이벤트 수집(아래 "방문 측정 (analytics)" 절 참고)
-  - `EventController`: POST /api/events
-  - `EventLog`: `data/events.jsonl`에 append
-  - `AnalyticsEventService`: 원본 기록과 PostHog outbox 등록 순서 조정
-  - `PostHogOutbox`, `PostHogForwardingWorker`: 영속 큐와 비동기 전달
-  - `ClientFingerprint`: IP를 날짜별 솔트로 해시(원본 미저장)
-  - `EventRateLimiter`: IP 해시별 분당 상한
-  - 자세한 내용은 [docs/traffic-analytics.md](docs/traffic-analytics.md) 참고
+| 패키지 | 맡는 일 | 주요 클래스 |
+| --- | --- | --- |
+| `brand/` | 브랜드 목록(`brands.yml`): 별칭, 카테고리, 앱별 링크, 짧은 이름 | `BrandCatalog` |
+| `banner/` | 배너 읽기와 오늘 띄울 것 판정, 묶음 접기, 화면 문구, 배너를 카드 오퍼로 바꾸기 | `BannerCatalog`, `BannerAmount`, `BannerText`, `BannerOffers` |
+| `offer/` | 원장 한 줄(`OfferRecord`)을 카드의 오퍼 하나(`Offer`)로. 금액을 견줄 수 있는지(`Certainty`)와 정렬 금액(`OfferComparison`) | `OfferRepository`, `OfferRecord`, `Offer` |
+| `comparison/` | 별칭으로 브랜드를 묶고 앱별 칸을 정리해 할인 큰 순으로 세운다 | `BrandComparisonService`, `BrandComparison` |
+| `history/` | 할인 이력(`history.json`). 신규 여부 판정과 이력 그래프 | `HistoryRepository`, `OfferHistory` |
+| `analytics/` | 방문 이벤트 받기와 원장 기록, 인기, 설문, PostHog 전달 | `EventController`, `EventLog`, `PopularityIndex`, `SurveyService` |
+| `push/` | 웹 푸시 구독과 발송(배너 알림, 새 오퍼 알림) | `BannerNotificationService`, `NewOfferNotificationService` |
+| `web/` | 컨트롤러, CORS 허용 주소(`WebConfig`), 요청 ID, 오류 응답 | `BrandController`, `BannerController` |
+
+`OfferComparison`의 판정은 웹 `filters.js`에도 있다. 둘이 같은 판정표
+(`src/test/resources/contracts/certainty-cases.json`)를 읽어 어긋남을 막는다. 같이 고쳐야 하는 자리는
+[docs/CHANGE-PROPAGATION.md](../docs/CHANGE-PROPAGATION.md)에 있다.
+
+### 엔드포인트
+
+| 메서드와 경로 | 하는 일 |
+| --- | --- |
+| `GET /api/brands` | 브랜드 카드 목록(정렬됨). 60초 캐시 헤더와 ETag(본문 해시) |
+| `GET /api/brands/{brand}/history?range=1m` | 그 브랜드의 할인 이력 |
+| `GET /api/banners` | 오늘 띄울 배너 |
+| `POST /api/reload` | 파일 다시 읽기. 운영은 Basic Auth |
+| `POST /api/events` | 방문 이벤트 받기(아래 "방문 측정") |
+| `GET /api/survey`, `GET /api/survey/code`, `POST /api/survey` | 설문 대상 판정, 받은 코드 다시 보기, 응답 |
+| `/api/push/**` | 푸시 공개 키, 구독, 표시와 클릭 추적, 다음 알림 관리 |
 
 ### 응답 스키마는 계약이다
 
@@ -200,16 +213,16 @@ jq -r 'select(.event=="category_change") | .props.category' events.jsonl \
 
 1. `EventController.ALLOWED_EVENTS`에 이름을 추가한다(빠뜨리면 서버가
    조용히 버려서 아무리 프론트를 고쳐도 로그에 안 쌓인다).
-2. 프론트에서 `track('새이벤트명', { ...props })` 호출을 붙인다
-   (delivery-discount-web `src/analytics.js`).
+2. 웹에서 `track('새이벤트명', { ...props })` 호출을 붙인다
+   (`web/src/analytics.js`). 이벤트 계약은 [docs/ANALYTICS.md](../docs/ANALYTICS.md)에 있다.
 3. 배치, 문자열 길이 상한에 걸리지 않는지 확인한다(`EventController`의
    `MAX_TEXT`/`MAX_PROPS`).
 
 ## 브랜드 추가와 수정
 
-`src/main/resources/brands.yml` **한 곳만** 고치면 된다. 별칭, 카테고리,
-땡겨요 바로가기가 모두 여기 있고 API가 그대로 프론트에 내려주므로 프론트
-재배포가 필요 없다.
+`src/main/resources/brands.yml` **한 곳만** 고친다. 별칭, 카테고리, 앱별 바로가기, 짧은 이름이 모두 여기
+있고 API가 그대로 웹에 내려준다. 이 파일은 jar 안에 있어서 **API를 다시 배포해야** 반영된다(reload로는 안
+바뀐다). 웹은 다시 배포할 필요가 없다.
 
 ```yaml
 brands:
@@ -221,67 +234,55 @@ brands:
       baemin: https://s.baemin.com/…
 ```
 
-로고 이미지만 `delivery-discount-web/public/logos/<대표명>.png`로 따로
-넣는다. 전체 브랜드명은 delivery-discount-tracker의
-`data/brands-sorted.txt`(이름 오름차순)에서 확인한다.
+로고 이미지는 `web/public/logos/<대표명>.png`로 따로 넣는다. 원장에 있는데 이 목록에 없는 브랜드는 화면에
+안 나간다. tracker 루트의 `check_brands.py`가 그런 이름을 찾는다.
 
-## 당일 행사 배너 추가와 수정
+## 당일 행사 배너
 
-운영 서버는 jar 밖 파일을 문다(`DISCOUNT_BANNERS_PATH`, 기본
-`<서버>/delivery-discount-api/data/banners.yml`). 그 파일을 고치고
-`POST /api/reload`. 프론트 재배포도 API 재배포도 필요 없다.
+배너는 운영 콘솔(`/ops/`, beggars-ops)에서 고친다. 수집 루틴이 매일 제안을 올리고, 사람이 콘솔에서 승인하면
+서버의 `banners.yml`에 적용하고 reload한다(되풀이 행사는 자동 반영). 서버 파일이 유일본이고 저장소의
+`src/main/resources/banners.yml`은 빈 목록이다. 파일을 손으로 고치면 콘솔의 검사(문구 규칙, 금액 모양, id
+중복)를 건너뛰게 되니 하지 않는다.
 
-> **고친 뒤 파싱부터 확인한다.**
->
-> ```bash
-> ssh <서버> "python3 -c \"import yaml; d=yaml.safe_load(open('<서버>/delivery-discount-api/data/banners.yml')); print('OK', len(d['banners']), '건')\""
-> ```
->
-> `reload`는 파싱에 실패해도 서비스를 죽이지 않고 이전 목록을 유지한다
-> (2026-08-21 사고 뒤 그렇게 바꿨다). 그래서 **고친 줄 알았는데 건수가
-> 그대로면 아직 깨져 있는 것**이다. 응답의 `banners` 수를 꼭 본다.
->
-> 항목 사이 콤마를 빠뜨리는 실수가 잦다. `extra` 값에 콤마가 들어가면
-> 따옴표로 감싸야 한다. `{}` 안에서는 콤마가 항목 구분자로 먹힌다.
+배너 한 장은 이런 모양이다(2026-10-14 운영 파일에서 옮김). 칸의 뜻과 금지된 옛 칸은 콘솔 스키마
+(`/ops/schema`)와 [설계 31](../docs/design/31-banner-text-normalization.md)이 정한다.
 
 ```yaml
 banners:
-  - id: kyochon-20260811          # 필수, 고유
-    brand: 교촌치킨                 # 생략하면 앱 전체 행사
-    platform: baemin              # 필수. 배지와 색 폴백
-    url: https://s.baemin.com/…   # 필수
-    amount: "12,000원"            # 필수, 문자열("최대 30%"도 가능)
-    period: 8/11 하루만            # 필수. 금액 우측 상단
-    extra: 최소주문 20,000원        # 생략 가능. 금액 우측 하단
-    startsOn: 2026-08-11          # 필수
-    endsOn: 2026-08-11            # 필수
-    priority: 1                   # 생략 시 999. 낮을수록 먼저
-    notify: false                 # 생략 시 false. 신규 등록 또는 false→true일 때 알림 대상
-    notifyImmediately: false      # 07:00 이상 22:00 미만에만 즉시 발송 요청
+  - id: 두찜-20261014              # 필수, 고유
+    brand: 두찜                     # 생략하면 앱 전체 행사
+    platform: baemin               # 필수
+    url: https://baemin.go.link/…  # 필수
+    amount:                        # 금액은 구조로 적는다. 화면 문구는 서버(BannerText)가 만든다
+      won: 6500
+    startsAt: '2026-10-14T00:00:00'
+    endsAt: '2026-10-14T23:59:59'
+    priority: 2                    # 생략 시 999. 낮을수록 먼저
+    firstCome: use                 # 선착순(사용 선착순). 같은 앱 상시 할인과 금액이 다르면 그 오퍼의 한 구간으로 붙는다
+    opensAt: '11:00'
+    minOrder: 25000
+    soldOutOn: 2026-10-14          # 이날 소진. 기계 관측이 적는다
 ```
+
+- **날짜 판정은 서버가 한다.** `startsAt <= 지금 <= endsAt`인 것만 내려간다(`Asia/Seoul`). 웹이 판정하면
+  사용자 기기 시계를 따라가 시차 문제가 생긴다. 끝난 배너는 어제 이전 것을 beggars-ops `archive/`로 옮긴다.
+- **필수 값이 빠진 항목은 건너뛴다.** 오타 하나가 기동이나 reload 전체를 죽이면 안 된다. 건너뛴 id는 reload
+  응답의 `dropped`에 실리고 그때 `bannersOk`가 `false`가 된다.
+- **배너도 카드에 선다.** 브랜드가 있는 배너는 `BannerOffers`가 원장 레코드 모양으로 바꿔 원장 앞에 붙인다.
+  그 뒤 묶기, 중복 정리, 정렬은 원장과 같은 길을 탄다.
+
+### 웹 푸시
 
 Push는 기본 비활성화다. `DISCOUNT_PUSH_ENABLED=true`, VAPID 공개 키와 비공개 키,
 `DISCOUNT_PUSH_STATE_PATH`가 모두 설정돼야 구독과 발송 API가 활성화된다. 비공개 키와
 상태 파일은 저장소에 넣지 않는다. 오전 11시에는 지난 24시간의 미발송 대상 배너를
-한 건으로 요약한다. 즉시 발송에 성공한 배너는 요약에서 제외한다.
+한 건으로 요약한다. 즉시 발송에 성공한 배너는 요약에서 제외한다. 배너의 `notify: true`가 알림 대상이고,
+`notifyImmediately: true`는 07:00 이상 22:00 미만에만 즉시 발송을 요청한다.
 
 구독은 기존 분석의 `visitorId`와 연결한다. 표시와 클릭 이벤트는 발송 토큰을 통해
 같은 `distinct_id`로 기록된다. Push endpoint와 암호화 키는 분석 이벤트에 남기지 않는다.
 
-**`amount`가 정수가 아니라 문자열인 이유**: 원장의 `Offer.amount`는 정수지만
-배너는 "첫 주문 5,000원", "최대 30%" 같은 것을 담아야 한다. 정수로 두면 못
-담고, 그러면 배너를 원장에서 떼어낸 이유가 사라진다.
+## 성능 지표
 
-**경로를 열어둔 이유**: 배너는 매일 바뀔 수 있다. classpath 안에만 두면 행사
-하나 바꾸는 데 jar를 다시 빌드해 배포해야 한다. `DISCOUNT_BANNERS_PATH`로 jar
-밖 파일을 물려두면 파일만 갈아끼우고 reload로 반영된다(`brands.yml`이 이미
-같은 방식이다). 리포지토리의 기본 `banners.yml`은 빈 목록이라, 환경변수를 안
-걸면 배너가 아예 안 뜬다.
-
-**날짜 판정은 서버가 한다.** `startsOn <= 오늘 <= endsOn`인 것만 내려간다
-(`Asia/Seoul`). 지난 행사는 지우지 않아도 안 뜬다. 프론트에서 판정하면
-사용자 기기 시계를 따라가 시차 문제가 생긴다.
-
-**필수 값이 빠진 항목은 건너뛴다.** 사람이 손으로 고치는 파일이라 오타 하나가
-기동이나 reload 전체를 죽이면 안 된다. 몇 건이 올라갔는지는 reload 응답의
-`banners` 값으로 확인한다.
+API와 분리된 내부 관리 포트에서 Prometheus 형식의 성능 지표를 제공합니다.
+수집 범위와 조회 방법은 [성능 지표 문서](docs/performance-metrics.md)를 참고하세요.

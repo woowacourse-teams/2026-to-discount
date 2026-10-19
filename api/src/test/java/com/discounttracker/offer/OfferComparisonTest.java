@@ -1,7 +1,7 @@
 package com.discounttracker.offer;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -56,7 +56,7 @@ class OfferComparisonTest {
 
         Set<String> actual = new TreeSet<>();
         for (JsonNode c : cases) {
-            actual.add(comboKey(c.get("certainty").asText(), c.get("kind").asText(),
+            actual.add(comboKey(c.get("certainty").asString(), c.get("kind").asString(),
                     c.get("soldOut").asBoolean()));
         }
 
@@ -77,8 +77,8 @@ class OfferComparisonTest {
     void everyContractCaseHolds() throws Exception {
         JsonNode cases = readCases();
         for (JsonNode c : cases) {
-            Certainty certainty = Certainty.valueOf(toEnumName(c.get("certainty").asText()));
-            AmountKind kind = AmountKind.from(c.get("kind").asText());
+            Certainty certainty = Certainty.valueOf(toEnumName(c.get("certainty").asString()));
+            AmountKind kind = AmountKind.from(c.get("kind").asString());
             boolean soldOut = c.get("soldOut").asBoolean();
             Integer amount = c.get("amount").isNull() ? null : c.get("amount").asInt();
             String where = c.toString();

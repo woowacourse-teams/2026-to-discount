@@ -3,7 +3,7 @@ package com.discounttracker.analytics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
@@ -99,6 +99,25 @@ class EventControllerTest {
     }
 
     @Test
+    void acceptsPushPromptFunnelEvents() throws Exception {
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            [
+                              {"event":"push_prompt_viewed","visitorId":"v_prompt","props":{"source":"offer"}},
+                              {"event":"push_prompt_enable_clicked","visitorId":"v_prompt","props":{"source":"offer"}},
+                              {"event":"push_prompt_closed","visitorId":"v_prompt","props":{"source":"offer","reason":"escape"}}
+                            ]
+                            """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accepted").value(3));
+        String logged = Files.readString(Path.of(logPath));
+        assertTrue(logged.contains("\"event\":\"push_prompt_viewed\""));
+        assertTrue(logged.contains("\"event\":\"push_prompt_enable_clicked\""));
+        assertTrue(logged.contains("\"event\":\"push_prompt_closed\""));
+        assertTrue(logged.contains("\"reason\":\"escape\""));
+    }
+
+    @Test
     void acceptsBrandImpressionWithApprovedPropertiesAndContext() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content(batch("""
@@ -130,13 +149,13 @@ class EventControllerTest {
     }
 
     @Test
-    void acceptsBrandSearchSubmittedWithoutRawQuery() throws Exception {
+    void acceptsBrandSearchSubmittedWithMaskedQuery() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content(batch("""
                             {"event":"brand_search_submitted","visitorId":"v_search",
                              "sessionId":"s_search","props":{"inputLength":"4",
                              "resultCount":"2","submitMethod":"enter","fSearch":"true",
-                             "query":"010-1234-5678","unexpected":"raw","home":"coupon"}}
+                             "query":"뿌링클 010-1234-5678","results":"bhc","unexpected":"raw","home":"coupon"}}
                             """)))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.accepted").value(1));
@@ -150,8 +169,10 @@ class EventControllerTest {
         assertTrue(loggedEvent.contains("\"submitMethod\":\"enter\""));
         assertTrue(loggedEvent.contains("\"fSearch\":\"true\""));
         assertTrue(loggedEvent.contains("\"home\":\"coupon\"")); // 메인 화면 A/B 안은 검색에서도 남는다
-        assertFalse(loggedEvent.contains("query"));
-        assertFalse(loggedEvent.contains("010-1234-5678"));
+        // 검색어는 남기되 전화번호 같은 긴 숫자열은 가린다(2026-10-08 사용자: 검색어 원문 수집)
+        assertTrue(loggedEvent.contains("\"query\":\"뿌링클 #\""));
+        assertTrue(loggedEvent.contains("\"results\":\"bhc\""));
+        assertFalse(loggedEvent.contains("1234"));
         assertFalse(loggedEvent.contains("unexpected"));
     }
 

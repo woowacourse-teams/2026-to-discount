@@ -59,7 +59,7 @@
   right: -8px;
   z-index: 10;                         /* 묶음 로고(z 1~3)보다 항상 위 */
 }
-.banner__tag--first-come { color: #fff; background: #e5322d; }
+.banner__tag--first-come { color: #fff; background: #d32a25; }
 .banner__tag--random { color: #fff; background: #333; }
 .banner__tag--targeted { color: var(--text); background: #ffe58a; }
 /* 적립은 뒤에 돌아오는 값이라 할인의 빨강과 갈라 놓는다. */

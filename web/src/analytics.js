@@ -10,8 +10,9 @@
 import { API_BASE } from './api.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
+import { noteExit, noteHidden, takeReturn } from './linkReturn.js'
 import { uiVariant } from './variant.js'
-import { currentHomeArm } from './homeExperiment.js'
+import { inApp, standalone } from './telemetry.js'
 
 const MAX_PENDING_POSTHOG_EVENTS = 100
 
@@ -55,11 +56,8 @@ const makeContext = () => ({
 // 화면이 바꿔주고 여기서는 들고만 있는다 — 이벤트를 쏘는 자리마다 상태를
 // prop으로 끌고 다니면 새 필터가 늘 때 빠뜨린다.
 let filterContext = {}
-let homeCtx = null
-const homeContext = () => {
-  const { arm, forced } = currentHomeArm(getAnalyticsContext().visitorId)
-  return forced ? { home: arm, home_forced: '1' } : { home: arm }
-}
+// 메인 화면 A/B(2026-10-05 ~ 10-17)는 쿠폰 카드로 끝났다. 집계가 이어지게 home 값은 계속 싣는다.
+const HOME_CONTEXT = { home: 'coupon' }
 
 export function setFilterContext(next) {
   filterContext = next
@@ -144,9 +142,9 @@ function createAnalyticsEvent(event, additions = {}) {
     // 그 이벤트가 말하려던 값이었다 — banner_impression의 position이
     // 통째로 유실돼 상단/하단 구분이 안 됐다(2026-08-22). 넘치면 맥락이
     // 먼저 떨어져야 한다.
-    // 메인 화면 A/B 안(homeExperiment.js)은 모든 이벤트에 싣는다. 서버가 18개에서 자르므로(EventController.MAX_PROPS)
+    // home 값(HOME_CONTEXT)은 모든 이벤트에 싣는다. 서버가 18개에서 자르므로(EventController.MAX_PROPS)
     // 필터 맥락보다 앞에 둔다: 링크 클릭은 고유 13 + A/B 1 + 필터 4 = 18이라 넘치면 필터가 먼저 떨어진다.
-    props: { ...props, ...(homeCtx ??= homeContext()), ...filterContext },
+    props: { ...props, ...HOME_CONTEXT, ...filterContext },
     clientTs: new Date().toISOString(),
   }
 }
@@ -197,6 +195,8 @@ function flush(useBeacon = false) {
 
 export function track(event, props) {
   if (optedOut()) return
+  // 배달앱으로 나간 순간(linkReturn.js). 돌아오면 app_return을 보낸다.
+  if (event === 'offer_link_click' || event === 'banner_click') noteExit(props)
   enqueue(createAnalyticsEvent(event, {
     props,
   }))
@@ -227,13 +227,21 @@ function sendExit() {
 
 export function startAnalytics() {
   if (optedOut()) return
-  track('page_view')
+  // inApp: 카카오톡 인앱 브라우저, standalone: 홈 화면에 설치해 연 것(2026-10-14)
+  track('page_view', { inApp: inApp(), standalone: !!standalone() })
+  // 같은 탭으로 배달앱에 갔다가 새로 열린 경우(linkReturn.js)
+  const reopened = takeReturn(Date.now(), undefined, { reloaded: true })
+  if (reopened) track('app_return', reopened)
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       visibleSince = Date.now()
       exitSent = false
+      // 새 탭이나 앱으로 갔다가 이 화면으로 돌아왔다
+      const back = takeReturn()
+      if (back) track('app_return', back)
     } else {
+      noteHidden()
       // 모바일에서는 탭 전환이 곧 이탈인 경우가 많아 여기서 확정 전송한다.
       sendExit()
     }

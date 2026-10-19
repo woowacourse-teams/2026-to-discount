@@ -1,6 +1,7 @@
 package com.discounttracker.push;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -148,6 +149,23 @@ public class PushStateStore {
         return state.delivered != null && state.delivered.contains(deliveryKey);
     }
 
+    public synchronized DailyOfferNotification dailyOffer(String date, long scheduledEpochSecond) {
+        if (state.dailyOffers == null) state.dailyOffers = new LinkedHashMap<>();
+        DailyOfferNotification value = state.dailyOffers.get(date);
+        if (value == null) {
+            value = new DailyOfferNotification(scheduledEpochSecond, null, false);
+            state.dailyOffers.put(date, value);
+            save();
+        }
+        return value;
+    }
+
+    public synchronized void saveDailyOffer(String date, DailyOfferNotification value) {
+        if (state.dailyOffers == null) state.dailyOffers = new LinkedHashMap<>();
+        state.dailyOffers.put(date, value);
+        save();
+    }
+
     public synchronized void markDelivered(String deliveryKey) {
         if (state.delivered == null) state.delivered = new LinkedHashSet<>();
         state.delivered.add(deliveryKey);
@@ -180,6 +198,9 @@ public class PushStateStore {
             return loaded;
         } catch (IOException e) {
             return recoverDamagedState(e);
+        } catch (JacksonException e) {
+            // Jackson 3부터 파싱 오류는 IOException이 아니다. 깨진 파일은 예전처럼 복구 길로 보낸다.
+            return recoverDamagedState(new IOException(e));
         }
     }
 
@@ -238,6 +259,7 @@ public class PushStateStore {
         public Map<String, BannerNotificationState> banners = new LinkedHashMap<>();
         public Map<String, PushTrackingToken> tokens = new LinkedHashMap<>();
         public Set<String> delivered = new LinkedHashSet<>();
+        public Map<String, DailyOfferNotification> dailyOffers = new LinkedHashMap<>();
 
         public State() {}
     }

@@ -6,6 +6,7 @@ import { StrictMode } from 'react'
 import { renderToPipeableStream } from 'react-dom/server'
 import { Writable } from 'node:stream'
 import App from './App.jsx'
+import ErrorBoundary from './ErrorBoundary.jsx'
 import { setHubLinks } from './offerLink.js'
 import { API_BASE } from './api.js'
 
@@ -36,7 +37,7 @@ export function render(data) {
     // renderToString은 Suspense에서 fallback을 내고, 클라이언트가 복구 오류를 찍는다.
     // 트리 모양을 main.jsx와 똑같이 둔다(StrictMode 아래 App과 Analytics 자리 둘).
     // 자식 수가 다르면 useId 값이 갈려 하이드레이션이 어긋난다(카드 상세 id).
-    const stream = renderToPipeableStream(<StrictMode><App initial={data} />{null}</StrictMode>, {
+    const stream = renderToPipeableStream(<StrictMode><ErrorBoundary><App initial={data} /></ErrorBoundary>{null}</StrictMode>, {
       onAllReady() { stream.pipe(sink) },
       onShellError: reject,
       onError: reject,

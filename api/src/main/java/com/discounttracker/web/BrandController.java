@@ -1,15 +1,23 @@
 package com.discounttracker.web;
 
+import com.discounttracker.analytics.PopularityIndex;
 import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.comparison.BrandComparison;
 import com.discounttracker.comparison.BrandComparisonService;
 import com.discounttracker.offer.OfferRepository;
 import com.discounttracker.push.BannerNotificationService;
+import com.discounttracker.history.HistoryRepository;
+import com.discounttracker.history.HistoryResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -20,12 +28,17 @@ public class BrandController {
     private final BrandComparisonService service;
     private final OfferRepository offers;
     private final BannerCatalog banners;
-    private final com.discounttracker.analytics.PopularityIndex popularity;
+    private final PopularityIndex popularity;
     private final BannerNotificationService notifications;
+    private final HistoryRepository history;
+    private final Clock clock;
 
     public BrandController(BrandComparisonService service, OfferRepository offers,
-                           BannerCatalog banners, com.discounttracker.analytics.PopularityIndex popularity,
-                           BannerNotificationService notifications) {
+                           BannerCatalog banners, PopularityIndex popularity,
+                           BannerNotificationService notifications,
+                           HistoryRepository history, Clock clock) {
+        this.clock = clock;
+        this.history = history;
         this.service = service;
         this.offers = offers;
         this.banners = banners;
@@ -36,6 +49,16 @@ public class BrandController {
     @GetMapping("/brands")
     public List<BrandComparison> brands() {
         return service.compare();
+    }
+
+    @GetMapping("/brands/{brand}/history")
+    public ResponseEntity<HistoryResponse> history(@PathVariable String brand,
+                                                   @RequestParam(defaultValue = "1m") String range) {
+        try {
+            return ResponseEntity.ok(HistoryResponse.of(history.current(), brand, range, LocalDate.now(clock)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**
@@ -50,6 +73,7 @@ public class BrandController {
     @PostMapping("/reload")
     public Map<String, Object> reload() {
         offers.reload();
+        boolean historyOk = history.reload();
         popularity.reload();
         // 배너 파일이 깨져도 200을 돌려준다 — 오퍼는 멀쩡히 다시 읽혔고,
         // 배너는 부가 정보다. 대신 깨졌다는 사실을 응답에 실어 보낸다.
@@ -69,15 +93,13 @@ public class BrandController {
         // id가 겹치면 "이 id의 배너"가 파일 순서로 정해진다. 콘솔로 올릴 때는 막지만
         // 파일을 손으로 고치면 그 검사를 지나간다 - 여기서 한 번 더 막는다(2026-09-24).
         List<String> duplicateIds = banners.duplicateIds();
-        // 옛 칸과 새 칸을 같이 적은 배너. 여태 안에서만 알고 응답에 안 실렸다.
-        // 통과는 시키되 알린다 - 이행기에는 섞인 배너가 정상으로 남는다.
-        List<String> mixed = banners.mixedShape();
         boolean bannersOk = parsed && unknown.isEmpty() && dropped.isEmpty() && duplicateIds.isEmpty();
         BannerNotificationService.ReloadResult push = bannersOk
                 ? notifications.onReload(banners.all())
                 : new BannerNotificationService.ReloadResult(0, 0, false, 0);
         return Map.ofEntries(
                 Map.entry("reloaded", offers.findAll().size()),
+                Map.entry("historyOk", historyOk),
                 Map.entry("banners", banners.active().size()),
                 Map.entry("bannersOk", bannersOk),
                 Map.entry("bannersParsed", parsed),
@@ -85,7 +107,6 @@ public class BrandController {
                 Map.entry("dropped", dropped),
                 Map.entry("droppedReasons", banners.droppedReasons()),
                 Map.entry("duplicateIds", duplicateIds),
-                Map.entry("mixedShape", mixed),
                 Map.entry("pushActivated", push.activated()),
                 Map.entry("pushImmediateRequested", push.immediateRequested()),
                 Map.entry("pushImmediateAllowed", push.immediateAllowed()),

@@ -1,4 +1,6 @@
 import { isUpdated } from './filters.js'
+import { track } from './analytics.js'
+import { watchAppOpen } from './telemetry.js'
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
 //
@@ -73,7 +75,8 @@ const HUB_LINK_MARKERS = { coupangeats: 'V5_HUB_' }
 let hubLinks = {}
 
 // 쿠팡이츠는 오퍼와 배너 모두 이 링크(와우 라운지)로 보낸다(2026-10-06 사용자). 수집이 매일 받는 허브 공유 링크보다 우선.
-export const COUPANGEATS_LINK = 'https://share.coupangeats.com/VzILg2hUX6b'
+// 마지막 기본값이다. 수집이 매일 검증한 공유 링크를 오퍼 link로 실어 보내면 그게 먼저다(2026-10-12 만료 링크가 박혀 있었다).
+export const COUPANGEATS_LINK = 'https://share.coupangeats.com/hMcIXWK036b'
 
 // 쿠팡이츠 허브 쿠폰은 앱에서 '쿠폰 받기'를 눌러야 적용된다(2026-10-06 사용자 확인).
 // 위험: 1.5초 뒤 이동은 사용자 제스처 밖이라 iOS 사파리가 앱 대신 웹을 열 수 있다. 실기 확인 필요.
@@ -81,13 +84,35 @@ export const COUPANGEATS_LINK = 'https://share.coupangeats.com/VzILg2hUX6b'
 export const COUPANGEATS_NOTICE = '행사 페이지에서\n해당 브랜드를 클릭해주세요!'
 // 쿠팡이츠 쿠폰 아래 고정 안내(2026-10-06 사용자 문구)
 export const COUPANGEATS_HINT = '앱에서 "브랜드 할인 버튼"을 눌러야 할인이 적용돼요.'
-const NOTICE_MS = 1500 // 2026-10-06 사용자: 1초 -> 1.5초
+// 2026-10-07 사용자: 처음 누를 때 3.5초, 한 번 본 뒤로는 1초(본 적 있는지는 이 브라우저의 localStorage에 남긴다)
+const NOTICE_FIRST_MS = 3500
+const NOTICE_MS = 1000
+const NOTICE_SEEN_KEY = 'dk_ce_notice_seen'
+function noticeMs() {
+  try {
+    if (localStorage.getItem(NOTICE_SEEN_KEY)) return NOTICE_MS
+    localStorage.setItem(NOTICE_SEEN_KEY, '1')
+  } catch { /* 저장소가 막혀 있으면 매번 처음처럼 */ }
+  return NOTICE_FIRST_MS
+}
 
-/** 쿠팡이츠 링크면 기본 이동을 막고 화면을 어둡게 깔아 안내를 1.5초 띄운 뒤 같은 탭에서 연다. 그 밖의 링크는 손대지 않는다. */
-export function openWithNotice(e, href) {
+/** 쿠팡이츠 링크면 기본 이동을 막고 화면을 어둡게 깔아 안내를 1.5초 띄운 뒤 연다. 그 밖의 링크는 손대지 않는다.
+ * 웹 주소(https)는 새 탭으로 연다 — 현재 페이지를 떠나지 않게(2026-10-09 사용자). 앱 링크(coupangeats://)는
+ * 새 탭에서 열면 브라우저가 about:blank만 띄우고 앱을 안 연다(OfferChip 주석) — 같은 탭에서 부르고, 앱이
+ * 열려도 이 페이지는 그대로 남는다. */
+export function openWithNotice(e, href, { offerPrompt = false } = {}) {
+  if (offerPrompt && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('discount-offer-prompt', { detail: { href } }))
+  }
   const tab = typeof href === 'string' && href.startsWith('coupangeats://')
-  if ((href !== COUPANGEATS_LINK && !tab) || typeof document === 'undefined') return
+  const share = typeof href === 'string' && href.startsWith('https://share.coupangeats.com/')
+  if (typeof document === 'undefined') return
+  // 앱 열림 결과(telemetry.js). 쿠팡이츠는 안내 뒤 실제로 이동할 때부터 잰다.
+  if (!share && !tab) { watchAppOpen(href); return }
   e.preventDefault()
+  // 공유 링크도 같은 탭으로 넘긴다. 새 탭에 넣으면 그 탭엔 누른 기록이 없어 앱 열기(intent://)가 막혀 빈 탭에 멈췄다
+  // (2026-10-12 사용자: 안 넘어간다).
+  const win = null
   document.querySelector('.ce-dim')?.remove()
   // 바텀시트처럼 화면을 어둡게 깔고 그 위에 안내를 띄운다(2026-10-06 사용자)
   const dim = document.createElement('div')
@@ -109,9 +134,12 @@ export function openWithNotice(e, href) {
       window.addEventListener('pagehide', mark, { once: true })
       document.addEventListener('visibilitychange', mark, { once: true })
     }
-    window.location.href = href
-    if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') window.location.href = COUPANGEATS_LINK }, 2500)
-  }, NOTICE_MS)
+    watchAppOpen(href)
+    if (tab) window.location.href = href
+    else if (win) { win.opener = null; win.location.href = href } else window.location.href = href // 차단되면 같은 탭
+    // 앱이 안 열려 공유 링크로 넘긴 것도 남긴다(link_fallback, 신뢰 지표: 링크 실패)
+    if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') { track('link_fallback', { platform: 'coupangeats' }); window.location.href = COUPANGEATS_LINK } }, 4000) // 앱이 안 열리면 4초 뒤 허브(2026-10-07 사용자: 2.5초 -> 4초)
+  }, noticeMs())
 }
 
 export function setHubLinks(banners) {
@@ -127,6 +155,7 @@ export function setHubLinks(banners) {
 /** 오퍼 링크 사다리. 오퍼 자신의 링크 → 브랜드 링크 → 앱 안 브랜드 검색 → 허브 → 앱 열기. */
 export function offerLink(offer, brandLinks, brandName) {
   // 쿠팡이츠: 수집이 그 쿠폰이 있는 허브 탭 링크(coupangeats://…anchorTabNo=N)를 실었으면 그 탭으로, 아니면 공유 링크(2026-10-07)
+  // 2026-10-16 사용자: 탭까지 붙여. 앱이 안 열리면 openWithNotice가 4초 뒤 공유 링크로 넘긴다.
   if (offer.platform === 'coupangeats') return offer.link?.startsWith('coupangeats://') ? offer.link : COUPANGEATS_LINK
   return offer.link
     ?? brandLinks?.[offer.platform]

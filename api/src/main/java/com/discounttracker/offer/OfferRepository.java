@@ -1,7 +1,9 @@
 package com.discounttracker.offer;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,8 +35,9 @@ public class OfferRepository {
     // 배포 워크플로가 실패했다(channel/badge/soldOut 필드 추가 때 세 번
     // 재현, 2026-08-01~08-03). 새 필드값은 API가 따라잡을 때까지 그냥
     // 비어 보이는 정도의 대가라 감수할 만하다.
-    private final ObjectMapper mapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults()
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .build();
     private volatile List<OfferRecord> cache = List.of();
 
     public OfferRepository(@Value("${discount.export-path}") Resource source) {
@@ -52,7 +55,7 @@ public class OfferRepository {
         try (InputStream in = source.getInputStream()) {
             cache = List.of(mapper.readValue(in, OfferRecord[].class));
             log.info("export.json 로드 완료 — {}건, source={}", cache.size(), source);
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
             // 여기서 로그를 남기지 않으면 무엇이 왜 깨졌는지가 사라진다.
             // 실측: 사람이 편집한 export.json에 "soldOut": null이 들어와
             // reload 전체가 깨졌는데(2026-08-04) 화면이 안 나와서야 알았다.

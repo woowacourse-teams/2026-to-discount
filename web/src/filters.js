@@ -1,3 +1,5 @@
+import { STRIP_MIN, popularToday } from './popularStrip.js'
+import { findBrandSuggestions } from './brandAutocomplete.js'
 // 필터·정렬 규칙. 상단 바(TopBarA)와 목록(App)이 같은
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
 // "화면에 뜬 것"이 어긋난다. (B안 시트·메뉴바는 2026-09-15에 지웠다.)
@@ -41,7 +43,10 @@ export function hasNewBest(offers, include = false) {
   return best != null && offers.some((o) => isUpdated(o) && comparisonAmount(o, include) === best)
 }
 
+// 서버가 이력으로 판정한 값(isNew)이 있으면 그것을 따른다(설계 2026-10-09). null = 이력 없음, 신규로 안 친다.
+// 칸이 아예 없는 옛 응답만 firstSeenAt 오늘 규칙을 쓴다.
 export function isUpdated(offer, now = Date.now()) {
+  if (offer && 'isNew' in offer) return offer.isNew === true
   const t = offer?.firstSeenAt ? Date.parse(offer.firstSeenAt) : NaN
   return Number.isFinite(t) && kstDay(t) === kstDay(now)
 }
@@ -52,10 +57,11 @@ export const MEMBERSHIP_LABEL = Object.fromEntries(MEMBERSHIP_OPTIONS.map((m) =>
 
 // 정렬 기준(2026-09-19 개편). 방향이 있는 둘은 라벨 아래 높은순/낮은순 버튼, 나머지 둘은 칩 하나.
 // 정렬은 하나만 고른다(2026-09-19). sortBrands는 여럿도 받지만 화면은 하나만 넘긴다.
+// 2026-10-18 사용자: 인기순을 맨 앞으로(찾는 사람이 많다).
 export const SORT_KEYS = [
+  { key: 'popularity', label: '인기순', directional: false },
   { key: 'amount', label: '할인금액', directional: true },
   { key: 'minOrder', label: '최소주문금액', directional: true },
-  { key: 'popularity', label: '인기순', directional: false },
   { key: 'recent', label: '최신순', directional: false },
 ]
 
@@ -71,6 +77,23 @@ export function primarySort(f) {
 
 // Set이 들어 있어 상수 하나를 돌려쓰면 한쪽에서 고친 게 다른 쪽에
 // 새어 나간다. 부를 때마다 새로 만든다.
+/** 시트에서 고르는 기준 금액(2026-10-13 사용자). */
+// 시트의 끌기 막대 눈금(2026-10-14 사용자: 칩 대신 수평 막대). 1,000원 단위.
+export const MIN_AMOUNT_OPTIONS = Array.from({ length: 10 }, (_, i) => (i + 1) * 1000)
+/** 3000 → "3,000원" (2026-10-14 사용자: "n천원" 대신 금액 그대로). */
+export const minAmountLabel = (n) => `${n.toLocaleString('ko-KR')}원`
+const MIN_AMOUNT_KEY = 'dk_min_amount'
+/** 저장된 기준 금액. 없거나 목록 밖 값이면 null. 저장소가 막혀도 멈추지 않는다. */
+export function readMinAmount(storage = globalThis.localStorage) {
+  try {
+    const n = Number(storage?.getItem(MIN_AMOUNT_KEY))
+    return MIN_AMOUNT_OPTIONS.includes(n) ? n : null
+  } catch { return null }
+}
+export function saveMinAmount(n, storage = globalThis.localStorage) {
+  try { storage?.setItem(MIN_AMOUNT_KEY, String(n)) } catch { /* 저장 못 해도 이번 화면은 그 값으로 돈다 */ }
+}
+
 export function defaultFilters() {
   return { ...DEFAULT_SCALARS, platforms: new Set(PLATFORMS.map((p) => p.key)), categories: new Set(), memberships: ALL_MEMBERSHIPS() }
 }
@@ -86,6 +109,8 @@ const DEFAULT_SCALARS = {
   // 2026-10-03부터 기본으로 켠다(사용자): 최소주문 낮은순으로 보면 너무 작은 할인이 앞을 채웠다.
   // 배너 분석(docs/metrics/BANNER-TYPES-20261003.md)에서도 5천원 미만은 클릭률이 0.7% 안팎이었다.
   minAmount5k: true,
+  // 위 거르기의 기준 금액(2026-10-13 사용자). 시트에서 고르고 이 브라우저에 남긴다(readMinAmount).
+  minAmount: 5000,
   // 정렬은 하나다(2026-09-19). 처음은 할인액 높은 순.(2026-09-19, 사용자: 우선순위 개념 제거). 처음은 할인액 높은 순 하나.
   sorts: [{ key: 'amount', dir: 'desc' }],
   search: '',
@@ -99,6 +124,7 @@ export function isDefaultFilters(f) {
     && f.includeRandom === DEFAULT_SCALARS.includeRandom
     && f.includeMenu === DEFAULT_SCALARS.includeMenu
     && f.minAmount5k === DEFAULT_SCALARS.minAmount5k
+    && (f.minAmount ?? 5000) === DEFAULT_SCALARS.minAmount
     && sortSignature(f.sorts) === sortSignature(DEFAULT_SCALARS.sorts)
     && f.search.trim() === ''
 }
@@ -122,6 +148,12 @@ export function certaintyOf(offer) {
 export function kindOf(offer) {
   return offer.kind ?? 'discount'
 }
+
+/** 1+1, 2+1 묶음 행사인가. 금액 없이 원문으로 서고 카드 오퍼 맨 위에 둔다(2026-10-11 사용자). */
+export const isBundle = (offer) => kindOf(offer) === 'bundle'
+
+/** 오퍼 정렬 앞자리: 묶음 행사가 맨 위, 그다음 최대(불확정)를 뒤로. */
+export const bundleFirst = (a, b) => isBundle(b) - isBundle(a)
 
 /**
  * 확실성과 무관하게, 이 오퍼가 배달앱끼리 견주는 자리에 낄 수 있는가.
@@ -202,6 +234,8 @@ export function comparable(offer, include = false) {
  * 꺼져 있으면 sortingAmount가 null이라 안 낀다. 켜면 액면이 오른다.
  */
 function comparisonAmount(offer, include) {
+  // 1+1 묶음 행사는 최고 할인 후보는 아니지만 정렬값(15,000)으로 목록에 선다(2026-10-11 사용자). API와 같다.
+  if (isBundle(offer) && !offer.soldOut) return offer.amount ?? null
   if (!comparableAxes(offer)) return null
   const inc = includesOf(include)
   const c = certaintyOf(offer)
@@ -246,7 +280,9 @@ export function latestCaptured(offers) {
 
 function sortValue(brand, key, include) {
   if (key === 'minOrder') return lowestMinOrder(brand.offers)
-  if (key === 'popularity') return brand.popularity ?? 0
+  // 2026-10-18 사용자: 인기순은 HOT 목록(24시간 사람 수)과 같은 순서. 같으면 이번 주(7일) 수로 가른다.
+  // ponytail: 두 수를 한 값으로 접는다. 7일 수가 백만을 넘으면 자리 올림.
+  if (key === 'popularity') return (brand.popularityToday ?? 0) * 1e6 + (brand.popularity ?? 0)
   if (key === 'recent') return latestCaptured(brand.offers)
   return bestConfirmedAmount(brand.offers, include)
 }
@@ -304,7 +340,8 @@ export function applyFilters(brands, filters) {
     .map((b) => {
       const offers = b.offers.filter((o) => (o.platform === OWN || filters.platforms.has(o.platform))
         // 검색 중에는 금액으로 거르지 않는다. 브랜드를 이름으로 찾았는데 5천원 미만이라 안 보이면 없는 줄 안다.
-        && (!filters.minAmount5k || q !== '' || (o.amount ?? 0) >= 5000)
+        // 1+1 묶음 행사는 금액이 없어도 5천원 거르기에 안 걸린다(2026-10-11 KFC 1+1이 안 떴다).
+        && (!filters.minAmount5k || q !== '' || isBundle(o) || (o.amount ?? 0) >= (filters.minAmount ?? 5000))
         // 없는 멤버십의 전용 오퍼는 뺀다(MEMBERSHIP_FILTERABLE).
         && !(MEMBERSHIP_FILTERABLE[o.membership] && filters.memberships && !filters.memberships.has(MEMBERSHIP_FILTERABLE[o.membership])))
       return offers.length === b.offers.length ? b : { ...b, offers }
@@ -314,12 +351,29 @@ export function applyFilters(brands, filters) {
       // 업데이트만(메인 화면 쿠폰 카드 쪽 "업데이트 N곳" 칸): 오늘 처음 본 오퍼가 하나라도 있는 브랜드만.
       // 2026-10-05 사용자: 신규 탭은 최고 오퍼가 신규인 브랜드만(배지는 모든 신규 오퍼에 붙는다).
       if (filters.updatedOnly && !hasNewBest(b.offers, includesFrom(filters))) return false
-      if (q !== '' && !b.name.includes(q)) return false
+      // 목록 검색도 자동완성과 같은 규칙으로 찾는다: 별칭, 메뉴명, 초성, 한영 전환(2026-10-08).
+      // 전에는 대표명 포함만 봐서 "비비큐", "뿌링클", 소문자 "bhc"가 0건이었다.
+      if (q !== '' && findBrandSuggestions([b], q, 1).length === 0) return false
       // 아무 분류도 안 고르면 전체다.
       if (filters.categories.size === 0) return true
       return filters.categories.has(b.category)
     })
-  return sortBrands(visible, { ...filters, include: includesFrom(filters) })
+  const include = includesFrom(filters)
+  const sorted = sortBrands(visible, { ...filters, include })
+  // 2026-10-15 사용자: 신규 탭 대신 기본 정렬일 때 신규(최고 오퍼가 신규인 브랜드)를 맨 위로. 신규끼리도 기본 정렬 순서.
+  // 정렬을 바꾸면 끌어올리지 않고 전체 정렬을 따른다.
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return sorted
+  const isNew = (b) => hasNewBest(b.offers, include)
+  return [...sorted.filter(isNew), ...sorted.filter((b) => !isNew(b))]
+}
+
+/** 기본 정렬이면 HOT 1~5위를 맨 앞에 순위대로(2026-10-18 사용자: 신규보다 앞). 숨김을 뺀 목록에 부른다(HOT과 같은 목록). */
+export function pinPopular(brands, filters) {
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return brands
+  const top = popularToday(brands)
+  if (top.length < STRIP_MIN) return brands
+  const pinned = new Set(top.map((r) => r.brand))
+  return [...top.map((r) => r.brand), ...brands.filter((b) => !pinned.has(b))]
 }
 
 /**

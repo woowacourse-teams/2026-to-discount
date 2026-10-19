@@ -1,0 +1,65 @@
+# 운영 홈이 저사양 폰에서 다시 느려지거나 하이드레이션이 깨지면 잡는다(2026-10-14).
+# main 배포(미러) 뒤 자동으로, 매일 06:00 KST, 또는 Actions에서 수동으로 돈다(2026-10-18 매일 추가).
+# 기준: CPU 4배 감속 360px 새 방문, 3회.
+#   - 페이지 예외 0건(쿠폰 카드 하이드레이션 실패 #421이 카드 수만큼 나던 것)
+#   - TBT 중앙값 1,000ms 이하(2026-10-14 개선 뒤 약 240ms, 러너 편차 여유)
+#   - 레이아웃 이동(CLS) 0.1 이하
+#   - Lighthouse SEO 0.9 이상. LCP, 성능 점수는 러너 편차가 커서 기록만 한다(요약 탭)
+# 실사용 LCP는 PostHog `$web_vitals`가 늘 모은다. 측정 방법과 기록은 docs/metrics/WEB-PERFORMANCE-20261014.md.
+name: web-perf
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 21 * * *'
+  workflow_run:
+    workflows: [Mirror to deploy repos]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  perf:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: web/scripts/dev }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Vercel 배포 기다리기
+        if: github.event_name == 'workflow_run'
+        run: sleep 120
+      # ?home=old는 A/B 종료(785ef60d)로 같은 화면이라 뺐다.
+      - name: 재기
+        env:
+          EDGE_PATH: /usr/bin/google-chrome
+        run: >
+          node web/scripts/dev/load-tbt.mjs
+          "https://beggars-five.vercel.app/?dev=1"
+          --runs 3 --max-tbt 1000 --max-cls 0.1
+      - name: Lighthouse SEO와 LCP
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          npx -y lighthouse@12.8.2 "https://beggars-five.vercel.app/?dev=1" --quiet \
+            --only-categories=performance,seo,accessibility,best-practices \
+            --chrome-flags="--headless=new --no-sandbox" --output=json --output-path=lh.json
+          node -e '
+            const j = require("./lh.json"), c = j.categories, a = j.audits
+            const line = `성능 ${c.performance.score} SEO ${c.seo.score} 접근성 ${c.accessibility.score} 권장 ${c["best-practices"].score} | LCP ${a["largest-contentful-paint"].displayValue} TBT ${a["total-blocking-time"].displayValue} CLS ${a["cumulative-layout-shift"].displayValue}`
+            console.log(line)
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, line + "\n")
+            if (c.seo.score < 0.9) { console.error("SEO 0.9 미만"); process.exit(1) }
+          '
+      - name: 실패를 슬랙 채널로
+        if: failure()
+        env:
+          SLACK_OPS_TOKEN: ${{ secrets.SLACK_OPS_TOKEN }}
+          SLACK_OPS_CHANNEL: ${{ secrets.SLACK_OPS_CHANNEL }}
+        run: |
+          [ -n "$SLACK_OPS_TOKEN" ] || { echo "SLACK_OPS_TOKEN 없음 - 알림 생략"; exit 0; }
+          TEXT="❌ GitHub Actions 실패: ${{ github.workflow }} (${{ github.repository }}, ${GITHUB_SHA::7})"$'\n'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          BODY=$(TEXT="$TEXT" python3 -c 'import json,os;print(json.dumps({"channel":os.environ["SLACK_OPS_CHANNEL"],"text":os.environ["TEXT"]}))')
+          curl -s -X POST https://slack.com/api/chat.postMessage -H "Authorization: Bearer $SLACK_OPS_TOKEN" -H "Content-type: application/json; charset=utf-8" --data "$BODY" > slack.json || { echo "슬랙 연결 실패"; exit 1; }
+          grep -q '"ok":true' slack.json || { echo "슬랙 거부: $(cat slack.json)"; exit 1; }

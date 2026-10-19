@@ -1,0 +1,12 @@
+/* /about, /privacy 공통(설계 47). 앱 번들 없이 읽히는 정적 페이지라 색과 글꼴만 앱(base.css)에 맞춘다. */
+:root { color-scheme: light; }
+body { margin: 0; background: #fbfbfa; color: #171717; font-family: Pretendard, system-ui, sans-serif; }
+.legal { max-width: 720px; margin: 0 auto; padding: 16px 16px 48px; line-height: 1.7; font-size: .95rem; word-break: keep-all; }
+.legal__home { display: inline-block; margin: 4px 0 12px; color: #64635f; text-decoration: none; font-size: .9rem; }
+.legal h1 { font-size: 1.4rem; margin: 0 0 4px; }
+.legal h2 { font-size: 1.05rem; margin: 28px 0 8px; }
+.legal p { margin: 0 0 12px; }
+.legal__meta { color: #64635f; font-size: .85rem; }
+.legal ul { margin: 0 0 12px; padding-left: 1.2rem; }
+.legal a { color: #1f6c9f; }
+.legal__links { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eaeaea; }

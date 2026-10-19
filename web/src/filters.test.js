@@ -3,9 +3,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { apiFile } from '../scripts/api-repo.mjs'
 import {
+  isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest,
+  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinPopular,
 } from './filters.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
@@ -49,6 +50,27 @@ test('인기순을 고르면 기본으로 켜진 할인금액보다 앞선다 �
   ]
   const sorts = [{ key: 'amount', dir: 'desc' }, { key: 'popularity', dir: 'desc' }]
   assert.deepEqual(sortBrands(brands, { sorts }).map((b) => b.name), ['나', '가'])
+})
+
+test('기본 정렬이면 HOT 1~5위가 맨 앞에 순위대로 선다. 정렬을 바꾸면 안 세운다(2026-10-18 사용자)', () => {
+  const pop = (name, n) => brand(name, [o(5000)], { popularityToday: n })
+  const list = [pop('신규', 0), pop('가', 1), pop('나', 9), pop('다', 4), pop('라', 7), pop('마', 2), pop('바', 3)]
+  assert.deepEqual(pinPopular(list, defaultFilters()).map((b) => b.name), ['나', '라', '다', '바', '마', '신규', '가'])
+  const other = { ...defaultFilters(), sorts: [{ key: 'minOrder', dir: 'asc' }] }
+  assert.equal(pinPopular(list, other), list)
+  // HOT이 안 뜨는 때(세 곳 미만)는 그대로
+  const few = [pop('신규', 0), pop('가', 1), pop('나', 9)]
+  assert.equal(pinPopular(few, defaultFilters()), few)
+})
+
+test('인기순은 HOT과 같은 24시간 순서다. 같으면 7일 수로 가른다(2026-10-18 사용자)', () => {
+  const brands = [
+    brand('주간1위', [o(5000)], { popularity: 90, popularityToday: 2 }),
+    brand('오늘1위', [o(5000)], { popularity: 10, popularityToday: 8 }),
+    brand('동점', [o(5000)], { popularity: 95, popularityToday: 2 }),
+  ]
+  const sorts = [{ key: 'popularity', dir: 'desc' }]
+  assert.deepEqual(sortBrands(brands, { sorts }).map((b) => b.name), ['오늘1위', '동점', '주간1위'])
 })
 
 test('자사 오퍼는 플랫폼 필터 밖이다 - 배달앱을 다 꺼도 남는다', () => {
@@ -171,6 +193,22 @@ test('5천원 이상만은 기본으로 켜져 있고, 검색 중에는 금액�
   assert.deepEqual(applyFilters(brands, { ...f, search: '디디' }).map((b) => b.name), ['디디치킨'])
 })
 
+test('기준 금액은 시트에서 고른 값을 따르고 저장소에 남는다(2026-10-13)', () => {
+  const brands = [{ name: '청년피자', category: 'pizza', offers: [{ platform: 'baemin', amount: 7500, certainty: 'exact', kind: 'discount' }] }]
+  assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount: 10000 }).length, 0)
+  assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount: 7000 }).length, 1)
+  assert.equal(isDefaultFilters({ ...defaultFilters(), minAmount: 7000 }), false)
+  assert.deepEqual([3000, 5000, 10000].map(minAmountLabel), ['3,000원', '5,000원', '10,000원'])
+  const m = new Map()
+  const s = { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }
+  assert.equal(readMinAmount(s), null)
+  saveMinAmount(7000, s)
+  assert.equal(readMinAmount(s), 7000)
+  s.setItem('dk_min_amount', '1234')
+  assert.equal(readMinAmount(s), null, '목록 밖 값은 버린다')
+  assert.equal(readMinAmount({ getItem: () => { throw new Error('blocked') } }), null)
+})
+
 test('멤버십: 끄면 그 멤버십 전용 오퍼만 빠지고, 기본(둘 다 켜짐)은 그대로', () => {
   const brands = [{ name: 'BBQ', category: 'chicken', offers: [
     { platform: 'baemin', amount: 7000, membership: 'baeminClub' },
@@ -200,4 +238,38 @@ test('신규 탭: 최고 오퍼가 신규일 때만', () => {
   const fresh = { platform: 'yogiyo', amount: 2000, firstSeenAt: now, capturedAt: now }
   assert.equal(hasNewBest([old, fresh]), false)
   assert.equal(hasNewBest([{ ...fresh, amount: 9500 }, old]), true)
+})
+
+test('목록 검색은 대표명 밖에 별칭, 메뉴명, 초성으로도 찾는다', () => {
+  const brands = [
+    { name: 'bhc', searchAliases: ['비에이치씨'], menus: ['뿌링클'], offers: [{ platform: 'baemin', amount: 6000 }] },
+    { name: 'BBQ', searchAliases: ['비비큐'], offers: [{ platform: 'baemin', amount: 5000 }] },
+  ]
+  const f = (search) => applyFilters(brands, { ...defaultFilters(), search }).map((b) => b.name)
+  assert.deepEqual(f('뿌링클'), ['bhc'])
+  assert.deepEqual(f('비비큐'), ['BBQ'])
+  assert.deepEqual(f('BHC'), ['bhc'])
+  assert.deepEqual(f('ㅂㅂㅋ'), ['BBQ'])
+})
+
+test('isUpdated prefers server isNew over firstSeenAt', () => {
+  const now = Date.parse('2026-10-09T03:00:00Z')
+  assert.equal(isUpdated({ isNew: false, firstSeenAt: '2026-10-09T00:10:03+09:00' }, now), false)
+  assert.equal(isUpdated({ isNew: true, firstSeenAt: '2026-10-01T00:00:00+09:00' }, now), true)
+  assert.equal(isUpdated({ isNew: null, firstSeenAt: '2026-10-09T00:10:03+09:00' }, now), false)
+  assert.equal(isUpdated({ firstSeenAt: '2026-10-09T00:10:03+09:00' }, now), true)
+})
+
+test('1+1 묶음 행사는 5천원 이상만을 켜도 남는다(2026-10-11)', () => {
+  const brand = { name: 'KFC', offers: [{ platform: 'own', amount: null, rawText: '1+1', kind: 'bundle' }] }
+  const got = applyFilters([brand], { ...defaultFilters(), minAmount5k: true })
+  assert.equal(got.length, 1)
+})
+
+test('default sort pins new brands to the top, other sorts do not', () => {
+  const b = (name, amount, isNew) => ({ name, category: 'chicken', offers: [{ platform: 'baemin', amount, isNew }] })
+  const brands = [b('가', 9000, false), b('나', 6000, true), b('다', 8000, false), b('라', 7000, true)]
+  assert.deepEqual(applyFilters(brands, defaultFilters()).map((x) => x.name), ['라', '나', '가', '다'])
+  const asc = { ...defaultFilters(), sorts: [{ key: 'amount', dir: 'asc' }] }
+  assert.deepEqual(applyFilters(brands, asc).map((x) => x.name), ['나', '라', '다', '가'])
 })
