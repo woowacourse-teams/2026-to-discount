@@ -67,5 +67,5 @@
 
     <p class="legal__links"><a href="/about">서비스 소개</a></p>
   </main>
-<script>/* 밖에서 바로 들어왔으면 뒤로 = 홈(2026-10-19, src/backClose.js homeUnderDirectLanding과 같다) */(function(){var s=false;try{s=new URL(document.referrer).origin===location.origin}catch(e){}if(!s&&!history.state){var h=location.href;history.replaceState({home:true},'','/');history.pushState(null,'',h)}addEventListener('popstate',function(e){if(e.state&&e.state.home)location.replace('/')})})()</script></body>
+<script>/* 밖에서 바로 들어왔으면 뒤로 = 홈(2026-10-19, src/backClose.js homeUnderDirectLanding과 같다) */(function(){var s=false;try{s=new URL(document.referrer).origin===location.origin}catch(e){}if(!s&&!history.state){var h=location.href;history.replaceState({home:true},'','/');history.pushState({landed:true},'',h)}addEventListener('popstate',function(e){if(e.state&&e.state.home)location.replace('/')})})()</script></body>
 </html>

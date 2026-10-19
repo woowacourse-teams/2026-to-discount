@@ -22,7 +22,7 @@ test('밖에서 브랜드 페이지로 바로 오면 밑에 홈 칸을 깔고, �
 })
 
 test('홈, 사이트 안에서 온 하위 화면, 새로고침(state 있음)은 건드리지 않는다', () => {
-  for (const [href, ref, state] of [['https://b.test/', '', null], ['https://b.test/#a', 'https://b.test/', null], ['https://b.test/brand/a', '', { home: true }]]) {
+  for (const [href, ref, state] of [['https://b.test/', '', null], ['https://b.test/#a', 'https://b.test/', null], ['https://b.test/brand/a', 'https://search.test/', { landed: true }]]) {
     const h = fakeHistory(); h.entries = ['x']; h.state = state
     homeUnderDirectLanding(loc(href), h, ref)
     assert.deepEqual(h.entries, ['x'], href)

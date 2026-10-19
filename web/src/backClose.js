@@ -8,7 +8,7 @@ export function homeUnderDirectLanding(loc = window.location, history = window.h
   if ((loc.pathname !== '/' || loc.hash) && !sameSite && !history.state) {
     const here = loc.href
     history.replaceState({ home: true }, '', '/')
-    history.pushState(null, '', here)
+    history.pushState({ landed: true }, '', here) // 새로고침해도 다시 깔지 않게
   }
   window.addEventListener('popstate', (e) => { if (e.state?.home) loc.replace('/') })
 }
