@@ -24,3 +24,8 @@ main에 직접 커밋하지 않는다. 브랜치, 360px 스크린샷, mono `prev
 - `web/src/*.test.js`를 새로 만들면 `web/package.json`의 `test` 명령에 넣는다. 안 넣으면 안 돌고, 안 도는 줄도 모른다.
 - api는 Spring Boot 4.1, Jackson 3이다. Jackson 파싱 오류는 `IOException`이 아니다. 고칠 때 규칙은 `api/docs/decisions/ADR-012`.
 - 비밀값은 코드와 커밋에 값으로 적지 않는다. CI(`secret-scan`)가 작업 트리를 검사한다.
+
+## PR 대상 브랜치 안내
+
+- `main` 대상 PR을 생성하거나 보고할 때는 해당 브랜치를 대상으로 삼은 사유를 명시한다.
+- `beggars-ops`는 개발 배포 경로가 없어 `작업 브랜치 → main`으로 반영하는 저장소 예외임을 함께 설명한다.
