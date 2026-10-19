@@ -41,37 +41,12 @@
   cursor: pointer;
 }
 
-.report-dim {
-  position: fixed;
-  inset: 0;
-  z-index: 91;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(0, 0, 0, .5);
-}
-.report-sheet {
-  width: 100%;
-  max-width: 560px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
-  border-radius: 20px 20px 0 0;
-  background: var(--surface);
-  color: var(--text);
-  height: 85vh;
-  height: 85dvh;
-  overflow-y: auto;
-}
-.report-chips { display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none; flex: none; margin: 0 -1rem; padding: 0 1rem; }
-.report-chips::-webkit-scrollbar { display: none; }
-.report-chip { flex: none; padding: .45rem .8rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); font: inherit; font-size: .85rem; white-space: nowrap; cursor: pointer; }
-.report-chip--on { border-color: var(--text); background: var(--text); color: var(--surface); font-weight: 700; }
-.report-sheet__brand-wrap { position: relative; }
-.report-sheet__head { display: flex; align-items: center; justify-content: space-between; font-size: 1rem; }
-.report-sheet__x { border: 0; background: none; color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+/* 시트 틀, 손잡이, 닫기, 칩은 필터 시트(filter-sheet.css)의 것을 그대로 쓴다. 여기는 높이와 입력칸만. */
+.sheet.report-sheet { height: 60vh; height: 60dvh; max-height: none; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.report-sheet__head { margin: 0; padding: 1rem 1.25rem .9rem; font-size: 1.05rem; font-weight: 800; flex: none; }
+.report-sheet__body { flex: 1; display: flex; flex-direction: column; gap: .6rem; padding-top: 0; }
+.report-sheet__body > * { flex: none; }
+.report-sheet__brand-wrap { position: relative; }.report-sheet__x { border: 0; background: none; color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer; }
 .report-sheet__text,
 .report-sheet__brand {
   box-sizing: border-box;

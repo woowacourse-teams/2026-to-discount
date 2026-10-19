@@ -1,10 +1,12 @@
 // 잘못된 정보 제보(2026-10-19 사용자). 상단 바의 알림 종 자리. 알림 켜기는 오퍼 클릭 뒤 팝업(push_prompt)이 맡고,
 // 이미 켠 사람이 끌 곳은 이 시트 아래 작은 링크로 둔다(켜져 있을 때만).
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
+import { PlatformBadge } from './logos.jsx'
 import { PLATFORMS } from './platforms.js'
+import { Track, useDragClose } from './sheetParts.jsx'
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { API_BASE } from './api.js'
@@ -49,6 +51,9 @@ export default function ReportButton({ filters, hold, brands }) {
 
   const close = () => { setOpen(false); if (state !== 'sending') setState('idle') }
   useBackClose(open, close)
+  const sheetRef = useRef(null)
+  const bodyRef = useRef(null)
+  useDragClose(sheetRef, bodyRef, open, close)
 
   const openSheet = () => {
     if (tip) { setTip(false); track('report_tip_closed', { reason: 'button' }) }
@@ -89,24 +94,27 @@ export default function ReportButton({ filters, hold, brands }) {
         </span>
       )}
       {open && createPortal(
-        <div className="report-dim" onClick={(e) => { if (e.target === e.currentTarget) close() }}>
-          <form className="report-sheet" role="dialog" aria-modal="true" aria-label="잘못된 정보 제보" onSubmit={send}>
-            <div className="report-sheet__head">
-              <strong>제보</strong>
-              <button type="button" className="report-sheet__x" aria-label="닫기" onClick={close}>×</button>
-            </div>
-            <div className="report-chips" role="radiogroup" aria-label="제보 종류">
+        <div className="sheet-scrim" onClick={(e) => { if (e.target === e.currentTarget) close() }}>
+          <form ref={sheetRef} className="sheet report-sheet" role="dialog" aria-modal="true" aria-label="잘못된 정보 제보" onSubmit={send}>
+            <div className="sheet__grip" aria-hidden="true" />
+            <button type="button" className="sheet__close" aria-label="닫기" onClick={close}>
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+            <h2 className="report-sheet__head">제보</h2>
+            <div ref={bodyRef} className="sheet__body report-sheet__body">
+            <Track label="제보 종류" thumb>
               {REPORT_TYPES.map((t) => (
-                <button type="button" key={t.key} role="radio" aria-checked={type === t.key}
-                  className={`report-chip${type === t.key ? ' report-chip--on' : ''}`} onClick={() => setType(t.key)}>{t.label}</button>
+                <button type="button" key={t.key} aria-pressed={type === t.key}
+                  className={`sheet__chip${type === t.key ? ' sheet__chip--on' : ''}`} onClick={() => setType(t.key)}>{t.label}</button>
               ))}
-            </div>
+            </Track>
             {needsPlatform(type) && (
-              <div className="report-chips" role="radiogroup" aria-label="배달앱">
+              <div className="sheet__apps page-head__apps" role="group" aria-label="배달앱">
                 {PLATFORMS.map((p) => (
-                  <button type="button" key={p.key} role="radio" aria-checked={platform === p.key}
-                    className={`report-chip${platform === p.key ? ' report-chip--on' : ''}`}
-                    onClick={() => setPlatform((v) => (v === p.key ? '' : p.key))}>{p.label}</button>
+                  <span key={p.key} className="platform-badge-wrap">
+                    <PlatformBadge platformKey={p.key} active={platform ? platform === p.key : undefined}
+                      onClick={() => setPlatform((v) => (v === p.key ? '' : p.key))} />
+                  </span>
                 ))}
               </div>
             )}
@@ -131,6 +139,7 @@ export default function ReportButton({ filters, hold, brands }) {
                 window.dispatchEvent(new Event('discount-push-disable')); setPushOn(false); close()
               }}>할인 알림 끄기</button>
             )}
+            </div>
           </form>
         </div>,
         document.body,

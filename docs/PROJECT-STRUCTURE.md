@@ -302,6 +302,7 @@ web/src/pushSyncRetry.js
 web/src/pushSyncRetry.test.js
 web/src/report.js
 web/src/report.test.js
+web/src/sheetParts.jsx
 web/src/styles/banner.css
 web/src/styles/base.css
 web/src/styles/brand-card.css
@@ -380,7 +381,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 171 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 160 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 161 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -516,6 +517,7 @@ HTTP 경계:
 | `pushSyncRetry.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `report.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `report.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `sheetParts.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
