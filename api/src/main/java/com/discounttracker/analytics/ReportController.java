@@ -36,6 +36,11 @@ public class ReportController {
 
     private static final Logger log = LoggerFactory.getLogger(ReportController.class);
 
+    /** 웹 report.js REPORT_TYPES와 같은 키. 값은 슬랙에 보이는 이름. */
+    static final Map<String, String> TYPES = Map.of(
+            "amount", "할인 금액", "exists", "할인 여부", "screen", "화면 오류", "other", "그 외");
+    /** 웹 platforms.js PLATFORMS 키. */
+    static final java.util.Set<String> PLATFORMS = java.util.Set.of("baemin", "coupangeats", "ddangyo", "yogiyo");
     static final int MAX_TEXT = 500;
     static final int MAX_SHORT = 100;
     static final int MAX_URL = 500;
@@ -62,7 +67,8 @@ public class ReportController {
     public ResponseEntity<Map<String, Object>> submit(@RequestBody(required = false) Report body,
                                                       HttpServletRequest request) {
         String text = body == null || body.text() == null ? "" : body.text().strip();
-        if (text.isEmpty() || text.length() > MAX_TEXT
+        if (text.isEmpty() || body.type() == null || !TYPES.containsKey(body.type())
+                || (body.platform() != null && !body.platform().isEmpty() && !PLATFORMS.contains(body.platform())) || text.length() > MAX_TEXT
                 || tooLong(body.brand(), MAX_SHORT) || tooLong(body.url(), MAX_URL)
                 || tooLong(body.filters(), MAX_URL) || tooLong(body.visitorId(), MAX_SHORT)) {
             return ResponseEntity.badRequest().body(Map.of("ok", false));
@@ -72,13 +78,16 @@ public class ReportController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("ok", false));
         }
 
-        String message = "[제보] " + text
+        String message = "[제보/" + TYPES.get(body.type()) + "] " + text
+                + "\n앱: " + orDash(body.platform())
                 + "\n브랜드: " + orDash(body.brand())
                 + "\n화면: " + orDash(body.url())
                 + "\n필터: " + orDash(body.filters())
                 + "\n방문자: " + orDash(body.visitorId()) + " / " + who;
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("at", Instant.now().toString());
+        row.put("type", body.type());
+        row.put("platform", orDash(body.platform()));
         row.put("text", text);
         row.put("brand", orDash(body.brand()));
         row.put("url", orDash(body.url()));
@@ -124,6 +133,6 @@ public class ReportController {
         return s == null || s.isBlank() ? "-" : s.strip();
     }
 
-    public record Report(String text, String brand, String url, String filters, String visitorId) {
+    public record Report(String type, String platform, String text, String brand, String url, String filters, String visitorId) {
     }
 }

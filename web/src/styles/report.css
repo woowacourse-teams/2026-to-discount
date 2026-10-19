@@ -61,7 +61,15 @@
   border-radius: 20px 20px 0 0;
   background: var(--surface);
   color: var(--text);
+  height: 85vh;
+  height: 85dvh;
+  overflow-y: auto;
 }
+.report-chips { display: flex; gap: .4rem; overflow-x: auto; scrollbar-width: none; flex: none; margin: 0 -1rem; padding: 0 1rem; }
+.report-chips::-webkit-scrollbar { display: none; }
+.report-chip { flex: none; padding: .45rem .8rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); font: inherit; font-size: .85rem; white-space: nowrap; cursor: pointer; }
+.report-chip--on { border-color: var(--text); background: var(--text); color: var(--surface); font-weight: 700; }
+.report-sheet__brand-wrap { position: relative; }
 .report-sheet__head { display: flex; align-items: center; justify-content: space-between; font-size: 1rem; }
 .report-sheet__x { border: 0; background: none; color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer; }
 .report-sheet__text,
@@ -76,7 +84,7 @@
   font: inherit;
   font-size: 16px; /* iOS 확대 방지 */
 }
-.report-sheet__text { resize: vertical; }
+.report-sheet__text { flex: 1; min-height: 8rem; resize: none; }
 .report-sheet__count { align-self: flex-end; margin-top: -.3rem; color: var(--text-muted); font-size: .72rem; }
 .report-sheet__msg { margin: 0; font-size: .85rem; font-weight: 600; }
 .report-sheet__msg--err { color: var(--sale); }
