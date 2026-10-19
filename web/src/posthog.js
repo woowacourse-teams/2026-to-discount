@@ -1,6 +1,10 @@
 import posthog from 'posthog-js'
+// 외부 자산 요청을 열지 않고 기존 Web Vitals 수집을 유지한다.
+import 'posthog-js/dist/web-vitals.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
+import { resolveApiBase } from './apiBase.js'
+import { createPostHogDelivery } from './posthogDelivery.js'
 
 export const POSTHOG_CONNECTION_TEST_EVENT = 'posthog_sdk_connection_test'
 
@@ -10,35 +14,9 @@ function clean(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
-// 프록시를 걷은 뒤 PostHog로 바로 가는 주소.
-//
-// 원래는 같은 오리진 경로("/ph")로 쏘고 vercel.json rewrite가 넘겼다.
-// 광고 차단기가 us.i.posthog.com을 막기 때문이다(2026-09-06에 그것 때문에
-// 프록시를 살렸다).
-//
-// 2026-09-07에 걷어냈다. Vercel Edge Requests 한도가 **30일 롤링 윈도우**로
-// 재는데 934,483/1,000,000까지 찼다 — 달이 바뀌어도 안 풀리고 오래된
-// 날짜가 빠져나가야 내려간다. 이 프록시를 타는 이벤트가 방문당 열 건쯤
-// 되고, 그게 전부 쿼터였다.
-//
-// 대가는 분명하다: 광고 차단기를 쓰는 방문자의 이벤트가 샌다. 자체 원장
-// (/api/events)은 그대로라 **핵심 지표는 그쪽에서 계속 나온다** — PostHog는
-// 그래프를 보는 보조 도구다. 한도가 안정권에 들면 되살릴 수 있다.
-const POSTHOG_DIRECT_HOST = 'https://us.i.posthog.com'
-
-/*
- * 환경변수가 경로("/ph")를 들고 있어도 직결 주소로 편다.
- *
- * VITE_POSTHOG_HOST는 Vercel 환경변수라 UI로 못 고친다 — 새 UI가 편집 시
- * 타입을 Secret으로 강제하는데 Secret은 VITE_ 공개 접두사와 공존할 수
- * 없다(MINIPC-HANDOVER 참고). CLI로만 되므로, 값이 바뀌기 전에도 코드가
- * 맞게 동작하도록 여기서 편다.
- */
-function resolveHost(host, origin) {
-  if (host.startsWith('/')) {
-    return POSTHOG_DIRECT_HOST
-  }
-  return host
+// Vercel을 경유하지 않는다. 기존 /ph 및 직송 환경변수도 API 도메인으로 전환한다.
+export function resolvePostHogHost(environment) {
+  return `${resolveApiBase(environment.VITE_API_BASE_URL, environment.VITE_APP_ENV)}/ph`
 }
 
 function put(target, key, value) {
@@ -73,8 +51,10 @@ export function createPostHogAdapter({
   getLocation,
   getSessionStore,
   warn = () => {},
+  createDelivery = createPostHogDelivery,
 }) {
   let initialized = false
+  let delivery
 
   function initPostHog() {
     if (initialized) return true
@@ -84,15 +64,24 @@ export function createPostHogAdapter({
 
       const environment = getEnvironment() ?? {}
       const key = clean(environment.VITE_POSTHOG_KEY)
-      const host = resolveHost(clean(environment.VITE_POSTHOG_HOST),
-                               getLocation()?.origin)
-      if (!key || !host) return false
+      if (!key || !clean(environment.VITE_POSTHOG_HOST)) return false
+      const host = resolvePostHogHost(environment)
 
       const context = getContext()
       if (!context.visitorId || !context.sessionId) return false
 
+      delivery = createDelivery({ host, key, isOptedOut })
       client.init(key, {
         api_host: host,
+        // 공개 훅으로 SDK 속성은 유지하고 전송은 하나의 제한된 대기열로 모은다.
+        before_send: (event) => {
+          delivery.enqueue(event)
+          if (event?.event === 'page_exit' || event?.event === '$pageleave') void delivery.flush()
+          return null
+        },
+        advanced_disable_flags: true,
+        disable_external_dependency_loading: true,
+
         bootstrap: {
           distinctID: context.visitorId,
           isIdentifiedID: false,

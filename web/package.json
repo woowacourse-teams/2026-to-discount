@@ -11,7 +11,7 @@
     "test:brand-impression": "node --test src/brandImpression.test.js",
     "test:survey-dismiss": "node --test src/surveyDismiss.test.js",
     "test:analytics": "node scripts/verify-analytics-event-id.mjs",
-    "test:posthog": "node scripts/verify-posthog-sdk.mjs",
+    "test:posthog": "node scripts/verify-posthog-sdk.mjs && node --test src/posthogDelivery.test.js",
     "test:event-contract": "node scripts/verify-analytics-event-contract.mjs",
     "prerender": "node scripts/prerender.mjs",
     "test:filters": "node scripts/verify-search-filters.mjs && node --test src/filters.test.js",

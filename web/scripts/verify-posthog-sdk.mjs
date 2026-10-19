@@ -44,6 +44,7 @@ function adapter(overrides = {}) {
       getLocation: () => ({ search: '?dev=1&posthog_test=1', origin: 'https://beggars-five.vercel.app' }),
       getSessionStore: () => sessionStore,
       warn: () => {},
+      createDelivery: () => ({ enqueue: () => true, flush: async () => {} }),
       ...overrides,
     }),
   }
@@ -56,20 +57,9 @@ assert.equal(ready.client.calls.init.length, 1)
 
 const [projectKey, config] = ready.client.calls.init[0]
 assert.equal(projectKey, 'phc_test_project_key')
-// PostHog로 **직접** 보낸다.
-//
-// 한동안 같은 오리진 프록시(/ph)를 거쳤다. 광고 차단기가
-// us.i.posthog.com을 막기 때문이다. 2026-09-07에 걷어냈다 — Vercel Edge
-// Requests가 30일 롤링 윈도우로 934,483/1,000,000까지 찼고, 이 프록시를
-// 타는 이벤트가 방문당 열 건쯤 그대로 쿼터였다.
-//
-// 환경변수(VITE_POSTHOG_HOST)는 아직 '/ph'다. Vercel 새 UI가 편집 시
-// 타입을 Secret으로 강제해 VITE_ 접두사와 공존이 안 되므로 CLI로만
-// 고칠 수 있다 — 값이 바뀌기 전에도 맞게 돌도록 코드가 편다.
-//
-// 리전을 옮겨 푸는 문제가 아니다 — PostHog 클라우드는 US·EU뿐이라
-// 한국에서는 EU가 더 멀다.
-assert.equal(config.api_host, 'https://us.i.posthog.com')
+assert.equal(config.api_host, 'https://bebeggars.duckdns.org/ph')
+assert.equal(config.advanced_disable_flags, true)
+assert.equal(config.disable_external_dependency_loading, true)
 assert.deepEqual(config.bootstrap, {
   distinctID: context.visitorId,
   isIdentifiedID: false,
@@ -276,3 +266,18 @@ storageFailure.instance.initPostHog()
 assert.equal(storageFailure.instance.captureConnectionTest(), false)
 
 console.log('PostHog SDK adapter behavior: PASS')
+
+const forwarded = []
+const hooked = adapter({
+  createDelivery: () => ({ enqueue: (event) => forwarded.push(event), flush: async () => {} }),
+})
+hooked.instance.initPostHog()
+const hook = hooked.client.calls.init[0][1].before_send
+const enriched = { uuid: 'stable', event: '$web_vitals', properties: { distinct_id: context.visitorId } }
+assert.equal(hook(enriched), null)
+assert.deepEqual(forwarded, [enriched])
+const development = adapter({ getEnvironment: () => ({ VITE_POSTHOG_KEY: 'phc_test', VITE_POSTHOG_HOST: '/ph', VITE_APP_ENV: 'development', VITE_API_BASE_URL: 'https://dev-api-todiscount.duckdns.org' }) })
+assert.equal(development.instance.initPostHog(), true)
+assert.equal(development.client.calls.init[0][1].api_host, 'https://dev-api-todiscount.duckdns.org/ph')
+const unsafe = adapter({ getEnvironment: () => ({ VITE_POSTHOG_KEY: 'phc_test', VITE_POSTHOG_HOST: '/ph', VITE_APP_ENV: 'development', VITE_API_BASE_URL: 'https://bebeggars.duckdns.org' }) })
+assert.equal(unsafe.instance.initPostHog(), false)
