@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
+import { useBackClose } from './backClose.js'
 import { BrandLogo } from './logos.jsx'
 import { RankChange } from './PopularStrip.jsx'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
@@ -34,6 +35,7 @@ export default function PopularDock({ brands, onPick }) {
   const top = useMemo(() => popularToday(brands), [brands])
   const [i, setI] = useState(0)
   const [open, setOpen] = useState(false)
+  useBackClose(open, () => setOpen(false)) // 펼친 채 뒤로 = 접기(2026-10-19 사용자)
   const ref = useRef(null)
 
   const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches

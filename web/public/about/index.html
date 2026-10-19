@@ -225,5 +225,5 @@
     document.querySelectorAll('.next').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); go(slides.indexOf(document.querySelector(a.getAttribute('href')))) }))
     addEventListener('resize', () => { track.style.transform = `translate3d(0, ${-cur * box.clientHeight}px, 0)` })
   </script>
-</body>
+<script>/* 밖에서 바로 들어왔으면 뒤로 = 홈(2026-10-19, src/backClose.js homeUnderDirectLanding과 같다) */(function(){var s=false;try{s=new URL(document.referrer).origin===location.origin}catch(e){}if(!s&&!history.state){var h=location.href;history.replaceState({home:true},'','/');history.pushState(null,'',h)}addEventListener('popstate',function(e){if(e.state&&e.state.home)location.replace('/')})})()</script></body>
 </html>
