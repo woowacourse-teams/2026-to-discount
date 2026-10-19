@@ -11,6 +11,7 @@ import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { API_BASE } from './api.js'
 import { useBackClose } from './backClose.js'
+import { showNotice } from './offerLink.js'
 import { needsPlatform, REPORT_TYPES, reportContext, TIP_SEEN_KEY } from './report.js'
 import './styles/report.css'
 
@@ -26,10 +27,17 @@ function write(key) {
 export default function ReportButton({ filters, hold, brands }) {
   const [open, setOpen] = useState(false)
   const [tip, setTip] = useState(false)
+  const [tipFading, setTipFading] = useState(false)
   const [text, setText] = useState('')
   const [brand, setBrand] = useState('')
   const [state, setState] = useState('idle') // idle | sending | sent | failed
   const [pushOn, setPushOn] = useState(false)
+  useEffect(() => {
+    const sync = (e) => setPushOn(Boolean(e.detail))
+    window.addEventListener('discount-push-state', sync)
+    return () => window.removeEventListener('discount-push-state', sync)
+  }, [])
+  const canPush = typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator
   const [type, setType] = useState('')
   const [platform, setPlatform] = useState('')
   const listboxId = useId()
@@ -46,7 +54,10 @@ export default function ReportButton({ filters, hold, brands }) {
     if (!tip) return undefined
     const hide = () => setTip(false)
     window.addEventListener('discount-offer-prompt', hide)
-    return () => window.removeEventListener('discount-offer-prompt', hide)
+    // 3초 보이고 0.4초 동안 흐려지며 사라진다. 본 것은 띄울 때 이미 적었다(2026-10-19 사용자)
+    const fade = window.setTimeout(() => setTipFading(true), 3000)
+    const gone = window.setTimeout(() => { setTip(false); track('report_tip_closed', { reason: 'timeout' }) }, 3400)
+    return () => { window.removeEventListener('discount-offer-prompt', hide); window.clearTimeout(fade); window.clearTimeout(gone) }
   }, [tip])
 
   const close = () => { setOpen(false); if (state !== 'sending') setState('idle') }
@@ -75,10 +86,14 @@ export default function ReportButton({ filters, hold, brands }) {
         body: JSON.stringify({ type, platform: plat, text: text.trim(), brand: brand.trim(), ...reportContext(window.location.href, filters), visitorId: getAnalyticsContext().visitorId }),
       })
       if (!res.ok) throw new Error(String(res.status))
-      setState('sent'); setText(''); setBrand(''); setType(''); setPlatform('')
+      setState('idle'); setText(''); setBrand(''); setType(''); setPlatform('')
+      // 보내면 시트를 닫고 홈 위에 안내를 띄운다(2026-10-19 사용자: 쿠팡이츠 안내처럼)
+      setOpen(false)
+      showNotice('제보해주셔서 감사합니다.\n빠르게 처리하겠습니다!')
       track('report_sent', { type, platform: plat })
     } catch (err) {
       setState('failed')
+      showNotice('전송이 실패했어요.\n다시 시도해 주시겠어요?')
       track('report_failed', { status: String(err?.message ?? '') })
     }
   }
@@ -89,7 +104,7 @@ export default function ReportButton({ filters, hold, brands }) {
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V4h11l-1 4h6v9h-9l1-4H4" /></svg>
       </button>
       {tip && (
-        <span className="report-tip" role="status">
+        <span className={`report-tip${tipFading ? ' report-tip--out' : ''}`} role="status">
           잘못된 정보가 있으면 제보해주세요!
           <button type="button" className="report-tip__x" aria-label="닫기" onClick={() => { setTip(false); track('report_tip_closed', { reason: 'close_button' }) }}>×</button>
         </span>
@@ -101,6 +116,16 @@ export default function ReportButton({ filters, hold, brands }) {
             <button type="button" className="sheet__close" aria-label="닫기" onClick={close}>
               <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
+            {/* 알림 켜고 끄기: X 아래 종 아이콘(2026-10-19 사용자). 켜기·끄기는 PushNotificationSetting이 맡는다 */}
+            {canPush && (
+              <button type="button" className="report-sheet__push" aria-pressed={pushOn}
+                      aria-label={pushOn ? '할인 알림 끄기' : '할인 알림 켜기'} title={pushOn ? '할인 알림 끄기' : '할인 알림 켜기'}
+                      onClick={() => window.dispatchEvent(new Event('discount-push-toggle'))}>
+                <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />{!pushOn && <path d="M3 3l18 18" />}
+                </svg>
+              </button>
+            )}
             <h2 className="report-sheet__head">제보</h2>
             <div ref={bodyRef} className="sheet__body report-sheet__body">
             <Track label="제보 종류" thumb>
@@ -130,16 +155,11 @@ export default function ReportButton({ filters, hold, brands }) {
             <textarea className="report-sheet__text" required maxLength={MAX}
               placeholder="제보할 내용을 입력해주세요!" value={text} onChange={(e) => { setText(e.target.value); if (state !== 'sending') setState('idle') }} />
             <div className="report-sheet__count">{text.length}/{MAX}</div>
-            {state === 'sent' && <p className="report-sheet__msg" role="status">제보해주셔서 감사합니다. 빠르게 처리하겠습니다!</p>}
-            {state === 'failed' && <p className="report-sheet__msg report-sheet__msg--err" role="status">전송이 실패했어요. 다시 시도해 주시겠어요?</p>}
+                    {state === 'failed' && <p className="report-sheet__msg report-sheet__msg--err" role="alert">전송이 실패했어요. 다시 시도해 주시겠어요?</p>}
             <button type="submit" className="report-sheet__send" disabled={!type || !text.trim() || state === 'sending'}>
               {state === 'sending' ? '보내는 중' : '보내기'}
             </button>
-            {pushOn && (
-              <button type="button" className="report-sheet__push-off" onClick={() => {
-                window.dispatchEvent(new Event('discount-push-disable')); setPushOn(false); close()
-              }}>할인 알림 끄기</button>
-            )}
+
             </div>
           </form>
         </div>,

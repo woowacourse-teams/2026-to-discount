@@ -142,6 +142,22 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   }, noticeMs())
 }
 
+/** 쿠팡이츠 안내와 같은 모양(어두운 바탕 위 가운데 글)으로 잠깐 띄운다. 제보 결과도 쓴다(2026-10-19 사용자). */
+export function showNotice(text, ms = 2200) {
+  if (typeof document === 'undefined') return
+  document.querySelector('.ce-dim')?.remove()
+  const dim = document.createElement('div')
+  dim.className = 'ce-dim'
+  const el = document.createElement('div')
+  el.className = 'ce-toast'
+  el.setAttribute('role', 'status')
+  el.textContent = text
+  dim.appendChild(el)
+  dim.addEventListener('click', () => dim.remove())
+  document.body.appendChild(dim)
+  setTimeout(() => dim.remove(), ms)
+}
+
 export function setHubLinks(banners) {
   const next = {}
   for (const banner of banners ?? []) {

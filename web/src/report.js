@@ -12,7 +12,7 @@ export const needsPlatform = (type) => type === 'amount' || type === 'exists'
 
 export function reportContext(href, filters) {
   const parts = Object.entries(filters ?? {})
-    .map(([k, v]) => [k, v instanceof Set ? [...v].join(',') : v])
+    .map(([k, v]) => [k, v instanceof Set ? [...v].join(',') : v && typeof v === 'object' ? JSON.stringify(v) : v]) // 정렬(sorts) 같은 객체가 [object Object]로 갔다
     .filter(([, v]) => v !== '' && v !== false && v != null)
     .map(([k, v]) => `${k}=${v}`)
   return { url: href, filters: parts.join(' ').slice(0, 500) }
