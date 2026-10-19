@@ -11,16 +11,15 @@ import { PLATFORMS, OWN } from './platforms.js'
 //
 // "전체"는 항목이 아니다. 복수 선택에서 전체는 "아무것도 안 고른 상태"라
 // 별도 버튼을 두면 "전체 + 치킨"처럼 뜻이 겹치는 조합이 생긴다.
+// 2026-10-19 사용자: 브랜드 5곳 이하 칸(분식 5, 양식 2, 중식 0)은 빈약해 보여 뺐다. 그 브랜드는 '전체'에만 나온다.
+// 다시 넣을 때는 brands.yml에서 그 분류 브랜드 수부터 본다.
 export const CATEGORIES = [
   { key: 'chicken', label: '치킨' },
   { key: 'pizza', label: '피자' },
   { key: 'fastfood', label: '패스트푸드' },
-  { key: 'snack', label: '분식' },
   { key: 'cafe', label: '카페' },
   { key: 'convenience', label: '편의점' },
   { key: 'korean', label: '한식' },
-  { key: 'chinese', label: '중식' },
-  { key: 'western', label: '양식' },
 ]
 
 // 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의

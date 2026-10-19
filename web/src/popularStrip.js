@@ -5,6 +5,7 @@
  */
 export const STRIP_SIZE = 5
 export const STRIP_MIN = 3
+const OUTSIDE = 21 // 어제 순위는 20위까지만 센다
 
 /**
  * key 값이 0보다 큰 브랜드를 많은 순으로 세운 순위표. 이름 → 순위.
@@ -20,12 +21,21 @@ export function ranks(brands, key) {
 
 /**
  * 오늘 순위 상위 다섯. change는 그 전 24시간(popularityYesterday) 순위와의 차이다.
- * 양수면 올랐다, 0이면 그대로, null이면 그 전 24시간 순위에 없던 브랜드다.
+ * 양수면 올랐다, 0이면 그대로. 변동은 공동 순위가 차지한 칸 수를 빼고 센다(1,2,2,3 꼴) - 클릭 1명짜리
+ * 공동 순위가 길게 늘어서 18계단씩 오른 것처럼 보였다(2026-10-19 사용자, CU 1명 -> 4명).
+ * 어제 20위 밖(순위 없음 포함)은 21위로 친다.
  */
 export function popularToday(brands) {
-  const before = ranks(brands, 'popularityYesterday')
+  const before = denseRanks(brands, 'popularityYesterday')
+  const now = denseRanks(brands, 'popularityToday')
   return [...ranks(brands, 'popularityToday')].slice(0, STRIP_SIZE).map(([name, rank]) => {
-    const prev = before.get(name)
-    return { brand: (brands ?? []).find((b) => b.name === name), rank, change: prev == null ? null : prev - rank }
+    const prev = Math.min(before.get(name) ?? OUTSIDE, OUTSIDE)
+    return { brand: (brands ?? []).find((b) => b.name === name), rank, change: prev - now.get(name) }
   })
+}
+
+/** 같은 값은 같은 순위, 다음 값은 바로 다음 순위(1, 2, 2, 3). */
+function denseRanks(brands, key) {
+  const values = [...new Set((brands ?? []).map((b) => b[key] ?? 0).filter((v) => v > 0))].sort((a, b) => b - a)
+  return new Map((brands ?? []).filter((b) => (b[key] ?? 0) > 0).map((b) => [b.name, values.indexOf(b[key]) + 1]))
 }

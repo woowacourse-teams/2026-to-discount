@@ -309,6 +309,9 @@ brands:
     menus: [허니콤보, 레드콤보, 반반콤보, 교촌오리지날, 살살치킨]
     category: chicken
     aliases: [교촌치킨, 교촌, kyochon, kyochon chicken]
+  깐부치킨:
+    searchAliases: [깐부, 깐부 치킨, kkanbu, kkanbu chicken]
+    category: chicken
 
   # --- 피자 ---
   반올림피자:

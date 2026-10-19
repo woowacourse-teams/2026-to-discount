@@ -48,7 +48,7 @@
 .pop-dock--open .pop-dock__item:not(:first-child)::before { content: ""; position: absolute; left: 6px; right: 6px; top: 0; height: 1px; background: var(--border); }
 .pop-dock__item.is-on { opacity: 1; pointer-events: auto; }
 .pop-dock__row {
-  display: grid; grid-template-columns: 2.4em auto minmax(0, 1fr) 7ch; align-items: center; gap: 7px;
+  display: grid; grid-template-columns: 3.2em auto minmax(0, 1fr) auto; /* 2026-10-19 사용자: 순위 변동 두 자리(▲12)가 로고에 닿아 넓힘 */ align-items: center; gap: 7px;
   width: 100%; height: 100%; padding: 0 6px; border: 0; border-radius: 8px; background: none;
   font: inherit; font-size: .86rem; color: var(--text); cursor: pointer; text-align: left;
   transition: background-color .15s ease;
@@ -61,7 +61,7 @@
 .pop-dock__rank { min-width: 1em; color: var(--text); font-size: .84rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .pop-dock__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* 다섯 자리 금액(12,000원) 너비를 늘 잡고 왼쪽 정렬 */
-.pop-dock__amount { font-weight: 700; color: var(--sale); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pop-dock__amount { justify-self: end; text-align: right; font-weight: 700; color: var(--sale); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pop-dock__more {
   position: absolute; right: calc(var(--gut) - 8px); top: calc(var(--row) / 2); transform: translateY(-50%); display: grid; place-items: center;
   width: 30px; height: 30px; border: 0; border-radius: 8px; background: none; color: var(--text-muted); cursor: pointer;
