@@ -56,11 +56,15 @@ public class ReportController {
     private final Path reportPath;
 
     public ReportController(SlackReporter slack, ClientFingerprint fingerprint, ObjectMapper mapper,
-                            @Value("${discount.report.path:data/reports.jsonl}") String reportPath) {
+                            @Value("${discount.report.path:}") String reportPath,
+                            @Value("${discount.event-log-path:data/events.jsonl}") String eventLogPath) {
         this.slack = slack;
         this.fingerprint = fingerprint;
         this.mapper = mapper;
-        this.reportPath = Path.of(reportPath);
+        // 따로 안 정하면 이벤트 원장 옆에 둔다. 상대 경로 기본값은 운영 작업 폴더에 못 써 500이 났다(2026-10-19).
+        this.reportPath = reportPath.isBlank()
+                ? Path.of(eventLogPath).toAbsolutePath().resolveSibling("reports.jsonl")
+                : Path.of(reportPath);
     }
 
     @PostMapping
