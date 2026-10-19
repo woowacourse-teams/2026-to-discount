@@ -11,6 +11,7 @@ import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { API_BASE } from './api.js'
 import { useBackClose } from './backClose.js'
+import { showNotice } from './offerLink.js'
 import { needsPlatform, REPORT_TYPES, reportContext, TIP_SEEN_KEY } from './report.js'
 import './styles/report.css'
 
@@ -75,10 +76,14 @@ export default function ReportButton({ filters, hold, brands }) {
         body: JSON.stringify({ type, platform: plat, text: text.trim(), brand: brand.trim(), ...reportContext(window.location.href, filters), visitorId: getAnalyticsContext().visitorId }),
       })
       if (!res.ok) throw new Error(String(res.status))
-      setState('sent'); setText(''); setBrand(''); setType(''); setPlatform('')
+      setState('idle'); setText(''); setBrand(''); setType(''); setPlatform('')
+      // 보내면 시트를 닫고 홈 위에 안내를 띄운다(2026-10-19 사용자: 쿠팡이츠 안내처럼)
+      setOpen(false)
+      showNotice('제보해주셔서 감사합니다. 빠르게 처리하겠습니다!')
       track('report_sent', { type, platform: plat })
     } catch (err) {
       setState('failed')
+      showNotice('전송이 실패했어요. 다시 시도해 주시겠어요?')
       track('report_failed', { status: String(err?.message ?? '') })
     }
   }
@@ -130,9 +135,7 @@ export default function ReportButton({ filters, hold, brands }) {
             <textarea className="report-sheet__text" required maxLength={MAX}
               placeholder="제보할 내용을 입력해주세요!" value={text} onChange={(e) => { setText(e.target.value); if (state !== 'sending') setState('idle') }} />
             <div className="report-sheet__count">{text.length}/{MAX}</div>
-            {state === 'sent' && <p className="report-sheet__msg" role="status">제보해주셔서 감사합니다. 빠르게 처리하겠습니다!</p>}
-            {state === 'failed' && <p className="report-sheet__msg report-sheet__msg--err" role="status">전송이 실패했어요. 다시 시도해 주시겠어요?</p>}
-            <button type="submit" className="report-sheet__send" disabled={!type || !text.trim() || state === 'sending'}>
+                    <button type="submit" className="report-sheet__send" disabled={!type || !text.trim() || state === 'sending'}>
               {state === 'sending' ? '보내는 중' : '보내기'}
             </button>
             {pushOn && (
