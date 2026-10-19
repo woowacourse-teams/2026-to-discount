@@ -27,6 +27,7 @@ function write(key) {
 export default function ReportButton({ filters, hold, brands }) {
   const [open, setOpen] = useState(false)
   const [tip, setTip] = useState(false)
+  const [tipFading, setTipFading] = useState(false)
   const [text, setText] = useState('')
   const [brand, setBrand] = useState('')
   const [state, setState] = useState('idle') // idle | sending | sent | failed
@@ -48,7 +49,10 @@ export default function ReportButton({ filters, hold, brands }) {
     if (!tip) return undefined
     const hide = () => setTip(false)
     window.addEventListener('discount-offer-prompt', hide)
-    return () => window.removeEventListener('discount-offer-prompt', hide)
+    // 3초 보이고 0.4초 동안 흐려지며 사라진다. 본 것은 띄울 때 이미 적었다(2026-10-19 사용자)
+    const fade = window.setTimeout(() => setTipFading(true), 3000)
+    const gone = window.setTimeout(() => { setTip(false); track('report_tip_closed', { reason: 'timeout' }) }, 3400)
+    return () => { window.removeEventListener('discount-offer-prompt', hide); window.clearTimeout(fade); window.clearTimeout(gone) }
   }, [tip])
 
   const close = () => { setOpen(false); if (state !== 'sending') setState('idle') }
@@ -95,7 +99,7 @@ export default function ReportButton({ filters, hold, brands }) {
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V4h11l-1 4h6v9h-9l1-4H4" /></svg>
       </button>
       {tip && (
-        <span className="report-tip" role="status">
+        <span className={`report-tip${tipFading ? ' report-tip--out' : ''}`} role="status">
           잘못된 정보가 있으면 제보해주세요!
           <button type="button" className="report-tip__x" aria-label="닫기" onClick={() => { setTip(false); track('report_tip_closed', { reason: 'close_button' }) }}>×</button>
         </span>

@@ -109,7 +109,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `popular_dock_impression` | 상단 HOT 순위가 보임. 페이지마다 한 번(10-17~) | `brand`(그때 1위), `count`(줄 수). 지금 거른 목록 기준 |
 | `report_open` | 상단 바 제보 버튼을 눌러 제보 창을 엶(10-19~, 알림 종 자리) | 없음 |
 | `report_tip_shown` | 제보 버튼 말풍선이 보임. 브라우저마다 한 번(`dk_report_tip_seen`) | 없음 |
-| `report_tip_closed` | 말풍선을 닫음 | `reason`(`close_button` / `button` 제보 버튼을 눌러 닫힘) |
+| `report_tip_closed` | 말풍선을 닫음 | `reason`(`close_button` / `button` 제보 버튼을 눌러 닫힘 / `timeout` 3초 뒤 저절로) |
 | `report_sent` | `POST /api/reports`가 성공. 글 내용은 이벤트에 안 싣는다(슬랙과 제보 원장에만) | `type`(`amount` 할인 금액 / `exists` 할인 여부 / `screen` 화면 오류 / `other` 그 외), `platform`(앱 키, 할인 금액·여부일 때만, 없으면 빈 값) |
 | `report_failed` | 제보 전송 실패 | `status`(HTTP 상태 또는 오류 이름) |
 | `sheet_tab` | 쿠폰 카드 시트의 할인 상세 / 할인 기록 탭(10-17~) | `brand`, `tab`(`detail`/`history`) |
