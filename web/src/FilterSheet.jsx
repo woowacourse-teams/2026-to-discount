@@ -1,7 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
-import { useScrollMore } from './MenuBar.jsx'
+import { Track, useDragClose } from './sheetParts.jsx'
 import { CATEGORIES, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_AMOUNT_OPTIONS, defaultFilters, isDefaultFilters, minAmountLabel } from './filters.js'
 
 /**
@@ -13,28 +13,6 @@ import { CATEGORIES, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_A
  * 앱을 전부 껐다가 다시 켜는 도중)에서 결과가 0건으로 깜빡인다.
  * 열 때마다 지금 적용된 값으로 draft를 채운다.
  */
-// 한 줄 캐러셀 트랙(2026-10-14 사용자: 여러 줄 칩이 눈 아프다, turbom /map 패턴).
-// 넘치면 옆으로 밀고, 더 갈 쪽 끝만 흐린다. thumb면 고른 칸 아래 흰 판이 미끄러진다(하나 고르기용).
-function Track({ label, thumb = false, children }) {
-  const [ref, more] = useScrollMore()
-  const [pos, setPos] = useState(null)
-  useLayoutEffect(() => {
-    if (!thumb) return
-    const on = ref.current?.querySelector('[aria-pressed="true"]')
-    const next = on ? { left: on.offsetLeft, width: on.offsetWidth } : null
-    // 값이 같으면 그대로 둔다. 매번 새 객체를 넣으면 다시 그리기가 끝없이 돈다.
-    setPos((p) => (p?.left === next?.left && p?.width === next?.width ? p : next))
-  })
-  return (
-    <div className={`sheet__track${more.left ? ' sheet__track--l' : ''}${more.right ? ' sheet__track--r' : ''}`}>
-      <div ref={ref} className={`sheet__chips${thumb ? ' sheet__chips--thumb' : ''}`} role="group" aria-label={label}>
-        {thumb && pos && <span className="sheet__thumb" aria-hidden="true" style={{ left: pos.left, width: pos.width }} />}
-        {children}
-      </div>
-    </div>
-  )
-}
-
 
 export default function FilterSheet({ open, filters, onApply, onClose }) {
   const [draft, setDraft] = useState(filters)
@@ -62,40 +40,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
     return () => { s.overflow = prev.overflow; s.paddingRight = prev.paddingRight }
   }, [open])
 
-  // 끌어내려 닫기. 본문이 맨 위일 때 아래로 끌면 시트가 따라 내려오고, 놓을 때 120px을 넘었거나 빠르게 튕겼으면 닫는다.
-  useEffect(() => {
-    const el = sheetRef.current
-    if (!open || !el) return undefined
-    let d = null
-    // 금액 막대를 끄는 손가락은 시트를 끌지 않는다(2026-10-14 사용자).
-    const start = (e) => { d = e.target.closest?.('.sheet__range') ? null : { y0: e.touches[0].clientY, t: Date.now(), dy: 0, active: false } }
-    const move = (e) => {
-      if (!d) return
-      const y = e.touches[0].clientY
-      if (!d.active) {
-        if (y - d.y0 <= 4) return
-        if ((bodyRef.current?.scrollTop ?? 0) > 0) { d.y0 = y; return }
-        d.active = true; d.y0 = y
-      }
-      d.dy = Math.max(0, y - d.y0)
-      el.style.transition = 'none'
-      el.style.transform = `translateY(${d.dy}px)`
-      e.preventDefault()
-    }
-    const end = () => {
-      if (!d?.active) { d = null; return }
-      const close = d.dy > 120 || (d.dy > 40 && Date.now() - d.t < 300)
-      el.style.transition = 'transform .18s ease'
-      el.style.transform = close ? 'translateY(100%)' : ''
-      d = null
-      if (close) setTimeout(onClose, 160)
-    }
-    el.addEventListener('touchstart', start, { passive: true })
-    el.addEventListener('touchmove', move, { passive: false })
-    el.addEventListener('touchend', end)
-    el.addEventListener('touchcancel', end)
-    return () => { el.removeEventListener('touchstart', start); el.removeEventListener('touchmove', move); el.removeEventListener('touchend', end); el.removeEventListener('touchcancel', end) }
-  }, [open, onClose])
+  useDragClose(sheetRef, bodyRef, open, onClose)
 
   // ESC로 닫는다. 키보드만 쓰는 사용자에게 닫을 길이 배경 클릭뿐이면 안 된다.
   useEffect(() => {
