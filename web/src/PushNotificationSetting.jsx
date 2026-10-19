@@ -204,6 +204,7 @@ export default function PushNotificationSetting() {
         title={enabled ? '할인 알림 끄기' : '할인 알림 켜기'}
         aria-pressed={enabled}
         onClick={() => {
+          track('push_setting_clicked', { source: 'header', enabled: String(enabled), availability })
           if (availability === 'ready') toggle('header')
           else if (availability === 'ios-install') {
             setIosGuideClosing(false)

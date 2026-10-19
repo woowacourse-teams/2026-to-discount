@@ -45,6 +45,36 @@ class EventControllerTest {
     }
 
     @Test
+    void acceptsPushSettingClicksWithPreClickState() throws Exception {
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            [
+                              {"event":"push_setting_clicked","visitorId":"v_push_click_denied",
+                               "sessionId":"s_push_click","props":{"source":"header",
+                               "enabled":"false","availability":"denied"}},
+                              {"event":"push_setting_clicked","visitorId":"v_push_click_enabled",
+                               "sessionId":"s_push_click","props":{"source":"header",
+                               "enabled":"true","availability":"ready"}}
+                            ]
+                            """))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.accepted").value(2));
+
+        String logged = Files.readString(Path.of(logPath));
+        for (String state : new String[]{"denied", "enabled"}) {
+            String click = logged.lines()
+                    .filter(line -> line.contains("\"visitorId\":\"v_push_click_" + state + "\""))
+                    .reduce((first, second) -> second)
+                    .orElseThrow();
+            assertTrue(click.contains("\"event\":\"push_setting_clicked\""));
+            assertTrue(click.contains("\"source\":\"header\""));
+            assertTrue(click.contains("\"enabled\":\"" + state.equals("enabled") + "\""));
+            assertTrue(click.contains("\"availability\":\""
+                    + (state.equals("denied") ? "denied" : "ready") + "\""));
+        }
+    }
+
+    @Test
     void acceptsPushSubscriptionEventsWithSource() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content("""
