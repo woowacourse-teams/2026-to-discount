@@ -5,7 +5,7 @@
  */
 export const STRIP_SIZE = 5
 export const STRIP_MIN = 3
-const OUTSIDE = STRIP_SIZE + 1
+const OUTSIDE = 21 // 어제 순위는 20위까지만 센다
 
 /**
  * key 값이 0보다 큰 브랜드를 많은 순으로 세운 순위표. 이름 → 순위.
@@ -21,8 +21,8 @@ export function ranks(brands, key) {
 
 /**
  * 오늘 순위 상위 다섯. change는 그 전 24시간(popularityYesterday) 순위와의 차이다.
- * 양수면 올랐다, 0이면 그대로. 어제 5위 밖(순위 없음 포함)은 모두 6위로 친다 - 하루 클릭 1~2명 차이로
- * 18계단씩 오른 것처럼 보였다(2026-10-19 사용자, CU 1명 -> 4명).
+ * 양수면 올랐다, 0이면 그대로. 어제 20위 밖(순위 없음 포함)은 모두 21위로 친다 - 클릭 1명짜리 공동 순위가
+ * 길게 늘어서 18계단씩 오른 것처럼 보였다(2026-10-19 사용자, CU 1명 -> 4명).
  */
 export function popularToday(brands) {
   const before = ranks(brands, 'popularityYesterday')
