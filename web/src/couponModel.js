@@ -64,8 +64,9 @@ export function badgesOf(offer, { showBestFit = true, shortTime = true } = {}) {
     out.push({ kind: 'membership', text: MEMBERSHIP_LABEL[offer.platform] ?? badge })
   }
   if (badge && !RATE.test(badge) && !/전용|클럽|패스/.test(badge)) {
-    const time = shortTime && badge.match(/^(?:오전|오후)\s*(\d+시)\s*오픈$/)
-    out.push({ kind: 'limited', text: time ? time[1] : badge })
+    // 줄여도 "오픈"은 남긴다 — 시각만 두지 않는다(2026-10-19 사용자).
+    const time = shortTime && badge.match(/^(?:오전|오후)\s*(\d+시(?:\s*\d+분)?)\s*오픈$/)
+    out.push({ kind: 'limited', text: time ? `${time[1]} 오픈` : badge })
   }
   return out
 }

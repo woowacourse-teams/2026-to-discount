@@ -72,8 +72,8 @@ test('배지 2: 멤버십은 membership이나 전용쿠폰 끝말, 글자는 앱
   assert.deepEqual(badgesOf(o('baemin', 7500, { membership: 'none' })), [])
 })
 
-test('배지 3: 한정은 원문, 시각 꼴만 N시로 줄인다', () => {
-  assert.deepEqual(badgesOf(o('baemin', 7000, { firstCome: true, badge: '오전 11시 오픈' })), [{ kind: 'limited', text: '11시' }])
+test('배지 3: 한정은 원문, 시각 꼴만 N시 오픈으로 줄인다', () => {
+  assert.deepEqual(badgesOf(o('baemin', 7000, { firstCome: true, badge: '오전 11시 오픈' })), [{ kind: 'limited', text: '11시 오픈' }])
   assert.deepEqual(badgesOf(o('baemin', 7000, { badge: '오늘 17시 선착순' })), [{ kind: 'limited', text: '오늘 17시 선착순' }])
   assert.deepEqual(badgesOf(o('baemin', 7000, { badge: '~9/30' })), [{ kind: 'limited', text: '~9/30' }])
   assert.deepEqual(badgesOf(o('baemin', 7000, { firstCome: true, badge: '오전 11시 오픈' }), { shortTime: false }), [{ kind: 'limited', text: '오전 11시 오픈' }])
