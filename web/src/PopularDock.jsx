@@ -49,6 +49,10 @@ export default function PopularDock({ brands, onPick }) {
     const close = (e) => {
       if (ref.current?.contains(e.target)) return
       setOpen(false)
+      // 바깥을 눌러 접을 때는 접기만 한다. 같은 탭의 click이 밑의 카드를 펼치던 것(2026-10-19 사용자)
+      const eat = (ev) => { ev.preventDefault(); ev.stopPropagation() }
+      document.addEventListener('click', eat, { capture: true, once: true })
+      setTimeout(() => document.removeEventListener('click', eat, { capture: true }), 600) // 끌기만 하고 click이 안 나면 다음 탭을 먹지 않게
       track('quick_filter', { key: 'popular_dock_toggle', on: false, via: 'outside' })
     }
     document.addEventListener('pointerdown', close)
