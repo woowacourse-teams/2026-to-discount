@@ -40,7 +40,8 @@ discount:
   # 잘못된 정보 제보(POST /api/reports)를 보낼 슬랙. 비어 있으면 로그에만 남긴다.
   report:
     # 받은 제보 원장(append, 한 줄에 JSON 하나). 슬랙과 상관없이 먼저 여기에 적는다.
-    path: ${DISCOUNT_REPORT_PATH:data/reports.jsonl}
+    # 비우면 이벤트 원장(event-log-path) 옆 reports.jsonl.
+    path: ${DISCOUNT_REPORT_PATH:}
     slack-token: ${SLACK_REPORT_TOKEN:}
     slack-channel: ${SLACK_REPORT_CHANNEL:}
   posthog:
