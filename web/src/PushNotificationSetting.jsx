@@ -31,6 +31,8 @@ function storePushEnabled(enabled) {
   } catch {
     // 저장소가 막혀도 브라우저의 실제 Push 구독 상태를 사용한다.
   }
+  // 제보 시트의 종 아이콘이 결과를 따라가게 알린다(누를 때 미리 뒤집으면 권한 거부 때 틀린 상태가 남는다)
+  globalThis.dispatchEvent?.(new CustomEvent('discount-push-state', { detail: enabled }))
 }
 
 export default function PushNotificationSetting({ toggleSlot }) {

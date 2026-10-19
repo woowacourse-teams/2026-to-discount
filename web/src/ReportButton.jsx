@@ -32,6 +32,11 @@ export default function ReportButton({ filters, hold, brands }) {
   const [brand, setBrand] = useState('')
   const [state, setState] = useState('idle') // idle | sending | sent | failed
   const [pushOn, setPushOn] = useState(false)
+  useEffect(() => {
+    const sync = (e) => setPushOn(Boolean(e.detail))
+    window.addEventListener('discount-push-state', sync)
+    return () => window.removeEventListener('discount-push-state', sync)
+  }, [])
   const canPush = typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator
   const [type, setType] = useState('')
   const [platform, setPlatform] = useState('')
@@ -115,7 +120,7 @@ export default function ReportButton({ filters, hold, brands }) {
             {canPush && (
               <button type="button" className="report-sheet__push" aria-pressed={pushOn}
                       aria-label={pushOn ? '할인 알림 끄기' : '할인 알림 켜기'} title={pushOn ? '할인 알림 끄기' : '할인 알림 켜기'}
-                      onClick={() => { window.dispatchEvent(new Event('discount-push-toggle')); setPushOn(!pushOn) }}>
+                      onClick={() => window.dispatchEvent(new Event('discount-push-toggle'))}>
                 <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />{!pushOn && <path d="M3 3l18 18" />}
                 </svg>
@@ -150,7 +155,8 @@ export default function ReportButton({ filters, hold, brands }) {
             <textarea className="report-sheet__text" required maxLength={MAX}
               placeholder="제보할 내용을 입력해주세요!" value={text} onChange={(e) => { setText(e.target.value); if (state !== 'sending') setState('idle') }} />
             <div className="report-sheet__count">{text.length}/{MAX}</div>
-                    <button type="submit" className="report-sheet__send" disabled={!type || !text.trim() || state === 'sending'}>
+                    {state === 'failed' && <p className="report-sheet__msg report-sheet__msg--err" role="alert">전송이 실패했어요. 다시 시도해 주시겠어요?</p>}
+            <button type="submit" className="report-sheet__send" disabled={!type || !text.trim() || state === 'sending'}>
               {state === 'sending' ? '보내는 중' : '보내기'}
             </button>
 
