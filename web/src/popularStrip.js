@@ -23,14 +23,15 @@ export function ranks(brands, key) {
  * 오늘 순위 상위 다섯. change는 그 전 24시간(popularityYesterday) 순위와의 차이다.
  * 양수면 올랐다, 0이면 그대로. 변동은 공동 순위가 차지한 칸 수를 빼고 센다(1,2,2,3 꼴) - 클릭 1명짜리
  * 공동 순위가 길게 늘어서 18계단씩 오른 것처럼 보였다(2026-10-19 사용자, CU 1명 -> 4명).
- * 어제 20위 밖(순위 없음 포함)은 21위로 친다.
+ * 어제 20위 밖은 21위로 친다. 어제 클릭이 없던 브랜드는 null(새로 듦).
  */
 export function popularToday(brands) {
   const before = denseRanks(brands, 'popularityYesterday')
   const now = denseRanks(brands, 'popularityToday')
   return [...ranks(brands, 'popularityToday')].slice(0, STRIP_SIZE).map(([name, rank]) => {
-    const prev = Math.min(before.get(name) ?? OUTSIDE, OUTSIDE)
-    return { brand: (brands ?? []).find((b) => b.name === name), rank, change: prev - now.get(name) }
+    // 어제 클릭이 아예 없던 브랜드는 숫자 없이 '새로 듦'(null). 21위로 쳤더니 ▲18이 떴다(2026-10-19 노랑통닭)
+    const prev = before.get(name)
+    return { brand: (brands ?? []).find((b) => b.name === name), rank, change: prev == null ? null : Math.min(prev, OUTSIDE) - now.get(name) }
   })
 }
 
