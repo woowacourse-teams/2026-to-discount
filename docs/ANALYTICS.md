@@ -382,13 +382,17 @@ DISCOUNT_POSTHOG_ENABLED=true
 - 변환: `page_view` → `$pageview`, `visitorId` → `distinct_id`, `eventId` → `$insert_id`
 - 실패는 재시도, 계속 실패하면 `dead-letter/`
 
-### 3. 브라우저 → PostHog (SDK 직송)
+### 3. 브라우저 → API 도메인 프록시 → PostHog
 
 ```
 VITE_POSTHOG_KEY / VITE_POSTHOG_HOST 가 있어야 동작
 없으면 지연 import가 통째로 제거된다 (번들에 posthog 청크가 안 생김)
 ```
 
+- 전송 주소는 환경별 API 도메인의 `/ph/batch/`다. 프록시는 원장과 outbox를 거치지 않는다.
+- SDK `before_send`로 전달받은 이벤트를 제한된 메모리 대기열이 전송한다. 내부 SDK 재시도는 사용하지 않는다.
+- 최초 전송 후 재시도 최대 2회. 차단 또는 소진 시 5분 중단 후 한 요청으로 복구를 확인한다.
+- 최대 100건, 보관 10분, 배치 20건 및 48KiB. 중단 중 새 이벤트는 폐기한다.
 - DNT/GPC면 SDK를 **아예 안 부른다**
 - `?dev=1`이면 제품 이벤트를 안 보낸다 (연결 진단만 예외)
 - `autocapture` 끔, 세션 리플레이 끔, Web Vitals 켬
