@@ -118,8 +118,9 @@ ADR-015.
    재방문(`visitCount`)은 `localStorage` 기반이라 삭제나 기기 변경에
    취약하다.
 2. **`src/posthog.js`(PostHog SDK)**: 도메인 `track()` 이벤트와 `page_exit`를
-   브라우저에서 PostHog로 직접 보낸다. 페이지 이동은 SDK가 표준 `$pageview`와
-   `$pageleave`로 자동 수집하고, Web Vitals와 표준 기기와 브라우저 속성도 SDK가
+   브라우저에서 API 도메인의 `/ph/batch/` 프록시를 통해 PostHog로 보낸다.
+   `page_view`는 표준 `$pageview`로 매핑하고 `$pageleave`는 SDK가 자동 수집한다.
+   Web Vitals와 표준 기기와 브라우저 속성도 SDK가
    수집한다. 클릭 행동은 명시적 이벤트와 겹치지 않게 autocapture를 끄고, 세션
    리플레이와 쿠키도 사용하지 않는다. 익명 방문자 연결에는 자체 API 원장과 같은
    `visitorId`/`source_session_id`를 사용한다.
@@ -167,9 +168,32 @@ SDK 설정은 Vite 빌드 환경변수로 주입한다. Project API Key는 브�
 ```text
 VITE_POSTHOG_KEY=phc_...
 VITE_POSTHOG_HOST=/ph
+VITE_API_BASE_URL=https://bebeggars.duckdns.org
+VITE_APP_ENV=production
 ```
 
-브라우저 직접 요청의 IP는 SDK의 `ip: false` 옵션으로 폐기할 수 없다. 운영 키를
+`VITE_POSTHOG_HOST`는 기존 활성화 조건으로 유지한다. 실제 주소는 항상
+`VITE_API_BASE_URL + /ph`다. 개발 배포와 로컬 검증은 개발 API 주소와
+`VITE_APP_ENV=development`를 함께 지정한다. 외부 PostHog 주소로 폴백하지 않는다.
+
+SDK의 공개 `before_send`에서 UUID, 발생 시각, 속성이 포함된 이벤트를 받아
+별도 전송 대기열로 넘기고 `null`을 반환한다. SDK 내부 전송 및 재시도와 중복되지 않는다.
+flags와 외부 자산 로딩은 끄고 Web Vitals는 로컬 번들로 제공한다.
+
+- 네트워크 오류, 408, 429, 5xx: 최초 전송 후 약 5초와 30초 간격으로 최대 두 번 재시도
+- 읽을 수 있는 `Blocked Request` 응답: 재시도 없이 5분 중단
+- 재시도 소진 및 복구 요청 실패: 5분 중단 후 요청 한 건만 허용
+- `Retry-After`: 지정 대기 시간 우선. 다른 4xx는 해당 배치를 폐기하고 5분 중단
+- 대기열: 최대 100건, 이벤트 보관 10분, 배치 최대 20건 및 48KiB, 요청 제한 시간 15초
+- 중단 중 새 이벤트는 버리고 기존 실패 이벤트만 보관. 탭을 닫으면 메모리 대기열 소멸
+- 종료 이벤트는 fetch keepalive로 전송하되 재시도 대기와 중단 기간을 우회하지 않음
+
+이 경로는 기존 `/api/events` 원장 및 서버 outbox 릴레이와 별개다.
+SDK가 만든 같은 UUID와 `$insert_id`를 유지하며 자체 서버의 재시도 정책은 변경하지 않는다.
+프록시 서버 배포와 개발 설정은 beggars-ops의 `docs/design/posthog-proxy.md`를 따른다.
+
+프록시는 쿠키, 인증 및 전달 IP 헤더를 제거한다. PostHog가 보는 프록시 출구 IP도
+SDK의 `ip: false` 옵션으로 폐기할 수 없다. 운영 키를
 설정하기 전에 PostHog 프로젝트에서 **Discard client IP data** 설정
 (`anonymize_ips`)을 활성화하고 실제 이벤트에서 GeoIP 속성이 생성되지 않는지
 확인한다. 확인 전에는 운영 `VITE_POSTHOG_KEY`를 설정하지 않는다.
