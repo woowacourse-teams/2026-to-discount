@@ -15,6 +15,9 @@ import { optedOut } from './privacy.js'
 import { markVariantOnRoot } from './variant.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import './App.css'
+import { homeUnderDirectLanding } from './backClose.js'
+
+homeUnderDirectLanding()
 
 function configured(value) {
   return typeof value === 'string' && value.trim() !== ''
