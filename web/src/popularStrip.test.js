@@ -19,7 +19,7 @@ test('등락은 그 전 24시간 순위와의 차이, 없던 브랜드는 어제
 test('같은 사람 수는 같은 순위, 다음 순위는 그만큼 건너뛴다(어제 둘 다 1위, 오늘 둘 다 2위면 내림 1)', () => {
   const b = (name, popularityToday, popularityYesterday = 0) => ({ name, popularityToday, popularityYesterday })
   const got = popularToday([b('a', 9), b('b', 7, 5), b('c', 7, 5), b('d', 2)])
-  assert.deepEqual(got.map((x) => [x.brand.name, x.rank, x.change]), [['a', 1, 20], ['b', 2, -1], ['c', 2, -1], ['d', 4, 17]])
+  assert.deepEqual(got.map((x) => [x.brand.name, x.rank, x.change]), [['a', 1, 20], ['b', 2, -1], ['c', 2, -1], ['d', 4, 18]])
 })
 
 test('어제 20위 밖은 몇 위였든 21위로 친다', () => {
@@ -27,4 +27,11 @@ test('어제 20위 밖은 몇 위였든 21위로 친다', () => {
   const many = Array.from({ length: 30 }, (_, i) => b(`y${i}`, 0, 40 - i))
   const got = popularToday([...many, b('cu', 4, 1), b('a', 9, 50), b('b', 8, 49), b('c', 7, 48)])
   assert.deepEqual(got.map((x) => [x.brand.name, x.rank, x.change]), [['a', 1, 0], ['b', 2, 0], ['c', 3, 0], ['cu', 4, 17]])
+})
+test('변동은 공동 순위 칸 수를 빼고 센다(어제 1명짜리가 공동 순위 뒤에 밀려도 진짜 순위 차이만)', () => {
+  const b = (name, popularityToday, popularityYesterday) => ({ name, popularityToday, popularityYesterday })
+  // 어제: x 9, y 5, 1명짜리 열 곳(공동 3위, 경쟁 순위로는 3위지만 그 뒤가 13위로 밀린다), cu 1명
+  const ones = Array.from({ length: 10 }, (_, i) => b(`o${i}`, 0, 1))
+  const got = popularToday([b('x', 9, 9), b('y', 7, 5), b('cu', 4, 1), ...ones])
+  assert.deepEqual(got.map((r) => [r.brand.name, r.rank, r.change]), [['x', 1, 0], ['y', 2, 0], ['cu', 3, 0]])
 })
