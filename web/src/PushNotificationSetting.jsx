@@ -319,6 +319,7 @@ export default function PushNotificationSetting({ toggleSlot }) {
         aria-pressed={enabled}
         disabled={changing}
         onClick={() => {
+          track('push_setting_clicked', { source: 'header', enabled: String(enabled), availability })
           if (availability === 'ready') toggle('header')
           else if (availability === 'ios-install') {
             setIosGuideClosing(false)
