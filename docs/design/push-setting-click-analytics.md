@@ -89,3 +89,10 @@ B를 선택한다. 사용자가 지정한 재시도 정의인 알림 아이콘 �
 - 로컬 Chrome에서 헤더 아이콘을 2회 클릭하고 `/tmp/push-setting-click-local-events.jsonl`에서 실제 API 수신을 확인했다. 클릭 전 `enabled="true"`, `enabled="false"`가 각각 기록됐고 두 건의 `eventId`가 달랐다. 두 건 모두 `source="header"`, `availability="ready"`, `dev=true`였다.
 - 로컬 검증은 웹 SDK와 서버의 외부 PostHog 전송을 끈 상태로 수행했다.
 - `denied`와 `ios-install` 분기의 실브라우저 클릭 및 운영 PostHog 수집은 미검증. 프론트와 API 배포 후 확인 필요.
+
+## 최신 main 병합 후 검증
+
+- 기존 알림 안내 이벤트 허용 목록을 보존하고 클릭 이벤트를 추가해 병합 충돌을 해결했다.
+- 이벤트 계약, analytics, PostHog 검사와 푸시 테스트 17개 통과.
+- EventControllerTest 14개 통과.
+- 웹 빌드 및 브랜드 페이지 113개 프리렌더 완료.
