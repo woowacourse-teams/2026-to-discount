@@ -20,18 +20,22 @@ export function ranks(brands, key) {
 }
 
 /**
- * 오늘 순위 상위 다섯. change는 그 전 24시간(popularityYesterday) 순위와의 차이다.
+ * 오늘 순위 상위 다섯. 집계는 24시간(popularityToday), 등락은 갱신 주기다 — change는 직전 갱신 때의 순위
+ * (popularityPrevious)와의 차이다(2026-10-20 사용자). 갱신마다 새로 재서 순위가 그대로면 등락이 사라진다.
  * 양수면 올랐다, 0이면 그대로. 변동은 공동 순위가 차지한 칸 수를 빼고 센다(1,2,2,3 꼴) - 클릭 1명짜리
  * 공동 순위가 길게 늘어서 18계단씩 오른 것처럼 보였다(2026-10-19 사용자, CU 1명 -> 4명).
- * 어제 20위 밖은 21위로 친다. 어제 클릭이 없던 브랜드는 null(새로 듦).
+ * 직전 20위 밖은 21위로 친다. 직전에 클릭이 없던 브랜드는 null(새로 듦).
+ * API가 popularityPrevious를 아직 안 주면(옛 서버) 등락을 0으로 둔다 — 전부 새로 든 것으로 보이면 안 된다.
  */
 export function popularToday(brands) {
-  const before = denseRanks(brands, 'popularityYesterday')
+  const known = (brands ?? []).some((b) => b.popularityPrevious != null)
+  const before = denseRanks(brands, 'popularityPrevious')
   const now = denseRanks(brands, 'popularityToday')
   return [...ranks(brands, 'popularityToday')].slice(0, STRIP_SIZE).map(([name, rank]) => {
-    // 어제 클릭이 아예 없던 브랜드는 숫자 없이 '새로 듦'(null). 21위로 쳤더니 ▲18이 떴다(2026-10-19 노랑통닭)
+    // 직전에 클릭이 아예 없던 브랜드는 숫자 없이 '새로 듦'(null). 21위로 쳤더니 ▲18이 떴다(2026-10-19 노랑통닭)
     const prev = before.get(name)
-    return { brand: (brands ?? []).find((b) => b.name === name), rank, change: prev == null ? null : Math.min(prev, OUTSIDE) - now.get(name) }
+    const change = !known ? 0 : prev == null ? null : Math.min(prev, OUTSIDE) - now.get(name)
+    return { brand: (brands ?? []).find((b) => b.name === name), rank, change }
   })
 }
 

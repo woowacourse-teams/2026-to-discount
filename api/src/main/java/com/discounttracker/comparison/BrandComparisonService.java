@@ -237,7 +237,8 @@ public class BrandComparisonService {
                         .toList()),
                 popularity == null ? 0 : popularity.scoreOf(name),
                 popularity == null ? 0 : popularity.todayOf(name),
-                popularity == null ? 0 : popularity.yesterdayOf(name))));
+                popularity == null ? 0 : popularity.yesterdayOf(name),
+                popularity == null ? 0 : popularity.previousOf(name))));
 
         result.sort(BrandComparison.byBestDiscount());
         return result;

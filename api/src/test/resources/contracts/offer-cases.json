@@ -253,6 +253,7 @@
     "name",
     "offers",
     "popularity",
+    "popularityPrevious",
     "popularityToday",
     "popularityYesterday",
     "searchAliases",
