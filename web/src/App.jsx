@@ -1,7 +1,7 @@
 import { useBackClose } from './backClose.js'
 import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
+import { fetchBanners, fetchBrands } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
@@ -14,8 +14,6 @@ import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, pinPopular, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 import { STRIP_MIN, popularToday, ranks } from './popularStrip.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
-// 설문을 새로 띄우는가. false면 코드를 이미 받은 사람(링크 다시 보기)과 dk_survey_force만 본다.
-const SURVEY_OPEN = false
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
 // 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
@@ -31,7 +29,7 @@ const LEAVE_MS = 100
 const SHIFT_PAUSE_MS = 400
 // 설문 카드는 누른 뒤에만 열린다 — 첫 화면 묶음에서 뺀다(2026-10-06 성능).
 const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
-import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
+import { useSurvey } from './useSurvey.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { shouldShowGuide } from './firstVisitGuide.js'
 import PushNotificationSetting from './PushNotificationSetting.jsx'
@@ -108,76 +106,7 @@ export default function App({ initial = null }) {
   // null은 아직 못 받음(자리만 잡는다), []는 받았는데 0건.
   const [banners, setBanners] = useState(initial?.banners ?? null)
   const [error, setError] = useState(null)
-  // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
-  const [surveyOn, setSurveyOn] = useState(false)
-  // 발급된 기프티콘 번호. 카드가 아니라 여기에 둔다 — 카드는 필터가 바뀔 때마다
-  // 새로 마운트되는 상자(brand-grid) 안에 있어서, 카드가 들고 있으면 분류 한 번에
-  // 번호가 날아간다. 연락처를 안 받으므로 그러면 다시 줄 방법이 없다.
-  // 진행 중이던 답까지 지켜주진 않는다(그리드 안이라 필터를 바꾸면 그것도
-  // 새로 마운트된다) — 다만 그건 다시 고르면 그만이라 코드만큼 무겁지 않다.
-  // 이미 받은 코드가 있으면 처음부터 채워 둔다 — 응답 화면으로 곧장
-  // 열리진 않는다(그건 아래 트리거 알약이 한다). 새로 발급된 코드는
-  // SurveyCard가 열려 있는 채로 onCode로 이 값을 바꾸므로, 그 경우는
-  // 이미 화면이 카드 위에 있다 — 여기서 따로 열 필요가 없다.
-  const [surveyCode, setSurveyCode] = useState(() => getStoredCode())
-
-  // 서버에 적힌 내 코드를 가져와 화면과 저장본을 맞춘다. visitorId까지 지운
-  // 사람은 서버도 누군지 못 가린다 — 그 경우는 확인요청이 유일한 길이라
-  // 코드 화면에 안내를 같이 띄운다(SurveyCard).
-  async function syncCodeFromServer() {
-    const { visitorId } = getAnalyticsContext()
-    if (!visitorId) return
-    try {
-      const res = await fetch(`${API_BASE}/api/survey/code?visitorId=${encodeURIComponent(visitorId)}`)
-      const body = await res.json()
-      if (body.code && body.code !== getStoredCode()) {
-        markAnswered(body.code)
-        setSurveyCode(body.code)
-      }
-    } catch {
-      // 못 가져오면 저장본을 그대로 쓴다 — 네트워크 때문에 화면이 빌 이유는 없다.
-    }
-  }
-  // 트리거 알약을 눌렀는지. 그리드 맨 앞칸에 카드를 놓을지를 이걸로 정한다.
-  const [surveyOpen, setSurveyOpen] = useState(false)
-
-  useEffect(() => {
-    // 이미 코드를 받은 사람에게는 알약이 계속 뜬다 — "링크 다시
-    // 확인하기"로 문구만 바뀐다(SurveyDock). 재고·자격을 다시 안
-    // 묻는다 — 이미 확정된 결과라 물어볼 이유가 없다. 예전엔 답하면
-    // 알약이 영구히 사라져서, 연락처를 안 받는 이 서비스에서 링크를
-    // 놓치면 다시 볼 길이 없었다.
-    if (getStoredCode()) {
-      setSurveyOn(true)
-      // 서버가 정본이다. localStorage 사본이 낡을 수 있다 — 2026-09-02에
-      // 서버가 발급 기록을 잃고 같은 링크를 다음 사람에게 다시 내준 적이
-      // 있어(중복 발급), 그때 먼저 받은 사람 브라우저에는 남의 것이 된
-      // 링크가 남아 있다. 서버 값이 다르면 그쪽으로 덮는다.
-      syncCodeFromServer()
-      return
-    }
-    // 개발자 콘솔에서 이 브라우저만 강제로 띄우는 문. 서버 대상 판정도
-    // 안 묻는다 — 재고·조건과 무관하게 화면만 보고 싶을 때 쓴다.
-    //   localStorage.setItem('dk_survey_force', '1')
-    // 끌 때: localStorage.removeItem('dk_survey_force')
-    // 다른 사용자에겐 아무 영향 없다 — localStorage는 이 브라우저 안에만 있다.
-    if (localStorage.getItem('dk_survey_force') === '1') {
-      setSurveyOn(true)
-      return
-    }
-    // 새 응답자에게는 띄우지 않는다(2026-10-17 사용자: 노출 중지, 응답 34건에서 정리).
-    // 이미 코드를 받은 사람은 위에서 계속 "링크 다시 확인하기"를 본다.
-    if (!SURVEY_OPEN) return
-    // 두 번 닫았거나 최근에 닫았으면 서버에 묻지도 않는다.
-    if (!surveyShouldShow()) return
-    let alive = true
-    const { visitorId } = getAnalyticsContext()
-    fetchSurveyStatus(visitorId)
-      .then((s) => { if (alive) setSurveyOn(Boolean(s.eligible)) })
-      // 못 물어보면 안 띄운다. 설문이 안 뜨는 것은 사용자에게 아무 손해가 없다.
-      .catch(() => {})
-    return () => { alive = false }
-  }, [])
+  const survey = useSurvey()
   // 앱·분류·정렬·검색을 한 덩어리로 든다. 시트가 draft를 만들어 통째로
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
@@ -779,22 +708,13 @@ export default function App({ initial = null }) {
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className={gridKey === stillKey ? 'brand-grid brand-grid--still' : 'brand-grid'} key={gridKey} ref={gridRef}>
-          {/* 브랜드 카드와 같은 칸에 놓는다 — 요청대로 맨 앞칸. 필터를
-              바꾸면 그리드 전체가 새로 마운트되니 이 카드도 같이 날아가지만,
-              발급된 코드는 App이 들고 있어(surveyCode) 다시 열면 그대로
-              보인다 — 잃는 건 아직 안 고른 진행 중 선택뿐이다. */}
-          {surveyOn && surveyOpen && (
+          {/* 설문 카드는 기존 목록 첫 칸에 둔다. 발급 코드는 목록 밖 Hook이 보관한다. */}
+          {survey.isVisible && survey.isCardOpen && (
             <Suspense fallback={null}><SurveyCard
               visitorId={getAnalyticsContext().visitorId}
-              code={surveyCode}
-              onCode={setSurveyCode}
-              onClose={() => {
-                setSurveyOpen(false)
-                // 이미 코드를 받은 사람은 알약으로 접힐 뿐이다 — "링크 다시
-                // 확인하기"가 계속 있어야 한다. 아직 못 받은 사람(질문 중,
-                // 또는 재고 없음 화면)만 세션에서 완전히 내린다.
-                if (!surveyCode) setSurveyOn(false)
-              }}
+              code={survey.code}
+              onCode={survey.receiveCode}
+              onClose={survey.closeCard}
             /></Suspense>
           )}
           {visibleBrands.slice(0, shown).map((b, index) => {
@@ -823,11 +743,11 @@ export default function App({ initial = null }) {
         </button>
       )}
 
-      {surveyOn && (
+      {survey.isVisible && (
         <Suspense fallback={null}>
-        <SurveyDock open={surveyOpen} answered={Boolean(surveyCode)}
-                    onOpen={() => setSurveyOpen(true)}
-                    onDismiss={() => setSurveyOn(false)} />
+        <SurveyDock open={survey.isCardOpen} answered={Boolean(survey.code)}
+                    onOpen={survey.openCard}
+                    onDismiss={survey.dismissDock} />
         </Suspense>
       )}
 
