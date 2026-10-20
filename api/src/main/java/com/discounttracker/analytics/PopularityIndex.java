@@ -163,9 +163,17 @@ public class PopularityIndex {
         clicks.add(new Click(at, brand, visitor));
     }
 
+    private boolean stale() {
+        return Duration.between(computedAt, clock.instant()).compareTo(REFRESH) > 0;
+    }
+
     private void refreshIfStale() {
-        if (Duration.between(computedAt, clock.instant()).compareTo(REFRESH) > 0) {
-            reload();
+        if (stale()) {
+            // 읽기 둘이 동시에 낡음을 보고 연달아 다시 세면 직전 값이 방금 센 값으로 덮여 등락이 사라진다(CodeRabbit).
+            // 잠근 안에서 한 번 더 본다.
+            synchronized (this) {
+                if (stale()) reload();
+            }
         }
     }
 
