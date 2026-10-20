@@ -81,4 +81,29 @@ class PopularityIndexTest {
         idx.reload();
         assertEquals(0, idx.scoreOf("bhc"));
     }
+
+    /** 집계는 24시간, 등락은 갱신 주기: previous는 직전 갱신 때의 오늘 사람 수다(2026-10-20 사용자). */
+    @Test
+    void previousIsTheTodayCountOfTheLastRefresh(@TempDir Path dir) throws Exception {
+        Path log = dir.resolve("events.jsonl");
+        Files.writeString(log, ev("2026-10-14T12:00:00+09:00", "offer_link_click", "v1", "bhc", "") + "\n",
+                StandardCharsets.UTF_8);
+        Clock clock = Clock.fixed(Instant.parse("2026-10-14T06:00:00Z"), ZoneId.of("Asia/Seoul"));
+        PopularityIndex idx = new PopularityIndex(new EventLog(log.toString(), new ObjectMapper()), new ObjectMapper(), clock);
+
+        assertEquals(1, idx.todayOf("bhc"));
+        assertEquals(1, idx.previousOf("bhc"));     // 첫 계산: 직전이 없어 지금과 같다(전부 새로 든 것으로 보이지 않게)
+
+        Files.writeString(log, ev("2026-10-14T13:00:00+09:00", "offer_link_click", "v2", "bhc", "") + "\n"
+                + ev("2026-10-14T13:01:00+09:00", "offer_link_click", "v3", "BBQ", "") + "\n",
+                StandardCharsets.UTF_8, java.nio.file.StandardOpenOption.APPEND);
+        idx.reload();
+        assertEquals(3, idx.todayOf("bhc") + idx.todayOf("BBQ"));
+        assertEquals(1, idx.previousOf("bhc"));     // 직전 갱신 때 bhc는 1명
+        assertEquals(0, idx.previousOf("BBQ"));     // BBQ는 그때 없었다
+
+        idx.reload();                                // 새 누름 없이 한 번 더 — 직전 = 지금
+        assertEquals(idx.todayOf("bhc"), idx.previousOf("bhc"));
+        assertEquals(idx.todayOf("BBQ"), idx.previousOf("BBQ"));
+    }
 }

@@ -30,10 +30,12 @@ public record BrandComparison(
         int popularity,
         int popularityToday,
         // 그 전 24시간(24~48시간 전) 사람 수. 웹이 오늘 인기 순위의 등락을 센다(2026-10-14).
-        int popularityYesterday) {
+        int popularityYesterday,
+        // 직전 갱신 때의 오늘 사람 수. 웹이 순위 등락을 센다(집계는 24시간, 등락은 갱신 주기, 2026-10-20).
+        int popularityPrevious) {
 
     public BrandComparison(Brand brand, Integer maxConfirmedAmount, Integer maxHeldAmount, List<Offer> offers) {
-        this(brand, maxConfirmedAmount, maxHeldAmount, offers, 0, 0, 0);
+        this(brand, maxConfirmedAmount, maxHeldAmount, offers, 0, 0, 0, 0);
     }
 
     /** 카드 제목·로고 파일명이 쓰는 대표명. */

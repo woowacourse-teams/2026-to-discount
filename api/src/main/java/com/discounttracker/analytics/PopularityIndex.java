@@ -48,7 +48,8 @@ public class PopularityIndex {
     private final Clock clock;
     private volatile Map<String, Integer> scores = Map.of();     // 이번 주(7일) 사람 수
     private volatile Map<String, Integer> today = Map.of();      // 오늘(24시간) 사람 수
-    private volatile Map<String, Integer> yesterday = Map.of();  // 그 전 24시간(24~48시간 전). 오늘 인기 등락용(2026-10-14)
+    private volatile Map<String, Integer> yesterday = Map.of();  // 그 전 24시간(24~48시간 전). 옛 웹이 읽는다(2026-10-14), 새 웹은 previous를 쓴다
+    private volatile Map<String, Integer> previous = Map.of();   // 직전 갱신 때의 오늘(24시간) 사람 수. 순위 등락용(2026-10-20)
     private volatile Instant computedAt = Instant.EPOCH;
 
     public PopularityIndex(EventLog eventLog, ObjectMapper mapper, Clock clock) {
@@ -73,6 +74,15 @@ public class PopularityIndex {
     public int yesterdayOf(String brand) {
         refreshIfStale();
         return yesterday.getOrDefault(brand, 0);
+    }
+
+    /**
+     * 직전 갱신(REFRESH 주기) 때의 오늘(24시간) 사람 수. 순위 변동은 이것과 지금 순위의 차이로 센다 — 집계는 24시간,
+     * 등락은 갱신 주기다(2026-10-20 사용자). 첫 계산(서버를 막 띄움)에는 직전이 없어 지금 값과 같다.
+     */
+    public int previousOf(String brand) {
+        refreshIfStale();
+        return previous.getOrDefault(brand, 0);
     }
 
     public Map<String, Integer> scores() {
@@ -114,9 +124,12 @@ public class PopularityIndex {
             if (!c.at().isBefore(daySince)) day.computeIfAbsent(c.brand(), k -> new HashSet<>()).add(c.visitor());
             else if (!c.at().isBefore(prevSince)) prev.computeIfAbsent(c.brand(), k -> new HashSet<>()).add(c.visitor());
         }
+        Map<String, Integer> before = today;
+        boolean first = computedAt.equals(Instant.EPOCH);
         scores = counts(week);
         today = counts(day);
         yesterday = counts(prev);
+        previous = first ? today : before;
         computedAt = clock.instant();
     }
 
