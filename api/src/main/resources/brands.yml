@@ -111,6 +111,8 @@ brands:
     menus: [알싸한마늘치킨, 대파간장]
     aliases: [노랑치킨, norang tongdak, norang chicken]
     category: chicken
+    links:
+      baemin: https://baemin.go.link/5H0ry
   두찜:
     searchAliases: [두찜 찜닭, 두찜찜닭, doojjim, doojjim chicken]
     menus: [감자숭이, 모치치, 볼치즈]
