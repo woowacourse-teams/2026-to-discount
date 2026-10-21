@@ -1,0 +1,48 @@
+# 설계 119 1단계: ready 라벨이 붙으면 설계자 세션을 띄운다.
+# 인증 시크릿 이름(CLAUDE_CODE_OAUTH_TOKEN)은 설계의 열린 질문이라 가정값이다. 값은 사람이 저장소 시크릿에 넣는다.
+name: design-session
+on:
+  issues:
+    types: [labeled]
+
+# 같은 이슈에는 한 번에 작업 하나만 돈다.
+concurrency:
+  group: issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  design:
+    # ready 라벨이고, 라벨을 단 사람이 저장소 쓰기 권한자일 때만 (공개 저장소라 외부 입력 차단).
+    if: >-
+      github.event.label.name == 'ready' &&
+      !contains(github.event.issue.labels.*.name, 'blocked') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            이슈 #${{ github.event.issue.number }} 의 설계자 세션이다.
+            .claude/agents/designer.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서를 쓴다.
+            feat/${{ github.event.issue.number }}-<요약> 브랜치에 커밋하고 이슈에 링크한다.
+            끝나면 첫 줄이 `인계:` 인 이슈 댓글 하나를 남긴다.
+          claude_args: --max-turns 30
+      - name: 실패하면 blocked 라벨과 원인 댓글
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue edit "$ISSUE" --add-label blocked
+          gh issue comment "$ISSUE" --body "설계 세션이 실패했다. 로그: $RUN_URL . 사람이 blocked 라벨을 떼면 다시 돈다(ready 라벨을 다시 달아야 한다)."
