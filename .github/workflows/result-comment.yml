@@ -48,6 +48,15 @@ jobs:
             open=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved}}}}}' -f o="$owner" -f n="$name" -F p="$pr" -q '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved|not)] | length')
             echo
             echo "남은 리뷰 지적: ${open:-0}건"
+            # 프리뷰 주소: Vercel이 커밋에 남긴 상태의 target_url(최선 노력, 없으면 생략).
+            prev=$(gh api "repos/$REPO/commits/$sha/statuses" --paginate -q 'first(.[] | select(.context|test("[Vv]ercel")) | .target_url) // empty' 2>/dev/null || true)
+            if [ -n "$prev" ]; then echo; echo "프리뷰: $prev"; fi
+            # 360px 스크린샷: 이 브랜치의 최신 ios-shot 실행(아티팩트 ios-shots).
+            shot=$(gh api "repos/$REPO/actions/workflows/ios-shot.yml/runs?branch=$BRANCH&per_page=1" -q '.workflow_runs[0].html_url // empty' 2>/dev/null || true)
+            if [ -n "$shot" ]; then echo; echo "360px 스크린샷(아티팩트): $shot"; fi
+            # 성능 점수(web-perf)는 병합 뒤 main 배포에서만 돈다. PR 단계에는 없다.
+            echo
+            echo "성능 점수: 병합 뒤 web-perf가 측정한다(PR 단계에는 없음)."
           } > "$RUNNER_TEMP/result.md"
           id=$(gh api "repos/$REPO/issues/$pr/comments" --paginate -q '[.[] | select(.body | startswith("<!-- result-comment -->"))] | last | .id // empty')
           if [ -n "$id" ]; then
