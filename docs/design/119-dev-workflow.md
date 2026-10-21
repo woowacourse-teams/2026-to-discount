@@ -2,6 +2,8 @@
 
 추적 이슈: [#119](https://github.com/woowacourse-teams/2026-to-discount/issues/119)
 
+실제로 만든 결과와 설계에서 바뀐 것은 [119-dev-workflow-asbuilt.md](119-dev-workflow-asbuilt.md)에 있다.
+
 ## 결론
 
 이슈 하나가 사람 승인 두 번(설계 승인, 병합 승인)만 거쳐 병합되고 요약까지 남는 흐름을 만든다.
