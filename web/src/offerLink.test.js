@@ -37,3 +37,12 @@ test('쿠팡이츠 안내 문구는 비어 있지 않다', () => {
   assert.equal(typeof COUPANGEATS_NOTICE, 'string')
   assert.ok(COUPANGEATS_NOTICE.trim().length > 0, '쿠팡이츠 안내 문구가 비었다')
 })
+
+test('쿠팡이츠가 아닌 https 링크는 허브 링크로 바뀌지 않고 그대로 나간다', () => {
+  for (const p of ['baemin', 'yogiyo', 'ddangyo']) {
+    const link = `https://example.com/${p}`
+    const got = offerLink({ platform: p, link }, {}, 'BBQ')
+    assert.equal(got, link)
+    assert.notEqual(got, COUPANGEATS_LINK)
+  }
+})
