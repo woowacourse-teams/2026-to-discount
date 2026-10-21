@@ -1,0 +1,166 @@
+# 설계 119 2단계: 이슈에 /approve-design 댓글이 달리면 구현자 세션을 띄운다.
+# 1단계(design-session.yml)와 같은 토큰, 권한 확인, 입력 파일, 결과물 보관과 확인, blocked 처리를 쓴다.
+# push는 GitHub App 토큰으로 한다. GITHUB_TOKEN push는 check-web/check-api를 안 깨우지만, App 토큰 push는 깨워
+# 검사가 PR 커밋에 붙는다(설계 119 "검사 연결", 2026-10-21 사용자 결정 1번/B).
+name: implement-session
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    # PR 댓글이 아니라 이슈 댓글이고, 본문이 정확히 /approve-design 일 때만.
+    if: >-
+      !github.event.issue.pull_request &&
+      github.event.comment.body == '/approve-design' &&
+      !contains(github.event.issue.labels.*.name, 'blocked')
+    runs-on: ubuntu-latest
+    outputs:
+      agent: ${{ steps.role.outputs.agent }}
+      branch: ${{ steps.branch.outputs.name }}
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: 댓글 작성자 권한 확인
+        id: perm
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          p=$(gh api "repos/${{ github.repository }}/collaborators/${{ github.event.comment.user.login }}/permission" -q .permission)
+          echo "권한: $p"
+          if [ "$p" = admin ] || [ "$p" = write ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; fi
+      # 영역 라벨로 역할을 고른다. collect는 폰이 필요해 로컬 러너 몫이라 여기서 끝낸다.
+      - name: 역할 고르기
+        id: role
+        if: steps.perm.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+          LABELS: ${{ join(github.event.issue.labels.*.name, ' ') }}
+        run: |
+          case " $LABELS " in
+            *" web "*)
+              echo "agent=web-implementer" >> "$GITHUB_OUTPUT"
+              echo "tools=Bash(node:*),Bash(npm:*)" >> "$GITHUB_OUTPUT" ;;
+            *" api "*)
+              echo "agent=api-implementer" >> "$GITHUB_OUTPUT"
+              echo "tools=Bash(./gradlew:*)" >> "$GITHUB_OUTPUT" ;;
+            *" collect "*)
+              echo "collect는 로컬 러너 몫이라 이 워크플로는 구현하지 않는다(설계 119 4단계)." > "$RUNNER_TEMP/c.txt"
+              gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/c.txt" ;;
+            *)
+              echo "영역 라벨(web, api, collect)이 없어 구현자를 고를 수 없다. 라벨을 달고 /approve-design 을 다시 단다." > "$RUNNER_TEMP/c.txt"
+              gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/c.txt" ;;
+          esac
+      # 설계가 만든 feat/<이슈번호>-* 브랜치 위에 이어 구현한다.
+      - name: 설계 브랜치 찾기
+        id: branch
+        if: steps.role.outputs.agent != ''
+        env:
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          b=$(git ls-remote --heads "${{ github.server_url }}/${{ github.repository }}" "feat/$ISSUE-*" | head -1 | sed 's#.*refs/heads/##')
+          if [ -z "$b" ]; then echo "설계 브랜치(feat/$ISSUE-*) 없음"; exit 1; fi
+          echo "name=$b" >> "$GITHUB_OUTPUT"
+      # App 토큰을 만든다. 이 토큰으로 checkout하면 세션의 git push가 이 신분으로 나가 검사를 깨운다.
+      - name: App 토큰 만들기
+        id: apptoken
+        if: steps.role.outputs.agent != ''
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+      - if: steps.role.outputs.agent != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.branch.outputs.name }}
+          fetch-depth: 0
+          token: ${{ steps.apptoken.outputs.token }}
+      - name: 시작 커밋 기록
+        id: start
+        if: steps.role.outputs.agent != ''
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: 이슈 입력 준비
+        if: steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo "# 이슈 #$ISSUE: $(gh api "repos/${{ github.repository }}/issues/$ISSUE" -q .title)"
+            echo
+            gh api "repos/${{ github.repository }}/issues/$ISSUE" -q '.body // ""'
+            echo
+            echo "## 댓글 (OWNER, MEMBER, COLLABORATOR만)"
+            gh api "repos/${{ github.repository }}/issues/$ISSUE/comments" --paginate \
+              | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR") | "### \(.user.login) \(.created_at)\n\(.body)\n"'
+          } > "$RUNNER_TEMP/issue-input.md"
+      - if: steps.role.outputs.agent != ''
+        id: claude
+        uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            이슈 #${{ github.event.issue.number }} 의 구현자 세션이다.
+            .claude/agents/${{ steps.role.outputs.agent }}.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서(docs/design/${{ github.event.issue.number }}-*.md)를 구현한다.
+            이슈 입력은 ${{ runner.temp }}/issue-input.md 하나만 읽는다. gh issue view로 댓글을 읽지 않는다.
+            지금 체크아웃된 브랜치 ${{ steps.branch.outputs.name }} 에 이어 커밋하고 push한다. 새 브랜치와 새 PR을 만들지 않는다.
+            설계에 없는 변경이 필요하면 구현하지 말고 인계 댓글에 적는다.
+            끝나면 첫 줄이 `인계:` 인 이슈 댓글 하나를 남긴다(한 것, 남은 것, 막힌 것).
+            셸 명령은 한 번에 하나씩 쓴다. cd, &&, 파이프, heredoc으로 묶지 않는다. 파일은 Write 도구로 쓴다. 댓글은 Write로 파일을 만든 뒤 --body-file로 넘긴다.
+            main에는 push할 수 없다(저장소 규칙).
+          # 설계자 목록에 테스트 실행(tools 출력)을 더했다.
+          claude_args: --max-turns 80 --allowedTools "Read,Grep,Glob,Write,Edit,${{ steps.role.outputs.tools }},Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git push:*),Bash(gh issue comment:*)"
+      - name: 구현 결과 보관
+        if: always() && steps.role.outputs.agent != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: implement-${{ github.event.issue.number }}-${{ github.run_id }}
+          path: |
+            docs/design/${{ github.event.issue.number }}-*.md
+            web/src/
+            api/src/
+          if-no-files-found: warn
+          retention-days: 14
+      # 새 커밋이 push됐고 인계 댓글이 있어야 성공이다. 맞으면 같은 PR의 draft를 푼다.
+      - name: 결과물 확인과 ready
+        if: steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+          START: ${{ steps.start.outputs.sha }}
+        run: |
+          ok=1
+          head=$(git ls-remote --heads origin "$BRANCH" | cut -f1)
+          if [ -n "$head" ] && [ "$head" != "$START" ]; then echo "새 커밋: $head"; else echo "새 커밋 없음"; ok=0; fi
+          pr=$(gh pr list -R "$REPO" --head "$BRANCH" --state open --json number -q '.[0].number')
+          if [ -n "$pr" ]; then echo "PR: $pr"; else echo "PR 없음"; ok=0; fi
+          n=$(gh api "repos/$REPO/issues/$ISSUE/comments" --paginate -q '[.[] | select(.body | startswith("인계:"))] | length' | awk '{s+=$1} END {print s+0}')
+          if [ "$n" -gt 0 ]; then echo "인계 댓글: $n"; else echo "인계 댓글 없음"; ok=0; fi
+          [ "$ok" = 1 ]
+          gh pr ready "$pr" -R "$REPO"
+      - name: 거부된 도구와 턴 수
+        if: always() && steps.claude.outputs.execution_file != ''
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          jq -c '.[] | select(.type == "result") | {num_turns, subtype, denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true
+      - name: 실패하면 blocked 라벨과 원인 댓글
+        if: (failure() || cancelled()) && steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue edit "$ISSUE" --add-label blocked
+          gh issue comment "$ISSUE" --body "구현 세션이 실패했다. 로그와 보관된 결과(Artifacts): $RUN_URL . 원인을 본 뒤 blocked 라벨을 떼고 /approve-design 을 다시 달면 다시 돈다."

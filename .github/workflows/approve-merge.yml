@@ -1,0 +1,38 @@
+# 설계 119 2단계: /approve 댓글(admin/write)이면 PR을 squash 병합하고 브랜치를 지운다.
+# main 규칙을 우회하지 않는다. 막히면 사람 승인이 필요하다고 남기고 끝낸다.
+name: approve-merge
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  merge:
+    if: github.event.comment.body == '/approve'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: 병합
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUM: ${{ github.event.issue.number }}
+          IS_PR: ${{ github.event.issue.pull_request != null }}
+          WHO: ${{ github.event.comment.user.login }}
+        run: |
+          p=$(gh api "repos/$REPO/collaborators/$WHO/permission" -q .permission)
+          echo "권한: $p"
+          if [ "$p" != admin ] && [ "$p" != write ]; then exit 0; fi
+          if [ "$IS_PR" = true ]; then pr=$NUM; else
+            pr=$(gh pr list -R "$REPO" --state open --json number,headRefName -q "[.[] | select(.headRefName | startswith(\"feat/$NUM-\"))][0].number")
+          fi
+          if [ -z "$pr" ]; then echo "연결된 열린 PR 없음"; exit 0; fi
+          if gh pr merge "$pr" -R "$REPO" --squash --delete-branch; then
+            echo "병합: #$pr"
+          else
+            echo "자동 병합이 막혔다(검사, 리뷰 규칙, draft 등). 사람이 직접 병합하거나 막힌 조건을 푼 뒤 /approve 를 다시 단다. 사람 승인 필요." > "$RUNNER_TEMP/m.txt"
+            gh pr comment "$pr" -R "$REPO" --body-file "$RUNNER_TEMP/m.txt"
+          fi
