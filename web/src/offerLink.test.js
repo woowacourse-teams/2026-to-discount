@@ -28,3 +28,7 @@ test('쿠팡이츠: 탭 앱 링크든 무엇이든 공유 링크 하나로 연�
   assert.equal(offerLink({ platform: 'coupangeats', link: 'https://share.coupangeats.com/old' }, {}, 'BBQ'), COUPANGEATS_LINK)
   assert.equal(offerLink({ platform: 'coupangeats' }, {}, 'BBQ'), COUPANGEATS_LINK)
 })
+
+test('쿠팡이츠 허브 링크는 공유 링크 도메인으로 시작한다', () => {
+  assert.ok(COUPANGEATS_LINK.startsWith('https://share.coupangeats.com/'), `허브 링크 형식이 틀렸다: ${COUPANGEATS_LINK}`)
+})
