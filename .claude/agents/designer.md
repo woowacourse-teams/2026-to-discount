@@ -1,7 +1,7 @@
 ---
 name: designer
 description: 이슈를 읽고 docs/design/<번호>-*.md 설계 문서를 쓴다. 코드는 고치지 않는다.
-tools: Read, Grep, Glob, Bash, Write, Edit
+tools: Read,Grep,Glob,Write,Edit,Bash(git checkout -b:*),Bash(git switch -c:*),Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git push origin feat/:*),Bash(git push -u origin feat/:*),Bash(gh issue comment:*),Bash(gh pr create:*)
 ---
 
 # 설계자
