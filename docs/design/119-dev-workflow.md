@@ -127,6 +127,19 @@
 - 액션은 커밋 SHA로 고정하고 옆에 버전 주석을 단다(`uses: anthropics/claude-code-action@<sha> # v1`). 시크릿을 쓰는 작업이라 태그가 바뀌어도 코드가 바뀌지 않게 한다.
 - 인증은 구독 OAuth 토큰이다. 시크릿 이름은 `CLAUDE_CODE_OAUTH_TOKEN`, 액션 입력은 `claude_code_oauth_token`이다. API 키로 바꿀 때는 이 두 줄만 고친다.
 
+**토큰 규칙** (2026-10-21 결정)
+- 다른 워크플로를 깨워야 하는 쓰기만 GitHub App 토큰으로 한다. 기본 토큰(`GITHUB_TOKEN`)으로 한 push, PR 상태 변경, 병합은 GitHub이 다른 워크플로를 깨우지 않는다.
+- App 토큰은 실행마다 `actions/create-github-app-token`으로 만든다. 시크릿은 `WF_APP_ID`, `WF_APP_PRIVATE_KEY`(PEM 전체)다. 웹훅은 쓰지 않는다.
+
+| 워크플로 | 쓰기 | 토큰 | 이유 |
+| --- | --- | --- | --- |
+| design-session | 설계 브랜치, 초안 PR | 기본 | 검사는 구현 push 때 같은 PR에서 돈다 |
+| implement-session | 구현 push | App | push가 check-web, check-api를 깨워 검사가 PR 커밋에 붙는다 |
+| approve-merge | 병합 | App | 병합 이벤트가 summary-session을 깨운다 |
+| result-comment, summary-session | 댓글, PR 본문, 이슈 닫기 | 기본 | 뒤에 깨울 워크플로가 없다 |
+
+- `issue_comment`로 뜬 실행은 main 커밋 기준으로 돈다. 그 실행 안에서 다른 검사를 부르면 결과가 PR이 아니라 main 커밋에 붙는다. 그래서 검사는 부르지 않고 App 토큰 push로 깨운다.
+
 **이슈와 라벨**
 - 이슈 템플릿은 마크다운(`.github/ISSUE_TEMPLATE/task.md`)이다. 제목은 `[WEB|API|COLLECT|INFRA] feat|fix: 요약` 관례를 따른다.
 - 영역 라벨은 사람이 단다. 템플릿이 라벨을 고르지 않는다.

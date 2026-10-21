@@ -1,0 +1,115 @@
+# 설계 119 3단계: feat/<번호>-* PR이 main에 병합되면 요약자 세션이 PR 본문 "결과" 절과 이슈 닫는 댓글을 쓴다.
+# 패턴은 implement-session.yml과 같다(App 토큰, SHA 고정, 결과물 확인, blocked).
+# 주의: 병합을 GITHUB_TOKEN으로 하면(approve-merge.yml) pull_request 이벤트가 이 워크플로를 깨우지 않는다.
+name: summary-session
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+concurrency:
+  group: issue-${{ github.event.pull_request.head.ref }}
+  cancel-in-progress: false
+
+jobs:
+  summary:
+    if: >-
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'feat/') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: 이슈 번호 뽑기
+        id: issue
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          n=$(echo "$BRANCH" | sed -n 's#^feat/\([0-9][0-9]*\)-.*#\1#p')
+          if [ -z "$n" ]; then echo "브랜치에 이슈 번호 없음: $BRANCH"; exit 0; fi
+          echo "num=$n" >> "$GITHUB_OUTPUT"
+      - name: App 토큰 만들기
+        id: apptoken
+        if: steps.issue.outputs.num != ''
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+      - if: steps.issue.outputs.num != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          token: ${{ steps.apptoken.outputs.token }}
+      - name: 요약 입력 준비
+        if: steps.issue.outputs.num != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.issue.outputs.num }}
+        run: |
+          {
+            echo "# 병합된 PR #$PR: $(gh api "repos/$GH_REPO/pulls/$PR" -q .title)"
+            echo
+            gh api "repos/$GH_REPO/pulls/$PR" -q '.body // ""'
+            echo
+            echo "## PR 댓글 (OWNER, MEMBER, COLLABORATOR만)"
+            gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+              | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR") | "### \(.user.login) \(.created_at)\n\(.body)\n"'
+            echo
+            echo "# 이슈 #$ISSUE"
+            gh api "repos/$GH_REPO/issues/$ISSUE" -q '.body // ""'
+          } > "$RUNNER_TEMP/summary-input.md"
+      - if: steps.issue.outputs.num != ''
+        id: claude
+        uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            이슈 #${{ steps.issue.outputs.num }}, 병합된 PR #${{ github.event.pull_request.number }}의 요약 세션이다.
+            .claude/agents/summarizer.md 를 먼저 읽고 그 규칙을 따른다.
+            입력은 ${{ runner.temp }}/summary-input.md 하나만 읽는다. 설계 문서는 docs/design/${{ steps.issue.outputs.num }}-*.md 를 읽는다. 외부 댓글은 읽지 않는다.
+            1. PR 본문 끝에 "## 결과" 절을 덧붙인 새 본문을 Write로 ${{ runner.temp }}/pr-body.md 에 쓰고 `gh pr edit ${{ github.event.pull_request.number }} --body-file ${{ runner.temp }}/pr-body.md` 로 반영한다. 이미 "## 결과" 절이 있으면 그 절만 고친다.
+            2. 같은 내용을 ${{ runner.temp }}/issue-comment.md 에 쓰고 `gh issue comment ${{ steps.issue.outputs.num }} --body-file ${{ runner.temp }}/issue-comment.md` 로 단다.
+            3. `gh issue close ${{ steps.issue.outputs.num }}` 로 닫는다.
+            결과에는 무엇을 바꿨는지, 검증한 것, 남은 것만 쓴다. 서버 경로, 로컬 비밀 파일 이름, 이 PC 전용 정보, 비밀값은 쓰지 않는다.
+            한 명령은 한 번에 하나다. cd, &&, 파이프, heredoc으로 묶지 않는다. 파일은 Write 도구로 만든다.
+          claude_args: --max-turns 10 --allowedTools "Read,Grep,Glob,Write,Bash(gh pr edit:*),Bash(gh issue comment:*),Bash(gh issue close:*)"
+      # 공개 저장소에 올라갔으니 방금 올린 본문과 댓글을 다시 받아 검사한다.
+      # 패턴은 설계 119 요약자 정의와 로컬 규칙에서 일반화했다. 걸리면 실패로 처리해 blocked를 단다.
+      - name: 공개 저장소 검사
+        if: steps.issue.outputs.num != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.issue.outputs.num }}
+        run: |
+          gh api "repos/$GH_REPO/pulls/$PR" -q '.body // ""' | awk '/^## 결과/{f=1} f' > "$RUNNER_TEMP/scan.txt"
+          if [ ! -s "$RUNNER_TEMP/scan.txt" ]; then echo "PR 본문에 '## 결과' 절 없음"; exit 1; fi
+          gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate -q '.[-1].body // ""' >> "$RUNNER_TEMP/scan.txt"
+          gh api "repos/$GH_REPO/issues/$ISSUE" -q .state | grep -qx closed || { echo "이슈가 안 닫힘"; exit 1; }
+          # 서버 절대 경로, ssh 관련 파일, 키 파일, 홈 아래 점 파일(로컬 비밀 파일), 윈도 사용자 경로, 키 모양 문자열
+          if grep -qEi '(/home/[a-z0-9_.-]+/|/root/|/etc/|/var/(www|lib)/|/opt/|[A-Za-z]:\\Users\\|~/\.[a-z_]+|\.pem\b|\.key\b|id_rsa|id_ed25519|authorized_keys|\.env\b|BEGIN [A-Z ]*PRIVATE KEY|ghp_[A-Za-z0-9]{20}|sk-[A-Za-z0-9_-]{20}|phc_[A-Za-z0-9]{20})' "$RUNNER_TEMP/scan.txt"; then
+            echo "공개 금지 패턴이 결과 절이나 댓글에 있다"
+            exit 1
+          fi
+      - name: 거부된 도구와 턴 수
+        if: always() && steps.claude.outputs.execution_file != ''
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          jq -c '.[] | select(.type == "result") | {num_turns, subtype, denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true
+      - name: 실패하면 blocked 라벨과 원인 댓글
+        if: (failure() || cancelled()) && steps.issue.outputs.num != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.issue.outputs.num }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue edit "$ISSUE" --add-label blocked
+          gh issue comment "$ISSUE" --body "요약 세션이 실패했다(공개 금지 패턴 검사 실패 포함). 로그: $RUN_URL . 원인을 본 뒤 PR 본문 결과 절과 이슈 댓글을 손으로 고치고 blocked 라벨을 뗀다."

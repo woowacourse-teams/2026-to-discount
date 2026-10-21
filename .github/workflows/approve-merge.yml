@@ -15,9 +15,16 @@ jobs:
       pull-requests: write
       issues: write
     steps:
+      # App 토큰으로 병합해야 병합 이벤트가 summary-session을 깨운다(GITHUB_TOKEN 병합은 다른 워크플로를 안 깨운다).
+      - name: App 토큰 만들기
+        id: apptoken
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
       - name: 병합
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.apptoken.outputs.token }}
           REPO: ${{ github.repository }}
           NUM: ${{ github.event.issue.number }}
           IS_PR: ${{ github.event.issue.pull_request != null }}
