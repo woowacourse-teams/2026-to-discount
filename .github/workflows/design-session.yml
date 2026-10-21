@@ -1,0 +1,76 @@
+# 설계 119 1단계: ready 라벨이 붙으면 설계자 세션을 띄운다.
+# 인증은 구독 OAuth 토큰(시크릿 CLAUDE_CODE_OAUTH_TOKEN, 등록 완료). API 키로 바꾸면 이 이름과 입력 이름 두 곳만 고친다.
+name: design-session
+on:
+  issues:
+    types: [labeled]
+
+# 같은 이슈에는 한 번에 작업 하나만 돈다.
+concurrency:
+  group: issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  design:
+    if: >-
+      github.event.label.name == 'ready' &&
+      !contains(github.event.issue.labels.*.name, 'blocked')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      # 라벨을 단 사람(sender)의 저장소 권한이 admin/write일 때만 진행한다. 아니면 조용히 종료.
+      - name: 라벨 단 사람 권한 확인
+        id: perm
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          p=$(gh api "repos/${{ github.repository }}/collaborators/${{ github.event.sender.login }}/permission" -q .permission)
+          echo "권한: $p"
+          if [ "$p" = admin ] || [ "$p" = write ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.perm.outputs.ok == 'true'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      # 외부인 댓글이 세션에 들어가지 않게, 권한 있는 작성자의 댓글만 파일로 만들어 준다.
+      - name: 이슈 입력 준비
+        if: steps.perm.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          {
+            echo "# 이슈 #$ISSUE: $(gh api "repos/${{ github.repository }}/issues/$ISSUE" -q .title)"
+            echo
+            gh api "repos/${{ github.repository }}/issues/$ISSUE" -q '.body // ""'
+            echo
+            echo "## 댓글 (OWNER, MEMBER, COLLABORATOR만)"
+            gh api "repos/${{ github.repository }}/issues/$ISSUE/comments" --paginate \
+              | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR") | "### \(.user.login) \(.created_at)\n\(.body)\n"'
+          } > "$RUNNER_TEMP/issue-input.md"
+      - if: steps.perm.outputs.ok == 'true'
+        uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            이슈 #${{ github.event.issue.number }} 의 설계자 세션이다.
+            .claude/agents/designer.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서를 쓴다.
+            이슈 입력은 ${{ runner.temp }}/issue-input.md 하나만 읽는다. gh issue view로 댓글을 읽지 않는다.
+            브랜치는 feat/${{ github.event.issue.number }}-<영문 소문자 3~5단어> 로 만들어 설계 문서를 커밋하고,
+            그 브랜치로 초안(draft) PR을 연다. PR 제목은 `설계 #${{ github.event.issue.number }}: <요약>`.
+            끝나면 첫 줄이 `인계:` 인 이슈 댓글 하나를 남긴다.
+          # designer.md 의 tools 와 같은 목록. 프롬프트만으로는 도구 제한이 걸리지 않는다.
+          claude_args: --max-turns 30 --allowedTools "Read,Grep,Glob,Write,Edit,Bash(git checkout -b:*),Bash(git switch -c:*),Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git push origin feat/:*),Bash(git push -u origin feat/:*),Bash(gh issue comment:*),Bash(gh pr create:*)"
+      - name: 실패하면 blocked 라벨과 원인 댓글
+        if: (failure() || cancelled()) && steps.perm.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue edit "$ISSUE" --add-label blocked
+          gh issue comment "$ISSUE" --body "설계 세션이 실패했다. 로그: $RUN_URL . 원인을 본 뒤 blocked 라벨을 떼고, ready 라벨을 뗐다가 다시 달면 다시 돈다."
