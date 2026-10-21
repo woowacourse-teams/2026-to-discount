@@ -23,6 +23,7 @@ jobs:
       GH_REPO: ${{ github.repository }}
       PR: ${{ github.event.pull_request.number }}
     permissions:
+      actions: read
       contents: read
       issues: write
       pull-requests: write
@@ -114,4 +115,6 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           gh issue edit "$ISSUE" --add-label blocked
-          gh issue comment "$ISSUE" --body "요약 세션이 실패했다(공개 금지 패턴 검사 실패 포함). 로그: $RUN_URL . 원인을 본 뒤 PR 본문 결과 절과 이슈 댓글을 손으로 고치고 blocked 라벨을 뗀다."
+          # 실제로 실패한 단계 이름을 적는다. 모든 실패에 같은 문장을 달면 원인을 잘못 짚는다.
+          step=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" -q '[.jobs[].steps[] | select(.conclusion == "failure") | .name] | join(", ")')
+          gh issue comment "$ISSUE" --body "요약 세션이 실패했다. 실패한 단계: ${step:-알 수 없음}. 로그: $RUN_URL . 원인을 본 뒤 PR 본문 결과 절과 이슈 댓글을 손으로 고치고 blocked 라벨을 뗀다."
