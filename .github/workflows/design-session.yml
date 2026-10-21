@@ -53,6 +53,7 @@ jobs:
               | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR") | "### \(.user.login) \(.created_at)\n\(.body)\n"'
           } > "$RUNNER_TEMP/issue-input.md"
       - if: steps.perm.outputs.ok == 'true'
+        id: claude
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -64,7 +65,14 @@ jobs:
             그 브랜치로 초안(draft) PR을 연다. PR 제목은 `설계 #${{ github.event.issue.number }}: <요약>`.
             끝나면 첫 줄이 `인계:` 인 이슈 댓글 하나를 남긴다.
           # designer.md 의 tools 와 같은 목록. 프롬프트만으로는 도구 제한이 걸리지 않는다.
-          claude_args: --max-turns 30 --allowedTools "Read,Grep,Glob,Write,Edit,Bash(git checkout -b:*),Bash(git switch -c:*),Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git push origin feat/:*),Bash(git push -u origin feat/:*),Bash(gh issue comment:*),Bash(gh pr create:*)"
+          claude_args: --max-turns 50 --allowedTools "Read,Grep,Glob,Write,Edit,Bash(git checkout -b:*),Bash(git switch -c:*),Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git push origin feat/:*),Bash(git push -u origin feat/:*),Bash(gh issue comment:*),Bash(gh pr create:*)"
+      # 공개 저장소라 전체 출력은 끈 채로, 거부된 도구 호출과 턴 수만 로그에 남긴다.
+      - name: 거부된 도구와 턴 수
+        if: always() && steps.claude.outputs.execution_file != ''
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          jq -c '.[] | select(.type == "result") | {num_turns, subtype, denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true
       - name: 실패하면 blocked 라벨과 원인 댓글
         if: (failure() || cancelled()) && steps.perm.outputs.ok == 'true'
         env:
