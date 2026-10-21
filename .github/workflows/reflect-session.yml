@@ -15,8 +15,7 @@ jobs:
     # 이슈가 아니라 PR 댓글이고, 본문이 정확히 /reflect 일 때만.
     if: >-
       github.event.issue.pull_request &&
-      github.event.comment.body == '/reflect' &&
-      !contains(github.event.issue.labels.*.name, 'blocked')
+      github.event.comment.body == '/reflect'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -49,12 +48,15 @@ jobs:
           issue=$(echo "$branch" | sed -n 's#^feat/\([0-9][0-9]*\)-.*#\1#p')
           echo "issue=$issue" >> "$GITHUB_OUTPUT"
       # 반영 횟수 상한. 이미 반영 댓글이 2개면 더 돌지 않는다(설계 "최대 2회").
-      - name: 반영 횟수 확인
+      # blocked는 PR이 아니라 이슈에 붙는다. 이슈 라벨로 막는다.
+      - name: 반영 횟수와 blocked 확인
         id: count
         if: steps.pr.outputs.branch != ''
         env:
           GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.pr.outputs.issue }}
         run: |
+          if gh api "repos/$GH_REPO/issues/$ISSUE" -q '.labels[].name' | grep -qx blocked; then echo "이슈에 blocked가 있어 건너뛴다"; exit 0; fi
           n=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '[.[] | select(.body | startswith("반영:"))] | length' | awk '{s+=$1} END {print s+0}')
           echo "반영 댓글 수: $n"
           if [ "$n" -ge 2 ]; then
@@ -125,16 +127,19 @@ jobs:
             gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
               | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR" or (.user.login|test("\\[bot\\]$|coderabbitai"))) | "### \(.user.login)\n\(.body)\n"'
             echo
-            echo "## 이슈 #$ISSUE 마지막 인계/반영 댓글"
+            echo "## 이슈 #$ISSUE 마지막 인계 댓글"
             gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate \
-              | jq -r '[.[] | select(.body|startswith("인계:") or startswith("반영:"))] | last | .body // ""'
+              | jq -r '[.[] | select(.body|startswith("인계:"))] | last | .body // ""'
+            echo
+            echo "## 지난 반영 댓글(PR)"
+            gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+              | jq -r '.[] | select(.body|startswith("반영:")) | .body'
           } > "$RUNNER_TEMP/findings.md"
       - if: steps.role.outputs.agent != ''
         id: claude
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          allowed_bots: "*"
           prompt: |
             PR #${{ github.event.issue.number }}, 이슈 #${{ steps.pr.outputs.issue }} 의 리뷰 반영 세션이다.
             .claude/agents/${{ steps.role.outputs.agent }}.md 를 먼저 읽고 그 경로와 규칙을 따른다.
