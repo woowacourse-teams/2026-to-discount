@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { offerLink, offerClickProps, COUPANGEATS_LINK } from './offerLink.js'
+import { offerLink, offerClickProps, COUPANGEATS_LINK, COUPANGEATS_NOTICE } from './offerLink.js'
 
 test('오퍼 자신의 링크가 먼저, 그다음 브랜드 링크', () => {
   assert.equal(offerLink({ platform: 'baemin', link: 'https://a' }, { baemin: 'https://b' }, 'BBQ'), 'https://a')
@@ -31,4 +31,9 @@ test('쿠팡이츠: 탭 앱 링크든 무엇이든 공유 링크 하나로 연�
 
 test('쿠팡이츠 허브 링크는 공유 링크 도메인으로 시작한다', () => {
   assert.ok(COUPANGEATS_LINK.startsWith('https://share.coupangeats.com/'), `허브 링크 형식이 틀렸다: ${COUPANGEATS_LINK}`)
+})
+
+test('쿠팡이츠 안내 문구는 비어 있지 않다', () => {
+  assert.equal(typeof COUPANGEATS_NOTICE, 'string')
+  assert.ok(COUPANGEATS_NOTICE.trim().length > 0, '쿠팡이츠 안내 문구가 비었다')
 })
