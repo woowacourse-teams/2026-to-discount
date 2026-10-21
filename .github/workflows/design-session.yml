@@ -17,20 +17,12 @@ jobs:
       !contains(github.event.issue.labels.*.name, 'blocked')
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # 세션이 실행하는 셸 명령의 환경에서 Anthropic, GitHub, 클라우드 시크릿을 지운다.
-    # Linux 러너에 bubblewrap이 있으면 셸이 별도 프로세스 공간에서 돌아 부모 환경을 못 본다.
-    # 토큰 유출을 줄이지만 없애지는 못한다(액션 docs/security.md).
-    env:
-      CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: 1
     permissions:
       contents: write
       issues: write
       pull-requests: write
       id-token: write
     steps:
-      # 시크릿 지우기와 셸 격리에 필요하다(CLAUDE_CODE_SUBPROCESS_ENV_SCRUB). 기본 러너에는 없다.
-      - name: bubblewrap 설치
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap
       # 라벨을 단 사람(sender)의 저장소 권한이 admin/write일 때만 진행한다. 아니면 조용히 종료.
       - name: 라벨 단 사람 권한 확인
         id: perm
@@ -65,9 +57,6 @@ jobs:
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # 진단용. push 누락 원인을 보려고 세션 전체 출력을 켠다. 확인 뒤 끈다.
-          # 셸 시크릿은 ENV_SCRUB와 bubblewrap으로 지워진다.
-          show_full_output: true
           prompt: |
             이슈 #${{ github.event.issue.number }} 의 설계자 세션이다.
             .claude/agents/designer.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서를 쓴다.
