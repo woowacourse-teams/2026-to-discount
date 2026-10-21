@@ -65,6 +65,9 @@ jobs:
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # 진단용. push 누락 원인을 보려고 세션 전체 출력을 켠다. 확인 뒤 끈다.
+          # 셸 시크릿은 ENV_SCRUB와 bubblewrap으로 지워진다.
+          show_full_output: true
           prompt: |
             이슈 #${{ github.event.issue.number }} 의 설계자 세션이다.
             .claude/agents/designer.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서를 쓴다.
