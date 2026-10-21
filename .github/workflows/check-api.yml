@@ -4,6 +4,11 @@ name: Check API
 # pull_request 트리거를 연결하지 않는다(check-web.yml과 같은 이유).
 
 on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ''
   pull_request:
     paths: ['api/**', '.github/workflows/check-api.yml']
   push:
@@ -23,6 +28,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

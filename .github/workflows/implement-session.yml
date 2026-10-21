@@ -17,6 +17,9 @@ jobs:
       github.event.comment.body == '/approve-design' &&
       !contains(github.event.issue.labels.*.name, 'blocked')
     runs-on: ubuntu-latest
+    outputs:
+      agent: ${{ steps.role.outputs.agent }}
+      branch: ${{ steps.branch.outputs.name }}
     timeout-minutes: 60
     permissions:
       contents: write
@@ -150,3 +153,37 @@ jobs:
         run: |
           gh issue edit "$ISSUE" --add-label blocked
           gh issue comment "$ISSUE" --body "구현 세션이 실패했다. 로그와 보관된 결과(Artifacts): $RUN_URL . 원인을 본 뒤 blocked 라벨을 떼고 /approve-design 을 다시 달면 다시 돈다."
+
+  # 구현 job의 push는 GITHUB_TOKEN이라 check-web/check-api를 깨우지 않는다. 같은 검사를 workflow_call로 직접 부른다.
+  check-web:
+    needs: [implement]
+    if: needs.implement.result == 'success' && needs.implement.outputs.agent == 'web-implementer'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/check-web.yml
+    with:
+      ref: ${{ needs.implement.outputs.branch }}
+    secrets: inherit
+
+  check-api:
+    needs: [implement]
+    if: needs.implement.result == 'success' && needs.implement.outputs.agent == 'api-implementer'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/check-api.yml
+    with:
+      ref: ${{ needs.implement.outputs.branch }}
+    secrets: inherit
+
+  # 검사가 끝난 뒤 결과 댓글을 갱신한다. issue_comment로 돈 실행은 head_branch가 main이라 workflow_run으로는 브랜치를 못 찾는다.
+  report:
+    needs: [implement, check-web, check-api]
+    if: always() && needs.implement.outputs.branch != ''
+    permissions:
+      actions: read
+      checks: read
+      pull-requests: write
+      contents: read
+    uses: ./.github/workflows/result-comment.yml
+    with:
+      branch: ${{ needs.implement.outputs.branch }}

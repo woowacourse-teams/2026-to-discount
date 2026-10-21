@@ -4,15 +4,18 @@ name: result-comment
 on:
   check_suite:
     types: [completed]
-  workflow_run:
-    workflows: [implement-session]
-    types: [completed]
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        default: ''
 
 jobs:
   comment:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      actions: read
       checks: read
       pull-requests: write
       contents: read
@@ -21,7 +24,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-          BRANCH: ${{ github.event.check_suite.head_branch || github.event.workflow_run.head_branch }}
+          CALLED: ${{ inputs.branch != '' && github.run_id || '' }}
+          BRANCH: ${{ inputs.branch || github.event.check_suite.head_branch }}
         run: |
           # feat/ 브랜치의 열린 PR에만 쓴다.
           case "$BRANCH" in feat/*) ;; *) exit 0 ;; esac
@@ -35,6 +39,8 @@ jobs:
             echo "| 검사 | 결과 |"
             echo "| --- | --- |"
             gh api "repos/$REPO/commits/$sha/check-runs" --paginate -q '.check_runs[] | "| \(.name) | \(.conclusion // .status) |"'
+            # 호출된 검사(check-web / check)는 PR head가 아니라 구현 실행의 job으로 남는다.
+            if [ -n "$CALLED" ]; then gh api "repos/$REPO/actions/runs/$CALLED/jobs" --paginate -q '.jobs[] | select(.name | startswith("check-")) | "| \(.name) | \(.conclusion // .status) |"'; fi
             # 테스트 수는 검사 요약에 있을 때만 적는다.
             t=$(gh api "repos/$REPO/commits/$sha/check-runs" --paginate -q '.check_runs[] | select(.output.summary != null) | .output.summary' | grep -iE '[0-9]+ (tests?|passed)' | head -3 || true)
             if [ -n "$t" ]; then echo; echo "테스트: $t"; fi
