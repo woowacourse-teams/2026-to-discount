@@ -17,6 +17,11 @@ jobs:
       !contains(github.event.issue.labels.*.name, 'blocked')
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # 세션이 실행하는 셸 명령의 환경에서 Anthropic, GitHub, 클라우드 시크릿을 지운다.
+    # Linux 러너에 bubblewrap이 있으면 셸이 별도 프로세스 공간에서 돌아 부모 환경을 못 본다.
+    # 토큰 유출을 줄이지만 없애지는 못한다(액션 docs/security.md).
+    env:
+      CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: 1
     permissions:
       contents: write
       issues: write
