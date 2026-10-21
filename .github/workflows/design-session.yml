@@ -109,4 +109,4 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           gh issue edit "$ISSUE" --add-label blocked
-          gh issue comment "$ISSUE" --body "설계 세션이 실패했다. 로그와 보관된 설계 문서(Artifacts): $RUN_URL . 원인을 본 뒤 blocked 라벨을 떼고, ready 라벨을 뗐다가 다시 달면 다시 돈다."
+          gh issue comment "$ISSUE" --body "설계 세션이 실패했다. 로그와 보관된 설계 문서는 실행 페이지의 Artifacts에 있다: $RUN_URL . 원인을 확인한 뒤 blocked 라벨을 떼고, ready 라벨을 뗐다가 다시 달면 다시 돈다."

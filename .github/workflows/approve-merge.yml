@@ -40,6 +40,6 @@ jobs:
           if gh pr merge "$pr" -R "$REPO" --squash --delete-branch; then
             echo "병합: #$pr"
           else
-            echo "자동 병합이 막혔다(검사, 리뷰 규칙, draft 등). 사람이 직접 병합하거나 막힌 조건을 푼 뒤 /approve 를 다시 단다. 사람 승인 필요." > "$RUNNER_TEMP/m.txt"
+            echo "자동 병합이 막혔다. 필수 검사 실패, 리뷰 규칙, draft 상태 중 하나가 원인이다. 막힌 조건을 풀고 /approve 를 다시 달거나, 사람이 직접 병합한다." > "$RUNNER_TEMP/m.txt"
             gh pr comment "$pr" -R "$REPO" --body-file "$RUNNER_TEMP/m.txt"
           fi

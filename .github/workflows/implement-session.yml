@@ -57,10 +57,10 @@ jobs:
               echo "agent=api-implementer" >> "$GITHUB_OUTPUT"
               echo "tools=Bash(./gradlew:*)" >> "$GITHUB_OUTPUT" ;;
             *" collect "*)
-              echo "collect는 로컬 러너 몫이라 이 워크플로는 구현하지 않는다(설계 119 4단계)." > "$RUNNER_TEMP/c.txt"
+              echo "구현을 시작하지 않았다. collect 작업은 폰이 필요해 로컬 러너가 맡는다(설계 119 4단계)." > "$RUNNER_TEMP/c.txt"
               gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/c.txt" ;;
             *)
-              echo "영역 라벨(web, api, collect)이 없어 구현자를 고를 수 없다. 라벨을 달고 /approve-design 을 다시 단다." > "$RUNNER_TEMP/c.txt"
+              echo "구현을 시작하지 않았다. 영역 라벨(web, api, collect)이 없어 구현자를 고를 수 없다. 라벨을 단 뒤 /approve-design 을 다시 단다." > "$RUNNER_TEMP/c.txt"
               gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/c.txt" ;;
           esac
       # 설계가 만든 feat/<이슈번호>-* 브랜치 위에 이어 구현한다.
@@ -166,4 +166,4 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           gh issue edit "$ISSUE" --add-label blocked
-          gh issue comment "$ISSUE" --body "구현 세션이 실패했다. 로그와 보관된 결과(Artifacts): $RUN_URL . 원인을 본 뒤 blocked 라벨을 떼고 /approve-design 을 다시 달면 다시 돈다."
+          gh issue comment "$ISSUE" --body "구현 세션이 실패했다. 로그와 보관된 결과는 실행 페이지의 Artifacts에 있다: $RUN_URL . 원인을 확인한 뒤 blocked 라벨을 떼고 /approve-design 을 다시 달면 다시 돈다."
