@@ -28,6 +28,9 @@ jobs:
       pull-requests: write
       id-token: write
     steps:
+      # 시크릿 지우기와 셸 격리에 필요하다(CLAUDE_CODE_SUBPROCESS_ENV_SCRUB). 기본 러너에는 없다.
+      - name: bubblewrap 설치
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
       # 라벨을 단 사람(sender)의 저장소 권한이 admin/write일 때만 진행한다. 아니면 조용히 종료.
       - name: 라벨 단 사람 권한 확인
         id: perm
