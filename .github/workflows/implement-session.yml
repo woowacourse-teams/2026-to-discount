@@ -23,6 +23,9 @@ jobs:
       agent: ${{ steps.role.outputs.agent }}
       branch: ${{ steps.branch.outputs.name }}
     timeout-minutes: 60
+    # checkout 전에 도는 gh 명령(역할 안내, 실패 처리)이 저장소를 알게 한다.
+    env:
+      GH_REPO: ${{ github.repository }}
     permissions:
       contents: write
       issues: write
