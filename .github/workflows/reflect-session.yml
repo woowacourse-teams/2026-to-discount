@@ -57,8 +57,9 @@ jobs:
           ISSUE: ${{ steps.pr.outputs.issue }}
         run: |
           if gh api "repos/$GH_REPO/issues/$ISSUE" -q '.labels[].name' | grep -qx blocked; then echo "이슈에 blocked가 있어 건너뛴다"; exit 0; fi
-          n=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '[.[] | select(.body | startswith("반영:"))] | length' | awk '{s+=$1} END {print s+0}')
+          n=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '[.[] | select(.user.login == "claude[bot]" and (.body | startswith("반영:")))] | length' | awk '{s+=$1} END {print s+0}')
           echo "반영 댓글 수: $n"
+          echo "n=$n" >> "$GITHUB_OUTPUT"
           if [ "$n" -ge 2 ]; then
             echo "반영을 시작하지 않았다. 반영은 최대 2회다(설계 119). 이미 $n회 돌았다. 남은 지적은 사람이 직접 반영하거나 새 이슈로 뗀다." > "$RUNNER_TEMP/c.txt"
             gh pr comment "$PR" -R "$GH_REPO" --body-file "$RUNNER_TEMP/c.txt"
@@ -120,12 +121,12 @@ jobs:
             echo "# PR #$PR 리뷰 지적"
             echo
             echo "## 미해결 리뷰 스레드"
-            gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved path line comments(first:20){nodes{author{login} body}}}}}}}' -f o="$owner" -f n="$name" -F p="$PR" \
-              | jq -r '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved|not) | "### \(.path):\(.line)\n" + (.comments.nodes[] | "- \(.author.login): \(.body)")'
+            gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved path line comments(first:20){nodes{author{login} authorAssociation body}}}}}}}' -f o="$owner" -f n="$name" -F p="$PR" \
+              | jq -r '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved|not) | "### \(.path):\(.line)\n" + (.comments.nodes[] | select(.authorAssociation=="OWNER" or .authorAssociation=="MEMBER" or .authorAssociation=="COLLABORATOR" or .author.login=="coderabbitai") | "- \(.author.login): \(.body)")'
             echo
             echo "## PR 댓글 (OWNER, MEMBER, COLLABORATOR, 봇만)"
             gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
-              | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR" or (.user.login|test("\\[bot\\]$|coderabbitai"))) | "### \(.user.login)\n\(.body)\n"'
+              | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR" or .user.login=="coderabbitai[bot]") | "### \(.user.login)\n\(.body)\n"'
             echo
             echo "## 이슈 #$ISSUE 마지막 인계 댓글"
             gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate \
@@ -158,12 +159,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BRANCH: ${{ steps.pr.outputs.branch }}
           START: ${{ steps.start.outputs.sha }}
+          BEFORE: ${{ steps.count.outputs.n }}
         run: |
           ok=1
           head=$(git ls-remote --heads origin "$BRANCH" | cut -f1)
           if [ -n "$head" ] && [ "$head" != "$START" ]; then echo "새 커밋: $head"; else echo "새 커밋 없음"; ok=0; fi
-          n=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '[.[] | select(.body | startswith("반영:"))] | length' | awk '{s+=$1} END {print s+0}')
-          if [ "$n" -gt 0 ]; then echo "반영 댓글: $n"; else echo "반영 댓글 없음"; ok=0; fi
+          n=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '[.[] | select(.user.login == "claude[bot]" and (.body | startswith("반영:")))] | length' | awk '{s+=$1} END {print s+0}')
+          if [ "$n" -gt "$BEFORE" ]; then echo "새 반영 댓글: $n"; else echo "이번 실행의 반영 댓글 없음"; ok=0; fi
           [ "$ok" = 1 ]
       - name: 거부된 도구와 턴 수
         if: always() && steps.claude.outputs.execution_file != ''
