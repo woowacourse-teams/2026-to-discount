@@ -4,6 +4,11 @@ name: result-comment
 on:
   check_suite:
     types: [completed]
+  # Actions 검사가 끝날 때는 check_suite로 깨지 않아, 먼저 끝난 검사 시점의 in_progress가 남았다(2026-10-22 #137).
+  # 검사 워크플로가 끝날 때마다 같은 댓글을 다시 쓴다.
+  workflow_run:
+    workflows: [Check API, Check Web, Check Project Structure, secret-scan, ios-shot]
+    types: [completed]
   workflow_call:
     inputs:
       branch:
@@ -12,6 +17,9 @@ on:
 
 jobs:
   comment:
+    # 검사 여럿이 거의 같이 끝나면 댓글을 두 개 만들 수 있다. 브랜치마다 한 번에 하나씩 쓴다.
+    concurrency:
+      group: result-comment-${{ inputs.branch || github.event.check_suite.head_branch || github.event.workflow_run.head_branch }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -25,7 +33,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           CALLED: ${{ inputs.branch != '' && github.run_id || '' }}
-          BRANCH: ${{ inputs.branch || github.event.check_suite.head_branch }}
+          BRANCH: ${{ inputs.branch || github.event.check_suite.head_branch || github.event.workflow_run.head_branch }}
         run: |
           # feat/ 브랜치의 열린 PR에만 쓴다.
           case "$BRANCH" in feat/*) ;; *) exit 0 ;; esac
