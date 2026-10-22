@@ -1,0 +1,16 @@
+# 정본은 mono .github/workflows/wf-followups.yml. 이 파일은 언제 부를지와 이 저장소 설정만 둔다.
+name: followup-issues
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  run:
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      id-token: write
+    uses: ./.github/workflows/wf-followups.yml
+    secrets: inherit

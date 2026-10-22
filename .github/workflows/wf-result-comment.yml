@@ -1,0 +1,61 @@
+# 정본(설계 119 2단계): 검사가 끝난 feat/ PR에 검사 결과, 프리뷰, 스크린샷, 남은 리뷰 지적을 댓글 하나로 모아 고쳐 쓴다.
+# mono와 tracker가 같이 부른다. 프리뷰와 스크린샷 줄은 그 배포나 실행이 있을 때만 나온다(tracker에는 없다).
+# 언제 부를지(check_suite, workflow_run 대상 검사 이름)는 부르는 쪽이 정한다.
+name: wf-result-comment
+on:
+  workflow_call:
+    inputs:
+      footer:
+        description: 댓글 끝 줄
+        type: string
+        default: ''
+
+jobs:
+  comment:
+    # 검사 여럿이 거의 같이 끝나면 댓글을 두 개 만들 수 있다. 브랜치마다 한 번에 하나씩 쓴다.
+    concurrency:
+      group: result-comment-${{ github.event.check_suite.head_branch || github.event.workflow_run.head_branch }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 결과 모아 댓글
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.check_suite.head_branch || github.event.workflow_run.head_branch }}
+          FOOTER: ${{ inputs.footer }}
+        run: |
+          # feat/ 브랜치의 열린 PR에만 쓴다.
+          case "$BRANCH" in feat/*) ;; *) exit 0 ;; esac
+          pr=$(gh pr list -R "$REPO" --head "$BRANCH" --state open --json number -q '.[0].number')
+          [ -n "$pr" ] || exit 0
+          sha=$(gh pr view "$pr" -R "$REPO" --json headRefOid -q .headRefOid)
+          {
+            echo "<!-- result-comment -->"
+            echo "결과 (${sha:0:7})"
+            echo
+            echo "| 검사 | 결과 |"
+            echo "| --- | --- |"
+            gh api "repos/$REPO/commits/$sha/check-runs" --paginate -q '.check_runs[] | "| \(.name) | \(.conclusion // .status) |"'
+            # 테스트 수는 검사 요약에 있을 때만 적는다.
+            t=$(gh api "repos/$REPO/commits/$sha/check-runs" --paginate -q '.check_runs[] | select(.output.summary != null) | .output.summary' | grep -iE '[0-9]+ (tests?|passed)' | head -3 || true)
+            if [ -n "$t" ]; then echo; echo "테스트: $t"; fi
+            owner=${REPO%/*}; name=${REPO#*/}
+            open=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved}}}}}' -f o="$owner" -f n="$name" -F p="$pr" -q '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved|not)] | length')
+            echo
+            echo "남은 리뷰 지적: ${open:-0}건"
+            # 프리뷰 주소: PR head 커밋 배포 상태의 environment_url(없으면 생략).
+            dep=$(gh api "repos/$REPO/deployments?sha=$sha&per_page=1" -q '.[0].id // empty' 2>/dev/null || true)
+            prev=$([ -n "$dep" ] && gh api "repos/$REPO/deployments/$dep/statuses" -q 'first(.[] | .environment_url | select(. != null and . != "")) // empty' 2>/dev/null || true)
+            if [ -n "$prev" ]; then echo; echo "프리뷰: $prev"; fi
+            # 360px 스크린샷: 이 브랜치의 최신 ios-shot 실행(아티팩트 ios-shots).
+            shot=$(gh api "repos/$REPO/actions/workflows/ios-shot.yml/runs?branch=$BRANCH&head_sha=$sha&per_page=1" -q '.workflow_runs[0].html_url // empty' 2>/dev/null || true)
+            if [ -n "$shot" ]; then echo; echo "360px 스크린샷(아티팩트): $shot"; fi
+            if [ -n "$FOOTER" ]; then echo; echo "$FOOTER"; fi
+          } > "$RUNNER_TEMP/result.md"
+          id=$(gh api "repos/$REPO/issues/$pr/comments" --paginate -q '[.[] | select(.body | startswith("<!-- result-comment -->"))] | last | .id // empty')
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$id" -F body=@"$RUNNER_TEMP/result.md" > /dev/null
+          else
+            gh pr comment "$pr" -R "$REPO" --body-file "$RUNNER_TEMP/result.md"
+          fi
