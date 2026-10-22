@@ -25,8 +25,18 @@ test('클릭 속성은 운영 카드와 같은 키', () => {
 
 test('쿠팡이츠: 탭 앱 링크든 무엇이든 공유 링크 하나로 연다(2026-10-12 사용자)', () => {
   assert.equal(offerLink({ platform: 'coupangeats', link: 'coupangeats://Web?url=x' }, {}, 'BBQ'), 'coupangeats://Web?url=x')
-  assert.equal(offerLink({ platform: 'coupangeats', link: 'https://share.coupangeats.com/old' }, {}, 'BBQ'), COUPANGEATS_LINK)
   assert.equal(offerLink({ platform: 'coupangeats' }, {}, 'BBQ'), COUPANGEATS_LINK)
+})
+
+test('쿠팡이츠: 사람 링크(원장 오퍼의 공유 링크)는 그대로, 배너 오퍼의 공유 링크는 허브로(#141)', () => {
+  const link = 'https://share.coupangeats.com/x'
+  assert.equal(offerLink({ platform: 'coupangeats', link }, {}, 'BBQ'), link)
+  assert.equal(offerLink({ platform: 'coupangeats', link, fromBanner: true }, {}, 'BBQ'), COUPANGEATS_LINK)
+})
+
+test('쿠팡이츠: 공유 도메인이 아닌 https는 허브로(#141)', () => {
+  assert.equal(offerLink({ platform: 'coupangeats', link: 'https://example.com/x' }, {}, 'BBQ'), COUPANGEATS_LINK)
+  assert.equal(offerLink({ platform: 'coupangeats', link: 'https://share.coupangeats.com.example.com/x' }, {}, 'BBQ'), COUPANGEATS_LINK)
 })
 
 test('쿠팡이츠 허브 링크는 공유 링크 도메인으로 시작한다', () => {
