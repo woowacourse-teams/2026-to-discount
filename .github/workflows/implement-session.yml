@@ -43,9 +43,25 @@ jobs:
           echo "권한: $p"
           if [ "$p" = admin ] || [ "$p" = write ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; fi
       # 영역 라벨로 역할을 고른다. collect는 폰이 필요해 로컬 러너 몫이라 여기서 끝낸다.
+      # 로컬 PC가 먼저 맡으면(1분마다 확인) 이슈에 local 라벨을 단다. 사람이 대화형 세션으로 지켜보며 구현한다.
+      # 2분 기다려 라벨이 있으면 물러난다. PC가 꺼져 있거나 맡지 않으면 라벨이 없어 여기서 구현한다.
+      - name: 로컬이 맡았는지 확인
+        id: claim
+        if: steps.perm.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: |
+          sleep 120
+          # 조회가 실패하면 단계를 실패시킨다. 실패를 "로컬 안 맡음"으로 읽으면 두 곳에서 구현한다.
+          labels=$(gh api "repos/${{ github.repository }}/issues/$ISSUE/labels" --paginate -q '.[].name')
+          if grep -qx local <<< "$labels"; then
+            echo "local=true" >> "$GITHUB_OUTPUT"
+            gh issue comment "$ISSUE" --body "로컬 PC가 구현을 맡았다(local 라벨). 클라우드 구현은 돌지 않는다."
+          fi
       - name: 역할 고르기
         id: role
-        if: steps.perm.outputs.ok == 'true'
+        if: steps.perm.outputs.ok == 'true' && steps.claim.outputs.local != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ github.event.issue.number }}
