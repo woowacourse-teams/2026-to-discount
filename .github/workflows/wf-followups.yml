@@ -102,7 +102,8 @@ jobs:
       # 계획대로 이슈를 만든다. 저장소는 이 저장소와 짝 저장소만 받는다. 항목 표식으로 다시 돌아도 같은 이슈를 안 만든다.
       - name: 이슈 만들기
         env:
-          SELF_TOKEN: ${{ steps.self.outputs.token }}
+          # 이 저장소 이슈는 기본 토큰으로 만든다. tracker App 설치에 이슈 권한이 없어 createIssue가 거부됐다(2026-10-22 tracker #33).
+          SELF_TOKEN: ${{ github.token }}
           OTHER_TOKEN: ${{ steps.other.outputs.token }}
         run: |
           f="$RUNNER_TEMP/followups.json"
