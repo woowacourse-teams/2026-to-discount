@@ -112,12 +112,12 @@ export function qualifiersOf(offer) {
 export const CHIP_PLACEMENT = {
   'qualifier-plain': { card: 'head', detail: 'head' },
   'qualifier-random': { card: 'head', detail: 'head' },
-  'best-fit': { card: 'head', detail: 'head' },
+  'best-fit': { card: false, detail: 'head' }, // 상세에서만(2026-10-22 권한자)
   rate: { card: 'head', detail: 'head' },
   membership: { card: 'head', detail: 'head' },
   limited: { card: 'head', detail: 'head' },
   condition: { card: 'head', detail: 'head' },
-  channel: { card: 'head', detail: 'row' },
+  channel: { card: 'head', detail: 'head' }, // 시트 머리에도 띄워 구분한다(2026-10-22 권한자)
   note: { card: false, detail: 'row' },
   until: { card: false, detail: 'row' },
 }
@@ -143,8 +143,13 @@ export function chipsOf(offer) {
   return [...offerChips, ...tierChips]
 }
 export const onCard = (c) => c.scope === 'offer' && CHIP_PLACEMENT[c.kind]?.card === 'head'
-// 상세 오퍼 머리는 카드와 같은 Tags를 그린다(채널 포함, 지금 화면 그대로). 표 줄은 구간 칩 중 'row'.
-export const onDetail = (c) => onCard(c) || (c.scope === 'tier' && CHIP_PLACEMENT[c.kind]?.detail === 'row')
+// 구간 칩은 모두 상세 표 줄, 오퍼 칩은 detail이 'head'면 상세 오퍼 머리.
+export const onDetail = (c) => c.scope === 'tier' || CHIP_PLACEMENT[c.kind]?.detail === 'head'
+// 머리 줄이 넘치면 뒤가 잘린다(overflow hidden). 앞에 둘 순서: 한정된 채널, 멤버십, 선착순(한정), 나머지(2026-10-22 권한자).
+// channelOf는 배달, 포장 중 하나일 때만 값이 있어 채널 칩은 늘 한정된 채널이다. 복합(중복 할인)은 맨 뒤.
+const HEAD_ORDER = ['channel', 'membership', 'limited']
+const rank = (c) => (c.kind === 'best-fit' ? 99 : (HEAD_ORDER.indexOf(c.kind) + 1 || HEAD_ORDER.length + 1))
+export const headOrder = (chips) => [...chips].sort((x, y) => rank(x) - rank(y))
 
 export function conditionTable(offer) {
   const tiers = Array.isArray(offer.tiers) ? [...offer.tiers].sort((a, b) => b.amount - a.amount) : []

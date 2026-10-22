@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, shortBrandName, conditionTable, nameCutPx, amountText, chipsOf, onCard, onDetail, CHIP_PLACEMENT, membershipOf, qualifiersOf } from './couponModel.js'
+import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, shortBrandName, conditionTable, nameCutPx, amountText, chipsOf, onCard, onDetail, headOrder, CHIP_PLACEMENT, membershipOf, qualifiersOf } from './couponModel.js'
 
 const o = (platform, amount, extra = {}) => ({ platform, amount, certainty: 'exact', kind: 'discount', ...extra })
 
@@ -224,9 +224,9 @@ const key = (c) => `${c.kind}:${c.text}`
 test('#151 표시 위치 표: CHIP_PLACEMENT가 설계 문서 표와 같다', () => {
   const H = 'head'
   assert.deepEqual(CHIP_PLACEMENT, {
-    'qualifier-plain': { card: H, detail: H }, 'qualifier-random': { card: H, detail: H }, 'best-fit': { card: H, detail: H },
+    'qualifier-plain': { card: H, detail: H }, 'qualifier-random': { card: H, detail: H }, 'best-fit': { card: false, detail: H },
     rate: { card: H, detail: H }, membership: { card: H, detail: H }, limited: { card: H, detail: H }, condition: { card: H, detail: H },
-    channel: { card: H, detail: 'row' }, note: { card: false, detail: 'row' }, until: { card: false, detail: 'row' },
+    channel: { card: H, detail: H }, note: { card: false, detail: 'row' }, until: { card: false, detail: 'row' },
   })
 })
 
@@ -249,9 +249,10 @@ test('#151 CU: 첫 주문은 칩 하나, 상세 문장에서 빠진다. 옛 응�
   assert.equal(conditionTable(only).note, '첫 주문만 가능')
 })
 
-test('#151 푸라닭: 요기요 중복 할인은 머리에만, 표 줄에는 안 뜬다', () => {
+test('#151 푸라닭: 요기요 중복 할인은 상세 머리에만, 카드와 표 줄에는 안 뜬다', () => {
   const c = chipsOf(puradak[0])
-  assert.deepEqual(c.filter(onCard).map(key), ['channel:포장', 'best-fit:중복 할인'])
+  assert.deepEqual(c.filter(onCard).map(key), ['channel:포장'])
+  assert.deepEqual(c.filter((x) => x.scope === 'offer' && onDetail(x)).map(key), ['channel:포장', 'best-fit:중복 할인'])
   assert.ok(!c.some((x) => x.scope === 'tier' && x.kind === 'best-fit'))
   assert.deepEqual(chipsOf(puradak[1]).filter(onCard).map(key), ['membership:쿠팡와우'])
   assert.deepEqual(chipsOf(puradak[2]), [])
@@ -265,4 +266,10 @@ test('#151 멤버십: 카드는 대표 구간의 membershipOf를 따른다', () 
   assert.equal(mem(o('baemin', 3000, { membership: 'baeminClub' })), true) // 구간 없음: 오퍼 값
   assert.equal(mem(o('baemin', 3000, { badge: '배민클럽 전용쿠폰' })), true) // 옛 행
   assert.equal(membershipOf(o('baemin', 3000, { badge: '배민클럽 전용쿠폰' })), 'badge')
+})
+
+test('#151 머리 줄 순서: 채널, 멤버십, 선착순(한정), 나머지, 복합은 맨 뒤', () => {
+  const k = (...kinds) => kinds.map((kind) => ({ kind }))
+  assert.deepEqual(headOrder(k('best-fit', 'condition', 'limited', 'membership', 'channel', 'qualifier-plain')).map((c) => c.kind),
+    ['channel', 'membership', 'limited', 'condition', 'qualifier-plain', 'best-fit'])
 })

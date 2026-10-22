@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './cardId.js'
-import { amountText, chipsOf, onCard, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, chipsOf, onCard, onDetail, headOrder, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
@@ -94,11 +94,11 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
 }
 
 // 배지 묶음(채널 + 배지). 운영 탭 마크업, 쿠폰 배지 규격 하나(coupon-card.css .cc-tags)
-function Tags({ o }) {
+function Tags({ o, detail = false }) {
   // 카드와 상세 오퍼 머리가 같은 목록(chipsOf)에서 뽑는다(#151). 복합은 늘 맨 오른쪽(사용자 2026-10-06)
-  const all = chipsOf(o).filter(onCard)
+  const all = headOrder(chipsOf(o).filter(detail ? (c) => c.scope === 'offer' && onDetail(c) : onCard))
   const ch = all.find((b) => b.kind === 'channel')?.text
-  const tags = all.filter((b) => b.kind !== 'channel').sort((x, y) => (x.kind === 'best-fit') - (y.kind === 'best-fit'))
+  const tags = all.filter((b) => b.kind !== 'channel')
   if (!ch && tags.length === 0) return null
   return (
     <span className="cc-tags"><span className="chip-tags">
@@ -463,7 +463,7 @@ function CouponCard({ brand, position, rank, highlighted, onInteract, include = 
               <Fragment key={offerKey(o)}>
                 <div className="cc-deal cc-deal--more" style={anim}>
                   <div className="cc-deal-col">
-                    <Tags o={o} />
+                    <Tags o={o} detail />
                     <Coupon o={o} brand={brand} position={position} best={stack && i < best.length - 1} where="expanded" slot={i + 1} expanded />
                   </div>
                 </div>
@@ -497,7 +497,7 @@ function CouponCard({ brand, position, rank, highlighted, onInteract, include = 
                 const hasTbl = tb.rows.length > 0 || tb.note
                 return (
                   <div key={offerKey(o)} className="cc-sheet__item">
-                    <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded tags={<Tags o={o} />} />
+                    <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded tags={<Tags o={o} detail />} />
                     {hasTbl && <DetailTable t={tb} i={0} />}
                   </div>
                 )
