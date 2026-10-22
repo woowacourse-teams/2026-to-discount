@@ -188,7 +188,8 @@ jobs:
             .claude/agents/${{ steps.role.outputs.agent }}.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서(${{ env.SPEC }}-*.md)를 구현한다.
             이슈 입력은 ${{ runner.temp }}/issue-input.md 하나만 읽는다. gh issue view로 댓글을 읽지 않는다.
             지금 체크아웃된 브랜치 ${{ steps.branch.outputs.name }} 에 이어 커밋만 한다. push와 PR은 워크플로가 한다. 브랜치를 바꾸지 않는다.
-            설계에 없는 변경이 필요하면 구현하지 말고 인계 댓글에 적는다.
+            /approve-design 보다 먼저 단 권한자 이슈 댓글 중 설계 문서와 다르거나 설계의 열린 질문에 답한 것은 설계로 본다. 설계 문서와 부딪히면 그 댓글이 이긴다(2026-10-22 mono #147).
+            그 밖에 설계에 없는 변경이 필요하면 구현하지 말고 인계 댓글에 적는다.
             ${{ steps.role.outputs.test }}
             mono/ 와 beggars-ops/ 가 있으면 테스트용 체크아웃이다. 고치거나 커밋하지 않는다.
             끝나면 첫 줄이 `인계:` 인 이슈 댓글 하나를 남긴다(한 것, 남은 것, 막힌 것, 테스트 결과 줄).
