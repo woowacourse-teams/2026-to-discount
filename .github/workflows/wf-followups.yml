@@ -16,7 +16,8 @@ jobs:
   followups:
     if: >-
       github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.body, '### 후속 조치')
+      (contains(github.event.pull_request.body, fromJSON('"\n### 후속 조치"')) ||
+       startsWith(github.event.pull_request.body, '### 후속 조치'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
