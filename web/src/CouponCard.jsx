@@ -94,7 +94,7 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
 }
 
 // 배지 묶음(채널 + 배지). 운영 탭 마크업, 쿠폰 배지 규격 하나(coupon-card.css .cc-tags)
-function Tags({ o, detail = false }) {
+export function Tags({ o, detail = false }) {
   // 카드와 상세 오퍼 머리가 같은 목록(chipsOf)에서 뽑는다(#151). 복합은 늘 맨 오른쪽(사용자 2026-10-06)
   const all = headOrder(chipsOf(o).filter(detail ? (c) => c.scope === 'offer' && onDetail(c) : onCard))
   const ch = all.find((b) => b.kind === 'channel')?.text
@@ -104,8 +104,8 @@ function Tags({ o, detail = false }) {
     <span className="cc-tags"><span className="chip-tags">
       {ch && <span className="offer__range-badge offer__range-badge--plain">{ch}</span>}
       {tags.map((b) => (b.kind === 'best-fit'
-        ? <ComboInfo key={b.kind} o={o} text={b.text} />
-        : <OpBadge key={b.kind} b={b} platform={o.platform} />))}
+        ? <ComboInfo key={`${b.kind}:${b.text}`} o={o} text={b.text} />
+        : <OpBadge key={`${b.kind}:${b.text}`} b={b} platform={o.platform} />))}
     </span></span>
   )
 }

@@ -268,6 +268,13 @@ test('#151 멤버십: 카드는 대표 구간의 membershipOf를 따른다', () 
   assert.equal(membershipOf(o('baemin', 3000, { badge: '배민클럽 전용쿠폰' })), 'badge')
 })
 
+test('#151 멤버십: 구간은 있는데 대표 구간(금액 일치)을 못 찾으면 오퍼 값으로 판단한다', () => {
+  const x = o('baemin', 6000, { membership: 'baeminClub', tiers: [{ amount: 5000, membership: 'baeminClub' }, { amount: 3000 }] })
+  assert.ok(chipsOf(x).some((c) => c.scope === 'offer' && c.kind === 'membership'))
+  const none = o('baemin', 6000, { tiers: [{ amount: 5000, membership: 'baeminClub' }] })
+  assert.ok(!chipsOf(none).some((c) => c.scope === 'offer' && c.kind === 'membership'))
+})
+
 test('#151 머리 줄 순서: 채널, 멤버십, 선착순(한정), 나머지, 복합은 맨 뒤', () => {
   const k = (...kinds) => kinds.map((kind) => ({ kind }))
   assert.deepEqual(headOrder(k('best-fit', 'condition', 'limited', 'membership', 'channel', 'qualifier-plain')).map((c) => c.kind),

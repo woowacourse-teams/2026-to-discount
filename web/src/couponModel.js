@@ -101,7 +101,8 @@ export function membershipOf(offer, tier) {
 }
 
 // 칩으로 올리는 조건. conditions가 알려진 토큰과 정확히 같을 때만(부분 일치, 표기 차이는 문장으로 둔다).
-// ponytail: API가 qualifiers를 아직 보내지 않는다(계약 offerContract.test.js). API가 보내기 시작하면 그 칸을 먼저 읽게 바꾼다(#151 후속).
+// ponytail: API가 qualifiers를 아직 보내지 않아(계약 offerContract.test.js) 이 정확 일치가 지금 유일한 경로다.
+// conditions가 '첫 주문 ' 같은 공백, 표기 차이로 오면 칩이 서지 않고 문장(note)으로 남는다. API가 보내기 시작하면 그 칸을 먼저 읽게 바꾼다(분리한 API 이슈 번호: 미기재).
 const KNOWN_QUALIFIERS = ['첫 주문']
 export function qualifiersOf(offer) {
   return KNOWN_QUALIFIERS.includes(offer.conditions) ? [offer.conditions] : []
@@ -128,7 +129,8 @@ export const CHIP_PLACEMENT = {
 export function chipsOf(offer) {
   const ch = channelOf(offer)
   const rep = (offer.tiers ?? []).find((t) => t.amount === offer.amount)
-  const showMem = !!membershipOf(offer, rep ?? {})
+  // 대표 구간을 못 찾으면(구간은 있되 금액이 오퍼와 안 맞음) 오퍼 값으로 판단한다. 빈 구간을 넣으면 오퍼 멤버십 칩이 사라졌다.
+  const showMem = !!(rep ? membershipOf(offer, rep) : membershipOf(offer))
   const badges = badgesOf(offer)
   const offerChips = [
     ...(ch ? [{ kind: 'channel', text: ch }] : []),
