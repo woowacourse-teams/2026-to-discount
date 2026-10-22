@@ -143,3 +143,10 @@ List<String> mergedQualifiers = qualifiers != null ? qualifiers
 - tracker `export_data.py`가 원장의 `qualifiers`를 내보내기에 싣는다. 비공개 저장소에서 따로 이슈를 만든다. `store.MERGEABLE_DETAIL`에 `qualifiers`를 넣는 문제도 함께 확인한다.
 - #151 설계 문서의 "분리한 API 이슈 번호: 미기재"를 #155로 채운다.
 - 운영 응답에 `qualifiers`가 실제로 오는 것을 확인한 뒤, 웹의 `conditions` 정확 일치 대체 경로를 걷는다.
+
+## 변경 이력
+
+- 2026-10-23 (구현, `/approve-design` 전 권한자 댓글 반영)
+  - 열린 질문 1, 2는 기본안으로 확정(문자열 하나는 받지 않음, 선착순 오퍼의 `qualifiers`는 버림). 테스트 2번은 실제로 `JacksonException`이 나는 것을 확인했다.
+  - 칸 이름과 병합 규칙은 tracker 내보내기 [nn98/delivery-discount-tracker#43](https://github.com/nn98/delivery-discount-tracker/issues/43)과 같게 둔다. 후속 절의 "tracker 따로 이슈"는 이 이슈다.
+  - 범위에 웹이 들어왔다. 웹 `qualifiersOf`가 `offer.qualifiers`를 먼저 읽게 켜고 qualifiers 2개 렌더 테스트(React key)를 더한 뒤, `conditions` 정확 일치 대체 경로(`KNOWN_QUALIFIERS`)를 걷어 CU 첫 주문 칩이 그대로 뜨면 끝이다. "웹 코드는 이 이슈에서 바꾸지 않는다"와 배포 순서 3번(운영 확인 뒤 걷기)은 이 댓글로 바뀐다. API 구현자는 웹을 고치지 않으므로 웹 몫은 웹 구현자에게 넘긴다.
