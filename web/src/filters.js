@@ -367,12 +367,17 @@ export function applyFilters(brands, filters) {
 }
 
 /** 기본 정렬이면 HOT 1~5위를 맨 앞에 순위대로(2026-10-18 사용자: 신규보다 앞). 숨김을 뺀 목록에 부른다(HOT과 같은 목록). */
-export function pinPopular(brands, filters) {
+// 순위는 rankBrands(카테고리와 검색을 뺀 목록)로 매긴다(#147). 카테고리를 고르면 그 안에 있는 순위권 브랜드만
+// 순위대로 세운다(2026-10-22 이슈 댓글).
+export function pinPopular(brands, filters, rankBrands = brands) {
   if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return brands
-  const top = popularToday(brands)
+  const top = popularToday(rankBrands)
   if (top.length < STRIP_MIN) return brands
-  const pinned = new Set(top.map((r) => r.brand))
-  return [...top.map((r) => r.brand), ...brands.filter((b) => !pinned.has(b))]
+  // applyFilters가 브랜드 객체를 새로 만들 수 있어 이름으로 찾는다
+  const names = new Set(top.map((r) => r.brand.name))
+  const front = top.map((r) => brands.find((b) => b.name === r.brand.name)).filter(Boolean)
+  if (front.length === 0) return brands
+  return [...front, ...brands.filter((b) => !names.has(b.name))]
 }
 
 /**

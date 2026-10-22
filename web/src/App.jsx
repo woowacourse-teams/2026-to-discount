@@ -12,7 +12,7 @@ const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, pinPopular, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
-import { STRIP_MIN, popularToday, ranks } from './popularStrip.js'
+import { cardRanks } from './popularStrip.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
@@ -409,18 +409,21 @@ export default function App({ initial = null }) {
     })
   }, [])
 
-  const visibleBrands = useMemo(
-    () => (brands ? pinPopular(applyHidden(applyFilters(brands, filters), hidden, bestOf), filters) : brands),
+  // 순위 기준 목록: 카테고리와 검색을 뺀다. 실시간 순위는 무엇을 보든 찾든 같다(#147).
+  const rankBrands = useMemo(
+    () => (brands ? applyHidden(applyFilters(brands, { ...filters, categories: new Set(), search: '' }), hidden, bestOf) : brands),
     [brands, filters, hidden, bestOf],
   )
+  const visibleBrands = useMemo(
+    () => (brands ? pinPopular(applyHidden(applyFilters(brands, filters), hidden, bestOf), filters, rankBrands) : brands),
+    [brands, filters, hidden, bestOf, rankBrands],
+  )
 
-  // 카드 왼쪽 위 순번(2026-10-18 사용자). 인기순이면 전부, 그 밖에는 맨 앞에 세운 HOT 1~5위만. HOT과 같은 표라 순위가 맞는다.
-  const popRanks = useMemo(() => {
-    if (!visibleBrands) return null
-    if (primarySort(filters).key === 'popularity') return ranks(visibleBrands, 'popularityToday')
-    const top = popularToday(visibleBrands)
-    return visibleBrands[0] === top[0]?.brand && top.length >= STRIP_MIN ? new Map(top.map((r) => [r.brand.name, r.rank])) : null
-  }, [visibleBrands, filters])
+  // 카드 왼쪽 위 순번. 도크와 같은 rankBrands 표를 읽어 순위가 맞는다(popularStrip.js cardRanks).
+  const popRanks = useMemo(
+    () => cardRanks(rankBrands, visibleBrands, primarySort(filters).key === 'popularity'),
+    [rankBrands, visibleBrands, filters],
+  )
 
   // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
   const revived = useMemo(
@@ -538,7 +541,7 @@ export default function App({ initial = null }) {
           resetFilters={resetFilters}
           sheetOpen={sheetOpen}
           onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
-          popular={visibleBrands && <PopularDock brands={visibleBrands} onPick={pickPopular} />}
+          popular={visibleBrands && <PopularDock brands={rankBrands} onPick={pickPopular} />}
           reportHold={guideOn}
         />
 
