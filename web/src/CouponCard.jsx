@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './cardId.js'
-import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, chipsOf, onCard, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
@@ -19,7 +19,7 @@ const Up = () => (
   <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2l4 5H7.2v3H4.8V7H2z" fill="currentColor" /></svg>
 )
 
-// 배지: 운영 화면(OfferChip)의 배지 마크업과 클래스를 그대로 쓴다(chip-tags 안 offer__range-badge, offer__status-badge). 새로 그리지 않는다.
+// 배지: 목록은 chipsOf를 따른다(beggars-ops 콘솔과 맞추기는 #151 후속). 마크업은 운영 화면(OfferChip)의 배지 마크업과 클래스를 그대로 쓴다(chip-tags 안 offer__range-badge, offer__status-badge). 새로 그리지 않는다.
 const RANGE_CLASS = { 'qualifier-plain': 'plain', 'qualifier-random': 'random', rate: 'rate', 'best-fit': 'optimal' }
 function OpBadge({ b, platform }) {
   if (b.kind === 'membership') return <span className="offer__status-badge offer__status-badge--membership" data-platform={platform}>{b.text}</span>
@@ -95,9 +95,10 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
 
 // 배지 묶음(채널 + 배지). 운영 탭 마크업, 쿠폰 배지 규격 하나(coupon-card.css .cc-tags)
 function Tags({ o }) {
-  const ch = channelOf(o)
-  // 복합은 늘 맨 오른쪽(사용자 2026-10-06)
-  const tags = [...badgesOf(o)].sort((x, y) => (x.kind === 'best-fit') - (y.kind === 'best-fit'))
+  // 카드와 상세 오퍼 머리가 같은 목록(chipsOf)에서 뽑는다(#151). 복합은 늘 맨 오른쪽(사용자 2026-10-06)
+  const all = chipsOf(o).filter(onCard)
+  const ch = all.find((b) => b.kind === 'channel')?.text
+  const tags = all.filter((b) => b.kind !== 'channel').sort((x, y) => (x.kind === 'best-fit') - (y.kind === 'best-fit'))
   if (!ch && tags.length === 0) return null
   return (
     <span className="cc-tags"><span className="chip-tags">
