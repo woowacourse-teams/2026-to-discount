@@ -11,11 +11,8 @@ on:
 
 jobs:
   merge:
-    # 첫 줄이 정확히 /approve 이면 승인. 둘째 줄부터 의견을 적어도 된다.
-    if: >-
-      github.event.comment.body == '/approve' ||
-      startsWith(github.event.comment.body, fromJSON('"/approve\n"')) ||
-      startsWith(github.event.comment.body, fromJSON('"/approve\r\n"'))
+    # 첫 줄이 /approve 이면 승인(앞뒤 공백 무시, 아래 단계가 판정). 둘째 줄부터 의견을 적어도 된다.
+    if: startsWith(github.event.comment.body, '/approve') && !startsWith(github.event.comment.body, '/approve-design')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -33,7 +30,11 @@ jobs:
           NUM: ${{ github.event.issue.number }}
           IS_PR: ${{ github.event.issue.pull_request != null }}
           WHO: ${{ github.event.comment.user.login }}
+          BODY: ${{ github.event.comment.body }}
         run: |
+          # 첫 줄만 보고 앞뒤 공백은 무시한다(2026-10-22 tracker #24 '/approve ' 무시됨).
+          first=$(printf '%s\n' "$BODY" | head -n1 | tr -d '[:space:]')
+          if [ "$first" != "/approve" ]; then echo "첫 줄이 /approve 가 아니다"; exit 0; fi
           p=$(gh api "repos/$REPO/collaborators/$WHO/permission" -q .permission)
           echo "권한: $p"
           if [ "$p" != admin ] && [ "$p" != write ]; then exit 0; fi
