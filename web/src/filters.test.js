@@ -8,6 +8,7 @@ import {
   displayBestAmount, offerKey, sortBrands, sortingAmount,
   hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinPopular,
 } from './filters.js'
+import { STRIP_MIN, cardRanks, popularToday } from './popularStrip.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
 const o = (amount, extra = {}) => ({ amount, platform: 'baemin', ...extra })
@@ -272,4 +273,57 @@ test('default sort pins new brands to the top, other sorts do not', () => {
   assert.deepEqual(applyFilters(brands, defaultFilters()).map((x) => x.name), ['라', '나', '가', '다'])
   const asc = { ...defaultFilters(), sorts: [{ key: 'amount', dir: 'asc' }] }
   assert.deepEqual(applyFilters(brands, asc).map((x) => x.name), ['나', '라', '다', '가'])
+})
+
+// #147: 1~5위가 치킨·피자인데 패스트푸드를 골라도 실시간 순위(도크·맨 앞 고정·카드 순번)는 같은 표를 쓴다.
+const hot147 = () => [
+  ['교촌', 'chicken', 9], ['BBQ', 'chicken', 8], ['도미노', 'pizza', 7], ['bhc', 'chicken', 6], ['피자헛', 'pizza', 5],
+  ['맥도날드', 'fastfood', 2], ['버거킹', 'fastfood', 0],
+].map(([name, category, n]) => brand(name, [o(5000, { platform: 'baemin' })], { category, popularityToday: n }))
+const rankList147 = (brands, f) => applyFilters(brands, { ...f, categories: new Set(), search: '' })
+
+test('카테고리를 골라도 순위 기준 목록은 같고 HOT은 세 곳 이상 남는다(#147)', () => {
+  const brands = hot147()
+  const all = defaultFilters()
+  const fast = { ...all, categories: new Set(['fastfood']) }
+  // 양성 신호: 카테고리까지 건 옛 입력이면 HOT 후보가 세 곳 미만이라 도크가 사라졌다.
+  assert.ok(popularToday(applyFilters(brands, fast)).length < STRIP_MIN)
+  assert.deepEqual(rankList147(brands, fast).map((b) => b.name), rankList147(brands, all).map((b) => b.name))
+  assert.deepEqual(popularToday(rankList147(brands, fast)).map((r) => r.brand.name), ['교촌', 'BBQ', '도미노', 'bhc', '피자헛'])
+})
+
+test('pinPopular: 고른 카테고리 안의 순위권 브랜드만 순위대로 앞에 세운다(#147)', () => {
+  const brands = hot147()
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  const shownPizza = [...applyFilters(brands, pizza)].reverse()
+  assert.deepEqual(pinPopular(shownPizza, pizza, rankList147(brands, pizza)).map((b) => b.name), ['도미노', '피자헛'])
+  // 순위권 브랜드가 없으면 그대로
+  const fast = { ...defaultFilters(), categories: new Set(['fastfood']) }
+  const shown = applyFilters(brands, fast)
+  assert.equal(pinPopular(shown, fast, rankList147(brands, fast)), shown)
+  const all = defaultFilters()
+  const list = applyFilters(brands, all)
+  assert.deepEqual(pinPopular(list, all, rankList147(brands, all)).slice(0, 5).map((b) => b.name), ['교촌', 'BBQ', '도미노', 'bhc', '피자헛'])
+})
+
+test('카드 순번은 도크와 같은 이름에 같은 순위를 붙인다. 카테고리 안에서 다시 매기지 않는다(#147)', () => {
+  const brands = hot147()
+  const all = defaultFilters()
+  const rank = rankList147(brands, all)
+  const dock = new Map(popularToday(rank).map((r) => [r.brand.name, r.rank]))
+  const card = cardRanks(rank, pinPopular(applyFilters(brands, all), all, rank), false)
+  assert.deepEqual([...card], [...dock])
+  // 인기순 정렬로 패스트푸드만 보면 맥도날드는 전역 순위 6을 그대로 단다.
+  const fast = { ...all, categories: new Set(['fastfood']) }
+  assert.deepEqual([...cardRanks(rank, applyFilters(brands, fast), true)], [['맥도날드', 6]])
+})
+
+test('검색 중에도 HOT 순위와 카드 순번은 전역 그대로다(#147)', () => {
+  const brands = hot147()
+  const q = { ...defaultFilters(), search: '피자' }
+  const rank = rankList147(brands, q)
+  assert.deepEqual(popularToday(rank).map((r) => r.brand.name), ['교촌', 'BBQ', '도미노', 'bhc', '피자헛'])
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  const shown = pinPopular(applyFilters(brands, pizza), pizza, rank)
+  assert.deepEqual([...cardRanks(rank, shown, false)], [['도미노', 3], ['피자헛', 5]])
 })

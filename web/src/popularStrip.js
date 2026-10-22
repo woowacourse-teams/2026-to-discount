@@ -1,5 +1,5 @@
 /**
- * 오늘 인기 띠(2026-10-14 시안). 지금 목록에 남은 브랜드 중 최근 24시간 동안 링크나 배너를
+ * 오늘 인기 띠(2026-10-14 시안). 카테고리와 검색을 뺀 나머지 필터를 건 목록에서 최근 24시간 동안 링크나 배너를
  * 누른 사람이 많은 순으로 다섯(API popularityToday, PopularityIndex). 누르면 그 카드로 간다.
  * 세 곳이 안 되면 그리지 않는다 - 하루 클릭이 적은 새벽에는 순위가 의미가 없다.
  */
@@ -43,4 +43,18 @@ export function popularToday(brands) {
 function denseRanks(brands, key) {
   const values = [...new Set((brands ?? []).map((b) => b[key] ?? 0).filter((v) => v > 0))].sort((a, b) => b - a)
   return new Map((brands ?? []).filter((b) => (b[key] ?? 0) > 0).map((b) => [b.name, values.indexOf(b[key]) + 1]))
+}
+
+/**
+ * 카드 왼쪽 위 순번(2026-10-18 사용자). 순위는 도크와 같은 rankBrands 표에서 읽고, 지금 보이는 카드에만 붙인다(#147).
+ * 인기순이면 전부, 그 밖에는 맨 앞에 HOT 순위권을 세웠을 때만 그 브랜드들(카테고리를 고르면 그 안에 있는 것만).
+ */
+export function cardRanks(rankBrands, visibleBrands, byPopularity) {
+  if (!visibleBrands) return null
+  const shown = new Set(visibleBrands.map((b) => b.name))
+  const pick = (entries) => new Map([...entries].filter(([name]) => shown.has(name)))
+  if (byPopularity) return pick(ranks(rankBrands, 'popularityToday'))
+  const top = popularToday(rankBrands)
+  const lead = top.find((r) => shown.has(r.brand.name))
+  return top.length >= STRIP_MIN && lead && visibleBrands[0].name === lead.brand.name ? pick(top.map((r) => [r.brand.name, r.rank])) : null
 }

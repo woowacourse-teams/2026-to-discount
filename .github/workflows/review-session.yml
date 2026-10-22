@@ -1,0 +1,17 @@
+# 정본은 mono .github/workflows/wf-review.yml. 이 파일은 언제 부를지와 이 저장소 설정만 둔다.
+name: review-session
+on:
+  pull_request:
+    types: [ready_for_review]
+
+jobs:
+  run:
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+    uses: ./.github/workflows/wf-review.yml
+    with:
+      spec_prefix: docs/design/
+    secrets: inherit
