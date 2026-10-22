@@ -47,7 +47,7 @@ jobs:
         run: |
           # 첫 줄만 보고 앞뒤 공백은 무시한다(2026-10-22 tracker #24 '/approve ' 무시됨).
           first=$(printf '%s\n' "$BODY" | head -n1 | tr -d '[:space:]')
-          if [ "$first" != "C:/Program Files/Git/reflect" ]; then echo "첫 줄이 C:/Program Files/Git/reflect 가 아니다"; exit 0; fi
+          if [ "$first" != "/reflect" ]; then echo "첫 줄이 /reflect 가 아니다"; exit 0; fi
           p=$(gh api "repos/$GH_REPO/collaborators/${{ github.event.comment.user.login }}/permission" -q .permission)
           echo "권한: $p"
           if [ "$p" = admin ] || [ "$p" = write ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; fi
