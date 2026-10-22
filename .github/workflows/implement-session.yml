@@ -16,7 +16,9 @@ jobs:
     # PR 댓글이 아니라 이슈 댓글이고, 본문이 정확히 /approve-design 일 때만.
     if: >-
       !github.event.issue.pull_request &&
-      github.event.comment.body == '/approve-design' &&
+      (github.event.comment.body == '/approve-design' ||
+       startsWith(github.event.comment.body, fromJSON('"/approve-design\n"')) ||
+       startsWith(github.event.comment.body, fromJSON('"/approve-design\r\n"'))) &&
       !contains(github.event.issue.labels.*.name, 'blocked')
     runs-on: ubuntu-latest
     outputs:

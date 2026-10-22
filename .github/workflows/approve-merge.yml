@@ -7,7 +7,11 @@ on:
 
 jobs:
   merge:
-    if: github.event.comment.body == '/approve'
+    # 첫 줄이 정확히 /approve 이면 승인. 둘째 줄부터 의견을 적어도 된다.
+    if: >-
+      github.event.comment.body == '/approve' ||
+      startsWith(github.event.comment.body, fromJSON('"/approve\n"')) ||
+      startsWith(github.event.comment.body, fromJSON('"/approve\r\n"'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
