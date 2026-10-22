@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, shortBrandName, conditionTable, nameCutPx, amountText } from './couponModel.js'
+import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, shortBrandName, conditionTable, nameCutPx, amountText, chipsOf, onCard, onDetail, headOrder, CHIP_PLACEMENT, membershipOf, qualifiersOf } from './couponModel.js'
 
 const o = (platform, amount, extra = {}) => ({ platform, amount, certainty: 'exact', kind: 'discount', ...extra })
 
@@ -209,4 +209,74 @@ test('new offer is the first card among tied best offers', () => {
   const offers = [{ platform: 'baemin', amount: 5000, minOrderAmount: 10000, isNew: false },
     { platform: 'yogiyo', amount: 5000, minOrderAmount: 20000, isNew: true }]
   assert.deepEqual(splitOffers(offers).best.map((o) => o.platform), ['yogiyo', 'baemin'])
+})
+
+// #151 카드와 상세가 한 목록(chipsOf)에서 뽑는다. 합성 픽스처, 형태만 이슈의 CU, 푸라닭과 같다(ADR-009).
+const puradak = [
+  o('yogiyo', 6000, { qualifier: '최적', conditions: '30,000원↑ 4,000+2,000=6,000원', tiers: [{ amount: 4000 }, { amount: 6000, channel: '포장' }] }),
+  o('coupangeats', 7000, { membership: 'coupangEats' }),
+  o('ddangyo', 5000),
+]
+const cuNew = o('coupangeats', 7000, { conditions: '첫 주문', qualifiers: ['첫 주문'] })
+const cuOld = o('coupangeats', 7000, { conditions: '첫 주문' })
+const key = (c) => `${c.kind}:${c.text}`
+
+test('#151 표시 위치 표: CHIP_PLACEMENT가 설계 문서 표와 같다', () => {
+  const H = 'head'
+  assert.deepEqual(CHIP_PLACEMENT, {
+    'qualifier-plain': { card: H, detail: H }, 'qualifier-random': { card: H, detail: H }, 'best-fit': { card: false, detail: H },
+    rate: { card: H, detail: H }, membership: { card: H, detail: H }, limited: { card: H, detail: H }, condition: { card: H, detail: H },
+    channel: { card: H, detail: H }, note: { card: false, detail: 'row' }, until: { card: false, detail: 'row' },
+  })
+})
+
+test('#151 같은 목록: 카드 칩은 모두 상세에 있고, 모든 칩 kind가 표에 있다', () => {
+  for (const x of [...puradak, cuNew, cuOld]) {
+    const all = chipsOf(x)
+    for (const c of all) assert.ok(CHIP_PLACEMENT[c.kind], c.kind)
+    const detail = new Set(all.filter(onDetail).map(key))
+    for (const c of all.filter(onCard)) assert.ok(detail.has(key(c)), key(c))
+  }
+})
+
+test('#151 CU: 첫 주문은 칩 하나, 상세 문장에서 빠진다. 옛 응답도 같고 부분 일치는 문장으로 둔다', () => {
+  for (const x of [cuNew, cuOld]) {
+    assert.deepEqual(chipsOf(x).filter(onCard).map(key), ['condition:첫 주문'])
+    assert.equal(conditionTable(x).note, '')
+  }
+  const only = o('coupangeats', 7000, { conditions: '첫 주문만 가능' })
+  assert.deepEqual(qualifiersOf(only), [])
+  assert.equal(conditionTable(only).note, '첫 주문만 가능')
+})
+
+test('#151 푸라닭: 요기요 중복 할인은 상세 머리에만, 카드와 표 줄에는 안 뜬다', () => {
+  const c = chipsOf(puradak[0])
+  assert.deepEqual(c.filter(onCard).map(key), ['channel:포장'])
+  assert.deepEqual(c.filter((x) => x.scope === 'offer' && onDetail(x)).map(key), ['channel:포장', 'best-fit:중복 할인'])
+  assert.ok(!c.some((x) => x.scope === 'tier' && x.kind === 'best-fit'))
+  assert.deepEqual(chipsOf(puradak[1]).filter(onCard).map(key), ['membership:쿠팡와우'])
+  assert.deepEqual(chipsOf(puradak[2]), [])
+})
+
+test('#151 멤버십: 카드는 대표 구간의 membershipOf를 따른다', () => {
+  const mem = (x) => chipsOf(x).filter(onCard).some((c) => c.kind === 'membership')
+  const tiers = [{ amount: 6500, note: '선착순' }, { amount: 3000, membership: 'baeminClub' }]
+  assert.equal(mem(o('baemin', 6500, { membership: 'baeminClub', tiers })), false) // 대표가 비멤버 구간
+  assert.equal(mem(o('baemin', 3000, { tiers })), true) // 대표가 멤버 구간(오퍼 값 없음)
+  assert.equal(mem(o('baemin', 3000, { membership: 'baeminClub' })), true) // 구간 없음: 오퍼 값
+  assert.equal(mem(o('baemin', 3000, { badge: '배민클럽 전용쿠폰' })), true) // 옛 행
+  assert.equal(membershipOf(o('baemin', 3000, { badge: '배민클럽 전용쿠폰' })), 'badge')
+})
+
+test('#151 멤버십: 구간은 있는데 대표 구간(금액 일치)을 못 찾으면 오퍼 값으로 판단한다', () => {
+  const x = o('baemin', 6000, { membership: 'baeminClub', tiers: [{ amount: 5000, membership: 'baeminClub' }, { amount: 3000 }] })
+  assert.ok(chipsOf(x).some((c) => c.scope === 'offer' && c.kind === 'membership'))
+  const none = o('baemin', 6000, { tiers: [{ amount: 5000, membership: 'baeminClub' }] })
+  assert.ok(!chipsOf(none).some((c) => c.scope === 'offer' && c.kind === 'membership'))
+})
+
+test('#151 머리 줄 순서: 채널, 멤버십, 선착순(한정), 나머지, 복합은 맨 뒤', () => {
+  const k = (...kinds) => kinds.map((kind) => ({ kind }))
+  assert.deepEqual(headOrder(k('best-fit', 'condition', 'limited', 'membership', 'channel', 'qualifier-plain')).map((c) => c.kind),
+    ['channel', 'membership', 'limited', 'condition', 'qualifier-plain', 'best-fit'])
 })

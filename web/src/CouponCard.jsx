@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './cardId.js'
-import { amountText, badgesOf, isUpdated, channelOf, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, chipsOf, onCard, onDetail, headOrder, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
@@ -19,8 +19,8 @@ const Up = () => (
   <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2l4 5H7.2v3H4.8V7H2z" fill="currentColor" /></svg>
 )
 
-// 배지: 운영 화면(OfferChip)의 배지 마크업과 클래스를 그대로 쓴다(chip-tags 안 offer__range-badge, offer__status-badge). 새로 그리지 않는다.
-const RANGE_CLASS = { 'qualifier-plain': 'plain', 'qualifier-random': 'random', rate: 'rate', 'best-fit': 'optimal' }
+// 배지: 목록은 chipsOf를 따른다(beggars-ops 콘솔과 맞추기는 #151 후속). 마크업은 운영 화면(OfferChip)의 배지 마크업과 클래스를 그대로 쓴다(chip-tags 안 offer__range-badge, offer__status-badge). 새로 그리지 않는다.
+const RANGE_CLASS = { 'qualifier-plain': 'plain', 'qualifier-random': 'random', rate: 'rate', 'best-fit': 'optimal', condition: 'condition' }
 function OpBadge({ b, platform }) {
   if (b.kind === 'membership') return <span className="offer__status-badge offer__status-badge--membership" data-platform={platform}>{b.text}</span>
   if (b.kind === 'limited') return <span className="offer__status-badge">{b.text}</span>
@@ -94,17 +94,18 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
 }
 
 // 배지 묶음(채널 + 배지). 운영 탭 마크업, 쿠폰 배지 규격 하나(coupon-card.css .cc-tags)
-function Tags({ o }) {
-  const ch = channelOf(o)
-  // 복합은 늘 맨 오른쪽(사용자 2026-10-06)
-  const tags = [...badgesOf(o)].sort((x, y) => (x.kind === 'best-fit') - (y.kind === 'best-fit'))
+export function Tags({ o, detail = false }) {
+  // 카드와 상세 오퍼 머리가 같은 목록(chipsOf)에서 뽑는다(#151). 복합은 늘 맨 오른쪽(사용자 2026-10-06)
+  const all = headOrder(chipsOf(o).filter(detail ? (c) => c.scope === 'offer' && onDetail(c) : onCard))
+  const ch = all.find((b) => b.kind === 'channel')?.text
+  const tags = all.filter((b) => b.kind !== 'channel')
   if (!ch && tags.length === 0) return null
   return (
     <span className="cc-tags"><span className="chip-tags">
-      {ch && <span className="offer__status-badge">{ch}</span>}
+      {ch && <span className="offer__range-badge offer__range-badge--plain">{ch}</span>}
       {tags.map((b) => (b.kind === 'best-fit'
-        ? <ComboInfo key={b.kind} o={o} text={b.text} />
-        : <OpBadge key={b.kind} b={b} platform={o.platform} />))}
+        ? <ComboInfo key={`${b.kind}:${b.text}`} o={o} text={b.text} />
+        : <OpBadge key={`${b.kind}:${b.text}`} b={b} platform={o.platform} />))}
     </span></span>
   )
 }
@@ -462,7 +463,7 @@ function CouponCard({ brand, position, rank, highlighted, onInteract, include = 
               <Fragment key={offerKey(o)}>
                 <div className="cc-deal cc-deal--more" style={anim}>
                   <div className="cc-deal-col">
-                    <Tags o={o} />
+                    <Tags o={o} detail />
                     <Coupon o={o} brand={brand} position={position} best={stack && i < best.length - 1} where="expanded" slot={i + 1} expanded />
                   </div>
                 </div>
@@ -496,7 +497,7 @@ function CouponCard({ brand, position, rank, highlighted, onInteract, include = 
                 const hasTbl = tb.rows.length > 0 || tb.note
                 return (
                   <div key={offerKey(o)} className="cc-sheet__item">
-                    <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded tags={<Tags o={o} />} />
+                    <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded tags={<Tags o={o} detail />} />
                     {hasTbl && <DetailTable t={tb} i={0} />}
                   </div>
                 )

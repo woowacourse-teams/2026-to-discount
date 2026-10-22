@@ -88,14 +88,74 @@ export function noteParts(note) {
 }
 const noteChips = (note) => noteParts(note).map((text) => ({ kind: 'note', text }))
 
+/**
+ * 멤버십 상속, 카드와 상세가 같이 쓴다(#151). 구간이 말하면 그 값. 구간 하나라도 자기 멤버십을 밝히면 밝히지 않은
+ * 구간은 오퍼 값을 물려받지 않는다: 선착순을 상시의 구간으로 합친 오퍼에서 상시(배민클럽 전용)의 멤버십이 멤버십을
+ * 모르는 선착순 구간에까지 붙었다(2026-10-16 CodeRabbit, PR #85). 아니면 오퍼 값, 필드가 없는 옛 행은 badge 끝말로('badge').
+ */
+const says = (m) => m && m !== 'none'
+export function membershipOf(offer, tier) {
+  if (tier && says(tier.membership)) return tier.membership
+  if (tier && (offer.tiers ?? []).some((t) => says(t.membership))) return null
+  return says(offer.membership) ? offer.membership : (offer.badge?.endsWith('전용쿠폰') ? 'badge' : null)
+}
+
+// 칩으로 올리는 조건. conditions가 알려진 토큰과 정확히 같을 때만(부분 일치, 표기 차이는 문장으로 둔다).
+// ponytail: API가 qualifiers를 아직 보내지 않아(계약 offerContract.test.js) 이 정확 일치가 지금 유일한 경로다.
+// conditions가 '첫 주문 ' 같은 공백, 표기 차이로 오면 칩이 서지 않고 문장(note)으로 남는다. API가 보내기 시작하면 그 칸을 먼저 읽게 바꾼다(분리한 API 이슈 번호: 미기재).
+const KNOWN_QUALIFIERS = ['첫 주문']
+export function qualifiersOf(offer) {
+  return KNOWN_QUALIFIERS.includes(offer.conditions) ? [offer.conditions] : []
+}
+
+/** 칩마다 뜨는 자리. 'head' 카드 머리나 상세 오퍼 머리, 'row' 상세 표 줄, false 안 뜸. 정본: docs/design/151 표시 위치 표. */
+export const CHIP_PLACEMENT = {
+  'qualifier-plain': { card: 'head', detail: 'head' },
+  'qualifier-random': { card: 'head', detail: 'head' },
+  'best-fit': { card: false, detail: 'head' }, // 상세에서만(2026-10-22 권한자)
+  rate: { card: 'head', detail: 'head' },
+  membership: { card: 'head', detail: 'head' },
+  limited: { card: 'head', detail: 'head' },
+  condition: { card: 'head', detail: 'head' },
+  channel: { card: 'head', detail: 'head' }, // 시트 머리에도 띄워 구분한다(2026-10-22 권한자)
+  note: { card: false, detail: 'row' },
+  until: { card: false, detail: 'row' },
+}
+
+/**
+ * 오퍼 하나의 칩 목록(#151). 카드와 상세가 여기서 뽑는다(onCard, onDetail).
+ * scope 'offer': 대표 구간의 채널, badgesOf(멤버십은 대표 구간의 membershipOf로), qualifiers. scope 'tier': 상세 표 줄의 칩.
+ */
+export function chipsOf(offer) {
+  const ch = channelOf(offer)
+  const rep = (offer.tiers ?? []).find((t) => t.amount === offer.amount)
+  // 대표 구간을 못 찾으면(구간은 있되 금액이 오퍼와 안 맞음) 오퍼 값으로 판단한다. 빈 구간을 넣으면 오퍼 멤버십 칩이 사라졌다.
+  const showMem = !!(rep ? membershipOf(offer, rep) : membershipOf(offer))
+  const badges = badgesOf(offer)
+  const offerChips = [
+    ...(ch ? [{ kind: 'channel', text: ch }] : []),
+    ...badges.filter((b) => b.kind !== 'membership' || showMem),
+    // 오퍼 값은 없고 대표 구간만 멤버십을 말할 때
+    ...(showMem && !badges.some((b) => b.kind === 'membership')
+      ? [{ kind: 'membership', text: MEMBERSHIP_LABEL[offer.platform] ?? offer.badge }] : []),
+    ...qualifiersOf(offer).map((text) => ({ kind: 'condition', text })),
+  ].map((c) => ({ ...c, scope: 'offer' }))
+  const tierChips = conditionTable(offer).rows.flatMap((r, tier) => r.chips.map((c) => ({ ...c, scope: 'tier', tier })))
+  return [...offerChips, ...tierChips]
+}
+export const onCard = (c) => c.scope === 'offer' && CHIP_PLACEMENT[c.kind]?.card === 'head'
+// 구간 칩은 모두 상세 표 줄, 오퍼 칩은 detail이 'head'면 상세 오퍼 머리.
+export const onDetail = (c) => c.scope === 'tier' || CHIP_PLACEMENT[c.kind]?.detail === 'head'
+// 머리 줄이 넘치면 뒤가 잘린다(overflow hidden). 앞에 둘 순서: 한정된 채널, 멤버십, 선착순(한정), 나머지(2026-10-22 권한자).
+// channelOf는 배달, 포장 중 하나일 때만 값이 있어 채널 칩은 늘 한정된 채널이다. 복합(중복 할인)은 맨 뒤.
+const HEAD_ORDER = ['channel', 'membership', 'limited']
+const rank = (c) => (c.kind === 'best-fit' ? 99 : (HEAD_ORDER.indexOf(c.kind) + 1 || HEAD_ORDER.length + 1))
+export const headOrder = (chips) => [...chips].sort((x, y) => rank(x) - rank(y))
+
 export function conditionTable(offer) {
   const tiers = Array.isArray(offer.tiers) ? [...offer.tiers].sort((a, b) => b.amount - a.amount) : []
-  // 구간이 자기 멤버십을 말하지 않으면 오퍼 전체의 값을 따른다(운영 OfferDetail과 같다). 필드가 없는 옛 행은 badge 끝말로.
-  const offerMem = offer.membership && offer.membership !== 'none' ? offer.membership : (offer.badge?.endsWith('전용쿠폰') ? 'badge' : null)
-  // 구간 하나라도 자기 멤버십을 밝히면, 밝히지 않은 구간은 오퍼 값을 물려받지 않는다. 선착순을 상시의 구간으로 합친
-  // 오퍼에서 상시(배민클럽 전용)의 멤버십이 멤버십을 모르는 선착순 구간에까지 붙었다(2026-10-16 CodeRabbit, PR #85).
-  const tierSays = tiers.some((t) => t.membership && t.membership !== 'none')
-  const memOf = (t) => (t.membership && t.membership !== 'none' ? t.membership : tierSays ? null : offerMem)
+  const offerMem = membershipOf(offer)
+  const memOf = (t) => membershipOf(offer, t)
   const extra = (t) => t.channel || memOf(t) || t.note || (t.expiresAt && t.expiresAt !== offer.expiresAt)
   const rows = []
   // 최적(기본 할인 + 쿠폰을 겹친 값)은 겹친 구간마다 계산식을 붙인다: 30,000원↑ 7,000원 (5,000+2,000).
@@ -118,7 +178,8 @@ export function conditionTable(offer) {
   }
   if (tiers.length > 1 || tiers.some(extra)) for (const t of tiers) rows.push(rowOf(t))
   else if (offerMem) rows.push(rowOf({ amount: offer.amount, minOrder: offer.minOrderAmount }))
-  const note = offer.conditions && !formulaOf(offer) ? offer.conditions : ''
+  // 칩으로 올린 조건(qualifiersOf)과 같은 문장은 되풀이하지 않는다(#151)
+  const note = offer.conditions && !formulaOf(offer) && !qualifiersOf(offer).includes(offer.conditions) ? offer.conditions : ''
   return { rows, note }
 }
 
