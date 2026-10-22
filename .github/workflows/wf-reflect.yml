@@ -233,9 +233,10 @@ jobs:
           START: ${{ steps.start.outputs.sha }}
           BEFORE: ${{ steps.count.outputs.n }}
         run: |
+          # 반영할 지적이 없으면 커밋 없이 반영 댓글만 남는 것이 맞다(2026-10-22 mono #143). 새 반영 댓글이 성공 조건이다.
           ok=1
           head=$(git ls-remote --heads origin "$BRANCH" | cut -f1)
-          if [ -n "$head" ] && [ "$head" != "$START" ]; then echo "새 커밋: $head"; else echo "새 커밋 없음"; ok=0; fi
+          if [ -n "$head" ] && [ "$head" != "$START" ]; then echo "새 커밋: $head"; else echo "새 커밋 없음(반영 댓글로 판정)"; fi
           n=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '[.[] | select(.user.login == "claude[bot]" and (.body | startswith("반영:")))] | length' | awk '{s+=$1} END {print s+0}')
           if [ "$n" -gt "$BEFORE" ]; then echo "새 반영 댓글: $n"; else echo "이번 실행의 반영 댓글 없음"; ok=0; fi
           [ "$ok" = 1 ]

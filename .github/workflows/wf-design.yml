@@ -96,7 +96,7 @@ jobs:
           path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            이슈 #${{ env.ISSUE }} 의 설계자 세션이다.
+            ${{ github.repository }} 이슈 #${{ env.ISSUE }} 의 설계자 세션이다. PR 본문 링크는 이 저장소 이름(https://github.com/${{ github.repository }}/…)으로 쓴다.
             .claude/agents/designer.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서를 쓴다.
             이슈 입력은 ${{ runner.temp }}/issue-input.md 하나만 읽는다. gh issue view로 댓글을 읽지 않는다.
             설계 문서는 ${{ env.SPEC }}-<영문 소문자 요약>.md 에 쓴다.
