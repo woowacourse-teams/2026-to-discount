@@ -20,7 +20,7 @@ const Up = () => (
 )
 
 // 배지: 목록은 chipsOf를 따른다(beggars-ops 콘솔과 맞추기는 #151 후속). 마크업은 운영 화면(OfferChip)의 배지 마크업과 클래스를 그대로 쓴다(chip-tags 안 offer__range-badge, offer__status-badge). 새로 그리지 않는다.
-const RANGE_CLASS = { 'qualifier-plain': 'plain', 'qualifier-random': 'random', rate: 'rate', 'best-fit': 'optimal' }
+const RANGE_CLASS = { 'qualifier-plain': 'plain', 'qualifier-random': 'random', rate: 'rate', 'best-fit': 'optimal', condition: 'condition' }
 function OpBadge({ b, platform }) {
   if (b.kind === 'membership') return <span className="offer__status-badge offer__status-badge--membership" data-platform={platform}>{b.text}</span>
   if (b.kind === 'limited') return <span className="offer__status-badge">{b.text}</span>
@@ -102,7 +102,7 @@ function Tags({ o, detail = false }) {
   if (!ch && tags.length === 0) return null
   return (
     <span className="cc-tags"><span className="chip-tags">
-      {ch && <span className="offer__status-badge">{ch}</span>}
+      {ch && <span className="offer__range-badge offer__range-badge--plain">{ch}</span>}
       {tags.map((b) => (b.kind === 'best-fit'
         ? <ComboInfo key={b.kind} o={o} text={b.text} />
         : <OpBadge key={b.kind} b={b} platform={o.platform} />))}
