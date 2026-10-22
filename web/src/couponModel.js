@@ -100,11 +100,10 @@ export function membershipOf(offer, tier) {
   return says(offer.membership) ? offer.membership : (offer.badge?.endsWith('전용쿠폰') ? 'badge' : null)
 }
 
-// 칩으로 올리는 조건. qualifiers가 없는 옛 응답은 conditions가 알려진 토큰과 정확히 같을 때만(부분 일치는 문장으로 둔다).
-// ponytail: 대체 경로는 내보내기가 qualifiers를 실은 뒤 걷어낸다(#151 후속).
+// 칩으로 올리는 조건. conditions가 알려진 토큰과 정확히 같을 때만(부분 일치, 표기 차이는 문장으로 둔다).
+// ponytail: API가 qualifiers를 아직 보내지 않는다(계약 offerContract.test.js). API가 보내기 시작하면 그 칸을 먼저 읽게 바꾼다(#151 후속).
 const KNOWN_QUALIFIERS = ['첫 주문']
 export function qualifiersOf(offer) {
-  if (Array.isArray(offer.qualifiers) && offer.qualifiers.length > 0) return offer.qualifiers
   return KNOWN_QUALIFIERS.includes(offer.conditions) ? [offer.conditions] : []
 }
 
