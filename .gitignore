@@ -10,6 +10,7 @@ scripts/.events.jsonl
 # 브랜치 worktree에서만 돈다. 경로는 다른 저장소와 같게 .claude/worktrees다.
 .claude/*
 !.claude/agents/
+!.claude/skills/
 
 # SDD 진행 기록(계획 실행용 스크래치).
 .superpowers/
