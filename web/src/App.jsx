@@ -409,9 +409,9 @@ export default function App({ initial = null }) {
     })
   }, [])
 
-  // 순위 기준 목록: 카테고리만 뺀다. 실시간 순위는 어느 카테고리를 보든 같다(#147).
+  // 순위 기준 목록: 카테고리와 검색을 뺀다. 실시간 순위는 무엇을 보든 찾든 같다(#147).
   const rankBrands = useMemo(
-    () => (brands ? applyHidden(applyFilters(brands, { ...filters, categories: new Set() }), hidden, bestOf) : brands),
+    () => (brands ? applyHidden(applyFilters(brands, { ...filters, categories: new Set(), search: '' }), hidden, bestOf) : brands),
     [brands, filters, hidden, bestOf],
   )
   const visibleBrands = useMemo(

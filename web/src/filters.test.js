@@ -280,7 +280,7 @@ const hot147 = () => [
   ['교촌', 'chicken', 9], ['BBQ', 'chicken', 8], ['도미노', 'pizza', 7], ['bhc', 'chicken', 6], ['피자헛', 'pizza', 5],
   ['맥도날드', 'fastfood', 2], ['버거킹', 'fastfood', 0],
 ].map(([name, category, n]) => brand(name, [o(5000, { platform: 'baemin' })], { category, popularityToday: n }))
-const rankList147 = (brands, f) => applyFilters(brands, { ...f, categories: new Set() })
+const rankList147 = (brands, f) => applyFilters(brands, { ...f, categories: new Set(), search: '' })
 
 test('카테고리를 골라도 순위 기준 목록은 같고 HOT은 세 곳 이상 남는다(#147)', () => {
   const brands = hot147()
@@ -292,8 +292,12 @@ test('카테고리를 골라도 순위 기준 목록은 같고 HOT은 세 곳 �
   assert.deepEqual(popularToday(rankList147(brands, fast)).map((r) => r.brand.name), ['교촌', 'BBQ', '도미노', 'bhc', '피자헛'])
 })
 
-test('pinPopular: 카테고리를 고르면 그대로, 안 고르면 순위 기준 목록의 상위 5를 앞에 세운다(#147)', () => {
+test('pinPopular: 고른 카테고리 안의 순위권 브랜드만 순위대로 앞에 세운다(#147)', () => {
   const brands = hot147()
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  const shownPizza = [...applyFilters(brands, pizza)].reverse()
+  assert.deepEqual(pinPopular(shownPizza, pizza, rankList147(brands, pizza)).map((b) => b.name), ['도미노', '피자헛'])
+  // 순위권 브랜드가 없으면 그대로
   const fast = { ...defaultFilters(), categories: new Set(['fastfood']) }
   const shown = applyFilters(brands, fast)
   assert.equal(pinPopular(shown, fast, rankList147(brands, fast)), shown)
@@ -312,4 +316,14 @@ test('카드 순번은 도크와 같은 이름에 같은 순위를 붙인다. �
   // 인기순 정렬로 패스트푸드만 보면 맥도날드는 전역 순위 6을 그대로 단다.
   const fast = { ...all, categories: new Set(['fastfood']) }
   assert.deepEqual([...cardRanks(rank, applyFilters(brands, fast), true)], [['맥도날드', 6]])
+})
+
+test('검색 중에도 HOT 순위와 카드 순번은 전역 그대로다(#147)', () => {
+  const brands = hot147()
+  const q = { ...defaultFilters(), search: '피자' }
+  const rank = rankList147(brands, q)
+  assert.deepEqual(popularToday(rank).map((r) => r.brand.name), ['교촌', 'BBQ', '도미노', 'bhc', '피자헛'])
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  const shown = pinPopular(applyFilters(brands, pizza), pizza, rank)
+  assert.deepEqual([...cardRanks(rank, shown, false)], [['도미노', 3], ['피자헛', 5]])
 })
