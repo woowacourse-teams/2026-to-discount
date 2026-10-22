@@ -1,0 +1,126 @@
+# 정본(설계 119 리뷰 단계): feat/<이슈>-* PR의 초안이 풀리면 리뷰어 세션이 설계와 견주어 지적을 PR 리뷰로 남긴다.
+# mono와 tracker가 같이 부른다. 리뷰어는 읽기만 하고 리뷰 계획(JSON)을 쓴다. 리뷰 등록은 아래 단계가 한다.
+# 지적은 줄 단위 리뷰 댓글이라 /reflect 반영 세션이 미해결 스레드로 읽는다.
+name: wf-review
+on:
+  workflow_call:
+    inputs:
+      spec_prefix:
+        description: 설계 문서 경로 앞부분(뒤에 <이슈번호>-*.md)
+        type: string
+        required: true
+      read_mono:
+        description: mono를 mono/ 에 읽기용으로 받는다(tracker)
+        type: boolean
+        default: false
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+
+jobs:
+  review:
+    if: >-
+      startsWith(github.event.pull_request.head.ref, 'feat/') &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !github.event.pull_request.draft
+    concurrency:
+      group: review-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+      BRANCH: ${{ github.event.pull_request.head.ref }}
+    steps:
+      - name: 이슈 번호 뽑기
+        id: issue
+        run: |
+          n=$(echo "$BRANCH" | sed -n 's#^feat/\([0-9][0-9]*\)-.*#\1#p')
+          if [ -z "$n" ]; then echo "브랜치에 이슈 번호 없음: $BRANCH"; exit 0; fi
+          echo "num=$n" >> "$GITHUB_OUTPUT"
+          echo "SPEC=${{ inputs.spec_prefix }}$n" >> "$GITHUB_ENV"
+      - if: steps.issue.outputs.num != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - if: steps.issue.outputs.num != '' && inputs.read_mono
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: woowacourse-teams/2026-to-discount
+          path: mono
+      - name: 리뷰 입력 준비
+        if: steps.issue.outputs.num != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.issue.outputs.num }}
+        run: |
+          {
+            echo "# PR #$PR: $(gh api "repos/$GH_REPO/pulls/$PR" -q .title)"
+            echo
+            gh api "repos/$GH_REPO/pulls/$PR" -q '.body // ""'
+            echo
+            echo "# 이슈 #$ISSUE: $(gh api "repos/$GH_REPO/issues/$ISSUE" -q .title)"
+            gh api "repos/$GH_REPO/issues/$ISSUE" -q '.body // ""'
+            echo
+            echo "## 이슈 댓글 (OWNER, MEMBER, COLLABORATOR만)"
+            gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate \
+              | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR") | "### \(.user.login) \(.created_at)\n\(.body)\n"'
+          } > "$RUNNER_TEMP/review-input.md"
+          gh pr diff "$PR" -R "$GH_REPO" > "$RUNNER_TEMP/pr.diff"
+          echo "diff 줄 수: $(wc -l < "$RUNNER_TEMP/pr.diff")"
+      # Claude 액션의 자체 설치가 동시 실행 때 429로 실패했다(2026-10-22). 간격을 두고 다시 시도해 설치한다.
+      - name: Claude Code 설치(재시도)
+        id: cc
+        if: steps.issue.outputs.num != ''
+        run: |
+          for i in 1 2 3 4 5; do
+            npm install -g @anthropic-ai/claude-code > /dev/null 2>&1 && break
+            echo "설치 실패 $i회, $((i * 20))초 뒤 다시"; sleep $((i * 20))
+          done
+          p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
+          echo "path=$p" >> "$GITHUB_OUTPUT"
+      - if: steps.issue.outputs.num != ''
+        id: claude
+        uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
+          # 로컬 구현은 사람 계정으로, 클라우드 구현은 App으로 초안을 푼다. 둘 다 받는다.
+          allowed_bots: "2026-to-discount"
+          prompt: |
+            ${{ github.repository }} PR #${{ env.PR }}(이슈 #${{ steps.issue.outputs.num }})의 리뷰어 세션이다.
+            .claude/agents/reviewer.md 를 먼저 읽고 그 순서와 "먼저 보는 위험"을 따른다.
+            입력: ${{ runner.temp }}/review-input.md(PR 본문, 이슈, 이슈 권한자 댓글), ${{ runner.temp }}/pr.diff(변경분), 설계 문서 ${{ env.SPEC }}-*.md. 저장소 파일은 근거를 확인할 때 읽는다.
+            /approve-design 전 권한자 이슈 댓글은 설계의 일부다. 설계와 다르게 구현됐는지, 빠진 것, 위험(값을 조용히 잃는 자리, 저장소 사이 계약, 영향이 번지는 자리 docs/CHANGE-PROPAGATION.md 또는 mono/docs/CHANGE-PROPAGATION.md, 결론을 박지 못한 테스트)을 본다.
+            확인한 것만 지적한다. 추정이면 "(추정)"을 붙인다. 문체 지적은 하지 않는다. 지적이 없으면 없다고 쓴다.
+            결과는 Write로 ${{ runner.temp }}/review.json 하나에 쓴다. 형식:
+            {"summary": "<요약 마크다운. 첫 줄은 '리뷰: 지적 N건' 또는 '리뷰: 지적 없음'>", "comments": [{"path": "<diff의 파일 경로>", "line": <변경 뒤 줄 번호>, "body": "<지적과 근거, 고칠 방향>"}]}
+            line은 diff에서 그 파일의 + 줄이나 문맥 줄 번호여야 한다. 줄을 못 짚는 지적은 summary에 쓴다. 코드를 고치거나 댓글을 직접 달지 않는다.
+          claude_args: --max-turns 30 --allowedTools "Read,Grep,Glob,Write"
+      # 리뷰를 등록한다. 줄 단위 댓글이 diff 밖이라 거부되면(422) 지적을 요약에 옮겨 요약만 등록한다.
+      - name: 리뷰 등록
+        if: steps.issue.outputs.num != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          f="$RUNNER_TEMP/review.json"
+          [ -s "$f" ] || { echo "리뷰 파일 없음"; exit 1; }
+          jq -e '.summary | type == "string"' "$f" > /dev/null
+          jq --arg sha "$SHA" '{commit_id: $sha, event: "COMMENT", body: .summary,
+            comments: [(.comments // [])[] | {path, line, side: "RIGHT", body}]}' "$f" > "$RUNNER_TEMP/req.json"
+          if ! gh api -X POST "repos/$GH_REPO/pulls/$PR/reviews" --input "$RUNNER_TEMP/req.json" > /dev/null; then
+            echo "줄 단위 등록 실패, 요약으로 등록"
+            jq --arg sha "$SHA" '{commit_id: $sha, event: "COMMENT",
+              body: (.summary + "\n\n" + ([(.comments // [])[] | "- `\(.path):\(.line)` \(.body)"] | join("\n")))}' "$f" > "$RUNNER_TEMP/req.json"
+            gh api -X POST "repos/$GH_REPO/pulls/$PR/reviews" --input "$RUNNER_TEMP/req.json" > /dev/null
+          fi
+          echo "리뷰 등록: 줄 댓글 $(jq '(.comments // []) | length' "$f")건"
+      - name: 거부된 도구와 턴 수
+        if: always() && steps.claude.outputs.execution_file != ''
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          jq -c '.[] | select(.type == "result") | {num_turns, subtype, denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true
