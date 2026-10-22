@@ -73,10 +73,22 @@ jobs:
             echo "# 이슈 #$ISSUE"
             gh api "repos/$GH_REPO/issues/$ISSUE" -q '.body // ""'
           } > "$RUNNER_TEMP/summary-input.md"
+      # Claude 액션의 자체 설치가 동시 실행 때 429로 실패했다(2026-10-22 tracker #22, mono #143). 간격을 두고 다시 시도해 설치한다.
+      - name: Claude Code 설치(재시도)
+        id: cc
+        if: steps.issue.outputs.num != ''
+        run: |
+          for i in 1 2 3 4 5; do
+            npm install -g @anthropic-ai/claude-code > /dev/null 2>&1 && break
+            echo "설치 실패 $i회, $((i * 20))초 뒤 다시"; sleep $((i * 20))
+          done
+          p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
+          echo "path=$p" >> "$GITHUB_OUTPUT"
       - if: steps.issue.outputs.num != ''
         id: claude
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
         with:
+          path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # 병합은 approve-merge가 App 토큰으로 한다. 그 병합이 깨운 실행만 허용한다(다른 봇은 거부).
           allowed_bots: "2026-to-discount"
