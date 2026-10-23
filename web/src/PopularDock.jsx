@@ -7,6 +7,7 @@ import { RankChange } from './PopularStrip.jsx'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
 import { bestConfirmedAmount } from './filters.js'
 
+// 순위는 카테고리·검색과 무관하다: App이 둘을 뺀 rankBrands를 넘긴다(#147).
 let impressed = false
 const ROLL_MS = 5500 // 2026-10-16 사용자: 넘어가는 시간을 늘려(3.5초 -> 5.5초)
 

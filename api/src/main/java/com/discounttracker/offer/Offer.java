@@ -40,7 +40,9 @@ public record Offer(String platform, Integer amount, String qualifier,
                     // 이 오퍼를 처음 본 시각(OfferRecord.firstSeenAt 그대로). 웹이 방문자 기준으로 New를 판정한다.
                     String firstSeenAt,
                     // 이력이 판정한 신규 여부(설계 2026-10-09). null = 모름.
-                    @JsonProperty("isNew") Boolean isNew) {
+                    @JsonProperty("isNew") Boolean isNew,
+                    // 원장의 구조화 조건(OfferRecord.qualifiers 그대로, #155). null = 모름, [] = 조건 없음.
+                    List<String> qualifiers) {
 
     /** 배너에서 세운 오퍼의 offerType. BrandComparisonService가 적는 값과 같다. */
     public static final String BANNER_OFFER_TYPE = "banner";
@@ -68,7 +70,8 @@ public record Offer(String platform, Integer amount, String qualifier,
                 // 상시와 별개 오퍼다(2026-10-01 사용자). 같은 앱에서 무엇을 보일지는 mergeSameFirstCome가 고른다.
                 BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType())
                         || (r.section() != null && r.section().contains(FIRST_COME_SECTION_MARK)),
-                Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()), r.firstSeenAt(), null);
+                Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()), r.firstSeenAt(), null,
+                r.qualifiers());
     }
 
     @JsonProperty("status")
@@ -173,8 +176,11 @@ public record Offer(String platform, Integer amount, String qualifier,
         String mergedBadge = badge != null ? badge
                 : sameCoupon && membership == Membership.UNKNOWN && other.membership != null
                         && other.membership != Membership.UNKNOWN ? other.badge : badge;
+        // 구조화 조건은 conditions와 같다. []도 관측이라 안 덮인다(#155).
+        List<String> mergedQualifiers = qualifiers != null ? qualifiers
+                : sameCoupon ? other.qualifiers : null;
         if (mergedMinOrder == minOrderAmount && mergedTiers == tiers && mergedConditions == conditions
-                && mergedMembership == membership && mergedBadge == badge) {
+                && mergedMembership == membership && mergedBadge == badge && mergedQualifiers == qualifiers) {
             return this;
         }
         // soldOut은 병합하지 않는다 — 이긴 쪽 자신의 amount에 매인 상태라
@@ -185,7 +191,8 @@ public record Offer(String platform, Integer amount, String qualifier,
         //
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, mergedBadge, soldOut,
-                link, mergedMembership, fromBanner, firstCome, certainty, kind, earlier(firstSeenAt, other.firstSeenAt), isNew);
+                link, mergedMembership, fromBanner, firstCome, certainty, kind, earlier(firstSeenAt, other.firstSeenAt), isNew,
+                mergedQualifiers);
     }
 
     /**
@@ -242,7 +249,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         }
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
-                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew);
+                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew, qualifiers);
     }
 
     /**
@@ -286,7 +293,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(platform, lead.amount, qualifier, status, lead.rawText, screenshotPath, capturedAt,
                 lead.minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, lead.badge,
                 soldOut && first.soldOut, lead.link, merged, fromBanner, firstLeads, certainty, kind,
-                earlier(firstSeenAt, first.firstSeenAt), isNew);
+                earlier(firstSeenAt, first.firstSeenAt), isNew, qualifiers);
     }
 
     /** 구간에 적을 멤버십 키. 모르면 null(구간 칸이 비면 "모름"이다). */
@@ -305,7 +312,7 @@ public record Offer(String platform, Integer amount, String qualifier,
     public Offer withIsNew(Boolean v) {
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,
                 tierMode, tiers, conditions, expiresAt, badge, soldOut, link, membership, fromBanner, firstCome,
-                certainty, kind, firstSeenAt, v);
+                certainty, kind, firstSeenAt, v, qualifiers);
     }
 
     /** 둘 중 이른 시각. 같은 쿠폰을 두 출처에서 합칠 때 처음 본 시각은 더 이른 쪽이다. 하나가 없으면 다른 쪽. */

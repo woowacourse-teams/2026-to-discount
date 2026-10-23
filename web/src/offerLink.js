@@ -76,7 +76,9 @@ let hubLinks = {}
 
 // 쿠팡이츠는 오퍼와 배너 모두 이 링크(와우 라운지)로 보낸다(2026-10-06 사용자). 수집이 매일 받는 허브 공유 링크보다 우선.
 // 마지막 기본값이다. 수집이 매일 검증한 공유 링크를 오퍼 link로 실어 보내면 그게 먼저다(2026-10-12 만료 링크가 박혀 있었다).
-export const COUPANGEATS_LINK = 'https://share.coupangeats.com/hMcIXWK036b'
+export const COUPANGEATS_LINK = 'https://share.coupangeats.com/AA8dvNb8k7b'
+// 쿠팡이츠 공유 링크 접두사. offerLink와 openWithNotice가 같이 쓴다(한쪽만 고치면 안내 없이 열린다, #141).
+const CE_SHARE_PREFIX = 'https://share.coupangeats.com/'
 
 // 쿠팡이츠 허브 쿠폰은 앱에서 '쿠폰 받기'를 눌러야 적용된다(2026-10-06 사용자 확인).
 // 위험: 1.5초 뒤 이동은 사용자 제스처 밖이라 iOS 사파리가 앱 대신 웹을 열 수 있다. 실기 확인 필요.
@@ -105,7 +107,7 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
     window.dispatchEvent(new CustomEvent('discount-offer-prompt', { detail: { href } }))
   }
   const tab = typeof href === 'string' && href.startsWith('coupangeats://')
-  const share = typeof href === 'string' && href.startsWith('https://share.coupangeats.com/')
+  const share = typeof href === 'string' && href.startsWith(CE_SHARE_PREFIX)
   if (typeof document === 'undefined') return
   // 앱 열림 결과(telemetry.js). 쿠팡이츠는 안내 뒤 실제로 이동할 때부터 잰다.
   if (!share && !tab) { watchAppOpen(href); return }
@@ -168,11 +170,20 @@ export function setHubLinks(banners) {
   hubLinks = next
 }
 
+// 사람이 brands.yml에 넣은 공유 링크(원장 오퍼)만 통과한다. 배너 오퍼의 공유 링크는 만료 사고(2026-10-12) 길이라 막는다(#141).
+function coupangeatsLink(offer) {
+  const link = offer.link
+  if (typeof link !== 'string') return COUPANGEATS_LINK
+  if (link.startsWith('coupangeats://')) return link
+  if (link.startsWith(CE_SHARE_PREFIX) && !offer.fromBanner) return link
+  return COUPANGEATS_LINK
+}
+
 /** 오퍼 링크 사다리. 오퍼 자신의 링크 → 브랜드 링크 → 앱 안 브랜드 검색 → 허브 → 앱 열기. */
 export function offerLink(offer, brandLinks, brandName) {
   // 쿠팡이츠: 수집이 그 쿠폰이 있는 허브 탭 링크(coupangeats://…anchorTabNo=N)를 실었으면 그 탭으로, 아니면 공유 링크(2026-10-07)
   // 2026-10-16 사용자: 탭까지 붙여. 앱이 안 열리면 openWithNotice가 4초 뒤 공유 링크로 넘긴다.
-  if (offer.platform === 'coupangeats') return offer.link?.startsWith('coupangeats://') ? offer.link : COUPANGEATS_LINK
+  if (offer.platform === 'coupangeats') return coupangeatsLink(offer)
   return offer.link
     ?? brandLinks?.[offer.platform]
     ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)

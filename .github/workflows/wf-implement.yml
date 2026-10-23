@@ -1,0 +1,305 @@
+# 정본(설계 119 2단계): 이슈 첫 줄 /approve-design 이면 구현자 세션을 띄운다. mono와 tracker가 같이 부른다.
+# 로컬 PC(tracker scripts/local_implement.py)가 먼저 맡으면 이슈에 local 라벨을 단다. 2분 기다려 라벨이 있으면 물러난다.
+# 세션은 커밋만 한다. 워크플로가 feat/<이슈>-* 브랜치로만 App 토큰 push하고 같은 PR의 draft를 푼다.
+name: wf-implement
+on:
+  workflow_call:
+    inputs:
+      spec_prefix:
+        description: 설계 문서 경로 앞부분(뒤에 <이슈번호>-*.md)
+        type: string
+        required: true
+      areas:
+        description: >-
+          영역 라벨 -> {agent, tools, setup, test} JSON. setup은 none, python, jdk.
+          collect는 폰이 필요해 늘 안내만 하고 끝낸다.
+        type: string
+        required: true
+      read_mono:
+        description: mono를 mono/ 에 테스트용으로 받는다(tracker)
+        type: boolean
+        default: false
+      read_ops:
+        description: BEGGARS_OPS_READ_TOKEN이 있으면 beggars-ops를 beggars-ops/ 에 받는다(tracker)
+        type: boolean
+        default: false
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+      CLAUDE_CODE_OAUTH_TOKEN_2:
+        required: false
+      WF_APP_ID:
+        required: true
+      WF_APP_PRIVATE_KEY:
+        required: true
+      BEGGARS_OPS_READ_TOKEN:
+        required: false
+
+jobs:
+  implement:
+    # PR 댓글이 아니라 이슈 댓글이고, 첫 줄이 정확히 /approve-design 일 때만.
+    if: >-
+      !github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/approve-design') &&
+      !contains(github.event.issue.labels.*.name, 'blocked')
+    concurrency:
+      group: issue-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_REPO: ${{ github.repository }}
+      ISSUE: ${{ github.event.issue.number }}
+      SPEC: ${{ inputs.spec_prefix }}${{ github.event.issue.number }}
+      AREAS: ${{ inputs.areas }}
+    steps:
+      - name: 댓글 작성자 권한 확인
+        id: perm
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BODY: ${{ github.event.comment.body }}
+        run: |
+          # 첫 줄만 보고 앞뒤 공백은 무시한다(2026-10-22 tracker #24 '/approve ' 무시됨).
+          first=$(printf '%s\n' "$BODY" | head -n1 | tr -d '[:space:]')
+          if [ "$first" != "/approve-design" ]; then echo "첫 줄이 /approve-design 가 아니다"; exit 0; fi
+          p=$(gh api "repos/$GH_REPO/collaborators/${{ github.event.comment.user.login }}/permission" -q .permission)
+          echo "권한: $p"
+          if [ "$p" = admin ] || [ "$p" = write ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; fi
+      - name: 로컬이 맡았는지 확인
+        id: claim
+        if: steps.perm.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sleep 120
+          # 조회가 실패하면 단계를 실패시킨다. 실패를 "로컬 안 맡음"으로 읽으면 두 곳에서 구현한다.
+          labels=$(gh api "repos/$GH_REPO/issues/$ISSUE/labels" --paginate -q '.[].name')
+          if grep -qx local <<< "$labels"; then
+            echo "local=true" >> "$GITHUB_OUTPUT"
+            gh issue comment "$ISSUE" --body "로컬 PC가 구현을 맡았다(local 라벨). 클라우드 구현은 돌지 않는다."
+          fi
+      - name: 역할 고르기
+        id: role
+        if: steps.perm.outputs.ok == 'true' && steps.claim.outputs.local != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LABELS: ${{ toJSON(github.event.issue.labels.*.name) }}
+        run: |
+          area=$(jq -rn --argjson a "$AREAS" --argjson l "$LABELS" '[$l[] | select($a[.] != null)][0] // ""')
+          if [ -n "$area" ]; then
+            jq -rn --argjson a "$AREAS" --arg k "$area" '$a[$k] | "agent=\(.agent)\ntools=\(.tools)\nsetup=\(.setup // "none")\ntest=\(.test // "")"' >> "$GITHUB_OUTPUT"
+          elif jq -e 'index("collect")' <<< "$LABELS" > /dev/null; then
+            echo "구현을 시작하지 않았다. collect 작업은 폰이 필요해 로컬 러너 몫이다(설계 119 4단계)." > "$RUNNER_TEMP/c.txt"
+            gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/c.txt"
+          else
+            echo "구현을 시작하지 않았다. 영역 라벨($(jq -r 'keys | join(", ")' <<< "$AREAS"), collect)이 없어 구현자를 고를 수 없다. 라벨을 단 뒤 /approve-design 을 다시 단다." > "$RUNNER_TEMP/c.txt"
+            gh issue comment "$ISSUE" --body-file "$RUNNER_TEMP/c.txt"
+          fi
+      - name: 설계 브랜치 찾기
+        id: branch
+        if: steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          b=$(gh api "repos/$GH_REPO/git/matching-refs/heads/feat/$ISSUE-" -q '.[0].ref // empty' | sed 's#^refs/heads/##')
+          if [ -z "$b" ]; then echo "설계 브랜치(feat/$ISSUE-*) 없음"; exit 1; fi
+          echo "name=$b" >> "$GITHUB_OUTPUT"
+      - name: App 토큰 만들기
+        id: apptoken
+        if: steps.role.outputs.agent != ''
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+      - if: steps.role.outputs.agent != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.branch.outputs.name }}
+          fetch-depth: 0
+          token: ${{ steps.apptoken.outputs.token }}
+      - name: 시작 커밋 기록
+        id: start
+        if: steps.role.outputs.agent != ''
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      # 테스트 환경. 저장소마다 다르다(inputs와 영역의 setup).
+      - if: steps.role.outputs.agent != '' && inputs.read_mono
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: woowacourse-teams/2026-to-discount
+          path: mono
+      - name: beggars-ops 토큰 확인
+        id: ops
+        if: steps.role.outputs.agent != '' && inputs.read_ops
+        env:
+          T: ${{ secrets.BEGGARS_OPS_READ_TOKEN }}
+        run: if [ -n "$T" ]; then echo "has=true" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.ops.outputs.has == 'true'
+        continue-on-error: true
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: nn98/beggars-ops
+          path: beggars-ops
+          token: ${{ secrets.BEGGARS_OPS_READ_TOKEN }}
+      # 테스트용 체크아웃을 세션이 실수로 커밋에 담지 않게 이 체크아웃에서만 뺀다.
+      - if: steps.role.outputs.agent != ''
+        run: printf 'mono/\nbeggars-ops/\n' >> .git/info/exclude
+      - if: steps.role.outputs.setup == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - if: steps.role.outputs.setup == 'python'
+        run: pip install -r requirements.txt pytest
+      - if: steps.role.outputs.setup == 'jdk'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: 이슈 입력 준비
+        if: steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "# 이슈 #$ISSUE: $(gh api "repos/$GH_REPO/issues/$ISSUE" -q .title)"
+            echo
+            gh api "repos/$GH_REPO/issues/$ISSUE" -q '.body // ""'
+            echo
+            echo "## 댓글 (OWNER, MEMBER, COLLABORATOR만)"
+            gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate \
+              | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR") | "### \(.user.login) \(.created_at)\n\(.body)\n"'
+          } > "$RUNNER_TEMP/issue-input.md"
+      # Claude 액션의 자체 설치가 동시 실행 때 429로 실패했다(2026-10-22 tracker #22, mono #143). 간격을 두고 다시 시도해 설치한다.
+      - name: Claude Code 설치(재시도)
+        id: cc
+        if: steps.role.outputs.agent != ''
+        run: |
+          for i in 1 2 3 4 5; do
+            npm install -g @anthropic-ai/claude-code > /dev/null 2>&1 && break
+            echo "설치 실패 $i회, $((i * 20))초 뒤 다시"; sleep $((i * 20))
+          done
+          p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
+          echo "path=$p" >> "$GITHUB_OUTPUT"
+      # 첫 토큰이 사용량 한도면 두 번째 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)을 쓴다. 두 번째가 없으면 첫 토큰 그대로.
+      - name: 토큰 고르기
+        id: tok
+        if: steps.role.outputs.agent != ''
+        env:
+          T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
+          CLAUDE: ${{ steps.cc.outputs.path }}
+        run: |
+          if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
+          out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
+            echo "which=2" >> "$GITHUB_OUTPUT"; echo "첫 토큰 한도, 두 번째 토큰"
+          else
+            echo "which=1" >> "$GITHUB_OUTPUT"; echo "첫 토큰(시험 종료 코드 $rc)"
+          fi
+      - if: steps.role.outputs.agent != ''
+        id: claude
+        uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
+        env:
+          PYTHONIOENCODING: utf-8
+        with:
+          path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
+          claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            이슈 #${{ env.ISSUE }} 의 구현자 세션이다.
+            .claude/agents/${{ steps.role.outputs.agent }}.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서(${{ env.SPEC }}-*.md)를 구현한다.
+            이슈 입력은 ${{ runner.temp }}/issue-input.md 하나만 읽는다. gh issue view로 댓글을 읽지 않는다.
+            지금 체크아웃된 브랜치 ${{ steps.branch.outputs.name }} 에 이어 커밋만 한다. push와 PR은 워크플로가 한다. 브랜치를 바꾸지 않는다.
+            /approve-design 보다 먼저 단 권한자 이슈 댓글 중 설계 문서와 다르거나 설계의 열린 질문에 답한 것은 설계로 본다. 설계 문서와 부딪히면 그 댓글이 이긴다(2026-10-22 mono #147). 그렇게 바뀐 내용은 설계 문서 끝 "변경 이력"에 날짜와 함께 적어 같이 커밋한다.
+            그 밖에 설계에 없는 변경이 필요하면 구현하지 말고 인계 댓글에 적는다.
+            ${{ steps.role.outputs.test }}
+            mono/ 와 beggars-ops/ 가 있으면 테스트용 체크아웃이다. 고치거나 커밋하지 않는다.
+            끝나면 첫 줄이 `인계:` 인 이슈 댓글 하나를 남긴다(한 것, 남은 것, 막힌 것, 테스트 결과 줄).
+            PR 본문 갱신: 설계 PR 본문은 설계 때 쓴 그대로라 구현을 모른다. PR 본문 스킬(mono/.claude/skills/pr-body-ko/SKILL.md 또는 .claude/skills/pr-body-ko/SKILL.md)의 "다시 쓸 때"대로
+            `### 변경 1 (날짜): 구현` 절 하나를 Write로 ${{ runner.temp }}/pr-update.md 에 쓴다(실제 추가/변경, 설계 변동, 확인, 미확인, 필요하면 `### 후속 조치`).
+            최종 제목 한 줄을 ${{ runner.temp }}/pr-title.txt 에 쓴다(`[분야] 종류: 설명`, 종류는 구현까지 포함한 feat/fix/test 등). 워크플로가 본문 끝에 붙이고 제목을 바꾼다.
+            셸 명령은 한 번에 하나씩 쓴다. cd, &&, 파이프, heredoc으로 묶지 않는다. 파일은 Write 도구로 쓴다. 댓글은 Write로 파일을 만든 뒤 --body-file로 넘긴다.
+          claude_args: --max-turns 80 --allowedTools "Read,Grep,Glob,Write,Edit,${{ steps.role.outputs.tools }},Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue comment:*)"
+      # Claude 액션이 끝나며 checkout의 git 자격을 지운다(2026-10-22 tracker #10). 세션 커밋을 패치로 보관하고
+      # App 토큰으로 같은 브랜치를 다시 checkout해 그 자격으로 push한다. 새 커밋이 없으면 건너뛰고 아래 확인이 잡는다.
+      - name: 세션 커밋 보관
+        id: keep
+        if: steps.start.outputs.sha != ''
+        env:
+          BRANCH: ${{ steps.branch.outputs.name }}
+          START: ${{ steps.start.outputs.sha }}
+        run: |
+          case "$BRANCH" in feat/[0-9]*-*) ;; *) echo "feat/ 브랜치가 아니다: '$BRANCH'"; exit 1 ;; esac
+          if [ "$(git rev-parse HEAD)" = "$START" ]; then echo "새 커밋 없음, push 건너뜀"; exit 0; fi
+          git format-patch "$START..HEAD" -o "$RUNNER_TEMP/patches"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+      - if: steps.keep.outputs.branch != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.keep.outputs.branch }}
+          fetch-depth: 0
+          token: ${{ steps.apptoken.outputs.token }}
+      - name: 브랜치 push
+        if: steps.keep.outputs.branch != ''
+        env:
+          BRANCH: ${{ steps.keep.outputs.branch }}
+          START: ${{ steps.start.outputs.sha }}
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$START" ]; then echo "그사이 원격 브랜치가 바뀌었다. 패치를 그 위에 적용한다"; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" am "$RUNNER_TEMP"/patches/*.patch
+          git push origin "HEAD:refs/heads/$BRANCH"
+      - name: 구현 패치 만들기
+        if: always() && steps.start.outputs.sha != ''
+        env:
+          START: ${{ steps.start.outputs.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/patches"
+          git format-patch "$START..HEAD" -o "$RUNNER_TEMP/patches" || true
+          git diff HEAD > "$RUNNER_TEMP/patches/uncommitted.diff" || true
+      - name: 구현 결과 보관
+        if: always() && steps.start.outputs.sha != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: implement-${{ env.ISSUE }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/patches/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: 결과물 확인과 ready
+        if: steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+          START: ${{ steps.start.outputs.sha }}
+        run: |
+          ok=1
+          head=$(git ls-remote --heads origin "$BRANCH" | cut -f1)
+          if [ -n "$head" ] && [ "$head" != "$START" ]; then echo "새 커밋: $head"; else echo "새 커밋 없음"; ok=0; fi
+          pr=$(gh pr list -R "$GH_REPO" --head "$BRANCH" --state open --json number -q '.[0].number')
+          if [ -n "$pr" ]; then echo "PR: $pr"; else echo "PR 없음"; ok=0; fi
+          n=$(gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate -q '[.[] | select(.body | startswith("인계:"))] | length' | awk '{s+=$1} END {print s+0}')
+          if [ "$n" -gt 0 ]; then echo "인계 댓글: $n"; else echo "인계 댓글 없음"; ok=0; fi
+          [ "$ok" = 1 ]
+          gh pr ready "$pr" -R "$GH_REPO"
+          # 구현 세션이 쓴 변경 절을 본문 끝(생성 표기 앞)에 붙이고 제목을 바꾼다. 없으면 건너뛴다.
+          if [ -s "$RUNNER_TEMP/pr-update.md" ]; then
+            gh pr view "$pr" -R "$GH_REPO" --json body -q .body > "$RUNNER_TEMP/body.md"
+            # 생성 표기 줄부터 끝을 떼어 두고, 그 앞에 변경 절을 넣는다.
+            awk '/^🤖 Generated with/{f=1} !f' "$RUNNER_TEMP/body.md" > "$RUNNER_TEMP/new.md"
+            { echo; cat "$RUNNER_TEMP/pr-update.md"; echo; } >> "$RUNNER_TEMP/new.md"
+            awk '/^🤖 Generated with/{f=1} f' "$RUNNER_TEMP/body.md" >> "$RUNNER_TEMP/new.md"
+            gh pr edit "$pr" -R "$GH_REPO" --body-file "$RUNNER_TEMP/new.md"
+          fi
+          t=$(head -1 "$RUNNER_TEMP/pr-title.txt" 2>/dev/null || true)
+          if [ -n "$t" ]; then gh pr edit "$pr" -R "$GH_REPO" --title "$t"; fi
+      - name: 거부된 도구와 턴 수
+        if: always() && steps.claude.outputs.execution_file != ''
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          jq -c '.[] | select(.type == "result") | {num_turns, subtype, denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true
+      - name: 실패하면 blocked 라벨과 원인 댓글
+        if: (failure() || cancelled()) && steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue edit "$ISSUE" --add-label blocked
+          gh issue comment "$ISSUE" --body "구현 세션이 실패했다. 로그와 보관된 패치는 실행 페이지의 Artifacts에 있다: $RUN_URL . 원인을 확인한 뒤 blocked 라벨을 떼고 /approve-design 을 다시 달면 다시 돈다."

@@ -253,6 +253,8 @@
 .cc .cc-tags .chip-tags > *::after, .cc .cc-tags .chip-tags > *::before { content: none; }
 .cc .offer__status-badge:not(.offer__status-badge--membership) { background: var(--bg); color: #4e5968; }
 .cc .offer__range-badge--optimal, .cc-sheet .offer__range-badge--optimal { background: var(--sale-weak); color: var(--sale); border: 0; }
+/* 첫 주문 같은 조건 칩: 밝은 파랑에 흰 글자(2026-10-22 권한자). 채널 칩은 예전 첫 주문 모양(회색 plain)을 쓴다. #2a7de1 위 흰 글자 대비 약 4.3:1 */
+.cc .offer__range-badge--condition, .cc-sheet .offer__range-badge--condition { background: #2a7de1; color: #fff; border: 0; }
 .cc .cc-combo__btn, .cc-sheet .cc-combo__btn { width: 14px; height: 14px; font-size: 9px; border-width: 1.2px; color: inherit; }
 .cc-upd { height: 22px; padding: 0 7px; border-radius: 6px; font-size: 12px; font-weight: 600; background: var(--sale); box-shadow: none; transform: none; }
 .cc-upd::after { content: none; }

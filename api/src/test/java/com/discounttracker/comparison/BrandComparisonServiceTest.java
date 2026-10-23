@@ -922,6 +922,31 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void coupangeatsLedgerOfferLinkReachesTheResponseAsIs() {
+        // 웹 offerLink가 쿠팡이츠 사람 링크를 그대로 쓴다. API가 link를 바꾸거나
+        // 버리면 웹은 허브 링크로 내려가고 화면에서는 티가 나지 않는다.
+        String brands = """
+                brands:
+                  청년피자:
+                    category: pizza
+                """;
+        for (String link : List.of("https://share.coupangeats.com/test", "coupangeats://test")) {
+            OfferRecord record = OfferRecord.builder("coupangeats", "청년피자")
+                    .amount(10000)
+                    .offerType("discount")
+                    .rawText("10000원")
+                    .capturedAt("2026-07-27T14:20:00+09:00")
+                    .screenshotPath("path.jpg")
+                    .soldOut(false)
+                    .link(link)
+                    .build();
+            Offer offer = serviceWith(List.of(record), brands).compare().get(0).offers().get(0);
+            assertEquals(link, offer.link());
+            assertFalse(offer.fromBanner());
+        }
+    }
+
+    @Test
     void bannerOfferCarriesItsOwnLinkAndLeavesBrandLinksAlone() {
         // 배너의 url은 그 행사로 가는 딜링크다. 배너에서 세운 오퍼가
         // 그걸 안 들고 가면, 화면엔 배너에서 온 금액이 찍히는데 누르면

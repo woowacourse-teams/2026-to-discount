@@ -1,0 +1,159 @@
+# 정본(설계 119 3단계): feat/<번호>-* PR이 main에 병합되면 요약자 세션이 PR 본문 "결과" 절과 이슈 닫는 댓글을 쓴다.
+# mono와 tracker가 같이 부른다. 공개 저장소(mono)는 결과 절과 댓글에 공개 금지 패턴 검사를, 비공개는 키 모양 문자열 검사만 한다.
+# 주의: 병합을 GITHUB_TOKEN으로 하면 pull_request 이벤트가 부르는 쪽 워크플로를 깨우지 않는다(approve-merge는 App 토큰).
+name: wf-summary
+on:
+  workflow_call:
+    inputs:
+      spec_prefix:
+        type: string
+        required: true
+      public:
+        description: 공개 저장소면 true. 결과 절과 댓글에 서버 경로, 로컬 파일 이름 패턴까지 검사한다
+        type: boolean
+        default: false
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+      CLAUDE_CODE_OAUTH_TOKEN_2:
+        required: false
+      WF_APP_ID:
+        required: true
+      WF_APP_PRIVATE_KEY:
+        required: true
+
+jobs:
+  summary:
+    if: >-
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'feat/') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    concurrency:
+      group: issue-${{ github.event.pull_request.head.ref }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - name: 이슈 번호 뽑기
+        id: issue
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          n=$(echo "$BRANCH" | sed -n 's#^feat/\([0-9][0-9]*\)-.*#\1#p')
+          if [ -z "$n" ]; then echo "브랜치에 이슈 번호 없음: $BRANCH"; exit 0; fi
+          echo "num=$n" >> "$GITHUB_OUTPUT"
+      - name: App 토큰 만들기
+        id: apptoken
+        if: steps.issue.outputs.num != ''
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+      - if: steps.issue.outputs.num != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          token: ${{ steps.apptoken.outputs.token }}
+      - name: 요약 입력 준비
+        if: steps.issue.outputs.num != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.issue.outputs.num }}
+        run: |
+          {
+            echo "# 병합된 PR #$PR: $(gh api "repos/$GH_REPO/pulls/$PR" -q .title)"
+            echo
+            gh api "repos/$GH_REPO/pulls/$PR" -q '.body // ""'
+            echo
+            echo "## PR 댓글 (OWNER, MEMBER, COLLABORATOR만)"
+            gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+              | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR") | "### \(.user.login) \(.created_at)\n\(.body)\n"'
+            echo
+            echo "# 이슈 #$ISSUE"
+            gh api "repos/$GH_REPO/issues/$ISSUE" -q '.body // ""'
+          } > "$RUNNER_TEMP/summary-input.md"
+      # Claude 액션의 자체 설치가 동시 실행 때 429로 실패했다(2026-10-22 tracker #22, mono #143). 간격을 두고 다시 시도해 설치한다.
+      - name: Claude Code 설치(재시도)
+        id: cc
+        if: steps.issue.outputs.num != ''
+        run: |
+          for i in 1 2 3 4 5; do
+            npm install -g @anthropic-ai/claude-code > /dev/null 2>&1 && break
+            echo "설치 실패 $i회, $((i * 20))초 뒤 다시"; sleep $((i * 20))
+          done
+          p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
+          echo "path=$p" >> "$GITHUB_OUTPUT"
+      # 첫 토큰이 사용량 한도면 두 번째 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)을 쓴다. 두 번째가 없으면 첫 토큰 그대로.
+      - name: 토큰 고르기
+        id: tok
+        if: steps.issue.outputs.num != ''
+        env:
+          T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
+          CLAUDE: ${{ steps.cc.outputs.path }}
+        run: |
+          if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
+          out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
+            echo "which=2" >> "$GITHUB_OUTPUT"; echo "첫 토큰 한도, 두 번째 토큰"
+          else
+            echo "which=1" >> "$GITHUB_OUTPUT"; echo "첫 토큰(시험 종료 코드 $rc)"
+          fi
+      - if: steps.issue.outputs.num != ''
+        id: claude
+        uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
+        with:
+          path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
+          claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # 병합은 approve-merge가 App 토큰으로 한다. 그 병합이 깨운 실행만 허용한다(다른 봇은 거부).
+          allowed_bots: "2026-to-discount"
+          prompt: |
+            이슈 #${{ steps.issue.outputs.num }}, 병합된 PR #${{ github.event.pull_request.number }}의 요약 세션이다.
+            .claude/agents/summarizer.md 를 먼저 읽고 그 규칙을 따른다.
+            입력은 ${{ runner.temp }}/summary-input.md 하나만 읽는다. 설계 문서는 ${{ inputs.spec_prefix }}${{ steps.issue.outputs.num }}-*.md 를 읽는다. 외부 댓글은 읽지 않는다.
+            1. PR 본문 끝에 "## 결과" 절을 덧붙인 새 본문을 Write로 ${{ runner.temp }}/pr-body.md 에 쓰고 `gh pr edit ${{ github.event.pull_request.number }} --body-file ${{ runner.temp }}/pr-body.md` 로 반영한다. 이미 "## 결과" 절이 있으면 그 절만 고친다.
+            2. 같은 내용을 ${{ runner.temp }}/issue-comment.md 에 쓰고 `gh issue comment ${{ steps.issue.outputs.num }} --body-file ${{ runner.temp }}/issue-comment.md` 로 단다.
+            3. `gh issue close ${{ steps.issue.outputs.num }}` 로 닫는다.
+            결과에는 무엇을 바꿨는지, 검증한 것, 남은 것만 쓴다. ${{ inputs.public && '서버 경로, 로컬 비밀 파일 이름, 이 PC 전용 정보, 비밀값은 쓰지 않는다(공개 저장소).' || '비밀값(키, 토큰, 비밀번호)은 쓰지 않는다.' }}
+            한 명령은 한 번에 하나다. cd, &&, 파이프, heredoc으로 묶지 않는다. 파일은 Write 도구로 만든다.
+          claude_args: --max-turns 20 --allowedTools "Read,Grep,Glob,Write,Bash(gh pr edit:*),Bash(gh issue comment:*),Bash(gh issue close:*)"
+      # 방금 올린 결과 절과 댓글을 다시 받아 결과물과 키 모양 문자열을 검사한다. 걸리면 실패로 처리해 blocked를 단다.
+      - name: 결과물과 비밀값 검사
+        if: steps.issue.outputs.num != ''
+        env:
+          PUBLIC: ${{ inputs.public }}
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.issue.outputs.num }}
+        run: |
+          gh api "repos/$GH_REPO/pulls/$PR" -q '.body // ""' | awk '/^## 결과/{f=1} f' > "$RUNNER_TEMP/scan.txt"
+          if [ ! -s "$RUNNER_TEMP/scan.txt" ]; then echo "PR 본문에 '## 결과' 절 없음"; exit 1; fi
+          gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate -q '.[-1].body // ""' >> "$RUNNER_TEMP/scan.txt"
+          gh api "repos/$GH_REPO/issues/$ISSUE" -q .state | grep -qx closed || { echo "이슈가 안 닫힘"; exit 1; }
+          # 키 모양 문자열은 늘 본다. 공개 저장소면 서버 절대 경로, ssh 관련 파일, 키 파일, 홈 아래 점 파일, 윈도 사용자 경로도 본다.
+          keys='BEGIN [A-Z ]*PRIVATE KEY|gh[pousr]_[A-Za-z0-9]{20}|github_pat_[A-Za-z0-9_]{20}|sk-[A-Za-z0-9_-]{20}|phc_[A-Za-z0-9]{20}|xox[abpr]-[A-Za-z0-9-]{10}'
+          pub='/home/[a-z0-9_.-]+/|/root/|/etc/|/var/(www|lib)/|/opt/|[A-Za-z]:\\Users\\|~/\.[a-z_]+|\.pem\b|\.key\b|id_rsa|id_ed25519|authorized_keys|\.env\b'
+          pat=$keys; [ "$PUBLIC" = true ] && pat="$pub|$keys"
+          if grep -qEi "($pat)" "$RUNNER_TEMP/scan.txt"; then
+            echo "공개 금지 패턴이나 키 모양 문자열이 결과 절이나 댓글에 있다"
+            exit 1
+          fi
+      - name: 거부된 도구와 턴 수
+        if: always() && steps.claude.outputs.execution_file != ''
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          jq -c '.[] | select(.type == "result") | {num_turns, subtype, denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true
+      - name: 실패하면 blocked 라벨과 원인 댓글
+        if: (failure() || cancelled()) && steps.issue.outputs.num != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.issue.outputs.num }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue edit "$ISSUE" --add-label blocked
+          # 실제로 실패한 단계 이름을 적는다. 모든 실패에 같은 문장을 달면 원인을 잘못 짚는다.
+          step=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" -q '[.jobs[].steps[] | select(.conclusion == "failure") | .name] | join(", ")')
+          gh issue comment "$ISSUE" --body "요약 세션이 실패했다. 실패한 단계는 ${step:-알 수 없음}이다. 로그: $RUN_URL . 원인을 확인한 뒤 PR 본문의 결과 절과 이슈 댓글을 손으로 고치고 blocked 라벨을 뗀다."
