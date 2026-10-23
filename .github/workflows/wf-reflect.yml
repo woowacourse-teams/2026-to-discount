@@ -17,6 +17,8 @@ on:
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN:
         required: true
+      CLAUDE_CODE_OAUTH_TOKEN_2:
+        required: false
       WF_APP_ID:
         required: true
       WF_APP_PRIVATE_KEY:
@@ -181,6 +183,22 @@ jobs:
           done
           p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
           echo "path=$p" >> "$GITHUB_OUTPUT"
+      # 첫 토큰이 사용량 한도면 두 번째 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)을 쓴다. 두 번째가 없으면 첫 토큰 그대로.
+      - name: 토큰 고르기
+        id: tok
+        if: steps.role.outputs.agent != ''
+        env:
+          T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
+          CLAUDE: ${{ steps.cc.outputs.path }}
+        run: |
+          if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
+          out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
+            echo "which=2" >> "$GITHUB_OUTPUT"; echo "첫 토큰 한도, 두 번째 토큰"
+          else
+            echo "which=1" >> "$GITHUB_OUTPUT"; echo "첫 토큰(시험 종료 코드 $rc)"
+          fi
       - if: steps.role.outputs.agent != ''
         id: claude
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
@@ -188,7 +206,7 @@ jobs:
           PYTHONIOENCODING: utf-8
         with:
           path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             PR #${{ env.PR }}, 이슈 #${{ steps.pr.outputs.issue }} 의 리뷰 반영 세션이다.
             .claude/agents/${{ steps.role.outputs.agent }}.md 를 먼저 읽고 그 경로와 규칙을 따른다.
