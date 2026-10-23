@@ -72,6 +72,15 @@ class SummaryTest(unittest.TestCase):
     A = "http://localhost:5173/?home=a&expect=carousel"
     L = "http://localhost:5173/?home=a&tab=1"
 
+    def test_zero_width_coupon_text_in_fixture_fails_ci(self):
+        url = "http://localhost:5173/?home=a&tab=4&expect=coupon-text"
+        code, text = self.run_summary(
+            f"1 {url} data=fixture at=2026-10-16\n",
+            [{"url": url, "fails": ["던킨: 할인 단위 텍스트 폭이 0이다"]}],
+        )
+        self.assertEqual(code, 1, text)
+        self.assertIn("실패", text)
+
     def test_strips_data_suffix_and_dates_on_top(self):
         code, text = self.run_summary(f"1 {self.A} data=fixture at=2026-10-16\n2 {self.L} data=live at=2026-10-22\n",
                                       [{"url": self.A, "fails": []}, {"url": self.L, "fails": []}])

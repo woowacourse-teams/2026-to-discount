@@ -8,7 +8,6 @@
   /* 좌우 안쪽 여백은 카드가 아니라 내용이 갖는다: 쿠폰 줄(캐러셀)만 카드 좌우 끝까지 쓴다(배너 캐러셀과 같은 꼴) */
   --pad: clamp(14px, 4.4vw, 18px); padding: var(--pad) 0;
   display: grid; grid-template-columns: calc(var(--logo) + var(--pad)) minmax(0, 1fr); gap: 0 clamp(10px, 3.2vw, 14px); /* 세로 간격은 gap이 아니라 아래 항목의 margin-top으로(0높이 래퍼가 간격을 남기지 않게) */
-  content-visibility: auto; contain-intrinsic-size: auto 200px;
 }
 /* 투명 로고가 다크 모드에서도 보이게 바탕은 늘 흰색. 래퍼 없이 brand-logo가 곧 로고 칸 */
 .cc > .brand-logo { grid-column: 1; grid-row: 1; margin-left: var(--pad); width: var(--logo); height: var(--logo); border-radius: 12px; background: #fff; border: 1px solid var(--border); }

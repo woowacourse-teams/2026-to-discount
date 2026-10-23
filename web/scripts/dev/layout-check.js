@@ -72,11 +72,33 @@
     }
     // ?expect=carousel: 시험 데이터는 넘김 카드가 맨 위다. 없으면 검사가 헛돈 것이라 실패로 친다
     if (q.get('expect') === 'carousel' && carousels.length === 0) fails.push('첫 화면에 넘김 카드가 없다(검사 대상 없음)')
+    const inView = (el) => {
+      const r = el.getBoundingClientRect()
+      return r.top < innerHeight && r.bottom > 0 && r.left < innerWidth && r.right > 0
+    }
+    const textsOf = (el) => [...el.childNodes].filter((n) => n.nodeType === 3 && n.textContent.trim())
+    const couponText = { amounts: 0, minimums: 0 }
     for (const amt of document.querySelectorAll('.cc-amt')) {
-      if (amt.getBoundingClientRect().top > innerHeight) continue
+      if (!inView(amt.closest('.cc-ticket') || amt)) continue
       const small = amt.querySelector('small')
-      const text = [...amt.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim())
-      if (small && text && cross(rectOf(text), small.getBoundingClientRect())) fails.push(`${brandOf(amt)}: 금액 "${text.textContent.trim()}"과 "${small.textContent}"가 겹친다`)
+      const text = textsOf(amt.querySelector('s') || amt)[0]
+      if (!small) continue
+      couponText.amounts++
+      const digits = text && rectOf(text)
+      const unit = rectOf(small)
+      if (!digits || digits.width <= 0) fails.push(`${brandOf(amt)}: 금액 텍스트 폭이 0이다`)
+      if (unit.width <= 0) fails.push(`${brandOf(amt)}: 할인 단위 텍스트 폭이 0이다`)
+      if (digits && cross(digits, unit)) fails.push(`${brandOf(amt)}: 금액 "${text.textContent.trim()}"과 "${small.textContent}"가 겹친다`)
+    }
+    for (const min of document.querySelectorAll('.cc-min')) {
+      if (!inView(min.closest('.cc-ticket') || min)) continue
+      couponText.minimums++
+      const texts = textsOf(min)
+      if (!texts.length || texts.some((text) => rectOf(text).width <= 0)) fails.push(`${brandOf(min)}: 최소주문 텍스트 폭이 0이다`)
+    }
+    if (q.get('expect') === 'coupon-text') {
+      if (!couponText.amounts) fails.push('쿠폰 금액과 단위가 없다(검사 대상 없음)')
+      if (!couponText.minimums) fails.push('최소주문 문구가 없다(검사 대상 없음)')
     }
     if (q.get('sheet') && !document.querySelector('.cc-sheet .cc-t-chips')) fails.push(`${q.get('sheet')}: 상세 시트의 표를 못 열었다(검사 대상 없음)`)
     for (const chips of document.querySelectorAll('.cc-t-chips')) {
