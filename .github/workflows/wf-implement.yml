@@ -187,7 +187,11 @@ jobs:
           T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
           CLAUDE: ${{ steps.cc.outputs.path }}
+          # 손 전환: 저장소 변수 CLAUDE_TOKEN_SLOT이 1이나 2면 시험 없이 그 토큰을 쓴다. 비면 자동.
+          SLOT: ${{ vars.CLAUDE_TOKEN_SLOT }}
         run: |
+          if [ "$SLOT" = 2 ] && [ -n "$T2" ]; then echo "which=2" >> "$GITHUB_OUTPUT"; echo "손 전환: 두 번째 토큰"; exit 0; fi
+          if [ "$SLOT" = 1 ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "손 전환: 첫 토큰"; exit 0; fi
           if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
           out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
           if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
