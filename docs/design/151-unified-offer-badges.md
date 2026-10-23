@@ -57,14 +57,14 @@
 
 ### 웹: 과도기 대비(옛 API 응답)
 
-**현재:** API `qualifiers`를 이 이슈에서 뗐으므로(변경 이력) 운영에서 `offer.qualifiers`는 당분간 늘 비고, 아래 대체 경로가 "첫 주문" 칩의 유일한 경로다. 웹은 `qualifiers`를 읽지 않는다. 분리한 API 이슈 번호: 미기재(이슈를 만든 뒤 여기에 채운다). `conditions`가 `'첫 주문 '`처럼 공백이나 표기 차이로 오면 칩이 서지 않고 문장으로 남는다(조용히 칩이 사라지는 경우, 테스트로 박음).
+**현재:** API `qualifiers`를 이 이슈에서 뗐으므로(변경 이력) 운영에서 `offer.qualifiers`는 당분간 늘 비고, 아래 대체 경로가 "첫 주문" 칩의 유일한 경로다. 웹은 `qualifiers`를 읽지 않는다. 분리한 API 이슈: [#155](https://github.com/woowacourse-teams/2026-to-discount/issues/155)(PR #158 병합). 웹 읽기 켜기는 [#166](https://github.com/woowacourse-teams/2026-to-discount/issues/166). `conditions`가 `'첫 주문 '`처럼 공백이나 표기 차이로 오면 칩이 서지 않고 문장으로 남는다(조용히 칩이 사라지는 경우, 테스트로 박음).
 
 API가 `qualifiers`를 아직 안 보낼 때도 웹이 깨지면 안 된다(배포 순서 8번의 되풀이 방지).
 
 - `conditions`가 알려진 한 토큰("첫 주문")과 **정확히 같을 때만** 그 토큰을 `qualifiers`로 본다. 부분 문자열 검색은 하지 않는다("첫 주문만 가능" 같은 문장을 칩으로 오독하지 않으려고).
 - 이 대체 경로는 `qualifiers`가 운영에서 오기 시작해 웹이 그 칸을 읽게 된 뒤에 걷어낸다(후속 조치). 그 전에는 걷지 않는다.
 
-### API: `OfferRecord`, `Offer` (이 이슈에서 뗌, 별도 이슈 미기재)
+### API: `OfferRecord`, `Offer` (이 이슈에서 뗌, #155)
 
 배포 순서(8번)는 지금 웹까지만 왔다. 아래 API, 내보내기 절은 따로 이슈로 진행한다.
 
