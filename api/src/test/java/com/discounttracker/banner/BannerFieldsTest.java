@@ -2,8 +2,10 @@ package com.discounttracker.banner;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -70,5 +72,16 @@ class BannerFieldsTest {
         assertTrue(copy.isTargeted());
         assertTrue(copy.untilSoldOutFlag());
         assertEquals(50, copy.amountSpec().percent());
+    }
+
+    @Test
+    void bannerOfferLeavesQualifiersEmpty() {
+        // 배너에는 구조화 조건 칸이 없다. null(모름)로 두어야 웹이 conditions 대체 경로로 돈다(#155).
+        Banner b = at(LocalDateTime.of(2026, 9, 22, 0, 0), LocalDateTime.of(2026, 9, 22, 23, 59));
+        Clock clock = Clock.fixed(LocalDateTime.of(2026, 9, 22, 12, 0).atZone(ZoneId.of("Asia/Seoul")).toInstant(),
+                ZoneId.of("Asia/Seoul"));
+        var records = BannerOffers.of(java.util.List.of(b), clock);
+        assertFalse(records.isEmpty());
+        records.forEach(r -> assertNull(r.qualifiers()));
     }
 }

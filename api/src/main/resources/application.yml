@@ -37,6 +37,13 @@ discount:
     # 같은 화면을 본다. 2026-09-02: 하루 만에 322회 전환한 visitorId를
     # 사람이 직접 판단해 여기 넣었다(자동 판정 아님).
     blocked-visitors: ${DISCOUNT_SURVEY_BLOCKED_VISITORS:}
+  # 잘못된 정보 제보(POST /api/reports)를 보낼 슬랙. 비어 있으면 로그에만 남긴다.
+  report:
+    # 받은 제보 원장(append, 한 줄에 JSON 하나). 슬랙과 상관없이 먼저 여기에 적는다.
+    # 비우면 이벤트 원장(event-log-path) 옆 reports.jsonl.
+    path: ${DISCOUNT_REPORT_PATH:}
+    slack-token: ${SLACK_REPORT_TOKEN:}
+    slack-channel: ${SLACK_REPORT_CHANNEL:}
   posthog:
     enabled: ${DISCOUNT_POSTHOG_ENABLED:false}
     project-token: ${POSTHOG_PROJECT_TOKEN:}

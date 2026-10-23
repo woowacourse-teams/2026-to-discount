@@ -45,6 +45,22 @@ class EventControllerTest {
     }
 
     @Test
+    void acceptsReportEventsAndDropsRetiredBellClick() throws Exception {
+        // 상단 종 버튼은 2026-10-19 제보 버튼으로 바뀌어 push_setting_clicked는 더 받지 않는다.
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            [
+                              {"event":"report_open","visitorId":"v_report","sessionId":"s_report"},
+                              {"event":"report_tip_closed","visitorId":"v_report","sessionId":"s_report",
+                               "props":{"reason":"close_button"}},
+                              {"event":"push_setting_clicked","visitorId":"v_report","sessionId":"s_report"}
+                            ]
+                            """))
+           .andExpect(status().isOk())
+           .andExpect(jsonPath("$.accepted").value(2));
+    }
+
+    @Test
     void acceptsPushSubscriptionEventsWithSource() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content("""

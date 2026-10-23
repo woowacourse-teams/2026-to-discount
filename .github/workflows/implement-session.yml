@@ -1,0 +1,20 @@
+# 정본은 mono .github/workflows/wf-implement.yml. 이 파일은 언제 부를지와 이 저장소 설정만 둔다.
+name: implement-session
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  run:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    uses: ./.github/workflows/wf-implement.yml
+    with:
+      spec_prefix: docs/design/
+      areas: '{"web": {"agent": "web-implementer", "tools": "Bash(node:*),Bash(npm:*)", "setup": "none", "test": "테스트는 구현자 문서가 정한 명령으로 돌린다."}, "api": {"agent": "api-implementer", "tools": "Bash(./gradlew:*)", "setup": "jdk", "test": "테스트는 구현자 문서가 정한 명령으로 돌린다."}}'
+      read_mono: false
+      read_ops: false
+    secrets: inherit

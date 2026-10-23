@@ -6,7 +6,7 @@
 
 | 질문 | 답 |
 |---|---|
-| 무엇을 모으나 | 브라우저 행동 이벤트 19종 (`page_view`, `offer_link_click` 등) |
+| 무엇을 모으나 | 브라우저 행동 이벤트 32종 (`page_view`, `offer_link_click` 등) |
 | 어디에 쌓이나 | **자체 원장** `events.jsonl`(단일 진실) + **PostHog**(탐색용) |
 | 누구인지 아나 | 모른다. `visitorId`는 브라우저가 만든 난수, 지우면 끊긴다 |
 | A/B는 어떻게 가르나 | 모든 이벤트의 `variant` 속성. **실험은 2026-09-15에 `a`로 끝났다.** 이후 값은 항상 `a` |
@@ -71,7 +71,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 ---
 
-## 이벤트 19종
+## 이벤트 32종
 
 ### 화면 진입과 이탈
 
@@ -105,7 +105,14 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `category_change` | 분류 선택 | `category`, `from`(`bar`/`sheet`) |
 | `platform_filter_toggle` | 배달앱 켜고 끔 | `platform`, `from`(`bar`/`sheet`) |
 | `filter_sheet_open` | 바의 필터 버튼으로 시트 열기(옛 B안 시트, 2026-09-16 A 바에 병합) | 없음 |
-| `quick_filter` | 배너 아래 빠른 필터 줄(09-19~) | `key`(`minOrder`/`random`), `dir`, `on` |
+| `quick_filter` | 배너 아래 빠른 필터 줄(09-19~), 오늘 인기 띠(10-14~ `popular_strip`), 상단 HOT 순위(10-16~) | `key`(`minOrder`/`random`/`popular_strip`/`popular_dock`/`popular_dock_toggle`), `dir`, `on`. `popular_dock`: 순위 줄을 눌러 그 카드로 감, `brand`, `position`, `change`, `where`(`rolling` 접힌 한 줄 / `list` 펼친 목록). `popular_dock_toggle`: 펼침과 접힘, `on`, `via`(`button` 오른쪽 단추 / `outside` 바깥 누름, 10-17~) |
+| `popular_dock_impression` | 상단 HOT 순위가 보임. 페이지마다 한 번(10-17~) | `brand`(그때 1위), `count`(줄 수). 지금 거른 목록 기준 |
+| `report_open` | 상단 바 제보 버튼을 눌러 제보 창을 엶(10-19~, 알림 종 자리) | 없음 |
+| `report_tip_shown` | 제보 버튼 말풍선이 보임. 브라우저마다 한 번(`dk_report_tip_seen`) | 없음 |
+| `report_tip_closed` | 말풍선을 닫음 | `reason`(`close_button` / `button` 제보 버튼을 눌러 닫힘 / `timeout` 3초 뒤 저절로) |
+| `report_sent` | `POST /api/reports`가 성공. 글 내용은 이벤트에 안 싣는다(슬랙과 제보 원장에만) | `type`(`amount` 할인 금액 / `exists` 할인 여부 / `screen` 화면 오류 / `other` 그 외), `platform`(앱 키, 할인 금액·여부일 때만, 없으면 빈 값) |
+| `report_failed` | 제보 전송 실패 | `status`(HTTP 상태 또는 오류 이름) |
+| `sheet_tab` | 쿠폰 카드 시트의 할인 상세 / 할인 기록 탭(10-17~) | `brand`, `tab`(`detail`/`history`) |
 | `filters_apply` | 시트에서 "적용" | `platforms`, `categories`, `sort` |
 | `filters_reset` | 초기화 버튼 | 없음 |
 | `home_click` | (2026-10-13 버튼째 뺐다. 그 전 기록에만 있다) 바의 홈 버튼 | 없음 |
@@ -382,13 +389,17 @@ DISCOUNT_POSTHOG_ENABLED=true
 - 변환: `page_view` → `$pageview`, `visitorId` → `distinct_id`, `eventId` → `$insert_id`
 - 실패는 재시도, 계속 실패하면 `dead-letter/`
 
-### 3. 브라우저 → PostHog (SDK 직송)
+### 3. 브라우저 → API 도메인 프록시 → PostHog
 
 ```
 VITE_POSTHOG_KEY / VITE_POSTHOG_HOST 가 있어야 동작
 없으면 지연 import가 통째로 제거된다 (번들에 posthog 청크가 안 생김)
 ```
 
+- 전송 주소는 환경별 API 도메인의 `/ph/batch/`다. 프록시는 원장과 outbox를 거치지 않는다.
+- SDK `before_send`로 전달받은 이벤트를 제한된 메모리 대기열이 전송한다. 내부 SDK 재시도는 사용하지 않는다.
+- 최초 전송 후 재시도 최대 2회. 차단 또는 소진 시 5분 중단 후 한 요청으로 복구를 확인한다.
+- 최대 100건, 보관 10분, 배치 20건 및 48KiB. 중단 중 새 이벤트는 폐기한다.
 - DNT/GPC면 SDK를 **아예 안 부른다**
 - `?dev=1`이면 제품 이벤트를 안 보낸다 (연결 진단만 예외)
 - `autocapture` 끔, 세션 리플레이 끔, Web Vitals 켬

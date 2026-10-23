@@ -6,6 +6,9 @@
 .brand-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  /* 배너 줄(.inline-banners, 한 줄 전체)이 3번째 카드 뒤에 오면 PC 4열에서 첫 줄 4번째 칸이 비었다.
+     dense면 다음 카드가 그 빈칸을 채운다(2026-10-17 사용자). 한 열(폰)에서는 바뀌는 것이 없다. */
+  grid-auto-flow: row dense;
   gap: .85rem;
   /* 배너 바로 아래에 붙는다. 예전에는 배너가 문서 맨 위(바 위)에 있어
      이 여백이 바와 카드 사이를 벌리는 몫이었는데, 배너가 바 아래로

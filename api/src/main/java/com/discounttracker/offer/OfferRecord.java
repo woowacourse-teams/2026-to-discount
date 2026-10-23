@@ -53,10 +53,13 @@ public record OfferRecord(
         String kind,
         // 이 오퍼(앱, 브랜드, 금액)를 처음 본 시각. tracker export_data.first_seen이 채운다(메인 화면 2단계 New).
         // 옛 export.json과 배너에서 세운 오퍼에는 없다(null). API는 해석하지 않고 넘긴다.
-        String firstSeenAt
+        String firstSeenAt,
+        // 원장의 구조화 조건(예: ["첫 주문"], #155). 키가 없는 옛 export.json은 null(모름)이고 []는 "조건 없음"이다.
+        // API는 해석하지 않고 넘긴다(ADR-003).
+        List<String> qualifiers
 ) {
     /**
-     * 이름으로 채우는 빌더. 칸이 21개이고 그중 문자열이 16칸이라, 위치로 넘기면 두 칸이 자리를 바꿔도
+     * 이름으로 채우는 빌더. 칸이 22개이고 그중 문자열이 16칸이라, 위치로 넘기면 두 칸이 자리를 바꿔도
      * 컴파일이 못 잡는다(2026-10-14). 원장을 읽는 Jackson은 정식 생성자를 그대로 쓴다.
      */
     public static Builder builder(String platform, String brand) {
@@ -85,6 +88,7 @@ public record OfferRecord(
         private Boolean soldOut;
         private String kind;
         private String firstSeenAt;
+        private List<String> qualifiers;
 
         private Builder(String platform, String brand) {
             this.platform = platform;
@@ -110,11 +114,12 @@ public record OfferRecord(
         public Builder soldOut(Boolean v) { this.soldOut = v; return this; }
         public Builder kind(String v) { this.kind = v; return this; }
         public Builder firstSeenAt(String v) { this.firstSeenAt = v; return this; }
+        public Builder qualifiers(List<String> v) { this.qualifiers = v; return this; }
 
         public OfferRecord build() {
             return new OfferRecord(platform, brand, amount, qualifier, needsReview, offerType, section,
                     rawText, capturedAt, screenshotPath, minOrderAmount, tierMode, tiers, conditions, expiresAt,
-                    badge, link, membership, soldOut, kind, firstSeenAt);
+                    badge, link, membership, soldOut, kind, firstSeenAt, qualifiers);
         }
     }
 
