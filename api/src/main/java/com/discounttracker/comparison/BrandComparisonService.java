@@ -160,8 +160,7 @@ public class BrandComparisonService {
                     && brands.find(name).links().get(record.platform()) == null) {
                 continue;
             }
-            // 오픈 전 배민 선착순은 브랜드 페이지에 쿠폰이 없어 배짱할인 허브로 보낸다(오픈 뒤엔 원래 링크).
-            Offer offer = FirstComeLinkFilter.apply(Offer.from(record, today), LocalTime.now(clock));
+            Offer offer = Offer.from(record, today);
 
             // 앱마다 오퍼 하나가 대표다. 다만 뽑기 오퍼(랜덤)는 확정 오퍼와 **다른 자리**에 둔다 —
             // 같은 자리에 두면 확정액이 이겨 상한이 사라진다(2026-09-20 노모어·푸라닭). 원장
@@ -226,6 +225,11 @@ public class BrandComparisonService {
         // 선착순 배너가 원장 오퍼와 같은 쿠폰이면(금액과 확실성이 같다) 따로 세우지 않고 예전처럼
         // 한 칸으로 합친다. 2026-09-30 던킨 땡겨요: 배너와 원장이 같은 7,000원인데 두 번 떴다.
         byBrand.values().forEach(BrandComparisonService::mergeSameFirstCome);
+
+        // 오픈 전 배민 선착순은 브랜드 페이지에 쿠폰이 없어 배짱할인 허브로 보낸다(오픈 뒤엔 원래 링크). 칸을 합친 뒤에
+        // 건다: 합치면서 오픈 시각 조건이 다른 기록에서 오는 경우가 있어 합친 오퍼의 조건과 링크로 판정해야 한다.
+        LocalTime now = LocalTime.now(clock);
+        byBrand.values().forEach(slots -> slots.replaceAll((slot, o) -> FirstComeLinkFilter.apply(o, now)));
 
         // 신규 여부는 이력이 판정한다(설계 2026-10-09). 금액 없는 오퍼는 모름(null).
         OfferHistory h = history.current();

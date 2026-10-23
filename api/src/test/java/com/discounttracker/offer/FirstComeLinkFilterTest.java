@@ -42,6 +42,9 @@ class FirstComeLinkFilterTest {
         assertEquals(LocalTime.of(12, 0), FirstComeLinkFilter.opensAt("오후 12시 오픈"));
         assertEquals(LocalTime.of(0, 0), FirstComeLinkFilter.opensAt("오전 12시 오픈"));
         assertEquals(LocalTime.of(10, 30), FirstComeLinkFilter.opensAt("오전 10시 30분 오픈"));
+        assertNull(FirstComeLinkFilter.opensAt("오전 13시 오픈"));
+        assertNull(FirstComeLinkFilter.opensAt("오전 0시 오픈"));
+        assertNull(FirstComeLinkFilter.opensAt("오전 10시 70분 오픈"));
         assertNull(FirstComeLinkFilter.opensAt("선착순"));
         assertNull(FirstComeLinkFilter.opensAt(null));
     }

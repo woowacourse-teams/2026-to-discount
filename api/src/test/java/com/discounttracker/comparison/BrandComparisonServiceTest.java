@@ -1210,4 +1210,22 @@ class BrandComparisonServiceTest {
         assertEquals("https://example.test/yogiyo", links.get("BBQ/yogiyo#first-come"));
         assertEquals("https://share.coupangeats.com/test", links.get("맘스터치/coupangeats"));
     }
+
+    @Test
+    void theFilterUsesTheConditionOfTheMergedFirstComeOffer() {
+        // 같은 칸의 새 기록에 오픈 시각 글자가 없고 옛 기록에만 있어도, 합친 오퍼의 조건으로 판정한다.
+        String brands = """
+                brands:
+                  노랑통닭:
+                    category: chicken
+                """;
+        List<OfferRecord> records = List.of(
+                ledger("baemin", "노랑통닭", "배짱할인 주말핫딜 선착순", "오전 10시 오픈 선착순", null, 6000),
+                ledger("baemin", "노랑통닭", "배짱할인 주말핫딜 선착순", null, null, 6000));
+        Clock nineAm = Clock.fixed(Instant.parse("2026-10-24T00:00:00Z"), SEOUL);
+        Offer o = serviceWith(records, brands, nineAm).compare().get(0).offers().get(0);
+
+        assertTrue(o.firstCome());
+        assertEquals(com.discounttracker.offer.FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK, o.link());
+    }
 }

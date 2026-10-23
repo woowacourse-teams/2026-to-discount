@@ -43,11 +43,11 @@ public final class FirstComeLinkFilter {
         if (!m.find()) {
             return null;
         }
-        int hour = Integer.parseInt(m.group(2)) % 12 + ("오후".equals(m.group(1)) ? 12 : 0);
+        int hour12 = Integer.parseInt(m.group(2));
         int minute = m.group(3) == null ? 0 : Integer.parseInt(m.group(3));
-        if (minute > 59) {
+        if (hour12 < 1 || hour12 > 12 || minute > 59) {
             return null;
         }
-        return LocalTime.of(hour, minute);
+        return LocalTime.of(hour12 % 12 + ("오후".equals(m.group(1)) ? 12 : 0), minute);
     }
 }
