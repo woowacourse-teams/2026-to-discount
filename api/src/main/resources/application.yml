@@ -98,3 +98,8 @@ management:
       # 자동 히스토그램 버킷과 클라이언트 percentile 시계열은 추가하지 않는다.
       slo:
         http.server.requests: 5ms,10ms,25ms,50ms,100ms,250ms,500ms,1s,2s,5s,10s,30s
+
+# 원장 요약 스냅샷(events.jsonl.<이름>.snapshot.json). 끄면 기동마다 원장 전체를 읽던 예전 동작 그대로다(ADR-011 2026-10-16).
+analytics:
+  snapshot:
+    enabled: ${ANALYTICS_SNAPSHOT_ENABLED:true}
