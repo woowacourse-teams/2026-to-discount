@@ -94,6 +94,7 @@ jobs:
             .claude/agents/reviewer.md 를 먼저 읽고 그 순서와 "먼저 보는 위험"을 따른다.
             입력: ${{ runner.temp }}/review-input.md(PR 본문, 이슈, 이슈 권한자 댓글), ${{ runner.temp }}/pr.diff(변경분), 설계 문서 ${{ env.SPEC }}-*.md. 저장소 파일은 근거를 확인할 때 읽는다.
             /approve-design 전 권한자 이슈 댓글은 설계의 일부다. 설계와 다르게 구현됐는지, 빠진 것, 위험(값을 조용히 잃는 자리, 저장소 사이 계약, 영향이 번지는 자리 docs/CHANGE-PROPAGATION.md 또는 mono/docs/CHANGE-PROPAGATION.md, 결론을 박지 못한 테스트)을 본다.
+            PR 본문 끝의 `### 변경 N` 절은 위쪽 설계 때 본문보다 우선한다(스킬 "다시 쓸 때": 앞 본문은 고치지 않고 변경 절에 기존 → 변경으로 적는다). 위쪽 문장이 변경 절과 다른 것만으로는 지적하지 않는다.
             확인한 것만 지적한다. 추정이면 "(추정)"을 붙인다. 문체 지적은 하지 않는다. 지적이 없으면 없다고 쓴다.
             결과는 Write로 ${{ runner.temp }}/review.json 하나에 쓴다. 형식:
             {"summary": "<요약 마크다운. 첫 줄은 '리뷰: 지적 N건' 또는 '리뷰: 지적 없음'>", "comments": [{"path": "<diff의 파일 경로>", "line": <변경 뒤 줄 번호>, "body": "<지적과 근거, 고칠 방향>"}]}
