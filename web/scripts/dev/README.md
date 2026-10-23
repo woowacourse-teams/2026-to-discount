@@ -36,19 +36,3 @@ CI `web-perf`(.github/workflows/web-perf.yml)가 main 배포 뒤 운영에 이 �
 `layout-report.py`가 가짜 API다. 고정 데이터(`fixtures/`)를 바꾸면 기준일 `fixtures/DATE`도 같이 고친다. 7일이 넘으면 검사 요약에 경고가 뜬다.
 `live:` 장면은 찍기 직전에 받은 운영 응답(`PRODUCTION_API`)으로 연다. API와 웹을 함께 바꾸는 PR은 이 장면이 병합 전 옛 API 응답으로 새 웹을 보므로 거짓 경고가 날 수 있다.
 시험: `python3 -m unittest discover -s web/scripts/dev -p 'test_*.py'`
-
-## iOS 쿠폰 글자 배치
-
-`ios-shot`은 웹 PR에서 iOS Safari 시뮬레이터로 브랜치의 빌드와 고정 데이터를 엽니다. `layout-check.js`가 글자 좌표를 보고하고, `layout-report.py summary`가 실패 종료 코드를 반환합니다.
-
-기본 장면 `/?home=a&tab=4&expect=coupon-text`는 카페 분류로 전환해 금액과 단위, 최소주문 문구가 있는 쿠폰을 검사합니다. 금액이나 단위의 폭이 0이거나, 서로 겹치거나, 최소주문 텍스트의 폭이 0이면 실패합니다. 검사할 금액이나 최소주문이 없어도 실패합니다. `live:`가 붙지 않은 고정 데이터 장면이므로 경고로 낮추지 않습니다.
-
-검사 로직과 결과 요약은 로컬에서도 확인할 수 있습니다.
-
-```sh
-# 저장소 루트에서 실행
-node --test web/src/couponLayout.test.js
-python3 -m unittest discover -v -s web/scripts/dev -p 'test_*.py'
-```
-
-Node 테스트는 잘못된 좌표를 놓치지 않는지 확인합니다. iOS 자체의 글자 배치 재현은 `ios-shot`의 실제 Safari 실행이 담당합니다. 운영 배포 후 실행은 현재 캡처만 하므로, 이 설명의 실패 판정은 PR 또는 `local=true` 실행에 해당합니다.

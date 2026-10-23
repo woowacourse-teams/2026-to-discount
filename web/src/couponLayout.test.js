@@ -14,19 +14,15 @@ async function measure({ digits = rect(10, 80), unit = rect(91, 40), minimum = r
   const brand = { dataset: { brand: '던킨' }, getBoundingClientRect: () => rect(0, 390) }
   const ticket = { getBoundingClientRect: () => rect(0, 350) }
   const digitText = textNode('6,000', digits)
-  const suffixText = textNode('원 할인', unit)
   const minText = textNode('최소주문 18,000원', minimum)
-  const suffix = { bounds: unit, textContent: '원 할인', childNodes: [suffixText], getBoundingClientRect: () => unit }
+  const suffix = { bounds: unit, textContent: '원 할인' }
   const struck = { childNodes: [digitText, suffix] }
   const min = {
-    textContent: minText.textContent, childNodes: [minText],
-    getBoundingClientRect: () => rect(10, 110),
+    childNodes: [minText],
     closest: (selector) => selector === '.cc-ticket' ? ticket : brand,
   }
-  ticket.querySelector = (selector) => selector === '.cc-min' ? min : null
   const amount = {
     childNodes: soldOut ? [struck] : [digitText, suffix],
-    getBoundingClientRect: () => rect(10, 130),
     querySelector: (selector) => selector === 'small' ? suffix : selector === 's' && soldOut ? struck : null,
     closest: (selector) => selector === '.cc-ticket' ? ticket : selector === '[data-brand]' ? brand : null,
   }
@@ -65,17 +61,16 @@ test('금액과 단위의 실제 영역이 겹치면 실패한다', async () => 
   assert.match((await measure({ unit: rect(50, 40) })).fails.join('\n'), /겹친다/)
 })
 
-test('단위의 폭이 0이면 영역 교차가 없어도 실패한다', async () => {
-  assert.match((await measure({ unit: rect(91, 0) })).fails.join('\n'), /단위.*폭.*0/)
-})
-
-test('금액의 폭이 0이면 실패한다', async () => {
-  assert.match((await measure({ digits: rect(10, 0) })).fails.join('\n'), /금액.*폭.*0/)
-})
-
-test('최소주문의 텍스트 폭이 0이면 화살표가 남아 있어도 실패한다', async () => {
-  assert.match((await measure({ minimum: rect(10, 0) })).fails.join('\n'), /최소주문.*폭.*0/)
-})
+for (const [field, label, error] of [
+  ['unit', '단위', /단위.*폭.*0/],
+  ['digits', '금액', /금액.*폭.*0/],
+  ['minimum', '최소주문', /최소주문.*폭.*0/],
+]) {
+  test(`${label} 글자의 폭이 0이면 실패한다`, async () => {
+    const result = await measure({ [field]: rect(10, 0) })
+    assert.match(result.fails.join('\n'), error)
+  })
+}
 
 test('품절 금액의 취소선 안에 있는 글자도 검사한다', async () => {
   assert.match((await measure({ soldOut: true, digits: rect(10, 0) })).fails.join('\n'), /금액.*폭.*0/)

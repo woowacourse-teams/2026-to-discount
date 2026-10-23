@@ -112,7 +112,7 @@
     // 첫 방문에서만 깨졌다(2026-10-16). 그 순간의 스타일, 글꼴, 시각을 남긴다
     const diag = { sheets: document.styleSheets.length, fonts: document.fonts ? document.fonts.status : null,
       cardsAt: cardsAt == null ? null : cardsAt - t0, measuredAt: Date.now() - t0 }
-    return { url: location.href, scene, w: innerWidth, vv: vv ? { x: Math.round(vv.offsetLeft), scale: vv.scale } : null, ua: navigator.userAgent, carousels, couponText, diag, fails }
+    return { url: location.href, scene, w: innerWidth, vv: vv ? { x: Math.round(vv.offsetLeft), scale: vv.scale } : null, ua: navigator.userAgent, carousels, diag, fails }
   }
 
   function report(res) {

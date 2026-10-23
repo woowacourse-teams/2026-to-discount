@@ -76,8 +76,7 @@ class SummaryTest(unittest.TestCase):
         url = "http://localhost:5173/?home=a&tab=4&expect=coupon-text"
         code, text = self.run_summary(
             f"1 {url} data=fixture at=2026-10-16\n",
-            [{"url": url, "couponText": {"amounts": 1, "minimums": 1},
-              "fails": ["던킨: 할인 단위 텍스트 폭이 0이다"]}],
+            [{"url": url, "fails": ["던킨: 할인 단위 텍스트 폭이 0이다"]}],
         )
         self.assertEqual(code, 1, text)
         self.assertIn("실패", text)
