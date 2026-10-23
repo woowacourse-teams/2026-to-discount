@@ -196,6 +196,7 @@ web/scripts/dev/layout-check.js
 web/scripts/dev/layout-report.py
 web/scripts/dev/load-interact.mjs
 web/scripts/dev/load-tbt.mjs
+web/scripts/dev/verify-coupon-layout.js
 web/scripts/indexnow.mjs
 web/scripts/make-logo-webp.py
 web/scripts/prerender.mjs
@@ -382,7 +383,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 171 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 162 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 163 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
