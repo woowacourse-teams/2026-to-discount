@@ -149,4 +149,5 @@ List<String> mergedQualifiers = qualifiers != null ? qualifiers
 - 2026-10-23 (구현, `/approve-design` 전 권한자 댓글 반영)
   - 열린 질문 1, 2는 기본안으로 확정(문자열 하나는 받지 않음, 선착순 오퍼의 `qualifiers`는 버림). 테스트 2번은 실제로 `JacksonException`이 나는 것을 확인했다.
   - 칸 이름과 병합 규칙은 tracker 내보내기 [nn98/delivery-discount-tracker#43](https://github.com/nn98/delivery-discount-tracker/issues/43)과 같게 둔다. 후속 절의 "tracker 따로 이슈"는 이 이슈다.
-  - 범위에 웹이 들어왔다. 웹 `qualifiersOf`가 `offer.qualifiers`를 먼저 읽게 켜고 qualifiers 2개 렌더 테스트(React key)를 더한 뒤, `conditions` 정확 일치 대체 경로(`KNOWN_QUALIFIERS`)를 걷어 CU 첫 주문 칩이 그대로 뜨면 끝이다. "웹 코드는 이 이슈에서 바꾸지 않는다"와 배포 순서 3번(운영 확인 뒤 걷기)은 이 댓글로 바뀐다. API 구현자는 웹을 고치지 않으므로 웹 몫은 웹 구현자에게 넘긴다.
+  - 웹 범위는 이 이슈에서 다시 뺀다(2026-10-23 오케스트레이션 정정). 앞선 이슈 댓글이 웹 읽기 켜기를 이 이슈에 넣었지만 구현자는 api 역할이라 웹을 고치지 않았고, 웹의 대체 경로 제거는 내보내기(nn98/delivery-discount-tracker#43)가 운영에 `qualifiers`를 실은 뒤에만 할 수 있다. 그래서 결론의 "웹 코드는 이 이슈에서 바꾸지 않는다"와 배포 순서 3번(운영 확인 뒤 웹)은 그대로 유효하다. 웹 읽기 켜기, qualifiers 2개 렌더 테스트, 대체 경로 제거는 후속 웹 이슈로 한다.
+  - `withDetailFrom` 병합 규칙과 tracker `store.MERGEABLE_DETAIL`(ADR-016, 글자까지 같아야 합침)의 일치는 #43 구현 때 tracker 쪽에서 확인한다.
