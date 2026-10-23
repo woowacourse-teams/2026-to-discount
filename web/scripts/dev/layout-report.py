@@ -12,6 +12,8 @@ POST /data?set=live|fixture 로 줄 데이터를 바꾼다. 상태가 서버에 
 넘김(동점 최고) 카드가 첫 화면에 없는 날은 검사가 헛돌았다(2026-10-15). fixtures/brands.json은 운영 응답을 잘라
 넘김 카드(푸라닭)가 맨 위에 오고, 선착순 구간(긴 메모, 품절)이 붙은 카드(KFC, 두찜)를 넣었다.
 """
+from __future__ import annotations
+
 import http.server
 import json
 import sys
@@ -73,12 +75,15 @@ def serve(out: Path, live: Path | None = None, port: int = 8099) -> http.server.
 
 def summary(out: Path, index: Path, today: date | None = None) -> int:
     scenes = []   # (주소, data, at)
+    switch_failed = {}   # 주소 -> 가짜 API 데이터 전환 응답 코드. 검사 자체의 고장이라 운영 장면도 실패다
     for line in index.read_text(encoding="utf-8").splitlines():
         parts = line.split()
         if len(parts) < 2:
             continue
         kv = dict(x.split("=", 1) for x in parts[2:] if "=" in x)
         scenes.append((parts[1], kv.get("data", "fixture"), kv.get("at", "?")))
+        if "switch" in kv:
+            switch_failed[unquote(parts[1])] = kv["switch"]
     live_of = {unquote(u): d == "live" for u, d, _ in scenes}
     reports = []
     for f in sorted(out.glob("*.json")):
@@ -110,7 +115,10 @@ def summary(out: Path, index: Path, today: date | None = None) -> int:
         lines += [f"  - {x}" for x in fails]
     seen = {unquote(str(r.get("url"))) for r in reports}     # 사파리가 css= 인코딩을 바꿔 적을 수 있다
     for url, data, at in scenes:
-        if unquote(url) not in seen:
+        if unquote(url) in switch_failed:
+            bad += 1
+            lines.append(f"- 실패 `{url}` data={data}: 가짜 API 데이터 전환이 실패했다(응답 {switch_failed[unquote(url)]}). 검사가 안 돌았다")
+        elif unquote(url) not in seen:
             live = data == "live"
             bad += not live
             lines.append(f"- {'경고' if live else '실패'} `{url}` data={data}: 보고가 없다. 페이지가 검사를 못 돌렸다(다시 열어도 안 왔다)")

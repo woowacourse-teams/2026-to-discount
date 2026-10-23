@@ -74,9 +74,9 @@ jobs:
           API=$(sed -n "s/^export const PRODUCTION_API = '\(.*\)'.*/\1/p" web/src/apiBase.js)
           test -n "$API"
           mkdir -p "$RUNNER_TEMP/live"
-          curl -sf "$API/api/brands" -o "$RUNNER_TEMP/live/brands.json"
-          curl -sf "$API/api/banners" -o "$RUNNER_TEMP/live/banners.json"
-          # 양성 신호: 빈 배열이나 오퍼 없는 응답을 정상으로 보지 않는다
+          curl -sf --max-time 30 --retry 2 "$API/api/brands" -o "$RUNNER_TEMP/live/brands.json"
+          curl -sf --max-time 30 --retry 2 "$API/api/banners" -o "$RUNNER_TEMP/live/banners.json"
+          # 양성 신호: 빈 배열이나 오퍼 없는 응답을 정상으로 보지 않는다. 배너는 JSON으로 읽히는지만 본다(빈 배열도 정상, 배너가 없는 날이 있다)
           python3 -c "import json,sys;b=json.load(open(sys.argv[1]));json.load(open(sys.argv[2]));assert isinstance(b,list) and b and any(x.get('offers') for x in b), 'brands 비었거나 오퍼 없음';print(len(b),'brands')" "$RUNNER_TEMP/live/brands.json" "$RUNNER_TEMP/live/banners.json"
           echo "LIVE_AT=$(date -u +%Y-%m-%d)" >> $GITHUB_ENV
       - name: Vercel 배포 기다리기
@@ -95,7 +95,8 @@ jobs:
           BYPASS: ${{ env.LOCAL != 'true' && secrets.VERCEL_BYPASS || '' }}
         run: |
           mkdir shots; n=0
-          reports() { ls "$RUNNER_TEMP/reports" 2>/dev/null | wc -l; }
+          # 열려는 주소의 보고만 센다(다른 장면의 늦은 보고를 이 장면의 것으로 세지 않는다). 따옴표까지 맞춰 ?home=a가 ?home=a&tab=1에 걸리지 않게 한다
+          reports() { grep -lF "\"url\":\"$1\"" "$RUNNER_TEMP"/reports/*.json 2>/dev/null | wc -l | tr -d ' '; }
           for u in $URLS; do
             n=$((n+1))
             data=fixture; at="$FIXTURE_AT"
@@ -103,6 +104,7 @@ jobs:
             if [ "$LOCAL" = true ]; then
               # 가짜 API의 데이터 종류는 서버에 하나다. 장면을 하나씩 여니 열기 전에 바꾼다
               code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "http://localhost:8099/data?set=$data")
+              # 전환 실패는 검사 자체의 고장이다. 요약기가 switch= 줄을 운영 장면이어도 실패로 센다
               [ "$code" = 204 ] || { echo "::error::$u data=$data 전환 실패($code)"; echo "$n $u data=$data at=$at switch=$code" >> shots/index.txt; continue; }
             fi
             open="$u"
@@ -115,10 +117,10 @@ jobs:
             if [ "$LOCAL" = true ]; then
               # 검사가 보고를 보낸 뒤 찍는다(스크롤 장면은 목록을 다 채우느라 오래 걸린다). 40초 안에 안 오면 한 번 다시 연다.
               # 페이지가 검사를 못 돌린 경우가 같은 커밋에서도 들쭉날쭉했다(2026-10-23 #153). 그래도 없으면 요약이 "보고 없음"으로 적는다
-              before=$(reports)
+              before=$(reports "$u")
               for try in 1 2; do
                 xcrun simctl openurl "$UDID" "$open" || { sleep 30; xcrun simctl openurl "$UDID" "$open"; }
-                for i in $(seq 1 40); do [ "$(reports)" -gt "$before" ] && break 2; sleep 1; done
+                for i in $(seq 1 40); do [ "$(reports "$u")" -gt "$before" ] && break 2; sleep 1; done
                 echo "::warning::$u 보고 없음($try번째 열기)"
               done
               sleep 1

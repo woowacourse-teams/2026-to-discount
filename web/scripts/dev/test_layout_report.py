@@ -91,6 +91,12 @@ class SummaryTest(unittest.TestCase):
         self.assertEqual(code, 0, text)
         self.assertEqual(text.count("- 경고"), 2)
 
+    def test_switch_failure_fails_even_for_live(self):
+        code, text = self.run_summary(f"1 {self.L} data=live at=2026-10-22 switch=409\n", [])
+        self.assertEqual(code, 1, text)
+        self.assertIn("- 실패", text)
+        self.assertIn("전환이 실패", text)
+
     def test_stale_fixture_warns(self):
         code, text = self.run_summary(f"1 {self.A} data=fixture at=2026-10-01\n", [{"url": self.A, "fails": []}])
         self.assertEqual(code, 0)
