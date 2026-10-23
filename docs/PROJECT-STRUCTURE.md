@@ -79,6 +79,7 @@ api/src/main/java/com/discounttracker/offer/AmountKind.java
 api/src/main/java/com/discounttracker/offer/Certainty.java
 api/src/main/java/com/discounttracker/offer/DiscountLadder.java
 api/src/main/java/com/discounttracker/offer/DiscountTier.java
+api/src/main/java/com/discounttracker/offer/FirstComeLinkFilter.java
 api/src/main/java/com/discounttracker/offer/Membership.java
 api/src/main/java/com/discounttracker/offer/Offer.java
 api/src/main/java/com/discounttracker/offer/OfferComparison.java
@@ -147,6 +148,7 @@ api/src/test/java/com/discounttracker/history/HistoryRepositoryTest.java
 api/src/test/java/com/discounttracker/history/OfferHistoryTest.java
 api/src/test/java/com/discounttracker/offer/CertaintyTest.java
 api/src/test/java/com/discounttracker/offer/DiscountLadderTest.java
+api/src/test/java/com/discounttracker/offer/FirstComeLinkFilterTest.java
 api/src/test/java/com/discounttracker/offer/OfferCertaintyTest.java
 api/src/test/java/com/discounttracker/offer/OfferComparisonTest.java
 api/src/test/java/com/discounttracker/offer/OfferContractTest.java
@@ -386,7 +388,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 173 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 175 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 165 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -404,7 +406,7 @@ flowchart TB
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `history/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 6 |
-| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 11 |
+| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 12 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
 | `web/` | HTTP 엔드포인트와 CORS | 8 |
 
