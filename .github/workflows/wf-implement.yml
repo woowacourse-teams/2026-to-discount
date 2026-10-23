@@ -195,6 +195,9 @@ jobs:
             ${{ steps.role.outputs.test }}
             mono/ 와 beggars-ops/ 가 있으면 테스트용 체크아웃이다. 고치거나 커밋하지 않는다.
             끝나면 첫 줄이 `인계:` 인 이슈 댓글 하나를 남긴다(한 것, 남은 것, 막힌 것, 테스트 결과 줄).
+            PR 본문 갱신: 설계 PR 본문은 설계 때 쓴 그대로라 구현을 모른다. PR 본문 스킬(mono/.claude/skills/pr-body-ko/SKILL.md 또는 .claude/skills/pr-body-ko/SKILL.md)의 "다시 쓸 때"대로
+            `### 변경 1 (날짜): 구현` 절 하나를 Write로 ${{ runner.temp }}/pr-update.md 에 쓴다(실제 추가/변경, 설계 변동, 확인, 미확인, 필요하면 `### 후속 조치`).
+            최종 제목 한 줄을 ${{ runner.temp }}/pr-title.txt 에 쓴다(`[분야] 종류: 설명`, 종류는 구현까지 포함한 feat/fix/test 등). 워크플로가 본문 끝에 붙이고 제목을 바꾼다.
             셸 명령은 한 번에 하나씩 쓴다. cd, &&, 파이프, heredoc으로 묶지 않는다. 파일은 Write 도구로 쓴다. 댓글은 Write로 파일을 만든 뒤 --body-file로 넘긴다.
           claude_args: --max-turns 80 --allowedTools "Read,Grep,Glob,Write,Edit,${{ steps.role.outputs.tools }},Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue comment:*)"
       # Claude 액션이 끝나며 checkout의 git 자격을 지운다(2026-10-22 tracker #10). 세션 커밋을 패치로 보관하고
@@ -257,6 +260,17 @@ jobs:
           if [ "$n" -gt 0 ]; then echo "인계 댓글: $n"; else echo "인계 댓글 없음"; ok=0; fi
           [ "$ok" = 1 ]
           gh pr ready "$pr" -R "$GH_REPO"
+          # 구현 세션이 쓴 변경 절을 본문 끝(생성 표기 앞)에 붙이고 제목을 바꾼다. 없으면 건너뛴다.
+          if [ -s "$RUNNER_TEMP/pr-update.md" ]; then
+            gh pr view "$pr" -R "$GH_REPO" --json body -q .body > "$RUNNER_TEMP/body.md"
+            # 생성 표기 줄부터 끝을 떼어 두고, 그 앞에 변경 절을 넣는다.
+            awk '/^🤖 Generated with/{f=1} !f' "$RUNNER_TEMP/body.md" > "$RUNNER_TEMP/new.md"
+            { echo; cat "$RUNNER_TEMP/pr-update.md"; echo; } >> "$RUNNER_TEMP/new.md"
+            awk '/^🤖 Generated with/{f=1} f' "$RUNNER_TEMP/body.md" >> "$RUNNER_TEMP/new.md"
+            gh pr edit "$pr" -R "$GH_REPO" --body-file "$RUNNER_TEMP/new.md"
+          fi
+          t=$(head -1 "$RUNNER_TEMP/pr-title.txt" 2>/dev/null || true)
+          if [ -n "$t" ]; then gh pr edit "$pr" -R "$GH_REPO" --title "$t"; fi
       - name: 거부된 도구와 턴 수
         if: always() && steps.claude.outputs.execution_file != ''
         env:
