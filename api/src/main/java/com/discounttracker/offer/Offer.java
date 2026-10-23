@@ -308,6 +308,13 @@ public record Offer(String platform, Integer amount, String qualifier,
         return badge + " " + conditions;
     }
 
+    /** 이 오퍼만 가리키는 링크를 바꾼다. 오픈 전 선착순 링크 필터({@link FirstComeLinkFilter})가 쓴다. */
+    public Offer withLink(String v) {
+        return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,
+                tierMode, tiers, conditions, expiresAt, badge, soldOut, v, membership, fromBanner, firstCome,
+                certainty, kind, firstSeenAt, isNew, qualifiers);
+    }
+
     /** 이력이 판정한 신규 여부를 단다. null = 모름. */
     public Offer withIsNew(Boolean v) {
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,

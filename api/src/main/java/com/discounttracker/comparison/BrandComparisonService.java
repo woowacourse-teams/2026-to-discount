@@ -7,6 +7,7 @@ import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.history.HistoryRepository;
 import com.discounttracker.history.OfferHistory;
 import com.discounttracker.offer.Certainty;
+import com.discounttracker.offer.FirstComeLinkFilter;
 import com.discounttracker.offer.Offer;
 import com.discounttracker.offer.OfferComparison;
 import com.discounttracker.offer.OfferRecord;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -158,7 +160,8 @@ public class BrandComparisonService {
                     && brands.find(name).links().get(record.platform()) == null) {
                 continue;
             }
-            Offer offer = Offer.from(record, today);
+            // 오픈 전 배민 선착순은 브랜드 페이지에 쿠폰이 없어 배짱할인 허브로 보낸다(오픈 뒤엔 원래 링크).
+            Offer offer = FirstComeLinkFilter.apply(Offer.from(record, today), LocalTime.now(clock));
 
             // 앱마다 오퍼 하나가 대표다. 다만 뽑기 오퍼(랜덤)는 확정 오퍼와 **다른 자리**에 둔다 —
             // 같은 자리에 두면 확정액이 이겨 상한이 사라진다(2026-09-20 노모어·푸라닭). 원장
