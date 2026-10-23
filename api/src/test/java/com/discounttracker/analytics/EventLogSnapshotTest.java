@@ -122,6 +122,20 @@ class EventLogSnapshotTest {
     }
 
     @Test
+    void sameHeadButRewrittenTailFallsBackToFullRead() throws Exception {
+        // 앞 4KB는 그대로인데 그 뒤를 갈아끼운 원장(PR #89 리뷰). 읽은 자리 바로 앞 창의 해시가 달라 전체로 떨어진다.
+        List<String> original = lines(3000, 7);
+        Path log = log(original);
+        survey(log, true);
+        popularity(log, true);
+        List<String> rewritten = new ArrayList<>(original.subList(0, 200));
+        rewritten.addAll(lines(4000, 8));
+        log(rewritten);
+        assertEquals(survey(log, false), survey(log, true));
+        assertEquals(popularity(log, false), popularity(log, true));
+    }
+
+    @Test
     void failedWriteKeepsPreviousSnapshot() throws Exception {
         Path log = log(lines(1000, 7));
         survey(log, true);

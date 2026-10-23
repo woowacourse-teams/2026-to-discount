@@ -9,7 +9,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
@@ -98,16 +101,29 @@ final class EventLogSnapshot {
         }
     }
 
+    /**
+     * 읽은 자리까지가 그때 그 원장인지 가르는 지문. 앞 4KB와 읽은 자리 바로 앞 4KB를 함께 해시한다.
+     * 앞만 보면 같은 머리로 뒤를 갈아끼운 원장을 못 알아본다(PR #89 리뷰). 읽은 앞부분 전체를 해시하면
+     * 기동 때 원장 전체를 다시 읽어 스냅샷의 이유가 사라진다. 원장은 API만 이어 쓰는 파일이라 두 창으로 충분하다.
+     */
     private String head(long offset) throws IOException {
         int len = (int) Math.min(HEAD, offset);
-        byte[] buf = new byte[len];
-        if (len > 0) {
-            try (InputStream in = Files.newInputStream(logPath)) {
-                if (in.readNBytes(buf, 0, len) != len) return "short";
+        long tailStart = Math.max(0, offset - HEAD);
+        int tailLen = (int) (offset - tailStart);
+        byte[] first = new byte[len];
+        byte[] tail = new byte[tailLen];
+        if (offset > 0) {
+            try (FileChannel ch = FileChannel.open(logPath, StandardOpenOption.READ)) {
+                if (ch.size() < offset) return "short";
+                if (ch.read(ByteBuffer.wrap(first), 0) != len) return "short";
+                if (tailLen > 0 && ch.read(ByteBuffer.wrap(tail), tailStart) != tailLen) return "short";
             }
         }
         try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(buf));
+            MessageDigest d = MessageDigest.getInstance("SHA-256");
+            d.update(first);
+            d.update(tail);
+            return HexFormat.of().formatHex(d.digest());
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
         }
