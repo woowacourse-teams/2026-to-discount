@@ -1136,4 +1136,96 @@ class BrandComparisonServiceTest {
 
         assertEquals(6500, card.maxConfirmedAmount());
     }
+
+    // ── 오픈 전 배민 선착순 링크 필터가 다른 오퍼를 건드리지 않는다(2026-10-24 사용자) ──
+
+    private static OfferRecord ledger(String platform, String brand, String section, String conditions, String link,
+                                      int amount) {
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .offerType("discount")
+                .section(section)
+                .conditions(conditions)
+                .link(link)
+                .rawText(amount + "원")
+                .capturedAt("2026-10-24T08:00:00+09:00")
+                .screenshotPath("path.jpg")
+                .minOrderAmount(19000)
+                .soldOut(false)
+                .build();
+    }
+
+    /** "브랜드/앱" 또는 "브랜드/앱#first-come" -> 그 오퍼의 링크. 브랜드마다 앱 하나씩만 둔다(같은 앱의 선착순과 상시는 한 칸으로 합쳐진다). */
+    private java.util.Map<String, String> linksOf(Clock clock) {
+        String brands = """
+                brands:
+                  노랑통닭:
+                    category: chicken
+                  교촌치킨:
+                    category: chicken
+                  굽네치킨:
+                    category: chicken
+                  BBQ:
+                    category: chicken
+                  맘스터치:
+                    category: burger
+                """;
+        List<OfferRecord> records = List.of(
+                ledger("baemin", "노랑통닭", "배짱할인 주말핫딜 선착순", "오전 10시 오픈 선착순", null, 6000),
+                ledger("baemin", "교촌치킨", "쿠폰함 보유쿠폰", null, null, 3000),
+                ledger("baemin", "굽네치킨", "배짱할인 주말핫딜 선착순", "오전 10시 오픈 선착순", "https://own.test/gubne", 2000),
+                ledger("yogiyo", "BBQ", "배짱할인 주말핫딜 선착순", "오전 10시 오픈 선착순", "https://example.test/yogiyo", 5000),
+                ledger("coupangeats", "맘스터치", "위클리 슈퍼딜 > 브랜드 할인", null, "https://share.coupangeats.com/test", 4000));
+        java.util.Map<String, String> links = new java.util.LinkedHashMap<>();
+        for (BrandComparison c : serviceWith(records, brands, clock).compare()) {
+            for (Offer o : c.offers()) {
+                links.put(c.brand().name() + "/" + o.platform() + (o.firstCome() ? "#first-come" : ""), o.link());
+            }
+        }
+        return links;
+    }
+
+    @Test
+    void beforeOpeningOnlyTheBaeminFirstComeOfferGetsTheBaejjangHubLink() {
+        Clock nineAm = Clock.fixed(Instant.parse("2026-10-24T00:00:00Z"), SEOUL); // KST 09:00
+        var links = linksOf(nineAm);
+
+        assertEquals(com.discounttracker.offer.FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK,
+                links.get("노랑통닭/baemin#first-come"));
+        assertNull(links.get("교촌치킨/baemin"));                                    // 상시 배민 오퍼
+        assertEquals("https://own.test/gubne", links.get("굽네치킨/baemin#first-come")); // 자기 링크가 있는 선착순
+        assertEquals("https://example.test/yogiyo", links.get("BBQ/yogiyo#first-come")); // 다른 앱의 선착순
+        assertEquals("https://share.coupangeats.com/test", links.get("맘스터치/coupangeats"));
+        assertEquals(5, links.size());
+    }
+
+    @Test
+    void afterOpeningEveryOfferKeepsItsOwnLink() {
+        Clock tenThirty = Clock.fixed(Instant.parse("2026-10-24T01:30:00Z"), SEOUL); // KST 10:30
+        var links = linksOf(tenThirty);
+
+        assertNull(links.get("노랑통닭/baemin#first-come"));
+        assertNull(links.get("교촌치킨/baemin"));
+        assertEquals("https://own.test/gubne", links.get("굽네치킨/baemin#first-come"));
+        assertEquals("https://example.test/yogiyo", links.get("BBQ/yogiyo#first-come"));
+        assertEquals("https://share.coupangeats.com/test", links.get("맘스터치/coupangeats"));
+    }
+
+    @Test
+    void theFilterUsesTheConditionOfTheMergedFirstComeOffer() {
+        // 같은 칸의 새 기록에 오픈 시각 글자가 없고 옛 기록에만 있어도, 합친 오퍼의 조건으로 판정한다.
+        String brands = """
+                brands:
+                  노랑통닭:
+                    category: chicken
+                """;
+        List<OfferRecord> records = List.of(
+                ledger("baemin", "노랑통닭", "배짱할인 주말핫딜 선착순", "오전 10시 오픈 선착순", null, 6000),
+                ledger("baemin", "노랑통닭", "배짱할인 주말핫딜 선착순", null, null, 6000));
+        Clock nineAm = Clock.fixed(Instant.parse("2026-10-24T00:00:00Z"), SEOUL);
+        Offer o = serviceWith(records, brands, nineAm).compare().get(0).offers().get(0);
+
+        assertTrue(o.firstCome());
+        assertEquals(com.discounttracker.offer.FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK, o.link());
+    }
 }
