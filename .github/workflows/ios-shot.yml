@@ -16,7 +16,7 @@ on:
     inputs:
       urls: { description: '찍을 주소(공백으로 여럿, local이 아닐 때)', default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
       local: { description: '이 브랜치 web을 러너에서 띄워 검사하고 찍기', default: 'false' }
-      paths: { description: 'local일 때 찍을 경로(공백으로 여럿)', default: '/?home=a&expect=carousel /?home=a&sheet=KFC /?home=old live:/?home=a live:/?home=a&tab=1 live:/?home=a&scroll=end' }
+      paths: { description: 'local일 때 찍을 경로(공백으로 여럿)', default: '/?home=a&expect=carousel /?home=a&sheet=KFC /?home=old /?home=a&tab=4&expect=coupon-text live:/?home=a live:/?home=a&tab=1 live:/?home=a&scroll=end' }
   pull_request:
     paths: ['web/**', '.github/workflows/ios-shot.yml']
   workflow_run:
@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 30
     env:
       LOCAL: ${{ github.event_name == 'pull_request' || inputs.local == 'true' }}
-      PATHS: ${{ inputs.paths || '/?home=a&expect=carousel /?home=a&sheet=KFC /?home=old live:/?home=a live:/?home=a&tab=1 live:/?home=a&scroll=end' }}
+      PATHS: ${{ inputs.paths || '/?home=a&expect=carousel /?home=a&sheet=KFC /?home=old /?home=a&tab=4&expect=coupon-text live:/?home=a live:/?home=a&tab=1 live:/?home=a&scroll=end' }}
       URLS: ${{ inputs.urls || 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }}
     steps:
       - uses: actions/checkout@v4

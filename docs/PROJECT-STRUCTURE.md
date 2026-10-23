@@ -198,7 +198,6 @@ web/scripts/dev/layout-report.py
 web/scripts/dev/load-interact.mjs
 web/scripts/dev/load-tbt.mjs
 web/scripts/dev/test_layout_report.py
-web/scripts/dev/verify-coupon-layout.js
 web/scripts/indexnow.mjs
 web/scripts/make-logo-webp.py
 web/scripts/prerender.mjs
@@ -260,6 +259,7 @@ web/src/cardId.js
 web/src/cardShift.js
 web/src/cardShift.test.js
 web/src/couponCard.test.js
+web/src/couponLayout.test.js
 web/src/couponModel.js
 web/src/couponModel.test.js
 web/src/devPromotion.test.js
@@ -476,6 +476,7 @@ HTTP 경계:
 | `cardShift.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `couponLayout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `devPromotion.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
