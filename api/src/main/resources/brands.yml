@@ -306,6 +306,8 @@ brands:
     menus: [간지치킨, 크크크치킨, 크랑이, 크크크]
     aliases: [육십계, 육십계치킨, 60gye, 60gye chicken]
     category: chicken
+    links:
+      baemin: https://s.baemin.com/lJ000LpsMcUA1
   교촌치킨:
     searchAliases: [교촌, 교촌 치킨, kyochon, kyochon chicken]
     menus: [허니콤보, 레드콤보, 반반콤보, 교촌오리지날, 살살치킨]
