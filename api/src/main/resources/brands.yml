@@ -45,7 +45,7 @@ brands:
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=31
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?r4XZ4u4
-      baemin: https://s.baemin.com/f3e.6ibml
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=7&brandName=BBQ%EC%B9%98%ED%82%A8
   bhc:
     searchAliases: [비에이치씨, 비에이치씨치킨, bhc chicken, bhc치킨, BHC치킨]
     menus: [뿌링클, 맛초킹, 골드킹, 콰삭킹, 뿌링뿌링, 커링클, 콰삭모짜킹]
@@ -81,7 +81,7 @@ brands:
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=1650
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?Mqdi3sx
-      baemin: https://s.baemin.com/7o3.fea3y
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=512&brandName=%EA%B8%B0%EC%98%81%EC%9D%B4%EC%88%AF%EB%B6%88%EB%91%90%EB%A7%88%EB%A6%AC%EC%B9%98%ED%82%A8
   꾸브라꼬숯불치킨:
     searchAliases: [꾸브라꼬, 꾸브라꼬 치킨, 꾸브라코, kkuburakko, kkuburakko chicken]
     shortName: 꾸브라꼬
@@ -96,7 +96,7 @@ brands:
     aliases: [냠냠치킨, 냠냠 숯불치킨, nyamnyam, nyamnyam chicken]
     category: chicken
     links:
-      baemin: https://s.baemin.com/aou.816hq
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=904&brandName=%EB%83%A0%EB%83%A0%EC%88%AF%EB%B6%88%EB%91%90%EB%A7%88%EB%A6%AC%EC%B9%98%ED%82%A8
   네네치킨:
     searchAliases: [네네, 네네 치킨, nene, nene chicken]
     menus: [스노윙, 오리엔탈파닭, 청양마요, 핫블링, 베트남핫]
@@ -237,7 +237,7 @@ brands:
     aliases: [매니아치킨, chicken mania, chikin mania]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o6.l6m2f
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=90&brandName=%EC%B9%98%ED%82%A8%EB%A7%A4%EB%8B%88%EC%95%84
   치킨인류:
     searchAliases: [치킨 인류, 인류치킨, chicken inryu, chikin inryu]
     aliases: [인류치킨, chicken inryu, chikin inryu]
@@ -486,7 +486,7 @@ brands:
     category: fastfood
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?dKAbeYX
-      baemin: https://s.baemin.com/7o3.f6syp
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=21&brandName=%EB%B2%84%EA%B1%B0%ED%82%B9
       yogiyo: yogiyolink://push.page/franchise?fr_id=75
   써브웨이:
     searchAliases: [서브웨이, 섭웨, 써브 웨이, subway, subway korea]
@@ -622,7 +622,7 @@ brands:
     aliases: [잠바]
     category: cafe
     links:
-      baemin: https://s.baemin.com/7oa.rgaxn
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=296&brandName=%EC%9E%A0%EB%B0%94%EC%A3%BC%EC%8A%A4
   팀홀튼:
     searchAliases: [팀 홀튼, 팀홀튼커피, 팀홀든, tim hortons, timhortons]
     menus: [팀빗, 더블더블]
@@ -835,7 +835,7 @@ brands:
     aliases: [육문, 육회연어, yukhoeya munyeoneo, beef salmon]
     category: korean
     links:
-      baemin: https://s.baemin.com/5K000ycTVzrba
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=1086&brandName=%EC%9C%A1%ED%9A%8C%EC%95%BC%EB%AC%B8%EC%97%B0%EC%96%B4
   육회바른연어:
     searchAliases: [육회 바른연어, 바른연어, 육회바른, yukhoe bareun yeoneo]
     aliases: [바른연어, 육회바른, yukhoe bareun yeoneo]
@@ -872,7 +872,7 @@ brands:
     aliases: [강다짐, gangdajim, gangdajim samgakgimbap]
     category: korean
     links:
-      baemin: https://s.baemin.com/Fi000dRKUT3HK
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=536&brandName=%EA%B0%95%EB%8B%A4%EC%A7%90+%EC%82%BC%EA%B0%81%EA%B9%80%EB%B0%A5
   국민낙곱새:
     searchAliases: [국민 낙곱새, 국민낙지, gukmin nakgopsae, national nakgopsae]
     aliases: [국민낙지, gukmin nakgopsae, national nakgopsae]
@@ -885,32 +885,32 @@ brands:
     aliases: [기떡]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o3.gggxg
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=717&brandName=%EA%B8%B0%EB%96%A1%EC%B0%9C
   나우카페:
     searchAliases: [나우 카페, 나우커피, now cafe, now coffee]
     menus: [하이나우]
     aliases: [나우커피, now cafe, now coffee]
     category: cafe
     links:
-      baemin: https://s.baemin.com/NM000sSGuQMk4
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=1035&brandName=%EB%82%98%EC%9A%B0%EC%B9%B4%ED%8E%98
   다운타우너:
     searchAliases: [다운 타우너, 다운타우너버거, downtowner, downtowner burger]
     aliases: [다운타우너버거, downtowner, downtowner burger]
     category: fastfood
     links:
-      baemin: https://s.baemin.com/7o3.fpf8d
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=460&brandName=%EB%8B%A4%EC%9A%B4%ED%83%80%EC%9A%B0%EB%84%88
   따띠삼겹:
     searchAliases: [따띠 삼겹, 따띠, ttatti samgyeop, ddatti pork]
     aliases: [따띠, ttatti samgyeop, ddatti pork]
     category: korean
     links:
-      baemin: https://s.baemin.com/Qi000xWvlamq5
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=1083&brandName=%EB%94%B0%EB%9D%A0%EC%82%BC%EA%B2%B9
   명랑핫도그:
     searchAliases: [명랑 핫도그, 명랑, 명량, myungrang hotdog, myeongrang hotdog]
     aliases: [명랑, 명량, myungrang hotdog, myeongrang hotdog]
     category: snack
     links:
-      baemin: https://s.baemin.com/7o3.hvrvw
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=29&brandName=%EB%AA%85%EB%9E%91%ED%95%AB%EB%8F%84%EA%B7%B8
   미스터보쌈:
     searchAliases: [미스터 보쌈, 미스터보쌈족발, mister bossam, mr bossam]
     menus: [앤족발]
@@ -924,7 +924,7 @@ brands:
     category: pizza
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?7UfKRr3
-      baemin: https://s.baemin.com/7oa.7w51k
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=72&brandName=%EB%AF%B8%EC%8A%A4%ED%84%B0%ED%94%BC%EC%9E%90
       yogiyo: yogiyolink://push.page/franchise?fr_id=80
   반찬가게 슈퍼키친:
     searchAliases: [슈퍼키친, 반찬가게슈퍼키친, super kitchen, superkitchen]
@@ -939,7 +939,7 @@ brands:
     aliases: [백억, baekeok coffee, 10 billion coffee]
     category: cafe
     links:
-      baemin: https://s.baemin.com/7o3.jg6j4
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=838&brandName=%EB%B0%B1%EC%96%B5%EC%BB%A4%ED%94%BC
   버거리:
     searchAliases: [버거리버거, 버거리 버거, burgery, burgerlee]
     aliases: [burgery, burgerlee]
@@ -965,13 +965,13 @@ brands:
     aliases: [밥도둑, sin bapdoduk, rice thief]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o8.8nvsi
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=673&brandName=%EC%8B%A0%EB%B0%A5%EB%8F%84%EB%91%91
   쌀통닭:
     searchAliases: [쌀 통닭, 쌀치킨, ssal tongdak, rice chicken]
     aliases: [쌀치킨, ssal tongdak, rice chicken]
     category: chicken
     links:
-      baemin: https://s.baemin.com/7o7.9gu0g
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=81&brandName=%EC%8C%80%ED%86%B5%EB%8B%AD
   아구듬뿍&알곤마니:
     searchAliases: [아구듬뿍 알곤마니, 알곤마니, agu deumpuk, algon mani]
     aliases: [아구듬뿍&알곤마니, 아구듬뿍, 아구듬뿍 알곤마니, 알곤마니, agu deumpuk, algon mani]
@@ -986,7 +986,7 @@ brands:
     aliases: [열정국밥, 열정충전해장국, 열정, passion gukbap, yeoljeong gukbap]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o8.25psm
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=518&brandName=%EC%97%B4%EC%A0%95%EA%B5%AD%EB%B0%A5
   영커피:
     searchAliases: [영 커피, 영카페, young coffee, yeong coffee]
     aliases: [영카페, young coffee, yeong coffee]
@@ -999,7 +999,7 @@ brands:
     aliases: [요거트아이스크림의정석, 요아정 요거트, yoajung, yogurt ice cream standard]
     category: snack
     links:
-      baemin: https://s.baemin.com/dji.i7f6o
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=508&brandName=%EC%9A%94%EC%95%84%EC%A0%95
   이경규의 돈치킨:
     searchAliases: [돈치킨, 이경규 돈치킨, don chicken, donchicken]
     aliases: [이경규의 돈치킨, 돈치킨, 이경규 돈치킨]
@@ -1011,7 +1011,7 @@ brands:
     aliases: [장충동족발, jangchungdong jokbal, king jokbal]
     category: korean
     links:
-      baemin: https://s.baemin.com/7o3.s0o9n
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=592&brandName=%EC%9E%A5%EC%B6%A9%EB%8F%99%EC%99%95%EC%A1%B1%EB%B0%9C
   진교동찜닭:
     searchAliases: [진교동 찜닭, 진교동, jingyodong jjimdak, jingyodong]
     aliases: [진교동, jingyodong jjimdak, jingyodong]
@@ -1029,7 +1029,7 @@ brands:
     aliases: [커피앳워크스, 커피앳윅스]
     category: cafe
     links:
-      baemin: https://s.baemin.com/7o3.xwroj
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=358&brandName=%EC%BB%A4%ED%94%BC%EC%95%B3%EC%9B%8D%EC%8A%A4
   트리플에이커피:
     searchAliases: [트리플에이 커피, 쓰리에이커피, triple a coffee, aaa coffee]
     aliases: [쓰리에이커피, triple a coffee, aaa coffee]
@@ -1057,7 +1057,7 @@ brands:
     aliases: [피자나라치킨공주, 피나치공 피자, pizza nara chicken gongju, pinachigong]
     category: pizza
     links:
-      baemin: https://s.baemin.com/Ya000aBNscd6W
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=133&brandName=%ED%94%BC%EB%82%98%EC%B9%98%EA%B3%B5
   피자에땅:
     searchAliases: [피자 에땅, 에땅피자, pizza etang, pizza ettang]
     menus: [달피자]
@@ -1072,7 +1072,7 @@ brands:
     aliases: [hollys, hollys coffee]
     category: cafe
     links:
-      baemin: https://s.baemin.com/7oa.r5l0e
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=382&brandName=%ED%95%A0%EB%A6%AC%EC%8A%A4
   호치킨:
     searchAliases: [호 치킨, 호치킨집, ho chicken, hochicken]
     menus: [핫슐랭]
@@ -1085,7 +1085,7 @@ brands:
     aliases: [힙둥이, hipdungi gopdoritang, hip gopdori]
     category: korean
     links:
-      baemin: https://s.baemin.com/0M000I2A5Q1i8
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=1329&brandName=%ED%9E%99%EB%91%A5%EC%9D%B4+%EA%B3%B1%EB%8F%84%EB%A6%AC%ED%83%95
 
   # --- 분식/기타 ---
   삼첩분식:
