@@ -72,6 +72,7 @@ brands:
     category: chicken
     aliases: [굽네, 굽네치킨, goobne, goobnechicken, 굽네치킨&피자, gubne]
     links:
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=41
       yogiyo: yogiyolink://push.page/franchise?fr_id=18
   기영이숯불두마리치킨:
     searchAliases: [기영이치킨, 기영이 숯불치킨, giyeongi, giyeongi chicken]
@@ -265,6 +266,7 @@ brands:
     aliases: [푸라닭, 푸라닭치킨, 푸라닭 치킨, puradak, puradak chicken]
     category: chicken
     links:
+      baemin: https://s.baemin.com/nd000LpuQezLy
       yogiyo: yogiyolink://push.page/franchise?fr_id=357
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?x14LJGB
   해두리치킨:
@@ -323,6 +325,8 @@ brands:
     category: pizza
     # 쿠팡이츠 허브가 이렇게 부른다(2026-09-15 실측).
     aliases: [반올림피자샵, 반올림, banolim pizza, banollim pizza]
+    links:
+      baemin: https://s.baemin.com/0D000LDpmS1nt
   클랩피자:
     searchAliases: [클랩 피자, 클랩, clap pizza, keullaep pizza]
     aliases: [클랩, clap pizza, keullaep pizza]
@@ -462,6 +466,7 @@ brands:
     # 별개라 alias로 합치지 않는다.
     category: fastfood
     links:
+      baemin: https://s.baemin.com/sv000LqKIxBoG
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?thGY2Xr
   맘스터치피자앤치킨:
     searchAliases: [맘스터치 피자앤치킨, 맘피치, mom's touch pizza and chicken, momstouch pnc]
@@ -628,6 +633,8 @@ brands:
     menus: [팀빗, 더블더블]
     aliases: [팀홀튼커피, 팀홀든]
     category: cafe
+    links:
+      baemin: https://s.baemin.com/bQ000Lso9LMb6
   파스쿠찌:
     searchAliases: [파스쿠치, 카페 파스쿠찌, caffe pascucci, pascucci]
     aliases: [파스쿠치, 카페 파스쿠찌, caffe pascucci, pascucci]
@@ -1107,6 +1114,8 @@ brands:
     searchAliases: [신전 떡볶이, 신전, sinjeon tteokbokki, sinjeon]
     aliases: [신전떡볶이, 신전 떡볶이, 신전, sinjeon tteokbokki, sinjeon]
     category: snack
+    links:
+      baemin: https://s.baemin.com/lZ000Lq450Hid
   스텔라떡볶이:
     searchAliases: [스텔라 떡볶이, 스텔라, stella tteokbokki, stellatteokbokki]
     menus: [별튀김]
