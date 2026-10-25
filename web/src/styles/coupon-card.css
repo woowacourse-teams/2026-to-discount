@@ -62,8 +62,10 @@
 /* 2026-10-07: flex였을 때 iOS 사파리가 글꼴 로딩 뒤 금액 글자 칸 폭을 다시 안 재서 "원 할인"과 겹쳤다. 줄글 흐름으로 둔다 */
 .cc-amt { display: block; font-size: clamp(25px, 7.7vw, 31px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cc-amt small { font-size: .6em; font-weight: 700; margin-left: 1px; }
-.cc-amt s { text-decoration-thickness: 2px; }
-.cc-soldout { font-style: normal; font-size: clamp(12.6px, 3.6vw, 14.4px); font-weight: 600; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #eceae6; color: #6b6a66; letter-spacing: 0; vertical-align: middle; }
+.cc-amt s { text-decoration: none; white-space: nowrap; filter: saturate(.12); opacity: .55; } /* 품절 금액: 취소선 대신 채도를 확 낮춘다(2026-10-26 사용자) */
+/* 품절 배지가 들어갈 자리가 모자라면(5자리 금액) 금액 아래 줄로 내린다. 이동 버튼 영역에 닿아 잘렸다. */
+.cc-amt:has(.cc-soldout) { white-space: normal; }
+.cc-soldout { font-style: normal; font-size: clamp(12.6px, 3.6vw, 14.4px); font-weight: 600; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #333; color: #ff8a80; letter-spacing: 0; vertical-align: middle; }
 .cc-min { display: flex; align-items: center; gap: 3px; font-size: clamp(14.4px, 4.1vw, 16.2px); line-height: 1.3; color: #6b6a66; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .cc-min svg { width: 13px; height: 13px; flex: none; }
 /* 펼친 쿠폰의 배지: 금액 오른쪽, 이동 영역 왼쪽 빈칸에 라벨(쿠폰 높이를 밀지 않는다) */
@@ -102,7 +104,7 @@
 /* 펼치면 하위 라벨 줄은 높이를 그대로 두고 보이지만 않게 한다(카드가 줄었다 늘지 않게). 접을 때는 펼친 영역이 다 닫힌 뒤 240ms 페이드인 */
 .cc--open .cc-alts { opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 0s 140ms; }
 .cc-alt { display: flex; align-items: center; gap: 5.5px; font-size: clamp(12.8px, 3.7vw, 14.4px); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; --pb: 20px; }
-.cc-alt--sold { text-decoration: line-through; }
+.cc-alt--sold { filter: saturate(.12); opacity: .55; }
 .cc-hint { all: unset; grid-column: 1 / 3; margin-inline: var(--pad); cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: 14px; color: var(--text-muted); }
 .cc--open .cc-hint { opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 0s 140ms; }
 .cc-hint { transition: opacity 240ms ease 280ms, visibility 0s 280ms; }

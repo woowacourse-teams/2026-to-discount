@@ -24,7 +24,9 @@ const RANGE_CLASS = { 'qualifier-plain': 'plain', 'qualifier-random': 'random', 
 function OpBadge({ b, platform }) {
   if (b.kind === 'membership') return <span className="offer__status-badge offer__status-badge--membership" data-platform={platform}>{b.text}</span>
   if (b.kind === 'limited') return <span className="offer__status-badge">{b.text}</span>
-  return <span className={`offer__range-badge offer__range-badge--${RANGE_CLASS[b.kind] ?? 'plain'}`}>{b.text}</span>
+  // 특정메뉴는 첫 주문 칩(condition)과 같은 모양(2026-10-25 사용자). 운영 칩은 badgesOf를 같이 써서 여기서만 바꾼다.
+  const cls = b.text === '특정메뉴' ? 'condition' : RANGE_CLASS[b.kind] ?? 'plain'
+  return <span className={`offer__range-badge offer__range-badge--${cls}`}>{b.text}</span>
 }
 
 function Min({ value }) {
