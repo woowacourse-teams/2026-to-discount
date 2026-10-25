@@ -1,5 +1,7 @@
 package com.discounttracker.brand;
 
+import java.util.Locale;
+
 /**
  * 브랜드 분류. 프론트 카테고리 필터가 이 값을 그대로 쓴다.
  *
@@ -24,7 +26,7 @@ public enum Category {
     public static Category from(String raw) {
         if (raw == null || raw.isBlank()) return null;
         try {
-            return valueOf(raw.trim().toUpperCase());
+            return valueOf(raw.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -32,6 +34,6 @@ public enum Category {
 
     /** JSON으로 나갈 때는 프론트가 쓰는 소문자 키로. */
     public String key() {
-        return name().toLowerCase();
+        return name().toLowerCase(Locale.ROOT);
     }
 }
