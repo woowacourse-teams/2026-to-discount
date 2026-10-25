@@ -11,7 +11,7 @@
 #           들어가 Build and Deploy가 두 번 연달아 실패했다 — tracker의
 #           pytest는 이 규칙을 몰라 로컬에서는 전부 초록이었다.
 #           마땅한 별칭이 없으면 대표명을 그대로 한 줄 넣는다.
-# category: chicken | pizza | fastfood | snack | cafe | convenience | korean | chinese | western | (생략 = 미분류)
+# category: chicken | pizza | fastfood | snack | cafe | convenience | korean | chinese | western | japanese | asian | (생략 = 미분류)
 # shortName: 자리가 좁은 곳(배너)에서 쓰는 짧은 이름 (생략 = 대표명 그대로).
 #           로고 파일명과 원장은 **대표명**을 쓴다 — 짧은 이름은 보여 주는 자리에만 쓴다.
 # aliases:  원장에 다른 이름으로 찍히는 경우만 (생략 가능)
@@ -1314,3 +1314,180 @@ brands:
     # 행사 수집이 찾은 브랜드. 분류와 로고는 사람이 채운다
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?5N9N7Uz
+
+  # --- 브랜드관에서 추가(2026-10-25, scripts/baemin_lounge_sweep.py) ---
+  강릉엄지네꼬막집:
+    searchAliases: [강릉엄지네꼬막집]
+    category: korean
+    links:
+      baemin: https://s.baemin.com/a1000OldXvVIN
+  긴자료코:
+    searchAliases: [긴자료코]
+    category: japanese
+    links:
+      baemin: https://s.baemin.com/Zy000M11FLcX9
+  김가네:
+    searchAliases: [김가네]
+    category: snack
+    links:
+      baemin: https://s.baemin.com/zt000LpMrTVay
+  더벤티:
+    searchAliases: [더벤티]
+    category: cafe
+    links:
+      baemin: https://s.baemin.com/sY000Lpqakfdt
+  더정우롱티프로젝트:
+    searchAliases: [더정우롱티프로젝트]
+    category: cafe
+    links:
+      baemin: https://s.baemin.com/Zd000LWc2nlbx
+  동대문엽기떡볶이:
+    searchAliases: [동대문엽기떡볶이]
+    category: snack
+    links:
+      baemin: https://s.baemin.com/eO000Lrm9EZtS
+  라그릴리아:
+    searchAliases: [라그릴리아]
+    category: western
+    links:
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=451
+  미소야:
+    searchAliases: [미소야]
+    category: japanese
+    links:
+      baemin: https://s.baemin.com/6J000LUNs8K0m
+  미카도스시:
+    searchAliases: [미카도스시]
+    category: asian
+    links:
+      baemin: https://s.baemin.com/Y6000ML4HQlNq
+  바스버거:
+    searchAliases: [바스버거]
+    category: fastfood
+    links:
+      baemin: https://s.baemin.com/19000OnrS6joU
+  "박가부대&치즈닭갈비":
+    searchAliases: ["박가부대&치즈닭갈비"]
+    category: korean
+    links:
+      baemin: https://s.baemin.com/pZ000LrRhAjIs
+  배떡:
+    searchAliases: [배떡]
+    category: snack
+    links:
+      baemin: https://s.baemin.com/cw000LqcYJCfG
+  백소정:
+    searchAliases: [백소정]
+    category: japanese
+    links:
+      baemin: https://s.baemin.com/jR000LtiLmh0Y
+  벤슨 아이스크림:
+    searchAliases: [벤슨 아이스크림]
+    category: cafe
+    links:
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=1262
+  보배반점:
+    searchAliases: [보배반점]
+    category: chinese
+    links:
+      baemin: https://s.baemin.com/dA000Lqc74I6g
+  블루보틀 커피:
+    searchAliases: [블루보틀 커피]
+    category: cafe
+    links:
+      baemin: https://s.baemin.com/bk000M0HJ85Yv
+  삿뽀로:
+    searchAliases: [삿뽀로]
+    category: japanese
+    links:
+      baemin: https://s.baemin.com/nz000LpFExkqz
+  상무초밥:
+    searchAliases: [상무초밥]
+    category: japanese
+    links:
+      baemin: https://s.baemin.com/n7000MDLVT3T0
+  솔솥:
+    searchAliases: [솔솥]
+    category: korean
+    links:
+      baemin: https://s.baemin.com/8u000OnsNRU7C
+  슬로우캘리:
+    searchAliases: [슬로우캘리]
+    category: western
+    links:
+      baemin: https://s.baemin.com/7B000NmARlu8o
+  싸움의고수:
+    searchAliases: [싸움의고수]
+    category: korean
+    links:
+      baemin: https://s.baemin.com/a6000OnFfhdMJ
+  와플대학:
+    searchAliases: [와플대학]
+    category: cafe
+    links:
+      baemin: https://s.baemin.com/lR000LtO2XTjH
+  우리할매떡볶이:
+    searchAliases: [우리할매떡볶이]
+    category: snack
+    links:
+      baemin: https://s.baemin.com/GF000LOfxXP0t
+  원조설악칡냉면:
+    searchAliases: [원조설악칡냉면]
+    category: korean
+    links:
+      baemin: https://s.baemin.com/2f000OnuMtGL2
+  육식사관학교:
+    searchAliases: [육식사관학교]
+    category: korean
+    links:
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=1213
+  육회왕자연어공주:
+    searchAliases: [육회왕자연어공주]
+    category: japanese
+    links:
+      baemin: https://s.baemin.com/6L000LvVNnxDZ
+  이백장돈가스:
+    searchAliases: [이백장돈가스]
+    category: japanese
+    links:
+      baemin: https://s.baemin.com/dh000N5vt8MOW
+  이타마에스시:
+    searchAliases: [이타마에스시]
+    category: asian
+    links:
+      baemin: https://s.baemin.com/NK000LE2wXWEs
+  지미존스:
+    searchAliases: [지미존스]
+    category: fastfood
+    links:
+      baemin: https://s.baemin.com/Ss000Okl0wF4G
+  짬뽕지존:
+    searchAliases: [짬뽕지존]
+    category: chinese
+    links:
+      baemin: https://s.baemin.com/vG000LtPNqQKp
+  춘리마라탕:
+    searchAliases: [춘리마라탕]
+    category: chinese
+    links:
+      baemin: https://s.baemin.com/Jn000Lu2EHyy4
+  크리스탈제이드:
+    searchAliases: [크리스탈제이드]
+    category: chinese
+    links:
+      baemin: https://s.baemin.com/0H000OnH0ppTF
+  탐나는피자:
+    searchAliases: [탐나는피자]
+    category: pizza
+    links:
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=1241
+  투다리:
+    searchAliases: [투다리]
+    category: korean
+    links:
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=201
+  피자몰:
+    searchAliases: [피자몰]
+    category: pizza
+    links:
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=835

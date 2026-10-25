@@ -16,7 +16,9 @@ public enum Category {
     CONVENIENCE,
     KOREAN,
     CHINESE,
-    WESTERN;
+    WESTERN,
+    JAPANESE,
+    ASIAN;
 
     /** brands.yml의 소문자 표기를 enum으로. 모르는 값이면 null(미분류). */
     public static Category from(String raw) {
