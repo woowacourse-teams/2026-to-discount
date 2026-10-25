@@ -62,8 +62,9 @@
 /* 2026-10-07: flex였을 때 iOS 사파리가 글꼴 로딩 뒤 금액 글자 칸 폭을 다시 안 재서 "원 할인"과 겹쳤다. 줄글 흐름으로 둔다 */
 .cc-amt { display: block; font-size: clamp(25px, 7.7vw, 31px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cc-amt small { font-size: .6em; font-weight: 700; margin-left: 1px; }
-.cc-amt s { text-decoration-thickness: 2px; }
-.cc-soldout { font-style: normal; font-size: clamp(12.6px, 3.6vw, 14.4px); font-weight: 600; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #eceae6; color: #6b6a66; letter-spacing: 0; vertical-align: middle; }
+.cc-amt s { text-decoration: none; position: relative; display: inline-block; }
+.cc-amt s::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: currentColor; }
+.cc-soldout { font-style: normal; font-size: clamp(12.6px, 3.6vw, 14.4px); font-weight: 600; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #333; color: #ff8a80; letter-spacing: 0; vertical-align: middle; }
 .cc-min { display: flex; align-items: center; gap: 3px; font-size: clamp(14.4px, 4.1vw, 16.2px); line-height: 1.3; color: #6b6a66; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .cc-min svg { width: 13px; height: 13px; flex: none; }
 /* 펼친 쿠폰의 배지: 금액 오른쪽, 이동 영역 왼쪽 빈칸에 라벨(쿠폰 높이를 밀지 않는다) */
