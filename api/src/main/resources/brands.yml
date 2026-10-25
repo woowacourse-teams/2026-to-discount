@@ -315,6 +315,8 @@ brands:
     menus: [허니콤보, 레드콤보, 반반콤보, 교촌오리지날, 살살치킨]
     category: chicken
     aliases: [교촌치킨, 교촌, kyochon, kyochon chicken]
+    links:
+      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=121
   깐부치킨:
     searchAliases: [깐부, 깐부 치킨, kkanbu, kkanbu chicken]
     category: chicken
@@ -498,6 +500,8 @@ brands:
     menus: [이탈리안 비엠티, 써브웨이 클럽, 로티세리, 썹픽]
     aliases: [서브웨이, 섭웨, subway, subway korea]
     category: fastfood
+    links:
+      baemin: https://s.baemin.com/CW000Ltj5CaN6
   KFC:
     # 2026-09-16 쿠팡이츠 선착순(오전 11시 8,000원) 배너에 올리며 추가. 원장엔
     # 08-17부터 11행이 있었는데 표에 없어 API가 모르는 브랜드로 봤다.
@@ -620,6 +624,7 @@ brands:
     aliases: [스벅, 스타벅스커피, 스타벅수, starbucks, starbucks coffee]
     category: cafe
     links:
+      baemin: https://s.baemin.com/1M000LtNQqES8
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?bqidJF5
   잠바주스:
     searchAliases: [잠바 주스, 잠바, jamba juice, jambajuice]
@@ -1291,6 +1296,8 @@ brands:
   강정천하:
     searchAliases: [강정천하, 강정 천하]
     category: chicken
+    links:
+      baemin: https://s.baemin.com/0w000Mp30Hz8l
   곱분이곱창:
     searchAliases: [곱분이곱창, 곱분이]
     category: korean
