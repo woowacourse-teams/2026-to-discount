@@ -7,6 +7,8 @@
   border: 1px solid var(--border); border-radius: 12px;
   /* 좌우 안쪽 여백은 카드가 아니라 내용이 갖는다: 쿠폰 줄(캐러셀)만 카드 좌우 끝까지 쓴다(배너 캐러셀과 같은 꼴) */
   --pad: clamp(14px, 4.4vw, 18px); padding: var(--pad) 0;
+  /* NEW! 띠는 카드 귀퉁이에서 잘려야 삼각으로 보인다. 10-23(02a3f6f1)에 content-visibility를 지우며 이 잘림도 같이 사라져 카드 밖으로 삐져나왔다. iOS 글자 폭 문제와 무관하게 잘림만 되돌린다 */
+  overflow: hidden; overflow: clip;
   display: grid; grid-template-columns: calc(var(--logo) + var(--pad)) minmax(0, 1fr); gap: 0 clamp(10px, 3.2vw, 14px); /* 세로 간격은 gap이 아니라 아래 항목의 margin-top으로(0높이 래퍼가 간격을 남기지 않게) */
 }
 /* 투명 로고가 다크 모드에서도 보이게 바탕은 늘 흰색. 래퍼 없이 brand-logo가 곧 로고 칸 */
