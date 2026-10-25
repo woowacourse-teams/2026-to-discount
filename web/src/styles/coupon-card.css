@@ -135,7 +135,8 @@
 /* 인기순 순번: 왼쪽 위 북마크 리본(2026-10-18 사용자) */
 .cc-rank { position: absolute; top: 0; left: var(--pad); z-index: 2; isolation: isolate; min-width: 30px; padding: 4px 5px 12px; color: #fff; font-size: 15px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; pointer-events: none; } /* 왼쪽 끝 = 로고 왼쪽 끝 */
 /* 2026-10-18 사용자: NEW!는 dev 표시(.dev-badge)처럼 귀퉁이에 비스듬히 건 띠. 카드가 바깥을 잘라 삼각 귀퉁이만 보인다 */
-.cc-rank--new { top: 6px; left: -19px; width: 64px; min-width: 0; padding: 0; transform: rotate(-45deg); background: var(--sale); font-size: 9.5px; line-height: 14px; letter-spacing: .06em; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); }
+/* NEW! 띠 크기 1.2배(2026-10-26 사용자) */
+.cc-rank--new { top: 7px; left: -23px; width: 77px; min-width: 0; padding: 0; transform: rotate(-45deg); background: var(--sale); font-size: 11.4px; line-height: 17px; letter-spacing: .06em; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); }
 .cc-rank.cc-rank--new::before, .cc-rank.cc-rank--new::after { content: none; }
 /* 리본 모양은 ::before에만 잘라 붙인다. 본체를 자르면 불꽃까지 잘린다 */
 .cc-rank::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--sale); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); }
