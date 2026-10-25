@@ -17,9 +17,10 @@ export const CATEGORIES = [
   { key: 'chicken', label: '치킨' },
   { key: 'pizza', label: '피자' },
   { key: 'fastfood', label: '패스트푸드' },
-  { key: 'cafe', label: '카페' },
+  { key: 'cafe', label: '카페/디저트' },
   { key: 'convenience', label: '편의점' },
   { key: 'korean', label: '한식' },
+  { key: 'japanese', label: '일식' },
 ]
 
 // 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
