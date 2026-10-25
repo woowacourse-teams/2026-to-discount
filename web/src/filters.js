@@ -23,6 +23,20 @@ export const CATEGORIES = [
   { key: 'japanese', label: '일식' },
 ]
 
+// 그 분류의 오퍼가 이만큼 이하면 탭을 숨긴다(2026-10-26 사용자: 일식처럼 빈약한 칸). 브랜드가 아니라 오퍼 수다.
+export const MIN_CATEGORY_OFFERS = 5
+
+/**
+ * 오퍼가 충분한 분류만 남긴다. 브랜드를 아직 못 받았으면 전부 보인다.
+ * 지금 골라 둔 분류는 오퍼가 줄어도 남긴다(탭이 사라져 선택을 못 푸는 일을 막는다).
+ */
+export function visibleCategories(brands, selected = new Set()) {
+  if (!brands) return CATEGORIES
+  const count = new Map()
+  for (const b of brands) count.set(b.category, (count.get(b.category) ?? 0) + (b.offers?.length ?? 0))
+  return CATEGORIES.filter((c) => selected.has(c.key) || (count.get(c.key) ?? 0) > MIN_CATEGORY_OFFERS)
+}
+
 // 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
 // docs/specs/2026-07-28-product-brief.md에 "UI만 배치, 로직 보류"로 명시된
 // 의도적 보류 상태 — 계산 모델이 나오면 그 레포 docs/plans에 계획이 생긴다.

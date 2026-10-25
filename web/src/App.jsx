@@ -515,6 +515,7 @@ export default function App({ initial = null }) {
       <FilterSheet
         open={sheetOpen}
         filters={filters}
+        brands={brands}
         onApply={applyFromSheet}
         onClose={() => setSheetOpen(false)}
       />

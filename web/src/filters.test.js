@@ -6,7 +6,7 @@ import {
   isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinPopular,
+  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinPopular, visibleCategories, CATEGORIES,
 } from './filters.js'
 import { STRIP_MIN, cardRanks, popularToday } from './popularStrip.js'
 
@@ -326,4 +326,13 @@ test('검색 중에도 HOT 순위와 카드 순번은 전역 그대로다(#147)'
   const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
   const shown = pinPopular(applyFilters(brands, pizza), pizza, rank)
   assert.deepEqual([...cardRanks(rank, shown, false)], [['도미노', 3], ['피자헛', 5]])
+})
+
+test('오퍼 5개 이하인 분류 탭은 숨기고, 고른 분류는 남긴다', () => {
+  const mk = (category, n) => ({ category, offers: Array.from({ length: n }, () => ({})) })
+  const brands = [mk('chicken', 4), mk('chicken', 3), mk('japanese', 5), mk('korean', 6)]
+  const keys = (sel) => visibleCategories(brands, sel).map((c) => c.key)
+  assert.deepEqual(keys(new Set()), ['chicken', 'korean']) // 일식 5개는 숨김, 치킨 7개는 보임
+  assert.deepEqual(keys(new Set(['japanese'])), ['chicken', 'korean', 'japanese'])
+  assert.equal(visibleCategories(null).length, CATEGORIES.length)
 })

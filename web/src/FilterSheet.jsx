@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
 import { Track, useDragClose } from './sheetParts.jsx'
-import { CATEGORIES, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_AMOUNT_OPTIONS, defaultFilters, isDefaultFilters, minAmountLabel } from './filters.js'
+import { visibleCategories, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_AMOUNT_OPTIONS, defaultFilters, isDefaultFilters, minAmountLabel } from './filters.js'
 
 /**
  * 아래에서 올라오는 필터 시트. 앱·분류·정렬을 한 자리에서 고르고
@@ -14,7 +14,7 @@ import { CATEGORIES, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_A
  * 열 때마다 지금 적용된 값으로 draft를 채운다.
  */
 
-export default function FilterSheet({ open, filters, onApply, onClose }) {
+export default function FilterSheet({ open, filters, brands, onApply, onClose }) {
   const [draft, setDraft] = useState(filters)
   // 배경을 눌러 닫을 때, 누른 자리가 배경이었는지 기억해둔다. 시트 안에서
   // 끌기 시작해 배경에서 손을 뗀 동작까지 닫기로 세면 고르던 게 날아간다.
@@ -103,7 +103,7 @@ export default function FilterSheet({ open, filters, onApply, onClose }) {
 
           <h2 className="sheet__title">카테고리</h2>
           <Track label="카테고리">
-            {CATEGORIES.map((c) => (
+            {visibleCategories(brands, draft.categories).map((c) => (
               <button
                 key={c.key}
                 type="button"
