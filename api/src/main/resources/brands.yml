@@ -797,6 +797,8 @@ brands:
     aliases: [탕화쿵푸마라탕, 탕화쿵푸 마라탕, 탕화쿵푸, 탕화마라탕, 쿵푸마라탕, tanghua, kungfu malatang]
     category: chinese
 
+    links:
+      baemin: https://s.baemin.com/kZ000LtPRvP8G
   # --- 미분류 (전체에서만 노출) ---
   요아잇:
     searchAliases: [요아 잇, 요거트아이스크림, yoait, yo a it]
