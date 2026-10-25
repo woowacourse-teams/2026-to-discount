@@ -468,6 +468,7 @@ brands:
     # 별개라 alias로 합치지 않는다.
     category: fastfood
     links:
+      yogiyo: yogiyolink://push.page/franchise?fr_id=11
       baemin: https://s.baemin.com/sv000LqKIxBoG
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?thGY2Xr
   맘스터치피자앤치킨:
