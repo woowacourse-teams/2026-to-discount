@@ -76,7 +76,7 @@ let hubLinks = {}
 
 // 쿠팡이츠는 오퍼와 배너 모두 이 링크(와우 라운지)로 보낸다(2026-10-06 사용자). 수집이 매일 받는 허브 공유 링크보다 우선.
 // 마지막 기본값이다. 수집이 매일 검증한 공유 링크를 오퍼 link로 실어 보내면 그게 먼저다(2026-10-12 만료 링크가 박혀 있었다).
-export const COUPANGEATS_LINK = 'https://share.coupangeats.com/AA8dvNb8k7b'
+export const COUPANGEATS_LINK = 'https://share.coupangeats.com/DqsQ901Kw7b'
 // 쿠팡이츠 공유 링크 접두사. offerLink와 openWithNotice가 같이 쓴다(한쪽만 고치면 안내 없이 열린다, #141).
 const CE_SHARE_PREFIX = 'https://share.coupangeats.com/'
 
