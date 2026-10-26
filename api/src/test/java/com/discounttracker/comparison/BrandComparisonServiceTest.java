@@ -209,32 +209,32 @@ class BrandComparisonServiceTest {
     }
 
     @Test
-    void menuLimitedOffersSortJustBelowFiveThousand() {
-        // 열정국밥 배민 실측: 액면 14,000원이지만 메뉴 하나에만 쓴다.
-        // 브랜드 전체에 걸리는 5,000원 일반 할인을 못 넘어야 한다.
+    void menuLimitedOffersNeverSetTheMaxConfirmedAmount() {
+        // 열정국밥 배민 실측: 액면 14,000원이지만 메뉴 하나에만 쓴다. 예전에는 정렬에 4,999원을 끼워 카드의 "최고 할인"이
+        // 4,999원으로 찍혔다(2026-10-26 훌랄라). 지금은 값을 내지 않아 일반 할인 뒤에 서고 최고 할인이 비어 있다.
         var result = serviceWith(
                 List.of(rec("baemin", "메뉴한정", 14000, "특정메뉴", false),
                         rec("baemin", "일반할인", 5000, null, false)),
                 "brands: {}").compare();
         assertEquals("일반할인", result.get(0).name());
         assertEquals("메뉴한정", result.get(1).name());
-        assertEquals(4999, result.get(1).maxConfirmedAmount());
+        assertNull(result.get(1).maxConfirmedAmount());
     }
 
     @Test
-    void menuLimitedOffersStillOutrankSmallerGeneralDiscounts() {
-        // 정렬에서 통째로 빼면 그 쿠폰밖에 없는 브랜드가 근거를 잃는다.
+    void menuLimitedOffersDoNotOutrankSmallerGeneralDiscounts() {
+        // 메뉴 한정 쿠폰은 값을 내지 않아, 작은 일반 할인이 먼저 선다(2026-10-26).
         var result = serviceWith(
                 List.of(rec("baemin", "소액할인", 3000, null, false),
                         rec("baemin", "메뉴한정", 14000, "특정메뉴", false)),
                 "brands: {}").compare();
-        assertEquals("메뉴한정", result.get(0).name());
-        assertEquals("소액할인", result.get(1).name());
+        assertEquals("소액할인", result.get(0).name());
+        assertEquals("메뉴한정", result.get(1).name());
     }
 
     @Test
     void menuLimitedFaceAmountStaysOnTheOffer() {
-        // 정렬용 대체값이지 표시값이 아니다 — 칩엔 14,000원이 그대로 뜬다.
+        // 칩엔 액면 14,000원이 그대로 뜬다.
         var result = serviceWith(
                 List.of(rec("baemin", "메뉴한정", 14000, "특정메뉴", false)),
                 "brands: {}").compare();

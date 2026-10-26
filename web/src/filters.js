@@ -191,9 +191,6 @@ export function isBestCandidate(offer) {
   return certaintyOf(offer) === 'exact' && comparableAxes(offer)
 }
 
-/** 특정 메뉴 한정 쿠폰이 정렬에서 갖는 값. 5,000원 바로 아래다. */
-export const MENU_LIMITED_SORTING_AMOUNT = 4999
-
 /**
  * 카드 정렬에 기여하는 금액. 견줄 수 없으면 null이라 아예 안 들어간다.
  *
@@ -202,8 +199,7 @@ export const MENU_LIMITED_SORTING_AMOUNT = 4999
  */
 export function sortingAmount(offer) {
   const c = certaintyOf(offer)
-  if (c === 'menuOnly') return MENU_LIMITED_SORTING_AMOUNT
-  if (c === 'capped' || c === 'random' || c === 'percent') return null
+  if (c === 'menuOnly' || c === 'capped' || c === 'random' || c === 'percent') return null
   return offer.amount ?? null
 }
 
@@ -240,12 +236,10 @@ export function comparable(offer, include = false) {
  * 내부 함수다 - api의 `OfferComparison.comparisonAmount`처럼 `comparableAxes`와
  * `sortingAmount`(둘 다 판정표가 검사하는 함수)를 그대로 불러 쓴다.
  *
- * 특정메뉴는 토글이 꺼져 있어도 `sortingAmount`의 4,999원으로 정렬 천장에
- * 낀다 - 그 쿠폰뿐인 브랜드가 정렬 기준을 통째로 잃지 않게 하려는 것과
- * 같은 이유다(RULES 3, OfferComparison.java 주석). 토글을 켜면 액면
- * 그대로 올라간다 - "넣기"는 그 오퍼를 진짜 최고 후보로 승격하는
- * 사용자의 선택이라 4,999원 천장에 묶어 둘 이유가 없다. 랜덤도 같다:
- * 꺼져 있으면 sortingAmount가 null이라 안 낀다. 켜면 액면이 오른다.
+ * 특정메뉴와 랜덤은 토글이 꺼져 있으면 `sortingAmount`가 null이라 정렬 천장에 안
+ * 낀다(2026-10-26: 예전에는 특정메뉴가 4,999원으로 껴 카드 최고 할인에 그 값이 찍혔다).
+ * 토글을 켜면 액면 그대로 올라간다 - "넣기"는 그 오퍼를 진짜 최고 후보로 승격하는
+ * 사용자의 선택이다.
  */
 function comparisonAmount(offer, include) {
   // 1+1 묶음 행사는 최고 할인 후보는 아니지만 정렬값(15,000)으로 목록에 선다(2026-10-11 사용자). API와 같다.
@@ -412,10 +406,8 @@ export function offerKey(offer) {
 /**
  * 그 브랜드 카드에 큰 글씨로 찍을 최고 할인액. 없으면 null.
  *
- * `bestConfirmedAmount`와 가르는 이유 - 그 함수는 정렬 천장을 채우려고 특정메뉴
- * 쿠폰뿐인 브랜드에 MENU_LIMITED_SORTING_AMOUNT(4,999원)를 끼워 넣는다. 화면에
- * 4,999원을 진짜 가격처럼 찍으면 안 된다. 여기서는 넣을지만 `comparable`로 가르고
- * 금액은 항상 오퍼의 액면을 쓴다.
+ * `bestConfirmedAmount`와 가르는 이유 - 그 함수는 정렬 천장을 채우는 값이고, 여기는
+ * 화면에 찍는 값이다. 여기서는 넣을지만 `comparable`로 가르고 금액은 항상 오퍼의 액면을 쓴다.
  *
  * 규칙은 하나(RULES 3)인데 "정렬 순서"와 "화면에 찍을 값"이 갈라야 해서 두 함수가
  * 된다. 두 함수를 한 파일에 나란히 두는 이유가 그것이다 - App.jsx에 흩어져 있으면

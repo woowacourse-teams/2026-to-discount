@@ -13,23 +13,19 @@ import { STRIP_MIN, cardRanks, popularToday } from './popularStrip.js'
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
 const o = (amount, extra = {}) => ({ amount, platform: 'baemin', ...extra })
 
-test('특정메뉴 쿠폰은 넣기를 꺼도 정렬 천장(4,999원)엔 든다. 켜야 액면으로 오른다(2026-09-19, 2026-09-23 정정)', () => {
-  // fix round 1: 예전엔 토글이 꺼지면 이 오퍼가 통째로 빠져 bestConfirmedAmount가
-  // 3000을 냈다. api의 comparisonAmount는 토글을 모르고 특정메뉴를 늘 4,999원
-  // 천장으로 센다(OfferComparison.java 주석) - 그 값이 3000보다 커 여기서도 4999가
-  // 맞다. 이 쿠폰만 있는 브랜드가 정렬 기준을 잃던 문제(critical)의 증거이기도 하다.
-  // certainty로 직접 적는다(2026-09-23) - qualifier만으로는 더는 menuOnly/random이
-  // 안 나온다(RULES 11로 웹의 qualifier 다리를 뗐다). 실제 API 응답은 항상
-  // certainty를 같이 낸다.
+test('특정메뉴 쿠폰은 넣기를 끄면 정렬 천장에 안 든다. 켜야 액면으로 오른다(2026-10-26 정정)', () => {
+  // 예전에는 꺼도 4,999원 천장에 껴서 카드 최고 할인에 그 값이 찍혔다(훌랄라: 쿠팡이츠 2,000원이 전부인데 4,999원).
+  // 지금은 최대, 랜덤, 정률처럼 값을 내지 않는다. api의 OfferComparison.sortingAmount와 같다.
+  // certainty로 직접 적는다 - 실제 API 응답은 항상 certainty를 같이 낸다.
   const offers = [o(3000), o(9000, { qualifier: '특정메뉴', certainty: 'menuOnly' })]
-  assert.equal(bestConfirmedAmount(offers), 4999)
+  assert.equal(bestConfirmedAmount(offers), 3000)
   assert.equal(bestConfirmedAmount(offers, { menu: true }), 9000)
-  assert.equal(bestConfirmedAmount(offers, { random: true }), 4999)
+  assert.equal(bestConfirmedAmount(offers, { random: true }), 3000)
   assert.equal(comparable(o(1, { qualifier: '랜덤', certainty: 'random' }), true), true)   // 예전 호출(랜덤만)
 })
 
-test('특정메뉴 쿠폰뿐인 브랜드도 정렬 천장을 잃지 않는다(fix round 1 critical)', () => {
-  assert.equal(bestConfirmedAmount([o(14000, { certainty: 'menuOnly' })]), 4999)
+test('특정메뉴 쿠폰뿐인 브랜드는 정렬 천장이 없다. 켜면 액면이다(2026-10-26)', () => {
+  assert.equal(bestConfirmedAmount([o(14000, { certainty: 'menuOnly' })]), null)
   assert.equal(bestConfirmedAmount([o(14000, { certainty: 'menuOnly' })], { menu: true }), 14000)
 })
 

@@ -33,13 +33,13 @@
     {"certainty": "percent",  "kind": "bundle",   "soldOut": false, "amount": null,  "best": false, "sorting": null},
     {"certainty": "percent",  "kind": "points",   "soldOut": true,  "amount": null,  "best": false, "sorting": null},
     {"certainty": "percent",  "kind": "bundle",   "soldOut": true,  "amount": null,  "best": false, "sorting": null},
-    {"certainty": "menuOnly", "kind": "discount", "soldOut": false, "amount": 14000, "best": false, "sorting": 4999},
-    {"certainty": "menuOnly", "kind": "discount", "soldOut": true,  "amount": 14000, "best": false, "sorting": 4999},
-    {"certainty": "menuOnly", "kind": "cashback", "soldOut": false, "amount": 14000, "best": false, "sorting": 4999},
-    {"certainty": "menuOnly", "kind": "cashback", "soldOut": true,  "amount": 14000, "best": false, "sorting": 4999},
-    {"certainty": "menuOnly", "kind": "points",   "soldOut": false, "amount": 14000, "best": false, "sorting": 4999},
-    {"certainty": "menuOnly", "kind": "bundle",   "soldOut": false, "amount": 14000, "best": false, "sorting": 4999},
-    {"certainty": "menuOnly", "kind": "points",   "soldOut": true,  "amount": 14000, "best": false, "sorting": 4999},
-    {"certainty": "menuOnly", "kind": "bundle",   "soldOut": true,  "amount": 14000, "best": false, "sorting": 4999}
+    {"certainty": "menuOnly", "kind": "discount", "soldOut": false, "amount": 14000, "best": false, "sorting": null},
+    {"certainty": "menuOnly", "kind": "discount", "soldOut": true,  "amount": 14000, "best": false, "sorting": null},
+    {"certainty": "menuOnly", "kind": "cashback", "soldOut": false, "amount": 14000, "best": false, "sorting": null},
+    {"certainty": "menuOnly", "kind": "cashback", "soldOut": true,  "amount": 14000, "best": false, "sorting": null},
+    {"certainty": "menuOnly", "kind": "points",   "soldOut": false, "amount": 14000, "best": false, "sorting": null},
+    {"certainty": "menuOnly", "kind": "bundle",   "soldOut": false, "amount": 14000, "best": false, "sorting": null},
+    {"certainty": "menuOnly", "kind": "points",   "soldOut": true,  "amount": 14000, "best": false, "sorting": null},
+    {"certainty": "menuOnly", "kind": "bundle",   "soldOut": true,  "amount": 14000, "best": false, "sorting": null}
   ]
 }

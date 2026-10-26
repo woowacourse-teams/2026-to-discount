@@ -10,8 +10,10 @@ package com.discounttracker.offer;
  *   <li>카드 정렬에 얼마로 기여하나: 액면, 눌린 값, 또는 제외</li>
  * </ul>
  *
- * <p>특정 메뉴 한정 쿠폰이 둘을 가르는 사례다. 최고 후보에서는 빠지지만 정렬에서는
- * 4,999원으로 남는다 - 통째로 빼면 그 쿠폰밖에 없는 브랜드가 근거를 잃는다.
+ * <p>특정 메뉴 한정 쿠폰은 최고 후보에서도 정렬에서도 뺀다(2026-10-26 사용자). 예전에는 정렬에 4,999원을 끼워
+ * 그 쿠폰밖에 없는 브랜드가 근거를 잃지 않게 했는데, 그 값이 카드의 "최고 할인"에 그대로 찍혀 쿠팡이츠 2,000원이
+ * 전부인 브랜드가 4,999원으로 보였다. 지금은 최대, 랜덤, 정률처럼 값을 내지 않는다. 그 쿠폰뿐인 브랜드는 정렬
+ * 기준이 없어 목록 아래로 간다.
  *
  * <p>웹의 {@code filters.js}가 같은 규칙을 들고 있다. 판정표
  * {@code src/test/resources/contracts/certainty-cases.json}을 양쪽 테스트가 같이 읽어 어긋남을 막는다(ADR-016).
@@ -20,14 +22,6 @@ public final class OfferComparison {
 
     private OfferComparison() {
     }
-
-    /**
-     * 특정 메뉴 한정 쿠폰이 정렬에서 갖는 값.
-     *
-     * <p>5,000원 바로 아래다. 일반 할인 5,000원짜리를 절대 못 넘고 그보다 작은 일반
-     * 할인보다는 위에 선다.
-     */
-    public static final int MENU_LIMITED_SORTING_AMOUNT = 4999;
 
     /** 배달앱 밖, 브랜드 자체 앱이나 사이트의 행사 - {@code Banner.OWN}과 같은 값이다.
      * offer 패키지가 banner 패키지에 기대지 않도록 문자열로 직접 둔다. */
@@ -53,8 +47,7 @@ public final class OfferComparison {
     /** 카드 정렬에 기여하는 금액. 견줄 수 없으면 null이라 아예 안 들어간다. */
     public static Integer sortingAmount(Certainty certainty, Integer amount) {
         return switch (certainty) {
-            case MENU_ONLY -> MENU_LIMITED_SORTING_AMOUNT;
-            case CAPPED, RANDOM, PERCENT -> null;
+            case MENU_ONLY, CAPPED, RANDOM, PERCENT -> null;
             case EXACT -> amount;
         };
     }
@@ -68,8 +61,7 @@ public final class OfferComparison {
      * {@code src/test/resources/contracts/certainty-cases.json}이 검사하는 코드가 실제로 도는
      * 코드여야 한다(2026-09-23, fix round 4).
      *
-     * <p>own과 비할인, 품절은 확실성보다 먼저 뺀다. 확실성 갈래 안에서 빼면
-     * own에 품절인 특정메뉴 행이 4,999원 천장을 세운다(2026-09-23 fix round 4).
+     * <p>own과 비할인, 품절은 확실성보다 먼저 뺀다(2026-09-23 fix round 4).
      *
      * <p>{@code confirmed}가 false면 CAPPED("최대")도 금액을 낸다. maxHeld는
      * 확정 오퍼가 없는 브랜드끼리 줄 세우는 데만 쓰고, 거기서는 견주는 값이

@@ -98,10 +98,9 @@ class OfferComparisonTest {
     }
 
     @Test
-    void menuOnlyKeepsItsBrandInTheSortingButNeverBeatsAPlainFiveThousand() {
-        // 정렬에서 통째로 빼면 그 쿠폰밖에 없는 브랜드가 근거를 잃는다. 4,999원은
-        // 일반 할인 5,000원을 절대 못 넘고 그보다 작은 일반 할인보다는 위에 선다.
-        assertEquals(4999, OfferComparison.sortingAmount(Certainty.MENU_ONLY, 14000));
-        assertEquals(4999, OfferComparison.MENU_LIMITED_SORTING_AMOUNT);
+    void menuOnlyGivesNoSortingAmount() {
+        // 예전에는 4,999원을 끼워 그 쿠폰뿐인 브랜드가 정렬 근거를 잃지 않게 했지만, 그 값이 카드 "최고 할인"에 그대로 찍혔다
+        // (2026-10-26 훌랄라: 쿠팡이츠 2,000원이 전부인데 4,999원). 최대, 랜덤, 정률과 같이 값을 내지 않는다.
+        assertNull(OfferComparison.sortingAmount(Certainty.MENU_ONLY, 14000));
     }
 }
