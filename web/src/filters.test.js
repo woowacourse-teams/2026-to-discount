@@ -33,6 +33,13 @@ test('특정메뉴 쿠폰뿐인 브랜드도 정렬 천장을 잃지 않는다(f
   assert.equal(bestConfirmedAmount([o(14000, { certainty: 'menuOnly' })], { menu: true }), 14000)
 })
 
+test('인기 목록은 특정메뉴 쿠폰도 액면으로 찍는다: 4,999원 정렬값이 화면에 나오지 않는다(2026-10-26 훌랄라)', () => {
+  const offers = [o(2000, { platform: 'coupangeats', certainty: 'exact' }), o(12100, { qualifier: '특정메뉴', certainty: 'menuOnly' })]
+  assert.equal(displayBestAmount(offers, { menu: true }), 12100)       // 인기 목록
+  assert.equal(displayBestAmount(offers), 2000)                        // 카드 기본: 특정메뉴를 안 넣으면 확정 2,000원
+  assert.notEqual(displayBestAmount(offers, { menu: true }), 4999)
+})
+
 test('정렬 우선순위는 고른 순서가 아니라 고정이다: 그 외 → 할인금액 → 최소주문금액', () => {
   const brands = [
     brand('가', [o(5000, { minOrderAmount: 10000 })]),

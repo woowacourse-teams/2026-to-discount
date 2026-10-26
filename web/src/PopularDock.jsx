@@ -5,7 +5,7 @@ import { useBackClose } from './backClose.js'
 import { BrandLogo } from './logos.jsx'
 import { RankChange } from './PopularStrip.jsx'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
-import { bestConfirmedAmount } from './filters.js'
+import { displayBestAmount } from './filters.js'
 
 // 순위는 카테고리·검색과 무관하다: App이 둘을 뺀 rankBrands를 넘긴다(#147).
 let impressed = false
@@ -13,7 +13,9 @@ const ROLL_MS = 5500 // 2026-10-16 사용자: 넘어가는 시간을 늘려(3.5�
 
 // 한 줄: 증감(작게), 로고, 이름(넘치면 ...), 최고 할인. 목록과 굴림 줄이 같은 칸을 쓴다(2026-10-15 사용자)
 function Cells({ row }) {
-  const amount = bestConfirmedAmount(row.brand.offers ?? [])
+  // 화면에 찍는 값이라 액면이다. 예전에는 정렬 천장(bestConfirmedAmount)을 써 특정메뉴 쿠폰에 끼운 4,999원이 찍혔다
+  // (2026-10-26 훌랄라: 액면 12,100원). 인기 목록은 특정메뉴 한정 쿠폰도 포함해 액면 최댓값을 낸다(사용자 2026-10-26).
+  const amount = displayBestAmount(row.brand.offers ?? [], { menu: true })
   return (
     <>
       {/* 순위 옆에 등락, 그대로면 순위만(2026-10-16 사용자) */}
