@@ -137,12 +137,15 @@
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
   async function pressTab(n, scene, fails) {
-    const btn = document.querySelectorAll('.menu-bar__item')[n]
+    // 오퍼가 적은 분류 탭은 숨긴다(#178). 고정 데이터에서는 버튼 수가 n보다 적을 수 있어, 있는 마지막 분류 버튼을 누른다
+    // (0은 전체라 분류가 하나도 없으면 실패한다). 2026-10-26 4번째 버튼이 없어 이 장면이 "전환 안 됨"으로 실패했다.
+    const items = document.querySelectorAll('.menu-bar__item')
+    const btn = items[Math.min(n, items.length - 1)]
     const before = names()
     if (btn) btn.click()
     await sleep(1000)
-    scene.tab = { index: n, pressedText: btn ? btn.textContent.trim() : null }
-    if (!btn || btn.getAttribute('aria-pressed') !== 'true' || !document.querySelector('article[data-brand]') || names() === before) {
+    scene.tab = { index: n, pressedIndex: btn ? [...items].indexOf(btn) : null, pressedText: btn ? btn.textContent.trim() : null }
+    if (!btn || btn === items[0] || btn.getAttribute('aria-pressed') !== 'true' || !document.querySelector('article[data-brand]') || names() === before) {
       fails.push('다른 카테고리 장면이 전환되지 않았다(검사 대상 없음)')
     }
   }
