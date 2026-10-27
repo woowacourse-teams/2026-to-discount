@@ -26,7 +26,7 @@ from pathlib import Path
 OK = 0
 STAGE_FAILED = 1       # 임시 인스턴스가 안 떴다. 본 인스턴스는 그대로다.
 ROLLED_BACK = 2        # 본 인스턴스가 안 떠서 이전 jar로 되돌렸다. 옛 버전이 돈다.
-NEEDS_HUMAN = 3        # 되돌리기도 실패했다. 임시 인스턴스를 켜 둔 채 끝낸다(받아 줄 곳이 그것뿐이다).
+NEEDS_HUMAN = 3        # 되돌리기도 실패했다(임시 인스턴스를 켜 둔 채 끝낸다. 받아 줄 곳이 그것뿐이다). 또는 임시 인스턴스를 못 내렸다.
 
 
 @dataclass
@@ -64,10 +64,18 @@ class Ops:
         time.sleep(seconds)
 
     def systemctl(self, action: str, unit: str) -> None:
-        subprocess.run(["sudo", "-n", "systemctl", action, unit], check=True, timeout=120)
+        cmd = ["sudo", "-n", "systemctl", action, unit]
+        try:
+            subprocess.run(cmd, check=True, timeout=120)
+        except (subprocess.TimeoutExpired, OSError) as error:
+            # 시간 초과, sudo나 systemctl이 없음 등도 "명령이 실패했다"로 통일한다. 호출부는 CalledProcessError만 처리한다.
+            raise subprocess.CalledProcessError(1, cmd, stderr=str(error)) from error
 
     def is_active(self, unit: str) -> bool:
-        r = subprocess.run(["systemctl", "is-active", "--quiet", unit], timeout=30)
+        try:
+            r = subprocess.run(["systemctl", "is-active", "--quiet", unit], timeout=30)
+        except (subprocess.TimeoutExpired, OSError):
+            return False  # 모르면 켜져 있지 않다고 본다. 켜져 있었다면 다음 start가 실패해 STAGE_FAILED로 끝난다
         return r.returncode == 0
 
     def healthy(self, port: int) -> bool:
@@ -112,6 +120,16 @@ def wait_out_push_window(cfg: Config, ops: Ops, log) -> None:
     ops.sleep(wait)
 
 
+def stop_stage(cfg: Config, ops: Ops, log) -> bool:
+    """임시 인스턴스를 내린다. 명령이 실패해도 예외로 새지 않고 False를 돌려준다(호출부가 종료 코드를 정한다)."""
+    try:
+        ops.systemctl("stop", cfg.stage_unit)
+        return True
+    except subprocess.CalledProcessError:
+        log("임시 인스턴스를 내리지 못했다. 수동 확인이 필요하다")
+        return False
+
+
 def prune(cfg: Config, log) -> None:
     """최근 jar만 남긴다. 링크가 가리키는 파일은 지우지 않는다."""
     jars = sorted(cfg.deploy_dir.glob("delivery-discount-api-*.jar"), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -136,7 +154,8 @@ def deploy(cfg: Config, ops: Ops, jar: Path, log=print) -> int:
     # 지난 실행이 남긴 임시 인스턴스가 있으면 먼저 내린다(포트가 겹친다).
     if ops.is_active(cfg.stage_unit):
         log("남아 있던 임시 인스턴스를 먼저 내린다")
-        ops.systemctl("stop", cfg.stage_unit)
+        if not stop_stage(cfg, ops, log):
+            return STAGE_FAILED  # 포트가 겹쳐 새로 못 띄운다. 본 인스턴스는 그대로다
 
     if not ops.healthy(cfg.primary_port):
         log("경고: 배포 시작 시점에 본 인스턴스가 이미 준비 상태가 아니다. 이 배포는 무중단이 아닐 수 있다")
@@ -152,7 +171,7 @@ def deploy(cfg: Config, ops: Ops, jar: Path, log=print) -> int:
     took = wait_healthy(ops, cfg.stage_port, cfg.stage_ready_s)
     if took is None:
         log(f"임시 인스턴스가 {cfg.stage_ready_s}초 안에 준비되지 않았다. 내리고 끝낸다. 본 인스턴스는 그대로다")
-        ops.systemctl("stop", cfg.stage_unit)
+        stop_stage(cfg, ops, log)
         return STAGE_FAILED
     log(f"임시 인스턴스 준비됨({took}초)")
 
@@ -176,10 +195,11 @@ def deploy(cfg: Config, ops: Ops, jar: Path, log=print) -> int:
     if not ops.healthy(cfg.primary_port):
         log("본 인스턴스가 다시 준비 상태가 아니다. 임시 인스턴스를 남겨 둔다")
         return NEEDS_HUMAN
-    ops.systemctl("stop", cfg.stage_unit)
-    log("임시 인스턴스를 내렸다. 배포 끝")
-    prune(cfg, log)
-    return OK
+    stopped = stop_stage(cfg, ops, log)
+    if stopped:
+        log("임시 인스턴스를 내렸다. 배포 끝")
+    prune(cfg, log)  # 본 인스턴스는 이미 새 jar다. 링크가 가리키는 jar는 지우지 않는다
+    return OK if stopped else NEEDS_HUMAN
 
 
 def _rollback(cfg: Config, ops: Ops, prev: Path | None, log) -> int:
@@ -198,7 +218,8 @@ def _rollback(cfg: Config, ops: Ops, prev: Path | None, log) -> int:
         log("이전 jar도 준비되지 않았다. 임시 인스턴스를 남겨 둔다. 수동 확인이 필요하다")
         return NEEDS_HUMAN
     ops.sleep(cfg.failback_wait_s)
-    ops.systemctl("stop", cfg.stage_unit)
+    if not stop_stage(cfg, ops, log):
+        return NEEDS_HUMAN
     log("이전 버전으로 복구했다. 임시 인스턴스를 내렸다")
     return ROLLED_BACK
 

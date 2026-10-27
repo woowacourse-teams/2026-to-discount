@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest import mock
 
 import stage_deploy as sd
 
@@ -14,12 +15,13 @@ STAGE = "delivery-discount-api-stage.service"
 class FakeOps(sd.Ops):
     """서버 없이 순서만 본다. 이벤트는 문자열(동작)과 ('sleep', 초) 튜플로 쌓인다."""
 
-    def __init__(self, *, health, now=None, active=(), fail=(), prev=None):
+    def __init__(self, *, health, now=None, active=(), fail=(), fail_times=None, prev=None):
         self.events = []
         self._health = health
         self.clock = now or datetime(2026, 10, 27, 3, 0, tzinfo=KST)
         self.active = set(active)
-        self.fail = set(fail)
+        self.fail = set(fail)  # 부를 때마다 실패하는 명령
+        self.fail_times = dict(fail_times or {})  # 앞의 N번만 실패하는 명령
         self.links = {"current": Path(prev)} if prev else {}
         self.restarts = 0
 
@@ -34,6 +36,9 @@ class FakeOps(sd.Ops):
         key = f"{action}:{'stage' if 'stage' in unit else 'primary'}"
         self.events.append(key)
         if key in self.fail:
+            raise subprocess.CalledProcessError(1, key)
+        if self.fail_times.get(key, 0) > 0:
+            self.fail_times[key] -= 1
             raise subprocess.CalledProcessError(1, key)
         if action == "start":
             self.active.add(unit)
@@ -154,10 +159,81 @@ class DeployTest(unittest.TestCase):
         self.assertEqual(self.run_deploy(ops), sd.OK)
         self.assertTrue(any("무중단이 아닐 수" in m for m in self.logs))
 
+    def test_primary_restart_command_failure_triggers_rollback(self):
+        # 링크는 이미 새 jar인데 재시작 명령이 실패한 경우. 롤백 없이 끝나면 안 된다.
+        ops = FakeOps(health=lambda o, p: True, prev="/d/delivery-discount-api-old.jar", fail_times={"restart:primary": 1})
+        self.assertEqual(self.run_deploy(ops), sd.ROLLED_BACK)
+        self.assertEqual(acts(ops).count("restart:primary"), 2)
+        self.assertEqual(ops.links["current"].name, "delivery-discount-api-old.jar")
+        self.assertEqual(acts(ops)[-1], "stop:stage")
+
+    def test_failure_to_stop_the_stage_after_success_needs_a_human_but_still_prunes(self):
+        for i in range(5):
+            old = Path(self.tmp.name) / f"delivery-discount-api-old{i}.jar"
+            old.write_bytes(b"x")
+            os.utime(old, (1_700_000_000 + i, 1_700_000_000 + i))
+        ops = FakeOps(health=lambda o, p: True, prev="/d/old.jar", fail={"stop:stage"})
+        self.assertEqual(self.run_deploy(ops), sd.NEEDS_HUMAN)
+        self.assertTrue(any("내리지 못했다" in m for m in self.logs))
+        self.assertTrue(self.jar.exists())
+        self.assertEqual(len(list(Path(self.tmp.name).glob("delivery-discount-api-*.jar"))), 3)
+
+    def test_failure_to_stop_an_unready_stage_still_reports_stage_failed(self):
+        ops = FakeOps(health=lambda o, p: p != 8089, prev="/d/old.jar", fail={"stop:stage"})
+        self.assertEqual(self.run_deploy(ops), sd.STAGE_FAILED)
+        self.assertNotIn("restart:primary", acts(ops))
+
+    def test_leftover_stage_that_cannot_be_stopped_aborts_before_starting_another(self):
+        ops = FakeOps(health=lambda o, p: True, active={STAGE}, prev="/d/old.jar", fail={"stop:stage"})
+        self.assertEqual(self.run_deploy(ops), sd.STAGE_FAILED)
+        self.assertNotIn("start:stage", acts(ops))
+        self.assertNotIn("restart:primary", acts(ops))
+
+    def test_failure_to_stop_the_stage_after_rollback_needs_a_human(self):
+        ops = FakeOps(health=lambda o, p: p == 8089 or o.restarts >= 2, prev="/d/old.jar", fail={"stop:stage"})
+        self.assertEqual(self.run_deploy(ops), sd.NEEDS_HUMAN)
+
     def test_missing_jar_does_nothing(self):
         ops = FakeOps(health=lambda o, p: True)
         self.assertEqual(sd.deploy(self.cfg, ops, Path(self.tmp.name) / "nope.jar", log=self.logs.append), sd.STAGE_FAILED)
         self.assertEqual(ops.events, [])
+
+
+class SystemctlTest(unittest.TestCase):
+    """실제 Ops.systemctl이 어떤 실패든 CalledProcessError로 통일하는지. 호출부는 그것만 처리한다."""
+
+    def fail_with(self, effect):
+        with mock.patch.object(sd.subprocess, "run", side_effect=effect):
+            with self.assertRaises(subprocess.CalledProcessError):
+                sd.Ops().systemctl("restart", "x.service")
+
+    def test_missing_sudo_is_a_failed_command(self):
+        self.fail_with(FileNotFoundError("sudo"))
+
+    def test_permission_error_is_a_failed_command(self):
+        self.fail_with(PermissionError("denied"))
+
+    def test_timeout_is_a_failed_command(self):
+        self.fail_with(subprocess.TimeoutExpired("systemctl", 120))
+
+    def test_non_zero_exit_keeps_its_stderr(self):
+        with mock.patch.object(sd.subprocess, "run", side_effect=subprocess.CalledProcessError(1, "x", stderr="boom")):
+            with self.assertRaises(subprocess.CalledProcessError) as caught:
+                sd.Ops().systemctl("restart", "x.service")
+        self.assertEqual(caught.exception.stderr, "boom")
+
+    def test_success_runs_exactly_the_sudo_command_with_a_timeout(self):
+        with mock.patch.object(sd.subprocess, "run") as run:
+            sd.Ops().systemctl("stop", "x.service")
+        run.assert_called_once_with(["sudo", "-n", "systemctl", "stop", "x.service"], check=True, timeout=120)
+
+    def test_is_active_treats_unknown_as_not_active(self):
+        with mock.patch.object(sd.subprocess, "run", side_effect=subprocess.TimeoutExpired("systemctl", 30)):
+            self.assertFalse(sd.Ops().is_active("x.service"))
+        with mock.patch.object(sd.subprocess, "run", side_effect=FileNotFoundError("systemctl")):
+            self.assertFalse(sd.Ops().is_active("x.service"))
+        with mock.patch.object(sd.subprocess, "run", return_value=mock.Mock(returncode=0)):
+            self.assertTrue(sd.Ops().is_active("x.service"))
 
 
 class WaitHealthyTest(unittest.TestCase):
