@@ -33,6 +33,8 @@ CI `web-perf`(.github/workflows/web-perf.yml)가 main 배포 뒤 운영에 이 �
 
 ## iOS 배치 검사의 시험 데이터 (ios-shot local)
 
+CI 자동 실행은 2026-10-27에 뺐다(unUse). 수동 실행(`gh workflow run ios-shot.yml --ref <브랜치> -f local=true`)만 남는다. 되살리는 법은 `.github/workflows/ios-shot.yml` 머리말에 있다.
+
 `layout-report.py`가 가짜 API다. 고정 데이터(`fixtures/`)를 바꾸면 기준일 `fixtures/DATE`도 같이 고친다. 7일이 넘으면 검사 요약에 경고가 뜬다.
 `live:` 장면은 찍기 직전에 받은 운영 응답(`PRODUCTION_API`)으로 연다. API와 웹을 함께 바꾸는 PR은 이 장면이 병합 전 옛 API 응답으로 새 웹을 보므로 거짓 경고가 날 수 있다.
 시험: `python3 -m unittest discover -s web/scripts/dev -p 'test_*.py'`
