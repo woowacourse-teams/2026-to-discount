@@ -32,6 +32,8 @@ jobs:
         run: ./gradlew test
       - name: Test development operations
         run: python3 -m unittest discover -s deploy/dev -p 'test_*.py'
+      - name: Test production deploy script
+        run: python3 -m unittest discover -s deploy/prod -p 'test_*.py'
       - name: Test load-test stop conditions
         run: python3 -m unittest discover -s load-tests -p 'test_*.py'
       # 테스트는 앞 단계에서 통과했다. build가 같은 테스트를 다시 실행하지
