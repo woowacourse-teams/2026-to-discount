@@ -6,7 +6,7 @@ import {
   isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinPopular, visibleCategories, CATEGORIES,
+  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinPopular, pinKinds, visibleCategories, CATEGORIES,
 } from './filters.js'
 import { STRIP_MIN, cardRanks, popularToday } from './popularStrip.js'
 
@@ -311,6 +311,27 @@ test('pinPopular: 고른 카테고리 안의 순위권 브랜드만 순위대로
   const all = defaultFilters()
   const list = applyFilters(brands, all)
   assert.deepEqual(pinPopular(list, all, rankList147(brands, all)).slice(0, 5).map((b) => b.name), ['교촌', 'BBQ', '도미노', 'bhc', '피자헛'])
+})
+
+test('pinKinds: 맨 위 이유 표시가 실제 순서와 같은 덩어리를 이룬다. HOT 앞, 그 뒤 신규 앞, 나머지는 표시 없음(2026-10-27)', () => {
+  const mk = (name, n, isNew) => brand(name, [o(5000, { isNew })], { popularityToday: n })
+  // 다는 신규이면서 HOT 3위: HOT이 이긴다. 신규1은 HOT이 아닌 신규, 보통은 둘 다 아님.
+  const brands = [mk('가', 9, false), mk('나', 8, false), mk('다', 7, true), mk('신규1', 0, true), mk('보통', 0, false), mk('라', 6, false), mk('마', 5, false)]
+  const f = defaultFilters()
+  const rank = applyFilters(brands, { ...f, categories: new Set(), search: '' })
+  const ordered = pinPopular(applyFilters(brands, f), f, rank)
+  const kinds = pinKinds(ordered, f, rank)
+  const labels = ordered.map((b) => kinds.get(b.name) ?? 'none')
+  assert.deepEqual(ordered.map((b) => b.name), ['가', '나', '다', '라', '마', '신규1', '보통'])
+  assert.deepEqual(labels, ['hot', 'hot', 'hot', 'hot', 'hot', 'new', 'none'])
+  // 정렬을 바꾸면 아무것도 올리지 않으므로 표시도 없다
+  const other = { ...f, sorts: [{ key: 'minOrder', dir: 'asc' }] }
+  assert.equal(pinKinds(applyFilters(brands, other), other, rank).size, 0)
+  // HOT이 안 뜨는 때(세 곳 미만)는 신규 표시만 남는다
+  const few = [mk('가', 9, false), mk('신규1', 0, true), mk('보통', 0, false)]
+  const fewRank = applyFilters(few, { ...f, categories: new Set(), search: '' })
+  const fewKinds = pinKinds(pinPopular(applyFilters(few, f), f, fewRank), f, fewRank)
+  assert.deepEqual([...fewKinds.entries()], [['신규1', 'new']])
 })
 
 test('카드 순번은 도크와 같은 이름에 같은 순위를 붙인다. 카테고리 안에서 다시 매기지 않는다(#147)', () => {

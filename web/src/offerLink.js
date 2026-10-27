@@ -192,12 +192,15 @@ export function offerLink(offer, brandLinks, brandName) {
 }
 
 /** offer_link_click 속성. 운영 카드와 쿠폰 카드가 같은 키로 남긴다(PostHog 대시보드가 이 키로 가른다). */
-export function offerClickProps({ offer, brandName, position, best, where, slot, expanded }) {
+export function offerClickProps({ offer, brandName, position, pin, best, where, slot, expanded }) {
   return {
     brand: brandName,
     platform: offer.platform,
     // 카드 순번(1부터). 정렬을 바꾼 뒤 몇 번째 카드가 눌리는지 — 정렬 효과의 근거(2026-09-20).
     position,
+    // 맨 위로 올라온 이유: hot(HOT 1~5위 고정) | new(신규 앞) | none(2026-10-27). 서버가 속성을 앞에서부터
+    // MAX_PROPS까지만 남기므로 position 바로 뒤에 둔다.
+    pin: pin ?? 'none',
     amount: offer.amount ?? null,
     minOrder: offer.minOrderAmount ?? null,
     qualifier: offer.qualifier ?? 'none',

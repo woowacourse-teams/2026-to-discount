@@ -396,6 +396,22 @@ export function pinPopular(brands, filters, rankBrands = brands) {
 }
 
 /**
+ * 기본 정렬에서 맨 위로 올라온 이유: 이름 → 'hot'(HOT 1~5위 고정) | 'new'(신규 앞). 올라오지 않은 브랜드는 담지 않는다.
+ * 노출과 클릭에 `pin`으로 실어, 같은 브랜드가 고정일 때와 아닐 때를 가른다(2026-10-27, 정렬 효과 분석).
+ * 순서를 만드는 applyFilters(신규 앞)와 pinPopular(HOT 앞)와 같은 조건을 쓴다. 한쪽만 고치면 표시가 어긋나서
+ * filters.test.js가 실제 순서와 대조한다.
+ */
+export function pinKinds(brands, filters, rankBrands = brands) {
+  const kinds = new Map()
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return kinds
+  const top = popularToday(rankBrands)
+  if (top.length >= STRIP_MIN) for (const r of top) kinds.set(r.brand.name, 'hot')
+  const include = includesFrom(filters)
+  for (const b of brands) if (!kinds.has(b.name) && hasNewBest(b.offers, include)) kinds.set(b.name, 'new')
+  return kinds
+}
+
+/**
  * 오퍼 목록을 그릴 때 쓰는 React 키.
  *
  * 앱 이름만으로는 겹친다. 서버는 같은 (브랜드, 앱)에 확정 오퍼와 랜덤 오퍼를 따로

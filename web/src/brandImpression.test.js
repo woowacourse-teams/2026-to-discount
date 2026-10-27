@@ -80,11 +80,15 @@ test('브랜드 노출 props를 화면 상태에서 정규화한다', () => {
   }, 4), {
     brand: '교촌치킨',
     position: '4',
+    pin: 'none',
     platforms: 'baemin+yogiyo',
     category: 'chicken',
     hasNew: false,
   })
   assert.equal(brandImpressionProps({ name: '미분류', category: null, offers: [] }, 1).category, 'none')
+  // 맨 위로 올라온 이유는 브랜드에 붙은 pin을 그대로 싣는다(2026-10-27)
+  assert.equal(brandImpressionProps({ name: '교촌치킨', offers: [], pin: 'hot' }, 1).pin, 'hot')
+  assert.equal(brandImpressionProps({ name: '교촌치킨', offers: [], pin: 'new' }, 2).pin, 'new')
 })
 
 test('헤더가 99% 이상 1초 유지된 브랜드를 한 번 기록한다', () => {

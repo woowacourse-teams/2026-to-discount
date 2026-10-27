@@ -27,6 +27,9 @@ export function brandImpressionProps(brand, position) {
   return {
     brand: brand.name,
     position: String(position),
+    // 맨 위로 올라온 이유: hot(HOT 1~5위 고정) | new(신규 앞) | none. 순서 변경 효과를 노출과 클릭에서 가른다(2026-10-27).
+    // 서버가 속성을 앞에서부터 MAX_PROPS까지만 남기므로 position 바로 뒤에 둔다.
+    pin: brand.pin ?? 'none',
     // 이 차원은 "이 브랜드가 어느 배달앱에 있나"를 묻는다. 자사앱은 그 답이 아니라
     // 뺀다 - 안 빼면 own이 새 값으로 섞여 들어 지난 수치와 안 이어진다(2026-09-24).
     // 자사 행사만 있는 브랜드는 빈 값이 되고, 그것이 사실이다.
