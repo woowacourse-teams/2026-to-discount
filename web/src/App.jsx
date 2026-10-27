@@ -11,7 +11,7 @@ import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, applyFilters, pinPopular, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
+import { CATEGORIES, applyFilters, pinPopular, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 import { cardRanks } from './popularStrip.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
@@ -414,10 +414,13 @@ export default function App({ initial = null }) {
     () => (brands ? applyHidden(applyFilters(brands, { ...filters, categories: new Set(), search: '' }), hidden, bestOf) : brands),
     [brands, filters, hidden, bestOf],
   )
-  const visibleBrands = useMemo(
-    () => (brands ? pinPopular(applyHidden(applyFilters(brands, filters), hidden, bestOf), filters, rankBrands) : brands),
-    [brands, filters, hidden, bestOf, rankBrands],
-  )
+  // 맨 위로 올라온 이유(HOT 고정, 신규 앞)를 브랜드에 `pin`으로 붙인다. 카드가 노출과 클릭 이벤트에 싣는다(2026-10-27).
+  const visibleBrands = useMemo(() => {
+    if (!brands) return brands
+    const ordered = pinPopular(applyHidden(applyFilters(brands, filters), hidden, bestOf), filters, rankBrands)
+    const kinds = pinKinds(ordered, filters, rankBrands)
+    return ordered.map((b) => ({ ...b, pin: kinds.get(b.name) ?? 'none' }))
+  }, [brands, filters, hidden, bestOf, rankBrands])
 
   // 카드 왼쪽 위 순번. 도크와 같은 rankBrands 표를 읽어 순위가 맞는다(popularStrip.js cardRanks).
   const popRanks = useMemo(
