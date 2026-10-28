@@ -1,6 +1,7 @@
 import { isUpdated } from './filters.js'
 import { track } from './analytics.js'
 import { watchAppOpen } from './telemetry.js'
+import { offerShareSelection } from './shareAttribution.js'
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
 //
@@ -194,6 +195,7 @@ export function offerLink(offer, brandLinks, brandName) {
 /** offer_link_click 속성. 운영 카드와 쿠폰 카드가 같은 키로 남긴다(PostHog 대시보드가 이 키로 가른다). */
 export function offerClickProps({ offer, brandName, position, pin, best, where, slot, expanded }) {
   return {
+    ...offerShareSelection(offer, brandName),
     brand: brandName,
     platform: offer.platform,
     // 카드 순번(1부터). 정렬을 바꾼 뒤 몇 번째 카드가 눌리는지 — 정렬 효과의 근거(2026-09-20).

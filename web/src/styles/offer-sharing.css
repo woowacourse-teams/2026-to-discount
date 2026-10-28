@@ -1,0 +1,13 @@
+.offer-share { --action-icon-size: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; position: relative; }
+.offer-share__button { display: inline-flex; align-items: center; justify-content: center; width: calc(var(--action-icon-size) + 8px); height: calc(var(--action-icon-size) + 8px); padding: 4px; border: 0; background: none; color: var(--text-muted); opacity: .7; cursor: pointer; flex: none; }
+.offer-share__button svg { width: var(--action-icon-size); height: var(--action-icon-size); }
+.offer-share__button:hover { opacity: 1; }
+.offer-share__button:disabled { opacity: .35; cursor: wait; }
+.offer-share__button:focus-visible, .offer-share__url:focus-visible { outline: 2px solid var(--accent, #2563eb); outline-offset: 2px; }
+.offer-share__status { font-size: 12px; }
+.offer-share__url { width: 100%; min-width: 0; padding: 6px; }
+.shared-offer-target { outline: 3px solid #2563eb; outline-offset: 4px; border-radius: 8px; scroll-margin: 120px 0; }
+.share-notice { margin: 16px 0; padding: 12px; border-radius: 8px; background: var(--surface, #fff); color: var(--text, #222); }
+.ticket-share { position: absolute; top: 6px; right: calc(var(--stub) + 6px); z-index: 3; flex-wrap: nowrap; }
+.ticket-share .offer-share__status, .ticket-share .offer-share__url { position: absolute; top: calc(100% + 4px); right: 0; z-index: 1; width: max-content; max-width: 180px; background: #fff; color: #222; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; }
+.ticket-share .offer-share__url { top: calc(100% + 36px); width: 180px; }
