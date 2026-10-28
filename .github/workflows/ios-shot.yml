@@ -1,3 +1,11 @@
+# unUse(2026-10-27 사용자): CI에서 자동으로 돌지 않는다. PR(pull_request)과 main 배포 뒤(workflow_run) 실행을 on:에서 빼고
+# 수동 실행(workflow_dispatch)만 남겼다. 아래 단계와 가짜 API(web/scripts/dev)는 그대로 둔다.
+# 되살리려면 on:에 아래 둘을 되돌리고, result-comment.yml의 workflows 목록에 ios-shot을 다시 넣는다. 이전 판은 git 이력.
+#   pull_request: { paths: ['web/**', '.github/workflows/ios-shot.yml'] }
+#   workflow_run: { workflows: [Mirror to deploy repos], types: [completed], branches: [main] }
+# 뺀 이유: 2026-10-25~26 서로 다른 PR 다섯 건에서 같은 검사(가로 넘침 78px)가 실패했다. 원인은 확인하지 않았다.
+# 고정 시험 데이터는 11일 지나 있었다. 병합 필수 검사가 아니라 병합은 막지 않았다.
+#
 # 실제 iOS 사파리(시뮬레이터)로 웹을 찍는다. 윈도 웹킷은 iOS 배치 버그를 재현하지 못한다(2026-10-13).
 # main 배포(미러) 뒤에는 운영 주소를 찍기만 한다. 결과는 실행의 아티팩트 ios-shots.
 # 프리뷰(Vercel 보호)는 저장소 시크릿 VERCEL_BYPASS(Vercel 보호 우회 값)가 있으면 주소에 우회 쿼리를 붙여 연다(2026-10-14).
@@ -17,12 +25,6 @@ on:
       urls: { description: '찍을 주소(공백으로 여럿, local이 아닐 때)', default: 'https://beggars-five.vercel.app/?home=a https://beggars-five.vercel.app/?home=old https://beggars-five.vercel.app/about' }
       local: { description: '이 브랜치 web을 러너에서 띄워 검사하고 찍기', default: 'false' }
       paths: { description: 'local일 때 찍을 경로(공백으로 여럿)', default: '/?home=a&expect=carousel /?home=a&sheet=KFC /?home=old /?home=a&tab=4&expect=coupon-text live:/?home=a live:/?home=a&tab=1 live:/?home=a&scroll=end' }
-  pull_request:
-    paths: ['web/**', '.github/workflows/ios-shot.yml']
-  workflow_run:
-    workflows: [Mirror to deploy repos]
-    types: [completed]
-    branches: [main]
 permissions:
   contents: read
 # 같은 브랜치(PR)에 push가 이어지면 앞 실행을 끊는다. macOS 작업이 쌓이지 않게
