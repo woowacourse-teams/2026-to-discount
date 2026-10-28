@@ -132,3 +132,8 @@ public final class InterProcessFileLock {
 2. `events.jsonl`과 PostHog 아웃박스도 같은 문제가 있는가. 이 설계는 두 저장소만 다룬다. 짝 이슈 #189에서 다루는 범위인지 확인이 필요하다.
 3. 운영자가 `gifticons.yml`을 서버에서 직접 올리는 절차에 잠금 파일을 잡는 단계를 넣을까. 안 넣으면 업로드 순간 발급과 겹칠 수 있다. 업로드 도구는 비공개 저장소에 있다.
 4. **임시 인스턴스의 `DISCOUNT_PUSH_STATE_PATH`가 비어 있는지** 운영 저장소 환경 파일에서 확인이 필요하다. 이 설계는 어느 쪽이어도 맞지만, 비어 있으면 위 표의 세 경로는 실제로는 쓰지 않는다.
+
+## 변경 이력
+
+- 2026-10-28: 승인 전 이슈 댓글로 열린 질문이 풀렸다. (1) 대안 C(임시 인스턴스 쓰기 끄기)는 하지 않는다. (2) `events.jsonl`은 구현 중 확인한 결과 `APPEND` 전용(`EventLog`, `ReportController`)이라 이번 범위 밖이다. (3) `gifticons.yml` 직접 업로드는 범위 밖이다. (4) 환경 파일에 `DISCOUNT_PUSH_STATE_PATH`가 있고 임시 인스턴스가 덮어쓰지 않아, 해지, 추적, reload는 실제 상태 파일을 쓴다. 설계의 전제가 맞다.
+- 2026-10-28: 구현에서 락 도우미 패키지를 `com.discounttracker.storage`로 했다.

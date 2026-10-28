@@ -86,6 +86,19 @@ class PushStateStoreTest {
                 .extracting(BannerNotificationState::bannerId).isEqualTo("banner");
     }
 
+    @Test
+    void staleMemoryDoesNotEraseAnotherInstancesWrite() {
+        PushStateStore a = new PushStateStore(properties(), mapper, clock);
+        PushStateStore b = new PushStateStore(properties(), mapper, clock);
+
+        b.upsert("https://fcm.googleapis.com/b", "key", "auth", "v_b", true);
+        a.upsert("https://fcm.googleapis.com/a", "key", "auth", "v_a", true);
+
+        assertThat(new PushStateStore(properties(), mapper, clock).activeSubscriptions())
+                .extracting(PushSubscription::visitorId).containsExactlyInAnyOrder("v_a", "v_b");
+        assertThat(a.activeSubscriptions()).hasSize(2);
+    }
+
     private PushProperties properties() {
         return new PushProperties(true, "public", "private", "mailto:test@example.com",
                 temp.resolve("push.json"), "https://front.example/", "https://api.example");

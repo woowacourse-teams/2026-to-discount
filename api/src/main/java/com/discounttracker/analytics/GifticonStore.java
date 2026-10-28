@@ -1,5 +1,6 @@
 package com.discounttracker.analytics;
 
+import com.discounttracker.storage.InterProcessFileLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -28,8 +30,10 @@ import java.util.Optional;
  * ({@code discount.gifticons-path}) 파일은 서버에 직접 올린다 —
  * {@code banners.yml}·{@code export.json}과 같은 방식이다(ADR-001).
  *
- * <p>발급은 두 번 나가면 안 된다. 서버가 단일 인스턴스이므로 이 객체의
- * 잠금 하나면 충분하다 — 여러 인스턴스로 늘리면 파일 잠금이나 DB가 필요해진다.
+ * <p>발급은 두 번 나가면 안 된다. 무중단 배포(#188) 때 두 인스턴스가 10~20초 같은
+ * 데이터 폴더를 쓰므로 JVM 안의 {@code synchronized}로는 부족하다. 발급은
+ * {@code <gifticons.yml>.lock}의 파일 락 안에서 한다(#192, {@link InterProcessFileLock}).
+ * 이 락을 걷어 내면 두 인스턴스가 같은 코드를 두 사람에게 줄 수 있다.
  */
 @Component
 public class GifticonStore {
@@ -48,13 +52,17 @@ public class GifticonStore {
      */
     private static final String ISSUES_FILE = "gifticon-issues.jsonl";
 
+    private static final Duration LOCK_TIMEOUT = Duration.ofSeconds(5);
+
     private final Path path;
     private final Path issuesPath;
+    private final Path lockPath;
 
     public GifticonStore(@Value("${discount.gifticons-path:data/gifticons.yml}") String path) {
         this.path = Path.of(path);
         Path dir = this.path.toAbsolutePath().getParent();
         this.issuesPath = (dir == null ? Path.of("") : dir).resolve(ISSUES_FILE);
+        this.lockPath = this.path.resolveSibling(this.path.getFileName() + ".lock");
     }
 
     Path path() {
@@ -62,18 +70,28 @@ public class GifticonStore {
     }
 
     /** 아직 아무에게도 안 나간 코드 수. 0이면 프론트가 설문을 안 그린다. */
-    public synchronized int remaining() {
+    public int remaining() {
         return (int) read().stream().filter(g -> g.get("issuedTo") == null).count();
     }
 
     /**
      * 코드 하나를 꺼내 발급 표시를 하고 돌려준다.
      *
-     * <p>읽기 → 표시 → 쓰기가 한 덩어리라야 한다. 나눠 두면 두 요청이 같은
-     * 코드를 집는다. {@code synchronized}로 묶고, 파일에 다 쓴 뒤에야 코드를
-     * 돌려준다 — 먼저 돌려주고 쓰다 실패하면 같은 코드가 다음 사람에게도 간다.
+     * <p>받았는지 확인 → 읽기 → 표시 → 쓰기 → 원장이 한 덩어리라야 한다. 나눠 두면
+     * 두 요청(두 프로세스 포함)이 같은 코드를 집는다. 파일 락으로 묶고, 파일에 다 쓴
+     * 뒤에야 코드를 돌려준다 — 먼저 돌려주고 쓰다 실패하면 같은 코드가 다음 사람에게도 간다.
+     * 락을 못 잡아도 코드를 내주지 않는다.
      */
-    public synchronized Optional<String> issue(String visitorId) {
+    public Optional<String> issue(String visitorId) {
+        try {
+            return InterProcessFileLock.withLock(lockPath, LOCK_TIMEOUT, () -> issueLocked(visitorId));
+        } catch (IOException e) {
+            log.error("기프티콘 발급 락을 잡지 못했다 — 코드를 내주지 않는다: {}", lockPath, e);
+            return Optional.empty();
+        }
+    }
+
+    private Optional<String> issueLocked(String visitorId) {
         // 이미 받은 사람에게는 그때 그 코드를 그대로 돌려준다. 재고를 또
         // 먹지 않고, 한 사람이 코드를 둘 쥐는 일도 없다.
         Optional<String> held = issuedTo(visitorId);
@@ -102,7 +120,7 @@ public class GifticonStore {
     }
 
     /** 이 사람 앞으로 이미 나간 코드. 없으면 비어 있다. */
-    public synchronized Optional<String> issuedTo(String visitorId) {
+    public Optional<String> issuedTo(String visitorId) {
         if (visitorId == null || visitorId.isBlank()) return Optional.empty();
         for (Map<String, Object> g : read()) {
             if (visitorId.equals(g.get("issuedTo")) && g.get("code") != null) {
@@ -164,6 +182,8 @@ public class GifticonStore {
         // 남지 않는다 — 반쪽이면 남은 코드가 통째로 날아간다.
         Path tmp = path.resolveSibling(path.getFileName() + ".tmp");
         Files.writeString(tmp, text, StandardCharsets.UTF_8);
-        Files.move(tmp, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        // ATOMIC_MOVE: 락 없이 읽는 remaining·issuedTo가 반쪽 파일을 보지 않게 한다.
+        Files.move(tmp, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                java.nio.file.StandardCopyOption.ATOMIC_MOVE);
     }
 }
