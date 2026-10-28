@@ -50,7 +50,10 @@ export default function OfferShareButton({ offer, brandName, position, where, cl
       {nativeSupported && <button type="button" className="offer-share__button" disabled={busy}
         title="공유하기" aria-label={`${accessibleName} 공유하기`} onClick={send}>
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 16V3m-4 4 4-4 4 4M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8" />
+          <path d="m8.6 10.5 6.8-4m-6.8 7 6.8 4" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="18" cy="19" r="3" />
         </svg>
       </button>}
       {result && <span role="status" className="offer-share__status">{result}</span>}
