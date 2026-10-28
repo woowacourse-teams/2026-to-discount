@@ -14,7 +14,7 @@ jobs:
     uses: ./.github/workflows/wf-implement.yml
     with:
       spec_prefix: docs/design/
-      areas: '{"web": {"agent": "web-implementer", "tools": "Bash(node:*),Bash(npm:*)", "setup": "none", "test": "테스트는 구현자 문서가 정한 명령으로 돌린다."}, "api": {"agent": "api-implementer", "tools": "Bash(./gradlew:*)", "setup": "jdk", "test": "테스트는 구현자 문서가 정한 명령으로 돌린다."}}'
+      areas: '{"web": {"agent": "web-implementer", "tools": "Bash(node:*),Bash(npm:*)", "setup": "none", "test": "테스트는 구현자 문서가 정한 명령으로 돌린다."}, "api": {"agent": "api-implementer", "tools": "Bash(./gradlew:*),Bash(api/gradlew:*)", "setup": "jdk", "test": "테스트는 구현자 문서가 정한 명령으로 돌린다."}}'
       read_mono: false
       read_ops: false
     secrets: inherit
