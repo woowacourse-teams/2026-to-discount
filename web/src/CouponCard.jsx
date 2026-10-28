@@ -12,6 +12,9 @@ import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import BestHistoryChart from './BestHistoryChart.jsx'
+import OfferShareButton from './OfferShareButton.jsx'
+import { sharedOfferKey } from './offerSharing.js'
+import { useShareTargetFocus } from './useShareTargetFocus.js'
 // coupon-card.css는 여기서 싣지 않는다. :root 배경 같은 전역 규칙이 있어 운영 카드 쪽에 섞이면 안 된다.
 // 쿠폰 쪽일 때만 App이 따로 받고, 서버 렌더는 <head>에 링크를 단다(api/ssr.js).
 
@@ -86,6 +89,7 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} where={where} slot={slot} expanded={expanded} className="cc-stub"><LinkIcon /></OfferLinkA>
     </div>
+    {where !== 'main' && where !== 'carousel' && <OfferShareButton offer={o} brandName={brand.name} position={position} where={where} />}
     {/* 쿠팡이츠 안내: 카드에서는 이동 전 토스트로 대신하고, 하단 시트에서만 쿠폰 아래 문구를 둔다(2026-10-07 사용자) */}
     {where === 'sheet' && o.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
     </div>
@@ -229,7 +233,7 @@ function Ticket({ brand, best, hasBest, position, idx, setIdx }) {
 // phase: false(접힘, DOM에 없음) → 'enter'(내용을 0fr로 먼저 DOM에 넣음) → 'open'(두 프레임 뒤 1fr) → 'leave'(0fr로 닫는 중) → false.
 const OPEN_MS = 280
 const LEAVE_MS = 220
-function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false, compact = false }) {
+function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false, compact = false, sharedKey, onShareTargetVisible }) {
   const { best, rest, hasBest, bundles } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   const [phase, setPhase] = useState(false)
   const [cur, setCur] = useState(0) // 캐러셀에서 보이는 쿠폰. 브랜드명 옆 배지가 이걸 따른다
@@ -254,6 +258,13 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   // 넘었으면 닫고, 아니면 제자리로. 손가락은 터치 이벤트로 받는다 — 포인터 이벤트는 브라우저가 스크롤로 가져가며
   // 중간에 취소돼 시트가 저절로 돌아갔다.
   const sheetRef = useRef(null)
+  const previousSharedKey = useRef(null)
+  useEffect(() => {
+    if (sharedKey) setSheet(true)
+    else if (previousSharedKey.current) setSheet(false)
+    previousSharedKey.current = sharedKey
+  }, [sharedKey, onShareTargetVisible])
+  useShareTargetFocus(sheetRef, sharedKey, sheet, onShareTargetVisible)
   const sdrag = useRef(null)
   const settleSheet = (dy, fast) => {
     const el = sheetRef.current
@@ -317,8 +328,11 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   }, [sheet])
   // 딥링크(#brand-이름)로 들어오면 펼친 채로 그 카드로 스크롤한다(운영 카드와 같다).
   useEffect(() => {
-    if (highlighted) { setPhase('enter'); cardRef.current?.scrollIntoView({ block: 'center' }) }
-  }, [highlighted])
+    if (highlighted) {
+      setPhase('enter')
+      if (!sharedKey) cardRef.current?.scrollIntoView({ block: 'center' })
+    }
+  }, [highlighted, sharedKey])
   // 보이지 않는 영역에 먼저 배치(0fr)한 뒤 두 프레임 뒤에 1fr로 바꿔 커지는 도중 레이아웃이 튀지 않게 한다.
   useEffect(() => {
     if (phase !== 'enter') return undefined
@@ -402,12 +416,14 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         자세히 보기
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>}
+      <OfferShareButton offer={best[cur] ?? best[0]} brandName={brand.name} position={position} where="card" className="card-actions">
       {onHide && (
         <button type="button" className="cc-hide" aria-label={`${brand.name} 숨기기`} title="숨기기"
                 onClick={() => onHide(brand.name, hasBest ? best[0].amount : null)}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3l18 18M10.6 5.2A9.6 9.6 0 0 1 12 5c5 0 9 4.5 9 7 0 .9-.5 2-1.4 3.1M6.2 6.7C3.9 8.2 3 10.2 3 12c0 2.5 4 7 9 7 1.6 0 3-.4 4.2-1.1M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>
         </button>
       )}
+      </OfferShareButton>
       {/* 펼친 쿠폰은 펼쳤을 때만 그린다(접힌 동안 요소 수를 늘리지 않는다). */}
       {shown && (
         <div className="cc-x cc-x--rest"><div className="cc-x-in"><div className="cc-more">
@@ -448,13 +464,14 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
             </div>
             <div className="cc-sheet__body">
               <BestHistoryChart brand={brand.name} />
-              {[...best, ...rest].map((o, i) => {
+              {[...bundles, ...best, ...rest].map((o, i) => {
                 // 중복 할인 계산식은 시트에서 뺐다(2026-10-07 사용자: 표 첫 줄에 이미 계산이 보인다)
                 const tb = conditionTable(o)
                 const hasTbl = tb.rows.length > 0 || tb.note
                 return (
-                  <div key={offerKey(o)} className="cc-sheet__item">
-                    <Coupon o={o} brand={brand} position={position} best={i < best.length} where="sheet" slot={i + 1} expanded tags={<Tags o={o} />} />
+                  <div key={offerKey(o)} className={`cc-sheet__item${sharedKey === sharedOfferKey(o) ? ' shared-offer-target' : ''}`}
+                    tabIndex={-1} data-offer-key={sharedOfferKey(o)}>
+                    <Coupon o={o} brand={brand} position={position} best={best.includes(o)} where="sheet" slot={i + 1} expanded tags={<Tags o={o} />} />
                     {hasTbl && <DetailTable t={tb} i={0} />}
                   </div>
                 )

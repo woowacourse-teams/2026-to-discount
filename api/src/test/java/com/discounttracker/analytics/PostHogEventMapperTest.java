@@ -19,6 +19,21 @@ class PostHogEventMapperTest {
             new PostHogEventMapper(Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Test
+    void preservesShareFunnelAndSelectionPropertiesWithExistingEventIdentity() {
+        var props = Map.of("shareId", "shared-link-1", "landingId", "landing-1",
+                "sharedOfferKey", "v1_" + "a".repeat(64), "offerKey", "v1_" + "b".repeat(64),
+                "selectionRelation", "same_brand_other_offer", "attributionType", "share_session");
+        for (String name : java.util.List.of("offer_share_click", "offer_share_result",
+                "offer_share_landing", "offer_share_target_view", "offer_link_click")) {
+            var mapped = mapper.map(event(name, false, props)).orElseThrow();
+            assertEquals(name, mapped.event());
+            props.forEach((key, value) -> assertEquals(value, mapped.properties().get(key)));
+            assertEquals("event-1", mapped.properties().get("$insert_id"));
+            assertEquals("visitor-1", mapped.properties().get("distinct_id"));
+        }
+    }
+
+    @Test
     void mapsPageViewUsingHistoricalImportContract() {
         VisitEvent source = event("page_view", false, Map.of(
                 "brand", "BBQ",

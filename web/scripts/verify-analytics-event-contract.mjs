@@ -21,6 +21,8 @@ function staticTrackEvents(path, contents) {
 }
 
 const appSource = await source('src/App.jsx')
+const shareButtonSource = await source('src/OfferShareButton.jsx')
+const shareLandingSource = await source('src/useSharedOffer.js')
 // App.jsx에서 떼어 낸 카드와 칩. offer_link_click·brand_expand·brand_impression을 여기서 쏜다.
 const brandCardSource = await source('src/BrandCard.jsx')
 const offerChipSource = await source('src/OfferChip.jsx')
@@ -55,6 +57,8 @@ const controllerSource = await readFile(
 )
 
 const emittedEvents = new Set([
+  ...staticTrackEvents('src/OfferShareButton.jsx', shareButtonSource),
+  ...staticTrackEvents('src/useSharedOffer.js', shareLandingSource),
   ...staticTrackEvents('src/App.jsx', appSource),
   ...staticTrackEvents('src/BrandCard.jsx', brandCardSource),
   ...staticTrackEvents('src/OfferChip.jsx', offerChipSource),

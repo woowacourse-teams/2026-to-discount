@@ -6,6 +6,9 @@ import { BrandLogo } from './logos.jsx'
 import BestHistoryChart from './BestHistoryChart.jsx'
 import OfferChip from './OfferChip.jsx'
 import OfferDetail from './OfferDetail.jsx'
+import OfferShareButton from './OfferShareButton.jsx'
+import { sharedOfferKey } from './offerSharing.js'
+import { useShareTargetFocus } from './useShareTargetFocus.js'
 
 // 브랜드 카드 딥링크용 id. 브랜드명 자체가 이미 유니크한 키라 그대로
 // 쓰되, 공백만 앵커에서 다루기 까다로우니 치환한다.
@@ -22,7 +25,7 @@ function captureBrandImpression(props) {
 // highlighted는 URL 해시(#brand-이름)로 이 카드를 콕 집어 공유했을 때만
 // true — 스크롤해서 보여주고 테두리를 강조한다. 카드를 만지면
 // onInteract로 App에 알려 하이라이트를 끈다(계속 남아있으면 거슬린다).
-function BrandCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false }) {
+function BrandCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, sharedKey, onShareTargetVisible }) {
   // qualifier="최대"인 오퍼는 금액과 무관하게 항상 맨 뒤로 민다 —
   // confirmed든 held든, "최대"는 실제 최소주문금액을 채워야 진짜 값이
   // 나오는 상한액이라 액면 그대로 다른 확정값과 비교하면 왜곡된다.
@@ -97,9 +100,10 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
   useEffect(() => {
     if (highlighted) {
       setPinned(true)
-      cardRef.current?.scrollIntoView({ block: 'center' })
+      if (!sharedKey) cardRef.current?.scrollIntoView({ block: 'center' })
     }
-  }, [highlighted])
+  }, [highlighted, sharedKey])
+  useShareTargetFocus(cardRef, sharedKey, open, onShareTargetVisible)
 
   useEffect(() => observeBrandImpression(
     headerRef.current,
@@ -126,6 +130,8 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
       </div>
 
       {/* 카드 오른쪽 위. 헤더 버튼의 형제라 눌러도 카드가 안 펼쳐진다. */}
+      <OfferShareButton offer={sortedOffers.find((o) => sharedOfferKey(o) === sharedKey) ?? heroOffers[0] ?? sortedOffers[0]}
+        brandName={brand.name} position={position} where="card" className="card-actions">
       {onHide && (
         <button
           type="button"
@@ -143,6 +149,7 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
           </svg>
         </button>
       )}
+      </OfferShareButton>
 
       {/* 최고 할인을 단독 줄로 올리고 나머지는 아래 가로 그리드로
           내린다. 동점이면 그만큼 줄이 늘어난다. 넷을 균등한 격자에 늘어놓으면 "어느 게 제일 센가"를
@@ -200,7 +207,15 @@ function BrandCard({ brand, position, highlighted, onInteract, include = null, o
           컨테이너는 aria-controls 대상이라 접혀 있어도 남겨둔다. */}
       <div id={detailId} className="brand-detail" hidden={!open}>
         {open && touched && <BestHistoryChart brand={brand.name} />}
-        {open && sortedOffers.map((o) => <OfferDetail key={offerKey(o)} offer={o} brandName={brand.name} />)}
+        {open && sortedOffers.map((o) => <div key={offerKey(o)} data-offer-key={sharedOfferKey(o)}
+          tabIndex={-1} className={sharedKey === sharedOfferKey(o) ? 'shared-offer-target' : undefined}>
+          {sharedKey === sharedOfferKey(o) && <ul className="offer-list offer-list--hero">
+            <OfferChip offer={o} brandName={brand.name} brandLinks={brand.links} position={position}
+              detailId={detailId} open={open} onToggle={toggle} hero />
+          </ul>}
+          <OfferDetail offer={o} brandName={brand.name} />
+          <OfferShareButton offer={o} brandName={brand.name} position={position} where="expanded" />
+        </div>)}
       </div>
 
       {/* 카드 맨 아래 줄 — 담기와 펼치기. 펼치기를 헤더에서 내린 건
