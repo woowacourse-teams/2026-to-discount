@@ -101,6 +101,8 @@ api/src/main/java/com/discounttracker/push/PushStateStore.java
 api/src/main/java/com/discounttracker/push/PushSubscription.java
 api/src/main/java/com/discounttracker/push/PushTrackingToken.java
 api/src/main/java/com/discounttracker/push/WebPushSender.java
+api/src/main/java/com/discounttracker/sharing/ShareLinkController.java
+api/src/main/java/com/discounttracker/sharing/ShareLinkStore.java
 api/src/main/java/com/discounttracker/web/BannerController.java
 api/src/main/java/com/discounttracker/web/BrandController.java
 api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
@@ -163,6 +165,8 @@ api/src/test/java/com/discounttracker/push/NewOfferNotificationServiceTest.java
 api/src/test/java/com/discounttracker/push/PushEndpointPolicyTest.java
 api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
 api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
+api/src/test/java/com/discounttracker/sharing/ShareLinkControllerTest.java
+api/src/test/java/com/discounttracker/sharing/ShareLinkStoreTest.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/BrandHistoryEndpointTest.java
 api/src/test/java/com/discounttracker/web/DevelopmentCorsTest.java
@@ -183,6 +187,7 @@ web/.env.example
 web/.env.production
 web/.gitignore
 web/README.md
+web/api/share.js
 web/api/ssr.js
 web/index.html
 web/middleware.js
@@ -318,6 +323,9 @@ web/src/report.test.js
 web/src/shareAttribution.js
 web/src/shareAttribution.test.js
 web/src/sheetParts.jsx
+web/src/shortShareLink.js
+web/src/shortShareLink.test.js
+web/src/shortShareRedirect.js
 web/src/styles/banner.css
 web/src/styles/base.css
 web/src/styles/brand-card.css
@@ -399,8 +407,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 178 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 173 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 182 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 177 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -419,6 +427,7 @@ flowchart TB
 | `history/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 6 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 12 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
+| `sharing/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 2 |
 | `web/` | HTTP 엔드포인트와 CORS | 8 |
 
 HTTP 경계:
@@ -430,6 +439,7 @@ HTTP 경계:
 - `GET /api/push/admin/next`
 - `GET /api/push/click/{token}`
 - `GET /api/push/public-key`
+- `GET /api/share-links/{code}`
 - `GET /api/survey`
 - `GET /api/survey/code`
 - `POST /api/events`
@@ -437,6 +447,7 @@ HTTP 경계:
 - `POST /api/push/subscriptions`
 - `POST /api/reload`
 - `POST /api/reports`
+- `POST /api/share-links`
 - `POST /api/survey`
 - `PUT /api/push/admin/next`
 
@@ -543,6 +554,9 @@ HTTP 경계:
 | `shareAttribution.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `shareAttribution.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `sheetParts.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `shortShareLink.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `shortShareLink.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `shortShareRedirect.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
