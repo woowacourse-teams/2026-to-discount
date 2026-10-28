@@ -5,6 +5,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -44,10 +45,18 @@ public class PushStateStore {
     private final PushProperties properties;
     private final ObjectMapper mapper;
     private final Clock clock;
+    private final Duration lockTimeout;
     private State state;
     private FileSignature signature;
 
+    @Autowired
     public PushStateStore(PushProperties properties, ObjectMapper mapper, Clock clock) {
+        this(properties, mapper, clock, LOCK_TIMEOUT);
+    }
+
+    /** 시험에서 락 대기를 줄이려고 둔다. */
+    PushStateStore(PushProperties properties, ObjectMapper mapper, Clock clock, Duration lockTimeout) {
+        this.lockTimeout = lockTimeout;
         this.properties = properties;
         this.mapper = mapper;
         this.clock = clock;
@@ -99,6 +108,8 @@ public class PushStateStore {
     }
 
     public synchronized void deactivate(String subscriptionId) {
+        refresh();
+        if (state.subscriptions.get(subscriptionId) == null) return;
         mutate(s -> {
             PushSubscription old = s.subscriptions.get(subscriptionId);
             if (old == null) return null;
@@ -203,15 +214,15 @@ public class PushStateStore {
     }
 
     public synchronized Optional<TrackingContext> track(String token, String eventType) {
+        // 공개 엔드포인트라 아무 토큰이나 온다. 쓸 게 없으면 락도 쓰기도 없이 돌아간다.
+        // 노출·클릭 표시는 false에서 true로만 바뀌므로 낡은 메모리가 "이미 됨"이라 해도 틀리지 않는다.
+        refresh();
+        if (!trackable(state.tokens.get(token), eventType)) return Optional.empty();
         return mutate(s -> {
             PushTrackingToken value = s.tokens.get(token);
-            if (value == null || value.expiresAt().isBefore(clock.instant())) return Optional.empty();
+            if (!trackable(value, eventType)) return Optional.empty();
             boolean displayed = value.displayed() || "push_notification_displayed".equals(eventType);
             boolean clicked = value.clicked() || "push_notification_clicked".equals(eventType);
-            if (("push_notification_displayed".equals(eventType) && value.displayed())
-                    || ("push_notification_clicked".equals(eventType) && value.clicked())) {
-                return Optional.empty();
-            }
             s.tokens.put(token, new PushTrackingToken(value.token(), value.notificationId(),
                     value.subscriptionId(), value.bannerIds(), value.deliveryType(), value.expiresAt(),
                     displayed, clicked));
@@ -219,6 +230,12 @@ public class PushStateStore {
             if (subscription == null || !subscription.analyticsEnabled()) return Optional.empty();
             return Optional.of(new TrackingContext(subscription.visitorId(), value));
         });
+    }
+
+    private boolean trackable(PushTrackingToken value, String eventType) {
+        if (value == null || value.expiresAt().isBefore(clock.instant())) return false;
+        if ("push_notification_displayed".equals(eventType) && value.displayed()) return false;
+        return !("push_notification_clicked".equals(eventType) && value.clicked());
     }
 
     /**
@@ -230,7 +247,7 @@ public class PushStateStore {
         if (path == null) return change.apply(state);
         try {
             return InterProcessFileLock.withLock(path.resolveSibling(path.getFileName() + ".lock"),
-                    LOCK_TIMEOUT, () -> {
+                    lockTimeout, () -> {
                         state = load(state);
                         R result = change.apply(state);
                         save();

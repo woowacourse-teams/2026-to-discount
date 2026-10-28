@@ -3,6 +3,7 @@ package com.discounttracker.analytics;
 import com.discounttracker.storage.InterProcessFileLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
@@ -57,8 +58,16 @@ public class GifticonStore {
     private final Path path;
     private final Path issuesPath;
     private final Path lockPath;
+    private final Duration lockTimeout;
 
+    @Autowired
     public GifticonStore(@Value("${discount.gifticons-path:data/gifticons.yml}") String path) {
+        this(path, LOCK_TIMEOUT);
+    }
+
+    /** 시험에서 락 대기를 줄이려고 둔다. */
+    GifticonStore(String path, Duration lockTimeout) {
+        this.lockTimeout = lockTimeout;
         this.path = Path.of(path);
         Path dir = this.path.toAbsolutePath().getParent();
         this.issuesPath = (dir == null ? Path.of("") : dir).resolve(ISSUES_FILE);
@@ -84,7 +93,7 @@ public class GifticonStore {
      */
     public Optional<String> issue(String visitorId) {
         try {
-            return InterProcessFileLock.withLock(lockPath, LOCK_TIMEOUT, () -> issueLocked(visitorId));
+            return InterProcessFileLock.withLock(lockPath, lockTimeout, () -> issueLocked(visitorId));
         } catch (IOException e) {
             log.error("기프티콘 발급 락을 잡지 못했다 — 코드를 내주지 않는다: {}", lockPath, e);
             return Optional.empty();
