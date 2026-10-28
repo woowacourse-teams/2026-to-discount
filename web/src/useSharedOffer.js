@@ -3,7 +3,7 @@ import { track } from './analytics.js'
 import { parseShareLink, resolveSharedOffer } from './offerSharing.js'
 import { initializeShareAttribution } from './shareAttribution.js'
 
-export function useSharedOffer(brands, onUnavailable) {
+export function useSharedOffer(brands, onUnavailable, loadError) {
   const [target, setTarget] = useState(null)
   const [dismissed, setDismissed] = useState(false)
   const [notice, setNotice] = useState(null)
@@ -33,6 +33,12 @@ export function useSharedOffer(brands, onUnavailable) {
       window.removeEventListener('popstate', sync)
     }
   }, [onUnavailable])
+  useEffect(() => {
+    if (!target || !loadError) return
+    if (initializeShareAttribution()?.claim('target', 'api_error')) {
+      try { track('offer_share_target_view', { targetStatus: 'api_error', offerKey: target.offerKey, brand: target.brand }) } catch { /* 재시도 유지. */ }
+    }
+  }, [target, loadError])
   const resolved = target && brands ? resolveSharedOffer(brands, target) : null
   const status = resolved?.status
   useEffect(() => {

@@ -256,7 +256,7 @@ export default function App({ initial = null }) {
     window.history.replaceState(window.history.state, '', '/')
     window.scrollTo({ top: 0 })
   }, [])
-  const { shared, notice: shareNotice, dismiss: dismissShared, onVisible: onShareTargetVisible } = useSharedOffer(brands, onSharedUnavailable)
+  const { shared, notice: shareNotice, dismiss: dismissShared, onVisible: onShareTargetVisible } = useSharedOffer(brands, onSharedUnavailable, error)
 
   // reloadKey를 올리면 다시 부른다 — 실패 화면의 "다시 시도" 버튼용.
   const [reloadKey, setReloadKey] = useState(0)
