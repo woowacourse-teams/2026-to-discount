@@ -78,7 +78,7 @@ export function shareText(brand, offer, { year = Number(new Date().toLocaleDateS
       t.soldOut ? '품절' : ''].filter(Boolean)
     return `${t.channel ? `${t.channel} ` : ''}${benefit(t)}${terms.length ? ` (${terms.join(', ')})` : ''}`
   })
-  lines[0] = `${brand} ${platform} ${lines[0]}`.replace(/\s+/g, ' ').trim()
+  lines[0] = `${platform} ${brand} ${lines[0]}`.replace(/\s+/g, ' ').trim()
   const expiryBadge = /^~\s*(\d{1,2})[/.](\d{1,2})$/.exec(offer.badge ?? '')
   const expiry = /^(\d{4})-(\d{2})-(\d{2})$/.exec(offer.expiresAt ?? '')
   const redundantDate = expiryBadge && expiry && Number(expiryBadge[1]) === Number(expiry[2]) && Number(expiryBadge[2]) === Number(expiry[3])

@@ -47,7 +47,7 @@ test('목록 위치와 무관하게 정확한 혜택을 찾고, 변경 또는 �
 
 test('공유 문구에 할인 성격과 주문 및 멤버십과 구간 조건을 보존', () => {
   const text = shareText('BBQ', { ...offer, qualifier: '최대' })
-  assert.match(text, /^BBQ 배달의민족 최대 7,000원 할인 \(18,000원 이상 주문 시\)/)
+  assert.match(text, /^배달의민족 BBQ 최대 7,000원 할인 \(18,000원 이상 주문 시\)/)
   assert.match(text, /배민클럽/)
   assert.match(text, /배달만/)
   assert.match(text, /최대 5,000원 할인 \(15,000원 이상 주문 시\)/)
@@ -89,7 +89,7 @@ test('배달과 포장 혜택은 채널별로 나누고 공통 주문 조건과 
       { amount: 5000, minOrder: 19900, channel: '배달' },
       { amount: 6000, minOrder: 19900, channel: '포장' },
     ] }, { year: 2026 })
-  assert.equal(text, 'bhc 땡겨요 배달 5,000원 할인\n포장 6,000원 할인\n19,900원 이상 주문 시\n12월 31일까지')
+  assert.equal(text, '땡겨요 bhc 배달 5,000원 할인\n포장 6,000원 할인\n19,900원 이상 주문 시\n12월 31일까지')
 })
 
 test('멤버십과 기간 중복 제거, 서로 다른 구간의 최소주문 및 멤버십 조건은 유지', () => {
@@ -111,7 +111,7 @@ test('중복 할인은 개별 구간을 대표 할인으로 바꾸지 않는다'
     conditions: '5,000원 + 2,000원', tiers: [
       { amount: 5000, minOrder: 18000 }, { amount: 2000, minOrder: 18000 },
     ] }, { year: 2026 })
-  assert.match(text, /^BBQ 배달의민족 7,000원 할인\n18,000원 이상 주문 시/)
+  assert.match(text, /^배달의민족 BBQ 7,000원 할인\n18,000원 이상 주문 시/)
   assert.match(text, /5,000원 \+ 2,000원/)
 })
 
