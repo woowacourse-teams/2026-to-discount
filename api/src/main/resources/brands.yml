@@ -19,6 +19,7 @@
 #           "후라이드", "양념"처럼 여러 브랜드에 있는 이름은 넣지 않는다.
 # links:    앱별 브랜드 쿠폰 공유링크(앱 전용 딥링크, 생략 가능).
 #           키는 원장 platform 값과 맞춘다 — ddangyo, baemin, ...
+#           형식은 api의 BrandCatalogTest가 막는다 — 알려진 앱(그 테스트의 LINK_RULES)은 스킴·호스트가 맞아야 하고, 그 밖의 키도 스킴과 호스트가 있는 URL이어야 한다.
 #
 # 지금 상태가 규칙을 지키는지 보려면 tracker 저장소에서:
 #   python check_brands.py
