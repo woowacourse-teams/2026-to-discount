@@ -84,15 +84,15 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
     {/* 쿠폰 어디를 눌러도 앱 링크로(2026-10-07 사용자): 이동 꼭지(a)를 대신 누른다 — 클릭 기록과 쿠팡이츠 안내가 그대로 간다.
         카드의 나머지 영역은 하단 시트를 연다(onCardClick). */}
     <div className="cc-ticket" data-platform={o.platform} {...rest}
-         onClick={(e) => { if (e.target.closest('a')) return; e.stopPropagation(); e.currentTarget.querySelector('a.cc-stub')?.click() }}>
+         onClick={(e) => { if (e.target.closest('a, button, input')) return; e.stopPropagation(); e.currentTarget.querySelector('a.cc-stub')?.click() }}>
       {/* tags: 하단 시트에서는 배지를 쿠폰 안 위쪽에 따로 둔다. 금액·최소주문은 세로 가운데 그대로 */}
       <span className="cc-info">
         <PlatformBadge platformKey={o.platform} brand={brand.name} />
         <span className="cc-num"><Amt offer={o} /><Min value={o.minOrderAmount} /></span>
       </span>
       <OfferLinkA offer={o} brand={brand} position={position} best={best} where={where} slot={slot} expanded={expanded} className="cc-stub"><LinkIcon /></OfferLinkA>
+      <OfferShareButton offer={o} brandName={brand.name} position={position} where={where} className="ticket-share" />
     </div>
-    {where !== 'main' && where !== 'carousel' && <OfferShareButton offer={o} brandName={brand.name} position={position} where={where} />}
     {/* 쿠팡이츠 안내: 카드에서는 이동 전 토스트로 대신하고, 하단 시트에서만 쿠폰 아래 문구를 둔다(2026-10-07 사용자) */}
     {where === 'sheet' && o.platform === 'coupangeats' && <p className="ce-note">{COUPANGEATS_HINT}</p>}
     </div>
@@ -462,14 +462,12 @@ function CouponCard({ brand, position, rank, highlighted, onInteract, include = 
         자세히 보기
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>}
-      <OfferShareButton offer={best[cur] ?? best[0]} brandName={brand.name} position={position} where="card" className="card-actions">
       {onHide && (
         <button type="button" className="cc-hide" aria-label={`${brand.name} 숨기기`} title="숨기기"
                 onClick={() => onHide(brand.name, hasBest ? best[0].amount : null)}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
       )}
-      </OfferShareButton>
       {/* 펼친 쿠폰은 펼쳤을 때만 그린다(접힌 동안 요소 수를 늘리지 않는다). */}
       {shown && (
         <div className="cc-x cc-x--rest"><div className="cc-x-in"><div className="cc-more">
