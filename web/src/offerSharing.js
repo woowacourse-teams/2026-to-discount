@@ -46,37 +46,69 @@ export function resolveSharedOffer(brands, target, today = new Date().toLocaleDa
   return { status: 'available', brand, offer, key: target.offerKey }
 }
 
-export function shareText(brand, offer) {
+export function shareText(brand, offer, { year = Number(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 4)) } = {}) {
   const won = (n) => `${n.toLocaleString('ko-KR')}원`
+  const minimum = (n) => n === 0 ? '최소주문 없음' : n > 0 ? `${won(n)} 이상 주문 시` : ''
+  const until = (date) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date ?? '')
+    return m ? `${Number(m[1]) === year ? '' : `${m[1]}년 `}${Number(m[2])}월 ${Number(m[3])}일까지` : date ?? ''
+  }
+  const member = (value) => value && value !== 'none' ? MEMBERSHIP_LABEL[offer.platform] ?? value : ''
+  const benefit = (value) => {
+    let text = value.percent != null ? `${value.percent}% 할인${value.cap != null ? ` (최대 ${won(value.cap)})` : ''}`
+      : value.amount != null && !isBundle(offer) ? `${won(value.amount)} 할인` : offer.rawText ?? ''
+    if (['최대', '랜덤', '특정메뉴'].includes(offer.qualifier) && !text.startsWith(offer.qualifier)) text = `${offer.qualifier} ${text}`
+    return text
+  }
   const platform = PLATFORM_BY_KEY[offer.platform]?.label ?? (offer.platform === OWN ? OWN_LABEL : '')
-  let benefit = offer.amount != null && !isBundle(offer) ? `${won(offer.amount)} 할인` : offer.rawText ?? ''
-  if (['최대', '랜덤', '특정메뉴'].includes(offer.qualifier) && !benefit.startsWith(offer.qualifier)) benefit = `${offer.qualifier} ${benefit}`
-  const membership = offer.membership && offer.membership !== 'none' ? MEMBERSHIP_LABEL[offer.platform] : null
-  const minimum = offer.minOrderAmount > 0 ? `${won(offer.minOrderAmount)} 이상 주문 시` : null
-  // 구간에만 적용되는 멤버십이나 채널 조건도 공유 메시지에서 빠뜨리지 않는다.
-  const tierConditions = (offer.tiers ?? []).map((t) => {
-    const parts = [t.percent != null ? `${t.percent}% 할인` : t.amount != null ? won(t.amount) : null,
-      t.cap != null ? `최대 ${won(t.cap)}` : null,
-      t.minOrder != null ? `${won(t.minOrder)} 이상` : null, t.channel,
-      t.membership && t.membership !== 'none' ? MEMBERSHIP_LABEL[offer.platform] ?? t.membership : null,
-      t.note, t.soldOut ? '품절' : null, t.expiresAt ? `~${t.expiresAt}` : null]
-    return parts.filter(Boolean).join(' / ')
+  const tiers = offer.tiers ?? []
+  const expanded = !isBundle(offer) && offer.tierMode !== 'cumulative'
+    && (tiers.length > 1 || tiers.some((t) => t.channel || t.membership || t.note || t.percent != null || t.expiresAt))
+  const rows = expanded ? tiers : [offer]
+  const minOf = (t) => t === offer ? offer.minOrderAmount
+    : t.minOrder ?? (t.amount === offer.amount ? offer.minOrderAmount : null)
+  const memOf = (t) => member(t.membership && t.membership !== 'none' ? t.membership : offer.membership)
+  const commonMin = rows.every((t) => minOf(t) === minOf(rows[0])) ? minOf(rows[0]) : null
+  const commonMember = rows.every((t) => memOf(t) === memOf(rows[0])) ? memOf(rows[0]) : ''
+  // 구간을 본문으로 표시할 때 대표 금액을 다시 나열하지 않는다.
+  const lines = rows.map((t) => {
+    const terms = [commonMin == null ? minimum(minOf(t)) : '',
+      !commonMember ? memOf(t) : '', t.note && t.note !== offer.conditions ? t.note : '',
+      t.expiresAt && t.expiresAt !== offer.expiresAt ? until(t.expiresAt) : '',
+      t.soldOut ? '품절' : ''].filter(Boolean)
+    return `${t.channel ? `${t.channel} ` : ''}${benefit(t)}${terms.length ? ` (${terms.join(', ')})` : ''}`
   })
-  const details = [membership, offer.badge, offer.conditions, offer.firstCome ? '선착순' : null, offer.soldOut ? '품절' : null,
-    ...((offer.tiers?.length > 1 || offer.tiers?.some((t) => t.channel || t.membership || t.note || t.percent != null || t.expiresAt)) ? tierConditions : []),
-    offer.expiresAt ? `~${offer.expiresAt}` : null]
-  return [`${brand} ${platform} ${benefit}`.replace(/\s+/g, ' ').trim(), minimum,
-    ...new Set(details.filter(Boolean))].filter(Boolean).join('\n')
+  lines[0] = `${brand} ${platform} ${lines[0]}`.replace(/\s+/g, ' ').trim()
+  const expiryBadge = /^~\s*(\d{1,2})[/.](\d{1,2})$/.exec(offer.badge ?? '')
+  const expiry = /^(\d{4})-(\d{2})-(\d{2})$/.exec(offer.expiresAt ?? '')
+  const redundantDate = expiryBadge && expiry && Number(expiryBadge[1]) === Number(expiry[2]) && Number(expiryBadge[2]) === Number(expiry[3])
+  const redundantMember = commonMember && (offer.badge ?? '').replace(/전용|쿠폰|\s/g, '') === commonMember.replace(/전용|쿠폰|\s/g, '')
+  const details = [minimum(commonMin), commonMember,
+    !redundantDate && !redundantMember ? offer.badge : '', offer.conditions,
+    offer.firstCome && ![...lines, offer.badge, offer.conditions].some((v) => v?.includes('선착순')) ? '선착순' : '',
+    offer.soldOut && !rows.some((t) => t.soldOut) ? '품절' : '', until(offer.expiresAt)]
+  // 중복 할인은 대표 합계와 계산 조건을 유지한다. 개별 쿠폰을 택일 할인처럼 나열하지 않는다.
+  if (offer.tierMode === 'cumulative' && tiers.some((t) => t.channel || t.membership || t.note)) {
+    for (const t of tiers) details.push([t.channel, benefit(t), minimum(t.minOrder), member(t.membership), t.note,
+      t.expiresAt && t.expiresAt !== offer.expiresAt ? until(t.expiresAt) : ''].filter(Boolean).join(' '))
+  }
+  return [...new Set([...lines, ...details].filter(Boolean))].join('\n')
+}
+
+function nativeShareData(data) {
+  // URL을 별도 필드로 보내면 메신저가 본문 앞에 붙이기도 한다.
+  // 한 텍스트로 전달해 링크를 항상 본문의 마지막 줄에 둔다.
+  return { title: data.title, text: [data.text, data.url].filter(Boolean).join('\n') }
 }
 
 export function shareMethod(nav, data) {
-  try { return typeof nav.share === 'function' && (!nav.canShare || nav.canShare(data)) ? 'native' : 'copy' }
+  try { return typeof nav.share === 'function' && (!nav.canShare || nav.canShare(nativeShareData(data))) ? 'native' : 'copy' }
   catch { return 'copy' }
 }
 
 export async function deliverShare(nav, data, method) {
   try {
-    if (method === 'native') { await nav.share(data); return 'resolved' }
+    if (method === 'native') { await nav.share(nativeShareData(data)); return 'resolved' }
     await nav.clipboard.writeText(data.url)
     return 'copied'
   } catch (error) {
