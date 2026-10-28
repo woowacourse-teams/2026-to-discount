@@ -6,8 +6,9 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import MenuBar from './MenuBar.jsx'
+import ReportButton from './ReportButton.jsx'
 import { PLATFORMS } from './logos.jsx'
-import { CATEGORIES, applyFilters } from './filters.js'
+import { CATEGORIES, visibleCategories } from './filters.js'
 import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 import './styles/topbar-b.css'
 
@@ -89,21 +90,17 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
   )
 }
 
-export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, search, setSearch, onSearchSubmit, brands, isFiltered, resetFilters, sheetOpen, onOpenSheet }) {
+export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, search, setSearch, onSearchSubmit, brands, isFiltered, resetFilters, sheetOpen, onOpenSheet, popular, reportHold }) {
   // 지금 상단 바(TopBarA)와 같은 규칙: 분류는 하나만, '전체'나 같은 분류를 다시 누르면 전체로. 계측도 같은 이벤트.
   const toggleCategory = (key) => {
     setFilters((f) => ({ ...f, search: '', updatedOnly: false, categories: key === 'all' || f.categories.has(key) ? new Set() : new Set([key]) }))
     track('category_change', { category: key, from: 'menu-bar' })
   }
   const menuSelected = filters.categories
-  const newCount = brands ? applyFilters(brands, { ...filters, categories: new Set(), updatedOnly: true }).length : 0
   // 전체 / 신규(2026-10-05): 분류 바 맨 앞. 기본은 전체. 신규 = 새로 생겼거나 금액이 커진 오퍼가 있는 브랜드만.
   const leading = [
     { key: 'all', label: '전체', on: filters.categories.size === 0 && !filters.updatedOnly,
       onClick: () => { setFilters((f) => ({ ...f, search: '', updatedOnly: false, categories: new Set() })); track('category_change', { category: 'all', from: 'menu-bar' }) } },
-    // 개수는 지금 조건(앱, 5천원 이상만 등)에서 신규만 켰을 때 남는 브랜드 수(설계의 "New N")
-    { key: 'new', label: newCount ? `신규 ${newCount}` : '신규', on: !!filters.updatedOnly,
-      onClick: () => { setFilters((f) => ({ ...f, search: '', updatedOnly: !f.updatedOnly, categories: new Set() })); track('quick_filter', { key: 'updated', on: !filters.updatedOnly }) } },
   ]
   return (
     <div className="title-bar title-bar--b" ref={barRef}>
@@ -135,7 +132,9 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           )}
         />
         <div className="title-bar__tools">
+          {/* 알림 종 자리는 제보 버튼(2026-10-19 사용자). 슬롯은 알림 켜고 끈 결과 말풍선만 받는다. */}
           <span ref={pushToggleRef} id="push-toggle-slot" className="push-toggle-slot" />
+          <ReportButton filters={filters} hold={reportHold} brands={brands} />
           <button type="button" className={`icon-btn${isFiltered ? ' icon-btn--active' : ''}`} disabled={!isFiltered}
             onClick={resetFilters} aria-label="필터 초기화" title={isFiltered ? '필터 초기화' : '되돌릴 필터가 없습니다'}>
             <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><polyline points="21 3 21 9 15 9" /></svg>
@@ -146,7 +145,8 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           </button>
         </div>
       </div>
-      <MenuBar selected={menuSelected} onToggle={toggleCategory} leading={leading} />
+      {popular /* 실시간 인기 순위: 검색과 분류 사이(2026-10-17 사용자) */}
+      <MenuBar selected={menuSelected} onToggle={toggleCategory} leading={leading} categories={visibleCategories(brands, filters.categories)} />
     </div>
   )
 }

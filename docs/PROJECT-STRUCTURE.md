@@ -15,6 +15,9 @@ api/deploy/dev/sync_offers.py
 api/deploy/dev/test_deploy.py
 api/deploy/dev/test_sync_offers.py
 api/deploy/dev/todiscount-be-dev.service
+api/deploy/prod/README.md
+api/deploy/prod/stage_deploy.py
+api/deploy/prod/test_stage_deploy.py
 api/gradle/wrapper/gradle-wrapper.jar
 api/gradle/wrapper/gradle-wrapper.properties
 api/gradlew
@@ -39,6 +42,7 @@ api/src/main/java/com/discounttracker/analytics/ClientFingerprint.java
 api/src/main/java/com/discounttracker/analytics/CrawlerName.java
 api/src/main/java/com/discounttracker/analytics/EventController.java
 api/src/main/java/com/discounttracker/analytics/EventLog.java
+api/src/main/java/com/discounttracker/analytics/EventLogSnapshot.java
 api/src/main/java/com/discounttracker/analytics/EventRateLimiter.java
 api/src/main/java/com/discounttracker/analytics/GifticonStore.java
 api/src/main/java/com/discounttracker/analytics/PopularityIndex.java
@@ -50,6 +54,8 @@ api/src/main/java/com/discounttracker/analytics/PostHogEventMapper.java
 api/src/main/java/com/discounttracker/analytics/PostHogForwardingWorker.java
 api/src/main/java/com/discounttracker/analytics/PostHogOutbox.java
 api/src/main/java/com/discounttracker/analytics/PostHogProperties.java
+api/src/main/java/com/discounttracker/analytics/ReportController.java
+api/src/main/java/com/discounttracker/analytics/SlackReporter.java
 api/src/main/java/com/discounttracker/analytics/SurveyController.java
 api/src/main/java/com/discounttracker/analytics/SurveyEligibility.java
 api/src/main/java/com/discounttracker/analytics/SurveyService.java
@@ -76,6 +82,7 @@ api/src/main/java/com/discounttracker/offer/AmountKind.java
 api/src/main/java/com/discounttracker/offer/Certainty.java
 api/src/main/java/com/discounttracker/offer/DiscountLadder.java
 api/src/main/java/com/discounttracker/offer/DiscountTier.java
+api/src/main/java/com/discounttracker/offer/FirstComeLinkFilter.java
 api/src/main/java/com/discounttracker/offer/Membership.java
 api/src/main/java/com/discounttracker/offer/Offer.java
 api/src/main/java/com/discounttracker/offer/OfferComparison.java
@@ -114,6 +121,7 @@ api/src/test/java/com/discounttracker/analytics/AnalyticsEventServiceTest.java
 api/src/test/java/com/discounttracker/analytics/ClientFingerprintTest.java
 api/src/test/java/com/discounttracker/analytics/CrawlerNameTest.java
 api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
+api/src/test/java/com/discounttracker/analytics/EventLogSnapshotTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogTest.java
 api/src/test/java/com/discounttracker/analytics/GifticonStoreTest.java
 api/src/test/java/com/discounttracker/analytics/PopularityIndexTest.java
@@ -122,6 +130,7 @@ api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogForwardingWorkerTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogOutboxTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogPropertiesTest.java
+api/src/test/java/com/discounttracker/analytics/ReportControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyEligibilityTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyTextTest.java
@@ -142,6 +151,7 @@ api/src/test/java/com/discounttracker/history/HistoryRepositoryTest.java
 api/src/test/java/com/discounttracker/history/OfferHistoryTest.java
 api/src/test/java/com/discounttracker/offer/CertaintyTest.java
 api/src/test/java/com/discounttracker/offer/DiscountLadderTest.java
+api/src/test/java/com/discounttracker/offer/FirstComeLinkFilterTest.java
 api/src/test/java/com/discounttracker/offer/OfferCertaintyTest.java
 api/src/test/java/com/discounttracker/offer/OfferComparisonTest.java
 api/src/test/java/com/discounttracker/offer/OfferContractTest.java
@@ -187,8 +197,14 @@ web/scripts/dev/banner-measure.mjs
 web/scripts/dev/banner-shot.mjs
 web/scripts/dev/build-ui-kit.py
 web/scripts/dev/capture-dom.mjs
+web/scripts/dev/fixtures/DATE
+web/scripts/dev/fixtures/banners.json
+web/scripts/dev/fixtures/brands.json
+web/scripts/dev/layout-check.js
+web/scripts/dev/layout-report.py
 web/scripts/dev/load-interact.mjs
 web/scripts/dev/load-tbt.mjs
+web/scripts/dev/test_layout_report.py
 web/scripts/indexnow.mjs
 web/scripts/make-logo-webp.py
 web/scripts/prerender.mjs
@@ -206,7 +222,6 @@ web/scripts/verify-search-filters.mjs
 web/src/App.css
 web/src/App.jsx
 web/src/BestHistoryChart.jsx
-web/src/BrandCard.jsx
 web/src/BrandGridSkeleton.jsx
 web/src/BrandSuggestions.jsx
 web/src/CouponCard.jsx
@@ -218,14 +233,14 @@ web/src/HiddenBrandsSheet.jsx
 web/src/HideBrandAsk.jsx
 web/src/MenuBar.jsx
 web/src/OfferChip.jsx
-web/src/OfferDetail.jsx
 web/src/OfferShareButton.jsx
+web/src/PopularDock.jsx
 web/src/PopularStrip.jsx
 web/src/PushNotificationSetting.jsx
+web/src/ReportButton.jsx
 web/src/SiteFooter.jsx
 web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
-web/src/TopBarA.jsx
 web/src/TopBarB.jsx
 web/src/analytics-context.js
 web/src/analytics.js
@@ -233,6 +248,7 @@ web/src/api.js
 web/src/apiBase.js
 web/src/apiBase.test.js
 web/src/backClose.js
+web/src/backClose.test.js
 web/src/bannerAnalytics.js
 web/src/bannerAnalytics.test.js
 web/src/bannerContract.test.js
@@ -247,9 +263,11 @@ web/src/brandAutocomplete.test.js
 web/src/brandColor.js
 web/src/brandImpression.js
 web/src/brandImpression.test.js
+web/src/cardId.js
 web/src/cardShift.js
 web/src/cardShift.test.js
 web/src/couponCard.test.js
+web/src/couponLayout.test.js
 web/src/couponModel.js
 web/src/couponModel.test.js
 web/src/devPromotion.test.js
@@ -263,8 +281,7 @@ web/src/hiddenBrands.js
 web/src/hiddenBrands.test.js
 web/src/historyChart.js
 web/src/historyChart.test.js
-web/src/homeExperiment.js
-web/src/homeExperiment.test.js
+web/src/homeRollout.test.js
 web/src/linkReturn.js
 web/src/linkReturn.test.js
 web/src/logoManifest.js
@@ -296,8 +313,11 @@ web/src/pushPrompt.js
 web/src/pushPrompt.test.js
 web/src/pushSyncRetry.js
 web/src/pushSyncRetry.test.js
+web/src/report.js
+web/src/report.test.js
 web/src/shareAttribution.js
 web/src/shareAttribution.test.js
+web/src/sheetParts.jsx
 web/src/styles/banner.css
 web/src/styles/base.css
 web/src/styles/brand-card.css
@@ -315,6 +335,7 @@ web/src/styles/offer-tabs.css
 web/src/styles/overflow.css
 web/src/styles/platform-icons.css
 web/src/styles/popular-strip.css
+web/src/styles/report.css
 web/src/styles/status.css
 web/src/styles/survey-dock.css
 web/src/styles/survey.css
@@ -327,6 +348,7 @@ web/src/telemetry.js
 web/src/useBrandAutocomplete.js
 web/src/useShareTargetFocus.js
 web/src/useSharedOffer.js
+web/src/useSurvey.js
 web/src/variant.js
 web/vercel.json
 web/vite.config.js
@@ -377,8 +399,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 168 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 161 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 178 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 173 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -390,12 +412,12 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 21 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 24 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 6 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `history/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 6 |
-| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 11 |
+| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 12 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
 | `web/` | HTTP 엔드포인트와 CORS | 8 |
 
@@ -414,6 +436,7 @@ HTTP 경계:
 - `POST /api/push/displayed/{token}`
 - `POST /api/push/subscriptions`
 - `POST /api/reload`
+- `POST /api/reports`
 - `POST /api/survey`
 - `PUT /api/push/admin/next`
 
@@ -424,7 +447,6 @@ HTTP 경계:
 | `App.css` | 스타일 진입점(styles/를 캐스케이드 순서대로 import) |
 | `App.jsx` | 브랜드 비교, 분류, 검색 화면 조립 |
 | `BestHistoryChart.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `BrandCard.jsx` | 브랜드 카드 한 장 |
 | `BrandGridSkeleton.jsx` | 로딩 중 카드 자리지킴 |
 | `BrandSuggestions.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `CouponCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -436,14 +458,14 @@ HTTP 경계:
 | `HideBrandAsk.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `MenuBar.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `OfferChip.jsx` | 앱별 할인 칩과 앱 링크 사다리 |
-| `OfferDetail.jsx` | 칩을 펼친 상세 조건 |
 | `OfferShareButton.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `PopularDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PopularStrip.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `ReportButton.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SiteFooter.jsx` | 서비스 안내 푸터 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `TopBarA.jsx` | 상단 바(앱 버튼·분류 캐러셀). 옛 A안, 2026-09-15부터 유일 |
 | `TopBarB.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics.js` | 자체 행동 이벤트 |
@@ -451,6 +473,7 @@ HTTP 경계:
 | `apiBase.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `apiBase.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `backClose.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `backClose.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerAnalytics.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerAnalytics.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -465,9 +488,11 @@ HTTP 경계:
 | `brandColor.js` | 배너 색 파생 |
 | `brandImpression.js` | 브랜드 헤더 노출 판정과 세션 중복 방지 |
 | `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
+| `cardId.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `couponLayout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `devPromotion.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -481,8 +506,7 @@ HTTP 경계:
 | `hiddenBrands.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `historyChart.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `historyChart.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `homeExperiment.js` | 런타임 모듈, 세부 책임은 코드 확인 |
-| `homeExperiment.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `homeRollout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoManifest.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -514,8 +538,11 @@ HTTP 경계:
 | `pushPrompt.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `pushSyncRetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `pushSyncRetry.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `report.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `report.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `shareAttribution.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `shareAttribution.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `sheetParts.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -523,6 +550,7 @@ HTTP 경계:
 | `useBrandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useShareTargetFocus.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useSharedOffer.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `useSurvey.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `variant.js` | 화면 안 상수(a 고정, A/B 종료 2026-09-15) |
 
 `public/`은 런타임 자산이지만 대형 로고 목록은 구조 문서에서 제외한다.

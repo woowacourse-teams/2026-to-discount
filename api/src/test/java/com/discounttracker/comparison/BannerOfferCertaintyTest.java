@@ -8,6 +8,7 @@ import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.offer.AmountKind;
 import com.discounttracker.offer.Certainty;
+import com.discounttracker.offer.DiscountTier;
 import com.discounttracker.offer.Offer;
 import com.discounttracker.offer.OfferRecord;
 import com.discounttracker.offer.OfferRepository;
@@ -464,9 +465,17 @@ class BannerOfferCertaintyTest {
     @Test
     void biggerExactOfferWinsTheAppSlot() {
         // 2026-09-30 사용자: 청년피자 쿠팡이츠 선착순 10,000원과 상시 7,000원이 둘 다 떴다 - 큰 쪽이 이겨야 한다.
+        // 2026-10-15 사용자: 선착순은 상시 오퍼의 한 구간으로 붙는다. 대표는 큰 쪽, 상시 구간도 남는다.
         List<Offer> offers = offersFor(BHC_EXACT_FIRST_COME);
         assertEquals(1, offers.size(), offers.toString());
-        assertEquals(8000, offers.get(0).amount());
+        Offer o = offers.get(0);
+        assertEquals(8000, o.amount());
+        assertEquals("exclusive", o.tierMode());
+        assertEquals(List.of(8000, 5000), o.tiers().stream().map(DiscountTier::amount).toList());
+        assertTrue(o.tiers().get(0).note().contains("선착순"), o.tiers().toString());
+        assertNull(o.tiers().get(0).soldOut());
+        assertTrue(o.firstCome(), "선착순이 대표 금액을 낸다 - 푸시 제목에 선착순이 붙는다");
+        assertEquals("https://example.test/x", o.link(), "대표 금액을 낸 선착순의 링크");
     }
 
     @Test
@@ -474,7 +483,12 @@ class BannerOfferCertaintyTest {
         // 선착순이 소진되면 상시가 다시 선다(맘스터치 2026-09-30: 상시 할인이 카드에서 사라지면 안 된다).
         List<Offer> offers = offersFor(BHC_EXACT_FIRST_COME.replace("firstCome: issue", "firstCome: issue\n    soldOutOn: 2026-09-22"));
         assertEquals(1, offers.size(), offers.toString());
-        assertEquals(5000, offers.get(0).amount());
+        Offer o = offers.get(0);
+        assertEquals(5000, o.amount());
+        assertEquals(List.of(8000, 5000), o.tiers().stream().map(DiscountTier::amount).toList());
+        assertEquals(Boolean.TRUE, o.tiers().get(0).soldOut(), "소진된 선착순은 품절 구간으로 남는다");
+        assertFalse(o.soldOut());
+        assertFalse(o.firstCome(), "상시가 대표다");
     }
 
     @Test
@@ -506,6 +520,58 @@ class BannerOfferCertaintyTest {
         };
         List<Offer> offers = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers();
         assertEquals(1, offers.size(), offers.toString());
-        assertEquals(8000, offers.get(0).amount());
+        Offer o = offers.get(0);
+        assertEquals(8000, o.amount());
+        assertEquals(List.of(8000, 3000), o.tiers().stream().map(DiscountTier::amount).toList());
+        assertEquals("오전 10시 오픈 선착순", o.tiers().get(0).note(), "선착순 조건은 그 구간에만 붙는다");
+        assertNull(o.conditions(), "오퍼 전체 조건은 상시 것이다");
+    }
+
+    @Test
+    void membershipStaysOnItsOwnTierWhenFirstComeJoins() {
+        // 2026-10-15 두찜 배민: 상시 3,000원이 배민클럽 전용이다. 오퍼에 배민클럽을 두면 웹이 구간마다
+        // 물려 그려 소진된 선착순 6,500원까지 배민클럽으로 읽힌다.
+        OfferRecord first = OfferRecord.builder("baemin", "bhc")
+                .amount(6500).offerType("discount").section("배짱할인 주말핫딜 선착순").rawText("6,500원")
+                .capturedAt("2026-09-22T00:15:00+09:00").conditions("오전 11시 오픈 선착순").soldOut(true).build();
+        OfferRecord club = OfferRecord.builder("baemin", "bhc")
+                .amount(3000).offerType("discount").section("쿠폰함 보유쿠폰").rawText("3,000원")
+                .capturedAt("2026-09-22T02:51:00+09:00").membership("baeminClub").badge("배민클럽").soldOut(false).build();
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource("banners: []\n".getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
+        OfferRepository repo = new OfferRepository(null) {
+            @Override public void reload() { }
+            @Override public List<OfferRecord> findAll() { return List.of(first, club); }
+        };
+        Offer o = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers().get(0);
+        assertEquals(3000, o.amount());
+        assertEquals("baeminClub", o.membershipKey(), "소진된 선착순은 빼고 견준다 - 배민클럽 전용으로 남는다");
+        assertNull(o.tiers().get(0).membership(), "선착순 구간은 멤버십을 모른다");
+        assertEquals("baeminClub", o.tiers().get(1).membership());
+        assertEquals(Boolean.TRUE, o.tiers().get(0).soldOut());
+    }
+
+    @Test
+    void soldOutStandingLetsTheLiveFirstComeLead() {
+        // 상시가 품절이고 선착순이 살아 있으면 오퍼 전체를 품절로 내지 않는다. 선착순이 금액이 작아도 대표다.
+        OfferRecord first = OfferRecord.builder("baemin", "bhc")
+                .amount(3000).offerType("discount").section("배짱할인 주말핫딜 선착순").rawText("3,000원")
+                .capturedAt("2026-09-22T00:15:00+09:00").conditions("오전 11시 오픈 선착순").soldOut(false).build();
+        OfferRecord standing = OfferRecord.builder("baemin", "bhc")
+                .amount(5000).offerType("discount").section("쿠폰함 보유쿠폰").rawText("5,000원")
+                .capturedAt("2026-09-22T02:51:00+09:00").soldOut(true).build();
+        BannerCatalog banners = new BannerCatalog(
+                new ByteArrayResource("banners: []\n".getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
+        OfferRepository repo = new OfferRepository(null) {
+            @Override public void reload() { }
+            @Override public List<OfferRecord> findAll() { return List.of(first, standing); }
+        };
+        Offer o = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers().get(0);
+        assertFalse(o.soldOut());
+        assertEquals(3000, o.amount());
+        assertTrue(o.firstCome());
+        assertEquals(List.of(3000, 5000), o.tiers().stream().map(DiscountTier::amount).toList());
+        assertNull(o.tiers().get(0).soldOut());
+        assertEquals(Boolean.TRUE, o.tiers().get(1).soldOut(), "품절인 상시 구간에 품절이 붙는다");
     }
 }

@@ -7,6 +7,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OfferRecordTest {
@@ -276,5 +278,57 @@ class OfferRecordTest {
                 .readValue(json, OfferRecord.class);
         assertEquals("2026-10-03T00:37:00+09:00", r.firstSeenAt());
         assertEquals("2026-10-03T00:37:00+09:00", Offer.from(r, LocalDate.of(2026, 10, 4)).firstSeenAt());
+    }
+
+    private static Offer readQualifiers(String field) throws Exception {
+        String json = "{\"platform\":\"coupangeats\",\"brand\":\"CU\",\"amount\":3000,\"needsReview\":false,"
+                + "\"capturedAt\":\"2026-10-22T10:00:00+09:00\"" + field + "}";
+        OfferRecord r = tools.jackson.databind.json.JsonMapper.builderWithJackson2Defaults()
+                .disable(tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build()
+                .readValue(json, OfferRecord.class);
+        return Offer.from(r, TODAY);
+    }
+
+    @Test
+    void qualifiersPassThroughFromExportJsonToOffer() throws Exception {
+        // 키 없음과 null은 모름, []는 "조건 없음"을 본 것이라 서로 바꾸지 않는다(#155, ADR-003).
+        assertNull(readQualifiers("").qualifiers());
+        assertNull(readQualifiers(",\"qualifiers\":null").qualifiers());
+        assertEquals(List.of(), readQualifiers(",\"qualifiers\":[]").qualifiers());
+        assertEquals(List.of("첫 주문"), readQualifiers(",\"qualifiers\":[\"첫 주문\"]").qualifiers());
+    }
+
+    @Test
+    void qualifiersAsBareStringFailsTheRead() {
+        // 문자열 하나를 배열로 고쳐 읽지 않는다. 모양이 틀린 원장은 reload가 크게 실패한다(#155 열린 질문 1, ADR-012).
+        assertThrows(tools.jackson.core.JacksonException.class, () -> readQualifiers(",\"qualifiers\":\"첫 주문\""));
+    }
+
+    private static Offer withQualifiers(Integer amount, String capturedAt, List<String> qualifiers) {
+        return Offer.from(OfferRecord.builder("coupangeats", "CU").amount(amount).capturedAt(capturedAt)
+                .qualifiers(qualifiers).build(), TODAY);
+    }
+
+    @Test
+    void duplicateTakesLoserQualifiersOnlyWhenWinnerHasNone() {
+        String newer = "2026-08-13T10:00:00+09:00";
+        String older = "2026-08-12T10:00:00+09:00";
+        assertEquals(List.of("첫 주문"),
+                withQualifiers(3000, newer, null).preferredOver(withQualifiers(3000, older, List.of("첫 주문"))).qualifiers());
+        assertEquals(List.of("첫 주문"),
+                withQualifiers(3000, newer, List.of("첫 주문")).preferredOver(withQualifiers(3000, older, List.of("다른 값"))).qualifiers());
+        assertEquals(List.of(),
+                withQualifiers(3000, newer, List.of()).preferredOver(withQualifiers(3000, older, List.of("첫 주문"))).qualifiers());
+        // 금액이 다르면 다른 쿠폰이라 안 섞는다(sameCoupon).
+        assertNull(withQualifiers(3000, newer, null).preferredOver(withQualifiers(5000, older, List.of("첫 주문"))).qualifiers());
+    }
+
+    @Test
+    void qualifiersSurviveOtherTransforms() {
+        Offer o = withQualifiers(3000, "2026-08-13T10:00:00+09:00", List.of("첫 주문"));
+        assertEquals(List.of("첫 주문"), o.withIsNew(true).qualifiers());
+        // 선착순을 구간으로 붙여도 오퍼의 조건은 상시 것이다(#155 열린 질문 2).
+        Offer first = withQualifiers(5000, "2026-08-13T10:00:00+09:00", List.of("다른 값"));
+        assertEquals(List.of("첫 주문"), o.withFirstComeTier(first).qualifiers());
     }
 }

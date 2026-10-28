@@ -1,0 +1,18 @@
+# 정본은 mono .github/workflows/wf-design.yml. 이 파일은 언제 부를지와 이 저장소 설정만 둔다.
+name: design-session
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  run:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    uses: ./.github/workflows/wf-design.yml
+    with:
+      spec_prefix: docs/design/
+      read_mono: false
+    secrets: inherit

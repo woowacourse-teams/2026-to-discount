@@ -1,3 +1,4 @@
+import { STRIP_MIN, popularToday } from './popularStrip.js'
 import { findBrandSuggestions } from './brandAutocomplete.js'
 // 필터·정렬 규칙. 상단 바(TopBarA)와 목록(App)이 같은
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
@@ -10,17 +11,31 @@ import { PLATFORMS, OWN } from './platforms.js'
 //
 // "전체"는 항목이 아니다. 복수 선택에서 전체는 "아무것도 안 고른 상태"라
 // 별도 버튼을 두면 "전체 + 치킨"처럼 뜻이 겹치는 조합이 생긴다.
+// 2026-10-19 사용자: 브랜드 5곳 이하 칸(분식 5, 양식 2, 중식 0)은 빈약해 보여 뺐다. 그 브랜드는 '전체'에만 나온다.
+// 다시 넣을 때는 brands.yml에서 그 분류 브랜드 수부터 본다.
 export const CATEGORIES = [
   { key: 'chicken', label: '치킨' },
   { key: 'pizza', label: '피자' },
   { key: 'fastfood', label: '패스트푸드' },
-  { key: 'snack', label: '분식' },
-  { key: 'cafe', label: '카페' },
+  { key: 'cafe', label: '카페/디저트' },
   { key: 'convenience', label: '편의점' },
   { key: 'korean', label: '한식' },
-  { key: 'chinese', label: '중식' },
-  { key: 'western', label: '양식' },
+  { key: 'japanese', label: '일식' },
 ]
+
+// 그 분류의 오퍼가 이만큼 이하면 탭을 숨긴다(2026-10-26 사용자: 일식처럼 빈약한 칸). 브랜드가 아니라 오퍼 수다.
+export const MIN_CATEGORY_OFFERS = 5
+
+/**
+ * 오퍼가 충분한 분류만 남긴다. 브랜드를 아직 못 받았으면 전부 보인다.
+ * 지금 골라 둔 분류는 오퍼가 줄어도 남긴다(탭이 사라져 선택을 못 푸는 일을 막는다).
+ */
+export function visibleCategories(brands, selected = new Set()) {
+  if (!brands) return CATEGORIES
+  const count = new Map()
+  for (const b of brands) count.set(b.category, (count.get(b.category) ?? 0) + (b.offers?.length ?? 0))
+  return CATEGORIES.filter((c) => selected.has(c.key) || (count.get(c.key) ?? 0) > MIN_CATEGORY_OFFERS)
+}
 
 // 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
 // docs/specs/2026-07-28-product-brief.md에 "UI만 배치, 로직 보류"로 명시된
@@ -56,10 +71,11 @@ export const MEMBERSHIP_LABEL = Object.fromEntries(MEMBERSHIP_OPTIONS.map((m) =>
 
 // 정렬 기준(2026-09-19 개편). 방향이 있는 둘은 라벨 아래 높은순/낮은순 버튼, 나머지 둘은 칩 하나.
 // 정렬은 하나만 고른다(2026-09-19). sortBrands는 여럿도 받지만 화면은 하나만 넘긴다.
+// 2026-10-18 사용자: 인기순을 맨 앞으로(찾는 사람이 많다).
 export const SORT_KEYS = [
+  { key: 'popularity', label: '인기순', directional: false },
   { key: 'amount', label: '할인금액', directional: true },
   { key: 'minOrder', label: '최소주문금액', directional: true },
-  { key: 'popularity', label: '인기순', directional: false },
   { key: 'recent', label: '최신순', directional: false },
 ]
 
@@ -278,7 +294,9 @@ export function latestCaptured(offers) {
 
 function sortValue(brand, key, include) {
   if (key === 'minOrder') return lowestMinOrder(brand.offers)
-  if (key === 'popularity') return brand.popularity ?? 0
+  // 2026-10-18 사용자: 인기순은 HOT 목록(24시간 사람 수)과 같은 순서. 같으면 이번 주(7일) 수로 가른다.
+  // ponytail: 두 수를 한 값으로 접는다. 7일 수가 백만을 넘으면 자리 올림.
+  if (key === 'popularity') return (brand.popularityToday ?? 0) * 1e6 + (brand.popularity ?? 0)
   if (key === 'recent') return latestCaptured(brand.offers)
   return bestConfirmedAmount(brand.offers, include)
 }
@@ -354,7 +372,43 @@ export function applyFilters(brands, filters) {
       if (filters.categories.size === 0) return true
       return filters.categories.has(b.category)
     })
-  return sortBrands(visible, { ...filters, include: includesFrom(filters) })
+  const include = includesFrom(filters)
+  const sorted = sortBrands(visible, { ...filters, include })
+  // 2026-10-15 사용자: 신규 탭 대신 기본 정렬일 때 신규(최고 오퍼가 신규인 브랜드)를 맨 위로. 신규끼리도 기본 정렬 순서.
+  // 정렬을 바꾸면 끌어올리지 않고 전체 정렬을 따른다.
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return sorted
+  const isNew = (b) => hasNewBest(b.offers, include)
+  return [...sorted.filter(isNew), ...sorted.filter((b) => !isNew(b))]
+}
+
+/** 기본 정렬이면 HOT 1~5위를 맨 앞에 순위대로(2026-10-18 사용자: 신규보다 앞). 숨김을 뺀 목록에 부른다(HOT과 같은 목록). */
+// 순위는 rankBrands(카테고리와 검색을 뺀 목록)로 매긴다(#147). 카테고리를 고르면 그 안에 있는 순위권 브랜드만
+// 순위대로 세운다(2026-10-22 이슈 댓글).
+export function pinPopular(brands, filters, rankBrands = brands) {
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return brands
+  const top = popularToday(rankBrands)
+  if (top.length < STRIP_MIN) return brands
+  // applyFilters가 브랜드 객체를 새로 만들 수 있어 이름으로 찾는다
+  const names = new Set(top.map((r) => r.brand.name))
+  const front = top.map((r) => brands.find((b) => b.name === r.brand.name)).filter(Boolean)
+  if (front.length === 0) return brands
+  return [...front, ...brands.filter((b) => !names.has(b.name))]
+}
+
+/**
+ * 기본 정렬에서 맨 위로 올라온 이유: 이름 → 'hot'(HOT 1~5위 고정) | 'new'(신규 앞). 올라오지 않은 브랜드는 담지 않는다.
+ * 노출과 클릭에 `pin`으로 실어, 같은 브랜드가 고정일 때와 아닐 때를 가른다(2026-10-27, 정렬 효과 분석).
+ * 순서를 만드는 applyFilters(신규 앞)와 pinPopular(HOT 앞)와 같은 조건을 쓴다. 한쪽만 고치면 표시가 어긋나서
+ * filters.test.js가 실제 순서와 대조한다.
+ */
+export function pinKinds(brands, filters, rankBrands = brands) {
+  const kinds = new Map()
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return kinds
+  const top = popularToday(rankBrands)
+  if (top.length >= STRIP_MIN) for (const r of top) kinds.set(r.brand.name, 'hot')
+  const include = includesFrom(filters)
+  for (const b of brands) if (!kinds.has(b.name) && hasNewBest(b.offers, include)) kinds.set(b.name, 'new')
+  return kinds
 }
 
 /**

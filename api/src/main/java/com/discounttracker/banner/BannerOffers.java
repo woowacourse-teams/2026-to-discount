@@ -93,6 +93,7 @@ public final class BannerOffers {
      * 오퍼가 그날 시작인데 신규 탭에 안 떴다). 어제와 같은 행사로 기간을 늘린 배너는 startsAt이 그대로라 첫날만 신규다.
      */
     private static OfferRecord.Builder common(Banner banner, String brand, String today) {
+        // qualifiers(구조화 조건)는 배너에 없는 칸이라 설정하지 않는다(null, #155).
         return OfferRecord.builder(banner.platform(), brand)
                 .section(banner.id())
                 .capturedAt(today)

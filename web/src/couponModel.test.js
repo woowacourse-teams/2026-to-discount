@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, shortBrandName, conditionTable, nameCutPx, amountText } from './couponModel.js'
+import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, shortBrandName, conditionTable, nameCutPx, amountText, chipsOf, onCard, onDetail, headOrder, CHIP_PLACEMENT, membershipOf, qualifiersOf } from './couponModel.js'
 
 const o = (platform, amount, extra = {}) => ({ platform, amount, certainty: 'exact', kind: 'discount', ...extra })
 
@@ -72,8 +72,8 @@ test('배지 2: 멤버십은 membership이나 전용쿠폰 끝말, 글자는 앱
   assert.deepEqual(badgesOf(o('baemin', 7500, { membership: 'none' })), [])
 })
 
-test('배지 3: 한정은 원문, 시각 꼴만 N시로 줄인다', () => {
-  assert.deepEqual(badgesOf(o('baemin', 7000, { firstCome: true, badge: '오전 11시 오픈' })), [{ kind: 'limited', text: '11시' }])
+test('배지 3: 한정은 원문, 시각 꼴만 N시 오픈으로 줄인다', () => {
+  assert.deepEqual(badgesOf(o('baemin', 7000, { firstCome: true, badge: '오전 11시 오픈' })), [{ kind: 'limited', text: '11시 오픈' }])
   assert.deepEqual(badgesOf(o('baemin', 7000, { badge: '오늘 17시 선착순' })), [{ kind: 'limited', text: '오늘 17시 선착순' }])
   assert.deepEqual(badgesOf(o('baemin', 7000, { badge: '~9/30' })), [{ kind: 'limited', text: '~9/30' }])
   assert.deepEqual(badgesOf(o('baemin', 7000, { firstCome: true, badge: '오전 11시 오픈' }), { shortTime: false }), [{ kind: 'limited', text: '오전 11시 오픈' }])
@@ -109,6 +109,21 @@ test('조건 표: 구간마다 한 줄, 멤버십은 오퍼 값을 이어받아 
   assert.deepEqual(m.rows, [{ amount: '7,000원', extra: '', chips: [{ kind: 'membership', text: '쿠팡와우', platform: 'coupangeats' }], min: '18,000원↑' }])
   // 구간이 있어도 구간에 멤버십이 없으면 오퍼 값을 이어받는다
   assert.equal(conditionTable(o('baemin', 7000, { membership: 'baeminClub', tiers: [{ amount: 7000, minOrder: 1 }] })).rows[0].chips[0].text, '배민클럽')
+})
+
+test('조건 표: 구간이 자기 멤버십을 밝히면 밝히지 않은 구간은 오퍼 멤버십을 물려받지 않는다', () => {
+  // 선착순(멤버십 모름, 소진) + 상시(배민클럽 전용)를 합친 오퍼. 오퍼 값은 배민클럽이다
+  const x = o('baemin', 3000, { membership: 'baeminClub', tiers: [{ amount: 6500, soldOut: true, note: '선착순' }, { amount: 3000, membership: 'baeminClub' }] })
+  const rows = conditionTable(x).rows
+  assert.deepEqual(rows[0].chips.map((c) => c.kind), ['note'])
+  assert.deepEqual(rows[1].chips.map((c) => c.kind), ['membership'])
+})
+
+test('조건 표: 선착순 구간 메모는 여는 시각과 나머지를 칩 둘로 가른다', () => {
+  const x = o('baemin', 5000, { tiers: [{ amount: 5000, note: '오전 10시 오픈 선착순' }, { amount: 3000, minOrder: 20000 }] })
+  assert.deepEqual(conditionTable(x).rows[0].chips, [{ kind: 'note', text: '오전 10시 오픈' }, { kind: 'note', text: '선착순' }])
+  const y = o('baemin', 5000, { tiers: [{ amount: 5000, note: '사용(발급X) 선착순' }, { amount: 3000 }] })
+  assert.deepEqual(conditionTable(y).rows[0].chips, [{ kind: 'note', text: '사용(발급X) 선착순' }])
 })
 
 test('긴 이름은 별칭에서 가장 짧은 한글 이름으로, 짧으면 그대로', () => {
@@ -188,4 +203,80 @@ test('1+1 묶음 행사는 대표, 하위와 따로 맨 위 줄로 간다(2026-1
   assert.equal(best[0], a)
   assert.deepEqual(rest, [b])
   assert.deepEqual(bundles, [bundle])
+})
+
+test('new offer is the first card among tied best offers', () => {
+  const offers = [{ platform: 'baemin', amount: 5000, minOrderAmount: 10000, isNew: false },
+    { platform: 'yogiyo', amount: 5000, minOrderAmount: 20000, isNew: true }]
+  assert.deepEqual(splitOffers(offers).best.map((o) => o.platform), ['yogiyo', 'baemin'])
+})
+
+// #151 카드와 상세가 한 목록(chipsOf)에서 뽑는다. 합성 픽스처, 형태만 이슈의 CU, 푸라닭과 같다(ADR-009).
+const puradak = [
+  o('yogiyo', 6000, { qualifier: '최적', conditions: '30,000원↑ 4,000+2,000=6,000원', tiers: [{ amount: 4000 }, { amount: 6000, channel: '포장' }] }),
+  o('coupangeats', 7000, { membership: 'coupangEats' }),
+  o('ddangyo', 5000),
+]
+const cuNew = o('coupangeats', 7000, { conditions: '첫 주문', qualifiers: ['첫 주문'] })
+const cuOld = o('coupangeats', 7000, { conditions: '첫 주문' })
+const key = (c) => `${c.kind}:${c.text}`
+
+test('#151 표시 위치 표: CHIP_PLACEMENT가 설계 문서 표와 같다', () => {
+  const H = 'head'
+  assert.deepEqual(CHIP_PLACEMENT, {
+    'qualifier-plain': { card: H, detail: H }, 'qualifier-random': { card: H, detail: H }, 'best-fit': { card: false, detail: H },
+    rate: { card: H, detail: H }, membership: { card: H, detail: H }, limited: { card: H, detail: H }, condition: { card: H, detail: H },
+    channel: { card: H, detail: H }, note: { card: false, detail: 'row' }, until: { card: false, detail: 'row' },
+  })
+})
+
+test('#151 같은 목록: 카드 칩은 모두 상세에 있고, 모든 칩 kind가 표에 있다', () => {
+  for (const x of [...puradak, cuNew, cuOld]) {
+    const all = chipsOf(x)
+    for (const c of all) assert.ok(CHIP_PLACEMENT[c.kind], c.kind)
+    const detail = new Set(all.filter(onDetail).map(key))
+    for (const c of all.filter(onCard)) assert.ok(detail.has(key(c)), key(c))
+  }
+})
+
+test('#151 CU: 첫 주문은 칩 하나, 상세 문장에서 빠진다. 옛 응답도 같고 부분 일치는 문장으로 둔다', () => {
+  for (const x of [cuNew, cuOld]) {
+    assert.deepEqual(chipsOf(x).filter(onCard).map(key), ['condition:첫 주문'])
+    assert.equal(conditionTable(x).note, '')
+  }
+  const only = o('coupangeats', 7000, { conditions: '첫 주문만 가능' })
+  assert.deepEqual(qualifiersOf(only), [])
+  assert.equal(conditionTable(only).note, '첫 주문만 가능')
+})
+
+test('#151 푸라닭: 요기요 중복 할인은 상세 머리에만, 카드와 표 줄에는 안 뜬다', () => {
+  const c = chipsOf(puradak[0])
+  assert.deepEqual(c.filter(onCard).map(key), ['channel:포장'])
+  assert.deepEqual(c.filter((x) => x.scope === 'offer' && onDetail(x)).map(key), ['channel:포장', 'best-fit:중복 할인'])
+  assert.ok(!c.some((x) => x.scope === 'tier' && x.kind === 'best-fit'))
+  assert.deepEqual(chipsOf(puradak[1]).filter(onCard).map(key), ['membership:쿠팡와우'])
+  assert.deepEqual(chipsOf(puradak[2]), [])
+})
+
+test('#151 멤버십: 카드는 대표 구간의 membershipOf를 따른다', () => {
+  const mem = (x) => chipsOf(x).filter(onCard).some((c) => c.kind === 'membership')
+  const tiers = [{ amount: 6500, note: '선착순' }, { amount: 3000, membership: 'baeminClub' }]
+  assert.equal(mem(o('baemin', 6500, { membership: 'baeminClub', tiers })), false) // 대표가 비멤버 구간
+  assert.equal(mem(o('baemin', 3000, { tiers })), true) // 대표가 멤버 구간(오퍼 값 없음)
+  assert.equal(mem(o('baemin', 3000, { membership: 'baeminClub' })), true) // 구간 없음: 오퍼 값
+  assert.equal(mem(o('baemin', 3000, { badge: '배민클럽 전용쿠폰' })), true) // 옛 행
+  assert.equal(membershipOf(o('baemin', 3000, { badge: '배민클럽 전용쿠폰' })), 'badge')
+})
+
+test('#151 멤버십: 구간은 있는데 대표 구간(금액 일치)을 못 찾으면 오퍼 값으로 판단한다', () => {
+  const x = o('baemin', 6000, { membership: 'baeminClub', tiers: [{ amount: 5000, membership: 'baeminClub' }, { amount: 3000 }] })
+  assert.ok(chipsOf(x).some((c) => c.scope === 'offer' && c.kind === 'membership'))
+  const none = o('baemin', 6000, { tiers: [{ amount: 5000, membership: 'baeminClub' }] })
+  assert.ok(!chipsOf(none).some((c) => c.scope === 'offer' && c.kind === 'membership'))
+})
+
+test('#151 머리 줄 순서: 채널, 멤버십, 선착순(한정), 나머지, 복합은 맨 뒤', () => {
+  const k = (...kinds) => kinds.map((kind) => ({ kind }))
+  assert.deepEqual(headOrder(k('best-fit', 'condition', 'limited', 'membership', 'channel', 'qualifier-plain')).map((c) => c.kind),
+    ['channel', 'membership', 'limited', 'condition', 'qualifier-plain', 'best-fit'])
 })

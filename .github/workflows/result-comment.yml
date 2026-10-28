@@ -1,0 +1,20 @@
+# 정본은 mono .github/workflows/wf-result-comment.yml. 이 파일은 언제 부를지와 이 저장소 설정만 둔다.
+name: result-comment
+on:
+  check_suite:
+    types: [completed]
+  # Actions 검사 종료는 check_suite로 깨지 않는다. 검사 워크플로가 끝날 때마다 다시 쓴다.
+  workflow_run:
+    workflows: [Check API, Check Web, Check Project Structure, secret-scan]
+    types: [completed]
+
+jobs:
+  run:
+    permissions:
+      actions: read
+      checks: read
+      pull-requests: write
+      contents: read
+    uses: ./.github/workflows/wf-result-comment.yml
+    with:
+      footer: "성능 점수: 병합 뒤 web-perf가 측정한다(PR 단계에는 없음)."

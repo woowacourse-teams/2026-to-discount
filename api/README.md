@@ -23,6 +23,8 @@
 | `DISCOUNT_HISTORY_PATH` | 할인 이력. tracker `data/history.json` | 저장소 샘플 |
 | `DISCOUNT_BANNERS_PATH` | 배너. 운영 서버 파일이 유일본이다 | 빈 목록 |
 | `DISCOUNT_EVENT_LOG_PATH` | 방문 이벤트 원장 | `data/events.jsonl` |
+| `DISCOUNT_REPORT_PATH` | 잘못된 정보 제보 원장(`POST /api/reports`, 한 줄에 JSON 하나). `file:` 안 붙임 | `data/reports.jsonl` |
+| `SLACK_REPORT_TOKEN`, `SLACK_REPORT_CHANNEL` | 제보를 띄울 슬랙 봇 토큰과 채널. 없으면 원장에만 남는다 | 없음 |
 
 경로 앞에는 `file:`을 붙인다(예: `DISCOUNT_EXPORT_PATH=file:/절대/경로/export.json`). 이벤트 원장만 붙이지
 않는다. 전체 설정과 기본값은 `src/main/resources/application.yml` 한 곳에 있다.
@@ -258,7 +260,7 @@ banners:
     startsAt: '2026-10-14T00:00:00'
     endsAt: '2026-10-14T23:59:59'
     priority: 2                    # 생략 시 999. 낮을수록 먼저
-    firstCome: use                 # 선착순(사용 선착순). 상시 할인과 다른 칸에 선다
+    firstCome: use                 # 선착순(사용 선착순). 같은 앱 상시 할인과 금액이 다르면 그 오퍼의 한 구간으로 붙는다
     opensAt: '11:00'
     minOrder: 25000
     soldOutOn: 2026-10-14          # 이날 소진. 기계 관측이 적는다

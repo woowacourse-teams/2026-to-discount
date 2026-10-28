@@ -1,18 +1,18 @@
 import { useBackClose } from './backClose.js'
 import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { API_BASE, fetchBanners, fetchBrands, fetchSurveyStatus } from './api.js'
+import { fetchBanners, fetchBrands } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
 import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
-import TopBarA from './TopBarA.jsx'
 import TopBarB from './TopBarB.jsx'
-import PopularStrip from './PopularStrip.jsx'
+import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, applyFilters, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
+import { CATEGORIES, applyFilters, pinPopular, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
+import { cardRanks } from './popularStrip.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
@@ -29,12 +29,11 @@ const LEAVE_MS = 100
 const SHIFT_PAUSE_MS = 400
 // 설문 카드는 누른 뒤에만 열린다 — 첫 화면 묶음에서 뺀다(2026-10-06 성능).
 const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
-import { getStoredCode, markAnswered, shouldShow as surveyShouldShow } from './surveyDismiss.js'
+import { useSurvey } from './useSurvey.js'
 import { getAnalyticsContext } from './analytics-context.js'
-import { currentHomeArm } from './homeExperiment.js'
 import { shouldShowGuide } from './firstVisitGuide.js'
 import PushNotificationSetting from './PushNotificationSetting.jsx'
-import BrandCard, { brandCardId } from './BrandCard.jsx'
+import { brandCardId } from './cardId.js'
 import BrandGridSkeleton from './BrandGridSkeleton.jsx'
 import { useSharedOffer } from './useSharedOffer.js'
 import { setHubLinks } from './offerLink.js'
@@ -108,73 +107,7 @@ export default function App({ initial = null }) {
   // null은 아직 못 받음(자리만 잡는다), []는 받았는데 0건.
   const [banners, setBanners] = useState(initial?.banners ?? null)
   const [error, setError] = useState(null)
-  // 설문을 띄울지. 서버가 "대상이다"라고 답할 때만 켠다 — 기본은 안 그린다.
-  const [surveyOn, setSurveyOn] = useState(false)
-  // 발급된 기프티콘 번호. 카드가 아니라 여기에 둔다 — 카드는 필터가 바뀔 때마다
-  // 새로 마운트되는 상자(brand-grid) 안에 있어서, 카드가 들고 있으면 분류 한 번에
-  // 번호가 날아간다. 연락처를 안 받으므로 그러면 다시 줄 방법이 없다.
-  // 진행 중이던 답까지 지켜주진 않는다(그리드 안이라 필터를 바꾸면 그것도
-  // 새로 마운트된다) — 다만 그건 다시 고르면 그만이라 코드만큼 무겁지 않다.
-  // 이미 받은 코드가 있으면 처음부터 채워 둔다 — 응답 화면으로 곧장
-  // 열리진 않는다(그건 아래 트리거 알약이 한다). 새로 발급된 코드는
-  // SurveyCard가 열려 있는 채로 onCode로 이 값을 바꾸므로, 그 경우는
-  // 이미 화면이 카드 위에 있다 — 여기서 따로 열 필요가 없다.
-  const [surveyCode, setSurveyCode] = useState(() => getStoredCode())
-
-  // 서버에 적힌 내 코드를 가져와 화면과 저장본을 맞춘다. visitorId까지 지운
-  // 사람은 서버도 누군지 못 가린다 — 그 경우는 확인요청이 유일한 길이라
-  // 코드 화면에 안내를 같이 띄운다(SurveyCard).
-  async function syncCodeFromServer() {
-    const { visitorId } = getAnalyticsContext()
-    if (!visitorId) return
-    try {
-      const res = await fetch(`${API_BASE}/api/survey/code?visitorId=${encodeURIComponent(visitorId)}`)
-      const body = await res.json()
-      if (body.code && body.code !== getStoredCode()) {
-        markAnswered(body.code)
-        setSurveyCode(body.code)
-      }
-    } catch {
-      // 못 가져오면 저장본을 그대로 쓴다 — 네트워크 때문에 화면이 빌 이유는 없다.
-    }
-  }
-  // 트리거 알약을 눌렀는지. 그리드 맨 앞칸에 카드를 놓을지를 이걸로 정한다.
-  const [surveyOpen, setSurveyOpen] = useState(false)
-
-  useEffect(() => {
-    // 이미 코드를 받은 사람에게는 알약이 계속 뜬다 — "링크 다시
-    // 확인하기"로 문구만 바뀐다(SurveyDock). 재고·자격을 다시 안
-    // 묻는다 — 이미 확정된 결과라 물어볼 이유가 없다. 예전엔 답하면
-    // 알약이 영구히 사라져서, 연락처를 안 받는 이 서비스에서 링크를
-    // 놓치면 다시 볼 길이 없었다.
-    if (getStoredCode()) {
-      setSurveyOn(true)
-      // 서버가 정본이다. localStorage 사본이 낡을 수 있다 — 2026-09-02에
-      // 서버가 발급 기록을 잃고 같은 링크를 다음 사람에게 다시 내준 적이
-      // 있어(중복 발급), 그때 먼저 받은 사람 브라우저에는 남의 것이 된
-      // 링크가 남아 있다. 서버 값이 다르면 그쪽으로 덮는다.
-      syncCodeFromServer()
-      return
-    }
-    // 개발자 콘솔에서 이 브라우저만 강제로 띄우는 문. 서버 대상 판정도
-    // 안 묻는다 — 재고·조건과 무관하게 화면만 보고 싶을 때 쓴다.
-    //   localStorage.setItem('dk_survey_force', '1')
-    // 끌 때: localStorage.removeItem('dk_survey_force')
-    // 다른 사용자에겐 아무 영향 없다 — localStorage는 이 브라우저 안에만 있다.
-    if (localStorage.getItem('dk_survey_force') === '1') {
-      setSurveyOn(true)
-      return
-    }
-    // 두 번 닫았거나 최근에 닫았으면 서버에 묻지도 않는다.
-    if (!surveyShouldShow()) return
-    let alive = true
-    const { visitorId } = getAnalyticsContext()
-    fetchSurveyStatus(visitorId)
-      .then((s) => { if (alive) setSurveyOn(Boolean(s.eligible)) })
-      // 못 물어보면 안 띄운다. 설문이 안 뜨는 것은 사용자에게 아무 손해가 없다.
-      .catch(() => {})
-    return () => { alive = false }
-  }, [])
+  const survey = useSurvey()
   // 앱·분류·정렬·검색을 한 덩어리로 든다. 시트가 draft를 만들어 통째로
   // 돌려주므로 낱개 상태로 쪼개 두면 "적용" 한 번에 여러 setState가 나가
   // 중간 상태로 한 번 더 그려진다.
@@ -215,34 +148,31 @@ export default function App({ initial = null }) {
 
   const { search } = filters
   const [dev, setDev] = useState(false)
-  // 서버 렌더링 첫 화면은 늘 운영 카드다(하이드레이션 일치). 마운트 뒤 A/B 배정이 쿠폰 카드면 바꾼다.
-  // 서버가 쿠키(dk_home)로 쿠폰 카드 쪽을 알아 처음부터 그렸으면(initial.arm) 그대로 이어받는다 — 깜빡임이 없다.
-  const [homeA, setHomeA] = useState(initial?.arm === 'coupon')
-  const [homePhoto, setHomePhoto] = useState(false) // 시안 비교용 ?photo=1
-  const [homeCompact, setHomeCompact] = useState(initial?.arm === 'coupon') // 쿠폰 카드는 촘촘한 안이 기본
-    useEffect(() => {
-    // 메인 화면 A/B(homeExperiment.js): 2026-10-05 00:00부터 방문자 반반. 쿠폰 카드는 촘촘한 안이 기본(?compact=0이면 큰 안).
+  // 메인 화면은 쿠폰 카드 하나다(2026-10-17 A/B 결론, docs/metrics/HOME-AB-LOG.md. 운영 카드 코드는 지웠다).
+  // 촘촘한 안이 기본이고 ?compact=0이면 큰 안, ?photo=1은 시안 비교용. 첫 렌더는 서버와 같게 기본값으로 그린다.
+  const [homePhoto, setHomePhoto] = useState(false)
+  const [homeCompact, setHomeCompact] = useState(true)
+  useEffect(() => {
     try {
       const q = new URLSearchParams(window.location.search)
-      const { arm } = currentHomeArm(getAnalyticsContext().visitorId)
-      if (arm === 'coupon') startTransition(() => { setHomeA(true); setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
-      // 서버가 쿠폰 카드로 그렸는데 배정이 운영 카드면(쿠키가 낡음) 운영 카드로 돌린다.
-      else if (initial?.arm === 'coupon') startTransition(() => { setHomeA(false); setHomeCompact(false) })
-    } catch { /* 주소를 못 읽으면 운영 카드 */ }
+      if (q.get('photo') === '1' || q.get('compact') === '0') {
+        startTransition(() => { setHomePhoto(q.get('photo') === '1'); setHomeCompact(q.get('compact') !== '0') })
+      }
+    } catch { /* 주소를 못 읽으면 기본 안 */ }
   }, [])
-  // 쿠폰 카드 CSS는 쿠폰 쪽일 때만 받는다(전역 규칙이 있어서). 서버 렌더면 이미 <head>에 있어 캐시로 끝난다.
-  useEffect(() => { if (homeA) import('./styles/coupon-card.css') }, [homeA])
+  // 쿠폰 카드 CSS. 서버 렌더와 그 실패 때 보내는 사전 렌더링 HTML 모두 <head>에 링크가 있어(api/ssr.js) 캐시로 끝난다.
+  // 개발 서버(vite)에서만 여기서 처음 받는다.
+  useEffect(() => { import('./styles/coupon-card.css') }, [])
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
   // 첫 방문 안내(firstVisitGuide.js). 2026-10-14부터 ?guide=1로만 뜬다. 카드가 그려진 뒤에 띄운다.
-  // 값은 띄울 안('coupon'|'old'). 바가 그 안으로 바뀐 뒤에만 그린다.
-  const [guideOn, setGuideOn] = useState(null)
+  const [guideOn, setGuideOn] = useState(false)
   const guideChecked = useRef(false)
   useEffect(() => {
     if (!brands?.length || guideChecked.current) return
     guideChecked.current = true
     try {
-      if (shouldShowGuide({ search: window.location.search })) setGuideOn(currentHomeArm(getAnalyticsContext().visitorId).arm)
+      if (shouldShowGuide({ search: window.location.search })) setGuideOn(true)
     } catch { /* 못 읽으면 안내 없이 */ }
   }, [brands])
   useEffect(() => { startTransition(() => setDev(Boolean(getAnalyticsContext().dev))) }, [])
@@ -297,9 +227,7 @@ export default function App({ initial = null }) {
     ro.observe(el)
     setBarHeight(el.getBoundingClientRect().height)
     return () => ro.disconnect()
-    // 메인 화면 A/B로 바가 바뀌면(운영 바 -> B안 바) 새 바를 다시 잰다. 안 그러면 떼어 낸 옛 바를 재
-    // 높이 0이 되고, 행사 배너가 바 밑에 깔린다(2026-10-04 실측).
-  }, [homeA])
+  }, [])
 
   const isFiltered = !isDefaultFilters(filters)
   const resetFilters = () => {
@@ -346,13 +274,13 @@ export default function App({ initial = null }) {
   // 배너 실패는 삼킨다. 카드 그리드와 달리 배너는 부가 정보라, 못 불러왔다는
   // 사실을 화면에 띄울 이유가 없다 — 빈 목록과 같게 다룬다.
   useEffect(() => {
-    // SSR이 실어 준 배너는 main.jsx가 하이드레이션 전에 허브 주소까지 반영했다.
-    if (initial?.banners) return
+    // SSR 배너는 CDN 캐시(최대 ~10분)라 고친 배너가 늦게 보였다(2026-10-18).
+    // SSR이 있어도 한 번 더 받아 바꿔 끼우고, 실패하면 SSR 것을 그대로 둔다.
     // 배너를 받으면 허브 주소도 같이 갱신한다 — 브랜드별 링크가 없는
     // 칩이 그 주소로 간다(setHubLinks 주석 참고).
     fetchBanners()
       .then((got) => { setHubLinks(got); setBanners(got) })
-      .catch(() => setBanners([]))
+      .catch(() => { if (!initial?.banners) setBanners([]) })
   }, [])
 
 
@@ -367,6 +295,8 @@ export default function App({ initial = null }) {
   // 것이 하나도 없는데 이름만 남기면 빈 카드가 격자를 채운다.
   // 입력 중인 문자열이 아니라 사용자가 확정한 검색만 센다. 검색 개선(메뉴명, 미등록 브랜드 파악)을 위해
   // 확정한 검색어(40자까지)와 앞쪽 결과 브랜드 5개를 남긴다(2026-10-08 사용자). 하단 안내 문구에 적혀 있다.
+  // 인기 순위에서 브랜드를 고르면 그 카드로 간다(같은 이름을 다시 골라도 다시 가게 한 번 비운다)
+  const pickPopular = (name) => { setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name))) }
   const submitSearch = (raw, submitMethod) => {
     const query = raw.trim()
     // 검색을 확정하면 켜둔 분류를 푼다.
@@ -489,13 +419,25 @@ export default function App({ initial = null }) {
     })
   }, [])
 
-  const visibleBrands = useMemo(
-    () => {
-      if (!brands) return brands
-      const visible = applyHidden(applyFilters(brands, filters), hidden, bestOf)
-      return shared ? [shared.brand, ...visible.filter((b) => b.name !== shared.brand.name)] : visible
-    },
-    [brands, filters, hidden, bestOf, shared?.brand],
+  // 순위 기준 목록: 카테고리와 검색을 뺀다. 실시간 순위는 무엇을 보든 찾든 같다(#147).
+  const rankBrands = useMemo(
+    () => (brands ? applyHidden(applyFilters(brands, { ...filters, categories: new Set(), search: '' }), hidden, bestOf) : brands),
+    [brands, filters, hidden, bestOf],
+
+  )
+  // 맨 위로 올라온 이유(HOT 고정, 신규 앞)를 브랜드에 `pin`으로 붙인다. 카드가 노출과 클릭 이벤트에 싣는다(2026-10-27).
+  const visibleBrands = useMemo(() => {
+    if (!brands) return brands
+    const ordered = pinPopular(applyHidden(applyFilters(brands, filters), hidden, bestOf), filters, rankBrands)
+    const kinds = pinKinds(ordered, filters, rankBrands)
+    const visible = ordered.map((b) => ({ ...b, pin: kinds.get(b.name) ?? 'none' }))
+    return shared ? [shared.brand, ...visible.filter((b) => b.name !== shared.brand.name)] : visible
+  }, [brands, filters, hidden, bestOf, rankBrands, shared?.brand])
+
+  // 카드 왼쪽 위 순번. 도크와 같은 rankBrands 표를 읽어 순위가 맞는다(popularStrip.js cardRanks).
+  const popRanks = useMemo(
+    () => cardRanks(rankBrands, visibleBrands, primarySort(filters).key === 'popularity'),
+    [rankBrands, visibleBrands, filters],
   )
 
   // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
@@ -588,6 +530,7 @@ export default function App({ initial = null }) {
       <FilterSheet
         open={sheetOpen}
         filters={filters}
+        brands={brands}
         onApply={applyFromSheet}
         onClose={() => setSheetOpen(false)}
       />
@@ -600,8 +543,8 @@ export default function App({ initial = null }) {
       {/* A/B 실험 종료(2026-09-15): 한 줄 바 + 분류 캐러셀(a안)로 통일.
           결론은 docs/HANDOFF-20260914.md §4 — b(시트)는 내렸다. */}
       {/* 메인 화면 A/B: 쿠폰 카드 쪽은 9월 실험의 B안 상단 바(검색 + 분류 메뉴 바, 앱·정렬은 시트) */}
-      {homeA ? (
-        <TopBarB
+      {/* 2026-10-15 사용자: 배너 도크 대신 오늘 인기. 2026-10-17: 하단 고정에서 상단 바(검색과 분류 사이)로 */}
+      <TopBarB
           barRef={titleBarRef}
           pushToggleRef={pushToggleRef}
           filters={filters}
@@ -614,22 +557,9 @@ export default function App({ initial = null }) {
           resetFilters={resetFilters}
           sheetOpen={sheetOpen}
           onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
+          popular={visibleBrands && <PopularDock brands={rankBrands} onPick={pickPopular} />}
+          reportHold={guideOn}
         />
-      ) : (
-      <TopBarA
-        barRef={titleBarRef}
-        pushToggleRef={pushToggleRef}
-        filters={filters}
-        setFilters={setFilters}
-        search={search}
-        onSearchSubmit={submitSearch}
-        brands={brands}
-        isFiltered={isFiltered}
-        resetFilters={resetFilters}
-        sheetOpen={sheetOpen}
-        onOpenSheet={() => { setSheetOpen(true); track('filter_sheet_open') }}
-      />
-      )}
 
       {/* 배너는 바 아래에 둔다. 흐름 맨 위에 두면 fixed인 타이틀바가
           그 자리를 덮어 스크롤하기 전에는 안 보였다. */}
@@ -637,7 +567,7 @@ export default function App({ initial = null }) {
           (2026-09-30 브랜드 페이지 CLS 0.9). 받았는데 0건이면 자리를 거둔다. */}
       {/* 쿠폰 카드 쪽은 위 배너 캐러셀 없이 처음부터 하단 도크로만(2026-10-05 사용자: 목록 안 한 줄은 별로) */}
       {/* 2026-10-05 사용자: 운영 카드 쪽도 하단 도크로 */}
-      {banners ? <EventBanner banners={banners} dockOnly /> : null}
+      {/* 2026-10-15 사용자: 하단 도크는 배너 대신 오늘 인기. 배너(한정 오퍼)는 목록 3번째 카드 뒤에 선다 */}
       <PushNotificationSetting toggleSlot={pushToggleSlot} />
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
@@ -706,14 +636,6 @@ export default function App({ initial = null }) {
         )}
         </div>
         </div>
-      )}
-
-      {/* 오늘 인기 띠(2026-10-14 시안). 누르면 그 카드로 간다(링크로 들어온 브랜드와 같은 길) */}
-      {visibleBrands && (
-        <PopularStrip
-          brands={visibleBrands}
-          onPick={(name) => { setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name))) }}
-        />
       )}
 
       {/* 신규를 고르면 정렬 줄 아래 한 줄 안내(2026-10-05 사용자 문구) */}
@@ -806,31 +728,27 @@ export default function App({ initial = null }) {
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className={gridKey === stillKey ? 'brand-grid brand-grid--still' : 'brand-grid'} key={gridKey} ref={gridRef}>
-          {/* 브랜드 카드와 같은 칸에 놓는다 — 요청대로 맨 앞칸. 필터를
-              바꾸면 그리드 전체가 새로 마운트되니 이 카드도 같이 날아가지만,
-              발급된 코드는 App이 들고 있어(surveyCode) 다시 열면 그대로
-              보인다 — 잃는 건 아직 안 고른 진행 중 선택뿐이다. */}
-          {surveyOn && surveyOpen && (
+          {/* 설문 카드는 기존 목록 첫 칸에 둔다. 발급 코드는 목록 밖 Hook이 보관한다. */}
+          {survey.isVisible && survey.isCardOpen && (
             <Suspense fallback={null}><SurveyCard
               visitorId={getAnalyticsContext().visitorId}
-              code={surveyCode}
-              onCode={setSurveyCode}
-              onClose={() => {
-                setSurveyOpen(false)
-                // 이미 코드를 받은 사람은 알약으로 접힐 뿐이다 — "링크 다시
-                // 확인하기"가 계속 있어야 한다. 아직 못 받은 사람(질문 중,
-                // 또는 재고 없음 화면)만 세션에서 완전히 내린다.
-                if (!surveyCode) setSurveyOn(false)
-              }}
+              code={survey.code}
+              onCode={survey.receiveCode}
+              onClose={survey.closeCard}
             /></Suspense>
           )}
           {visibleBrands.slice(0, shown).map((b, index) => {
-            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
+            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1, rank: popRanks?.get(b.name),
               highlighted: linkedBrand === brandCardId(b.name) || shared?.brand.name === b.name, onInteract: clearLinked,
               sharedKey: shared?.brand.name === b.name ? shared.key : null, onShareTargetVisible }
-            return homeA
-              ? <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
-              : <BrandCard key={b.name} {...props} />
+            const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
+            // 한정 오퍼(배너)는 3번째 카드 뒤 한 칸(2026-10-15 사용자). 첫 자리는 신규·최고 할인 몫이다.
+            // 배너를 받기 전(null)에는 그 자리를 잡아 둔다. 늦게 끼어들면 아래 카드가 밀린다(CodeRabbit #88, 2026-09-30 CLS 0.9와 같은 꼴)
+            if (index === 2 && banners == null) return [card, <div key="inline-banners" className="inline-banners banner-slot banner-slot--pending" aria-hidden="true" />]
+            return index === 2 && banners?.length
+              ? [card, <div key="inline-banners" className="inline-banners"><EventBanner banners={banners} inline /></div>]
+              : card
+
           })}
         </div>
       )}
@@ -847,19 +765,19 @@ export default function App({ initial = null }) {
         </button>
       )}
 
-      {surveyOn && (
+      {survey.isVisible && (
         <Suspense fallback={null}>
-        <SurveyDock open={surveyOpen} answered={Boolean(surveyCode)}
-                    onOpen={() => setSurveyOpen(true)}
-                    onDismiss={() => setSurveyOn(false)} />
+        <SurveyDock open={survey.isCardOpen} answered={Boolean(survey.code)}
+                    onOpen={survey.openCard}
+                    onDismiss={survey.dismissDock} />
         </Suspense>
       )}
 
       <SiteFooter />
 
-      {guideOn && guideOn === (homeA ? 'coupon' : 'old') && (
+      {guideOn && (
         <Suspense fallback={null}>
-          <FirstVisitGuide arm={guideOn} onClose={() => setGuideOn(null)} />
+          <FirstVisitGuide onClose={() => setGuideOn(false)} />
         </Suspense>
       )}
 

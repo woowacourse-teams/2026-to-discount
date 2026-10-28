@@ -2,6 +2,7 @@ import { sha256 } from '@noble/hashes/sha2.js'
 import { bytesToHex } from '@noble/hashes/utils.js'
 import { MEMBERSHIP_LABEL, isBundle } from './filters.js'
 import { PLATFORM_BY_KEY, OWN, OWN_LABEL } from './platforms.js'
+import { channelOf, membershipOf } from './couponModel.js'
 
 const FIELDS = ['platform', 'amount', 'qualifier', 'rawText', 'minOrderAmount', 'tierMode',
   'conditions', 'expiresAt', 'badge', 'membership', 'firstCome', 'certainty', 'kind']
@@ -13,8 +14,10 @@ const keys = new WeakMap()
 // 조용히 이동하지 않도록 공유 당시의 금액과 조건까지 식별한다.
 export function sharedOfferKey(offer) {
   if (!keys.has(offer)) {
-    const identity = JSON.stringify([values(offer, FIELDS),
-      (offer.tiers ?? []).map((t) => JSON.stringify(values(t, TIER_FIELDS))).sort()])
+    const parts = [values(offer, FIELDS),
+      (offer.tiers ?? []).map((t) => JSON.stringify(values(t, TIER_FIELDS))).sort()]
+    if (offer.qualifiers?.length) parts.push([...new Set(offer.qualifiers)].sort())
+    const identity = JSON.stringify(parts)
     keys.set(offer, `v1_${bytesToHex(sha256(new TextEncoder().encode(identity)))}`)
   }
   return keys.get(offer)
@@ -48,51 +51,37 @@ export function resolveSharedOffer(brands, target, today = new Date().toLocaleDa
 
 export function shareText(brand, offer, { year = Number(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 4)) } = {}) {
   const won = (n) => `${n.toLocaleString('ko-KR')}원`
-  const minimum = (n) => n === 0 ? '최소주문 없음' : n > 0 ? `${won(n)} 이상 주문 시` : ''
   const until = (date) => {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date ?? '')
     return m ? `${Number(m[1]) === year ? '' : `${m[1]}년 `}${Number(m[2])}월 ${Number(m[3])}일까지` : date ?? ''
   }
-  const member = (value) => value && value !== 'none' ? MEMBERSHIP_LABEL[offer.platform] ?? value : ''
-  const benefit = (value) => {
-    let text = value.percent != null ? `${value.percent}% 할인${value.cap != null ? ` (최대 ${won(value.cap)})` : ''}`
-      : value.amount != null && !isBundle(offer) ? `${won(value.amount)} 할인` : offer.rawText ?? ''
-    if (['최대', '랜덤', '특정메뉴'].includes(offer.qualifier) && !text.startsWith(offer.qualifier)) text = `${offer.qualifier} ${text}`
-    return text
-  }
+  // API 한 오퍼에는 다른 채널과 금액의 구간도 담긴다. 공유 대상은 카드에
+  // 표시된 대표 금액과 최소주문에 맞는 구간 하나다. 중복 할인은 합계 자체다.
+  const candidates = !isBundle(offer) && offer.tierMode !== 'cumulative'
+    ? (offer.tiers ?? []).filter((t) => (t.amount ?? t.cap) === offer.amount) : []
+  const selected = candidates.find((t) => t.minOrder === offer.minOrderAmount) ?? candidates[0]
+  const row = selected ?? offer
   const platform = PLATFORM_BY_KEY[offer.platform]?.label ?? (offer.platform === OWN ? OWN_LABEL : '')
-  const tiers = offer.tiers ?? []
-  const expanded = !isBundle(offer) && offer.tierMode !== 'cumulative'
-    && (tiers.length > 1 || tiers.some((t) => t.channel || t.membership || t.note || t.percent != null || t.expiresAt))
-  const rows = expanded ? tiers : [offer]
-  const minOf = (t) => t === offer ? offer.minOrderAmount
-    : t.minOrder ?? (t.amount === offer.amount ? offer.minOrderAmount : null)
-  const memOf = (t) => member(t.membership && t.membership !== 'none' ? t.membership : offer.membership)
-  const commonMin = rows.every((t) => minOf(t) === minOf(rows[0])) ? minOf(rows[0]) : null
-  const commonMember = rows.every((t) => memOf(t) === memOf(rows[0])) ? memOf(rows[0]) : ''
-  // 구간을 본문으로 표시할 때 대표 금액을 다시 나열하지 않는다.
-  const lines = rows.map((t) => {
-    const terms = [commonMin == null ? minimum(minOf(t)) : '',
-      !commonMember ? memOf(t) : '', t.note && t.note !== offer.conditions ? t.note : '',
-      t.expiresAt && t.expiresAt !== offer.expiresAt ? until(t.expiresAt) : '',
-      t.soldOut ? '품절' : ''].filter(Boolean)
-    return `${t.channel ? `${t.channel} ` : ''}${benefit(t)}${terms.length ? ` (${terms.join(', ')})` : ''}`
-  })
-  lines[0] = `${platform} ${brand} ${lines[0]}`.replace(/\s+/g, ' ').trim()
+  const channel = selected?.channel ?? channelOf(offer)
+  let benefit = row.percent != null ? `${row.percent}% 할인${row.cap != null ? ` (최대 ${won(row.cap)})` : ''}`
+    : offer.amount != null && !isBundle(offer) ? `${won(offer.amount)} 할인` : offer.rawText ?? ''
+  if (['최대', '랜덤', '특정메뉴'].includes(offer.qualifier) && !benefit.startsWith(offer.qualifier)) benefit = `${offer.qualifier} ${benefit}`
+  const member = membershipOf(offer, selected)
+  const membership = member ? MEMBERSHIP_LABEL[offer.platform] ?? offer.badge ?? '' : ''
+  const min = selected?.minOrder ?? offer.minOrderAmount
+  const minimum = min === 0 ? '최소주문 없음' : min > 0 ? `${won(min)} 이상 주문 시` : ''
+  const expires = [selected?.expiresAt, offer.expiresAt].filter(Boolean).sort()[0]
   const expiryBadge = /^~\s*(\d{1,2})[/.](\d{1,2})$/.exec(offer.badge ?? '')
-  const expiry = /^(\d{4})-(\d{2})-(\d{2})$/.exec(offer.expiresAt ?? '')
+  const expiry = /^(\d{4})-(\d{2})-(\d{2})$/.exec(expires ?? '')
   const redundantDate = expiryBadge && expiry && Number(expiryBadge[1]) === Number(expiry[2]) && Number(expiryBadge[2]) === Number(expiry[3])
-  const redundantMember = commonMember && (offer.badge ?? '').replace(/전용|쿠폰|\s/g, '') === commonMember.replace(/전용|쿠폰|\s/g, '')
-  const details = [minimum(commonMin), commonMember,
-    !redundantDate && !redundantMember ? offer.badge : '', offer.conditions,
-    offer.firstCome && ![...lines, offer.badge, offer.conditions].some((v) => v?.includes('선착순')) ? '선착순' : '',
-    offer.soldOut && !rows.some((t) => t.soldOut) ? '품절' : '', until(offer.expiresAt)]
-  // 중복 할인은 대표 합계와 계산 조건을 유지한다. 개별 쿠폰을 택일 할인처럼 나열하지 않는다.
-  if (offer.tierMode === 'cumulative' && tiers.some((t) => t.channel || t.membership || t.note)) {
-    for (const t of tiers) details.push([t.channel, benefit(t), minimum(t.minOrder), member(t.membership), t.note,
-      t.expiresAt && t.expiresAt !== offer.expiresAt ? until(t.expiresAt) : ''].filter(Boolean).join(' '))
-  }
-  return [...new Set([...lines, ...details].filter(Boolean))].join('\n')
+  const redundantMember = membership && (offer.badge ?? '').replace(/전용|쿠폰|\s/g, '') === membership.replace(/전용|쿠폰|\s/g, '')
+  const details = [minimum, membership,
+    !redundantDate && !redundantMember && offer.badge !== channel ? offer.badge : '', offer.conditions,
+    selected?.note, ...(offer.qualifiers ?? []),
+    offer.firstCome && ![offer.badge, offer.conditions, selected?.note].some((v) => v?.includes('선착순')) ? '선착순' : '',
+    row.soldOut ? '품절' : '', until(expires)]
+  return [...new Set([`${platform} ${brand} ${channel ?? ''} ${benefit}`.replace(/\s+/g, ' ').trim(),
+    ...details].filter(Boolean))].join('\n')
 }
 
 function nativeShareData(data) {
