@@ -77,12 +77,12 @@ test('공유 지원 여부도 링크가 마지막 줄에 포함된 실제 전달
   assert.deepEqual(checked, { text: `${data.text}\n${data.url}` })
 })
 
-test('선착순과 정률 상한 및 구간별 만료 조건을 메시지에 유지', () => {
+test('선착순과 정률 상한을 유지하고 날짜는 제외', () => {
   const text = shareText('BBQ', { ...offer, firstCome: true,
     tiers: [{ percent: 10, cap: 7000, minOrder: 18000, channel: '포장', expiresAt: '2026-11-10' }] })
   assert.match(text, /선착순/)
   assert.match(text, /포장 10% 할인 \(최대 7,000원\)/)
-  assert.match(text, /11월 10일까지/)
+  assert.doesNotMatch(text, /11월 10일|2026-11-10/)
   assert.match(text, /18,000원 이상 주문 시/)
 })
 
@@ -92,10 +92,10 @@ test('공유한 대표 혜택만 표시하고 다른 채널의 혜택은 넣지 
       { amount: 5000, minOrder: 19900, channel: '배달' },
       { amount: 6000, minOrder: 19900, channel: '포장' },
     ] }, { year: 2026 })
-  assert.equal(text, '땡겨요 bhc 배달 5,000원 할인\n19,900원 이상 주문 시\n12월 31일까지')
+  assert.equal(text, '땡겨요 bhc 배달 5,000원 할인\n19,900원 이상 주문 시')
 })
 
-test('대표 혜택의 멤버십과 기간은 한 번만 표시하고 다른 구간 조건은 제외', () => {
+test('대표 혜택의 멤버십은 한 번만 표시하고 날짜와 다른 구간 조건은 제외', () => {
   const text = shareText('BBQ', { ...offer, badge: '배민클럽', tiers: [
     { amount: 7000, minOrder: 18000, membership: 'baeminClub' },
     { amount: 5000, minOrder: 15000, membership: 'baeminClub' },
@@ -103,9 +103,9 @@ test('대표 혜택의 멤버십과 기간은 한 번만 표시하고 다른 구
   assert.equal(text.split('배민클럽').length - 1, 1)
   assert.match(text, /7,000원 할인\n18,000원 이상 주문 시/)
   assert.ok(!text.includes('15,000원'))
-  assert.match(shareText('BBQ', { ...offer, tiers: [], expiresAt: '2027-01-01' }, { year: 2026 }), /2027년 1월 1일까지/)
+  assert.doesNotMatch(shareText('BBQ', { ...offer, tiers: [], expiresAt: '2027-01-01' }), /2027|1월 1일/)
   const date = shareText('BBQ', { ...offer, tiers: [], badge: '~11/30' }, { year: 2026 })
-  assert.equal(date.split('11월 30일까지').length - 1, 1)
+  assert.ok(!date.includes('11월 30일까지'))
   assert.ok(!date.includes('~11/30'))
 })
 
@@ -147,7 +147,7 @@ test('실제 도미노 샘플: 일반 4,000원 공유에 다른 멤버십 구간
   const sample = fixtures.find((o) => o.brand === '도미노피자' && o.platform === 'baemin')
   assert.equal(sample.badge, '멤버십 7,500원')
   assert.equal(shareText(sample.brand, sample, { year: 2026 }),
-    '배달의민족 도미노피자 4,000원 할인\n18,900원 이상 주문 시\n12월 30일까지')
+    '배달의민족 도미노피자 4,000원 할인\n18,900원 이상 주문 시')
 })
 
 test('다른 구간을 안내하는 금액 배지는 제거하고 현재 혜택의 실제 멤버십은 유지', () => {
@@ -163,12 +163,12 @@ test('다른 구간을 안내하는 금액 배지는 제거하고 현재 혜택�
   assert.ok(!text.includes('배민클럽'))
 })
 
-test('선택한 구간의 선착순 메모와 기간 및 일반 배지는 그대로 유지', () => {
+test('선택한 구간의 선착순 메모와 일반 배지는 유지하고 날짜는 제외', () => {
   const text = shareText('BBQ', { ...offer, badge: '오전 11시 오픈',
     tiers: [{ amount: 7000, minOrder: 18000, note: '선착순', expiresAt: '2026-11-10' },
       { amount: 5000, minOrder: 15000 }] }, { year: 2026 })
   assert.match(text, /배민클럽/)
   assert.match(text, /오전 11시 오픈/)
   assert.match(text, /선착순/)
-  assert.match(text, /11월 10일까지/)
+  assert.doesNotMatch(text, /11월 10일|2026-11-10/)
 })

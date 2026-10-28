@@ -65,12 +65,8 @@ function sharedBadge(offer, selected, member) {
   return badge
 }
 
-export function shareText(brand, offer, { year = Number(new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 4)) } = {}) {
+export function shareText(brand, offer) {
   const won = (n) => `${n.toLocaleString('ko-KR')}원`
-  const until = (date) => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date ?? '')
-    return m ? `${Number(m[1]) === year ? '' : `${m[1]}년 `}${Number(m[2])}월 ${Number(m[3])}일까지` : date ?? ''
-  }
   // API 한 오퍼에는 다른 채널과 금액의 구간도 담긴다. 공유 대상은 카드에
   // 표시된 대표 금액과 최소주문에 맞는 구간 하나다. 중복 할인은 합계 자체다.
   const candidates = !isBundle(offer) && offer.tierMode !== 'cumulative'
@@ -87,16 +83,13 @@ export function shareText(brand, offer, { year = Number(new Date().toLocaleDateS
   const membership = member ? MEMBERSHIP_LABEL[offer.platform] ?? offer.badge ?? '' : ''
   const min = selected?.minOrder ?? offer.minOrderAmount
   const minimum = min === 0 ? '최소주문 없음' : min > 0 ? `${won(min)} 이상 주문 시` : ''
-  const expires = [selected?.expiresAt, offer.expiresAt].filter(Boolean).sort()[0]
-  const expiryBadge = /^~\s*(\d{1,2})[/.](\d{1,2})$/.exec(badge)
-  const expiry = /^(\d{4})-(\d{2})-(\d{2})$/.exec(expires ?? '')
-  const redundantDate = expiryBadge && expiry && Number(expiryBadge[1]) === Number(expiry[2]) && Number(expiryBadge[2]) === Number(expiry[3])
+  const expiryBadge = /^~\s*\d{1,2}[/.]\d{1,2}$/.test(badge)
   const redundantMember = membership && badge.replace(/전용|쿠폰|\s/g, '') === membership.replace(/전용|쿠폰|\s/g, '')
   const details = [minimum, membership,
-    !redundantDate && !redundantMember && badge !== channel ? badge : '', offer.conditions,
+    !expiryBadge && !redundantMember && badge !== channel ? badge : '', offer.conditions,
     selected?.note, ...(offer.qualifiers ?? []),
     offer.firstCome && ![badge, offer.conditions, selected?.note].some((v) => v?.includes('선착순')) ? '선착순' : '',
-    row.soldOut ? '품절' : '', until(expires)]
+    row.soldOut ? '품절' : '']
   return [...new Set([`${platform} ${brand} ${channel ?? ''} ${benefit}`.replace(/\s+/g, ' ').trim(),
     ...details].filter(Boolean))].join('\n')
 }
