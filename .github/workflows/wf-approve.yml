@@ -1,0 +1,50 @@
+# 정본(설계 119 2단계): 첫 줄 /approve 댓글(admin/write)이면 PR을 squash 병합하고 브랜치를 지운다. mono와 tracker가 같이 부른다.
+# main 규칙을 우회하지 않는다. 막히면 사람 승인이 필요하다고 남기고 끝낸다.
+name: wf-approve
+on:
+  workflow_call:
+    secrets:
+      WF_APP_ID:
+        required: true
+      WF_APP_PRIVATE_KEY:
+        required: true
+
+jobs:
+  merge:
+    # 첫 줄이 /approve 이면 승인(앞뒤 공백 무시, 아래 단계가 판정). 둘째 줄부터 의견을 적어도 된다.
+    if: startsWith(github.event.comment.body, '/approve') && !startsWith(github.event.comment.body, '/approve-design')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # App 토큰으로 병합해야 병합 이벤트가 summary-session을 깨운다(GITHUB_TOKEN 병합은 다른 워크플로를 안 깨운다).
+      - name: App 토큰 만들기
+        id: apptoken
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+      - name: 병합
+        env:
+          GH_TOKEN: ${{ steps.apptoken.outputs.token }}
+          REPO: ${{ github.repository }}
+          NUM: ${{ github.event.issue.number }}
+          IS_PR: ${{ github.event.issue.pull_request != null }}
+          WHO: ${{ github.event.comment.user.login }}
+          BODY: ${{ github.event.comment.body }}
+        run: |
+          # 첫 줄만 보고 앞뒤 공백은 무시한다(2026-10-22 tracker #24 '/approve ' 무시됨).
+          first=$(printf '%s\n' "$BODY" | head -n1 | tr -d '[:space:]')
+          if [ "$first" != "/approve" ]; then echo "첫 줄이 /approve 가 아니다"; exit 0; fi
+          p=$(gh api "repos/$REPO/collaborators/$WHO/permission" -q .permission)
+          echo "권한: $p"
+          if [ "$p" != admin ] && [ "$p" != write ]; then exit 0; fi
+          if [ "$IS_PR" = true ]; then pr=$NUM; else
+            pr=$(gh pr list -R "$REPO" --state open --json number,headRefName -q "[.[] | select(.headRefName | startswith(\"feat/$NUM-\"))][0].number")
+          fi
+          if [ -z "$pr" ]; then echo "연결된 열린 PR 없음"; exit 0; fi
+          if gh pr merge "$pr" -R "$REPO" --squash --delete-branch; then
+            echo "병합: #$pr"
+          else
+            echo "자동 병합이 막혔다. 필수 검사 실패, 리뷰 규칙, draft 상태 중 하나가 원인이다. 막힌 조건을 풀고 /approve 를 다시 달거나, 사람이 직접 병합한다." > "$RUNNER_TEMP/m.txt"
+            gh pr comment "$pr" -R "$REPO" --body-file "$RUNNER_TEMP/m.txt"
+          fi

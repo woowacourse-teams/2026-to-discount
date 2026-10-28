@@ -1,3 +1,4 @@
+# Template: render with provision.sh before installing.
 [Unit]
 Description=ToDiscount development backend
 After=network-online.target
@@ -6,9 +7,9 @@ Wants=network-online.target
 [Service]
 User=todiscount-dev
 Group=todiscount-dev
-WorkingDirectory=/var/lib/todiscount-be-dev
-EnvironmentFile=/etc/todiscount-be-dev.env
-ExecStart=/usr/lib/jvm/java-21-openjdk-arm64/bin/java -Xms256m -Xmx1536m -jar /opt/todiscount-be-dev/current.jar
+WorkingDirectory=@@DATA_DIR@@
+EnvironmentFile=@@ENV_FILE@@
+ExecStart=@@JAVA_BIN@@ -Xms256m -Xmx1536m -jar @@JAR_FILE@@
 Restart=on-failure
 RestartSec=5
 MemoryMax=2560M
@@ -17,7 +18,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
-ReadWritePaths=/var/lib/todiscount-be-dev
+ReadWritePaths=@@DATA_DIR@@
 UMask=0027
 
 [Install]

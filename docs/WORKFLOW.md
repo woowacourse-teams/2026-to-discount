@@ -76,6 +76,10 @@ CORS: 프리뷰 도메인 패턴은 `api/.../WebConfig.java`에 이미 열려 �
 
 브레인스토밍 승인과 구현 승인은 다른 승인이다. 설계가 좋다고 바로 짜지 않는다. 승인 뒤 계획을 쓰고, 계획대로 만들고, 만든 뒤 ADR을 쓴다. 즉시 도입하지 않는 설계도 문서로 남긴다.
 
+### 3-6. 이슈에서 병합까지 자동 흐름 (mono, tracker 공통)
+
+이슈에 `ready` 라벨을 달면 설계 세션이 설계 문서와 초안 PR을 만든다. 사람이 이슈에 `/approve-design`, PR에 `/approve`를 달면 구현과 병합이 이어지고, 병합 뒤 요약과 후속 이슈가 자동으로 붙는다. 리뷰 반영은 PR에 `/reflect`. 단계표, 사람 관문, 저장소별 설정은 [`design/119-dev-workflow-asbuilt.md`](design/119-dev-workflow-asbuilt.md) "지금 상태"가 정본이다. 워크플로 본문은 `.github/workflows/wf-*.yml`, PR 본문과 후속 이슈의 글쓰기 규칙은 `.claude/skills/pr-body-ko/SKILL.md`.
+
 ## 4. 하지 않는 것
 
 - 원장 `log.jsonl`을 편집하거나 줄을 지우지 않는다. `export_data.py`를 손으로 다시 돌리지 않는다. 종료된 할인이 되살아난다.

@@ -15,6 +15,10 @@ for (const file of files) {
     const text = m[1].replace(/\s+/g, ' ').trim()
     if (!text) continue
     if (/(?<!니)다\.?$/.test(text)) problems.push(`${file}: 평서형 문장 — "${text}"`)
+    // 여는 시각은 "오전 10시 오픈"으로 쓴다. 시각 뒤에 오픈, 부터, 까지, ~ 가 없으면 잡는다(2026-10-19 사용자).
+    for (const t of text.matchAll(/\d+시(?:\s*\d+분)?/g)) {
+      if (!/^\s*(?:오픈|부터|까지|~|이전|이후|전|후|간)/.test(text.slice(t.index + t[0].length))) problems.push(`${file}: 시각 뒤 "오픈" 없음 — "${text}"`)
+    }
     const bad = FORBIDDEN.filter((w) => text.includes(w))
     if (bad.length) problems.push(`${file}: 개발자 말 ${bad.join(',')} — "${text}"`)
   }

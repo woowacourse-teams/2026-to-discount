@@ -93,6 +93,14 @@ class BrandCatalogTest {
     }
 
     @Test
+    void japaneseAndAsianAreCategories() {
+        // 배민 브랜드관의 돈까스·회, 아시안 탭 브랜드(2026-10-25). 모르는 값은 미분류가 되므로 enum에 있어야 분류된다.
+        assertEquals(Category.JAPANESE, Category.from("japanese"));
+        assertEquals(Category.ASIAN, Category.from("asian"));
+        assertEquals("japanese", Category.JAPANESE.key());
+    }
+
+    @Test
     void matchesAliasesRegardlessOfCase() {
         // 배너와 캡처 원장 양쪽 다 사람이 손으로 적는 값이 들어온다.
         // 표기마다 별칭을 한 줄씩 적게 하면 언젠가 하나를 빠뜨린다.

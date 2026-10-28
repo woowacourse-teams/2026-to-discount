@@ -1,0 +1,14 @@
+# 정본은 mono .github/workflows/wf-approve.yml. 이 파일은 언제 부를지와 이 저장소 설정만 둔다.
+name: approve-merge
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  run:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    uses: ./.github/workflows/wf-approve.yml
+    secrets: inherit

@@ -10,8 +10,6 @@ test('주소에 ?guide=1이 있을 때만 뜬다(첫 방문 자동 노출 없음
   assert.equal(shouldShowGuide({ ...first, search: '?guide=0' }), false)
 })
 
-test('두 안은 바 쪽 단계만 다르다', () => {
-  const keys = (arm) => guideSteps(arm).map((s) => s.key)
-  assert.deepEqual(keys('old'), ['card', 'sort', 'category', 'platform', 'search'])
-  assert.deepEqual(keys('coupon'), ['card', 'sort', 'category', 'search', 'filter'])
+test('안내 단계는 쿠폰 카드와 상단 바 기준이다', () => {
+  assert.deepEqual(guideSteps().map((s) => s.key), ['card', 'sort', 'category', 'search', 'filter'])
 })
