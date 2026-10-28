@@ -145,9 +145,11 @@ public class SurveyService {
      * 그 사이에 답한 사람이 한 번 더 받는다 — 판정은 쓰는 쪽에서 해야 한다.
      */
     // synchronized: 판정(원장 조회)부터 기록(원장 기입)까지가 한 덩어리여야
-    // 동시 요청으로 같은 사람이 코드를 여러 개 받는 것을 막는다. 서버가
-    // 단일 인스턴스이고(스펙 전제) 설문 제출은 하루 몇 건이라 이 잠금이
-    // 병목이 되지 않는다.
+    // 동시 요청으로 같은 사람이 코드를 여러 개 받는 것을 막는다. 이 잠금은
+    // 한 JVM 안에서만 유효하다. 배포 중 임시 인스턴스(#188)가 함께 뜨는
+    // 10~20초 동안은 인스턴스 사이를 막지 못하고, 같은 코드가 두 번
+    // 나가는 것은 GifticonStore의 파일 락이 막는다. 설문 제출은 하루 몇
+    // 건이라 이 잠금이 병목이 되지 않는다.
     public synchronized Answer answer(String visitorId, String choice, String text,
                                       Map<String, String> answers, String ipHash) {
         if (!qualifies(visitorId)) {
