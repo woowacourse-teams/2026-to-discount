@@ -15,6 +15,9 @@ api/deploy/dev/sync_offers.py
 api/deploy/dev/test_deploy.py
 api/deploy/dev/test_sync_offers.py
 api/deploy/dev/todiscount-be-dev.service
+api/deploy/prod/README.md
+api/deploy/prod/stage_deploy.py
+api/deploy/prod/test_stage_deploy.py
 api/gradle/wrapper/gradle-wrapper.jar
 api/gradle/wrapper/gradle-wrapper.properties
 api/gradlew
@@ -39,6 +42,7 @@ api/src/main/java/com/discounttracker/analytics/ClientFingerprint.java
 api/src/main/java/com/discounttracker/analytics/CrawlerName.java
 api/src/main/java/com/discounttracker/analytics/EventController.java
 api/src/main/java/com/discounttracker/analytics/EventLog.java
+api/src/main/java/com/discounttracker/analytics/EventLogSnapshot.java
 api/src/main/java/com/discounttracker/analytics/EventRateLimiter.java
 api/src/main/java/com/discounttracker/analytics/GifticonStore.java
 api/src/main/java/com/discounttracker/analytics/PopularityIndex.java
@@ -78,6 +82,7 @@ api/src/main/java/com/discounttracker/offer/AmountKind.java
 api/src/main/java/com/discounttracker/offer/Certainty.java
 api/src/main/java/com/discounttracker/offer/DiscountLadder.java
 api/src/main/java/com/discounttracker/offer/DiscountTier.java
+api/src/main/java/com/discounttracker/offer/FirstComeLinkFilter.java
 api/src/main/java/com/discounttracker/offer/Membership.java
 api/src/main/java/com/discounttracker/offer/Offer.java
 api/src/main/java/com/discounttracker/offer/OfferComparison.java
@@ -116,6 +121,7 @@ api/src/test/java/com/discounttracker/analytics/AnalyticsEventServiceTest.java
 api/src/test/java/com/discounttracker/analytics/ClientFingerprintTest.java
 api/src/test/java/com/discounttracker/analytics/CrawlerNameTest.java
 api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
+api/src/test/java/com/discounttracker/analytics/EventLogSnapshotTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogTest.java
 api/src/test/java/com/discounttracker/analytics/GifticonStoreTest.java
 api/src/test/java/com/discounttracker/analytics/PopularityIndexTest.java
@@ -145,6 +151,7 @@ api/src/test/java/com/discounttracker/history/HistoryRepositoryTest.java
 api/src/test/java/com/discounttracker/history/OfferHistoryTest.java
 api/src/test/java/com/discounttracker/offer/CertaintyTest.java
 api/src/test/java/com/discounttracker/offer/DiscountLadderTest.java
+api/src/test/java/com/discounttracker/offer/FirstComeLinkFilterTest.java
 api/src/test/java/com/discounttracker/offer/OfferCertaintyTest.java
 api/src/test/java/com/discounttracker/offer/OfferComparisonTest.java
 api/src/test/java/com/discounttracker/offer/OfferContractTest.java
@@ -190,12 +197,14 @@ web/scripts/dev/banner-measure.mjs
 web/scripts/dev/banner-shot.mjs
 web/scripts/dev/build-ui-kit.py
 web/scripts/dev/capture-dom.mjs
+web/scripts/dev/fixtures/DATE
 web/scripts/dev/fixtures/banners.json
 web/scripts/dev/fixtures/brands.json
 web/scripts/dev/layout-check.js
 web/scripts/dev/layout-report.py
 web/scripts/dev/load-interact.mjs
 web/scripts/dev/load-tbt.mjs
+web/scripts/dev/test_layout_report.py
 web/scripts/indexnow.mjs
 web/scripts/make-logo-webp.py
 web/scripts/prerender.mjs
@@ -257,6 +266,7 @@ web/src/cardId.js
 web/src/cardShift.js
 web/src/cardShift.test.js
 web/src/couponCard.test.js
+web/src/couponLayout.test.js
 web/src/couponModel.js
 web/src/couponModel.test.js
 web/src/devPromotion.test.js
@@ -381,8 +391,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 171 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 162 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 178 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 165 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -394,12 +404,12 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 23 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 24 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 6 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `history/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 6 |
-| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 11 |
+| `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 12 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
 | `web/` | HTTP 엔드포인트와 CORS | 8 |
 
@@ -473,6 +483,7 @@ HTTP 경계:
 | `cardShift.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `couponLayout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `couponModel.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `devPromotion.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |

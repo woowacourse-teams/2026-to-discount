@@ -64,3 +64,14 @@
 ## 테스트
 
 `EventLogTest.readFromGivesOnlyCompleteNewLines`, `SurveyEligibilityTest.countsLinesAppendedAfterFirstCount`, `SurveyEligibilityTest.recountsWhenLogIsReplaced`, `PopularityIndexTest.addsNewClicksAndDropsOldOnReload`.
+
+## 2026-10-16 추가: 요약 스냅샷
+
+재시작마다 원장 전체를 읽는 비용(N에 선형)을 없앤다. 인기와 설문 판정이 각자 집계와 읽은 자리를 원장 옆 `events.jsonl.popularity.snapshot.json`, `events.jsonl.survey.snapshot.json`에 쓴다(tmp에 쓰고 ATOMIC_MOVE. 인기는 reload마다, 설문은 10분에 한 번과 종료 때). 인기는 7일 안 누름만 담는다. 기동 때 스냅샷을 읽고 그 자리부터 이어 읽는다.
+
+스냅샷은 원장에서 다시 만들 수 있는 캐시다. 없거나, 깨졌거나, 버전이 다르거나, 자리가 원장 크기보다 크거나, 원장 앞 4KB 해시가 다르면 경고 로그를 남기고 처음부터 읽는다. 원장은 읽기만 한다. "집계가 원장과 따로 놀 자리가 없다"는 위 결정은 이 검사로 지킨다.
+
+- 끄기: `analytics.snapshot.enabled=false`(`ANALYTICS_SNAPSHOT_ENABLED=false`). 예전과 같은 동작이고 스냅샷을 쓰지도 읽지도 않는다.
+- 스냅샷 파일을 지우면 다음 기동이 전체를 읽는다.
+- 로컬 합성 100만 줄(397MB): 전체 읽기 인기 5.2~8.6초 + 설문 5.8~7.0초, 스냅샷 기동 0.46초 + 0.96초.
+- 다음 단계(안 함): 지난달 원장을 `events-YYYY-MM.jsonl.gz`로 보관하는 회전. 설문 자격이 누적이라 회전 뒤에는 스냅샷이 유일한 누적 상태가 되므로, 그때는 스냅샷이 깨졌을 때 보관 파일까지 읽는 복구 경로를 같이 넣어야 한다.

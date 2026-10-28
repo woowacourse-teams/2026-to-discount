@@ -1,5 +1,7 @@
 package com.discounttracker.brand;
 
+import java.util.Locale;
+
 /**
  * 브랜드 분류. 프론트 카테고리 필터가 이 값을 그대로 쓴다.
  *
@@ -16,13 +18,15 @@ public enum Category {
     CONVENIENCE,
     KOREAN,
     CHINESE,
-    WESTERN;
+    WESTERN,
+    JAPANESE,
+    ASIAN;
 
     /** brands.yml의 소문자 표기를 enum으로. 모르는 값이면 null(미분류). */
     public static Category from(String raw) {
         if (raw == null || raw.isBlank()) return null;
         try {
-            return valueOf(raw.trim().toUpperCase());
+            return valueOf(raw.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -30,6 +34,6 @@ public enum Category {
 
     /** JSON으로 나갈 때는 프론트가 쓰는 소문자 키로. */
     public String key() {
-        return name().toLowerCase();
+        return name().toLowerCase(Locale.ROOT);
     }
 }

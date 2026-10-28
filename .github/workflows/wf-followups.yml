@@ -7,6 +7,8 @@ on:
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN:
         required: true
+      CLAUDE_CODE_OAUTH_TOKEN_2:
+        required: false
       WF_APP_ID:
         required: true
       WF_APP_PRIVATE_KEY:
@@ -17,7 +19,9 @@ jobs:
     if: >-
       github.event.pull_request.merged == true &&
       (contains(github.event.pull_request.body, fromJSON('"\n### 후속 조치"')) ||
-       startsWith(github.event.pull_request.body, '### 후속 조치'))
+       contains(github.event.pull_request.body, fromJSON('"\n## 후속 조치"')) ||
+       startsWith(github.event.pull_request.body, '### 후속 조치') ||
+       startsWith(github.event.pull_request.body, '## 후속 조치'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -79,11 +83,30 @@ jobs:
           done
           p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
           echo "path=$p" >> "$GITHUB_OUTPUT"
+      # 첫 토큰이 사용량 한도면 두 번째 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)을 쓴다. 두 번째가 없으면 첫 토큰 그대로.
+      - name: 토큰 고르기
+        id: tok
+        env:
+          T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
+          CLAUDE: ${{ steps.cc.outputs.path }}
+          # 손 전환: 저장소 변수 CLAUDE_TOKEN_SLOT이 1이나 2면 시험 없이 그 토큰을 쓴다. 비면 자동.
+          SLOT: ${{ vars.CLAUDE_TOKEN_SLOT }}
+        run: |
+          if [ "$SLOT" = 2 ] && [ -n "$T2" ]; then echo "which=2" >> "$GITHUB_OUTPUT"; echo "손 전환: 두 번째 토큰"; exit 0; fi
+          if [ "$SLOT" = 1 ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "손 전환: 첫 토큰"; exit 0; fi
+          if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
+          out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
+            echo "which=2" >> "$GITHUB_OUTPUT"; echo "첫 토큰 한도, 두 번째 토큰"
+          else
+            echo "which=1" >> "$GITHUB_OUTPUT"; echo "첫 토큰(시험 종료 코드 $rc)"
+          fi
       - id: claude
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
         with:
           path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: "2026-to-discount"
           prompt: |
             병합된 PR ${{ github.repository }}#${{ github.event.pull_request.number }} 의 후속 조치를 이슈 계획으로 만드는 세션이다.
@@ -102,7 +125,8 @@ jobs:
       # 계획대로 이슈를 만든다. 저장소는 이 저장소와 짝 저장소만 받는다. 항목 표식으로 다시 돌아도 같은 이슈를 안 만든다.
       - name: 이슈 만들기
         env:
-          SELF_TOKEN: ${{ steps.self.outputs.token }}
+          # 이 저장소 이슈는 기본 토큰으로 만든다. tracker App 설치에 이슈 권한이 없어 createIssue가 거부됐다(2026-10-22 tracker #33).
+          SELF_TOKEN: ${{ github.token }}
           OTHER_TOKEN: ${{ steps.other.outputs.token }}
         run: |
           f="$RUNNER_TEMP/followups.json"

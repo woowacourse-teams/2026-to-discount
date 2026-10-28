@@ -5,6 +5,8 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -52,10 +54,20 @@ public class PopularityIndex {
     private volatile Map<String, Integer> previous = Map.of();   // 직전 갱신 때의 오늘(24시간) 사람 수. 순위 등락용(2026-10-20)
     private volatile Instant computedAt = Instant.EPOCH;
 
+    private final EventLogSnapshot snapshot;   // null이면 꺼짐(지금까지와 같은 동작)
+    private boolean restored;
+
     public PopularityIndex(EventLog eventLog, ObjectMapper mapper, Clock clock) {
+        this(eventLog, mapper, clock, false);
+    }
+
+    @Autowired
+    public PopularityIndex(EventLog eventLog, ObjectMapper mapper, Clock clock,
+                           @Value("${analytics.snapshot.enabled:true}") boolean snapshotEnabled) {
         this.eventLog = eventLog;
         this.mapper = mapper;
         this.clock = clock;
+        this.snapshot = snapshotEnabled ? new EventLogSnapshot(eventLog.path(), "popularity", 1) : null;
     }
 
     /** 브랜드 대표명 → 이번 주(7일) 누른 사람 수. 없으면 0. */
@@ -102,6 +114,10 @@ public class PopularityIndex {
         Instant weekSince = now.minus(WEEK);
         Instant daySince = now.minus(DAY);
         Instant prevSince = now.minus(DAY.multipliedBy(2));
+        if (!restored) {
+            restored = true;
+            restore();
+        }
         try {
             long next = eventLog.readFrom(offset, this::add);
             if (next < 0) {                                         // 원장을 갈아끼웠다
@@ -116,6 +132,8 @@ public class PopularityIndex {
         }
         // 원장은 대개 시간순이지만 늦게 온 배치가 섞일 수 있어 앞에서 끊지 않고 전부 본다(800건 남짓).
         clicks.removeIf(c -> c.at().isBefore(weekSince));
+        // 10분에 한 번 도는 reload마다 쓴다. 7일 안 누름만이라 작다(주 800건 남짓).
+        if (snapshot != null) snapshot.save(offset, state());
         Map<String, Set<String>> week = new HashMap<>();
         Map<String, Set<String>> day = new HashMap<>();
         Map<String, Set<String>> prev = new HashMap<>();
@@ -139,6 +157,32 @@ public class PopularityIndex {
         long t = System.nanoTime();
         reload();
         log.info("인기 표 첫 계산 {}ms, 지난 7일 누름 {}건", (System.nanoTime() - t) / 1_000_000, clicks.size());
+    }
+
+    private void restore() {
+        if (snapshot == null) return;
+        JsonNode n = snapshot.load();
+        if (n == null) return;
+        try {
+            java.util.List<Click> loaded = new java.util.ArrayList<>();
+            for (JsonNode c : n.path("state").path("clicks")) {
+                loaded.add(new Click(Instant.parse(c.get(0).asString()), c.get(1).asString(), c.get(2).asString()));
+            }
+            clicks.addAll(loaded);
+            offset = n.path("offset").asLong();
+            log.info("인기 스냅샷에서 이어 읽는다: 자리 {}, 누름 {}건", offset, loaded.size());
+        } catch (RuntimeException e) {
+            log.warn("인기 스냅샷 내용이 깨져 처음부터 읽는다: {}", e.toString());
+            clicks.clear();
+            offset = 0;
+        }
+    }
+
+    private JsonNode state() {
+        tools.jackson.databind.node.ObjectNode st = EventLogSnapshot.MAPPER.createObjectNode();
+        tools.jackson.databind.node.ArrayNode arr = st.putArray("clicks");
+        for (Click c : clicks) arr.addArray().add(c.at().toString()).add(c.brand()).add(c.visitor());
+        return st;
     }
 
     private void add(String line) {

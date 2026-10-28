@@ -17,10 +17,25 @@ export const CATEGORIES = [
   { key: 'chicken', label: '치킨' },
   { key: 'pizza', label: '피자' },
   { key: 'fastfood', label: '패스트푸드' },
-  { key: 'cafe', label: '카페' },
+  { key: 'cafe', label: '카페/디저트' },
   { key: 'convenience', label: '편의점' },
   { key: 'korean', label: '한식' },
+  { key: 'japanese', label: '일식' },
 ]
+
+// 그 분류의 오퍼가 이만큼 이하면 탭을 숨긴다(2026-10-26 사용자: 일식처럼 빈약한 칸). 브랜드가 아니라 오퍼 수다.
+export const MIN_CATEGORY_OFFERS = 5
+
+/**
+ * 오퍼가 충분한 분류만 남긴다. 브랜드를 아직 못 받았으면 전부 보인다.
+ * 지금 골라 둔 분류는 오퍼가 줄어도 남긴다(탭이 사라져 선택을 못 푸는 일을 막는다).
+ */
+export function visibleCategories(brands, selected = new Set()) {
+  if (!brands) return CATEGORIES
+  const count = new Map()
+  for (const b of brands) count.set(b.category, (count.get(b.category) ?? 0) + (b.offers?.length ?? 0))
+  return CATEGORIES.filter((c) => selected.has(c.key) || (count.get(c.key) ?? 0) > MIN_CATEGORY_OFFERS)
+}
 
 // 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
 // docs/specs/2026-07-28-product-brief.md에 "UI만 배치, 로직 보류"로 명시된
@@ -378,6 +393,22 @@ export function pinPopular(brands, filters, rankBrands = brands) {
   const front = top.map((r) => brands.find((b) => b.name === r.brand.name)).filter(Boolean)
   if (front.length === 0) return brands
   return [...front, ...brands.filter((b) => !names.has(b.name))]
+}
+
+/**
+ * 기본 정렬에서 맨 위로 올라온 이유: 이름 → 'hot'(HOT 1~5위 고정) | 'new'(신규 앞). 올라오지 않은 브랜드는 담지 않는다.
+ * 노출과 클릭에 `pin`으로 실어, 같은 브랜드가 고정일 때와 아닐 때를 가른다(2026-10-27, 정렬 효과 분석).
+ * 순서를 만드는 applyFilters(신규 앞)와 pinPopular(HOT 앞)와 같은 조건을 쓴다. 한쪽만 고치면 표시가 어긋나서
+ * filters.test.js가 실제 순서와 대조한다.
+ */
+export function pinKinds(brands, filters, rankBrands = brands) {
+  const kinds = new Map()
+  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return kinds
+  const top = popularToday(rankBrands)
+  if (top.length >= STRIP_MIN) for (const r of top) kinds.set(r.brand.name, 'hot')
+  const include = includesFrom(filters)
+  for (const b of brands) if (!kinds.has(b.name) && hasNewBest(b.offers, include)) kinds.set(b.name, 'new')
+  return kinds
 }
 
 /**

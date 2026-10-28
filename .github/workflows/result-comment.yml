@@ -5,7 +5,7 @@ on:
     types: [completed]
   # Actions 검사 종료는 check_suite로 깨지 않는다. 검사 워크플로가 끝날 때마다 다시 쓴다.
   workflow_run:
-    workflows: [Check API, Check Web, Check Project Structure, secret-scan, ios-shot]
+    workflows: [Check API, Check Web, Check Project Structure, secret-scan]
     types: [completed]
 
 jobs:

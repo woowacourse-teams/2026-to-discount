@@ -26,6 +26,8 @@ on:
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN:
         required: true
+      CLAUDE_CODE_OAUTH_TOKEN_2:
+        required: false
       WF_APP_ID:
         required: true
       WF_APP_PRIVATE_KEY:
@@ -177,6 +179,26 @@ jobs:
           done
           p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
           echo "path=$p" >> "$GITHUB_OUTPUT"
+      # 첫 토큰이 사용량 한도면 두 번째 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)을 쓴다. 두 번째가 없으면 첫 토큰 그대로.
+      - name: 토큰 고르기
+        id: tok
+        if: steps.role.outputs.agent != ''
+        env:
+          T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
+          CLAUDE: ${{ steps.cc.outputs.path }}
+          # 손 전환: 저장소 변수 CLAUDE_TOKEN_SLOT이 1이나 2면 시험 없이 그 토큰을 쓴다. 비면 자동.
+          SLOT: ${{ vars.CLAUDE_TOKEN_SLOT }}
+        run: |
+          if [ "$SLOT" = 2 ] && [ -n "$T2" ]; then echo "which=2" >> "$GITHUB_OUTPUT"; echo "손 전환: 두 번째 토큰"; exit 0; fi
+          if [ "$SLOT" = 1 ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "손 전환: 첫 토큰"; exit 0; fi
+          if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
+          out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
+            echo "which=2" >> "$GITHUB_OUTPUT"; echo "첫 토큰 한도, 두 번째 토큰"
+          else
+            echo "which=1" >> "$GITHUB_OUTPUT"; echo "첫 토큰(시험 종료 코드 $rc)"
+          fi
       - if: steps.role.outputs.agent != ''
         id: claude
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
@@ -184,7 +206,7 @@ jobs:
           PYTHONIOENCODING: utf-8
         with:
           path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             이슈 #${{ env.ISSUE }} 의 구현자 세션이다.
             .claude/agents/${{ steps.role.outputs.agent }}.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서(${{ env.SPEC }}-*.md)를 구현한다.
@@ -195,6 +217,9 @@ jobs:
             ${{ steps.role.outputs.test }}
             mono/ 와 beggars-ops/ 가 있으면 테스트용 체크아웃이다. 고치거나 커밋하지 않는다.
             끝나면 첫 줄이 `인계:` 인 이슈 댓글 하나를 남긴다(한 것, 남은 것, 막힌 것, 테스트 결과 줄).
+            PR 본문 갱신: 설계 PR 본문은 설계 때 쓴 그대로라 구현을 모른다. PR 본문 스킬(mono/.claude/skills/pr-body-ko/SKILL.md 또는 .claude/skills/pr-body-ko/SKILL.md)의 "다시 쓸 때"대로
+            `### 변경 1 (날짜): 구현` 절 하나를 Write로 ${{ runner.temp }}/pr-update.md 에 쓴다(실제 추가/변경, 설계 변동, 확인, 미확인, 필요하면 `### 후속 조치`).
+            최종 제목 한 줄을 ${{ runner.temp }}/pr-title.txt 에 쓴다(`[분야] 종류: 설명`, 종류는 구현까지 포함한 feat/fix/test 등). 워크플로가 본문 끝에 붙이고 제목을 바꾼다.
             셸 명령은 한 번에 하나씩 쓴다. cd, &&, 파이프, heredoc으로 묶지 않는다. 파일은 Write 도구로 쓴다. 댓글은 Write로 파일을 만든 뒤 --body-file로 넘긴다.
           claude_args: --max-turns 80 --allowedTools "Read,Grep,Glob,Write,Edit,${{ steps.role.outputs.tools }},Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue comment:*)"
       # Claude 액션이 끝나며 checkout의 git 자격을 지운다(2026-10-22 tracker #10). 세션 커밋을 패치로 보관하고
@@ -257,6 +282,17 @@ jobs:
           if [ "$n" -gt 0 ]; then echo "인계 댓글: $n"; else echo "인계 댓글 없음"; ok=0; fi
           [ "$ok" = 1 ]
           gh pr ready "$pr" -R "$GH_REPO"
+          # 구현 세션이 쓴 변경 절을 본문 끝(생성 표기 앞)에 붙이고 제목을 바꾼다. 없으면 건너뛴다.
+          if [ -s "$RUNNER_TEMP/pr-update.md" ]; then
+            gh pr view "$pr" -R "$GH_REPO" --json body -q .body > "$RUNNER_TEMP/body.md"
+            # 생성 표기 줄부터 끝을 떼어 두고, 그 앞에 변경 절을 넣는다.
+            awk '/^🤖 Generated with/{f=1} !f' "$RUNNER_TEMP/body.md" > "$RUNNER_TEMP/new.md"
+            { echo; cat "$RUNNER_TEMP/pr-update.md"; echo; } >> "$RUNNER_TEMP/new.md"
+            awk '/^🤖 Generated with/{f=1} f' "$RUNNER_TEMP/body.md" >> "$RUNNER_TEMP/new.md"
+            gh pr edit "$pr" -R "$GH_REPO" --body-file "$RUNNER_TEMP/new.md"
+          fi
+          t=$(head -1 "$RUNNER_TEMP/pr-title.txt" 2>/dev/null || true)
+          if [ -n "$t" ]; then gh pr edit "$pr" -R "$GH_REPO" --title "$t"; fi
       - name: 거부된 도구와 턴 수
         if: always() && steps.claude.outputs.execution_file != ''
         env:

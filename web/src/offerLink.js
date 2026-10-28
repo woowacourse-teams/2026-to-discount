@@ -76,7 +76,7 @@ let hubLinks = {}
 
 // 쿠팡이츠는 오퍼와 배너 모두 이 링크(와우 라운지)로 보낸다(2026-10-06 사용자). 수집이 매일 받는 허브 공유 링크보다 우선.
 // 마지막 기본값이다. 수집이 매일 검증한 공유 링크를 오퍼 link로 실어 보내면 그게 먼저다(2026-10-12 만료 링크가 박혀 있었다).
-export const COUPANGEATS_LINK = 'https://share.coupangeats.com/AA8dvNb8k7b'
+export const COUPANGEATS_LINK = 'https://share.coupangeats.com/DqsQ901Kw7b'
 // 쿠팡이츠 공유 링크 접두사. offerLink와 openWithNotice가 같이 쓴다(한쪽만 고치면 안내 없이 열린다, #141).
 const CE_SHARE_PREFIX = 'https://share.coupangeats.com/'
 
@@ -192,12 +192,15 @@ export function offerLink(offer, brandLinks, brandName) {
 }
 
 /** offer_link_click 속성. 운영 카드와 쿠폰 카드가 같은 키로 남긴다(PostHog 대시보드가 이 키로 가른다). */
-export function offerClickProps({ offer, brandName, position, best, where, slot, expanded }) {
+export function offerClickProps({ offer, brandName, position, pin, best, where, slot, expanded }) {
   return {
     brand: brandName,
     platform: offer.platform,
     // 카드 순번(1부터). 정렬을 바꾼 뒤 몇 번째 카드가 눌리는지 — 정렬 효과의 근거(2026-09-20).
     position,
+    // 맨 위로 올라온 이유: hot(HOT 1~5위 고정) | new(신규 앞) | none(2026-10-27). 서버가 속성을 앞에서부터
+    // MAX_PROPS까지만 남기므로 position 바로 뒤에 둔다.
+    pin: pin ?? 'none',
     amount: offer.amount ?? null,
     minOrder: offer.minOrderAmount ?? null,
     qualifier: offer.qualifier ?? 'none',

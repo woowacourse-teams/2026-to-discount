@@ -36,7 +36,8 @@ const PLATFORM_LABEL = {
 
 const CATEGORY_LABEL = {
   chicken: '치킨', pizza: '피자', fastfood: '패스트푸드', snack: '분식',
-  cafe: '카페', convenience: '편의점', korean: '한식', chinese: '중식',
+  cafe: '카페/디저트', convenience: '편의점', korean: '한식', chinese: '중식',
+  western: '양식', japanese: '일식', asian: '아시안',
 }
 
 function esc(s) {

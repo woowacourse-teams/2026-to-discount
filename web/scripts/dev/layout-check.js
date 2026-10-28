@@ -3,6 +3,8 @@
 // 실제 iOS 사파리 안에서 구조를 재서 러너(localhost:8099)로 보내고, 화면 아래에도 적어 사진에 남긴다.
 // ?css=<CSS> 를 주면 앱보다 먼저 스타일을 넣는다. 고칠 후보 여럿을 한 번의 실행에서 주소만 바꿔 견준다.
 // ?sheet=<브랜드> 면 그 카드의 "자세히" 시트를 열어 표 칩까지 잰다(접힌 화면에는 표가 없다).
+// ?tab=<n> 이면 분류 바의 n번째 버튼(0이 전체)을 누르고, ?scroll=end 면 목록 끝까지 내린 뒤 잰다(#146).
+// 문구가 아니라 위치로 고른다. 눌린 버튼 글자는 사람이 사진에서 읽으라고 보고에만 남긴다.
 (function () {
   const q = new URLSearchParams(location.search)
   // 개발 빌드의 "DEV" 띠(position: fixed, 오른쪽 밖으로 삐져나감)가 iOS에서 가로 넘침 78px를 만들었다. 운영 사용자에게는 없다
@@ -25,8 +27,8 @@
   const brandOf = (el) => el.closest('[data-brand]')?.dataset.brand
     || el.closest('.cc-sheet')?.getAttribute('aria-label')?.replace(/ 할인 자세히$/, '') || '?'
 
-  function measure() {
-    const fails = []
+  function measure(scene, sceneFails) {
+    const fails = [...sceneFails]
     const over = document.documentElement.scrollWidth - innerWidth
     if (over > 1) {
       // 넘치는 요소 중 조상이 안 넘치는 것(가장 바깥)만 짚는다
@@ -70,11 +72,33 @@
     }
     // ?expect=carousel: 시험 데이터는 넘김 카드가 맨 위다. 없으면 검사가 헛돈 것이라 실패로 친다
     if (q.get('expect') === 'carousel' && carousels.length === 0) fails.push('첫 화면에 넘김 카드가 없다(검사 대상 없음)')
+    const inView = (el) => {
+      const r = el.getBoundingClientRect()
+      return r.top < innerHeight && r.bottom > 0 && r.left < innerWidth && r.right > 0
+    }
+    const textsOf = (el) => [...el.childNodes].filter((n) => n.nodeType === 3 && n.textContent.trim())
+    const couponText = { amounts: 0, minimums: 0 }
     for (const amt of document.querySelectorAll('.cc-amt')) {
-      if (amt.getBoundingClientRect().top > innerHeight) continue
+      if (!inView(amt.closest('.cc-ticket') || amt)) continue
       const small = amt.querySelector('small')
-      const text = [...amt.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim())
-      if (small && text && cross(rectOf(text), small.getBoundingClientRect())) fails.push(`${brandOf(amt)}: 금액 "${text.textContent.trim()}"과 "${small.textContent}"가 겹친다`)
+      const text = textsOf(amt.querySelector('s') || amt)[0]
+      if (!small) continue
+      couponText.amounts++
+      const digits = text && rectOf(text)
+      const unit = rectOf(small)
+      if (!digits || digits.width <= 0) fails.push(`${brandOf(amt)}: 금액 텍스트 폭이 0이다`)
+      if (unit.width <= 0) fails.push(`${brandOf(amt)}: 할인 단위 텍스트 폭이 0이다`)
+      if (digits && cross(digits, unit)) fails.push(`${brandOf(amt)}: 금액 "${text.textContent.trim()}"과 "${small.textContent}"가 겹친다`)
+    }
+    for (const min of document.querySelectorAll('.cc-min')) {
+      if (!inView(min.closest('.cc-ticket') || min)) continue
+      couponText.minimums++
+      const texts = textsOf(min)
+      if (!texts.length || texts.some((text) => rectOf(text).width <= 0)) fails.push(`${brandOf(min)}: 최소주문 텍스트 폭이 0이다`)
+    }
+    if (q.get('expect') === 'coupon-text') {
+      if (!couponText.amounts) fails.push('쿠폰 금액과 단위가 없다(검사 대상 없음)')
+      if (!couponText.minimums) fails.push('최소주문 문구가 없다(검사 대상 없음)')
     }
     if (q.get('sheet') && !document.querySelector('.cc-sheet .cc-t-chips')) fails.push(`${q.get('sheet')}: 상세 시트의 표를 못 열었다(검사 대상 없음)`)
     for (const chips of document.querySelectorAll('.cc-t-chips')) {
@@ -88,13 +112,14 @@
     // 첫 방문에서만 깨졌다(2026-10-16). 그 순간의 스타일, 글꼴, 시각을 남긴다
     const diag = { sheets: document.styleSheets.length, fonts: document.fonts ? document.fonts.status : null,
       cardsAt: cardsAt == null ? null : cardsAt - t0, measuredAt: Date.now() - t0 }
-    return { url: location.href, w: innerWidth, vv: vv ? { x: Math.round(vv.offsetLeft), scale: vv.scale } : null, ua: navigator.userAgent, carousels, diag, fails }
+    return { url: location.href, scene, w: innerWidth, vv: vv ? { x: Math.round(vv.offsetLeft), scale: vv.scale } : null, ua: navigator.userAgent, carousels, diag, fails }
   }
 
   function report(res) {
     const box = document.createElement('pre')
     box.style.cssText = 'position:fixed;left:4px;right:4px;bottom:90px;z-index:2147483647;margin:0;padding:6px 8px;font:11px/1.35 monospace;white-space:pre-wrap;border-radius:6px;color:#fff;background:' + (res.fails.length ? 'rgba(190,20,20,.92)' : 'rgba(20,120,40,.92)')
-    box.textContent = res.fails.length ? 'LAYOUT FAIL\n' + res.fails.join('\n') : 'LAYOUT OK ' + JSON.stringify(res.carousels)
+    box.textContent = (res.fails.length ? 'LAYOUT FAIL\n' + res.fails.join('\n') : 'LAYOUT OK ' + JSON.stringify(res.carousels))
+      + (res.scene ? '\n' + JSON.stringify(res.scene) : '')
     document.body.appendChild(box)
     fetch('http://localhost:8099/report', { method: 'POST', body: JSON.stringify(res) }).catch(() => {})
   }
@@ -108,7 +133,42 @@
     if (document.querySelector('article[data-brand]') || Date.now() - t0 > 15000) { cardsAt = Date.now(); cb() }
     else setTimeout(() => ready(cb), 300)
   }
-  ready(() => {
+  const names = () => [...document.querySelectorAll('article[data-brand]')].map((a) => a.dataset.brand).join('|')
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+  async function pressTab(n, scene, fails) {
+    // 오퍼가 적은 분류 탭은 숨긴다(#178). 고정 데이터에서는 버튼 수가 n보다 적을 수 있어, 있는 마지막 분류 버튼을 누른다
+    // (0은 전체라 분류가 하나도 없으면 실패한다). 2026-10-26 4번째 버튼이 없어 이 장면이 "전환 안 됨"으로 실패했다.
+    const items = document.querySelectorAll('.menu-bar__item')
+    const btn = items[Math.min(n, items.length - 1)]
+    const before = names()
+    if (btn) btn.click()
+    await sleep(1000)
+    scene.tab = { index: n, pressedIndex: btn ? [...items].indexOf(btn) : null, pressedText: btn ? btn.textContent.trim() : null }
+    if (!btn || btn === items[0] || btn.getAttribute('aria-pressed') !== 'true' || !document.querySelector('article[data-brand]') || names() === before) {
+      fails.push('다른 카테고리 장면이 전환되지 않았다(검사 대상 없음)')
+    }
+  }
+
+  // 목록은 끝 표지가 가까워질 때 한 묶음씩 늘어난다. 높이가 5번 연속 그대로일 때까지 내린다(최대 15초)
+  async function scrollEnd(scene, fails) {
+    const el = document.documentElement
+    let last = -1, same = 0, steps = 0
+    const end = Date.now() + 15000
+    while (same < 5 && Date.now() < end) {
+      scrollTo(0, el.scrollHeight)
+      await sleep(150)
+      steps++
+      same = el.scrollHeight === last ? same + 1 : 0
+      last = el.scrollHeight
+    }
+    scene.scroll = { y: Math.round(scrollY), height: el.scrollHeight, steps }
+    if (same < 5 || scrollY + innerHeight < el.scrollHeight - 2) fails.push('맨 아래까지 못 갔다')
+    if (el.scrollHeight <= innerHeight) fails.push('내릴 것이 없다(목록이 한 화면보다 짧다)')
+  }
+
+  ready(async () => {
+    const scene = {}, fails = []
     if (q.get('sheet')) {
       setTimeout(() => {
         const card = document.querySelector(`article[data-brand="${q.get('sheet')}"]`)
@@ -116,9 +176,13 @@
         if (hint) hint.click()
       }, 1000)
     }
+    try {
+      if (q.get('tab')) await pressTab(Number(q.get('tab')), scene, fails)
+      if (q.get('scroll') === 'end') await scrollEnd(scene, fails)
+    } catch (e) { fails.push('장면 동작 오류: ' + e.message) }
     setTimeout(() => {
       let res
-      try { res = measure() } catch (e) { res = { url: location.href, fails: ['검사 오류: ' + e.message] } }
+      try { res = measure(Object.keys(scene).length ? scene : undefined, fails) } catch (e) { res = { url: location.href, fails: ['검사 오류: ' + e.message] } }
       report(res)
     }, 3000)
   })

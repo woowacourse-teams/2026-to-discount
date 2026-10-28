@@ -17,6 +17,8 @@ on:
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN:
         required: true
+      CLAUDE_CODE_OAUTH_TOKEN_2:
+        required: false
       WF_APP_ID:
         required: true
       WF_APP_PRIVATE_KEY:
@@ -181,6 +183,26 @@ jobs:
           done
           p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
           echo "path=$p" >> "$GITHUB_OUTPUT"
+      # 첫 토큰이 사용량 한도면 두 번째 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)을 쓴다. 두 번째가 없으면 첫 토큰 그대로.
+      - name: 토큰 고르기
+        id: tok
+        if: steps.role.outputs.agent != ''
+        env:
+          T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
+          CLAUDE: ${{ steps.cc.outputs.path }}
+          # 손 전환: 저장소 변수 CLAUDE_TOKEN_SLOT이 1이나 2면 시험 없이 그 토큰을 쓴다. 비면 자동.
+          SLOT: ${{ vars.CLAUDE_TOKEN_SLOT }}
+        run: |
+          if [ "$SLOT" = 2 ] && [ -n "$T2" ]; then echo "which=2" >> "$GITHUB_OUTPUT"; echo "손 전환: 두 번째 토큰"; exit 0; fi
+          if [ "$SLOT" = 1 ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "손 전환: 첫 토큰"; exit 0; fi
+          if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
+          out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
+            echo "which=2" >> "$GITHUB_OUTPUT"; echo "첫 토큰 한도, 두 번째 토큰"
+          else
+            echo "which=1" >> "$GITHUB_OUTPUT"; echo "첫 토큰(시험 종료 코드 $rc)"
+          fi
       - if: steps.role.outputs.agent != ''
         id: claude
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
@@ -188,7 +210,7 @@ jobs:
           PYTHONIOENCODING: utf-8
         with:
           path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             PR #${{ env.PR }}, 이슈 #${{ steps.pr.outputs.issue }} 의 리뷰 반영 세션이다.
             .claude/agents/${{ steps.role.outputs.agent }}.md 를 먼저 읽고 그 경로와 규칙을 따른다.
@@ -200,7 +222,7 @@ jobs:
             mono/ 와 beggars-ops/ 가 있으면 테스트용 체크아웃이다. 고치거나 커밋하지 않는다.
             끝나면 첫 줄이 `반영:` 인 PR 댓글 하나를 남긴다(반영한 것, 반영 안 한 것과 이유, 남은 것, 테스트 결과 줄).
             셸 명령은 한 번에 하나씩 쓴다. cd, &&, 파이프, heredoc으로 묶지 않는다. 파일은 Write 도구로 쓴다. 댓글은 Write로 파일을 만든 뒤 --body-file로 넘긴다.
-          claude_args: --max-turns 30 --allowedTools "Read,Grep,Glob,Write,Edit,${{ steps.role.outputs.tools }},Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh pr comment:*)"
+          claude_args: --max-turns 60 --allowedTools "Read,Grep,Glob,Write,Edit,${{ steps.role.outputs.tools }},Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh pr comment:*)"
       - name: 세션 커밋 보관
         id: keep
         if: steps.start.outputs.sha != ''
@@ -227,6 +249,23 @@ jobs:
           if [ "$(git rev-parse HEAD)" != "$START" ]; then echo "그사이 원격 브랜치가 바뀌었다. 패치를 그 위에 적용한다"; fi
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" am "$RUNNER_TEMP"/patches/*.patch
           git push origin "HEAD:refs/heads/$BRANCH"
+      # 세션이 실패해도(턴 상한 등) 커밋을 잃지 않게 패치로 보관한다(14일). 2026-10-23 mono #153 반영이 40턴으로 실패해 커밋을 잃었다.
+      - name: 반영 패치 만들기
+        if: always() && steps.start.outputs.sha != ''
+        env:
+          START: ${{ steps.start.outputs.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/patches"
+          git format-patch "$START..HEAD" -o "$RUNNER_TEMP/patches" || true
+          git diff HEAD > "$RUNNER_TEMP/patches/uncommitted.diff" || true
+      - name: 반영 결과 보관
+        if: always() && steps.start.outputs.sha != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: reflect-${{ env.PR }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/patches/
+          if-no-files-found: warn
+          retention-days: 14
       - name: 결과물 확인
         if: steps.role.outputs.agent != ''
         env:

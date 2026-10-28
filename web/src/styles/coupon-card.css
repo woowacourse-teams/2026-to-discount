@@ -7,8 +7,9 @@
   border: 1px solid var(--border); border-radius: 12px;
   /* 좌우 안쪽 여백은 카드가 아니라 내용이 갖는다: 쿠폰 줄(캐러셀)만 카드 좌우 끝까지 쓴다(배너 캐러셀과 같은 꼴) */
   --pad: clamp(14px, 4.4vw, 18px); padding: var(--pad) 0;
+  /* NEW! 띠는 카드 귀퉁이에서 잘려야 삼각으로 보인다. 10-23(02a3f6f1)에 content-visibility를 지우며 이 잘림도 같이 사라져 카드 밖으로 삐져나왔다. iOS 글자 폭 문제와 무관하게 잘림만 되돌린다 */
+  overflow: hidden; overflow: clip;
   display: grid; grid-template-columns: calc(var(--logo) + var(--pad)) minmax(0, 1fr); gap: 0 clamp(10px, 3.2vw, 14px); /* 세로 간격은 gap이 아니라 아래 항목의 margin-top으로(0높이 래퍼가 간격을 남기지 않게) */
-  content-visibility: auto; contain-intrinsic-size: auto 200px;
 }
 /* 투명 로고가 다크 모드에서도 보이게 바탕은 늘 흰색. 래퍼 없이 brand-logo가 곧 로고 칸 */
 .cc > .brand-logo { grid-column: 1; grid-row: 1; margin-left: var(--pad); width: var(--logo); height: var(--logo); border-radius: 12px; background: #fff; border: 1px solid var(--border); }
@@ -63,8 +64,10 @@
 /* 2026-10-07: flex였을 때 iOS 사파리가 글꼴 로딩 뒤 금액 글자 칸 폭을 다시 안 재서 "원 할인"과 겹쳤다. 줄글 흐름으로 둔다 */
 .cc-amt { display: block; font-size: clamp(25px, 7.7vw, 31px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cc-amt small { font-size: .6em; font-weight: 700; margin-left: 1px; }
-.cc-amt s { text-decoration-thickness: 2px; }
-.cc-soldout { font-style: normal; font-size: clamp(12.6px, 3.6vw, 14.4px); font-weight: 600; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #eceae6; color: #6b6a66; letter-spacing: 0; vertical-align: middle; }
+.cc-amt s { text-decoration: none; white-space: nowrap; filter: saturate(.12); opacity: .55; } /* 품절 금액: 취소선 대신 채도를 확 낮춘다(2026-10-26 사용자) */
+/* 품절 배지가 들어갈 자리가 모자라면(5자리 금액) 금액 아래 줄로 내린다. 이동 버튼 영역에 닿아 잘렸다. */
+.cc-amt:has(.cc-soldout) { white-space: normal; }
+.cc-soldout { font-style: normal; font-size: clamp(12.6px, 3.6vw, 14.4px); font-weight: 600; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #333; color: #ff8a80; letter-spacing: 0; vertical-align: middle; }
 .cc-min { display: flex; align-items: center; gap: 3px; font-size: clamp(14.4px, 4.1vw, 16.2px); line-height: 1.3; color: #6b6a66; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .cc-min svg { width: 13px; height: 13px; flex: none; }
 /* 펼친 쿠폰의 배지: 금액 오른쪽, 이동 영역 왼쪽 빈칸에 라벨(쿠폰 높이를 밀지 않는다) */
@@ -103,7 +106,7 @@
 /* 펼치면 하위 라벨 줄은 높이를 그대로 두고 보이지만 않게 한다(카드가 줄었다 늘지 않게). 접을 때는 펼친 영역이 다 닫힌 뒤 240ms 페이드인 */
 .cc--open .cc-alts { opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 0s 140ms; }
 .cc-alt { display: flex; align-items: center; gap: 5.5px; font-size: clamp(12.8px, 3.7vw, 14.4px); font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; --pb: 20px; }
-.cc-alt--sold { text-decoration: line-through; }
+.cc-alt--sold { filter: saturate(.12); opacity: .55; }
 .cc-hint { all: unset; grid-column: 1 / 3; margin-inline: var(--pad); cursor: pointer; display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: 14px; color: var(--text-muted); }
 .cc--open .cc-hint { opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 0s 140ms; }
 .cc-hint { transition: opacity 240ms ease 280ms, visibility 0s 280ms; }
@@ -132,7 +135,8 @@
 /* 인기순 순번: 왼쪽 위 북마크 리본(2026-10-18 사용자) */
 .cc-rank { position: absolute; top: 0; left: var(--pad); z-index: 2; isolation: isolate; min-width: 30px; padding: 4px 5px 12px; color: #fff; font-size: 15px; font-weight: 800; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; pointer-events: none; } /* 왼쪽 끝 = 로고 왼쪽 끝 */
 /* 2026-10-18 사용자: NEW!는 dev 표시(.dev-badge)처럼 귀퉁이에 비스듬히 건 띠. 카드가 바깥을 잘라 삼각 귀퉁이만 보인다 */
-.cc-rank--new { top: 6px; left: -19px; width: 64px; min-width: 0; padding: 0; transform: rotate(-45deg); background: var(--sale); font-size: 9.5px; line-height: 14px; letter-spacing: .06em; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); }
+/* NEW! 띠 크기 1.2배(2026-10-26 사용자) */
+.cc-rank--new { top: 7px; left: -23px; width: 77px; min-width: 0; padding: 0; transform: rotate(-45deg); background: var(--sale); font-size: 11.4px; line-height: 17px; letter-spacing: .06em; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); }
 .cc-rank.cc-rank--new::before, .cc-rank.cc-rank--new::after { content: none; }
 /* 리본 모양은 ::before에만 잘라 붙인다. 본체를 자르면 불꽃까지 잘린다 */
 .cc-rank::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--sale); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 8px), 0 100%); }
@@ -254,6 +258,8 @@
 .cc .cc-tags .chip-tags > *::after, .cc .cc-tags .chip-tags > *::before { content: none; }
 .cc .offer__status-badge:not(.offer__status-badge--membership) { background: var(--bg); color: #4e5968; }
 .cc .offer__range-badge--optimal, .cc-sheet .offer__range-badge--optimal { background: var(--sale-weak); color: var(--sale); border: 0; }
+/* 첫 주문 같은 조건 칩: 밝은 파랑에 흰 글자(2026-10-22 권한자). 채널 칩은 예전 첫 주문 모양(회색 plain)을 쓴다. #2a7de1 위 흰 글자 대비 약 4.3:1 */
+.cc .offer__range-badge--condition, .cc-sheet .offer__range-badge--condition { background: #2a7de1; color: #fff; border: 0; }
 .cc .cc-combo__btn, .cc-sheet .cc-combo__btn { width: 14px; height: 14px; font-size: 9px; border-width: 1.2px; color: inherit; }
 .cc-upd { height: 22px; padding: 0 7px; border-radius: 6px; font-size: 12px; font-weight: 600; background: var(--sale); box-shadow: none; transform: none; }
 .cc-upd::after { content: none; }

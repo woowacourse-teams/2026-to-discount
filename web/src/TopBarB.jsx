@@ -8,7 +8,7 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import MenuBar from './MenuBar.jsx'
 import ReportButton from './ReportButton.jsx'
 import { PLATFORMS } from './logos.jsx'
-import { CATEGORIES } from './filters.js'
+import { CATEGORIES, visibleCategories } from './filters.js'
 import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 import './styles/topbar-b.css'
 
@@ -146,7 +146,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
         </div>
       </div>
       {popular /* 실시간 인기 순위: 검색과 분류 사이(2026-10-17 사용자) */}
-      <MenuBar selected={menuSelected} onToggle={toggleCategory} leading={leading} />
+      <MenuBar selected={menuSelected} onToggle={toggleCategory} leading={leading} categories={visibleCategories(brands, filters.categories)} />
     </div>
   )
 }
