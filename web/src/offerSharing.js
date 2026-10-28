@@ -98,7 +98,8 @@ export function shareText(brand, offer, { year = Number(new Date().toLocaleDateS
 function nativeShareData(data) {
   // URL을 별도 필드로 보내면 메신저가 본문 앞에 붙이기도 한다.
   // 한 텍스트로 전달해 링크를 항상 본문의 마지막 줄에 둔다.
-  return { title: data.title, text: [data.text, data.url].filter(Boolean).join('\n') }
+  // title도 함께 보내면 일부 공유 앱은 제목을 본문 앞에 한 번 더 넣는다.
+  return { text: [data.text, data.url].filter(Boolean).join('\n') }
 }
 
 export function shareMethod(nav, data) {

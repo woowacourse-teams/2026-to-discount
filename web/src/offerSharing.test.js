@@ -60,7 +60,8 @@ test('기본 공유에는 문구와 URL을 전달하고 링크 복사는 URL만 
   const data = { title: '혜택', text: shareText('BBQ', offer), url: 'https://example.com/#share=a' }
   let native, copied
   assert.equal(await deliverShare({ share: async (value) => { native = value } }, data, 'native'), 'resolved')
-  assert.deepEqual(native, { title: data.title, text: `${data.text}\n${data.url}` })
+  assert.deepEqual(native, { text: `${data.text}\n${data.url}` })
+  assert.equal(native.title, undefined)
   assert.equal(native.url, undefined)
   assert.equal(native.text.split('\n').at(-1), data.url)
   assert.equal(await deliverShare({ clipboard: { writeText: async (value) => { copied = value } } }, data, 'copy'), 'copied')
@@ -71,7 +72,7 @@ test('공유 지원 여부도 링크가 마지막 줄에 포함된 실제 전달
   const data = { title: '혜택', text: 'bhc 5,000원 할인\n19,900원 이상 주문 시', url: 'https://example.com/#share=a' }
   let checked
   assert.equal(shareMethod({ share() {}, canShare(value) { checked = value; return true } }, data), 'native')
-  assert.deepEqual(checked, { title: data.title, text: `${data.text}\n${data.url}` })
+  assert.deepEqual(checked, { text: `${data.text}\n${data.url}` })
 })
 
 test('선착순과 정률 상한 및 구간별 만료 조건을 메시지에 유지', () => {

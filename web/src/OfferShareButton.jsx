@@ -22,7 +22,7 @@ export default function OfferShareButton({ offer, brandName, position, where, cl
       const shareId = randomShareId()
       const url = createShareLink(window.location.origin, brandName, offer, shareId)
       const text = shareText(brandName, offer)
-      const data = { title: text.split('\n')[0], text, url }
+      const data = { text, url }
       const method = action === 'copy' ? 'copy' : 'native'
       const attribution = initializeShareAttribution()
       const parentShareId = attribution?.props().shareId
