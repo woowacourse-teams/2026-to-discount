@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -143,13 +144,15 @@ class BrandCatalogTest {
         });
     }
 
-    record LinkRule(String scheme, String host) {}
+    // hosts: 허용 호스트 -> 그 호스트에서 요구하는 경로 접두사(빈 문자열이면 경로는 보지 않는다)
+    record LinkRule(String scheme, Map<String, String> hosts) {}
 
     // 알려진 앱의 스킴과 호스트 정본. 이 목록에 없는 키는 구조만 본다(이슈 댓글: 키를 고정 목록으로 강제하지 않는다).
     private static final Map<String, LinkRule> LINK_RULES = Map.of(
-            "baemin", new LinkRule("https", "s.baemin.com"),
-            "ddangyo", new LinkRule("https", "fdofd.ddangyo.com"),
-            "yogiyo", new LinkRule("yogiyolink", "push.page"));
+            // baemin.com은 브랜드관 브리지 링크(10-24부터 데이터에 있다)
+            "baemin", new LinkRule("https", Map.of("s.baemin.com", "", "baemin.com", "/bridge/brand-lounge/")),
+            "ddangyo", new LinkRule("https", Map.of("fdofd.ddangyo.com", "")),
+            "yogiyo", new LinkRule("yogiyolink", Map.of("push.page", "")));
 
     /** 어긋난 곳마다 "<브랜드>의 links.<키>: <사유> (값: <값>)" 한 줄을 돌려준다. 비면 통과. */
     static List<String> linkProblems(Map<String, Map<String, Object>> brands) {
@@ -171,7 +174,7 @@ class BrandCatalogTest {
                 } else if (!(value instanceof String v)) {
                     problems.add(at + "문자열이 아니다" + tail);
                 } else {
-                    String problem = linkProblem(LINK_RULES.get(k), v);
+                    String problem = linkProblem(LINK_RULES.get(k.strip().toLowerCase(Locale.ROOT)), v);
                     if (problem != null) {
                         problems.add(at + problem + tail);
                     }
@@ -197,8 +200,12 @@ class BrandCatalogTest {
         if (!rule.scheme().equals(uri.getScheme())) {
             return "스킴이 " + rule.scheme() + "이 아니다";
         }
-        if (!rule.host().equalsIgnoreCase(uri.getHost())) {
-            return "호스트가 " + rule.host() + "이 아니다";
+        String prefix = rule.hosts().get(uri.getHost().toLowerCase(Locale.ROOT));
+        if (prefix == null) {
+            return "호스트가 " + rule.hosts().keySet() + " 중 하나가 아니다";
+        }
+        if (uri.getPath() == null || !uri.getPath().startsWith(prefix)) {
+            return "경로가 " + prefix + "로 시작하지 않는다";
         }
         if ("https".equals(rule.scheme()) && (uri.getPort() != -1 || uri.getUserInfo() != null)) {
             return "포트나 사용자 정보가 붙어 있다";
@@ -226,6 +233,13 @@ class BrandCatalogTest {
                 .mapToLong(a -> ((Map<?, ?>) a.get("links")).size()).sum();
         assertTrue(checked > 0, "brands.yml에서 검사한 links가 하나도 없다");
 
+        // 규칙마다 실제 링크가 하나 이상 걸렸는지: 키 이름이 바뀌어 규칙이 조용히 안 쓰이는 것을 막는다.
+        LINK_RULES.keySet().forEach(key -> assertTrue(brands.values().stream()
+                .filter(a -> a != null && a.get("links") instanceof Map)
+                .anyMatch(a -> ((Map<?, ?>) a.get("links")).keySet().stream()
+                        .anyMatch(k -> k instanceof String ks && ks.strip().equalsIgnoreCase(key))),
+                () -> "규칙 " + key + "에 걸린 링크가 brands.yml에 없다"));
+
         List<String> problems = linkProblems(brands);
         assertTrue(problems.isEmpty(), () -> String.join("\n", problems));
     }
@@ -251,6 +265,35 @@ class BrandCatalogTest {
     @Test
     void hostWithOnlyMatchingPrefixFails() {
         onlyProblem("baemin: https://s.baemin.com.example.test/abc");
+    }
+
+    @Test
+    void baeminBrandLoungeBridgeLinkPasses() {
+        assertTrue(linkProblems(brandsOf("brands:\n  A:\n    links:\n      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=1\n")).isEmpty());
+    }
+
+    @Test
+    void baeminDotComOutsideBridgePathFails() {
+        assertTrue(onlyProblem("baemin: https://baemin.com/other").contains("경로"));
+    }
+
+    @Test
+    void yogiyoAndDdangyoRulesFail() {
+        onlyProblem("yogiyo: https://push.page/franchise");
+        onlyProblem("yogiyo: yogiyolink://example.test/x");
+        onlyProblem("ddangyo: https://example.test/x");
+        onlyProblem("ddangyo: http://fdofd.ddangyo.com/x");
+    }
+
+    @Test
+    void keyCaseAndSpacesDoNotSkipRule() {
+        onlyProblem("Baemin: https://example.test/abc");
+        onlyProblem("\"baemin \": https://example.test/abc");
+    }
+
+    @Test
+    void nullLinksPass() {
+        assertTrue(linkProblems(brandsOf("brands:\n  A:\n    links:\n")).isEmpty());
     }
 
     @Test
