@@ -6,6 +6,9 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -42,8 +45,23 @@ public class SurveyEligibility {
     private final EventLog eventLog;
     private final ObjectMapper mapper = JsonMapper.builderWithJackson2Defaults().build();
 
+    /** 판정은 요청마다 돌아 스냅샷은 이 간격보다 자주 쓰지 않는다. */
+    private static final long SAVE_EVERY_NANOS = java.util.concurrent.TimeUnit.MINUTES.toNanos(10);
+
+    private final EventLogSnapshot snapshot;   // null이면 꺼짐(지금까지와 같은 동작)
+    private boolean restored;
+    private long savedAt = System.nanoTime();
+    private long savedOffset = -1;
+
     public SurveyEligibility(EventLog eventLog) {
+        this(eventLog, false);
+    }
+
+    @Autowired
+    public SurveyEligibility(EventLog eventLog,
+                             @Value("${analytics.snapshot.enabled:true}") boolean snapshotEnabled) {
         this.eventLog = eventLog;
+        this.snapshot = snapshotEnabled ? new EventLogSnapshot(eventLog.path(), "survey", 1) : null;
     }
 
     /**
@@ -104,15 +122,69 @@ public class SurveyEligibility {
         long t = System.nanoTime();
         count("-");
         log.info("설문 판정 집계 첫 읽기 {}ms, 방문자 {}명", (System.nanoTime() - t) / 1_000_000, tallies.size());
+        saveSnapshot();
+    }
+
+    /** 내릴 때 한 번 더 써서 다음 기동이 이어 읽을 줄을 줄인다. */
+    @PreDestroy
+    public synchronized void saveSnapshot() {
+        if (snapshot == null || offset == savedOffset) return;
+        snapshot.save(offset, state());
+        savedOffset = offset;
+        savedAt = System.nanoTime();
     }
 
     private void catchUp() throws IOException {
+        if (!restored) {
+            restored = true;
+            restore();
+        }
         long next = eventLog.readFrom(offset, this::add);
         if (next < 0) {
             tallies.clear();
             next = eventLog.readFrom(0, this::add);
         }
         offset = next;
+        if (snapshot != null && System.nanoTime() - savedAt > SAVE_EVERY_NANOS) saveSnapshot();
+    }
+
+    private void restore() {
+        if (snapshot == null) return;
+        JsonNode n = snapshot.load();
+        if (n == null) return;
+        try {
+            Map<String, Tally> loaded = new HashMap<>();
+            for (Map.Entry<String, JsonNode> e : n.path("state").path("visitors").properties()) {
+                JsonNode v = e.getValue();
+                Tally t = new Tally();
+                for (JsonNode d : v.get(0)) t.days.add(d.asString());
+                t.conversions = v.get(1).asInt();
+                t.answered = v.get(2).asBoolean();
+                t.dev = v.get(3).asBoolean();
+                loaded.put(e.getKey(), t);
+            }
+            tallies.putAll(loaded);
+            offset = n.path("offset").asLong();
+            savedOffset = offset;
+            savedAt = System.nanoTime();
+            log.info("설문 판정 스냅샷에서 이어 읽는다: 자리 {}, 방문자 {}명", offset, loaded.size());
+        } catch (RuntimeException e) {
+            log.warn("설문 판정 스냅샷 내용이 깨져 처음부터 읽는다: {}", e.toString());
+            tallies.clear();
+            offset = 0;
+        }
+    }
+
+    private JsonNode state() {
+        tools.jackson.databind.node.ObjectNode st = EventLogSnapshot.MAPPER.createObjectNode();
+        tools.jackson.databind.node.ObjectNode vs = st.putObject("visitors");
+        tallies.forEach((id, t) -> {
+            tools.jackson.databind.node.ArrayNode a = vs.putArray(id);
+            tools.jackson.databind.node.ArrayNode days = a.addArray();
+            t.days.forEach(days::add);
+            a.add(t.conversions).add(t.answered).add(t.dev);
+        });
+        return st;
     }
 
     private void add(String line) {

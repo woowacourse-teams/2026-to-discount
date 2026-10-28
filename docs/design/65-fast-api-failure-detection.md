@@ -1,5 +1,7 @@
 # Design: 짧은 API 장애 감지 지연 개선
 
+> 2026-10-15: 실제 서버 및 실행 환경 경로 표기를 외부 설정 이름 또는 용도로 정정했다. 설계 결정은 유지한다.
+
 추적 이슈: [#65](https://github.com/woowacourse-teams/2026-to-discount/issues/65)
 
 상태: 운영 배포, 30초 감시 실행 및 실제 Slack 장애, 복구, 재발 알림 수신 검증 완료.
@@ -123,7 +125,7 @@
 
 - 책임: 마지막 검사 이후의 Nginx access log에서 5xx를 조회하고, 장애 시작 및 복구 Slack 알림을 중복 없이 요청한다.
 - 의존성: Nginx access log, 기존 Slack 설정, Unix 파일 잠금.
-- 외부 인터페이스: `python3 /home/ubuntu/ops_collect.py --fast-alerts`.
+- 외부 인터페이스: `python3 "$OPS_COLLECT_SCRIPT" --fast-alerts` (`OPS_COLLECT_SCRIPT`는 비공개 실행 설정에서 지정).
 
 #### systemd service and timer
 
@@ -215,9 +217,9 @@
 
 ### 구현 및 검증 결과
 
-- 구현 저장소: `/Users/pine/Documents/beggars-ops`, 브랜치 `feat/65-fast-api-failure-detection`.
+- 구현 저장소: 비공개 `beggars-ops` 작업 사본, 브랜치 `feat/65-fast-api-failure-detection`.
 - 감시 구현, service와 timer, 배포 연결, 운영 문서와 관련 테스트 16개를 추가했다.
-- `PYTHONPATH=/Users/pine/Library/Python/3.9/lib/python/site-packages /opt/homebrew/bin/python3.11 -m unittest discover -s tests`: 248개 통과. 로컬에 설치된 PyYAML을 위 경로에서 불러왔다.
+- `PYTHONPATH="$LOCAL_SITE_PACKAGES" "$PYTHON_BIN" -m unittest discover -s tests` (실행 환경에서 경로 지정): 248개 통과. 로컬에 설치된 PyYAML을 별도 라이브러리 설정으로 불러왔다.
 - 기본 Python 3.9 실행은 기존 코드의 `Path.write_text(newline=...)` 지원 부족과 sandbox의 localhost 바인딩 제한으로 실패했다. Python 3.11과 localhost 테스트 실행 권한으로 재검증해 통과했다.
 - `bash -n deploy/push.sh`, `git diff --check`: 통과.
 - `systemd-analyze verify`는 macOS에 명령이 없어 실행하지 못했다. 배포 스크립트에서 서버의 unit 검증을 통과한 뒤 설치하도록 연결했다.

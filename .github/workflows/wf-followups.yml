@@ -1,0 +1,159 @@
+# 정본: 병합된 PR 본문의 "### 후속 조치"를 이슈로 만든다. mono와 tracker가 같이 부른다.
+# 규칙의 정본은 mono .claude/skills/pr-body-ko/SKILL.md "후속 조치" 절이다.
+# 세션은 계획 파일(JSON)만 쓴다. 이슈 생성은 아래 단계가 저장소마다 App 토큰을 골라 한다. 세션에 두 저장소 쓰기 토큰을 주지 않기 위함이다.
+name: wf-followups
+on:
+  workflow_call:
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+      CLAUDE_CODE_OAUTH_TOKEN_2:
+        required: false
+      WF_APP_ID:
+        required: true
+      WF_APP_PRIVATE_KEY:
+        required: true
+
+jobs:
+  followups:
+    if: >-
+      github.event.pull_request.merged == true &&
+      (contains(github.event.pull_request.body, fromJSON('"\n### 후속 조치"')) ||
+       contains(github.event.pull_request.body, fromJSON('"\n## 후속 조치"')) ||
+       startsWith(github.event.pull_request.body, '### 후속 조치') ||
+       startsWith(github.event.pull_request.body, '## 후속 조치'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+      # 짝 저장소: mono면 tracker, 아니면 mono.
+      OTHER_OWNER: ${{ github.repository == 'woowacourse-teams/2026-to-discount' && 'nn98' || 'woowacourse-teams' }}
+      OTHER_NAME: ${{ github.repository == 'woowacourse-teams/2026-to-discount' && 'delivery-discount-tracker' || '2026-to-discount' }}
+    steps:
+      - name: App 토큰(이 저장소)
+        id: self
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+      - name: App 토큰(짝 저장소)
+        id: other
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+          owner: ${{ env.OTHER_OWNER }}
+          repositories: ${{ env.OTHER_NAME }}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+      # 스킬 정본(mono). mono 자신이면 위 체크아웃에 이미 있다.
+      - if: github.repository != 'woowacourse-teams/2026-to-discount'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: woowacourse-teams/2026-to-discount
+          path: mono
+      - name: 입력 준비
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OTHER_TOKEN: ${{ steps.other.outputs.token }}
+        run: |
+          {
+            echo "# 병합된 PR $GH_REPO#$PR: $(gh api "repos/$GH_REPO/pulls/$PR" -q .title)"
+            echo
+            gh api "repos/$GH_REPO/pulls/$PR" -q '.body // ""'
+            echo
+            echo "# 이미 만든 후속 이슈 표식"
+            for r in "$GH_REPO" "$OTHER_OWNER/$OTHER_NAME"; do
+              t=$GH_TOKEN; [ "$r" = "$GH_REPO" ] || t=$OTHER_TOKEN
+              GH_TOKEN=$t gh issue list -R "$r" --state all --search "followup:$GH_REPO#$PR" --json body \
+                -q '.[].body' | grep -o "followup:$GH_REPO#$PR:[0-9]*" || true
+            done
+          } > "$RUNNER_TEMP/followup-input.md"
+          ls mono/.claude/skills/pr-body-ko/SKILL.md 2>/dev/null && echo "skill=mono/.claude/skills/pr-body-ko/SKILL.md" >> "$GITHUB_ENV" \
+            || echo "skill=.claude/skills/pr-body-ko/SKILL.md" >> "$GITHUB_ENV"
+      # Claude 액션의 자체 설치가 동시 실행 때 429로 실패했다(2026-10-22 tracker #22, mono #143). 간격을 두고 다시 시도해 설치한다.
+      - name: Claude Code 설치(재시도)
+        id: cc
+        run: |
+          for i in 1 2 3 4 5; do
+            npm install -g @anthropic-ai/claude-code > /dev/null 2>&1 && break
+            echo "설치 실패 $i회, $((i * 20))초 뒤 다시"; sleep $((i * 20))
+          done
+          p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
+          echo "path=$p" >> "$GITHUB_OUTPUT"
+      # 첫 토큰이 사용량 한도면 두 번째 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)을 쓴다. 두 번째가 없으면 첫 토큰 그대로.
+      - name: 토큰 고르기
+        id: tok
+        env:
+          T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
+          CLAUDE: ${{ steps.cc.outputs.path }}
+          # 손 전환: 저장소 변수 CLAUDE_TOKEN_SLOT이 1이나 2면 시험 없이 그 토큰을 쓴다. 비면 자동.
+          SLOT: ${{ vars.CLAUDE_TOKEN_SLOT }}
+        run: |
+          if [ "$SLOT" = 2 ] && [ -n "$T2" ]; then echo "which=2" >> "$GITHUB_OUTPUT"; echo "손 전환: 두 번째 토큰"; exit 0; fi
+          if [ "$SLOT" = 1 ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "손 전환: 첫 토큰"; exit 0; fi
+          if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
+          out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
+            echo "which=2" >> "$GITHUB_OUTPUT"; echo "첫 토큰 한도, 두 번째 토큰"
+          else
+            echo "which=1" >> "$GITHUB_OUTPUT"; echo "첫 토큰(시험 종료 코드 $rc)"
+          fi
+      - id: claude
+        uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
+        with:
+          path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
+          claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "2026-to-discount"
+          prompt: |
+            병합된 PR ${{ github.repository }}#${{ github.event.pull_request.number }} 의 후속 조치를 이슈 계획으로 만드는 세션이다.
+            ${{ env.skill }} 의 "후속 조치" 절과 "0. 문장" 절을 먼저 읽고 따른다.
+            입력은 ${{ runner.temp }}/followup-input.md 하나다. 저장소 파일은 고칠 자리를 확인할 때만 읽는다.
+            할 일:
+            - 후속 조치 항목을 읽는다. 같은 일인 항목은 한 이슈로 묶는다. 이미 표식이 있는 항목 번호는 뺀다.
+            - 고칠 곳에 따라 저장소를 고른다. 수집, 원장, 내보내기는 nn98/delivery-discount-tracker(영역 라벨 export 또는 collect). 웹은 woowacourse-teams/2026-to-discount 의 web, 서버는 api.
+              워크플로나 하네스처럼 영역이 없으면 라벨을 비운다.
+            - 이슈 본문은 PR을 열지 않고도 일할 수 있게 쓴다. 절: 개요, 배경(출처 PR의 배경 요약), 할 일, 끝 조건, 참고(출처 PR 번호).
+              woowacourse-teams/2026-to-discount 는 공개 저장소다. 서버 경로, 비공개 파일 이름, 비밀값을 쓰지 않는다.
+            결과는 Write로 ${{ runner.temp }}/followups.json 하나에 쓴다. 형식:
+            [{"repo": "<owner/name>", "title": "<제목>", "labels": ["export"], "items": [1, 2], "body": "<본문 마크다운>"}]
+            만들 것이 없으면 [] 를 쓴다. 이슈를 직접 만들거나 댓글을 달지 않는다.
+          claude_args: --max-turns 15 --allowedTools "Read,Grep,Glob,Write"
+      # 계획대로 이슈를 만든다. 저장소는 이 저장소와 짝 저장소만 받는다. 항목 표식으로 다시 돌아도 같은 이슈를 안 만든다.
+      - name: 이슈 만들기
+        env:
+          # 이 저장소 이슈는 기본 토큰으로 만든다. tracker App 설치에 이슈 권한이 없어 createIssue가 거부됐다(2026-10-22 tracker #33).
+          SELF_TOKEN: ${{ github.token }}
+          OTHER_TOKEN: ${{ steps.other.outputs.token }}
+        run: |
+          f="$RUNNER_TEMP/followups.json"
+          [ -s "$f" ] || { echo "계획 파일 없음"; exit 1; }
+          jq -e 'type == "array"' "$f" > /dev/null
+          : > "$RUNNER_TEMP/made.md"
+          for i in $(jq -r 'keys[]' "$f"); do
+            repo=$(jq -r ".[$i].repo" "$f")
+            case "$repo" in
+              "$GH_REPO") t=$SELF_TOKEN ;;
+              "$OTHER_OWNER/$OTHER_NAME") t=$OTHER_TOKEN ;;
+              *) echo "모르는 저장소 건너뜀: $repo"; continue ;;
+            esac
+            marks=$(jq -r ".[$i].items | map(\"<!-- followup:$GH_REPO#$PR:\(.) -->\") | join(\"\n\")" "$f")
+            { jq -r ".[$i].body" "$f"; echo; echo "출처: https://github.com/$GH_REPO/pull/$PR 의 후속 조치."; echo; echo "$marks"; } > "$RUNNER_TEMP/b.md"
+            args=()
+            for lb in $(jq -r ".[$i].labels[]?" "$f"); do args+=(--label "$lb"); done
+            url=$(GH_TOKEN=$t gh issue create -R "$repo" --title "$(jq -r ".[$i].title" "$f")" "${args[@]}" --body-file "$RUNNER_TEMP/b.md")
+            echo "- $(jq -r ".[$i].title" "$f"): $url" >> "$RUNNER_TEMP/made.md"
+          done
+          if [ -s "$RUNNER_TEMP/made.md" ]; then
+            { echo "후속 조치 이슈:"; cat "$RUNNER_TEMP/made.md"; } > "$RUNNER_TEMP/c.md"
+            GH_TOKEN=$SELF_TOKEN gh pr comment "$PR" -R "$GH_REPO" --body-file "$RUNNER_TEMP/c.md"
+          fi
+      - name: 거부된 도구와 턴 수
+        if: always() && steps.claude.outputs.execution_file != ''
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          jq -c '.[] | select(.type == "result") | {num_turns, subtype, denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true

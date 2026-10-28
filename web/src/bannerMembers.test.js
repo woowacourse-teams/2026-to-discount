@@ -11,7 +11,7 @@ test('이름 줄은 여는 시각과 이름만 — 금액·최소주문은 다�
     ],
   }
   assert.deepEqual(bannerMemberLabels(card).map(memberText),
-    ['9시 뚜레쥬르', '11시 30분 BHC'])
+    ['오전 9시 오픈 뚜레쥬르', '오전 11시 30분 오픈 BHC'])
 })
 
 test('여는 시각이 없으면 예전 글자 그대로', () => {
@@ -23,7 +23,9 @@ test('여는 시각이 없으면 예전 글자 그대로', () => {
 })
 
 test('시각을 못 읽으면 뺀다', () => {
-  assert.equal(openHourText('17:00'), '17시')
+  assert.equal(openHourText('17:00'), '오후 5시')
+  assert.equal(openHourText('00:00'), '오전 12시')
+  assert.equal(openHourText('12:30'), '오후 12시 30분')
   assert.equal(openHourText(null), null)
   assert.equal(openHourText('저녁'), null)
 })

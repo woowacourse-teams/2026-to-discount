@@ -1,0 +1,298 @@
+# 정본(설계 119 "세션 수명 주기" 4번): PR 첫 줄 /reflect(권한자)면 리뷰 지적을 반영하는 새 세션을 띄운다. 반영은 최대 2회.
+# mono와 tracker가 같이 부른다. 역할, 테스트 환경, push 방식은 wf-implement.yml과 같다.
+name: wf-reflect
+on:
+  workflow_call:
+    inputs:
+      areas:
+        description: wf-implement.yml과 같은 영역 JSON
+        type: string
+        required: true
+      read_mono:
+        type: boolean
+        default: false
+      read_ops:
+        type: boolean
+        default: false
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
+      CLAUDE_CODE_OAUTH_TOKEN_2:
+        required: false
+      WF_APP_ID:
+        required: true
+      WF_APP_PRIVATE_KEY:
+        required: true
+      BEGGARS_OPS_READ_TOKEN:
+        required: false
+
+jobs:
+  reflect:
+    if: >-
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/reflect')
+    concurrency:
+      group: issue-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_REPO: ${{ github.repository }}
+      PR: ${{ github.event.issue.number }}
+      AREAS: ${{ inputs.areas }}
+    steps:
+      - name: 댓글 작성자 권한 확인
+        id: perm
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BODY: ${{ github.event.comment.body }}
+        run: |
+          # 첫 줄만 보고 앞뒤 공백은 무시한다(2026-10-22 tracker #24 '/approve ' 무시됨).
+          first=$(printf '%s\n' "$BODY" | head -n1 | tr -d '[:space:]')
+          if [ "$first" != "/reflect" ]; then echo "첫 줄이 /reflect 가 아니다"; exit 0; fi
+          p=$(gh api "repos/$GH_REPO/collaborators/${{ github.event.comment.user.login }}/permission" -q .permission)
+          echo "권한: $p"
+          if [ "$p" = admin ] || [ "$p" = write ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; fi
+      - name: PR 정보
+        id: pr
+        if: steps.perm.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          branch=$(gh pr view "$PR" -R "$GH_REPO" --json headRefName -q .headRefName)
+          case "$branch" in feat/*) ;; *) echo "feat/ 브랜치가 아니라 반영을 건너뛴다: $branch"; exit 0 ;; esac
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "issue=$(echo "$branch" | sed -n 's#^feat/\([0-9][0-9]*\)-.*#\1#p')" >> "$GITHUB_OUTPUT"
+      - name: 반영 횟수와 blocked 확인
+        id: count
+        if: steps.pr.outputs.branch != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.pr.outputs.issue }}
+        run: |
+          if gh api "repos/$GH_REPO/issues/$ISSUE" -q '.labels[].name' | grep -qx blocked; then echo "이슈에 blocked가 있어 건너뛴다"; exit 0; fi
+          n=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '[.[] | select(.user.login == "claude[bot]" and (.body | startswith("반영:")))] | length' | awk '{s+=$1} END {print s+0}')
+          echo "반영 댓글 수: $n"
+          echo "n=$n" >> "$GITHUB_OUTPUT"
+          if [ "$n" -ge 2 ]; then
+            echo "반영을 시작하지 않았다. 반영은 최대 2회다(설계 119). 이미 $n회 돌았다. 남은 지적은 사람이 직접 반영하거나 새 이슈로 뗀다." > "$RUNNER_TEMP/c.txt"
+            gh pr comment "$PR" -R "$GH_REPO" --body-file "$RUNNER_TEMP/c.txt"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: 역할 고르기
+        id: role
+        if: steps.count.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.pr.outputs.issue }}
+        run: |
+          LABELS=$(gh api "repos/$GH_REPO/issues/$ISSUE" -q '[.labels[].name]')
+          area=$(jq -rn --argjson a "$AREAS" --argjson l "$LABELS" '[$l[] | select($a[.] != null)][0] // ""')
+          if [ -n "$area" ]; then
+            jq -rn --argjson a "$AREAS" --arg k "$area" '$a[$k] | "agent=\(.agent)\ntools=\(.tools)\nsetup=\(.setup // "none")\ntest=\(.test // "")"' >> "$GITHUB_OUTPUT"
+          elif jq -e 'index("collect")' <<< "$LABELS" > /dev/null; then
+            echo "반영을 시작하지 않았다. collect 작업은 폰이 필요해 로컬 러너 몫이다(설계 119 4단계)." > "$RUNNER_TEMP/c.txt"
+            gh pr comment "$PR" -R "$GH_REPO" --body-file "$RUNNER_TEMP/c.txt"
+          else
+            echo "반영을 시작하지 않았다. 영역 라벨($(jq -r 'keys | join(", ")' <<< "$AREAS"), collect)이 없어 역할을 고를 수 없다." > "$RUNNER_TEMP/c.txt"
+            gh pr comment "$PR" -R "$GH_REPO" --body-file "$RUNNER_TEMP/c.txt"
+          fi
+      - name: App 토큰 만들기
+        id: apptoken
+        if: steps.role.outputs.agent != ''
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.WF_APP_ID }}
+          private-key: ${{ secrets.WF_APP_PRIVATE_KEY }}
+      - if: steps.role.outputs.agent != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.pr.outputs.branch }}
+          fetch-depth: 0
+          token: ${{ steps.apptoken.outputs.token }}
+      - name: 시작 커밋 기록
+        id: start
+        if: steps.role.outputs.agent != ''
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - if: steps.role.outputs.agent != '' && inputs.read_mono
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: woowacourse-teams/2026-to-discount
+          path: mono
+      - name: beggars-ops 토큰 확인
+        id: ops
+        if: steps.role.outputs.agent != '' && inputs.read_ops
+        env:
+          T: ${{ secrets.BEGGARS_OPS_READ_TOKEN }}
+        run: if [ -n "$T" ]; then echo "has=true" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.ops.outputs.has == 'true'
+        continue-on-error: true
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: nn98/beggars-ops
+          path: beggars-ops
+          token: ${{ secrets.BEGGARS_OPS_READ_TOKEN }}
+      - if: steps.role.outputs.agent != ''
+        run: printf 'mono/\nbeggars-ops/\n' >> .git/info/exclude
+      - if: steps.role.outputs.setup == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - if: steps.role.outputs.setup == 'python'
+        run: pip install -r requirements.txt pytest
+      - if: steps.role.outputs.setup == 'jdk'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: 지적 입력 준비
+        if: steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.pr.outputs.issue }}
+        run: |
+          owner=${GH_REPO%/*}; name=${GH_REPO#*/}
+          {
+            echo "# PR #$PR 리뷰 지적"
+            echo
+            echo "## 미해결 리뷰 스레드"
+            gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved path line comments(first:20){nodes{author{login} authorAssociation body}}}}}}}' -f o="$owner" -f n="$name" -F p="$PR" \
+              | jq -r '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved|not) | "### \(.path):\(.line)\n" + (.comments.nodes[] | select(.authorAssociation=="OWNER" or .authorAssociation=="MEMBER" or .authorAssociation=="COLLABORATOR" or .author.login=="coderabbitai" or .author.login=="github-actions") | "- \(.author.login): \(.body)")'
+            echo
+            echo "## PR 댓글 (OWNER, MEMBER, COLLABORATOR, 봇만)"
+            gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+              | jq -r '.[] | select(.author_association=="OWNER" or .author_association=="MEMBER" or .author_association=="COLLABORATOR" or .user.login=="coderabbitai[bot]") | "### \(.user.login)\n\(.body)\n"'
+            echo
+            echo "## 이슈 #$ISSUE 마지막 인계 댓글"
+            gh api "repos/$GH_REPO/issues/$ISSUE/comments" --paginate \
+              | jq -r '[.[] | select(.body|startswith("인계:"))] | last | .body // ""'
+            echo
+            echo "## 지난 반영 댓글(PR)"
+            gh api "repos/$GH_REPO/issues/$PR/comments" --paginate \
+              | jq -r '.[] | select(.body|startswith("반영:")) | .body'
+          } > "$RUNNER_TEMP/findings.md"
+      # Claude 액션의 자체 설치가 동시 실행 때 429로 실패했다(2026-10-22 tracker #22, mono #143). 간격을 두고 다시 시도해 설치한다.
+      - name: Claude Code 설치(재시도)
+        id: cc
+        if: steps.role.outputs.agent != ''
+        run: |
+          for i in 1 2 3 4 5; do
+            npm install -g @anthropic-ai/claude-code > /dev/null 2>&1 && break
+            echo "설치 실패 $i회, $((i * 20))초 뒤 다시"; sleep $((i * 20))
+          done
+          p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
+          echo "path=$p" >> "$GITHUB_OUTPUT"
+      # 첫 토큰이 사용량 한도면 두 번째 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)을 쓴다. 두 번째가 없으면 첫 토큰 그대로.
+      - name: 토큰 고르기
+        id: tok
+        if: steps.role.outputs.agent != ''
+        env:
+          T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
+          CLAUDE: ${{ steps.cc.outputs.path }}
+          # 손 전환: 저장소 변수 CLAUDE_TOKEN_SLOT이 1이나 2면 시험 없이 그 토큰을 쓴다. 비면 자동.
+          SLOT: ${{ vars.CLAUDE_TOKEN_SLOT }}
+        run: |
+          if [ "$SLOT" = 2 ] && [ -n "$T2" ]; then echo "which=2" >> "$GITHUB_OUTPUT"; echo "손 전환: 두 번째 토큰"; exit 0; fi
+          if [ "$SLOT" = 1 ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "손 전환: 첫 토큰"; exit 0; fi
+          if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
+          out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
+          if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
+            echo "which=2" >> "$GITHUB_OUTPUT"; echo "첫 토큰 한도, 두 번째 토큰"
+          else
+            echo "which=1" >> "$GITHUB_OUTPUT"; echo "첫 토큰(시험 종료 코드 $rc)"
+          fi
+      - if: steps.role.outputs.agent != ''
+        id: claude
+        uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
+        env:
+          PYTHONIOENCODING: utf-8
+        with:
+          path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
+          claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            PR #${{ env.PR }}, 이슈 #${{ steps.pr.outputs.issue }} 의 리뷰 반영 세션이다.
+            .claude/agents/${{ steps.role.outputs.agent }}.md 를 먼저 읽고 그 경로와 규칙을 따른다.
+            리뷰 지적은 ${{ runner.temp }}/findings.md 하나만 읽는다. gh로 댓글을 따로 읽지 않는다.
+            지금 체크아웃된 브랜치 ${{ steps.pr.outputs.branch }} 에 이어 커밋만 한다. push는 워크플로가 한다. 브랜치를 바꾸지 않는다.
+            맞는 지적만 반영한다. 틀렸거나 설계 밖이라 반영하지 않은 지적은 이유를 반영 댓글에 적는다.
+            반영한 지적의 리뷰 스레드는 `gh api`로 resolve하지 않는다. 사람이 확인하고 닫는다.
+            ${{ steps.role.outputs.test }}
+            mono/ 와 beggars-ops/ 가 있으면 테스트용 체크아웃이다. 고치거나 커밋하지 않는다.
+            끝나면 첫 줄이 `반영:` 인 PR 댓글 하나를 남긴다(반영한 것, 반영 안 한 것과 이유, 남은 것, 테스트 결과 줄).
+            셸 명령은 한 번에 하나씩 쓴다. cd, &&, 파이프, heredoc으로 묶지 않는다. 파일은 Write 도구로 쓴다. 댓글은 Write로 파일을 만든 뒤 --body-file로 넘긴다.
+          claude_args: --max-turns 60 --allowedTools "Read,Grep,Glob,Write,Edit,${{ steps.role.outputs.tools }},Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh pr comment:*)"
+      - name: 세션 커밋 보관
+        id: keep
+        if: steps.start.outputs.sha != ''
+        env:
+          BRANCH: ${{ steps.pr.outputs.branch }}
+          START: ${{ steps.start.outputs.sha }}
+        run: |
+          case "$BRANCH" in feat/[0-9]*-*) ;; *) echo "feat/ 브랜치가 아니다: '$BRANCH'"; exit 1 ;; esac
+          if [ "$(git rev-parse HEAD)" = "$START" ]; then echo "새 커밋 없음, push 건너뜀"; exit 0; fi
+          git format-patch "$START..HEAD" -o "$RUNNER_TEMP/patches"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+      - if: steps.keep.outputs.branch != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.keep.outputs.branch }}
+          fetch-depth: 0
+          token: ${{ steps.apptoken.outputs.token }}
+      - name: 브랜치 push
+        if: steps.keep.outputs.branch != ''
+        env:
+          BRANCH: ${{ steps.keep.outputs.branch }}
+          START: ${{ steps.start.outputs.sha }}
+        run: |
+          if [ "$(git rev-parse HEAD)" != "$START" ]; then echo "그사이 원격 브랜치가 바뀌었다. 패치를 그 위에 적용한다"; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" am "$RUNNER_TEMP"/patches/*.patch
+          git push origin "HEAD:refs/heads/$BRANCH"
+      # 세션이 실패해도(턴 상한 등) 커밋을 잃지 않게 패치로 보관한다(14일). 2026-10-23 mono #153 반영이 40턴으로 실패해 커밋을 잃었다.
+      - name: 반영 패치 만들기
+        if: always() && steps.start.outputs.sha != ''
+        env:
+          START: ${{ steps.start.outputs.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/patches"
+          git format-patch "$START..HEAD" -o "$RUNNER_TEMP/patches" || true
+          git diff HEAD > "$RUNNER_TEMP/patches/uncommitted.diff" || true
+      - name: 반영 결과 보관
+        if: always() && steps.start.outputs.sha != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: reflect-${{ env.PR }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/patches/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: 결과물 확인
+        if: steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ steps.pr.outputs.branch }}
+          START: ${{ steps.start.outputs.sha }}
+          BEFORE: ${{ steps.count.outputs.n }}
+        run: |
+          # 반영할 지적이 없으면 커밋 없이 반영 댓글만 남는 것이 맞다(2026-10-22 mono #143). 새 반영 댓글이 성공 조건이다.
+          ok=1
+          head=$(git ls-remote --heads origin "$BRANCH" | cut -f1)
+          if [ -n "$head" ] && [ "$head" != "$START" ]; then echo "새 커밋: $head"; else echo "새 커밋 없음(반영 댓글로 판정)"; fi
+          n=$(gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '[.[] | select(.user.login == "claude[bot]" and (.body | startswith("반영:")))] | length' | awk '{s+=$1} END {print s+0}')
+          if [ "$n" -gt "$BEFORE" ]; then echo "새 반영 댓글: $n"; else echo "이번 실행의 반영 댓글 없음"; ok=0; fi
+          [ "$ok" = 1 ]
+      - name: 거부된 도구와 턴 수
+        if: always() && steps.claude.outputs.execution_file != ''
+        env:
+          EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
+        run: |
+          jq -c '.[] | select(.type == "result") | {num_turns, subtype, denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true
+      - name: 실패하면 blocked 라벨과 원인 댓글
+        if: (failure() || cancelled()) && steps.role.outputs.agent != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ steps.pr.outputs.issue }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue edit "$ISSUE" --add-label blocked
+          gh pr comment "$PR" --body "리뷰 반영 세션이 실패했다. 로그: $RUN_URL . 원인을 확인한 뒤 blocked 라벨을 떼고 /reflect 를 다시 달면 다시 돈다(남은 반영 횟수 안에서)."

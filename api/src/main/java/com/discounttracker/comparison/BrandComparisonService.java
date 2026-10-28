@@ -7,6 +7,7 @@ import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.history.HistoryRepository;
 import com.discounttracker.history.OfferHistory;
 import com.discounttracker.offer.Certainty;
+import com.discounttracker.offer.FirstComeLinkFilter;
 import com.discounttracker.offer.Offer;
 import com.discounttracker.offer.OfferComparison;
 import com.discounttracker.offer.OfferRecord;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -102,24 +104,29 @@ public class BrandComparisonService {
         return compare(withBanners);
     }
 
-    /** 같은 앱의 선착순 칸과 상시 칸이 같은 쿠폰이면(확실성이 같다) 한 칸으로 합친다. */
+    /** 같은 앱의 선착순 칸과 상시 칸을(확실성이 같다) 한 칸으로 합친다. */
     private static void mergeSameFirstCome(Map<String, Offer> offersBySlot) {
         for (String slot : List.copyOf(offersBySlot.keySet())) {
             if (!slot.endsWith("#first-come")) continue;
             String platform = slot.substring(0, slot.length() - "#first-come".length());
             Offer first = offersBySlot.get(slot);
             Offer standing = offersBySlot.get(platform);
-            // 같은 앱에 선착순과 상시가 같이 서면 금액이 큰 쪽 하나만 남긴다(2026-09-30 사용자:
-            // 청년피자 쿠팡이츠 선착순 10,000원과 상시 7,000원이 둘 다 떴다 - 큰 쪽이 이겨야 한다).
             // 확실성이 다르면(랜덤·상한 대 확정) 금액으로 견줄 수 없어 둘 다 둔다.
-            if (standing != null && first.certainty() == standing.certainty()) {
+            if (standing == null || first.certainty() != standing.certainty()) continue;
+            // 금액이 다르면 선착순을 상시의 한 구간으로 붙인다(2026-10-15 사용자, Offer#withFirstComeTier).
+            // 2026-09-30 청년피자 쿠팡이츠 선착순 10,000원과 상시 7,000원이 두 오퍼로 떴고, 그 뒤 큰 쪽만
+            // 세웠더니 선착순이 소진된 줄 모르는 사이 상시를 가렸다.
+            Offer merged = java.util.Objects.equals(first.amount(), standing.amount()) ? null
+                    : standing.withFirstComeTier(first);
+            if (merged == null) {
+                // 금액이 같으면 같은 쿠폰이다(2026-09-30 던킨 땡겨요). 붙일 수 없을 때도 예전처럼 하나만 둔다.
+                // 선착순이 소진됐으면 상시가 선다 - 2026-09-30 맘스터치처럼 상시 할인이 카드에서 사라지면 안 된다.
                 int a = first.amount() == null ? 0 : first.amount();
                 int b = standing.amount() == null ? 0 : standing.amount();
-                // 선착순이 소진됐으면 상시가 선다 - 2026-09-30 맘스터치처럼 상시 할인이 카드에서 사라지면 안 된다.
-                boolean firstWins = !first.soldOut() && a >= b;   // 같으면 선착순(배너)이 먼저
-                offersBySlot.put(platform, firstWins ? first : standing);
-                offersBySlot.remove(slot);
+                merged = !first.soldOut() && a >= b ? first : standing;   // 같으면 선착순(배너)이 먼저
             }
+            offersBySlot.put(platform, merged);
+            offersBySlot.remove(slot);
         }
     }
 
@@ -219,6 +226,11 @@ public class BrandComparisonService {
         // 한 칸으로 합친다. 2026-09-30 던킨 땡겨요: 배너와 원장이 같은 7,000원인데 두 번 떴다.
         byBrand.values().forEach(BrandComparisonService::mergeSameFirstCome);
 
+        // 오픈 전 배민 선착순은 브랜드 페이지에 쿠폰이 없어 배짱할인 허브로 보낸다(오픈 뒤엔 원래 링크). 칸을 합친 뒤에
+        // 건다: 합치면서 오픈 시각 조건이 다른 기록에서 오는 경우가 있어 합친 오퍼의 조건과 링크로 판정해야 한다.
+        LocalTime now = LocalTime.now(clock);
+        byBrand.values().forEach(slots -> slots.replaceAll((slot, o) -> FirstComeLinkFilter.apply(o, now)));
+
         // 신규 여부는 이력이 판정한다(설계 2026-10-09). 금액 없는 오퍼는 모름(null).
         OfferHistory h = history.current();
         List<BrandComparison> result = new ArrayList<>();
@@ -232,7 +244,8 @@ public class BrandComparisonService {
                         .toList()),
                 popularity == null ? 0 : popularity.scoreOf(name),
                 popularity == null ? 0 : popularity.todayOf(name),
-                popularity == null ? 0 : popularity.yesterdayOf(name))));
+                popularity == null ? 0 : popularity.yesterdayOf(name),
+                popularity == null ? 0 : popularity.previousOf(name))));
 
         result.sort(BrandComparison.byBestDiscount());
         return result;

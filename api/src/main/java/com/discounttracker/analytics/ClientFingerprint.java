@@ -51,6 +51,23 @@ public class ClientFingerprint {
         }
     }
 
+    /**
+     * 요청 제한용 해시. X-Forwarded-For 첫 항목은 클라이언트가 지어 보낼 수 있어 제한을 우회한다.
+     * nginx가 넣는 X-Real-IP, 없으면 nginx가 덧붙인 X-Forwarded-For 마지막 항목을 쓴다.
+     */
+    public String hashForLimit(HttpServletRequest request) {
+        String ip = request.getHeader("X-Real-IP");
+        if (ip == null || ip.isBlank()) {
+            String forwarded = request.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isBlank()) {
+                String[] parts = forwarded.split(",");
+                ip = parts[parts.length - 1];
+            }
+        }
+        if (ip == null || ip.isBlank()) ip = request.getRemoteAddr();
+        return hash(ip == null ? "unknown" : ip.trim(), LocalDate.now().toString());
+    }
+
     /** nginx 뒤에 있으므로 X-Forwarded-For의 첫 항목이 실제 클라이언트다. */
     private static String clientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");

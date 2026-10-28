@@ -19,13 +19,32 @@ jobs:
     steps:
       - name: Read production snapshot and reload development API
         env:
+          SOURCE_EXPORT_PATH: ${{ secrets.DEV_OFFERS_SOURCE_EXPORT_PATH }}
+          SOURCE_SSH_TARGET: ${{ secrets.DEV_OFFERS_SOURCE_SSH_TARGET }}
+          SYNC_COMMAND: ${{ secrets.DEV_OFFERS_SYNC_COMMAND }}
+          SYNC_TEMP_ROOT: ${{ secrets.DEV_OFFERS_SYNC_TEMP_ROOT }}
           SOURCE_KEY: ${{ secrets.DEV_OFFERS_SOURCE_SSH_KEY }}
           SOURCE_KNOWN_HOSTS: ${{ secrets.DEV_OFFERS_SOURCE_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
-          [ -n "$SOURCE_KEY" ] && [ -n "$SOURCE_KNOWN_HOSTS" ] || { echo "Missing development offer source secrets"; exit 1; }
-          test -x /usr/local/sbin/todiscount-sync-offers-dev
-          SYNC_DIR=$(mktemp -d /var/lib/todiscount-runner/offer-sync.XXXXXXXX)
+          [ -n "${SOURCE_KEY:-}" ] && [ -n "${SOURCE_KNOWN_HOSTS:-}" ] || { echo "Missing development offer source secrets"; exit 1; }
+          for name in SOURCE_EXPORT_PATH SOURCE_SSH_TARGET SYNC_COMMAND SYNC_TEMP_ROOT; do
+            [ -n "${!name:-}" ] || { echo "Missing development offer setting: $name"; exit 1; }
+          done
+          # Validate and quote before SSH; do not print environment-specific values.
+          SOURCE_COMMAND=$(python3 - <<'PYTHON'
+          import os, re, shlex
+          for name in ('SOURCE_EXPORT_PATH', 'SYNC_COMMAND', 'SYNC_TEMP_ROOT'):
+              value = os.environ[name]
+              if not value.startswith('/') or any(ord(c) < 32 or ord(c) == 127 for c in value):
+                  raise SystemExit('Invalid development offer setting: ' + name)
+          if not re.fullmatch(r'[A-Za-z0-9_][A-Za-z0-9_.-]*@[A-Za-z0-9][A-Za-z0-9.-]*', os.environ['SOURCE_SSH_TARGET']):
+              raise SystemExit('Invalid development offer setting: SOURCE_SSH_TARGET')
+          print('cat -- ' + shlex.quote(os.environ['SOURCE_EXPORT_PATH']))
+          PYTHON
+          )
+          test -x "$SYNC_COMMAND" || { echo "Development sync command unavailable"; exit 1; }
+          SYNC_DIR=$(mktemp -d "$SYNC_TEMP_ROOT/offer-sync.XXXXXXXX" 2>/dev/null) || { echo "Cannot prepare sync directory"; exit 1; }
           trap 'rm -rf -- "$SYNC_DIR"' EXIT
           umask 077
           printf '%s\n' "$SOURCE_KEY" > "$SYNC_DIR/key"
@@ -33,9 +52,9 @@ jobs:
           # The source key is forced-command/read-only: it can only print export.json.
           ssh -T -i "$SYNC_DIR/key" -o BatchMode=yes -o IdentitiesOnly=yes \
             -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$SYNC_DIR/known_hosts" \
-            -o ConnectTimeout=10 ubuntu@bebeggars.duckdns.org \
-            'cat /home/ubuntu/delivery-discount-api/data/export.json' > "$SYNC_DIR/export.json"
-          sudo -n /usr/local/sbin/todiscount-sync-offers-dev "$SYNC_DIR/export.json" > "$SYNC_DIR/result.json"
+            -o ConnectTimeout=10 "$SOURCE_SSH_TARGET" \
+            "$SOURCE_COMMAND" > "$SYNC_DIR/export.json" 2>"$SYNC_DIR/source-error" || { echo "Cannot read production snapshot"; exit 1; }
+          sudo -n "$SYNC_COMMAND" "$SYNC_DIR/export.json" > "$SYNC_DIR/result.json" 2>"$SYNC_DIR/sync-error" || { echo "Development offer sync failed"; exit 1; }
           python3 - "$SYNC_DIR/result.json" <<'PYTHON' >> "$GITHUB_STEP_SUMMARY"
           import json, sys
           result = json.load(open(sys.argv[1]))
