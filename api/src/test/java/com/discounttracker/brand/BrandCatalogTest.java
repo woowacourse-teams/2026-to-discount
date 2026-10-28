@@ -6,8 +6,12 @@ import org.springframework.core.io.ClassPathResource;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -119,23 +123,226 @@ class BrandCatalogTest {
         assertEquals("BBQ", catalog.canonical("BBQ"));
     }
 
-    @Test
     @SuppressWarnings("unchecked")
-    void everyBrandHasNonBlankSearchAliases() throws Exception {
+    private static Map<String, Map<String, Object>> loadBrandsFile() throws Exception {
         try (InputStream in = new ClassPathResource("brands.yml").getInputStream()) {
             Map<String, Object> root = new Yaml().load(in);
-            Map<String, Map<String, Object>> brands =
-                    (Map<String, Map<String, Object>>) root.get("brands");
-
-            brands.forEach((name, attrs) -> {
-                List<String> searchAliases = ((List<?>) attrs.getOrDefault("searchAliases", List.of()))
-                        .stream().map(String::valueOf).toList();
-
-                assertFalse(searchAliases.isEmpty(),
-                        () -> name + "의 searchAliases가 비어 있다");
-                assertTrue(searchAliases.stream().noneMatch(String::isBlank),
-                        () -> name + "의 searchAliases에 빈 값이 있다");
-            });
+            return (Map<String, Map<String, Object>>) root.get("brands");
         }
+    }
+
+    @Test
+    void everyBrandHasNonBlankSearchAliases() throws Exception {
+        loadBrandsFile().forEach((name, attrs) -> {
+            List<String> searchAliases = ((List<?>) attrs.getOrDefault("searchAliases", List.of()))
+                    .stream().map(String::valueOf).toList();
+
+            assertFalse(searchAliases.isEmpty(),
+                    () -> name + "의 searchAliases가 비어 있다");
+            assertTrue(searchAliases.stream().noneMatch(String::isBlank),
+                    () -> name + "의 searchAliases에 빈 값이 있다");
+        });
+    }
+
+    // hosts: 허용 호스트 -> 그 호스트에서 요구하는 경로 접두사(빈 문자열이면 경로는 보지 않는다)
+    record LinkRule(String scheme, Map<String, String> hosts) {}
+
+    // 알려진 앱의 스킴과 호스트 정본. 이 목록에 없는 키는 구조만 본다(이슈 댓글: 키를 고정 목록으로 강제하지 않는다).
+    private static final Map<String, LinkRule> LINK_RULES = Map.of(
+            // baemin.com은 브랜드관 브리지 링크(10-24부터 데이터에 있다)
+            "baemin", new LinkRule("https", Map.of("s.baemin.com", "", "baemin.com", "/bridge/brand-lounge/")),
+            "ddangyo", new LinkRule("https", Map.of("fdofd.ddangyo.com", "")),
+            "yogiyo", new LinkRule("yogiyolink", Map.of("push.page", "")));
+
+    /** 어긋난 곳마다 "<브랜드>의 links.<키>: <사유> (값: <값>)" 한 줄을 돌려준다. 비면 통과. */
+    static List<String> linkProblems(Map<String, Map<String, Object>> brands) {
+        List<String> problems = new ArrayList<>();
+        brands.forEach((name, attrs) -> {
+            Object links = attrs == null ? null : attrs.get("links");
+            if (links == null) {
+                return;
+            }
+            if (!(links instanceof Map<?, ?> map)) {
+                problems.add(name + "의 links: 맵이 아니다 (값: " + links + ")");
+                return;
+            }
+            map.forEach((key, value) -> {
+                String at = name + "의 links." + key + ": ";
+                String tail = " (값: " + value + ")";
+                if (!(key instanceof String k) || k.isBlank()) {
+                    problems.add(at + "키가 비어 있거나 문자열이 아니다" + tail);
+                } else if (!(value instanceof String v)) {
+                    problems.add(at + "문자열이 아니다" + tail);
+                } else {
+                    String problem = linkProblem(LINK_RULES.get(k.strip().toLowerCase(Locale.ROOT)), v);
+                    if (problem != null) {
+                        problems.add(at + problem + tail);
+                    }
+                }
+            });
+        });
+        return problems;
+    }
+
+    private static String linkProblem(LinkRule rule, String value) {
+        URI uri;
+        try {
+            uri = new URI(value);
+        } catch (URISyntaxException e) {
+            return "URI로 읽을 수 없다";
+        }
+        if (uri.getScheme() == null || uri.getHost() == null) {
+            return "스킴이나 호스트가 없다";
+        }
+        if (rule == null) {
+            return null;
+        }
+        if (!rule.scheme().equals(uri.getScheme())) {
+            return "스킴이 " + rule.scheme() + "이 아니다";
+        }
+        String prefix = rule.hosts().get(uri.getHost().toLowerCase(Locale.ROOT));
+        if (prefix == null) {
+            return "호스트가 " + rule.hosts().keySet() + " 중 하나가 아니다";
+        }
+        if (uri.getPath() == null || !uri.getPath().startsWith(prefix)) {
+            return "경로가 " + prefix + "로 시작하지 않는다";
+        }
+        if ("https".equals(rule.scheme()) && (uri.getPort() != -1 || uri.getUserInfo() != null)) {
+            return "포트나 사용자 정보가 붙어 있다";
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Map<String, Object>> brandsOf(String yaml) {
+        return (Map<String, Map<String, Object>>) ((Map<String, Object>) new Yaml().load(yaml)).get("brands");
+    }
+
+    private static String onlyProblem(String linksLine) {
+        List<String> problems = linkProblems(brandsOf("brands:\n  A:\n    links:\n      " + linksLine + "\n"));
+        assertEquals(1, problems.size(), problems::toString);
+        return problems.get(0);
+    }
+
+    @Test
+    void everyBrandLinkMatchesItsAppShareHost() throws Exception {
+        Map<String, Map<String, Object>> brands = loadBrandsFile();
+        // 양성 신호: 파일을 못 읽거나 links 키 이름이 바뀌어 아무것도 안 훑어도 초록이 되는 것을 막는다.
+        long checked = brands.values().stream()
+                .filter(a -> a != null && a.get("links") instanceof Map)
+                .mapToLong(a -> ((Map<?, ?>) a.get("links")).size()).sum();
+        assertTrue(checked > 0, "brands.yml에서 검사한 links가 하나도 없다");
+
+        // 규칙마다 실제 링크가 하나 이상 걸렸는지: 키 이름이 바뀌어 규칙이 조용히 안 쓰이는 것을 막는다.
+        LINK_RULES.keySet().forEach(key -> assertTrue(brands.values().stream()
+                .filter(a -> a != null && a.get("links") instanceof Map)
+                .anyMatch(a -> ((Map<?, ?>) a.get("links")).keySet().stream()
+                        .anyMatch(k -> k instanceof String ks && ks.strip().equalsIgnoreCase(key))),
+                () -> "규칙 " + key + "에 걸린 링크가 brands.yml에 없다"));
+
+        List<String> problems = linkProblems(brands);
+        assertTrue(problems.isEmpty(), () -> String.join("\n", problems));
+    }
+
+    @Test
+    void validLinksPass() {
+        assertTrue(linkProblems(brandsOf("""
+                brands:
+                  A:
+                    links:
+                      baemin: https://s.baemin.com/abc
+                      ddangyo: https://fdofd.ddangyo.com/x?k
+                      yogiyo: yogiyolink://push.page/franchise?fr_id=31
+                """)).isEmpty());
+    }
+
+    @Test
+    void wrongHostFailsWithBrandKeyAndValue() {
+        String msg = onlyProblem("baemin: https://example.test/abc");
+        assertTrue(msg.contains("A") && msg.contains("baemin") && msg.contains("https://example.test/abc"), msg);
+    }
+
+    @Test
+    void hostWithOnlyMatchingPrefixFails() {
+        onlyProblem("baemin: https://s.baemin.com.example.test/abc");
+    }
+
+    @Test
+    void baeminBrandLoungeBridgeLinkPasses() {
+        assertTrue(linkProblems(brandsOf("brands:\n  A:\n    links:\n      baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=1\n")).isEmpty());
+    }
+
+    @Test
+    void baeminDotComOutsideBridgePathFails() {
+        assertTrue(onlyProblem("baemin: https://baemin.com/other").contains("경로"));
+    }
+
+    @Test
+    void yogiyoAndDdangyoRulesFail() {
+        onlyProblem("yogiyo: https://push.page/franchise");
+        onlyProblem("yogiyo: yogiyolink://example.test/x");
+        onlyProblem("ddangyo: https://example.test/x");
+        onlyProblem("ddangyo: http://fdofd.ddangyo.com/x");
+    }
+
+    @Test
+    void keyCaseAndSpacesDoNotSkipRule() {
+        onlyProblem("Baemin: https://example.test/abc");
+        onlyProblem("\"baemin \": https://example.test/abc");
+    }
+
+    @Test
+    void nullLinksPass() {
+        assertTrue(linkProblems(brandsOf("brands:\n  A:\n    links:\n")).isEmpty());
+    }
+
+    @Test
+    void httpSchemeFails() {
+        assertTrue(onlyProblem("baemin: http://s.baemin.com/abc").contains("스킴"));
+    }
+
+    @Test
+    void portOrUserInfoOnHttpsFails() {
+        onlyProblem("baemin: https://s.baemin.com:8443/abc");
+        onlyProblem("baemin: https://user@s.baemin.com/abc");
+    }
+
+    @Test
+    void nonStringValueFails() {
+        assertTrue(onlyProblem("baemin: 12345").contains("문자열이 아니다"));
+    }
+
+    @Test
+    void unknownKeyWithValidUrlPasses() {
+        // 이슈 댓글: 앱 키를 고정 목록으로 강제하지 않는다. 구조만 본다.
+        assertTrue(linkProblems(brandsOf("""
+                brands:
+                  A:
+                    links:
+                      selfbrand: https://example.test/abc
+                """)).isEmpty());
+    }
+
+    @Test
+    void unknownKeyWithMalformedValueFails() {
+        assertTrue(onlyProblem("coupangeats: not a url").contains("URI로 읽을 수 없다"));
+        assertTrue(onlyProblem("coupangeats: abc").contains("스킴이나 호스트가 없다"));
+    }
+
+    @Test
+    void allProblemsAcrossBrandsAreReported() {
+        List<String> problems = linkProblems(brandsOf("""
+                brands:
+                  A:
+                    links: {baemin: "http://s.baemin.com/a"}
+                  B:
+                    links: {ddangyo: "https://example.test/b"}
+                """));
+        assertEquals(2, problems.size(), problems::toString);
+    }
+
+    @Test
+    void missingOrEmptyLinksPass() {
+        assertTrue(linkProblems(brandsOf("brands:\n  A: {}\n  B:\n    links: {}\n")).isEmpty());
     }
 }
