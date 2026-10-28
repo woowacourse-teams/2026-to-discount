@@ -42,6 +42,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/s/:code", "destination": "/api/share?code=:code" },
     { "source": "/", "destination": "/api/ssr" }
   ]
 }

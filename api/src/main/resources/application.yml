@@ -21,6 +21,7 @@ discount:
   # 브랜드 목록. jar 안에 있어 바꾸려면 API를 다시 배포한다(reload로는 안 바뀐다).
   brands-path: ${DISCOUNT_BRANDS_PATH:classpath:brands.yml}
   # 방문 이벤트 원장(append). 설문 판정과 인기가 이 파일에서 새로 붙은 줄만 읽는다.
+  share-links-path: ${DISCOUNT_SHARE_LINKS_PATH:}
   event-log-path: ${DISCOUNT_EVENT_LOG_PATH:data/events.jsonl}
   # 브랜드 링크(brands.yml links.<앱>)가 없으면 그 앱 오퍼를 숨긴다. 요기요는 링크 없이 누르면 앱만 켜진다.
   hide-unlinked-platforms: ${DISCOUNT_HIDE_UNLINKED_PLATFORMS:yogiyo}
