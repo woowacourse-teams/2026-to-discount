@@ -1,5 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { apiFile } from '../scripts/api-repo.mjs'
 import { createShareLink, parseShareLink, sharedOfferKey, resolveSharedOffer, shareText, deliverShare, shareMethod } from './offerSharing.js'
 
 const id = 'a'.repeat(32)
@@ -138,4 +140,35 @@ test('공유 취소와 실패 및 복사 실패를 구분하고 취소 후 복�
   assert.equal(await deliverShare({}, {}, 'copy'), 'failed')
   assert.equal(shareMethod({}, {}), 'copy')
   assert.equal(shareMethod({ share() {}, canShare() { throw Error() } }, {}), 'copy')
+})
+
+test('실제 도미노 샘플: 일반 4,000원 공유에 다른 멤버십 구간의 7,500원 배지를 넣지 않는다', () => {
+  const fixtures = JSON.parse(readFileSync(apiFile('src', 'main', 'resources', 'data', 'export.json'), 'utf8'))
+  const sample = fixtures.find((o) => o.brand === '도미노피자' && o.platform === 'baemin')
+  assert.equal(sample.badge, '멤버십 7,500원')
+  assert.equal(shareText(sample.brand, sample, { year: 2026 }),
+    '배달의민족 도미노피자 4,000원 할인\n18,900원 이상 주문 시\n12월 30일까지')
+})
+
+test('다른 구간을 안내하는 금액 배지는 제거하고 현재 혜택의 실제 멤버십은 유지', () => {
+  for (const badge of ['멤버십 5,000원', '멤버십 5천원', '멤버십 0.5만원']) {
+    const text = shareText('BBQ', { ...offer, badge }, { year: 2026 })
+    assert.match(text, /7,000원 할인/)
+    assert.match(text, /배민클럽/)
+    assert.ok(!text.includes(badge))
+  }
+  const text = shareText('BBQ', { ...offer, membership: 'none', badge: '배민클럽 전용쿠폰',
+    tiers: [{ amount: 7000, minOrder: 18000 },
+      { amount: 5000, minOrder: 15000, membership: 'baeminClub' }] }, { year: 2026 })
+  assert.ok(!text.includes('배민클럽'))
+})
+
+test('선택한 구간의 선착순 메모와 기간 및 일반 배지는 그대로 유지', () => {
+  const text = shareText('BBQ', { ...offer, badge: '오전 11시 오픈',
+    tiers: [{ amount: 7000, minOrder: 18000, note: '선착순', expiresAt: '2026-11-10' },
+      { amount: 5000, minOrder: 15000 }] }, { year: 2026 })
+  assert.match(text, /배민클럽/)
+  assert.match(text, /오전 11시 오픈/)
+  assert.match(text, /선착순/)
+  assert.match(text, /11월 10일까지/)
 })
