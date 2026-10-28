@@ -49,22 +49,6 @@ export function resolveSharedOffer(brands, target, today = new Date().toLocaleDa
   return { status: 'available', brand, offer, key: target.offerKey }
 }
 
-function sharedBadge(offer, selected, member) {
-  const badge = offer.badge ?? ''
-  if (!selected) return badge
-  // 배지는 목록용 설명이라 다른 구간을 소개하기도 한다. 실제 사례:
-  // 일반 4,000원 오퍼의 badge가 '멤버십 7,500원'이었다.
-  const amounts = [...badge.matchAll(/(\d[\d,]*(?:\.\d+)?)\s*(만|천)?원/g)]
-    .map((m) => Number(m[1].replaceAll(',', '')) * (m[2] === '만' ? 10000 : m[2] === '천' ? 1000 : 1))
-  const otherAmount = (offer.tiers ?? []).some((t) => t.amount != null
-    && t.amount !== offer.amount && amounts.includes(t.amount))
-  if (otherAmount) return ''
-  const membershipBadge = /멤버십|클럽|와우|패스|전용쿠폰/.test(badge)
-  const explicitTierMembership = (offer.tiers ?? []).some((t) => t.membership && t.membership !== 'none')
-  if (membershipBadge && explicitTierMembership && !member) return ''
-  return badge
-}
-
 export function shareText(brand, offer) {
   const won = (n) => `${n.toLocaleString('ko-KR')}원`
   // API 한 오퍼에는 다른 채널과 금액의 구간도 담긴다. 공유 대상은 카드에
@@ -79,19 +63,11 @@ export function shareText(brand, offer) {
     : offer.amount != null && !isBundle(offer) ? `${won(offer.amount)} 할인` : offer.rawText ?? ''
   if (['최대', '랜덤', '특정메뉴'].includes(offer.qualifier) && !benefit.startsWith(offer.qualifier)) benefit = `${offer.qualifier} ${benefit}`
   const member = membershipOf(offer, selected)
-  const badge = sharedBadge(offer, selected, member)
-  const membership = member ? MEMBERSHIP_LABEL[offer.platform] ?? offer.badge ?? '' : ''
+  const membership = member ? MEMBERSHIP_LABEL[offer.platform] ?? '멤버십' : ''
   const min = selected?.minOrder ?? offer.minOrderAmount
   const minimum = min === 0 ? '최소주문 없음' : min > 0 ? `${won(min)} 이상 주문 시` : ''
-  const expiryBadge = /^~\s*\d{1,2}[/.]\d{1,2}$/.test(badge)
-  const redundantMember = membership && badge.replace(/전용|쿠폰|\s/g, '') === membership.replace(/전용|쿠폰|\s/g, '')
-  const details = [minimum, membership,
-    !expiryBadge && !redundantMember && badge !== channel ? badge : '', offer.conditions,
-    selected?.note, ...(offer.qualifiers ?? []),
-    offer.firstCome && ![badge, offer.conditions, selected?.note].some((v) => v?.includes('선착순')) ? '선착순' : '',
-    row.soldOut ? '품절' : '']
-  return [...new Set([`${platform} ${brand} ${channel ?? ''} ${benefit}`.replace(/\s+/g, ' ').trim(),
-    ...details].filter(Boolean))].join('\n')
+  const headline = `${platform} ${brand} ${channel ?? ''} ${benefit}${membership ? ` (${membership} 전용)` : ''}`.replace(/\s+/g, ' ').trim()
+  return [headline, minimum].filter(Boolean).join('\n')
 }
 
 function nativeShareData(data) {

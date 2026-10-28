@@ -49,9 +49,9 @@ test('목록 위치와 무관하게 정확한 혜택을 찾고, 변경 또는 �
 
 test('공유 문구에 할인 성격과 주문 및 멤버십과 구간 조건을 보존', () => {
   const text = shareText('BBQ', { ...offer, qualifier: '최대' })
-  assert.match(text, /^배달의민족 BBQ 최대 7,000원 할인\n18,000원 이상 주문 시/)
+  assert.match(text, /^배달의민족 BBQ 최대 7,000원 할인 \(배민클럽 전용\)\n18,000원 이상 주문 시/)
   assert.match(text, /배민클럽/)
-  assert.match(text, /배달만/)
+  assert.ok(!text.includes('배달만'))
   assert.ok(!text.includes('5,000원 할인'))
   assert.ok(!text.includes('undefined'))
   assert.match(shareText('KFC', { platform: 'own', kind: 'bundle', rawText: '버거 1+1', amount: 15000 }), /버거 1\+1/)
@@ -77,10 +77,10 @@ test('공유 지원 여부도 링크가 마지막 줄에 포함된 실제 전달
   assert.deepEqual(checked, { text: `${data.text}\n${data.url}` })
 })
 
-test('선착순과 정률 상한을 유지하고 날짜는 제외', () => {
+test('정률 상한은 유지하고 선착순과 날짜는 제외', () => {
   const text = shareText('BBQ', { ...offer, firstCome: true,
     tiers: [{ percent: 10, cap: 7000, minOrder: 18000, channel: '포장', expiresAt: '2026-11-10' }] })
-  assert.match(text, /선착순/)
+  assert.ok(!text.includes('선착순'))
   assert.match(text, /포장 10% 할인 \(최대 7,000원\)/)
   assert.doesNotMatch(text, /11월 10일|2026-11-10/)
   assert.match(text, /18,000원 이상 주문 시/)
@@ -101,7 +101,7 @@ test('대표 혜택의 멤버십은 한 번만 표시하고 날짜와 다른 구
     { amount: 5000, minOrder: 15000, membership: 'baeminClub' },
   ] }, { year: 2026 })
   assert.equal(text.split('배민클럽').length - 1, 1)
-  assert.match(text, /7,000원 할인\n18,000원 이상 주문 시/)
+  assert.match(text, /7,000원 할인 \(배민클럽 전용\)\n18,000원 이상 주문 시/)
   assert.ok(!text.includes('15,000원'))
   assert.doesNotMatch(shareText('BBQ', { ...offer, tiers: [], expiresAt: '2027-01-01' }), /2027|1월 1일/)
   const date = shareText('BBQ', { ...offer, tiers: [], badge: '~11/30' }, { year: 2026 })
@@ -129,8 +129,8 @@ test('중복 할인은 개별 구간을 대표 할인으로 바꾸지 않는다'
     conditions: '5,000원 + 2,000원', tiers: [
       { amount: 5000, minOrder: 18000 }, { amount: 2000, minOrder: 18000 },
     ] }, { year: 2026 })
-  assert.match(text, /^배달의민족 BBQ 7,000원 할인\n18,000원 이상 주문 시/)
-  assert.match(text, /5,000원 \+ 2,000원/)
+  assert.match(text, /^배달의민족 BBQ 7,000원 할인 \(배민클럽 전용\)\n18,000원 이상 주문 시/)
+  assert.ok(!text.includes('5,000원 + 2,000원'))
 })
 
 test('공유 취소와 실패 및 복사 실패를 구분하고 취소 후 복사하지 않는다', async () => {
@@ -163,12 +163,13 @@ test('다른 구간을 안내하는 금액 배지는 제거하고 현재 혜택�
   assert.ok(!text.includes('배민클럽'))
 })
 
-test('선택한 구간의 선착순 메모와 일반 배지는 유지하고 날짜는 제외', () => {
+test('추가 안내가 있어도 멤버십을 첫 줄에 포함해 본문 두 줄 유지', () => {
   const text = shareText('BBQ', { ...offer, badge: '오전 11시 오픈',
     tiers: [{ amount: 7000, minOrder: 18000, note: '선착순', expiresAt: '2026-11-10' },
       { amount: 5000, minOrder: 15000 }] }, { year: 2026 })
   assert.match(text, /배민클럽/)
-  assert.match(text, /오전 11시 오픈/)
-  assert.match(text, /선착순/)
+  assert.ok(!text.includes('오전 11시 오픈'))
+  assert.ok(!text.includes('선착순'))
   assert.doesNotMatch(text, /11월 10일|2026-11-10/)
+  assert.equal(text.split('\n').length, 2)
 })
