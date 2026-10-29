@@ -105,13 +105,30 @@
     .grid4 .row__app { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 700; letter-spacing: -.015em; }
     .grid4 .row__app img { width: 24px; height: 24px; border-radius: 7px; }
     .grid4 figure { margin: 0; min-width: 0; }
-    .grid4 img.shot { display: block; width: 100%; height: clamp(120px, calc((100dvh - 400px) / 2), 300px); object-fit: cover; object-position: top; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 16px 32px -20px rgba(0, 0, 0, .5); }
+    .grid4 img.shot { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1.02; object-fit: cover; object-position: top; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 16px 32px -20px rgba(0, 0, 0, .5); }
     .grid4 figcaption { margin-top: 8px; font-weight: 700; font-size: .95rem; letter-spacing: -.015em; line-height: 1.3; }
     .grid4 figcaption span { display: block; color: var(--muted); font-weight: 500; font-size: .8rem; }
     .grid4 .is-member figcaption { color: var(--sale); }
     @media (max-width: 767px) { .slide--diff .next { display: none; } }
 
-    /* 5~6. 수집과 반영 도식: 카드마다 실제 화면, 값, 코드 중 하나를 붙인다 */
+    /* 5. 기기 구조: 수집 PC와 실기기, 서버, 사용자 기기 */
+    .arch { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; width: 100%; justify-self: center; }
+    .node { display: grid; gap: 8px; justify-items: center; text-align: center; padding: 12px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); min-width: 0; }
+    .node b { font-size: 1.02rem; letter-spacing: -.02em; line-height: 1.3; }
+    .node .sub { color: var(--muted); font-size: .86rem; line-height: 1.4; }
+    .icons { display: flex; align-items: center; justify-content: center; gap: 12px; }
+    .ico { width: 52px; height: 52px; color: var(--text); }
+    .ico--s { width: 40px; height: 52px; }
+    .ico svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .phones { display: flex; gap: 10px; }
+    .phone-tag { display: grid; justify-items: center; gap: 4px; }
+    .phone-tag i { font-style: normal; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 700; background: var(--sale-weak); color: var(--sale); }
+    .phone-tag i.plain { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .link { width: 24px; border-top: 2px dashed var(--sale); }
+    .hop { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--sale); font-size: .78rem; font-weight: 700; }
+    .hop::after { content: ''; width: 9px; height: 9px; border-right: 2px solid var(--sale); border-bottom: 2px solid var(--sale); transform: rotate(45deg); }
+
+    /* 6~7. 수집과 반영 도식: 카드마다 실제 화면, 값, 코드 중 하나를 붙인다 */
     :root { --code-bg: #17171a; --code-fg: #e9e7e2; --code-key: #9bb7ff; --code-str: #8fd6a4; --code-num: #ffb27a; --code-dim: #8b8a86; }
     .cards { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; width: 100%; justify-self: center; counter-reset: card; }
     .card { counter-increment: card; display: grid; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); min-width: 0; }
@@ -146,8 +163,13 @@
       .diff { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 48px; }
       .slide--diff { padding-top: 56px; }
       .grid4 { gap: 18px; max-width: 480px; }
-      .grid4 img.shot { height: clamp(150px, calc((100dvh - 300px) / 2), 280px); }
-      #s5 .diff, #s6 .diff { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+      #s5 .diff, #s6 .diff, #s7 .diff { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+      .arch { grid-template-columns: 1.55fr auto 1fr auto 1fr; gap: 12px; align-items: center; }
+      .node { padding: 26px 16px; gap: 14px; }
+      .ico { width: 64px; height: 64px; }
+      .ico--s { width: 48px; height: 64px; }
+      .hop { flex-direction: row; gap: 6px; }
+      .hop::after { transform: rotate(-45deg); }
       .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
       .card { padding: 14px; gap: 12px; }
       .slide--cards { padding: 72px 20px 88px; }
@@ -254,13 +276,13 @@
         <div class="grid4 rise" style="--i:2">
           <div class="row">
             <p class="row__app"><img src="/platform-icons/coupangeats.png" alt="" />쿠팡이츠</p>
-            <figure class="is-member"><img class="shot" src="/about/diff-wow.jpg" width="600" height="1209" alt="쿠팡이츠 멤버십(와우) 화면. 치킨 브랜드 할인 맨 위에 기영이숯불치킨 5,000원 할인이 있다." /><figcaption>멤버십 화면<span>오후 5:54</span></figcaption></figure>
-            <figure><img class="shot" src="/about/diff-nonwow.jpg" width="600" height="1209" alt="쿠팡이츠 비회원 화면. 같은 목록에 기영이숯불치킨이 없고 훌라라치킨이 맨 위다." /><figcaption>비회원 화면<span>오후 5:54</span></figcaption></figure>
+            <figure class="is-member"><img class="shot" src="/about/diff-wow.jpg" width="660" height="715" alt="쿠팡이츠 멤버십(와우) 화면. 치킨 브랜드 할인 맨 위에 기영이숯불치킨 5,000원 할인이 있다." /><figcaption>멤버십 화면<span>오후 5:54</span></figcaption></figure>
+            <figure><img class="shot" src="/about/diff-nonwow.jpg" width="660" height="715" alt="쿠팡이츠 비회원 화면. 같은 목록에 기영이숯불치킨이 없고 훌라라치킨이 맨 위다." /><figcaption>비회원 화면<span>오후 5:54</span></figcaption></figure>
           </div>
           <div class="row">
             <p class="row__app"><img src="/platform-icons/baemin.png" alt="" />배달의민족</p>
-            <figure class="is-member"><img class="shot" src="/about/diff-club.jpg" width="600" height="1209" alt="배민 멤버십(배민클럽) 화면. 60계치킨 5,500원 선착순 할인과 3,000원 할인, 가게 배달팁 0원." /><figcaption>멤버십 화면<span>오후 5:50</span></figcaption></figure>
-            <figure><img class="shot" src="/about/diff-nonclub.jpg" width="600" height="1209" alt="배민 비회원 화면. 60계치킨 3,000원 할인만 있고 가게 배달팁 2,700원, 3,400원." /><figcaption>비회원 화면<span>오후 5:50</span></figcaption></figure>
+            <figure class="is-member"><img class="shot" src="/about/diff-club.jpg" width="770" height="860" alt="배민 멤버십(배민클럽) 화면. 60계치킨 5,500원 선착순 할인과 3,000원 할인, 가게 배달팁 0원." /><figcaption>멤버십 화면<span>오후 5:50</span></figcaption></figure>
+            <figure><img class="shot" src="/about/diff-nonclub.jpg" width="770" height="860" alt="배민 비회원 화면. 60계치킨 3,000원 할인만 있고 가게 배달팁 2,700원, 3,400원." /><figcaption>비회원 화면<span>오후 5:50</span></figcaption></figure>
           </div>
         </div>
       </div>
@@ -270,13 +292,52 @@
     <section class="slide slide--cards" id="s5">
       <div class="slide__in diff">
         <div>
+          <h2 class="rise">수집부터<br /><em>제공까지</em></h2>
+          <p class="lead rise" style="--i:1">폰에서 읽고, 서버에 올리고,<br />사용자에게 보여 줘요.</p>
+        </div>
+        <ol class="arch rise" style="--i:2">
+          <li class="node">
+            <div class="icons">
+              <div class="ico"><svg viewBox="0 0 48 48"><rect x="4" y="7" width="40" height="27" rx="3" /><path d="M17 41h14M24 34v7" /></svg></div>
+              <span class="link" aria-hidden="true"></span>
+              <div class="phones">
+                <div class="phone-tag"><div class="ico ico--s"><svg viewBox="0 0 48 48"><rect x="13" y="4" width="22" height="40" rx="4" /><path d="M21 38h6" /></svg></div><i>멤버십</i></div>
+                <div class="phone-tag"><div class="ico ico--s"><svg viewBox="0 0 48 48"><rect x="13" y="4" width="22" height="40" rx="4" /><path d="M21 38h6" /></svg></div><i class="plain">비회원</i></div>
+              </div>
+            </div>
+            <b>수집 PC와 실기기</b>
+            <span class="sub">PC가 폰 두 대의 앱 화면을 읽어요</span>
+          </li>
+          <li class="hop" aria-hidden="true"><span>업로드</span></li>
+          <li class="node">
+            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="11" rx="3" /><rect x="6" y="19" width="36" height="11" rx="3" /><rect x="6" y="32" width="36" height="11" rx="3" /><path d="M13 11.5h.01M13 24.5h.01M13 37.5h.01" /></svg></div></div>
+            <b>서버</b>
+            <span class="sub">점검한 할인 값을 받아 보관해요</span>
+          </li>
+          <li class="hop" aria-hidden="true"><span>제공</span></li>
+          <li class="node">
+            <div class="icons">
+              <div class="ico ico--s"><svg viewBox="0 0 48 48"><rect x="13" y="4" width="22" height="40" rx="4" /><path d="M21 38h6" /></svg></div>
+              <div class="ico"><svg viewBox="0 0 48 48"><rect x="8" y="9" width="32" height="22" rx="2.5" /><path d="M3 38h42" /></svg></div>
+            </div>
+            <b>사용자 기기</b>
+            <span class="sub">웹과 API로 보여 줘요</span>
+          </li>
+        </ol>
+      </div>
+      <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
+
+    <section class="slide slide--cards" id="s6">
+      <div class="slide__in diff">
+        <div>
           <h2 class="rise">앱 화면을<br /><em>그대로 읽어요</em></h2>
           <p class="lead rise" style="--i:1">멤버십 계정과 비회원 계정,<br />하루 세 번 각각 확인해요.</p>
         </div>
         <ol class="cards rise" style="--i:2">
           <li class="card">
             <h3>실제 앱 화면</h3>
-            <div class="vis vis--img" style="--pos: center 21%"><img src="/about/diff-club.jpg" width="600" height="1209" alt="배민 멤버십 계정 화면. 60계치킨 5,500원 선착순 할인." /></div>
+            <div class="vis vis--img" style="--pos: center 80%"><img src="/about/diff-club.jpg" width="770" height="860" alt="배민 멤버십 계정 화면. 60계치킨 5,500원 선착순 할인." /></div>
             <p>계정마다 폰에서 직접 열어요</p>
           </li>
           <li class="card">
@@ -296,10 +357,10 @@
           </li>
         </ol>
       </div>
-      <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="slide slide--cards" id="s6">
+    <section class="slide slide--cards" id="s7">
       <div class="slide__in diff">
         <div>
           <h2 class="rise">확인하고<br /><em>내보내요</em></h2>
@@ -308,7 +369,7 @@
         <ol class="cards rise" style="--i:2">
           <li class="card">
             <h3>반영 전 점검</h3>
-            <div class="vis vis--check"><ul class="checks"><li>지난 기록은 지우지 않고 덧붙임</li><li>서버 값보다 낡으면 중단</li><li>사라진 할인은 이유 확인</li></ul></div>
+            <div class="vis vis--check"><ul class="checks"><li>할인 기록을 남김</li><li>서버 값보다 낡으면 중단</li><li>사라진 할인은 이유 확인</li></ul></div>
             <p>통과한 값만 서버에 올려요</p>
           </li>
           <li class="card">
@@ -341,10 +402,10 @@
           </li>
         </ol>
       </div>
-      <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s8" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="slide" id="s7">
+    <section class="slide" id="s8">
       <div class="slide__in split">
         <h2 class="rise">과장 없이,<br /><em>정확한 값</em>으로</h2>
         <ul class="tech">
@@ -355,10 +416,10 @@
           <li class="rise" style="--i:5"><div><b>한정, 선착순 할인 실시간 제공</b><span>선착순은 소진까지 확인</span></div></li>
         </ul>
       </div>
-      <a class="next" href="#s8" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s9" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="slide contact" id="s8">
+    <section class="slide contact" id="s9">
       <div class="slide__in">
         <h2 class="rise">오늘의 할인,<br /><em>직접 확인</em>해 보세요</h2>
         <div class="row rise" style="--i:1">
