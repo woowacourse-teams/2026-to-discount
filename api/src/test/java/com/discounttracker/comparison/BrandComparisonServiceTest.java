@@ -1228,4 +1228,47 @@ class BrandComparisonServiceTest {
         assertTrue(o.firstCome());
         assertEquals(com.discounttracker.offer.FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK, o.link());
     }
+
+    private static OfferRecord soldOutLedger(String section, String conditions, boolean soldOut) {
+        return OfferRecord.builder("baemin", "노랑통닭")
+                .amount(6000)
+                .offerType("discount")
+                .section(section)
+                .conditions(conditions)
+                .rawText("6000원")
+                .capturedAt("2026-10-24T08:00:00+09:00")
+                .screenshotPath("path.jpg")
+                .minOrderAmount(19000)
+                .soldOut(soldOut)
+                .build();
+    }
+
+    private static final String SOLD_OUT_BRANDS = """
+            brands:
+              노랑통닭:
+                category: chicken
+            """;
+
+    @Test
+    void soldOutBaeminFirstComeGoesToTheHubAfterOpeningToo() {
+        List<OfferRecord> records = List.of(
+                soldOutLedger("배짱할인 주말핫딜 선착순", "오전 10시 오픈 선착순", true));
+        Clock tenThirty = Clock.fixed(Instant.parse("2026-10-24T01:30:00Z"), SEOUL); // KST 10:30
+        Offer o = serviceWith(records, SOLD_OUT_BRANDS, tenThirty).compare().get(0).offers().get(0);
+
+        assertTrue(o.firstCome());
+        assertEquals(com.discounttracker.offer.FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK, o.link());
+    }
+
+    @Test
+    void soldOutFirstComeBehindALiveRegularOfferLeavesTheLinkAlone() {
+        List<OfferRecord> records = List.of(
+                soldOutLedger("배짱할인 주말핫딜 선착순", "오전 10시 오픈 선착순", true),
+                soldOutLedger("쿠폰함 보유쿠폰", null, false));
+        Clock tenThirty = Clock.fixed(Instant.parse("2026-10-24T01:30:00Z"), SEOUL);
+        Offer o = serviceWith(records, SOLD_OUT_BRANDS, tenThirty).compare().get(0).offers().get(0);
+
+        assertFalse(o.firstCome());
+        assertNull(o.link());
+    }
 }

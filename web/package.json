@@ -30,6 +30,7 @@
     "test:banner-contract": "node --test src/bannerContract.test.js"
   },
   "dependencies": {
+    "@noble/hashes": "2.0.1",
     "@vercel/analytics": "^2.0.1",
     "posthog-js": "^1.418.1",
     "react": "^18.3.1",

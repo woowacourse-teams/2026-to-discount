@@ -1,19 +1,26 @@
 package com.discounttracker.push;
 
+import com.discounttracker.storage.InterProcessFileLock;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PushStateStoreTest {
     @TempDir Path temp;
@@ -84,6 +91,101 @@ class PushStateStoreTest {
 
         assertThat(restored.pending()).singleElement()
                 .extracting(BannerNotificationState::bannerId).isEqualTo("banner");
+    }
+
+    @Test
+    void staleMemoryDoesNotEraseAnotherInstancesWrite() {
+        PushStateStore a = new PushStateStore(properties(), mapper, clock);
+        PushStateStore b = new PushStateStore(properties(), mapper, clock);
+
+        b.upsert("https://fcm.googleapis.com/b", "key", "auth", "v_b", true);
+        a.upsert("https://fcm.googleapis.com/a", "key", "auth", "v_a", true);
+
+        assertThat(new PushStateStore(properties(), mapper, clock).activeSubscriptions())
+                .extracting(PushSubscription::visitorId).containsExactlyInAnyOrder("v_a", "v_b");
+        assertThat(a.activeSubscriptions()).hasSize(2);
+    }
+
+    /** 인증 없는 공개 엔드포인트가 부르는 길이다. 쓸 게 없는 호출이 락을 잡거나 파일을 다시 쓰면 안 된다. */
+    @Test
+    void unusableTokenAndUnknownSubscriptionNeitherLockNorWrite() throws Exception {
+        PushStateStore store = new PushStateStore(properties(), mapper, clock, Duration.ofMillis(200));
+        PushSubscription subscription = store.upsert("https://fcm.googleapis.com/sub", "key", "auth",
+                "v_123", true);
+        PushTrackingToken token = store.createToken("notification", subscription.id(),
+                java.util.List.of("banner"), "digest");
+        store.track(token.token(), "push_notification_displayed");
+        Path state = properties().statePath();
+        byte[] before = Files.readAllBytes(state);
+        Object keyBefore = Files.readAttributes(state, BasicFileAttributes.class).fileKey();
+
+        CountDownLatch held = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        Thread holder = new Thread(() -> {
+            try {
+                InterProcessFileLock.withLock(temp.resolve("push.json.lock"), Duration.ofSeconds(5), () -> {
+                    held.countDown();
+                    try {
+                        release.await(10, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    return null;
+                });
+            } catch (java.io.IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        });
+        holder.start();
+        try {
+            assertThat(held.await(5, TimeUnit.SECONDS)).isTrue();
+
+            // 락을 남이 쥔 동안에도 던지지 않고 돌아와야 한다: 락을 안 잡았다는 증거.
+            assertThat(store.track("unknown", "push_notification_displayed")).isEmpty();
+            assertThat(store.track(token.token(), "push_notification_displayed")).isEmpty();
+            store.deactivate("unknown");
+        } finally {
+            release.countDown();
+            holder.join(5000);
+        }
+
+        assertThat(Files.readAllBytes(state)).isEqualTo(before);
+        assertThat(Files.readAttributes(state, BasicFileAttributes.class).fileKey()).isEqualTo(keyBefore);
+    }
+
+    /** 락을 못 잡으면 쓰지 않고 UncheckedIOException으로 알린다(#192). */
+    @Test
+    void failsLoudlyWhenTheLockCannotBeTaken() throws Exception {
+        PushStateStore store = new PushStateStore(properties(), mapper, clock, Duration.ofMillis(200));
+        CountDownLatch held = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        Thread holder = new Thread(() -> {
+            try {
+                InterProcessFileLock.withLock(temp.resolve("push.json.lock"), Duration.ofSeconds(5), () -> {
+                    held.countDown();
+                    try {
+                        release.await(10, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    return null;
+                });
+            } catch (java.io.IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        });
+        holder.start();
+        try {
+            assertThat(held.await(5, TimeUnit.SECONDS)).isTrue();
+
+            assertThatThrownBy(() -> store.upsert("https://fcm.googleapis.com/sub", "key", "auth", "v_1", true))
+                    .isInstanceOf(UncheckedIOException.class);
+        } finally {
+            release.countDown();
+            holder.join(5000);
+        }
+
+        assertThat(properties().statePath()).doesNotExist();
     }
 
     private PushProperties properties() {
