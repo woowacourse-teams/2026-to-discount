@@ -11,8 +11,7 @@ import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, applyFilters, pinPopular, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
-import { cardRanks } from './popularStrip.js'
+import { CATEGORIES, applyFilters, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
@@ -425,20 +424,14 @@ export default function App({ initial = null }) {
     [brands, filters, hidden, bestOf],
 
   )
-  // 맨 위로 올라온 이유(HOT 고정, 신규 앞)를 브랜드에 `pin`으로 붙인다. 카드가 노출과 클릭 이벤트에 싣는다(2026-10-27).
+  // 맨 위로 올라온 이유(신규 앞)를 브랜드에 `pin`으로 붙인다. 카드가 노출과 클릭 이벤트에 싣는다(2026-10-27).
   const visibleBrands = useMemo(() => {
     if (!brands) return brands
-    const ordered = pinPopular(applyHidden(applyFilters(brands, filters), hidden, bestOf), filters, rankBrands)
-    const kinds = pinKinds(ordered, filters, rankBrands)
+    const ordered = applyHidden(applyFilters(brands, filters), hidden, bestOf)
+    const kinds = pinKinds(ordered, filters)
     const visible = ordered.map((b) => ({ ...b, pin: kinds.get(b.name) ?? 'none' }))
     return shared ? [shared.brand, ...visible.filter((b) => b.name !== shared.brand.name)] : visible
-  }, [brands, filters, hidden, bestOf, rankBrands, shared?.brand])
-
-  // 카드 왼쪽 위 순번. 도크와 같은 rankBrands 표를 읽어 순위가 맞는다(popularStrip.js cardRanks).
-  const popRanks = useMemo(
-    () => cardRanks(rankBrands, visibleBrands, primarySort(filters).key === 'popularity'),
-    [rankBrands, visibleBrands, filters],
-  )
+  }, [brands, filters, hidden, bestOf, shared?.brand])
 
   // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
   const revived = useMemo(
@@ -738,7 +731,7 @@ export default function App({ initial = null }) {
             /></Suspense>
           )}
           {visibleBrands.slice(0, shown).map((b, index) => {
-            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1, rank: popRanks?.get(b.name),
+            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name) || shared?.brand.name === b.name, onInteract: clearLinked,
               sharedKey: shared?.brand.name === b.name ? shared.key : null, onShareTargetVisible }
             const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
