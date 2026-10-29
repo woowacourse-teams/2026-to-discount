@@ -69,6 +69,16 @@ class OfferContractTest {
     }
 
     @Test
+    void linkSourceIsALowerCaseStringForEveryValue() throws Exception {
+        for (LinkSource v : LinkSource.values()) {
+            assertEquals("\"" + v.name().toLowerCase() + "\"", JSON.writeValueAsString(v));
+        }
+        OfferRecord r = READ.treeToValue(contract().get("cases").get(0).get("record"), OfferRecord.class);
+        Offer o = Offer.from(r, LocalDate.parse(contract().get("asOf").asString()));
+        assertEquals("added", JSON.readTree(JSON.writeValueAsString(o.withFilterLink("https://hub"))).get("linkSource").asString());
+    }
+
+    @Test
     void brandCardKeysAreTheContractKeys() throws Exception {
         JsonNode c = contract();
         OfferRecord r = READ.treeToValue(c.get("cases").get(0).get("record"), OfferRecord.class);
