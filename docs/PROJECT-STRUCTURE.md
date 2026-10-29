@@ -103,6 +103,7 @@ api/src/main/java/com/discounttracker/push/PushTrackingToken.java
 api/src/main/java/com/discounttracker/push/WebPushSender.java
 api/src/main/java/com/discounttracker/sharing/ShareLinkController.java
 api/src/main/java/com/discounttracker/sharing/ShareLinkStore.java
+api/src/main/java/com/discounttracker/storage/InterProcessFileLock.java
 api/src/main/java/com/discounttracker/web/BannerController.java
 api/src/main/java/com/discounttracker/web/BrandController.java
 api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
@@ -167,6 +168,11 @@ api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
 api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
 api/src/test/java/com/discounttracker/sharing/ShareLinkControllerTest.java
 api/src/test/java/com/discounttracker/sharing/ShareLinkStoreTest.java
+api/src/test/java/com/discounttracker/storage/GifticonStoreMultiProcessTest.java
+api/src/test/java/com/discounttracker/storage/InterProcessFileLockTest.java
+api/src/test/java/com/discounttracker/storage/MultiProcess.java
+api/src/test/java/com/discounttracker/storage/PushStateStoreMultiProcessTest.java
+api/src/test/java/com/discounttracker/storage/StoreWorker.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/BrandHistoryEndpointTest.java
 api/src/test/java/com/discounttracker/web/DevelopmentCorsTest.java
@@ -175,6 +181,7 @@ api/src/test/java/com/discounttracker/web/JsonCompressionIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PerformanceMetricsIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PushAdminControllerTest.java
 api/src/test/java/com/discounttracker/web/PushAdminCorsTest.java
+api/src/test/java/com/discounttracker/web/PushStateWriteEntryPointTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
 api/src/test/java/com/discounttracker/web/RequestIdFilterTest.java
 api/src/test/java/com/discounttracker/web/RequestIdIntegrationTest.java
@@ -407,7 +414,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 182 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 189 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 177 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -428,6 +435,7 @@ flowchart TB
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 12 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
 | `sharing/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 2 |
+| `storage/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 1 |
 | `web/` | HTTP 엔드포인트와 CORS | 8 |
 
 HTTP 경계:
