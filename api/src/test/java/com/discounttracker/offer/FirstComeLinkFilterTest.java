@@ -13,6 +13,10 @@ class FirstComeLinkFilterTest {
     private static final LocalDate TODAY = LocalDate.of(2026, 10, 24);
 
     private static Offer firstCome(String platform, String conditions, String link) {
+        return firstCome(platform, conditions, link, false);
+    }
+
+    private static Offer firstCome(String platform, String conditions, String link, Boolean soldOut) {
         return Offer.from(OfferRecord.builder(platform, "노랑통닭")
                 .amount(6000)
                 .section("배짱할인 주말핫딜 선착순")
@@ -20,8 +24,40 @@ class FirstComeLinkFilterTest {
                 .link(link)
                 .capturedAt("2026-10-24T09:00:00+09:00")
                 .minOrderAmount(19000)
-                .soldOut(false)
+                .soldOut(soldOut)
                 .build(), TODAY);
+    }
+
+    @Test
+    void soldOutBeforeOrAfterOpeningTheLinkIsTheBaejjangHub() {
+        for (LocalTime now : new LocalTime[] {LocalTime.of(9, 59), LocalTime.of(10, 0), LocalTime.of(15, 0)}) {
+            Offer o = FirstComeLinkFilter.apply(firstCome("baemin", "오전 10시 오픈 선착순", null, true), now);
+            assertEquals(FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK, o.link());
+        }
+    }
+
+    @Test
+    void soldOutWithoutAnOpeningTimeStillGoesToTheHub() {
+        LocalTime now = LocalTime.of(15, 0);
+        assertEquals(FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK,
+                FirstComeLinkFilter.apply(firstCome("baemin", "선착순", null, true), now).link());
+        assertEquals(FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK,
+                FirstComeLinkFilter.apply(firstCome("baemin", null, null, true), now).link());
+    }
+
+    @Test
+    void soldOutOffersThatAreNotBaeminFirstComeOrHaveALinkAreUntouched() {
+        LocalTime now = LocalTime.of(15, 0);
+        assertNull(FirstComeLinkFilter.apply(firstCome("yogiyo", "오전 10시 오픈 선착순", null, true), now).link());
+        assertEquals("https://own", FirstComeLinkFilter.apply(firstCome("baemin", "오전 10시 오픈 선착순", "https://own", true), now).link());
+        Offer regular = Offer.from(OfferRecord.builder("baemin", "교촌치킨").amount(3000).section("브랜드관 쿠폰")
+                .conditions("오전 10시 오픈").capturedAt("2026-10-24T09:00:00+09:00").minOrderAmount(19000).soldOut(true).build(), TODAY);
+        assertNull(FirstComeLinkFilter.apply(regular, now).link());
+    }
+
+    @Test
+    void unknownSoldOutIsReadAsNotSoldOutAfterOpening() {
+        assertNull(FirstComeLinkFilter.apply(firstCome("baemin", "오전 10시 오픈 선착순", null, null), LocalTime.of(15, 0)).link());
     }
 
     @Test

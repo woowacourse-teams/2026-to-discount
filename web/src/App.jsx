@@ -35,6 +35,7 @@ import { shouldShowGuide } from './firstVisitGuide.js'
 import PushNotificationSetting from './PushNotificationSetting.jsx'
 import { brandCardId } from './cardId.js'
 import BrandGridSkeleton from './BrandGridSkeleton.jsx'
+import { useSharedOffer } from './useSharedOffer.js'
 import { setHubLinks } from './offerLink.js'
 import SiteFooter from './SiteFooter.jsx'
 
@@ -241,12 +242,21 @@ export default function App({ initial = null }) {
   useEffect(() => {
     const applyHash = () => {
       const raw = window.location.hash.slice(1)
-      setLinkedBrand(raw ? decodeURIComponent(raw) : null)
+      try { setLinkedBrand(raw.startsWith('brand-') ? decodeURIComponent(raw) : null) }
+      catch { setLinkedBrand(null) }
     }
     applyHash()
     window.addEventListener('hashchange', applyHash)
     return () => window.removeEventListener('hashchange', applyHash)
   }, [])
+
+  const onSharedUnavailable = useCallback(() => {
+    setFilters(defaultFilters())
+    setLinkedBrand(null)
+    window.history.replaceState(window.history.state, '', '/')
+    window.scrollTo({ top: 0 })
+  }, [])
+  const { shared, notice: shareNotice, dismiss: dismissShared, onVisible: onShareTargetVisible } = useSharedOffer(brands, onSharedUnavailable, error)
 
   // reloadKey를 올리면 다시 부른다 — 실패 화면의 "다시 시도" 버튼용.
   const [reloadKey, setReloadKey] = useState(0)
@@ -380,7 +390,7 @@ export default function App({ initial = null }) {
   const onHide = useCallback((name, amount) => setAsking({ name, amount }), [])
   // 카드 memo가 먹게 참조를 고정한다. 렌더마다 새 객체나 함수를 넘기면 memo가 소용없다.
   const include = useMemo(() => includesFrom(filters), [filters])
-  const clearLinked = useCallback(() => setLinkedBrand(null), [])
+  const clearLinked = useCallback(() => { setLinkedBrand(null); dismissShared() }, [dismissShared])
   // 카드가 쪼그라들어 사라진 뒤에 목록에서 뺀다. 바로 빼면 아래 카드들이
   // 순간이동해서 무엇이 사라졌는지 눈이 못 따라간다.
   const gridRef = useRef(null)
@@ -413,14 +423,16 @@ export default function App({ initial = null }) {
   const rankBrands = useMemo(
     () => (brands ? applyHidden(applyFilters(brands, { ...filters, categories: new Set(), search: '' }), hidden, bestOf) : brands),
     [brands, filters, hidden, bestOf],
+
   )
   // 맨 위로 올라온 이유(HOT 고정, 신규 앞)를 브랜드에 `pin`으로 붙인다. 카드가 노출과 클릭 이벤트에 싣는다(2026-10-27).
   const visibleBrands = useMemo(() => {
     if (!brands) return brands
     const ordered = pinPopular(applyHidden(applyFilters(brands, filters), hidden, bestOf), filters, rankBrands)
     const kinds = pinKinds(ordered, filters, rankBrands)
-    return ordered.map((b) => ({ ...b, pin: kinds.get(b.name) ?? 'none' }))
-  }, [brands, filters, hidden, bestOf, rankBrands])
+    const visible = ordered.map((b) => ({ ...b, pin: kinds.get(b.name) ?? 'none' }))
+    return shared ? [shared.brand, ...visible.filter((b) => b.name !== shared.brand.name)] : visible
+  }, [brands, filters, hidden, bestOf, rankBrands, shared?.brand])
 
   // 카드 왼쪽 위 순번. 도크와 같은 rankBrands 표를 읽어 순위가 맞는다(popularStrip.js cardRanks).
   const popRanks = useMemo(
@@ -670,6 +682,7 @@ export default function App({ initial = null }) {
       {/* 빈 화면에 글자 한 줄 대신 들어올 카드 모양을 미리 깔아둔다 —
           도착했을 때 레이아웃이 튀지 않는다. */}
       {!error && !brands && <BrandGridSkeleton />}
+      {shareNotice && <p className="share-notice" role="alert">{shareNotice}</p>}
 
       {/* 0건일 때는 "없다"로 끝내지 않는다. 무엇이 걸려서 없는지와,
           거기서 빠져나가는 길을 같이 준다 — 실측에서 검색 제출의 절반이
@@ -726,7 +739,8 @@ export default function App({ initial = null }) {
           )}
           {visibleBrands.slice(0, shown).map((b, index) => {
             const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1, rank: popRanks?.get(b.name),
-              highlighted: linkedBrand === brandCardId(b.name), onInteract: clearLinked }
+              highlighted: linkedBrand === brandCardId(b.name) || shared?.brand.name === b.name, onInteract: clearLinked,
+              sharedKey: shared?.brand.name === b.name ? shared.key : null, onShareTargetVisible }
             const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
             // 한정 오퍼(배너)는 3번째 카드 뒤 한 칸(2026-10-15 사용자). 첫 자리는 신규·최고 할인 몫이다.
             // 배너를 받기 전(null)에는 그 자리를 잡아 둔다. 늦게 끼어들면 아래 카드가 밀린다(CodeRabbit #88, 2026-09-30 CLS 0.9와 같은 꼴)
@@ -734,6 +748,7 @@ export default function App({ initial = null }) {
             return index === 2 && banners?.length
               ? [card, <div key="inline-banners" className="inline-banners"><EventBanner banners={banners} inline /></div>]
               : card
+
           })}
         </div>
       )}

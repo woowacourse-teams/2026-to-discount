@@ -42,12 +42,14 @@ for (const p of await srcFiles()) {
   scanned.push(...staticTrackEvents(p, text))
 }
 
+
 const controllerSource = await readFile(
   apiFile('src', 'main', 'java', 'com', 'discounttracker', 'analytics', 'EventController.java'),
   'utf8',
 )
 
 const emittedEvents = new Set([...scanned, 'page_exit'])
+
 
 const allowedBlock = controllerSource.match(/ALLOWED_EVENTS\s*=\s*Set\.of\(([\s\S]*?)\);/)
 assert.ok(allowedBlock, 'EventController.ALLOWED_EVENTS를 찾을 수 없습니다.')

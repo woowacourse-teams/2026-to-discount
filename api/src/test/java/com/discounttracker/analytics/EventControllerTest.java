@@ -34,6 +34,39 @@ class EventControllerTest {
     }
 
     @Test
+    void acceptsShareFunnelAndPreservesClickAttributionBeyondOldPropertyLimit() throws Exception {
+        var mapper = new tools.jackson.databind.ObjectMapper();
+        var payload = new java.util.ArrayList<java.util.Map<String, Object>>();
+        String shareId = "share-" + UUID.randomUUID();
+        for (String name : java.util.List.of("offer_share_click", "offer_share_result",
+                "offer_share_landing", "offer_share_target_view", "offer_link_click")) {
+            var props = new java.util.LinkedHashMap<String, String>();
+            // 기존 혜택 및 필터 속성 뒤에 와도 연결 정보가 잘리지 않아야 한다.
+            for (int i = 0; i < 28; i++) props.put("existing" + i, "value" + i);
+            props.put("shareId", shareId);
+            props.put("landingId", "landing");
+            props.put("sharedOfferKey", "v1_" + "a".repeat(64));
+            props.put("selectionRelation", "same_brand_other_offer");
+            props.put("targetStatus", "available");
+            props.put("fMinAmount", "5000");
+            payload.add(java.util.Map.of("event", name, "visitorId", "v_share", "props", props));
+        }
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accepted").value(5));
+        var records = Files.readAllLines(Path.of(logPath)).stream()
+                .map(mapper::readTree)
+                .filter(row -> shareId.equals(row.path("props").path("shareId").asString()))
+                .toList();
+        org.junit.jupiter.api.Assertions.assertEquals(5, records.size());
+        for (var row : records) {
+            org.junit.jupiter.api.Assertions.assertEquals("same_brand_other_offer", row.path("props").path("selectionRelation").asString());
+            org.junit.jupiter.api.Assertions.assertEquals("5000", row.path("props").path("fMinAmount").asString());
+        }
+    }
+
+    @Test
     void acceptsKnownEvent() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content(batch("""

@@ -341,7 +341,8 @@
 .cc-sheet .offer__status-badge:not(.offer__status-badge--membership) { background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text-muted); box-shadow: none; } /* 상세 표 줄의 채널 배지와 같은 색 */
 /* 시트: 배지는 쿠폰 안 금액 위 한 줄. 쿠폰은 그만큼 키운다. 채널 배지는 상세 표 줄과 같은 색을 불투명으로 */
 .cc-sheet .cc-ticket { aspect-ratio: 37 / 14; }
-.cc-ticket { cursor: pointer; }
+.cc-ticket { cursor: default; }
+.cc-stub { cursor: pointer; }
 /* 배지는 쿠폰 위 끝과 로고 위 끝의 가운데(로고 12.45cqw가 세로 가운데라 (높이-로고)/4) */
 .cc-ticket__tags { position: absolute; top: calc((100% - 12.45cqw) / 4); left: 14px; transform: translateY(-50%); z-index: 1; pointer-events: none; }
 /* 시트 배지는 쿠폰 폭 비율(모바일 360px에서 쿠폰 약 328px일 때 20px, 11.5px) — PC 넓은 시트에서 같이 커진다 */
