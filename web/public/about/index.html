@@ -166,7 +166,7 @@
 
     /* 6. 핵심 기능 */
     .tech { margin: 0; padding: 0; list-style: none; counter-reset: t; }
-    .tech li { counter-increment: t; display: grid; grid-template-columns: 2rem 1fr; gap: 12px; padding: 16px 0; }
+    .tech li { counter-increment: t; display: grid; grid-template-columns: 2rem 1fr; gap: 12px; padding: 16px 0 16px 14px; }
     .tech li::before { content: counter(t); color: var(--sale); font-weight: 800; font-variant-numeric: tabular-nums; }
     .tech b { display: block; font-size: 1.08rem; letter-spacing: -.015em; line-height: 1.4; }
     .tech span { display: block; margin-top: 2px; color: var(--muted); font-size: .92rem; }
@@ -176,7 +176,7 @@
     .cta { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; padding-top: 36px; border-top: 1px solid var(--border); }
     .cta p { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.25; }
     .cta .btn { flex: none; }
-    @media (max-width: 767px) { .final { padding: 40px 16px 22px; } .final .slide__in { gap: 22px; } .final h2 { font-size: 1.6rem; } .final h2 br { display: none; } .final h2 br + em { margin-left: .28em; } .final .split { gap: 10px; } .final .tech li { padding: 8px 0; } .final .tech b { font-size: 1rem; } .final .tech span { font-size: .85rem; } .cta { gap: 12px; padding-top: 20px; } .cta p { font-size: 1.2rem; } .cta p br { display: none; } .cta p br + em { margin-left: .25em; } .cta .btn { height: 46px; } .final .foot { position: static; margin-top: 12px; font-size: .74rem; } .final .foot p { margin-bottom: 2px; } }
+    @media (max-width: 767px) { .final { padding: 40px 16px 22px; } .final .slide__in { gap: 22px; } .final h2 { font-size: 1.6rem; } .final h2 br { display: none; } .final h2 br + em { margin-left: .28em; } .final .split { gap: 10px; } .final .tech li { padding: 8px 0 8px 14px; } .final .tech b { font-size: 1rem; } .final .tech span { font-size: .85rem; } .cta { gap: 12px; padding-top: 20px; } .cta p { font-size: 1.2rem; } .cta p br { display: none; } .cta p br + em { margin-left: .25em; } .cta .btn { height: 46px; } .final .foot { position: static; margin-top: 12px; font-size: .74rem; } .final .foot p { margin-bottom: 2px; } }
     .foot { text-align: center; position: absolute; left: 20px; right: 20px; bottom: 24px; max-width: 1080px; margin: 0 auto; color: var(--muted); font-size: .8rem; }
     .foot p { margin: 0 0 6px; }
 
