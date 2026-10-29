@@ -12,6 +12,8 @@ import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
 import { noteExit, noteHidden, takeReturn } from './linkReturn.js'
 import { uiVariant } from './variant.js'
+import { shareAnalyticsProps } from './shareAttribution.js'
+
 import { inApp, standalone } from './telemetry.js'
 
 const MAX_PENDING_POSTHOG_EVENTS = 100
@@ -144,7 +146,8 @@ function createAnalyticsEvent(event, additions = {}) {
     // 먼저 떨어져야 한다.
     // home 값(HOME_CONTEXT)은 모든 이벤트에 싣는다. 서버가 18개에서 자르므로(EventController.MAX_PROPS)
     // 필터 맥락보다 앞에 둔다: 링크 클릭은 고유 13 + A/B 1 + 필터 4 = 18이라 넘치면 필터가 먼저 떨어진다.
-    props: { ...props, ...HOME_CONTEXT, ...filterContext },
+    props: { ...shareAnalyticsProps(), ...props, ...HOME_CONTEXT, ...filterContext },
+
     clientTs: new Date().toISOString(),
   }
 }

@@ -5,13 +5,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 오픈 전 배민 선착순의 링크를 배짱할인 허브로 돌린다(2026-10-24 사용자).
+ * 오픈 전이거나 소진된 배민 선착순의 링크를 배짱할인 허브로 돌린다(2026-10-24 사용자).
  *
  * <p>선착순 쿠폰은 열리기 전에는 브랜드 쿠폰 페이지에 뜨지 않아, 브랜드 링크로 보내면 쿠폰이 없다. 오픈 시각 전까지는
  * 쿠폰이 미리 보이는 배짱할인 허브로 보내고, 오픈 시각 이후에는 링크를 건드리지 않아 원래 사다리
  * (브랜드 링크 → 검색 → 앱)로 돌아간다. 오퍼 자신의 링크(배너 유래)가 있으면 그것이 먼저라 건드리지 않는다.
  *
  * <p>오픈 시각은 원장 조건 글자("오전 10시 오픈 선착순")에서 읽는다. 못 읽으면 건드리지 않는다.
+ *
+ * <p>소진된 배민 선착순도 오픈 시각과 상관없이 허브로 돌린다(#173, 2026-10-29 사용자). 소진 쿠폰도 브랜드 쿠폰 페이지에서
+ * 사라질 수 있어서다. 소진이면 오픈 시각을 읽지 않는다. 소진은 합친 오퍼의 값이라 상시와 선착순이 함께 있으면
+ * 둘 다 소진일 때만 true이고, 그때는 firstCome이 false라 이 규칙에 닿지 않는다.
  */
 public final class FirstComeLinkFilter {
 
@@ -23,10 +27,13 @@ public final class FirstComeLinkFilter {
     private FirstComeLinkFilter() {
     }
 
-    /** now는 한국 시각. 오픈 전인 배민 선착순이면 링크를 허브로 바꾼 오퍼를, 아니면 받은 오퍼를 그대로 돌려준다. */
+    /** now는 한국 시각. 오픈 전이거나 소진된 배민 선착순이면 링크를 허브로 바꾼 오퍼를, 아니면 받은 오퍼를 그대로 돌려준다. */
     public static Offer apply(Offer offer, LocalTime now) {
         if (!"baemin".equals(offer.platform()) || !offer.firstCome() || offer.link() != null) {
             return offer;
+        }
+        if (offer.soldOut()) {
+            return offer.withLink(BAEMIN_BAEJJANG_HUB_LINK);
         }
         LocalTime opens = opensAt(offer.conditions());
         if (opens == null || !now.isBefore(opens)) {

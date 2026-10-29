@@ -1,11 +1,13 @@
 package com.discounttracker.analytics;
 
+import com.discounttracker.storage.InterProcessFileLock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -92,6 +94,49 @@ class GifticonStoreTest {
 
         assertEquals(0, s.remaining());
         assertEquals(Optional.empty(), s.issue("v_1"));
+    }
+
+    /** 락을 못 잡으면 코드를 내주지 않고 yml과 원장도 그대로여야 한다(#192). 락 없이 발급으로 떨어지면 이중 발급이다. */
+    @Test
+    void doesNotIssueWhenTheLockCannotBeTaken() throws Exception {
+        String yaml = """
+            gifticons:
+              - code: "AAAA-1111"
+            """;
+        Path yml = tmp.resolve("gifticons.yml");
+        Files.writeString(yml, yaml, StandardCharsets.UTF_8);
+        GifticonStore s = new GifticonStore(yml.toString(), Duration.ofMillis(200));
+
+        CountDownLatch held = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        Thread holder = new Thread(() -> {
+            try {
+                InterProcessFileLock.withLock(tmp.resolve("gifticons.yml.lock"), Duration.ofSeconds(5), () -> {
+                    held.countDown();
+                    try {
+                        release.await(10, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    return null;
+                });
+            } catch (java.io.IOException e) {
+                throw new java.io.UncheckedIOException(e);
+            }
+        });
+        holder.start();
+        try {
+            assertTrue(held.await(5, TimeUnit.SECONDS), "락을 쥔 쪽이 먼저 떠야 시험이 된다");
+
+            assertEquals(Optional.empty(), s.issue("v_1"));
+        } finally {
+            release.countDown();
+            holder.join(5000);
+        }
+
+        assertEquals(yaml, Files.readString(yml), "yml이 그대로여야 한다");
+        assertTrue(Files.notExists(tmp.resolve("gifticon-issues.jsonl")), "원장에도 남으면 안 된다");
+        assertEquals(Optional.of("AAAA-1111"), s.issue("v_1"), "락이 풀리면 정상 발급");
     }
 
     /** 동시에 들어와도 코드가 두 번 나가면 안 된다. */

@@ -41,6 +41,7 @@ public class EventController {
      * 링크 이동까지 가는가)이 그 이벤트들에 걸려 있었다.
      */
     private static final Set<String> ALLOWED_EVENTS = Set.of(
+            "offer_share_click", "offer_share_result", "offer_share_landing", "offer_share_target_view",
             // 배달앱에서 돌아옴, 앱이 안 열려 공유 링크로 넘김(2026-10-14, 신뢰를 재는 프론트 지표)
             "app_return", "link_fallback",
             "page_view", "page_exit", "category_change", "brand_expand",
@@ -87,7 +88,7 @@ public class EventController {
     // 이벤트 값을 앞에 두므로, 그래도 넘치면 맥락이 먼저 떨어진다.
     // 2026-09-17: offer_link_click이 어느 오퍼인지(금액·구간·멤버십·최고·보류…)
     // 12개를 싣게 되어 10이면 맥락이 통째로 떨어졌다 — 18로.
-    private static final int MAX_PROPS = 28; // 2026-10-05: 클릭 오퍼 정보(신규, 선착순, 위치) + A/B + 필터 맥락 7종을 다 담는다
+    private static final int MAX_PROPS = 44; // 공유 맥락과 기존 혜택 및 필터 속성을 함께 보존한다.
 
     private final AnalyticsEventService events;
     private final ClientFingerprint fingerprint;

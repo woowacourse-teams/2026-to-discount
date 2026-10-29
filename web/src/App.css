@@ -1,6 +1,7 @@
 /* 스타일은 src/styles/에 영역별로 나눠 두었다. 아래 순서가 곧 캐스케이드
    순서다 — 순서를 바꾸면 같은 명시도의 규칙끼리 이기는 쪽이 달라진다. */
 @import './styles/base.css';
+@import './styles/offer-sharing.css';
 @import './styles/banner.css';
 @import './styles/status.css';
 @import './styles/brand-card.css';

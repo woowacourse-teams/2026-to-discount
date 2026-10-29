@@ -101,6 +101,9 @@ api/src/main/java/com/discounttracker/push/PushStateStore.java
 api/src/main/java/com/discounttracker/push/PushSubscription.java
 api/src/main/java/com/discounttracker/push/PushTrackingToken.java
 api/src/main/java/com/discounttracker/push/WebPushSender.java
+api/src/main/java/com/discounttracker/sharing/ShareLinkController.java
+api/src/main/java/com/discounttracker/sharing/ShareLinkStore.java
+api/src/main/java/com/discounttracker/storage/InterProcessFileLock.java
 api/src/main/java/com/discounttracker/web/BannerController.java
 api/src/main/java/com/discounttracker/web/BrandController.java
 api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
@@ -163,6 +166,13 @@ api/src/test/java/com/discounttracker/push/NewOfferNotificationServiceTest.java
 api/src/test/java/com/discounttracker/push/PushEndpointPolicyTest.java
 api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
 api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
+api/src/test/java/com/discounttracker/sharing/ShareLinkControllerTest.java
+api/src/test/java/com/discounttracker/sharing/ShareLinkStoreTest.java
+api/src/test/java/com/discounttracker/storage/GifticonStoreMultiProcessTest.java
+api/src/test/java/com/discounttracker/storage/InterProcessFileLockTest.java
+api/src/test/java/com/discounttracker/storage/MultiProcess.java
+api/src/test/java/com/discounttracker/storage/PushStateStoreMultiProcessTest.java
+api/src/test/java/com/discounttracker/storage/StoreWorker.java
 api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/BrandHistoryEndpointTest.java
 api/src/test/java/com/discounttracker/web/DevelopmentCorsTest.java
@@ -171,6 +181,7 @@ api/src/test/java/com/discounttracker/web/JsonCompressionIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PerformanceMetricsIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PushAdminControllerTest.java
 api/src/test/java/com/discounttracker/web/PushAdminCorsTest.java
+api/src/test/java/com/discounttracker/web/PushStateWriteEntryPointTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
 api/src/test/java/com/discounttracker/web/RequestIdFilterTest.java
 api/src/test/java/com/discounttracker/web/RequestIdIntegrationTest.java
@@ -183,6 +194,7 @@ web/.env.example
 web/.env.production
 web/.gitignore
 web/README.md
+web/api/share.js
 web/api/ssr.js
 web/index.html
 web/middleware.js
@@ -233,6 +245,7 @@ web/src/HiddenBrandsSheet.jsx
 web/src/HideBrandAsk.jsx
 web/src/MenuBar.jsx
 web/src/OfferChip.jsx
+web/src/OfferShareButton.jsx
 web/src/PopularDock.jsx
 web/src/PopularStrip.jsx
 web/src/PushNotificationSetting.jsx
@@ -293,6 +306,8 @@ web/src/offerChip.test.js
 web/src/offerContract.test.js
 web/src/offerLink.js
 web/src/offerLink.test.js
+web/src/offerSharing.js
+web/src/offerSharing.test.js
 web/src/platformBadge.test.js
 web/src/platformIcons.js
 web/src/platforms.js
@@ -312,7 +327,12 @@ web/src/pushSyncRetry.js
 web/src/pushSyncRetry.test.js
 web/src/report.js
 web/src/report.test.js
+web/src/shareAttribution.js
+web/src/shareAttribution.test.js
 web/src/sheetParts.jsx
+web/src/shortShareLink.js
+web/src/shortShareLink.test.js
+web/src/shortShareRedirect.js
 web/src/styles/banner.css
 web/src/styles/base.css
 web/src/styles/brand-card.css
@@ -325,6 +345,7 @@ web/src/styles/footer-push.css
 web/src/styles/hidden-brands.css
 web/src/styles/hide-ask.css
 web/src/styles/hist.css
+web/src/styles/offer-sharing.css
 web/src/styles/offer-tabs.css
 web/src/styles/overflow.css
 web/src/styles/platform-icons.css
@@ -340,6 +361,8 @@ web/src/surveyDismiss.test.js
 web/src/surveyQuestions.js
 web/src/telemetry.js
 web/src/useBrandAutocomplete.js
+web/src/useShareTargetFocus.js
+web/src/useSharedOffer.js
 web/src/useSurvey.js
 web/src/variant.js
 web/vercel.json
@@ -391,8 +414,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 178 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 165 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 189 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 177 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -411,6 +434,8 @@ flowchart TB
 | `history/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 6 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 12 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
+| `sharing/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 2 |
+| `storage/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 1 |
 | `web/` | HTTP 엔드포인트와 CORS | 8 |
 
 HTTP 경계:
@@ -422,6 +447,7 @@ HTTP 경계:
 - `GET /api/push/admin/next`
 - `GET /api/push/click/{token}`
 - `GET /api/push/public-key`
+- `GET /api/share-links/{code}`
 - `GET /api/survey`
 - `GET /api/survey/code`
 - `POST /api/events`
@@ -429,6 +455,7 @@ HTTP 경계:
 - `POST /api/push/subscriptions`
 - `POST /api/reload`
 - `POST /api/reports`
+- `POST /api/share-links`
 - `POST /api/survey`
 - `PUT /api/push/admin/next`
 
@@ -450,6 +477,7 @@ HTTP 경계:
 | `HideBrandAsk.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `MenuBar.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `OfferChip.jsx` | 앱별 할인 칩과 앱 링크 사다리 |
+| `OfferShareButton.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PopularDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PopularStrip.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `PushNotificationSetting.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -510,6 +538,8 @@ HTTP 경계:
 | `offerContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `offerLink.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `offerLink.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `offerSharing.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `offerSharing.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformBadge.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -529,12 +559,19 @@ HTTP 경계:
 | `pushSyncRetry.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `report.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `report.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `shareAttribution.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `shareAttribution.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `sheetParts.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `shortShareLink.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `shortShareLink.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `shortShareRedirect.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `telemetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useBrandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `useShareTargetFocus.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `useSharedOffer.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useSurvey.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `variant.js` | 화면 안 상수(a 고정, A/B 종료 2026-09-15) |
 
