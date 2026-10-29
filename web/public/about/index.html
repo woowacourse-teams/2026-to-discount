@@ -96,7 +96,23 @@
       .slide--shot .next { display: none; }
     }
 
-    /* 4. 핵심 기능 */
+
+    /* 4~5. 멤버십 유무 비교: 같은 시각에 찍은 화면 두 장을 나란히 */
+    .diff { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-items: center; }
+    .diff .apps { margin-bottom: 18px; }
+    .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+    .pair figure { margin: 0; min-width: 0; }
+    .pair img { display: block; width: 100%; height: auto; max-height: calc(100dvh - 300px); object-fit: cover; object-position: top; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 20px 40px -22px rgba(0, 0, 0, .5); }
+    .pair figcaption { margin-top: 10px; font-weight: 700; letter-spacing: -.015em; line-height: 1.35; }
+    .pair figcaption span { display: block; color: var(--muted); font-weight: 500; font-size: .85rem; }
+    .pair .is-member figcaption { color: var(--sale); }
+    @media (min-width: 768px) {
+      .diff { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 48px; }
+      .pair { gap: 20px; max-width: 560px; }
+      .pair img { max-height: calc(100dvh - 220px); }
+    }
+
+    /* 6. 핵심 기능 */
     .tech { margin: 0; padding: 0; list-style: none; counter-reset: t; }
     .tech li { counter-increment: t; display: grid; grid-template-columns: 2rem 1fr; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--border); }
     .tech li:first-child { border-top: 1px solid var(--border); }
@@ -104,7 +120,7 @@
     .tech b { display: block; font-size: 1.08rem; letter-spacing: -.015em; line-height: 1.4; }
     .tech span { display: block; margin-top: 2px; color: var(--muted); font-size: .92rem; }
 
-    /* 5. 문의 */
+    /* 7. 문의 */
     .contact { text-align: center; }
     .contact .row { justify-content: center; display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
     .foot { text-align: center; position: absolute; left: 20px; right: 20px; bottom: 24px; max-width: 1080px; margin: 0 auto; color: var(--muted); font-size: .8rem; }
@@ -181,6 +197,36 @@
     </section>
 
     <section class="slide" id="s4">
+      <div class="slide__in diff">
+        <div>
+          <div class="apps rise"><img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" /></div>
+          <h2 class="rise" style="--i:1"><em>와우</em> 유무,<br />같은 시각 다른 화면</h2>
+          <p class="lead rise" style="--i:2">같은 시각에 찍은 같은 화면이에요.<br />와우 회원에게만 5,000원 할인이 하나 더 떠요.</p>
+        </div>
+        <div class="pair rise" style="--i:2">
+          <figure class="is-member"><img src="/about/diff-wow.jpg" width="600" height="1209" alt="쿠팡이츠 와우 회원 화면. 치킨 브랜드 할인 맨 위에 기영이숯불치킨 5,000원 할인이 있다." /><figcaption>와우 회원<span>오후 5:54</span></figcaption></figure>
+          <figure><img src="/about/diff-nonwow.jpg" width="600" height="1209" alt="쿠팡이츠 와우 아님 화면. 같은 목록에 기영이숯불치킨이 없고 훌라라치킨이 맨 위다." /><figcaption>와우 아님<span>오후 5:54</span></figcaption></figure>
+        </div>
+      </div>
+      <a class="next" href="#s5" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
+
+    <section class="slide" id="s5">
+      <div class="slide__in diff">
+        <div>
+          <div class="apps rise"><img src="/platform-icons/baemin.png" alt="배달의민족" /></div>
+          <h2 class="rise" style="--i:1"><em>배민클럽</em> 유무,<br />같은 시각 다른 화면</h2>
+          <p class="lead rise" style="--i:2">같은 시각에 찍은 60계치킨 화면이에요.<br />클럽 회원에게만 5,500원 선착순 할인이 떠요.</p>
+        </div>
+        <div class="pair rise" style="--i:2">
+          <figure class="is-member"><img src="/about/diff-club.jpg" width="600" height="1209" alt="배민 배민클럽 회원 화면. 60계치킨 5,500원 선착순 할인과 3,000원 할인, 가게 배달팁 0원." /><figcaption>배민클럽<span>오후 5:50</span></figcaption></figure>
+          <figure><img src="/about/diff-nonclub.jpg" width="600" height="1209" alt="배민 배민클럽 아님 화면. 60계치킨 3,000원 할인만 있고 가게 배달팁 2,700원, 3,400원." /><figcaption>클럽 아님<span>오후 5:50</span></figcaption></figure>
+        </div>
+      </div>
+      <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
+
+    <section class="slide" id="s6">
       <div class="slide__in split">
         <h2 class="rise">과장 없이,<br /><em>정확한 값</em>으로</h2>
         <ul class="tech">
@@ -191,10 +237,10 @@
           <li class="rise" style="--i:5"><div><b>한정, 선착순 할인 실시간 제공</b><span>선착순은 소진까지 확인</span></div></li>
         </ul>
       </div>
-      <a class="next" href="#s5" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="slide contact" id="s5">
+    <section class="slide contact" id="s7">
       <div class="slide__in">
         <h2 class="rise">오늘의 할인,<br /><em>직접 확인</em>해 보세요</h2>
         <div class="row rise" style="--i:1">
