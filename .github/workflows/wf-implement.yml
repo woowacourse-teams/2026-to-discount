@@ -269,7 +269,9 @@ jobs:
       - name: 결과물 확인과 ready
         if: steps.role.outputs.agent != ''
         env:
-          GH_TOKEN: ${{ github.token }}
+          # ready 전환은 App 토큰으로 한다. github.token으로 한 전환은 다른 워크플로(review-session의
+          # ready_for_review)를 깨우지 않아 리뷰 세션이 안 돈다(tracker #71, 2026-10-29).
+          GH_TOKEN: ${{ steps.apptoken.outputs.token }}
           BRANCH: ${{ steps.branch.outputs.name }}
           START: ${{ steps.start.outputs.sha }}
         run: |
