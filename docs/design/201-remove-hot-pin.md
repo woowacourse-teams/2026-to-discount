@@ -86,3 +86,4 @@
 ## 변경 이력
 
 - 2026-10-29 재설계 실행: 이슈 입력에 권한자(OWNER, MEMBER, COLLABORATOR) 댓글이 없어 인계 댓글도 없다. 설계 내용은 바꾸지 않았다. `web/src`의 현재 코드(`pinPopular`, `pinKinds`, `cardRanks` 호출부와 시험)를 다시 대조해 위 "바꾸는 곳"과 "테스트"의 대상이 그대로임을 확인했다. 이 이력 절만 추가했다. 권한자 댓글이 달리면 그 댓글이 이 문서보다 앞서므로 다시 반영한다.
+- 2026-10-29 재설계 실행(두 번째): 이슈 입력에 여전히 권한자 댓글과 `인계:` 댓글이 없다. 설계와 부딪히는 댓글이 없어 내용은 바꾸지 않았다. `pinPopular`, `pinKinds`, `cardRanks`가 `web/src`의 `filters.js`, `popularStrip.js`, `App.jsx`, `filters.test.js`에 그대로 있음을 다시 확인했다. 리뷰 포인트 1과 2는 답이 없어 열려 있다.
