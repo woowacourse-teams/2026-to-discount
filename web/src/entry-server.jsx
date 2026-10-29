@@ -44,3 +44,6 @@ export function render(data) {
     })
   })
 }
+
+// 서버 공유 라우트도 SSR과 동일한 빌드 시점 API를 사용한다.
+export const shareApiBase = API_BASE
