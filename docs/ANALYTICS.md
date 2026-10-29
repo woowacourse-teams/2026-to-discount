@@ -84,7 +84,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
-| `offer_link_click` | 할인 칩을 눌러 배달앱으로 나갈 때 | `brand`, `platform` + 어느 오퍼인지(09-17~): `amount`, `minOrder`, `qualifier`, `membership`, `tierMode`, `tiers`(구간 수), `best`, `held`, `soldOut`, `fromBanner`, `position`(카드 순번, 09-20~), `pin`(맨 위로 올라온 이유: `hot` HOT 1~5위 고정, `new` 신규 앞, `none`, 10-27~) |
+| `offer_link_click` | 할인 칩을 눌러 배달앱으로 나갈 때 | `brand`, `platform` + 어느 오퍼인지(09-17~): `amount`, `minOrder`, `qualifier`, `membership`, `tierMode`, `tiers`(구간 수), `best`, `held`, `soldOut`, `fromBanner`, `position`(카드 순번, 09-20~), `pin`(맨 위로 올라온 이유: `new` 신규 앞, `none`, 10-27~. `hot`(HOT 1~5위 고정)은 10-29 이후 없음, 그 전 데이터에만 남음) |
 | `brand_impression` | 브랜드 카드 헤더가 1초 이상 보임(세션당 브랜드 한 번, [설계 18](design/18-brand-impression.md)) | `brand`, `position`(카드 순번, 문자열), `pin`(위와 같음, 10-27~), `platforms`, `category`, `hasNew` |
 | `banner_click` | 상단, 하단 행사 배너 | `banner`(id), `brand`, `platform`(배달앱 밖 자체 행사는 API가 `own`으로 내려준다, 09-18~), `position`(top/bottom) + `amount`, `brands`(묶음 `a/b/c`), `minOrder`, `soldOut`, `external`(09-17~) |
 | `banner_impression` | 그 배너가 화면에 절반 이상 들어옴 | `banner`(id), `brand`, `platform`, `position` |
