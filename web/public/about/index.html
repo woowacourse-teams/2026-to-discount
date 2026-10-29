@@ -128,42 +128,18 @@
     .hop { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--sale); font-size: .78rem; font-weight: 700; }
     .hop::after { content: ''; width: 9px; height: 9px; border-right: 2px solid var(--sale); border-bottom: 2px solid var(--sale); transform: rotate(45deg); }
 
-    /* 6~7. 수집과 반영 도식: 카드마다 실제 화면, 값, 코드 중 하나를 붙인다 */
-    :root { --code-bg: #17171a; --code-fg: #e9e7e2; --code-key: #9bb7ff; --code-str: #8fd6a4; --code-num: #ffb27a; --code-dim: #8b8a86; }
-    .cards { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; width: 100%; justify-self: center; counter-reset: card; }
-    .card { counter-increment: card; display: grid; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); min-width: 0; }
-    .card h3 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.02rem; letter-spacing: -.02em; line-height: 1.3; }
-    .card h3::before { content: counter(card); flex: none; display: grid; place-items: center; width: 1.45rem; height: 1.45rem; border-radius: 50%; background: var(--sale); color: #fff; font-size: .78rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .card p { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.4; }
-    .slide--cards { padding: 40px 16px 46px; --slack: clamp(0px, calc((100dvh - 600px) * .12), 20px); }
+    /* 6~7. 수집과 반영 도식: 5장과 같은 아이콘 도식 */
+    .slide--cards { padding: 40px 16px 46px; }
     .slide--cards h2 { font-size: 1.6rem; }
     .slide--cards h2 br { display: none; }
     .slide--cards h2 br + em { margin-left: .28em; }
     .slide--cards .diff { gap: 14px; }
     .slide--cards .lead { margin-top: 10px; font-size: 1rem; }
-    .slide--cards .card { padding: 10px; gap: 6px; }
-    .vis { height: calc(64px + var(--slack)); overflow: hidden; border-radius: 12px; background: var(--code-bg); position: relative; }
-    .vis--code { height: calc(78px + var(--slack)); }
-    .vis--check { height: calc(70px + var(--slack)); }
-    .vis--fields { height: calc(104px + var(--slack)); }
-    .vis--web { height: calc(94px + var(--slack)); }
-    .accts { margin: 0; padding: 8px 12px; height: 100%; place-content: center; list-style: none; display: grid; gap: 8px; color: var(--code-fg); }
-    .accts li { display: grid; grid-template-columns: 1.1rem auto minmax(0, 1fr); gap: 10px; align-items: center; font-size: .86rem; }
-    .accts svg { width: 1.1rem; height: 1.5rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-    .accts span { color: var(--code-dim); font-size: .8rem; }
+    .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+    .chips i { font-style: normal; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 700; background: var(--sale-weak); color: var(--sale); }
+    .chips i.plain { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .chips i.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 600; }
     @media (max-width: 767px) and (max-height: 680px) { .slide--cards .lead, .slide--diff .lead { display: none; } .node .sub { font-size: .78rem; } }
-    @media (max-width: 767px) and (max-height: 600px) { .card p { display: none; } }
-    .vis--code::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 22px; background: linear-gradient(transparent, var(--code-bg)); }
-    .vis img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, top); }
-    .code { margin: 0; padding: 10px 12px; color: var(--code-fg); font: 500 .72rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, 'D2Coding', monospace; white-space: pre; overflow: hidden; }
-    .code .k { font-style: normal; color: var(--code-key); }
-    .code .s { font-style: normal; color: var(--code-str); }
-    .code .n { font-style: normal; color: var(--code-num); }
-    .code .d { color: var(--code-dim); }
-    .code .arrow { color: var(--sale); }
-    .checks { margin: 0; padding: 8px 12px; height: 100%; place-content: center; list-style: none; display: grid; gap: 4px; color: var(--code-fg); font-size: .76rem; line-height: 1.3; }
-    .checks li { display: grid; grid-template-columns: 1.1rem minmax(0, 1fr); gap: 6px; align-items: start; }
-    .checks li::before { content: ''; width: .55rem; height: .3rem; margin: .28rem 0 0 .1rem; border-left: 2px solid var(--code-str); border-bottom: 2px solid var(--code-str); transform: rotate(-45deg); }
 
     @media (min-width: 768px) {
       .diff { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 48px; }
@@ -176,39 +152,28 @@
       .ico--s { width: 48px; height: 64px; }
       .hop { flex-direction: row; gap: 6px; }
       .hop::after { transform: rotate(-45deg); }
-      .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-      .card { padding: 14px; gap: 12px; }
       .slide--cards { padding: 72px 20px 88px; }
       .slide--cards h2 { font-size: clamp(1.9rem, 5.5vw, 3rem); }
       .slide--cards h2 br { display: inline; }
       .slide--cards h2 br + em { margin-left: 0; }
       .slide--cards .diff { gap: 30px; }
       .slide--cards .lead { margin-top: 18px; font-size: 1.1rem; }
-      .slide--cards .card { padding: 14px; gap: 12px; }
-      .vis, .vis--code, .vis--check, .vis--fields, .vis--web { height: clamp(150px, calc(100dvh - 430px), 260px); }
-      .vis img { object-position: top; }
-      .checks { gap: 14px; font-size: .95rem; padding: 14px 18px; }
-      .accts { gap: 18px; padding: 14px 18px; }
-      .accts li { font-size: 1rem; }
-      .accts svg { width: 1.4rem; height: 2rem; }
-      .accts li { grid-template-columns: 1.4rem auto minmax(0, 1fr); }
-      .code { font-size: .78rem; padding: 12px 14px; }
+      .chips i { font-size: .8rem; }
     }
 
     /* 6. 핵심 기능 */
     .tech { margin: 0; padding: 0; list-style: none; counter-reset: t; }
-    .tech li { counter-increment: t; display: grid; grid-template-columns: 2rem 1fr; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--border); }
-    .tech li:first-child { border-top: 1px solid var(--border); }
+    .tech li { counter-increment: t; display: grid; grid-template-columns: 2rem 1fr; gap: 12px; padding: 16px 0; }
     .tech li::before { content: counter(t); color: var(--sale); font-weight: 800; font-variant-numeric: tabular-nums; }
     .tech b { display: block; font-size: 1.08rem; letter-spacing: -.015em; line-height: 1.4; }
     .tech span { display: block; margin-top: 2px; color: var(--muted); font-size: .92rem; }
 
     /* 7. 문의 */
-    .final .slide__in { display: grid; gap: 26px; }
-    .cta { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 22px; border-top: 1px solid var(--border); }
+    .final .slide__in { display: grid; gap: 44px; }
+    .cta { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; padding-top: 36px; border-top: 1px solid var(--border); }
     .cta p { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.25; }
     .cta .btn { flex: none; }
-    @media (max-width: 767px) { .final { padding: 40px 16px 22px; } .final .slide__in { gap: 14px; } .final h2 { font-size: 1.6rem; } .final h2 br { display: none; } .final h2 br + em { margin-left: .28em; } .final .split { gap: 10px; } .final .tech li { padding: 9px 0; } .final .tech b { font-size: 1rem; } .final .tech span { font-size: .85rem; } .cta { flex-direction: column; align-items: flex-start; gap: 10px; padding-top: 14px; } .cta p { font-size: 1.2rem; } .cta p br { display: none; } .cta p br + em { margin-left: .25em; } .cta .btn { height: 46px; } .final .foot { position: static; margin-top: 12px; font-size: .74rem; } .final .foot p { margin-bottom: 2px; } }
+    @media (max-width: 767px) { .final { padding: 40px 16px 22px; } .final .slide__in { gap: 22px; } .final h2 { font-size: 1.6rem; } .final h2 br { display: none; } .final h2 br + em { margin-left: .28em; } .final .split { gap: 10px; } .final .tech li { padding: 8px 0; } .final .tech b { font-size: 1rem; } .final .tech span { font-size: .85rem; } .cta { gap: 12px; padding-top: 20px; } .cta p { font-size: 1.2rem; } .cta p br { display: none; } .cta p br + em { margin-left: .25em; } .cta .btn { height: 46px; } .final .foot { position: static; margin-top: 12px; font-size: .74rem; } .final .foot p { margin-bottom: 2px; } }
     .foot { text-align: center; position: absolute; left: 20px; right: 20px; bottom: 24px; max-width: 1080px; margin: 0 auto; color: var(--muted); font-size: .8rem; }
     .foot p { margin: 0 0 6px; }
 
@@ -350,26 +315,27 @@
           <h2 class="rise">앱 화면을<br /><em>그대로 읽어요</em></h2>
           <p class="lead rise" style="--i:1">멤버십 계정과 비회원 계정,<br />하루 세 번 각각 확인해요.</p>
         </div>
-        <ol class="cards rise" style="--i:2">
-          <li class="card">
-            <h3>계정마다 폰으로</h3>
-            <div class="vis"><ul class="accts"><li><svg viewBox="0 0 48 48"><rect x="13" y="4" width="22" height="40" rx="4" /><path d="M21 38h6" /></svg><b>멤버십 계정</b><span>쿠폰 목록 읽기</span></li><li><svg viewBox="0 0 48 48"><rect x="13" y="4" width="22" height="40" rx="4" /><path d="M21 38h6" /></svg><b>비회원 계정</b><span>쿠폰 목록 읽기</span></li></ul></div>
-            <p>같은 시각에 두 화면을 각각 열어요</p>
+        <ol class="arch rise" style="--i:2">
+          <li class="node">
+            <div class="icons"><div class="phones">
+              <div class="phone-tag"><div class="ico ico--s"><svg viewBox="0 0 48 48"><rect x="13" y="4" width="22" height="40" rx="4" /><path d="M21 38h6" /></svg></div><i>멤버십</i></div>
+              <div class="phone-tag"><div class="ico ico--s"><svg viewBox="0 0 48 48"><rect x="13" y="4" width="22" height="40" rx="4" /><path d="M21 38h6" /></svg></div><i class="plain">비회원</i></div>
+            </div></div>
+            <b>계정별 폰에서 앱 열기</b>
+            <span class="sub">앱을 열어 할인 목록을 끝까지 넘겨 봐요.</span>
           </li>
-          <li class="card">
-            <h3>글자를 값으로</h3>
-            <div class="vis vis--code vis--fields"><pre class="code"><span class="d">화면 글자</span>
-<i class="s">"3,000원 배민클럽 두찜 할인"</i>
-  <span class="arrow">↓</span>
-<i class="k">amount</i>      <i class="n">3000</i>
-<i class="k">minOrder</i>    <i class="n">25000</i>
-<i class="k">membership</i>  <i class="s">"baeminClub"</i></pre></div>
-            <p>금액, 최소 주문, 멤버십으로 나눠요</p>
+          <li class="hop" aria-hidden="true"><span>읽기</span></li>
+          <li class="node">
+            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><path d="M6 10h22M6 19h15M6 28h10" /><circle cx="32" cy="29" r="8" /><path d="M38 35l6 6" /></svg></div></div>
+            <div class="chips"><i>3,000원</i><i>최소 25,000원</i><i class="plain">배민클럽</i></div>
+            <b>글자를 항목으로 나누기</b>
+            <span class="sub">화면 글자를 금액, 최소 주문, 멤버십 조건으로 나눠요.</span>
           </li>
-          <li class="card">
-            <h3>금액 검증</h3>
-            <div class="vis vis--check"><ul class="checks"><li>화면 금액과 읽은 값 비교</li><li>선착순은 소진까지 확인</li><li>멤버십 조건은 구분해 기록</li></ul></div>
-            <p>실제 할인 금액만 남겨요</p>
+          <li class="hop" aria-hidden="true"><span>검증</span></li>
+          <li class="node">
+            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" /><path d="M16 24.5l6 6 11-12" /></svg></div></div>
+            <b>화면과 다시 맞춰 보기</b>
+            <span class="sub">읽은 금액을 화면과 비교해요. 선착순은 소진까지 지켜봐요.</span>
           </li>
         </ol>
       </div>
@@ -382,39 +348,24 @@
           <h2 class="rise">정리해서<br /><em>내보내요</em></h2>
           <p class="lead rise" style="--i:1">이전 기록과 맞춰 본 값만<br />서비스에 반영해요.</p>
         </div>
-        <ol class="cards rise" style="--i:2">
-          <li class="card">
-            <h3>이전 기록과 대조</h3>
-            <div class="vis vis--check"><ul class="checks"><li>할인 기록을 남김</li><li>서버 값보다 낡으면 중단</li><li>사라진 할인은 이유 확인</li></ul></div>
-            <p>통과한 값만 서버에 올려요</p>
+        <ol class="arch rise" style="--i:2">
+          <li class="node">
+            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><rect x="14" y="4" width="28" height="34" rx="3" /><path d="M8 12v32h28M21 14h14M21 22h14M21 30h8" /></svg></div></div>
+            <b>이전 기록과 비교</b>
+            <span class="sub">사라진 할인은 이유를 확인하고, 서버 값보다 낡은 결과는 올리지 않아요.</span>
           </li>
-          <li class="card">
-            <h3>서버 응답(API)</h3>
-            <div class="vis vis--code"><pre class="code"><span class="d">GET /api/brands</span>
-{
-  <i class="k">"name"</i>: <i class="s">"두찜"</i>,
-  <i class="k">"maxConfirmedAmount"</i>: <i class="n">9000</i>,
-  <i class="k">"offers"</i>: [
-    {
-      <i class="k">"platform"</i>: <i class="s">"baemin"</i>,
-      <i class="k">"amount"</i>: <i class="n">3000</i>,
-      <i class="k">"membership"</i>: <i class="s">"baeminClub"</i>,
-      <i class="k">"status"</i>: <i class="s">"confirmed"</i>
-    },
-    {
-      <i class="k">"platform"</i>: <i class="s">"coupangeats"</i>,
-      <i class="k">"amount"</i>: <i class="n">9000</i>,
-      <i class="k">"membership"</i>: <i class="s">"coupangEats"</i>,
-      <i class="k">"status"</i>: <i class="s">"confirmed"</i>
-    }
-  ]
-}</pre></div>
-            <p>웹이 받아 가는 값이에요</p>
+          <li class="hop" aria-hidden="true"><span>통과</span></li>
+          <li class="node">
+            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="11" rx="3" /><rect x="6" y="19" width="36" height="11" rx="3" /><rect x="6" y="32" width="36" height="11" rx="3" /><path d="M13 11.5h.01M13 24.5h.01M13 37.5h.01" /></svg></div></div>
+            <div class="chips"><i class="plain mono">GET /api/brands</i></div>
+            <b>서버에 반영</b>
+            <span class="sub">통과한 값만 웹이 받아 가는 목록(API)으로 내보내요.</span>
           </li>
-          <li class="card">
-            <h3>웹 화면</h3>
-            <div class="vis vis--web"><img src="/about/flow-web.jpg" width="740" height="610" alt="할인 목록 화면. 피자헛 카드에 가장 큰 할인 11,000원과 앱별 금액이 보인다." /></div>
-            <p>브랜드별로 한곳에서 비교해요</p>
+          <li class="hop" aria-hidden="true"><span>제공</span></li>
+          <li class="node">
+            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><rect x="4" y="7" width="40" height="30" rx="3" /><path d="M4 15h40M10 11h.01M15 11h.01M10 22h12v9H10zM27 22h11M27 27h8" /></svg></div></div>
+            <b>웹에서 한곳에</b>
+            <span class="sub">브랜드별 가장 큰 할인과 앱별 금액을 비교해요.</span>
           </li>
         </ol>
       </div>
