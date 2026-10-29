@@ -111,25 +111,54 @@
     .grid4 .is-member figcaption { color: var(--sale); }
     @media (max-width: 767px) { .slide--diff .next { display: none; } }
 
-    /* 5. 수집부터 화면까지 도식: 수집, 반영, 응답 세 묶음 */
-    .flow { margin: 0; padding: 0; list-style: none; display: grid; gap: 22px; counter-reset: step; width: 100%; max-width: 640px; justify-self: center; }
-    .flow > li { position: relative; padding: 10px 14px 12px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
-    .flow > li:not(:last-child)::after { content: ''; position: absolute; left: 50%; bottom: -17px; width: 10px; height: 10px; margin-left: -5px; border-right: 2px solid var(--sale); border-bottom: 2px solid var(--sale); transform: rotate(45deg); }
-    .flow h3 { margin: 0 0 6px; font-size: .78rem; letter-spacing: .02em; color: var(--sale); }
-    .flow ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-    .flow ul li { counter-increment: step; display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); gap: 8px; align-items: start; }
-    .flow ul li::before { content: counter(step); display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--sale-weak); color: var(--sale); font-size: .8rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .flow b { display: block; font-size: 1rem; letter-spacing: -.015em; line-height: 1.35; }
-    .flow span { display: block; color: var(--muted); font-size: .85rem; line-height: 1.4; }
+    /* 5~6. 수집과 반영 도식: 카드마다 실제 화면, 값, 코드 중 하나를 붙인다 */
+    :root { --code-bg: #17171a; --code-fg: #e9e7e2; --code-key: #9bb7ff; --code-str: #8fd6a4; --code-num: #ffb27a; --code-dim: #8b8a86; }
+    .cards { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; width: 100%; justify-self: center; counter-reset: card; }
+    .card { counter-increment: card; display: grid; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); min-width: 0; }
+    .card h3 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.02rem; letter-spacing: -.02em; line-height: 1.3; }
+    .card h3::before { content: counter(card); flex: none; display: grid; place-items: center; width: 1.45rem; height: 1.45rem; border-radius: 50%; background: var(--sale); color: #fff; font-size: .78rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .card p { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.4; }
+    .slide--cards { padding: 52px 16px 16px; }
+    .slide--cards .next { display: none; }
+    .slide--cards .diff { gap: 14px; }
+    .slide--cards .lead { margin-top: 10px; font-size: 1rem; }
+    .slide--cards .card { padding: 10px; gap: 6px; }
+    .vis { height: 58px; overflow: hidden; border-radius: 12px; background: var(--code-bg); position: relative; }
+    .vis--code { height: 112px; }
+    .vis--check { height: 72px; }
+    .vis--img { height: 76px; }
+    .vis--code::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 22px; background: linear-gradient(transparent, var(--code-bg)); }
+    .vis img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, top); }
+    .code { margin: 0; padding: 10px 12px; color: var(--code-fg); font: 500 .72rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, 'D2Coding', monospace; white-space: pre; overflow: hidden; }
+    .code .k { font-style: normal; color: var(--code-key); }
+    .code .s { font-style: normal; color: var(--code-str); }
+    .code .n { font-style: normal; color: var(--code-num); }
+    .code .d { color: var(--code-dim); }
+    .code .arrow { color: var(--sale); }
+    .times { display: flex; flex-wrap: wrap; gap: 8px; align-content: center; justify-content: center; height: 100%; padding: 10px; }
+    .times b { padding: 6px 12px; border-radius: 999px; background: #26262b; color: var(--code-fg); font: 700 .95rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .02em; }
+    .times b:nth-child(1) { box-shadow: inset 0 0 0 1.5px var(--sale); }
+    .checks { margin: 0; padding: 10px 12px; height: 100%; align-content: center; list-style: none; display: grid; gap: 6px; color: var(--code-fg); font-size: .8rem; line-height: 1.3; }
+    .checks li { display: grid; grid-template-columns: 1.1rem minmax(0, 1fr); gap: 6px; align-items: start; }
+    .checks li::before { content: ''; width: .55rem; height: .3rem; margin: .28rem 0 0 .1rem; border-left: 2px solid var(--code-str); border-bottom: 2px solid var(--code-str); transform: rotate(-45deg); }
 
     @media (min-width: 768px) {
       .diff { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 48px; }
       .slide--diff { padding-top: 56px; }
       .grid4 { gap: 18px; max-width: 480px; }
       .grid4 img.shot { height: clamp(150px, calc((100dvh - 300px) / 2), 280px); }
-      #s5 .diff { grid-template-columns: minmax(0, 1fr); gap: 36px; }
-      .flow { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; max-width: none; }
-      .flow > li:not(:last-child)::after { left: auto; right: -19px; bottom: auto; top: 50%; margin: -5px 0 0; transform: rotate(-45deg); }
+      #s5 .diff, #s6 .diff { grid-template-columns: minmax(0, 1fr); gap: 30px; }
+      .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+      .card { padding: 14px; gap: 12px; }
+      .slide--cards { padding: 72px 20px 88px; }
+      .slide--cards .next { display: grid; }
+      .slide--cards .diff { gap: 30px; }
+      .slide--cards .lead { margin-top: 18px; font-size: 1.1rem; }
+      .slide--cards .card { padding: 14px; gap: 12px; }
+      .vis, .vis--code, .vis--check, .vis--img { height: clamp(150px, calc(100dvh - 430px), 260px); }
+      .vis img { object-position: top; }
+      .checks { gap: 14px; font-size: .95rem; padding: 14px 18px; }
+      .code { font-size: .78rem; padding: 12px 14px; }
     }
 
     /* 6. 핵심 기능 */
@@ -238,40 +267,84 @@
       <a class="next" href="#s5" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="slide" id="s5">
+    <section class="slide slide--cards" id="s5">
       <div class="slide__in diff">
         <div>
-          <h2 class="rise">수집부터<br /><em>화면까지</em></h2>
-          <p class="lead rise" style="--i:1">앱 화면을 읽어<br />확인된 값만 반영해요.</p>
+          <h2 class="rise">앱 화면을<br /><em>그대로 읽어요</em></h2>
+          <p class="lead rise" style="--i:1">멤버십 계정과 비회원 계정,<br />하루 세 번 각각 확인해요.</p>
         </div>
-        <ol class="flow rise" style="--i:2">
-          <li>
-            <h3>수집</h3>
-            <ul>
-              <li><div><b>실제 앱 화면 열기</b><span>멤버십 계정, 비회원 계정 각각</span></div></li>
-              <li><div><b>금액과 조건 판독</b><span>하루 세 번 자동 실행</span></div></li>
-            </ul>
+        <ol class="cards rise" style="--i:2">
+          <li class="card">
+            <h3>실제 앱 화면</h3>
+            <div class="vis vis--img" style="--pos: center 21%"><img src="/about/diff-club.jpg" width="600" height="1209" alt="배민 멤버십 계정 화면. 60계치킨 5,500원 선착순 할인." /></div>
+            <p>계정마다 폰에서 직접 열어요</p>
           </li>
-          <li>
-            <h3>반영</h3>
-            <ul>
-              <li><div><b>원장에 기록</b><span>덧붙이기만 해 지난 값 보존</span></div></li>
-              <li><div><b>검증 뒤 서버 교체</b><span>낡거나 빠진 데이터는 차단</span></div></li>
-            </ul>
+          <li class="card">
+            <h3>글자를 값으로</h3>
+            <div class="vis vis--code"><pre class="code"><span class="d">화면 글자</span>
+<i class="s">"3,000원 배민클럽 두찜 할인"</i>
+  <span class="arrow">↓</span>
+<i class="k">amount</i>      <i class="n">3000</i>
+<i class="k">minOrder</i>    <i class="n">25000</i>
+<i class="k">membership</i>  <i class="s">"baeminClub"</i></pre></div>
+            <p>금액, 최소 주문, 멤버십으로 나눠요</p>
           </li>
-          <li>
-            <h3>응답</h3>
-            <ul>
-              <li><div><b>API 응답</b><span>브랜드별 할인, 멤버십 구간 포함</span></div></li>
-              <li><div><b>웹 화면</b><span>한곳에서 비교</span></div></li>
-            </ul>
+          <li class="card">
+            <h3>하루 세 번</h3>
+            <div class="vis"><div class="times"><b>00:01</b><b>08:30</b><b>15:55</b></div></div>
+            <p>정해진 시각에 자동으로 돌아요</p>
           </li>
         </ol>
       </div>
       <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="slide" id="s6">
+    <section class="slide slide--cards" id="s6">
+      <div class="slide__in diff">
+        <div>
+          <h2 class="rise">확인하고<br /><em>내보내요</em></h2>
+          <p class="lead rise" style="--i:1">점검을 통과한 값만<br />서비스에 반영해요.</p>
+        </div>
+        <ol class="cards rise" style="--i:2">
+          <li class="card">
+            <h3>반영 전 점검</h3>
+            <div class="vis vis--check"><ul class="checks"><li>지난 기록은 지우지 않고 덧붙임</li><li>서버 값보다 낡으면 중단</li><li>사라진 할인은 이유 확인</li></ul></div>
+            <p>통과한 값만 서버에 올려요</p>
+          </li>
+          <li class="card">
+            <h3>서버 응답(API)</h3>
+            <div class="vis vis--code"><pre class="code"><span class="d">GET /api/brands</span>
+{
+  <i class="k">"name"</i>: <i class="s">"두찜"</i>,
+  <i class="k">"maxConfirmedAmount"</i>: <i class="n">9000</i>,
+  <i class="k">"offers"</i>: [
+    {
+      <i class="k">"platform"</i>: <i class="s">"baemin"</i>,
+      <i class="k">"amount"</i>: <i class="n">3000</i>,
+      <i class="k">"membership"</i>: <i class="s">"baeminClub"</i>,
+      <i class="k">"status"</i>: <i class="s">"confirmed"</i>
+    },
+    {
+      <i class="k">"platform"</i>: <i class="s">"coupangeats"</i>,
+      <i class="k">"amount"</i>: <i class="n">9000</i>,
+      <i class="k">"membership"</i>: <i class="s">"coupangEats"</i>,
+      <i class="k">"status"</i>: <i class="s">"confirmed"</i>
+    }
+  ]
+}</pre></div>
+            <p>웹이 받아 가는 값이에요</p>
+          </li>
+          <li class="card">
+            <h3>웹 화면</h3>
+            <div class="vis vis--img" style="--pos: center 34%"><img src="/about/home.jpg" width="390" height="844" alt="할인 목록 화면. 브랜드마다 가장 큰 할인 금액과 그 할인을 주는 앱이 보인다." /></div>
+            <p>브랜드별로 한곳에서 비교해요</p>
+          </li>
+        </ol>
+      </div>
+      <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
+
+    <section class="slide" id="s7">
       <div class="slide__in split">
         <h2 class="rise">과장 없이,<br /><em>정확한 값</em>으로</h2>
         <ul class="tech">
@@ -282,10 +355,10 @@
           <li class="rise" style="--i:5"><div><b>한정, 선착순 할인 실시간 제공</b><span>선착순은 소진까지 확인</span></div></li>
         </ul>
       </div>
-      <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s8" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
 
-    <section class="slide contact" id="s7">
+    <section class="slide contact" id="s8">
       <div class="slide__in">
         <h2 class="rise">오늘의 할인,<br /><em>직접 확인</em>해 보세요</h2>
         <div class="row rise" style="--i:1">
