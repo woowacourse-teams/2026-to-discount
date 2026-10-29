@@ -71,6 +71,7 @@
     /* 1~3. 문구 + 폰 화면 */
     .split { display: grid; gap: 28px; align-items: center; }
     .split .btn { margin-top: 28px; }
+    @media (max-width: 767px) { #s1 .btn { display: flex; width: fit-content; margin-left: auto; margin-right: auto; } }
     .phone { justify-self: center; width: min(calc(100vw - 32px), 450px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(221, 75, 2, .35); }
     .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 38px; overflow: hidden; background: #fbfbfa; }
     .phone__screen::before { content: ''; position: absolute; top: 9px; left: 50%; width: 30%; height: 24px; transform: translateX(-50%); border-radius: 999px; background: var(--bezel); z-index: 1; }
@@ -106,12 +107,12 @@
     .grid4 .row__app { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 700; letter-spacing: -.015em; }
     .grid4 .row__app img { width: 24px; height: 24px; border-radius: 7px; }
     .grid4 figure { margin: 0; min-width: 0; }
-    .grid4 img.shot { display: block; width: 100%; height: auto; object-fit: cover; object-position: top; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 16px 32px -20px rgba(0, 0, 0, .5); }
+    .grid4 img.shot { display: block; width: 100%; height: auto; min-height: 96px; max-height: calc(50dvh - 190px); object-fit: cover; object-position: top; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 16px 32px -20px rgba(0, 0, 0, .5); }
     .grid4 figcaption { margin-top: 8px; font-weight: 700; font-size: .95rem; letter-spacing: -.015em; line-height: 1.3; }
     .grid4 figcaption span { display: block; color: var(--muted); font-weight: 500; font-size: .8rem; }
     .grid4 .is-member figcaption { color: var(--sale); }
 
-    /* 5. 기기 구조: 수집 PC와 실기기, 서버, 사용자 기기 */
+    /* 5. 기기 구조: 수집 PC와 핸드폰, 서버, 사용자 기기 */
     .arch { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; width: 100%; justify-self: center; }
     .node { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 8px 12px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); min-width: 0; }
     .node b { font-size: 1.02rem; letter-spacing: -.02em; line-height: 1.3; }
@@ -131,12 +132,12 @@
     /* 6~7. 수집과 반영 도식: 5장과 같은 아이콘 도식 */
     .slide--cards { padding: 40px 16px 46px; }
     .slide--cards h2 { font-size: 1.45rem; line-height: 1.3; }
-    .slide--cards h2 br { display: none; }
-    .slide--cards h2 br + em { margin-left: .28em; }
     .slide--cards .diff { gap: 14px; }
     .slide--cards .lead { margin-top: 10px; font-size: 1rem; }
     .pitch { margin: 0; padding: 8px 12px; border-radius: 14px; background: var(--sale-weak); color: var(--sale); font-size: .85rem; font-weight: 700; line-height: 1.35; text-align: center; }
     .arch--plain { gap: 10px; }
+    .logos { display: flex; gap: 10px; }
+    .logos img { width: 38px; height: 38px; border-radius: 11px; }
     .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
     .chips i { font-style: normal; padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 700; background: var(--sale-weak); color: var(--sale); }
     .chips i.plain { background: transparent; border: 1px solid var(--border); color: var(--muted); }
@@ -156,11 +157,10 @@
       .hop::after { transform: translateX(-2px) rotate(-45deg); }
       .slide--cards { padding: 72px 20px 88px; }
       .slide--cards h2 { font-size: clamp(1.9rem, 5.5vw, 3rem); }
-      .slide--cards h2 br { display: inline; }
-      .slide--cards h2 br + em { margin-left: 0; }
       .slide--cards .diff { gap: 30px; }
       .slide--cards .lead { margin-top: 18px; font-size: 1.1rem; }
       .chips i { font-size: .8rem; }
+      .logos img { width: 54px; height: 54px; border-radius: 15px; }
       .pitch { font-size: 1rem; padding: 12px 18px; }
     }
 
@@ -260,13 +260,13 @@
         <div class="grid4 rise" style="--i:2">
           <div class="row">
             <p class="row__app"><img src="/platform-icons/coupangeats.png" alt="" />쿠팡이츠</p>
-            <figure class="is-member"><img class="shot" src="/about/diff-wow.jpg" width="900" height="481" alt="쿠팡이츠 멤버십(와우) 화면. 치킨 브랜드 할인 맨 위에 기영이숯불치킨 5,000원 할인이 있다." /><figcaption>멤버십 화면<span>오후 5:54</span></figcaption></figure>
-            <figure><img class="shot" src="/about/diff-nonwow.jpg" width="900" height="481" alt="쿠팡이츠 비회원 화면. 같은 목록에 기영이숯불치킨이 없고 훌라라치킨이 맨 위다." /><figcaption>비회원 화면<span>오후 5:54</span></figcaption></figure>
+            <figure class="is-member"><img class="shot" src="/about/diff-wow.jpg" width="900" height="828" alt="쿠팡이츠 멤버십(와우) 화면. 치킨 브랜드 할인 맨 위에 기영이숯불치킨 5,000원 할인이 있다." /><figcaption>멤버십 화면<span>오후 5:54</span></figcaption></figure>
+            <figure><img class="shot" src="/about/diff-nonwow.jpg" width="900" height="828" alt="쿠팡이츠 비회원 화면. 같은 목록에 기영이숯불치킨이 없고 훌라라치킨이 맨 위다." /><figcaption>비회원 화면<span>오후 5:54</span></figcaption></figure>
           </div>
           <div class="row">
             <p class="row__app"><img src="/platform-icons/baemin.png" alt="" />배달의민족</p>
-            <figure class="is-member"><img class="shot" src="/about/diff-club.jpg" width="900" height="664" alt="배민 멤버십(배민클럽) 화면. 60계치킨 5,500원 선착순 할인과 3,000원 할인, 가게 배달팁 0원." /><figcaption>멤버십 화면<span>오후 5:50</span></figcaption></figure>
-            <figure><img class="shot" src="/about/diff-nonclub.jpg" width="900" height="664" alt="배민 비회원 화면. 60계치킨 3,000원 할인만 있고 가게 배달팁 2,700원, 3,400원." /><figcaption>비회원 화면<span>오후 5:50</span></figcaption></figure>
+            <figure class="is-member"><img class="shot" src="/about/diff-club.jpg" width="900" height="807" alt="배민 멤버십(배민클럽) 화면. 60계치킨 5,500원 선착순 할인과 3,000원 할인, 가게 배달팁 0원." /><figcaption>멤버십 화면<span>오후 5:50</span></figcaption></figure>
+            <figure><img class="shot" src="/about/diff-nonclub.jpg" width="900" height="807" alt="배민 비회원 화면. 60계치킨 3,000원 할인만 있고 가게 배달팁 2,700원, 3,400원." /><figcaption>비회원 화면<span>오후 5:50</span></figcaption></figure>
           </div>
         </div>
       </div>
@@ -289,7 +289,7 @@
                 <div class="phone-tag"><div class="ico ico--s"><svg viewBox="0 0 48 48"><rect x="13" y="4" width="22" height="40" rx="4" /><path d="M21 38h6" /></svg></div><i class="plain">비회원</i></div>
               </div>
             </div>
-            <b>수집 PC와 실기기</b>
+            <b>수집 PC와 실제 핸드폰</b>
             <span class="sub">PC가 폰 여러 대의 앱 화면을 읽고, 실제 할인 금액을 검증해요.</span>
           </li>
           <li class="hop" aria-hidden="true"><span>업로드</span></li>
@@ -315,18 +315,19 @@
     <section class="slide slide--cards" id="s6">
       <div class="slide__in diff">
         <div>
-          <h2 class="rise"><em>배달앱 화면</em>을 <br />실제 핸드폰으로 직접 읽어요</h2>
+          <h2 class="rise"><em>배달앱 화면</em>을<br />실제 핸드폰으로 직접 읽어요</h2>
           <p class="lead rise" style="--i:1">아침부터 저녁까지, 사용자 유형별로<br />할인 정보를 수집하고 종합해요</p>
         </div>
         <ol class="arch rise" style="--i:2">
           <li class="node">
-            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><rect x="3" y="14" width="12" height="22" rx="2.5" /><rect x="18" y="9" width="12" height="32" rx="2.5" /><rect x="33" y="14" width="12" height="22" rx="2.5" /></svg></div></div>
+            <div class="icons"><div class="logos"><img src="/platform-icons/baemin.png" alt="배달의민족" /><img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" /><img src="/platform-icons/yogiyo.png" alt="요기요" /><img src="/platform-icons/ddangyo.png" alt="땡겨요" /></div></div>
             <b>4개 메이저 배달앱을 수집/종합해요</b>
-            <span class="sub">행사 페이지, 브랜드 페이지, 쿠폰함</span>
+            <span class="sub">배달의민족, 쿠팡이츠, 요기요, 땡겨요</span>
           </li>
           <li class="hop" aria-hidden="true"><span>검증</span></li>
           <li class="node">
             <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><rect x="4" y="8" width="14" height="30" rx="3" /><rect x="30" y="8" width="14" height="30" rx="3" /><path d="M21 20h6M21 27h6" /></svg></div></div>
+            <div class="chips"><i>행사 페이지</i><i>브랜드 페이지</i><i>쿠폰함</i></div>
             <b>여러 곳에서 교차 검증하기</b>
             <span class="sub">한 곳만 보지 않고 교차 검증해요.</span>
           </li>
@@ -345,7 +346,7 @@
     <section class="slide slide--cards" id="s7">
       <div class="slide__in diff">
         <div>
-          <h2 class="rise"><em>기록</em>하고<br /><em>내보내요</em></h2>
+          <h2 class="rise"><em>기록</em>하고 <em>내보내요</em></h2>
           <p class="lead rise" style="--i:1">통과한 값만 쌓고,<br />서버로 보내요.</p>
         </div>
         <ol class="arch rise" style="--i:2">
@@ -376,7 +377,7 @@
     <section class="slide slide--cards" id="s8">
       <div class="slide__in diff">
         <div>
-          <h2 class="rise">놓치지 않고<br /><em>틀리지 않게</em></h2>
+          <h2 class="rise">놓치지 않고 <em>틀리지 않게</em></h2>
           <p class="lead rise" style="--i:1">할인이 사라지기 전에,<br />정확한 값만 보여 드려요.</p>
         </div>
         <ol class="arch arch--plain rise" style="--i:2">
