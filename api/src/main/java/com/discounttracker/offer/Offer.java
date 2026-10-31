@@ -63,23 +63,21 @@ public record Offer(String platform, Integer amount, String qualifier,
      * 값은 원장 그대로다.
      */
     public static Offer from(OfferRecord r, LocalDate today) {
+        // fromBanner와 linkSource가 같은 판정을 쓰도록 한 번만 계산한다.
+        boolean fromBanner = BANNER_OFFER_TYPE.equals(r.offerType())
+                || BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType());
         return new Offer(r.platform(), r.amountAsOf(today), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
                 r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
                 Boolean.TRUE.equals(r.soldOut()), r.link(), r.membershipTier(),
-                BANNER_OFFER_TYPE.equals(r.offerType()) || BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType()),
+                fromBanner,
                 // 원장의 선착순 관측(배짱할인 주말핫딜 선착순 등)도 선착순 칸에 선다. 소진 감시봇이 생기기 전까지는
                 // 상시와 별개 오퍼다(2026-10-01 사용자). 같은 앱에서 무엇을 보일지는 mergeSameFirstCome가 고른다.
                 BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType())
                         || (r.section() != null && r.section().contains(FIRST_COME_SECTION_MARK)),
                 Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()), r.firstSeenAt(), null,
-                r.qualifiers(), linkSourceOf(r));
-    }
-
-    private static LinkSource linkSourceOf(OfferRecord r) {
-        if (r.link() == null) return LinkSource.NONE;
-        boolean banner = BANNER_OFFER_TYPE.equals(r.offerType()) || BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType());
-        return banner ? LinkSource.BANNER : LinkSource.RECORD;
+                r.qualifiers(),
+                r.link() == null ? LinkSource.NONE : (fromBanner ? LinkSource.BANNER : LinkSource.RECORD));
     }
 
     @JsonProperty("status")
