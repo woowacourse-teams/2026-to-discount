@@ -56,6 +56,26 @@ function createContext() {
   }
 }
 
+// 주소 ?from=<값>으로 들어온 유입 경로(#221, 이력서는 resume, 앱 공유 링크는 share).
+// 세션 동안 첫 값을 유지하고 다음 세션으로는 안 넘긴다. 이벤트 props.entryFrom으로 실린다 —
+// props.from은 이미 여러 이벤트가 출처 화면 뜻으로 쓴다(docs/design/221-from-param-analytics.md §3-1).
+const FROM_KEY = 'dk_from'
+const FROM_PATTERN = /^[a-z0-9_-]{1,20}$/
+let entryFrom = null
+
+export function getEntryFrom() {
+  if (entryFrom !== null) return entryFrom
+  // 같은 세션의 첫 값이 이긴다. 공유 링크 닫기 등이 replaceState로 쿼리를 지워도 남는다.
+  const stored = safeStore(sessionStorage, FROM_KEY)
+  if (stored && FROM_PATTERN.test(stored)) return (entryFrom = stored)
+  // RegExp.test(null)은 'null'로 바꿔 통과시키므로 null을 먼저 거른다.
+  const param = new URLSearchParams(location.search).get('from')
+  if (param === null || !FROM_PATTERN.test(param)) return (entryFrom = undefined)
+  // 저장이 막혀도(사파리 프라이빗) 모듈 변수로 이 페이지 로드 동안은 유지된다.
+  safeStore(sessionStorage, FROM_KEY, param)
+  return (entryFrom = param)
+}
+
 let context
 
 // 자체 API와 PostHog SDK가 한 페이지에서 반드시 같은 익명 ID를 쓰게 한다.

@@ -12,7 +12,9 @@ test('짧은 링크 생성과 복원이 동일한 혜택 및 공유 식별값을
   })
   assert.equal(url, `https://example.com/s/${code}`)
   const result = await shortShareRedirect(code, 'https://api.example.com', async () => ({ ok: true, json: async () => saved }))
-  assert.deepEqual(parseShareLink(new URL(result.location, url).hash), { shareId: id, brand: '도미노피자', offerKey: sharedOfferKey(offer) })
+  const restored = new URL(result.location, url)
+  assert.equal(restored.search, '?from=share')
+  assert.deepEqual(parseShareLink(restored.hash), { shareId: id, brand: '도미노피자', offerKey: sharedOfferKey(offer) })
 })
 test('없는 코드는 기존 안내로 보내고 API 장애는 대상 없음으로 오인하지 않는다', async () => {
   assert.deepEqual(await shortShareRedirect('bad', ''), { location: '/#share=invalid' })
