@@ -6,9 +6,10 @@ import {
   isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinPopular, pinKinds, visibleCategories, CATEGORIES,
+  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES,
 } from './filters.js'
-import { STRIP_MIN, cardRanks, popularToday } from './popularStrip.js'
+import { applyHidden } from './hiddenBrands.js'
+import { STRIP_MIN, popularToday } from './popularStrip.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
 const o = (amount, extra = {}) => ({ amount, platform: 'baemin', ...extra })
@@ -60,15 +61,12 @@ test('인기순을 고르면 기본으로 켜진 할인금액보다 앞선다 �
   assert.deepEqual(sortBrands(brands, { sorts }).map((b) => b.name), ['나', '가'])
 })
 
-test('기본 정렬이면 HOT 1~5위가 맨 앞에 순위대로 선다. 정렬을 바꾸면 안 세운다(2026-10-18 사용자)', () => {
-  const pop = (name, n) => brand(name, [o(5000)], { popularityToday: n })
-  const list = [pop('신규', 0), pop('가', 1), pop('나', 9), pop('다', 4), pop('라', 7), pop('마', 2), pop('바', 3)]
-  assert.deepEqual(pinPopular(list, defaultFilters()).map((b) => b.name), ['나', '라', '다', '바', '마', '신규', '가'])
-  const other = { ...defaultFilters(), sorts: [{ key: 'minOrder', dir: 'asc' }] }
-  assert.equal(pinPopular(list, other), list)
-  // HOT이 안 뜨는 때(세 곳 미만)는 그대로
-  const few = [pop('신규', 0), pop('가', 1), pop('나', 9)]
-  assert.equal(pinPopular(few, defaultFilters()), few)
+test('기본 정렬은 HOT 1~5위를 맨 앞에 세우지 않는다. 금액 순서를 따른다(#201)', () => {
+  const pop = (name, amount, n) => brand(name, [o(amount)], { popularityToday: n })
+  // 양성 신호: HOT 1위('나')는 금액이 가장 낮아 금액 순서로는 맨 뒤다. 고정이 있으면 맨 앞에 선다.
+  const list = [pop('가', 9000, 1), pop('나', 5000, 9), pop('다', 8000, 4), pop('라', 7000, 7), pop('마', 6000, 2)]
+  assert.ok(popularToday(list).length >= STRIP_MIN)
+  assert.deepEqual(applyFilters(list, defaultFilters()).map((b) => b.name), ['가', '다', '라', '마', '나'])
 })
 
 test('인기순은 HOT과 같은 24시간 순서다. 같으면 7일 수로 가른다(2026-10-18 사용자)', () => {
@@ -282,7 +280,7 @@ test('default sort pins new brands to the top, other sorts do not', () => {
   assert.deepEqual(applyFilters(brands, asc).map((x) => x.name), ['나', '라', '다', '가'])
 })
 
-// #147: 1~5위가 치킨·피자인데 패스트푸드를 골라도 실시간 순위(도크·맨 앞 고정·카드 순번)는 같은 표를 쓴다.
+// #147: 1~5위가 치킨·피자인데 패스트푸드를 골라도 실시간 순위(도크)는 같은 표를 쓴다.
 const hot147 = () => [
   ['교촌', 'chicken', 9], ['BBQ', 'chicken', 8], ['도미노', 'pizza', 7], ['bhc', 'chicken', 6], ['피자헛', 'pizza', 5],
   ['맥도날드', 'fastfood', 2], ['버거킹', 'fastfood', 0],
@@ -299,61 +297,29 @@ test('카테고리를 골라도 순위 기준 목록은 같고 HOT은 세 곳 �
   assert.deepEqual(popularToday(rankList147(brands, fast)).map((r) => r.brand.name), ['교촌', 'BBQ', '도미노', 'bhc', '피자헛'])
 })
 
-test('pinPopular: 고른 카테고리 안의 순위권 브랜드만 순위대로 앞에 세운다(#147)', () => {
-  const brands = hot147()
-  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
-  const shownPizza = [...applyFilters(brands, pizza)].reverse()
-  assert.deepEqual(pinPopular(shownPizza, pizza, rankList147(brands, pizza)).map((b) => b.name), ['도미노', '피자헛'])
-  // 순위권 브랜드가 없으면 그대로
-  const fast = { ...defaultFilters(), categories: new Set(['fastfood']) }
-  const shown = applyFilters(brands, fast)
-  assert.equal(pinPopular(shown, fast, rankList147(brands, fast)), shown)
-  const all = defaultFilters()
-  const list = applyFilters(brands, all)
-  assert.deepEqual(pinPopular(list, all, rankList147(brands, all)).slice(0, 5).map((b) => b.name), ['교촌', 'BBQ', '도미노', 'bhc', '피자헛'])
-})
-
-test('pinKinds: 맨 위 이유 표시가 실제 순서와 같은 덩어리를 이룬다. HOT 앞, 그 뒤 신규 앞, 나머지는 표시 없음(2026-10-27)', () => {
+test('pinKinds: 기본 정렬에서 신규 앞만 new, 나머지는 none이다. hot은 어떤 입력에서도 안 나온다(#201)', () => {
   const mk = (name, n, isNew) => brand(name, [o(5000, { isNew })], { popularityToday: n })
-  // 다는 신규이면서 HOT 3위: HOT이 이긴다. 신규1은 HOT이 아닌 신규, 보통은 둘 다 아님.
+  // HOT 후보가 다섯 곳 넘게 있어도('hot' 고정이 있던 입력) 신규만 'new'다.
   const brands = [mk('가', 9, false), mk('나', 8, false), mk('다', 7, true), mk('신규1', 0, true), mk('보통', 0, false), mk('라', 6, false), mk('마', 5, false)]
+  assert.ok(popularToday(brands).length >= STRIP_MIN)
   const f = defaultFilters()
-  const rank = applyFilters(brands, { ...f, categories: new Set(), search: '' })
-  const ordered = pinPopular(applyFilters(brands, f), f, rank)
-  const kinds = pinKinds(ordered, f, rank)
+  const ordered = applyFilters(brands, f)
+  const kinds = pinKinds(ordered, f)
   const labels = ordered.map((b) => kinds.get(b.name) ?? 'none')
-  assert.deepEqual(ordered.map((b) => b.name), ['가', '나', '다', '라', '마', '신규1', '보통'])
-  assert.deepEqual(labels, ['hot', 'hot', 'hot', 'hot', 'hot', 'new', 'none'])
+  assert.deepEqual(ordered.slice(0, 2).map((b) => b.name), ['다', '신규1'])
+  assert.deepEqual(labels.slice(0, 2), ['new', 'new'])
+  assert.deepEqual(labels.slice(2), ['none', 'none', 'none', 'none', 'none'])
+  assert.equal([...kinds.values()].includes('hot'), false)
   // 정렬을 바꾸면 아무것도 올리지 않으므로 표시도 없다
   const other = { ...f, sorts: [{ key: 'minOrder', dir: 'asc' }] }
-  assert.equal(pinKinds(applyFilters(brands, other), other, rank).size, 0)
-  // HOT이 안 뜨는 때(세 곳 미만)는 신규 표시만 남는다
-  const few = [mk('가', 9, false), mk('신규1', 0, true), mk('보통', 0, false)]
-  const fewRank = applyFilters(few, { ...f, categories: new Set(), search: '' })
-  const fewKinds = pinKinds(pinPopular(applyFilters(few, f), f, fewRank), f, fewRank)
-  assert.deepEqual([...fewKinds.entries()], [['신규1', 'new']])
+  assert.equal(pinKinds(applyFilters(brands, other), other).size, 0)
 })
 
-test('카드 순번은 도크와 같은 이름에 같은 순위를 붙인다. 카테고리 안에서 다시 매기지 않는다(#147)', () => {
-  const brands = hot147()
-  const all = defaultFilters()
-  const rank = rankList147(brands, all)
-  const dock = new Map(popularToday(rank).map((r) => [r.brand.name, r.rank]))
-  const card = cardRanks(rank, pinPopular(applyFilters(brands, all), all, rank), false)
-  assert.deepEqual([...card], [...dock])
-  // 인기순 정렬로 패스트푸드만 보면 맥도날드는 전역 순위 6을 그대로 단다.
-  const fast = { ...all, categories: new Set(['fastfood']) }
-  assert.deepEqual([...cardRanks(rank, applyFilters(brands, fast), true)], [['맥도날드', 6]])
-})
-
-test('검색 중에도 HOT 순위와 카드 순번은 전역 그대로다(#147)', () => {
+test('검색 중에도 HOT 순위는 전역 그대로다(#147)', () => {
   const brands = hot147()
   const q = { ...defaultFilters(), search: '피자' }
   const rank = rankList147(brands, q)
   assert.deepEqual(popularToday(rank).map((r) => r.brand.name), ['교촌', 'BBQ', '도미노', 'bhc', '피자헛'])
-  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
-  const shown = pinPopular(applyFilters(brands, pizza), pizza, rank)
-  assert.deepEqual([...cardRanks(rank, shown, false)], [['도미노', 3], ['피자헛', 5]])
 })
 
 test('오퍼 5개 이하인 분류 탭은 숨기고, 고른 분류는 남긴다', () => {
@@ -363,4 +329,80 @@ test('오퍼 5개 이하인 분류 탭은 숨기고, 고른 분류는 남긴다'
   assert.deepEqual(keys(new Set()), ['chicken', 'korean']) // 일식 5개는 숨김, 치킨 7개는 보임
   assert.deepEqual(keys(new Set(['japanese'])), ['chicken', 'korean', 'japanese'])
   assert.equal(visibleCategories(null).length, CATEGORIES.length)
+})
+
+// #219: 순위에서 고른 브랜드가 카드 목록에 없으면 분류나 검색을 풀어 세운다.
+// listFor는 App.jsx와 같은 조립(applyFilters 뒤 applyHidden)을 쓴다. 가짜 목록으로 초록이 되지 않게.
+const listFor219 = (brands, hidden = {}) => (f) =>
+  applyHidden(applyFilters(brands, f), hidden, (b) => displayBestAmount(b.offers)).map((b) => b.name)
+
+test('재현: 피자 분류에서는 카드 목록에 교촌이 없는데 순위 목록에는 있다(#219)', () => {
+  const brands = hot147()
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  assert.equal(listFor219(brands)(pizza).includes('교촌'), false)
+  assert.equal(rankList147(brands, pizza).map((b) => b.name).includes('교촌'), true)
+})
+
+test('revealFilters: 피자 분류에서 치킨 브랜드를 고르면 분류만 푼다(#219)', () => {
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  const got = revealFilters(pizza, '교촌', listFor219(hot147()))
+  assert.deepEqual(got.cleared, ['category'])
+  assert.equal(got.filters.categories.size, 0)
+  assert.equal(pizza.categories.size, 1) // 받은 필터는 안 고친다
+  assert.ok(listFor219(hot147())(got.filters).includes('교촌'))
+})
+
+test('revealFilters: 검색에 안 걸리는 브랜드를 고르면 검색만 푼다(#219)', () => {
+  const searched = { ...defaultFilters(), search: '도미노' }
+  assert.equal(listFor219(hot147())(searched).includes('교촌'), false)
+  const got = revealFilters(searched, '교촌', listFor219(hot147()))
+  assert.deepEqual(got.cleared, ['search'])
+  assert.equal(got.filters.search, '')
+})
+
+test('revealFilters: 분류도 검색도 막으면 둘 다 푼다(#219)', () => {
+  const both = { ...defaultFilters(), categories: new Set(['pizza']), search: '도미노' }
+  const got = revealFilters(both, '교촌', listFor219(hot147()))
+  assert.deepEqual(got.cleared, ['category', 'search'])
+  assert.equal(got.filters.categories.size, 0)
+  assert.equal(got.filters.search, '')
+})
+
+test('revealFilters: 하나만 풀어도 서면 나머지는 남긴다(#219)', () => {
+  const list = listFor219(hot147())
+  // 치킨 분류 + "도미노" 검색에서 도미노: 분류만 풀면 선다. 검색은 남는다.
+  const a = revealFilters({ ...defaultFilters(), categories: new Set(['chicken']), search: '도미노' }, '도미노', list)
+  assert.deepEqual(a.cleared, ['category'])
+  assert.equal(a.filters.search, '도미노')
+  // 치킨 분류 + "교촌" 검색에서 BBQ: 분류는 BBQ를 담으니 검색만 푼다.
+  const b = revealFilters({ ...defaultFilters(), categories: new Set(['chicken']), search: '교촌' }, 'BBQ', list)
+  assert.deepEqual(b.cleared, ['search'])
+  assert.deepEqual([...b.filters.categories], ['chicken'])
+})
+
+test('revealFilters: 분류 전체, 검색 빔이면 필터를 그대로 돌려준다(#219 기존 동작)', () => {
+  const all = defaultFilters()
+  const got = revealFilters(all, '교촌', listFor219(hot147()))
+  assert.deepEqual(got.cleared, [])
+  assert.equal(got.filters, all)
+})
+
+test('revealFilters: 숨긴 브랜드처럼 어떻게 해도 안 서면 null이다(#219)', () => {
+  const hidden = { 교촌: { at: 1, amount: null, rule: 'never' } }
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  assert.equal(revealFilters(pizza, '교촌', listFor219(hot147(), hidden)), null)
+  assert.equal(revealFilters(defaultFilters(), '없는브랜드', listFor219(hot147())), null)
+})
+
+test('revealFilters: 검색을 풀어 5천원 거르기가 다시 걸려도 순위의 브랜드는 선다(#219)', () => {
+  // 검색 중에는 금액으로 안 거른다. 3천원 오퍼는 검색을 풀면 빠지지만 순위에 든 브랜드는 5천원 이상 오퍼가 있다.
+  const brands = [...hot147(), brand('작은집', [o(3000)], { category: 'korean' }), brand('섞인집', [o(3000), o(6000)], { category: 'korean' })]
+  const searched = { ...defaultFilters(), search: '작은집' }
+  const rank = rankList147(brands, searched).map((b) => b.name)
+  assert.equal(rank.includes('작은집'), false) // 5천원 미만뿐이라 순위에도 없다
+  assert.ok(rank.includes('섞인집'))
+  const got = revealFilters(searched, '섞인집', listFor219(brands))
+  assert.deepEqual(got.cleared, ['search'])
+  const card = applyFilters(brands, got.filters).find((b) => b.name === '섞인집')
+  assert.deepEqual(card.offers.map((x) => x.amount), [6000])
 })

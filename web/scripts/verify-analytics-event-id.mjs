@@ -41,7 +41,8 @@ Object.defineProperty(globalThis, 'document', {
   configurable: true,
 })
 Object.defineProperty(globalThis, 'location', {
-  value: { search: '', host: 'example.test', pathname: '/discounts' },
+  // 이력서 링크로 들어온 방문(#221). 모든 이벤트 props.entryFrom에 실린다.
+  value: { search: '?from=resume', host: 'example.test', pathname: '/discounts' },
   configurable: true,
 })
 globalThis.fetch = async (_, options) => {
@@ -77,6 +78,7 @@ assert.equal(sdkEvents.length, 0)
 assert.equal(registerPostHogSink((event) => sdkEvents.push(event)), true)
 assert.deepEqual(sdkEvents.map(({ eventId }) => eventId), tracked.map(({ eventId }) => eventId))
 assert.equal(sdkEvents[0].event, 'page_view')
+assert.ok(tracked.every(({ props }) => props.entryFrom === 'resume'))
 
 pagehide()
 const beaconBody = await beacon.text()
@@ -102,5 +104,10 @@ assert.equal(registerPostHogSink((event) => boundedEvents.push(event)), true)
 assert.equal(boundedEvents.length, 100)
 assert.equal(boundedEvents[0].props.index, 0)
 assert.equal(boundedEvents.at(-1).props.index, 99)
+
+// 이벤트 고유 props.from(출처 화면)은 유입 경로와 다른 칸이라 그대로 남는다.
+track('category_change', { from: 'menu-bar' })
+assert.equal(boundedEvents.at(-1).props.from, 'menu-bar')
+assert.equal(boundedEvents.at(-1).props.entryFrom, 'resume')
 
 console.log('analytics eventId behavior: PASS')

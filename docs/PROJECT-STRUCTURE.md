@@ -256,6 +256,7 @@ web/src/SurveyCard.jsx
 web/src/SurveyDock.jsx
 web/src/TopBarB.jsx
 web/src/analytics-context.js
+web/src/analytics-context.test.js
 web/src/analytics.js
 web/src/api.js
 web/src/apiBase.js
@@ -416,7 +417,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 190 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 177 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 178 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -488,6 +489,7 @@ HTTP 경계:
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `TopBarB.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
+| `analytics-context.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics.js` | 자체 행동 이벤트 |
 | `api.js` | 브랜드와 배너 API 호출 |
 | `apiBase.js` | 런타임 모듈, 세부 책임은 코드 확인 |

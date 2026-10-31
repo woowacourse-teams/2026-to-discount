@@ -13,3 +13,8 @@ test('dev, utm, 실험 때의 home과 __arm은 캐시 키에서 뗀다', () => {
   const r = middleware(req('https://x.test/?home=old&__arm=coupon&utm_source=x&dev=1&q=bbq'))
   assert.equal(r.headers.get('x-middleware-rewrite'), 'https://x.test/?q=bbq')
 })
+
+test('유입 경로 from은 캐시 키에서 뗀다(#221)', () => {
+  assert.equal(middleware(req('https://x.test/?from=resume&q=bbq')).headers.get('x-middleware-rewrite'), 'https://x.test/?q=bbq')
+  assert.equal(middleware(req('https://x.test/?from=share')).headers.get('x-middleware-rewrite'), 'https://x.test/')
+})

@@ -79,7 +79,9 @@ public class EventController {
             "inputLength", "resultCount", "submitMethod", "query", "results",
             "fCategory", "fPlatforms", "fSearch", "fSort",
             // 메인 화면 A/B 안(web/src/homeExperiment.js). 모든 이벤트에 실리는데 검색만 이 목록이 걸러 빠졌다(2026-10-04).
-            "home", "home_forced");
+            "home", "home_forced",
+            // 주소 ?from= 유입 경로(#221, web/src/analytics-context.js getEntryFrom). 모든 이벤트에 실린다.
+            "entryFrom");
 
     private static final int MAX_BATCH = 20;
     private static final int MAX_TEXT = 120;

@@ -174,7 +174,7 @@ class EventControllerTest {
                             {"event":"brand_search_submitted","visitorId":"v_search",
                              "sessionId":"s_search","props":{"inputLength":"4",
                              "resultCount":"2","submitMethod":"enter","fSearch":"true",
-                             "query":"뿌링클 010-1234-5678","results":"bhc","unexpected":"raw","home":"coupon"}}
+                             "query":"뿌링클 010-1234-5678","results":"bhc","unexpected":"raw","home":"coupon","entryFrom":"resume"}}
                             """)))
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.accepted").value(1));
@@ -188,6 +188,7 @@ class EventControllerTest {
         assertTrue(loggedEvent.contains("\"submitMethod\":\"enter\""));
         assertTrue(loggedEvent.contains("\"fSearch\":\"true\""));
         assertTrue(loggedEvent.contains("\"home\":\"coupon\"")); // 메인 화면 A/B 안은 검색에서도 남는다
+        assertTrue(loggedEvent.contains("\"entryFrom\":\"resume\"")); // 유입 경로(?from=, #221)도 검색에서 남는다
         // 검색어는 남기되 전화번호 같은 긴 숫자열은 가린다(2026-10-08 사용자: 검색어 원문 수집)
         assertTrue(loggedEvent.contains("\"query\":\"뿌링클 #\""));
         assertTrue(loggedEvent.contains("\"results\":\"bhc\""));

@@ -11,8 +11,7 @@ import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
 const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, applyFilters, pinPopular, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
-import { cardRanks } from './popularStrip.js'
+import { CATEGORIES, applyFilters, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, revealFilters, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
 const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
 const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
@@ -295,8 +294,17 @@ export default function App({ initial = null }) {
   // 것이 하나도 없는데 이름만 남기면 빈 카드가 격자를 채운다.
   // 입력 중인 문자열이 아니라 사용자가 확정한 검색만 센다. 검색 개선(메뉴명, 미등록 브랜드 파악)을 위해
   // 확정한 검색어(40자까지)와 앞쪽 결과 브랜드 5개를 남긴다(2026-10-08 사용자). 하단 안내 문구에 적혀 있다.
-  // 인기 순위에서 브랜드를 고르면 그 카드로 간다(같은 이름을 다시 골라도 다시 가게 한 번 비운다)
-  const pickPopular = (name) => { setLinkedBrand(null); requestAnimationFrame(() => setLinkedBrand(brandCardId(name))) }
+  // 인기 순위에서 브랜드를 고르면 그 카드로 간다(같은 이름을 다시 골라도 다시 가게 한 번 비운다).
+  // 분류나 검색 때문에 카드가 목록에 없으면 그 조건을 상태에서 실제로 지운 뒤 간다(#219, submitSearch와 같은 방향).
+  const pickPopular = (name) => {
+    const target = revealFilters(filters, name,
+      (f) => applyHidden(applyFilters(brands, f), hidden, bestOf).map((b) => b.name))
+    // ponytail: 어떻게 해도 안 서면(순위를 그린 뒤 목록이 바뀜) 지금은 아무 일도 안 한다. 안내 문구가 정해지면 띄운다(#219 열린 질문 3).
+    if (!target) return
+    if (target.cleared.length > 0) setFilters(target.filters)
+    setLinkedBrand(null)
+    requestAnimationFrame(() => setLinkedBrand(brandCardId(name)))
+  }
   const submitSearch = (raw, submitMethod) => {
     const query = raw.trim()
     // 검색을 확정하면 켜둔 분류를 푼다.
@@ -420,25 +428,20 @@ export default function App({ initial = null }) {
   }, [])
 
   // 순위 기준 목록: 카테고리와 검색을 뺀다. 실시간 순위는 무엇을 보든 찾든 같다(#147).
+  // 여기서 떼는 조건과 pickPopular(revealFilters)가 푸는 조건이 같아야 순위의 브랜드가 늘 카드로 선다(#219).
   const rankBrands = useMemo(
     () => (brands ? applyHidden(applyFilters(brands, { ...filters, categories: new Set(), search: '' }), hidden, bestOf) : brands),
     [brands, filters, hidden, bestOf],
 
   )
-  // 맨 위로 올라온 이유(HOT 고정, 신규 앞)를 브랜드에 `pin`으로 붙인다. 카드가 노출과 클릭 이벤트에 싣는다(2026-10-27).
+  // 맨 위로 올라온 이유(신규 앞)를 브랜드에 `pin`으로 붙인다. 카드가 노출과 클릭 이벤트에 싣는다(2026-10-27).
   const visibleBrands = useMemo(() => {
     if (!brands) return brands
-    const ordered = pinPopular(applyHidden(applyFilters(brands, filters), hidden, bestOf), filters, rankBrands)
-    const kinds = pinKinds(ordered, filters, rankBrands)
+    const ordered = applyHidden(applyFilters(brands, filters), hidden, bestOf)
+    const kinds = pinKinds(ordered, filters)
     const visible = ordered.map((b) => ({ ...b, pin: kinds.get(b.name) ?? 'none' }))
     return shared ? [shared.brand, ...visible.filter((b) => b.name !== shared.brand.name)] : visible
-  }, [brands, filters, hidden, bestOf, rankBrands, shared?.brand])
-
-  // 카드 왼쪽 위 순번. 도크와 같은 rankBrands 표를 읽어 순위가 맞는다(popularStrip.js cardRanks).
-  const popRanks = useMemo(
-    () => cardRanks(rankBrands, visibleBrands, primarySort(filters).key === 'popularity'),
-    [rankBrands, visibleBrands, filters],
-  )
+  }, [brands, filters, hidden, bestOf, shared?.brand])
 
   // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
   const revived = useMemo(
@@ -738,7 +741,7 @@ export default function App({ initial = null }) {
             /></Suspense>
           )}
           {visibleBrands.slice(0, shown).map((b, index) => {
-            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1, rank: popRanks?.get(b.name),
+            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name) || shared?.brand.name === b.name, onInteract: clearLinked,
               sharedKey: shared?.brand.name === b.name ? shared.key : null, onShareTargetVisible }
             const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
