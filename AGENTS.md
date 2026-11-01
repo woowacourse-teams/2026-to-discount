@@ -18,6 +18,8 @@
 
 main에 직접 커밋하지 않는다. 브랜치, 360px 스크린샷, mono `preview/<이름>` 브랜치 push(CI가 미러로 옮겨 프리뷰를 띄운다), 승인, 머지 순서다. 절차는 [`docs/WORKFLOW.md`](docs/WORKFLOW.md) §3-3.
 
+예외: **브랜드 로고 추가와 교체는 핫픽스라 PR과 프리뷰 없이 main에 바로 적용한다**(사용자, 2026-11-01). 이미지, WebP, `logoManifest.js`만 바꾸는 변경에 한한다. 없는 목록은 [`docs/todo/missing-logos.md`](docs/todo/missing-logos.md).
+
 ## 점검과 새 파일
 
 - 확인 명령은 [`docs/WORKFLOW.md`](docs/WORKFLOW.md) §5. `git config core.hooksPath scripts/githooks`로 구조 문서 검사를 push 전에 자동으로 돌린다.
