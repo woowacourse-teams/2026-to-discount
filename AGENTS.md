@@ -18,6 +18,8 @@
 
 main에 직접 커밋하지 않는다. 브랜치, 360px 스크린샷, mono `preview/<이름>` 브랜치 push(CI가 미러로 옮겨 프리뷰를 띄운다), 승인, 머지 순서다. 절차는 [`docs/WORKFLOW.md`](docs/WORKFLOW.md) §3-3.
 
+예외: **쿠팡이츠 주간 공유 링크 교체는 PR 없이 main에 바로 적용한다**(사용자, 2026-11-02). 월요일 00시에 허브가 바뀌면 옛 링크가 지난주 허브로 풀려 수집이 실패하고 웹 링크가 깨진다. `web/src/offerLink.js`의 `COUPANGEATS_LINK`와 `web/src/offerChip.snapshot.json`의 같은 링크, 두 파일에서 링크만 바꾸는 변경에 한한다. 적용 전에 HTTP로 풀어 허브 키(`V5_DEAL_<월일>_HL`)가 이번 주 월요일인지 본다.
+
 예외: **브랜드 로고 추가와 교체는 핫픽스라 PR과 프리뷰 없이 main에 바로 적용한다**(사용자, 2026-11-01). 이미지, WebP, `logoManifest.js`만 바꾸는 변경에 한한다. 없는 목록은 [`docs/todo/missing-logos.md`](docs/todo/missing-logos.md).
 
 ## 점검과 새 파일
