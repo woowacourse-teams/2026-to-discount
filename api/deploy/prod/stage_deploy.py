@@ -53,6 +53,11 @@ class Config:
         return self.deploy_dir / "stage.jar"
 
 
+def emit(message) -> None:
+    """로그 한 줄을 바로 내보낸다. 파이프에서는 print가 버퍼에 모였다가 종료 때 나가 줄별 시각이 한 순간으로 찍힌다(#213)."""
+    print(message, flush=True)
+
+
 class Ops:
     """서버에 닿는 동작 전부. 시험은 이 객체를 가짜로 바꾼다."""
 
@@ -143,7 +148,7 @@ def prune(cfg: Config, log) -> None:
             log(f"오래된 jar 삭제: {jar.name}")
 
 
-def deploy(cfg: Config, ops: Ops, jar: Path, log=print) -> int:
+def deploy(cfg: Config, ops: Ops, jar: Path, log=emit) -> int:
     jar = Path(jar)
     if not jar.is_file():
         log(f"jar가 없다: {jar}")
