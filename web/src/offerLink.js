@@ -212,7 +212,9 @@ export function offerClickProps({ offer, brandName, position, pin, best, where, 
     best: !!best,
     held: offer.status === 'held',
     soldOut: !!offer.soldOut,
-    fromBanner: !!offer.link,
+    // 배너에서 받아온 링크인지는 API가 준 출처로 가른다(#223). 필터가 단 허브 링크(added)나 수집 링크(record)는
+    // 배너가 아니다. 칸이 없는 옛 응답이면 예전 계산(링크가 있으면 배너)을 따른다.
+    fromBanner: offer.linkSource != null ? offer.linkSource === 'banner' : !!offer.link,
     // 2026-10-05 추가: 신규(오늘 새로 생겼거나 금액이 커짐)였는지, 선착순 칸인지, 카드 어디서 눌렀는지.
     isNew: isUpdated(offer),
     firstCome: !!offer.firstCome,
