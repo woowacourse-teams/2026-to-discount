@@ -175,3 +175,12 @@
 4. `main.jsx` 연결, `npm test`와 `npm run build`, `git diff --stat` 확인.
 5. `scripts/generate_project_structure.py`로 구조 문서 다시 만들기.
 6. 프리뷰 push(`preview/shell-trust`), 360px 스크린샷과 §6-1 대조 결과를 결과 댓글에.
+
+## 변경 이력
+
+- 2026-11-03 (이슈 본문 `## 결정`, /approve-design 전 권한자 결정을 설계로 반영)
+  - §5 4번 최소주문: `minLabel`이 `null`이면 비우지 않고 기존 정식 라벨 "최소주문 미확인"을 그린다.
+  - 없음과 모름을 가른다: 카드에 앱별 대표 금액 줄을 두고, 그 앱에 오퍼가 없으면 `-`, 최소주문을 모르면 기존 라벨.
+  - §7-1: `main.jsx`는 import 한 줄과 `const ssr = null` 한 줄, 두 줄을 바꾼다(SSR 하이드레이션 무시).
+  - §5-1, §7-4: 시안용 임시 문구는 세션이 정해도 된다. 수집기 말을 새로 만들지 않는 규칙은 그대로.
+  - PR 본문 맨 위에 프리뷰 주소를 적고 PR은 초안으로 둔다.
