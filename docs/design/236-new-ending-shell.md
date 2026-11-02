@@ -185,3 +185,8 @@ AGENTS.md의 "없다/0/통과" 규칙을 이 화면에 적용한다. 두 줄은 
 3. `main.jsx` 네 곳.
 4. `npm test`, `npm run build`, 구조 문서 다시 만들기.
 5. 360px 스크린샷과 운영 API 실측 개수를 결과 댓글에. `preview/shell-new-ending` push는 사람 또는 sub 세션.
+
+## 변경 이력
+
+- 2026-11-03 이슈 본문 `## 결정`(권한자, `/approve-design` 전): §8 새 문구는 시안이라 세션이 정한다(머리 제목 "오늘의 할인"을 더함). 최소주문을 모르면 "최소주문 미확인"(§3-2와 같음). `main.jsx`의 SSR 무시 변경 허용(§3-5 승인).
+- 2026-11-03 구현: 최소주문이 금액이면 `CouponCard` `MinOrder`와 같은 꼴 "최소주문 N원↑"(`minLabel`은 숫자만 돌려줘 뜻이 안 읽혔다). `main.jsx`에 App 조각을 빌드에 남기는 한 줄(`window.__keepAppChunk`)을 더했다. 홈이 `App`을 안 부르면 쿠폰 카드 CSS 조각이 빠져 `scripts/ssr-template.mjs`가 빌드를 멈춘다.
