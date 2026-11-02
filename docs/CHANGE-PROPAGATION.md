@@ -177,6 +177,7 @@
 | tracker | 배포 없음. 미니PC에서 돈다 | |
 
 - **순서**: API가 먼저, 웹이 나중. 반대로 하면 새 웹이 옛 응답을 읽어 정렬이 풀리고 배너 표식이 사라진다(2026-09-24 실측).
+- **배포 알림**: 문구 `api/deploy/prod/deploy_message.py` ↔ 종료 코드 `stage_deploy.py` ↔ 미러 `deploy.yml`. 앞 둘은 `test_deploy_message.py`가 키 집합으로 대조한다. 미러 `deploy.yml`은 `.github/`라 미러에서 제외돼 시험이 못 닿고 미러에 직접 커밋한다. 순서는 mono 병합 → 미러 반영 확인 → `deploy.yml` 커밋(반대면 알림 단계가 파일이 없어 실패한다).
 - **tracker와 mono는 별도 저장소다.** 둘 다 푸시해야 한다.
 - **mono는 tracker의 코드를 싣지 않는다**(ADR-002). `mono/tracker/`에는 README만 있다.
 - **웹 변경은 프리뷰 먼저**: 브랜치 → mono `preview/<이름>` push(CI가 미러로 옮긴다. 미러에 직접 push하지 않는다) → Vercel → 승인 → main. 360px로 찍어 본다. 절차는 [`WORKFLOW.md`](WORKFLOW.md) §3-3.
