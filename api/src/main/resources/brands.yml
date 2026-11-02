@@ -1315,6 +1315,7 @@ brands:
   이마트에브리데이:
     searchAliases: [이마트에브리데이, 이마트 에브리데이, 이마트슈퍼]
     category: convenience
+    aliases: [이마트]
   상상오리:
     searchAliases: [상상오리]
     # 행사 수집이 찾은 브랜드. 분류와 로고는 사람이 채운다
