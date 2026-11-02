@@ -59,3 +59,14 @@ test('쿠팡이츠가 아닌 https 링크는 허브 링크로 바뀌지 않고 �
     assert.notEqual(got, COUPANGEATS_LINK)
   }
 })
+
+test('fromBanner는 API 링크 출처로 가른다(#223)', () => {
+  const fb = (o) => offerClickProps({ offer: { platform: 'baemin', ...o }, brandName: 'BBQ', position: 1 }).fromBanner
+  assert.equal(fb({ link: 'https://hub', linkSource: 'added' }), false)
+  assert.equal(fb({ link: 'https://a', linkSource: 'record' }), false)
+  assert.equal(fb({ link: 'https://a', linkSource: 'banner' }), true)
+  assert.equal(fb({ linkSource: 'none' }), false)
+  // 칸이 없는 옛 응답은 예전 계산
+  assert.equal(fb({ link: 'https://a' }), true)
+  assert.equal(fb({}), false)
+})
