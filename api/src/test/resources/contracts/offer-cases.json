@@ -1,5 +1,5 @@
 {
-  "note": "오퍼 응답 계약(R3, 2026-09-29). export.json 한 줄(record, tracker export_data.py가 쓴다) -> Java OfferRecord -> Offer.from(asOf) -> 응답 JSON(offer, GET /api/brands의 offers[] 한 칸). API OfferContractTest가 record를 파싱해 offer와 글자까지 같은지, 웹 offerContract.test.js가 웹이 읽는 칸이 offerKeys 안에 있는지, tracker가 export.json의 칸이 exportKeys 안에 있는지 본다. record는 2026-09-28~29 라이브 export.json에서 옮겼다(screenshotPath만 가렸다). link(2026-10-07): 쿠팡이츠 허브 고정 쿠폰이 수집된 허브 탭을 여는 앱 링크(coupangeats://Web?url=...anchorTabNo=N). 원장 hub_tab.link에서 온다. 탭을 모르면 키가 없다. qualifiers(2026-10-22, #155): 원장의 구조화 조건(예: [\"첫 주문\"]). 키가 없으면 null로 나간다.",
+  "note": "오퍼 응답 계약(R3, 2026-09-29). export.json 한 줄(record, tracker export_data.py가 쓴다) -> Java OfferRecord -> Offer.from(asOf) -> 응답 JSON(offer, GET /api/brands의 offers[] 한 칸). API OfferContractTest가 record를 파싱해 offer와 글자까지 같은지, 웹 offerContract.test.js가 웹이 읽는 칸이 offerKeys 안에 있는지, tracker가 export.json의 칸이 exportKeys 안에 있는지 본다. record는 2026-09-28~29 라이브 export.json에서 옮겼다(screenshotPath만 가렸다). link(2026-10-07): 쿠팡이츠 허브 고정 쿠폰이 수집된 허브 탭을 여는 앱 링크(coupangeats://Web?url=...anchorTabNo=N). 원장 hub_tab.link에서 온다. 탭을 모르면 키가 없다. qualifiers(2026-10-22, #155): 원장의 구조화 조건(예: [\"첫 주문\"]). 키가 없으면 null로 나간다. linkSource(2026-10-29, #203): link의 출처(none/record/banner/added)이고 원장 칸이 아니다(API가 계산한다).",
   "asOf": "2026-09-29",
   "cases": [
     {
@@ -73,6 +73,7 @@
         "badge": "5%할인",
         "soldOut": false,
         "link": null,
+        "linkSource": "none",
         "fromBanner": false,
         "firstCome": false,
         "certainty": "exact",
@@ -120,6 +121,7 @@
         "badge": null,
         "soldOut": false,
         "link": null,
+        "linkSource": "none",
         "fromBanner": false,
         "firstCome": false,
         "certainty": "capped",
@@ -168,6 +170,7 @@
         "badge": "쿠팡와우 전용쿠폰",
         "soldOut": false,
         "link": null,
+        "linkSource": "none",
         "fromBanner": false,
         "firstCome": false,
         "certainty": "exact",
@@ -218,6 +221,7 @@
         "badge": null,
         "soldOut": false,
         "link": null,
+        "linkSource": "none",
         "fromBanner": false,
         "firstCome": false,
         "certainty": "exact",
@@ -280,6 +284,7 @@
     "isNew",
     "kind",
     "link",
+    "linkSource",
     "membership",
     "minOrderAmount",
     "platform",

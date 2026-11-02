@@ -37,6 +37,8 @@ export function parseShareLink(hash) {
 export function createShareLink(origin, brand, offer, shareId) {
   if (!ID.test(shareId)) throw new Error('Invalid share ID')
   const url = new URL('/', origin)
+  // 받은 사람의 방문이 공유 유입으로 세지게(#221, analytics-context.js getEntryFrom). 해시 구조는 그대로다.
+  url.searchParams.set('from', 'share')
   url.hash = new URLSearchParams({ share: shareId, brand, offer: sharedOfferKey(offer) }).toString()
   return url.href
 }

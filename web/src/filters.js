@@ -381,6 +381,24 @@ export function applyFilters(brands, filters) {
 }
 
 /**
+ * 순위에서 고른 브랜드가 카드로 서게 하는 가장 작은 필터 변경(#219).
+ * listFor(f)는 필터 f로 그려질 카드 이름 목록(숨김까지 적용한 것)을 돌려준다.
+ * 분류만, 검색만, 둘 다 순서로 시험해 가장 적게 지운다. 어떻게 해도 안 서면 null.
+ * 푸는 조건은 App.jsx rankBrands가 떼는 조건(분류, 검색)과 같아야 한다.
+ */
+export function revealFilters(filters, name, listFor) {
+  const has = (f) => listFor(f).includes(name)
+  if (has(filters)) return { filters, cleared: [] }
+  const noCategory = { ...filters, categories: new Set() }
+  const noSearch = { ...filters, search: '' }
+  const neither = { ...noCategory, search: '' }
+  if (filters.categories.size > 0 && has(noCategory)) return { filters: noCategory, cleared: ['category'] }
+  if (filters.search.trim() !== '' && has(noSearch)) return { filters: noSearch, cleared: ['search'] }
+  if (has(neither)) return { filters: neither, cleared: ['category', 'search'] }
+  return null
+}
+
+/**
  * 기본 정렬에서 맨 위로 올라온 이유: 이름 → 'new'(신규 앞). 올라오지 않은 브랜드는 담지 않는다.
  * 노출과 클릭에 `pin`으로 실어, 같은 브랜드가 고정일 때와 아닐 때를 가른다(2026-10-27, 정렬 효과 분석).
  * 순서를 만드는 applyFilters(신규 앞)와 같은 조건을 쓴다. 한쪽만 고치면 표시가 어긋나서

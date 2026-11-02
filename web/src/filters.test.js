@@ -6,8 +6,9 @@ import {
   isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, visibleCategories, CATEGORIES,
+  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES,
 } from './filters.js'
+import { applyHidden } from './hiddenBrands.js'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
 
 const brand = (name, offers, extra = {}) => ({ name, offers, ...extra })
@@ -328,4 +329,80 @@ test('오퍼 5개 이하인 분류 탭은 숨기고, 고른 분류는 남긴다'
   assert.deepEqual(keys(new Set()), ['chicken', 'korean']) // 일식 5개는 숨김, 치킨 7개는 보임
   assert.deepEqual(keys(new Set(['japanese'])), ['chicken', 'korean', 'japanese'])
   assert.equal(visibleCategories(null).length, CATEGORIES.length)
+})
+
+// #219: 순위에서 고른 브랜드가 카드 목록에 없으면 분류나 검색을 풀어 세운다.
+// listFor는 App.jsx와 같은 조립(applyFilters 뒤 applyHidden)을 쓴다. 가짜 목록으로 초록이 되지 않게.
+const listFor219 = (brands, hidden = {}) => (f) =>
+  applyHidden(applyFilters(brands, f), hidden, (b) => displayBestAmount(b.offers)).map((b) => b.name)
+
+test('재현: 피자 분류에서는 카드 목록에 교촌이 없는데 순위 목록에는 있다(#219)', () => {
+  const brands = hot147()
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  assert.equal(listFor219(brands)(pizza).includes('교촌'), false)
+  assert.equal(rankList147(brands, pizza).map((b) => b.name).includes('교촌'), true)
+})
+
+test('revealFilters: 피자 분류에서 치킨 브랜드를 고르면 분류만 푼다(#219)', () => {
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  const got = revealFilters(pizza, '교촌', listFor219(hot147()))
+  assert.deepEqual(got.cleared, ['category'])
+  assert.equal(got.filters.categories.size, 0)
+  assert.equal(pizza.categories.size, 1) // 받은 필터는 안 고친다
+  assert.ok(listFor219(hot147())(got.filters).includes('교촌'))
+})
+
+test('revealFilters: 검색에 안 걸리는 브랜드를 고르면 검색만 푼다(#219)', () => {
+  const searched = { ...defaultFilters(), search: '도미노' }
+  assert.equal(listFor219(hot147())(searched).includes('교촌'), false)
+  const got = revealFilters(searched, '교촌', listFor219(hot147()))
+  assert.deepEqual(got.cleared, ['search'])
+  assert.equal(got.filters.search, '')
+})
+
+test('revealFilters: 분류도 검색도 막으면 둘 다 푼다(#219)', () => {
+  const both = { ...defaultFilters(), categories: new Set(['pizza']), search: '도미노' }
+  const got = revealFilters(both, '교촌', listFor219(hot147()))
+  assert.deepEqual(got.cleared, ['category', 'search'])
+  assert.equal(got.filters.categories.size, 0)
+  assert.equal(got.filters.search, '')
+})
+
+test('revealFilters: 하나만 풀어도 서면 나머지는 남긴다(#219)', () => {
+  const list = listFor219(hot147())
+  // 치킨 분류 + "도미노" 검색에서 도미노: 분류만 풀면 선다. 검색은 남는다.
+  const a = revealFilters({ ...defaultFilters(), categories: new Set(['chicken']), search: '도미노' }, '도미노', list)
+  assert.deepEqual(a.cleared, ['category'])
+  assert.equal(a.filters.search, '도미노')
+  // 치킨 분류 + "교촌" 검색에서 BBQ: 분류는 BBQ를 담으니 검색만 푼다.
+  const b = revealFilters({ ...defaultFilters(), categories: new Set(['chicken']), search: '교촌' }, 'BBQ', list)
+  assert.deepEqual(b.cleared, ['search'])
+  assert.deepEqual([...b.filters.categories], ['chicken'])
+})
+
+test('revealFilters: 분류 전체, 검색 빔이면 필터를 그대로 돌려준다(#219 기존 동작)', () => {
+  const all = defaultFilters()
+  const got = revealFilters(all, '교촌', listFor219(hot147()))
+  assert.deepEqual(got.cleared, [])
+  assert.equal(got.filters, all)
+})
+
+test('revealFilters: 숨긴 브랜드처럼 어떻게 해도 안 서면 null이다(#219)', () => {
+  const hidden = { 교촌: { at: 1, amount: null, rule: 'never' } }
+  const pizza = { ...defaultFilters(), categories: new Set(['pizza']) }
+  assert.equal(revealFilters(pizza, '교촌', listFor219(hot147(), hidden)), null)
+  assert.equal(revealFilters(defaultFilters(), '없는브랜드', listFor219(hot147())), null)
+})
+
+test('revealFilters: 검색을 풀어 5천원 거르기가 다시 걸려도 순위의 브랜드는 선다(#219)', () => {
+  // 검색 중에는 금액으로 안 거른다. 3천원 오퍼는 검색을 풀면 빠지지만 순위에 든 브랜드는 5천원 이상 오퍼가 있다.
+  const brands = [...hot147(), brand('작은집', [o(3000)], { category: 'korean' }), brand('섞인집', [o(3000), o(6000)], { category: 'korean' })]
+  const searched = { ...defaultFilters(), search: '작은집' }
+  const rank = rankList147(brands, searched).map((b) => b.name)
+  assert.equal(rank.includes('작은집'), false) // 5천원 미만뿐이라 순위에도 없다
+  assert.ok(rank.includes('섞인집'))
+  const got = revealFilters(searched, '섞인집', listFor219(brands))
+  assert.deepEqual(got.cleared, ['search'])
+  const card = applyFilters(brands, got.filters).find((b) => b.name === '섞인집')
+  assert.deepEqual(card.offers.map((x) => x.amount), [6000])
 })

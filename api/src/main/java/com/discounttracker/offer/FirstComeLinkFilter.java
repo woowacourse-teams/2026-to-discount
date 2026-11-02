@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
  * <p>소진된 배민 선착순도 오픈 시각과 상관없이 허브로 돌린다(#173, 2026-10-29 사용자). 소진 쿠폰도 브랜드 쿠폰 페이지에서
  * 사라질 수 있어서다. 소진이면 오픈 시각을 읽지 않는다. 소진은 합친 오퍼의 값이라 상시와 선착순이 함께 있으면
  * 둘 다 소진일 때만 true이고, 그때는 firstCome이 false라 이 규칙에 닿지 않는다.
+ *
+ * <p>이 필터가 단 링크의 출처는 {@link LinkSource#ADDED}다.
  */
 public final class FirstComeLinkFilter {
 
@@ -33,13 +35,13 @@ public final class FirstComeLinkFilter {
             return offer;
         }
         if (offer.soldOut()) {
-            return offer.withLink(BAEMIN_BAEJJANG_HUB_LINK);
+            return offer.withFilterLink(BAEMIN_BAEJJANG_HUB_LINK);
         }
         LocalTime opens = opensAt(offer.conditions());
         if (opens == null || !now.isBefore(opens)) {
             return offer;
         }
-        return offer.withLink(BAEMIN_BAEJJANG_HUB_LINK);
+        return offer.withFilterLink(BAEMIN_BAEJJANG_HUB_LINK);
     }
 
     static LocalTime opensAt(String conditions) {
