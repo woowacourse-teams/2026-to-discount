@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
+import VisualShell from './shells/visual/VisualShell.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { onRecoverableError, startErrorReporting, startWebVitals } from './telemetry.js'
 import { setHubLinks } from './offerLink.js'
@@ -92,11 +93,14 @@ if (!quiet) {
 
 // 홈은 서버가 요청 시점 데이터로 그린 HTML을 보낸다(api/ssr.js). 그 데이터가 실려 있으면
 // 버리지 않고 하이드레이션한다. 없으면(브랜드 페이지, SSR 실패) 예전처럼 통째로 그린다.
-const ssr = window.__SSR__
+// 시안(#294): 서버 HTML은 기존 App 모양이라 VisualShell과 맞지 않는다. 하이드레이션하지 않고 통째로 그린다.
+const ssr = null
 if (ssr) setHubLinks(ssr.banners)
+// 빌드가 쿠폰 카드 CSS 조각을 만들게 App을 참조로 남긴다(없으면 ssr-template.mjs가 실패한다, #254 #280 #289).
+window.__legacyApp = App
 const tree = (
   <React.StrictMode>
-    <ErrorBoundary><App initial={ssr} /></ErrorBoundary>
+    <ErrorBoundary><VisualShell /></ErrorBoundary>
     {/* Vercel 배포 트래픽 집계. /react 엔트리를 쓴다 — Next.js가 아니라
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
         별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면
