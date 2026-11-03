@@ -142,3 +142,7 @@
 
 1. 쿠팡이츠 카드에서 `openWithNotice`의 안내 토스트(1.5~3.5초)가 시안 비교에서 클릭 후 경험을 흐린다. 시안에서는 운영과 같게 두는 것으로 정했다. 틀렸다면 알려 달라.
 2. 프리뷰가 SSR HTML을 먼저 보내는지 구현 전에는 모른다. 불일치 처리(`main.jsx` 한 줄 더)는 프리뷰에서 본 뒤 정한다.
+
+## 변경 이력
+
+- 2026-11-03: 구현 중 발견. `main.jsx`가 `App`을 안 쓰면 번들러가 `App`의 지연 조각(`coupon-card-*.css`)을 버려 `npm run build`의 `ssr-template.mjs`가 "CouponCard CSS를 못 찾았다"로 죽는다. 설계에 없던 `main.jsx` 변경이라 최소로 넣었다: `window.__legacyHome = App` 한 줄(참조만 남김). 빌드 통과를 확인했다. 스크립트는 고치지 않았다.
