@@ -1,0 +1,66 @@
+/* 시안 savings-compare(#269, 병합하지 않음). 크기는 변수로 둔다. cqw 컨테이너 단위는 쓰지 않는다. */
+.sc {
+  --sc-ink: #191f28;
+  --sc-sub: #6b7684;
+  --sc-line: #e5e8eb;
+  --sc-bg: #f4f5f7;
+  --sc-accent: #3182f6;
+  --sc-amt-size: 15px;
+  --sc-min-size: 10.5px;
+  --sc-cell-h: 74px;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--sc-bg);
+  color: var(--sc-ink);
+  font-family: inherit;
+}
+.sc-top { padding: 16px 16px 8px; background: #fff; }
+.sc-title { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.sc-asof { margin: 4px 0 0; font-size: 12px; color: var(--sc-sub); font-variant-numeric: tabular-nums; }
+
+.sc-sticky { position: sticky; top: 0; z-index: 5; background: #fff; border-bottom: 1px solid var(--sc-line); padding-bottom: 6px; }
+.sc-chips-row { display: flex; gap: 6px; overflow-x: auto; padding: 6px 16px; scrollbar-width: none; }
+.sc-chips-row::-webkit-scrollbar { display: none; }
+.sc-pill {
+  flex: none; border: 1px solid var(--sc-line); background: #fff; color: var(--sc-ink);
+  border-radius: 999px; padding: 7px 12px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer;
+}
+.sc-pill--cat { font-size: 12.5px; font-weight: 600; padding: 5px 10px; color: var(--sc-sub); }
+.sc-pill.is-on { background: var(--sc-ink); border-color: var(--sc-ink); color: #fff; }
+
+.sc-apps, .sc-cells { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.sc-apps { padding: 4px 12px 0; }
+.sc-apps__i { display: flex; justify-content: center; }
+.sc-apps .platform-badge { width: 28px; height: 28px; }
+
+.sc-list { list-style: none; margin: 8px 0 0; padding: 0 12px; display: grid; gap: 8px; }
+.sc-row { background: #fff; border-radius: 14px; padding: 10px 8px 8px; }
+.sc-row__head { display: flex; align-items: center; gap: 8px; padding: 0 4px 8px; min-width: 0; }
+.sc-row__head .brand-logo { width: 28px; height: 28px; flex: none; }
+.sc-row__name { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-row__time { margin-left: auto; flex: none; font-size: 10.5px; color: var(--sc-sub); font-variant-numeric: tabular-nums; }
+
+.sc-cell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  min-height: var(--sc-cell-h); padding: 6px 2px; border-radius: 10px; border: 1.5px solid transparent;
+  background: var(--sc-bg); color: inherit; text-decoration: none; text-align: center; min-width: 0;
+}
+.sc-amt { font-size: var(--sc-amt-size); font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sc-min { font-size: var(--sc-min-size); color: var(--sc-sub); line-height: 1.25; word-break: keep-all; }
+.sc-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; }
+.sc-chip { font-size: 9.5px; font-weight: 700; color: var(--sc-sub); background: #fff; border-radius: 4px; padding: 1px 4px; white-space: nowrap; }
+
+.sc-cell--none { color: #b0b8c1; background: transparent; font-size: 16px; }
+.sc-cell--best { background: #eaf3ff; border-color: var(--sc-accent); }
+.sc-cell--best .sc-amt { color: var(--sc-accent); font-weight: 900; }
+.sc-cell--blocked { opacity: 0.45; }
+.sc-cell--blocked .sc-min { color: var(--sc-ink); font-weight: 700; }
+.sc-cell--unknown { background: #fff; border: 1.5px dashed var(--sc-line); }
+.sc-cell:not(.sc-cell--none):active { transform: scale(0.98); }
+
+.sc-msg { padding: 24px 16px; text-align: center; color: var(--sc-sub); font-size: 14px; }
+.sc-more {
+  display: block; width: calc(100% - 24px); margin: 12px; padding: 12px; border: 0; border-radius: 12px;
+  background: #fff; font-size: 14px; font-weight: 700; font-family: inherit; color: var(--sc-ink); cursor: pointer;
+}

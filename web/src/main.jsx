@@ -1,7 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
-import App from './App.jsx'
+// import App from './App.jsx' // 시안 브랜치 한정(#269): 홈을 SavingsCompareShell로 바꿨다
+import SavingsCompareShell from './shells/savings-compare/SavingsCompareShell.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { onRecoverableError, startErrorReporting, startWebVitals } from './telemetry.js'
 import { setHubLinks } from './offerLink.js'
@@ -96,7 +97,7 @@ const ssr = window.__SSR__
 if (ssr) setHubLinks(ssr.banners)
 const tree = (
   <React.StrictMode>
-    <ErrorBoundary><App initial={ssr} /></ErrorBoundary>
+    <ErrorBoundary><SavingsCompareShell initial={ssr} /></ErrorBoundary>
     {/* Vercel 배포 트래픽 집계. /react 엔트리를 쓴다 — Next.js가 아니라
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
         별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면
@@ -108,7 +109,7 @@ const rootEl = document.getElementById('root')
 // ?home=a면 쿠폰 카드 조각을 하이드레이션 전에 미리 받는다(받는 동안 운영 카드가 보였다가 바뀌는 깜박임과 최대 콘텐츠 표시 시간 손해를 줄인다).
 // 첫 렌더에는 영향이 없다(App은 마운트 뒤에 주소를 읽는다).
 
-if (ssr) {
+if (ssr && false) { // 시안: 서버 HTML은 App 것이라 트리가 달라 하이드레이션하지 않는다(#269)
   ReactDOM.hydrateRoot(rootEl, tree, { onRecoverableError })
   // iOS WebKit(사파리, 카카오톡 인앱)은 서버가 그린 쿠폰의 컨테이너 단위(cqw) 글자를 처음 한 번 잘못 배치한다.
   // 금액 위에 '원 할인'이 겹치고 최소주문 글자가 사라진 채 남았다(2026-10-07 실기). 다시 그리면 풀리므로
