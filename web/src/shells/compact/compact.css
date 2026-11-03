@@ -1,0 +1,28 @@
+/* 초압축 목록 시안(#241). 클래스는 모두 cp- 접두사. 버리는 시안. */
+.cp { max-width: 640px; margin: 0 auto; padding: 8px 10px 40px; font-variant-numeric: tabular-nums; }
+.cp-stamp { margin: 0 0 6px; font-size: .72rem; color: var(--text-muted, #767676); }
+.cp-cats { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+.cp-cats::-webkit-scrollbar { display: none; }
+.cp-cats button {
+  flex: none; border: 1px solid #ddd; background: #fff; border-radius: 999px;
+  padding: 3px 9px; font-size: .75rem; color: inherit; cursor: pointer;
+}
+.cp-cats button[aria-pressed="true"] { background: #111; border-color: #111; color: #fff; }
+.cp-loading { margin: 24px 0; text-align: center; color: var(--text-muted, #767676); }
+
+.cp-list { list-style: none; margin: 0; padding: 0; }
+.cp-row { display: flex; align-items: center; gap: 6px; height: 30px; border-bottom: 1px solid #eee; }
+.cp-main {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px;
+  height: 100%; color: inherit; text-decoration: none; white-space: nowrap;
+}
+/* 이름 칸이 먼저 줄어든다. 금액, 조건, 최소주문은 안 자른다. */
+.cp-name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: .82rem; }
+.cp-cond { flex: none; font-size: .68rem; padding: 0 5px; border-radius: 4px; background: #f1f1f1; }
+.cp-cond i { font-style: normal; margin-left: 2px; color: #767676; }
+.cp-min { flex: none; font-size: .66rem; color: #767676; }
+.cp-amt { flex: none; font-size: .95rem; font-weight: 800; text-align: right; }
+.cp-amt--sold s { color: #999; }
+.cp-amt em { font-style: normal; font-size: .62rem; font-weight: 600; margin-left: 3px; color: #c0392b; }
+.cp-apps { flex: none; display: flex; gap: 3px; }
+.cp-apps a { display: inline-flex; }
