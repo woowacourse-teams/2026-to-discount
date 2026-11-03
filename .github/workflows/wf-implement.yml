@@ -227,7 +227,7 @@ jobs:
             `### 변경 1 (날짜): 구현` 절 하나를 Write로 ${{ runner.temp }}/pr-update.md 에 쓴다(실제 추가/변경, 설계 변동, 확인, 미확인, 필요하면 `### 후속 조치`).
             최종 제목 한 줄을 ${{ runner.temp }}/pr-title.txt 에 쓴다(`[분야] 종류: 설명`, 종류는 구현까지 포함한 feat/fix/test 등). 워크플로가 본문 끝에 붙이고 제목을 바꾼다.
             셸 명령은 한 번에 하나씩 쓴다. cd, &&, 파이프, heredoc으로 묶지 않는다. 파일은 Write 도구로 쓴다. 댓글은 Write로 파일을 만든 뒤 --body-file로 넘긴다.
-          claude_args: --max-turns 80 --allowedTools "Read,Grep,Glob,Write,Edit,${{ steps.role.outputs.tools }},Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue comment:*)"
+          claude_args: --model claude-opus-5-5 --max-turns 80 --allowedTools "Read,Grep,Glob,Write,Edit,${{ steps.role.outputs.tools }},Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue comment:*)"
       # Claude 액션이 끝나며 checkout의 git 자격을 지운다(2026-10-22 tracker #10). 세션 커밋을 패치로 보관하고
       # App 토큰으로 같은 브랜치를 다시 checkout해 그 자격으로 push한다. 새 커밋이 없으면 건너뛰고 아래 확인이 잡는다.
       - name: 세션 커밋 보관

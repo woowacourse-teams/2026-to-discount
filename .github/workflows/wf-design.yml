@@ -147,7 +147,7 @@ jobs:
             mono/ 가 있으면 읽기용 체크아웃이다. 고치거나 커밋하지 않는다.
             셸 명령은 한 번에 하나씩 쓴다. cd, &&, 파이프, heredoc으로 묶지 않는다(허용 목록이 명령 단위라 묶으면 거부된다). 파일은 Write 도구로 쓴다. 댓글은 Write로 파일을 만든 뒤 --body-file로 넘긴다.
           # designer.md 의 tools 와 같은 목록. 세션에 push와 PR 생성을 주지 않는다.
-          claude_args: --max-turns 50 --allowedTools "Read,Grep,Glob,Write,Edit,Bash(git checkout -b:*),Bash(git switch -c:*),Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue comment:*)"
+          claude_args: --model claude-opus-5-5 --max-turns 50 --allowedTools "Read,Grep,Glob,Write,Edit,Bash(git checkout -b:*),Bash(git switch -c:*),Bash(git add:*),Bash(git commit:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh issue comment:*)"
       - name: 설계 문서 보관
         if: always() && steps.perm.outputs.ok == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

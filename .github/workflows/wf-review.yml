@@ -127,7 +127,7 @@ jobs:
             결과는 Write로 ${{ runner.temp }}/review.json 하나에 쓴다. 형식:
             {"summary": "<요약 마크다운. 첫 줄은 '리뷰: 지적 N건' 또는 '리뷰: 지적 없음'>", "comments": [{"path": "<diff의 파일 경로>", "line": <변경 뒤 줄 번호>, "body": "<지적과 근거, 고칠 방향>"}]}
             line은 diff에서 그 파일의 + 줄이나 문맥 줄 번호여야 한다. 줄을 못 짚는 지적은 summary에 쓴다. 코드를 고치거나 댓글을 직접 달지 않는다.
-          claude_args: --max-turns 30 --allowedTools "Read,Grep,Glob,Write"
+          claude_args: --model claude-opus-5-5 --max-turns 30 --allowedTools "Read,Grep,Glob,Write"
       # 리뷰를 등록한다. 줄 단위 댓글이 diff 밖이라 거부되면(422) 지적을 요약에 옮겨 요약만 등록한다.
       - name: 리뷰 등록
         if: steps.issue.outputs.num != ''
