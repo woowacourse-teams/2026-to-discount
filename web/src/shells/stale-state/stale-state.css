@@ -1,0 +1,51 @@
+/* 신뢰성 시안(#273) 전용. 클래스는 ss- 접두사로 App.css와 겹치지 않게 한다. */
+.ss-root { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #f4f5f7; color: #191f28; font-family: inherit; }
+.ss-root * { box-sizing: border-box; }
+
+.ss-band { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: #fff; border-bottom: 1px solid #e5e8eb; font-size: 13px; color: #4e5968; }
+.ss-band b { font-weight: 700; color: #191f28; }
+.ss-band__dot { width: 8px; height: 8px; border-radius: 50%; background: #1db36b; flex: none; }
+.ss-band--stale { background: #fff4e5; border-bottom-color: #ffd8a8; }
+.ss-band--stale .ss-band__dot { background: #f08c00; }
+.ss-band__warn { margin-left: auto; font-size: 12px; font-weight: 700; color: #c2410c; }
+.ss-band--unknown { background: #f2f4f6; color: #6b7684; }
+
+.ss-head { padding: 20px 16px 8px; }
+.ss-head h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.ss-main { padding: 8px 12px 40px; }
+
+.ss-pop { margin: 4px 4px 12px; }
+.ss-pop h2 { margin: 0 0 8px; font-size: 13px; font-weight: 700; color: #6b7684; }
+.ss-pop ol { display: flex; gap: 6px; margin: 0; padding: 0 0 2px; list-style: none; overflow-x: auto; }
+.ss-pop li { flex: none; padding: 6px 10px; border-radius: 999px; background: #fff; border: 1px solid #e5e8eb; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.ss-pop__rank { margin-right: 6px; color: #3182f6; font-weight: 800; }
+
+.ss-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ss-card { display: grid; gap: 8px; padding: 14px 16px; border-radius: 16px; background: #fff; color: inherit; text-decoration: none; box-shadow: 0 1px 2px rgba(0, 0, 0, .04); }
+.ss-card:active { background: #f9fafb; }
+.ss-card__top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ss-card__name { font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ss-card__app { flex: none; font-size: 12px; font-weight: 700; color: #3182f6; }
+.ss-card__amt { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+.ss-card__amt small { margin-left: 4px; font-size: 14px; font-weight: 700; color: #6b7684; }
+.ss-card__chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.ss-chip { padding: 3px 8px; border-radius: 6px; background: #f2f4f6; font-size: 12px; font-weight: 600; color: #4e5968; }
+.ss-chip--min { background: #e8f3ff; color: #1b64da; }
+.ss-chip--unknown { background: #fff4e5; color: #c2410c; }
+.ss-card__apps { display: flex; flex-wrap: wrap; gap: 4px 12px; padding-top: 8px; border-top: 1px solid #f2f4f6; font-size: 12px; color: #6b7684; }
+.ss-app b { font-weight: 700; color: #191f28; }
+.ss-app--none b { color: #b0b8c1; font-weight: 500; }
+.ss-card__time { justify-self: end; font-size: 11px; color: #8b95a1; }
+.ss-card__time--stale { color: #c2410c; font-weight: 700; }
+.ss-card--skel { height: 168px; background: linear-gradient(90deg, #eceff2 25%, #f4f5f7 50%, #eceff2 75%); background-size: 200% 100%; animation: ss-shimmer 1.2s linear infinite; }
+@keyframes ss-shimmer { to { background-position: -200% 0; } }
+
+.ss-empty { display: grid; gap: 10px; justify-items: center; margin-top: 24px; padding: 32px 20px; border-radius: 16px; background: #fff; text-align: center; }
+.ss-empty h2 { margin: 0; font-size: 18px; font-weight: 800; }
+.ss-empty p { margin: 0; font-size: 14px; color: #6b7684; }
+.ss-empty--error h2 { color: #c2410c; }
+.ss-open { display: grid; gap: 8px; width: 100%; margin-top: 8px; }
+.ss-open p { font-size: 12px; font-weight: 700; }
+.ss-open__row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.ss-btn { display: inline-block; min-height: 44px; padding: 12px 18px; border: 0; border-radius: 12px; background: #3182f6; color: #fff; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.ss-btn--ghost { background: #e8f3ff; color: #1b64da; }
