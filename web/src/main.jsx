@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
+import SearchFirstShell from './shells/search-first/SearchFirstShell.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { onRecoverableError, startErrorReporting, startWebVitals } from './telemetry.js'
 import { setHubLinks } from './offerLink.js'
@@ -19,6 +20,7 @@ import './App.css'
 import { homeUnderDirectLanding } from './backClose.js'
 
 homeUnderDirectLanding()
+globalThis.__App = App // 시안(#255): 안 그리지만 붙들어 둔다. 빼면 번들에서 지워져 쿠폰 CSS 조각이 안 생기고 SSR 템플릿이 죽는다
 
 function configured(value) {
   return typeof value === 'string' && value.trim() !== ''
@@ -92,11 +94,11 @@ if (!quiet) {
 
 // 홈은 서버가 요청 시점 데이터로 그린 HTML을 보낸다(api/ssr.js). 그 데이터가 실려 있으면
 // 버리지 않고 하이드레이션한다. 없으면(브랜드 페이지, SSR 실패) 예전처럼 통째로 그린다.
-const ssr = window.__SSR__
+const ssr = null // 시안(#255): 서버는 App을 그려 보내므로 하이드레이션하지 않고 새로 그린다
 if (ssr) setHubLinks(ssr.banners)
 const tree = (
   <React.StrictMode>
-    <ErrorBoundary><App initial={ssr} /></ErrorBoundary>
+    <ErrorBoundary><SearchFirstShell /></ErrorBoundary>
     {/* Vercel 배포 트래픽 집계. /react 엔트리를 쓴다 — Next.js가 아니라
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
         별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면

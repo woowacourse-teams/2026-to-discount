@@ -1,0 +1,29 @@
+.sf { max-width: 480px; margin: 0 auto; padding: 56px 16px 40px; font-family: inherit; color: #191f28; }
+.sf__title { font-size: 22px; font-weight: 800; line-height: 1.35; margin: 0 0 16px; }
+.sf-search { position: relative; margin-bottom: 20px; }
+.sf-search__input { width: 100%; box-sizing: border-box; height: 56px; padding: 0 44px 0 18px; font-size: 18px; border: 2px solid #3182f6; border-radius: 16px; background: #fff; outline: none; }
+.sf-search__clear { position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; border: 0; background: transparent; font-size: 24px; color: #8b95a1; cursor: pointer; }
+.sf__msg { color: #6b7684; font-size: 14px; margin: 16px 0; }
+.sf__msg button { margin-left: 8px; }
+
+.sf-freq h2 { font-size: 14px; font-weight: 700; color: #6b7684; margin: 0 0 10px; }
+.sf-freq ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.sf-freq__chip { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px 0 8px; border: 1px solid #e5e8eb; border-radius: 22px; background: #fff; font-size: 15px; cursor: pointer; }
+.sf-freq__chip .brand-logo { width: 28px; height: 28px; }
+
+.sf-card { border: 1px solid #e5e8eb; border-radius: 16px; padding: 16px; margin-bottom: 14px; background: #fff; }
+.sf-card__head { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; }
+.sf-card__title h2 { font-size: 17px; margin: 0; }
+.sf-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.sf-chip { font-size: 11px; padding: 2px 6px; border-radius: 6px; background: #f2f4f6; color: #4e5968; }
+.sf-card__amt { grid-column: 1 / -1; margin: 8px 0 0; font-size: 32px; font-weight: 800; color: #3182f6; }
+.sf-card__amt small { font-size: 15px; font-weight: 600; margin-left: 2px; }
+.sf-apps { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sf-app { display: grid; gap: 2px; padding: 10px; border-radius: 12px; background: #f9fafb; font-size: 12px; }
+.sf-app--none { opacity: .55; }
+.sf-app__name { color: #6b7684; }
+.sf-app__amt { font-size: 18px; }
+.sf-app__min { color: #4e5968; }
+.sf-app__go { margin-top: 6px; display: block; text-align: center; padding: 8px 0; border: 0; border-radius: 8px; background: #191f28; color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; }
+.sf-app__go:disabled { background: #e5e8eb; color: #8b95a1; }
+.sf-card__when { margin: 10px 0 0; font-size: 11px; color: #8b95a1; }
