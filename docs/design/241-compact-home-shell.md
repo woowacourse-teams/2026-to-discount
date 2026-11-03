@@ -202,3 +202,7 @@
 4. `cd web && npm test`, `npm run build`, `git diff --stat main -- web/src`.
 5. `docs/PROJECT-STRUCTURE.md` 다시 만들기.
 6. 360px 스크린샷, `preview/shell-compact` push는 사람이나 sub 세션(`docs/WORKFLOW.md` §3-3). 결과 댓글에 스크린샷과 줄 수를 단다.
+
+## 변경 이력
+
+- 2026-11-03: 이슈 #241 "결정(설계 점검 뒤)"을 따른다. 설계 §3-2, §8의 "최소주문을 모르면(`minLabel`이 `null`) 칸을 비운다"를 "기존 정식 라벨 `최소주문 미확인`을 그린다"로 바꾼다(목표 1 신뢰성). 새 문구가 아니라 `couponModel.conditionTable`의 기존 라벨이다. 금액 글자가 비면 기존 라벨 `금액 미확인`(HiddenBrandsSheet)을 그린다. 시안용 임시 문구는 세션이 정해도 되므로 §3-6의 확인 시각은 숫자만 그린다.
