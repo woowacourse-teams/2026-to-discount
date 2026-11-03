@@ -1,0 +1,39 @@
+/* first-3s 시안 전용(docs/design/274). 병합하지 않는다. 위계: 금액 > 앱 이름 > 조건 칩 > 갱신 시각 */
+.f3 { max-width: 480px; margin: 0 auto; padding: 0 16px 24px; color: var(--text); }
+.f3-top { padding-top: 16px; }
+.f3-value { margin: 0 0 12px; font-size: 1.05rem; font-weight: 700; line-height: 1.4; word-break: keep-all; }
+
+.f3-hero { display: flex; flex-direction: column; gap: 10px; padding: 18px 16px 16px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 6px 24px rgba(0, 0, 0, .08); }
+.f3-hero__body { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.f3-hero__label { font-size: .8rem; font-weight: 700; color: var(--text-muted); }
+.f3-hero__who { display: flex; align-items: center; gap: 8px; }
+.f3-hero__name { font-size: 1rem; font-weight: 600; }
+.f3-hero__amount { font-size: 2.6rem; line-height: 1.1; font-weight: 800; letter-spacing: -.02em; word-break: keep-all; }
+.f3-hero__app { font-size: 1.05rem; font-weight: 700; }
+
+.f3-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.f3-chip { padding: 3px 8px; border-radius: 999px; background: color-mix(in srgb, var(--text) 7%, var(--surface)); font-size: .78rem; font-weight: 600; }
+.f3-chip--min { background: transparent; border: 1px solid var(--border); }
+.f3-chip--unknown { color: var(--text-muted); border-style: dashed; }
+.f3-note { margin: 0; font-size: .78rem; color: var(--text-muted); word-break: keep-all; }
+.f3-updated { font-size: .72rem; color: var(--text-muted); }
+
+.f3-cta { display: block; width: 100%; box-sizing: border-box; padding: 16px 0; border-radius: 14px; background: var(--accent); color: #fff; text-align: center; font-size: 1.1rem; font-weight: 800; text-decoration: none; }
+.f3-cta:active { opacity: .85; }
+
+.f3-list { list-style: none; margin: 20px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.f3-row { padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); }
+.f3-row__head { display: flex; align-items: center; gap: 8px; }
+.f3-row__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.f3-row__amount { font-size: 1.25rem; font-weight: 800; white-space: nowrap; }
+.f3-row__apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; }
+.f3-app { display: flex; flex-direction: column; gap: 1px; padding: 6px 4px; border-radius: 8px; background: color-mix(in srgb, var(--text) 5%, var(--surface)); text-align: center; text-decoration: none; color: inherit; min-width: 0; }
+.f3-app--none { color: var(--text-muted); }
+.f3-app__name { font-size: .66rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.f3-app__amt { font-size: .85rem; font-weight: 700; word-break: keep-all; }
+.f3-app__min { font-size: .6rem; color: var(--text-muted); word-break: keep-all; }
+.f3-app__min--unknown { font-style: italic; }
+.f3-row .f3-note { margin-top: 6px; }
+
+.f3-state { padding: 40px 0; text-align: center; color: var(--text-muted); }
+.f3-retry { margin-top: 8px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font: inherit; font-weight: 600; cursor: pointer; }
