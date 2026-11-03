@@ -1,0 +1,52 @@
+/* 홈 리뉴얼 시안: 아래 시트(#237). 클래스는 전부 bs- 접두사. cqw는 쓰지 않는다. */
+.bs-shell { position: fixed; inset: 0; background: #1f2937; color: #111827; overflow: hidden; font-family: inherit; }
+.bs-top { padding: 20px 16px 0; color: #fff; }
+.bs-top__nums { display: flex; gap: 12px; }
+.bs-top__nums > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.bs-top small { font-size: 12px; opacity: .7; }
+.bs-top strong { font-size: 28px; line-height: 1.15; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bs-top__nums span { font-size: 16px; font-weight: 700; color: #fcd34d; }
+.bs-top__ago { margin: 10px 0 0; font-size: 12px; opacity: .7; min-height: 16px; }
+
+.bs-sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 92dvh; display: flex; flex-direction: column;
+  background: #f9fafb; border-radius: 20px 20px 0 0; box-shadow: 0 -6px 24px rgba(0, 0, 0, .3);
+  transform: translateY(calc(92dvh - 65dvh)); transition: transform 240ms cubic-bezier(.2, 0, 0, 1); }
+.bs-sheet--high { transform: translateY(0); }
+.bs-sheet--drag { transition: none; }
+.bs-sheet__head { flex: none; background: #fff; border-radius: 20px 20px 0 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+.bs-grip { display: flex; justify-content: center; padding: 10px 0 8px; touch-action: none; cursor: grab; }
+.bs-grip i { width: 40px; height: 4px; border-radius: 2px; background: #d1d5db; }
+.bs-chips { display: flex; gap: 6px; overflow-x: auto; padding: 4px 12px; scrollbar-width: none; }
+.bs-chips::-webkit-scrollbar { display: none; }
+.bs-pill { flex: none; border: 1px solid #d1d5db; background: #fff; color: #374151; border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 600; font-family: inherit; }
+.bs-pill--cat { background: #f3f4f6; }
+.bs-pill--on { background: #111827; color: #fff; border-color: #111827; }
+
+.bs-sheet__body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 12px 12px 35dvh; }
+.bs-sheet--high .bs-sheet__body { padding-bottom: 12dvh; }
+.bs-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.bs-state { margin: 40px 16px; text-align: center; color: #6b7280; }
+.bs-skel { display: flex; flex-direction: column; gap: 10px; }
+.bs-skel i { display: block; height: 120px; border-radius: 14px; background: #e5e7eb; }
+
+.bs-card { background: #fff; border-radius: 14px; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); overflow: hidden; }
+.bs-card__main { display: grid; grid-template-columns: 44px 1fr; gap: 6px 12px; padding: 12px; color: inherit; text-decoration: none; }
+.bs-card__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.bs-card__name { font-size: 14px; color: #4b5563; font-weight: 600; }
+.bs-card__amt { font-size: 26px; line-height: 1.1; font-weight: 800; color: #dc2626; }
+.bs-card__amt--sold { text-decoration: line-through; color: #9ca3af; }
+.bs-card__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; color: #374151; }
+.bs-chip { font-style: normal; font-size: 11px; padding: 2px 6px; border-radius: 6px; background: #eef2ff; color: #3730a3; }
+.bs-card__min { font-size: 12px; color: #4b5563; }
+.bs-card__min--unknown { color: #b45309; }
+.bs-card__min em { font-style: normal; color: #6b7280; }
+.bs-card__go { grid-column: 1 / -1; text-align: center; background: #111827; color: #fff; border-radius: 10px; padding: 10px; font-size: 14px; font-weight: 700; }
+
+.bs-apps { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #f3f4f6; }
+.bs-apps__cell { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 2px; font-size: 12px; font-weight: 700; min-width: 0; }
+.bs-apps__cell small { font-size: 10px; font-weight: 500; color: #6b7280; }
+.bs-apps__cell a { color: #111827; text-decoration: none; }
+.bs-apps__cell--none { color: #9ca3af; }
+.bs-others { list-style: none; margin: 0; padding: 0 12px 10px; font-size: 12px; }
+.bs-others a { display: flex; gap: 6px; color: #374151; text-decoration: none; padding: 3px 0; }
+.bs-others em { margin-left: auto; font-style: normal; color: #6b7280; }
