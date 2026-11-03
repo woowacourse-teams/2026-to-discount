@@ -1,0 +1,34 @@
+.ac-shell { max-width: 480px; margin: 0 auto; padding: 16px 16px 48px; font-family: inherit; color: #191f28; }
+.ac-top h1 { font-size: 20px; margin: 4px 0 2px; }
+.ac-top p { margin: 0 0 12px; font-size: 12px; color: #6b7684; }
+
+.ac-alert { display: block; width: 100%; text-align: left; border: 0; border-radius: 16px; padding: 14px 16px; margin: 10px 0; background: #e8f3ff; color: #1b64da; cursor: pointer; position: relative; }
+.ac-alert b { display: block; font-size: 15px; }
+.ac-alert span { display: block; font-size: 12px; margin-top: 2px; color: #4e5968; }
+.ac-alert__go { display: inline-block; margin-top: 8px; padding: 6px 12px; border-radius: 10px; background: #3182f6; color: #fff; font-style: normal; font-size: 13px; font-weight: 700; }
+.ac-alert--big { padding: 20px 16px; background: #3182f6; color: #fff; }
+.ac-alert--big b { font-size: 18px; }
+.ac-alert--big span { color: #e8f3ff; }
+.ac-alert--big .ac-alert__go { background: #fff; color: #1b64da; }
+.ac-alert--on { background: #f2f4f6; color: #333d4b; cursor: default; }
+.ac-alert--on span { color: #6b7684; }
+
+.ac-cats { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0; scrollbar-width: none; }
+.ac-cats button { flex: none; border: 0; border-radius: 999px; padding: 7px 12px; background: #f2f4f6; color: #4e5968; font-size: 13px; cursor: pointer; }
+.ac-cats button.is-on { background: #191f28; color: #fff; }
+
+.ac-card { background: #fff; border: 1px solid #e5e8eb; border-radius: 16px; padding: 14px; margin: 10px 0; }
+.ac-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ac-card__head h2 { font-size: 15px; margin: 0; }
+.ac-card__head strong { font-size: 26px; color: #1b64da; }
+.ac-rows { list-style: none; margin: 10px 0 0; padding: 0; }
+.ac-row { display: grid; grid-template-columns: 64px 1fr auto; grid-template-areas: "app amount go" "app min go" "app chips go"; column-gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid #f2f4f6; }
+.ac-row__app { grid-area: app; font-size: 12px; color: #4e5968; }
+.ac-row__amount { grid-area: amount; font-size: 15px; font-weight: 700; }
+.ac-row__none { color: #b0b8c1; font-weight: 400; }
+.ac-row__min { grid-area: min; font-size: 12px; color: #6b7684; }
+.ac-row__chips { grid-area: chips; display: flex; flex-wrap: wrap; gap: 4px; }
+.ac-row__chips em { font-style: normal; font-size: 11px; padding: 2px 6px; border-radius: 6px; background: #f2f4f6; color: #4e5968; }
+.ac-row__go { grid-area: go; padding: 8px 10px; border-radius: 10px; background: #3182f6; color: #fff; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.ac-card__ago { margin: 8px 0 0; font-size: 11px; color: #8b95a1; }
+.ac-msg { text-align: center; color: #6b7684; padding: 24px 0; }
