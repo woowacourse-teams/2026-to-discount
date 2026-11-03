@@ -1,0 +1,30 @@
+.ne { max-width: 480px; margin: 0 auto; padding: 16px 0 32px; color: #191f28; }
+.ne--error { padding: 64px 16px; text-align: center; }
+.ne-retry { margin-top: 12px; padding: 10px 20px; border: 0; border-radius: 10px; background: #3182f6; color: #fff; font-weight: 600; }
+
+.ne-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 0 16px 12px; }
+.ne-title { margin: 0; font-size: 20px; font-weight: 700; }
+.ne-checked { font-size: 12px; color: #6b7684; white-space: nowrap; }
+
+.ne-row { margin-top: 12px; }
+.ne-row__title { margin: 0 16px 8px; font-size: 17px; font-weight: 700; }
+.ne-count { color: #3182f6; }
+.ne-empty { margin: 0 16px; padding: 16px; border-radius: 12px; background: #f2f4f6; color: #4e5968; font-size: 14px; }
+
+.ne-track { display: flex; gap: 10px; overflow-x: auto; padding: 0 16px 6px; scroll-snap-type: x proximity; scroll-padding-inline: 16px; -webkit-overflow-scrolling: touch; }
+.ne-card {
+  flex: 0 0 150px; scroll-snap-align: start; position: relative;
+  display: flex; flex-direction: column; gap: 4px; padding: 12px;
+  border-radius: 14px; background: #fff; border: 1px solid #e5e8eb;
+  color: inherit; text-decoration: none; min-width: 0;
+}
+.ne-ends { align-self: flex-start; padding: 2px 8px; border-radius: 6px; background: #ffeeee; color: #e42939; font-size: 12px; font-weight: 700; }
+.ne-brand { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ne-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ne-app { position: absolute; top: 10px; right: 10px; }
+.ne-amount { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ne-min { font-size: 12px; color: #6b7684; }
+.ne-chips { display: flex; gap: 4px; overflow: hidden; white-space: nowrap; }
+.ne-chip { flex: none; padding: 1px 6px; border-radius: 5px; background: #f2f4f6; color: #4e5968; font-size: 11px; }
+.ne-note { font-size: 11px; color: #8b95a1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ne-hint { font-size: 10px; color: #8b95a1; line-height: 1.3; }
