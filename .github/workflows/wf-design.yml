@@ -181,6 +181,10 @@ jobs:
         run: |
           if git ls-remote --exit-code --heads origin "$B" > /dev/null; then git switch -c "$B" "origin/$B"; else git switch -c "$B"; fi
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" am "$RUNNER_TEMP"/patches/*.patch
+          # 구조 문서를 다시 만든다. 세션이 파일을 더하고 안 만들어 구조 검사가 브랜치마다 실패하고 슬랙 알림이 났다(2026-11-03, 6건).
+          if [ -f scripts/generate_project_structure.py ]; then python3 scripts/generate_project_structure.py > /dev/null
+            if ! git diff --quiet -- docs/PROJECT-STRUCTURE.md; then git add docs/PROJECT-STRUCTURE.md
+              git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "docs: 구조 문서 재생성" -- docs/PROJECT-STRUCTURE.md; fi; fi
           git push -u origin "HEAD:refs/heads/$B"
           if [ -n "$(gh pr list -R "$GH_REPO" --head "$B" --state open --json number -q '.[0].number')" ]; then echo "PR 이미 있음"; exit 0; fi
           t=$(head -1 "$RUNNER_TEMP/pr-title.txt" 2>/dev/null || true)
