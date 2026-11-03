@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
+import AppTabsShell from './shells/app-tabs/AppTabsShell.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { onRecoverableError, startErrorReporting, startWebVitals } from './telemetry.js'
 import { setHubLinks } from './offerLink.js'
@@ -94,9 +95,11 @@ if (!quiet) {
 // 버리지 않고 하이드레이션한다. 없으면(브랜드 페이지, SSR 실패) 예전처럼 통째로 그린다.
 const ssr = window.__SSR__
 if (ssr) setHubLinks(ssr.banners)
+// 시안(#232): 홈은 AppTabsShell. App을 안 쓰면 번들러가 App과 쿠폰 CSS 조각을 버려 빌드(ssr-template)가 깨져서 ?prod로 운영 홈을 열 수 있게 둔다.
+const Home = new URLSearchParams(window.location.search).has('prod') ? App : AppTabsShell
 const tree = (
   <React.StrictMode>
-    <ErrorBoundary><App initial={ssr} /></ErrorBoundary>
+    <ErrorBoundary><Home initial={ssr} /></ErrorBoundary>
     {/* Vercel 배포 트래픽 집계. /react 엔트리를 쓴다 — Next.js가 아니라
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
         별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면
