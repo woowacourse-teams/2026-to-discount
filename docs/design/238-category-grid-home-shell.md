@@ -185,3 +185,9 @@
 - 구현이 끝나면 `preview/shell-category-grid`로 올린다(사람 또는 sub 세션이 push, `docs/WORKFLOW.md` §3-3). Vercel 주소는 `beggars-git-preview-shell-category-grid-nn98s-projects.vercel.app`이다.
 - 병합하지 않는다. 시안을 버리면 브랜치만 지운다. 되돌릴 운영 변경이 없다.
 - 좋은 부분을 모을 때는 #230에서 정한다. 그때 정식 이슈로 옮기며 §2의 6번 묶음(문구), 7번 묶음(이벤트)을 다시 점검한다.
+
+## 변경 이력
+
+- 2026-11-03 (이슈 "결정" 절, 설계 점검 뒤): 시안 임시 문구는 세션이 정한다. 최소주문을 모르면 칸을 비우지 않고 기존 라벨 "최소주문 미확인"을 그린다(§4-2 표, §5-1 대체). 없음은 `-`, 모름은 기존 라벨. 시각 앞 단어는 수집기 말 "확인"을 피해 시각 뒤 "기준"으로 쓴다(`MM.DD HH:mm 기준`).
+- 2026-11-03 (구현): §6의 `const SHELL = true`는 쓰지 못했다. 상수면 번들러가 `App`을 지워 쿠폰 카드 CSS 조각이 빠지고 `ssr-template.mjs`가 "CouponCard CSS를 못 찾았다"로 빌드를 멈춘다. `SHELL`을 주소 `?shell=off`가 아닐 때 참으로 계산하고, 트리는 `SHELL ? <CategoryGridShell /> : <App initial={ssr} />`로 두었다. `?shell=off`면 원래 홈(하이드레이션 포함)이 나온다.
+- 2026-11-03 (구현): §7의 `web/package.json` 수정은 하지 않았다. `scripts/run-node-tests.mjs`가 `src/` 아래 `*.test.js`를 하위 폴더까지 전부 돌기 때문이다(`data.test.js`는 `npm test`에서 돈다).
