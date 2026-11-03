@@ -1,0 +1,44 @@
+/* digest-hero 시안(#282). 클래스는 .dh- 접두사. cqw 컨테이너 단위는 쓰지 않는다(iOS 겹침). */
+.dh { max-width: 480px; margin: 0 auto; padding: 12px 12px 40px; color: #191f28; background: #f4f5f7; min-height: 100vh; font-family: inherit; }
+.dh p, .dh dl, .dh dd, .dh ul { margin: 0; padding: 0; }
+.dh ul { list-style: none; }
+
+.dh-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.dh-summary > div { background: #fff; border-radius: 12px; padding: 10px 8px; text-align: center; min-width: 0; }
+.dh-summary dt { font-size: 12px; color: #6b7684; }
+.dh-summary dd { font-size: 17px; font-weight: 800; margin-top: 4px; white-space: nowrap; }
+
+.dh-hero { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.dh-hero__head { font-size: 13px; font-weight: 700; color: #e5372a; margin-bottom: 10px; }
+.dh-hero__brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.dh-hero__brand strong { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dh-app { margin-left: auto; font-size: 12px; background: #f2f4f6; border-radius: 999px; padding: 3px 8px; white-space: nowrap; }
+.dh-hero__amount { font-size: 34px; font-weight: 900; margin: 10px 0 6px; letter-spacing: -0.02em; }
+.dh-hero__amount small { font-size: 15px; font-weight: 700; }
+.dh-go { display: block; box-sizing: border-box; width: 100%; margin-top: 12px; padding: 16px 0; text-align: center; background: #111; color: #fff; font-size: 17px; font-weight: 800; border-radius: 12px; text-decoration: none; }
+.dh-go--off { background: #b0b8c1; }
+
+.dh-cond { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; font-size: 13px; color: #4e5968; }
+.dh-chip { background: #eef2ff; color: #3b4cca; border-radius: 6px; padding: 1px 6px; font-size: 12px; }
+.dh-note { color: #4e5968; }
+.dh-time { margin-left: auto; color: #8b95a1; font-size: 12px; }
+
+.dh-list { display: grid; gap: 8px; }
+.dh-row { background: #fff; border-radius: 12px; padding: 12px; }
+.dh-row__top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.dh-row__name { flex: 1; min-width: 0; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dh-row__best { font-size: 17px; font-weight: 800; white-space: nowrap; }
+.dh-row__go { background: #111; color: #fff; font-size: 12px; font-weight: 700; padding: 7px 10px; border-radius: 8px; text-decoration: none; white-space: nowrap; }
+.dh-row__go.dh-go--off { background: #b0b8c1; }
+.dh-apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px 0 8px; }
+.dh-app-cell { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12px; }
+.dh-app-cell__label { color: #8b95a1; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dh-amt { font-weight: 700; }
+.dh-unknown { color: #b26a00; }
+.dh-none { color: #b0b8c1; }
+.dh-q { font-style: normal; font-size: 11px; color: #6b7684; }
+
+.dh-state { text-align: center; padding: 32px 0; color: #4e5968; }
+.dh-retry { display: block; margin: 0 auto; padding: 10px 20px; border: 0; border-radius: 10px; background: #111; color: #fff; font-weight: 700; }
+.dh-skel { background: #e5e8eb; min-height: 64px; }
+.dh-skel--hero { min-height: 220px; border-radius: 16px; }

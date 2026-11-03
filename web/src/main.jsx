@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
+import DigestHeroShell from './shells/digest-hero/DigestHeroShell.jsx'
 import App from './App.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { onRecoverableError, startErrorReporting, startWebVitals } from './telemetry.js'
@@ -92,11 +93,13 @@ if (!quiet) {
 
 // 홈은 서버가 요청 시점 데이터로 그린 HTML을 보낸다(api/ssr.js). 그 데이터가 실려 있으면
 // 버리지 않고 하이드레이션한다. 없으면(브랜드 페이지, SSR 실패) 예전처럼 통째로 그린다.
-const ssr = window.__SSR__
+// 시안(#282): 서버는 App을 그리고 시안은 다른 트리라 하이드레이션이 어긋난다. 서버 데이터를 무시하고 처음부터 그린다.
+// const ssr = window.__SSR__
+const ssr = null
 if (ssr) setHubLinks(ssr.banners)
 const tree = (
   <React.StrictMode>
-    <ErrorBoundary><App initial={ssr} /></ErrorBoundary>
+    <ErrorBoundary><DigestHeroShell initial={ssr} /></ErrorBoundary>
     {/* Vercel 배포 트래픽 집계. /react 엔트리를 쓴다 — Next.js가 아니라
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
         별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면
@@ -104,6 +107,8 @@ const tree = (
     {!optedOut() && !quiet && <Analytics />}
   </React.StrictMode>
 )
+// 시안: App을 안 쓰면 번들에서 빠져 쿠폰 카드 CSS 조각이 사라지고 ssr-template.mjs가 깨진다. 참조만 남긴다.
+window.__legacyApp = App
 const rootEl = document.getElementById('root')
 // ?home=a면 쿠폰 카드 조각을 하이드레이션 전에 미리 받는다(받는 동안 운영 카드가 보였다가 바뀌는 깜박임과 최대 콘텐츠 표시 시간 손해를 줄인다).
 // 첫 렌더에는 영향이 없다(App은 마운트 뒤에 주소를 읽는다).
