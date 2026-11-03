@@ -334,6 +334,10 @@ web/src/report.test.js
 web/src/shareAttribution.js
 web/src/shareAttribution.test.js
 web/src/sheetParts.jsx
+web/src/shells/savings/SavingsShell.jsx
+web/src/shells/savings/data.js
+web/src/shells/savings/data.test.js
+web/src/shells/savings/savings.css
 web/src/shortShareLink.js
 web/src/shortShareLink.test.js
 web/src/shortShareRedirect.js
