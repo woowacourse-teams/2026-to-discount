@@ -1,0 +1,38 @@
+.chs { max-width: 560px; margin: 0 auto; padding: 16px 0 32px; color: #191f28; }
+.chs__title { margin: 0 16px 12px; font-size: 18px; font-weight: 700; }
+.chs-list {
+  display: flex; gap: 10px; margin: 0; padding: 0 16px; list-style: none;
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.chs-card {
+  flex: 0 0 86vw; max-width: 380px; scroll-snap-align: start; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 8px; padding: 16px;
+  background: #fff; border: 1px solid #e5e8eb; border-radius: 16px;
+}
+.chs-card--ghost { min-height: 420px; background: #f2f4f6; border-color: transparent; }
+.chs-card__head { display: flex; align-items: center; gap: 8px; }
+.chs-card__cat { padding: 2px 8px; border-radius: 999px; background: #f2f4f6; font-size: 12px; font-weight: 600; }
+.chs-card__brand { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chs-card__amount { margin: 4px 0 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.chs-card__amount strong { font-size: 34px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; }
+.chs-card__app { font-size: 14px; color: #4e5968; }
+.chs-card__min { margin: 0; font-size: 14px; font-weight: 600; }
+.chs-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.chs-chip { padding: 3px 8px; border-radius: 6px; background: #e8f3ff; color: #1b64da; font-size: 12px; font-weight: 600; }
+.chs-card__note { margin: 0; font-size: 13px; color: #4e5968; }
+.chs-card__trust { margin: 0; font-size: 12px; color: #6b7684; }
+.chs-apps { margin: 4px 0 0; padding: 8px 0 0; list-style: none; border-top: 1px solid #f2f4f6; display: flex; flex-direction: column; gap: 4px; }
+.chs-app { display: grid; grid-template-columns: 5.5em 1fr auto; gap: 6px; align-items: baseline; font-size: 12px; color: #6b7684; }
+.chs-app--main { color: #191f28; font-weight: 700; }
+.chs-app__amount--none { color: #b0b8c1; }
+.chs-app__amount--unknown { color: #8b95a1; }
+.chs-app__min { font-size: 11px; color: #8b95a1; font-weight: 400; }
+.chs-go {
+  display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+  min-height: 52px; margin-top: auto; border-radius: 12px;
+  background: #3182f6; color: #fff; font-size: 17px; font-weight: 700; text-decoration: none;
+}
+.chs-go--off { background: #d1d6db; color: #fff; }
+.chs__error { margin: 24px 16px; text-align: center; }
+.chs__error button { min-height: 44px; padding: 0 20px; border: 0; border-radius: 10px; background: #3182f6; color: #fff; font-weight: 700; }
