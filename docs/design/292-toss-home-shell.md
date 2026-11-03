@@ -149,3 +149,7 @@ window.__legacyApp = App           // 남긴다
 - 기준 시각 한 줄을 화면 전체의 `latestCaptured`로 쓰는 것이 "값이 언제 확인됐는지"에 충분한가, 줄마다 달아야 하는가?
 - **가정(미확인):** `fetchBrands` 응답의 `capturedAt`이 오퍼마다 실려 있다고 본다. 안 실려 있으면 기준 시각 줄은 그리지 않는다(지어내지 않음).
 - **가정(미확인):** 문구 "앱별 쿠폰을 한눈에 비교해요"는 문장 끝(`요.`)이라 `docs/COPY-STYLE.md` 2번(문장 금지)과 어긋난다. 시안 한정으로 둔다.
+
+## 변경 이력
+
+- 2026-11-03 (구현): 서버가 그린 HTML은 `App`이라 `TossShell`과 반드시 어긋난다. §7의 선택 항목대로 `main.jsx`에서 `ssr`을 무시하고 항상 `createRoot`로 그린다(`if (false && ssr)`). 그래서 `TossShell`은 `window.__SSR__.brands`가 있으면 다시 받지 않고 그 값을 쓴다.
