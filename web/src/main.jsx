@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
-import App from './App.jsx'
+import App from './shells/trust/TrustShell.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { onRecoverableError, startErrorReporting, startWebVitals } from './telemetry.js'
 import { setHubLinks } from './offerLink.js'
@@ -92,7 +92,7 @@ if (!quiet) {
 
 // 홈은 서버가 요청 시점 데이터로 그린 HTML을 보낸다(api/ssr.js). 그 데이터가 실려 있으면
 // 버리지 않고 하이드레이션한다. 없으면(브랜드 페이지, SSR 실패) 예전처럼 통째로 그린다.
-const ssr = window.__SSR__
+const ssr = null // #235 trust 시안: 서버 HTML(옛 홈)에 하이드레이션하지 않는다
 if (ssr) setHubLinks(ssr.banners)
 const tree = (
   <React.StrictMode>
