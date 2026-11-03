@@ -1,7 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
-// import App from './App.jsx' // 시안 브랜치 한정(#269): 홈을 SavingsCompareShell로 바꿨다
+import App from './App.jsx' // 시안: 홈은 SavingsCompareShell. App은 빌드가 쿠폰 카드 CSS 조각을 만들게 남긴다(ssr-template 검사)
+void App
 import SavingsCompareShell from './shells/savings-compare/SavingsCompareShell.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { onRecoverableError, startErrorReporting, startWebVitals } from './telemetry.js'
