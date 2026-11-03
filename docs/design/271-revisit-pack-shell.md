@@ -139,4 +139,11 @@ SSR 하이드레이션: 홈은 서버가 `App`을 그려 HTML을 보내고(`web/
 - **알림 카드가 실제로 구독을 시작하는가.** 기존 `PushNotificationSetting.jsx`는 `toggleSlot`을 받고 `App.jsx`에서 마운트한다. 마운트 방식이 `main.jsx`를 `App` 없이 띄우면 맞는지는 구현 때 읽어 정한다. 맞으면 카드 버튼에서 그 컴포넌트를 재사용하고, 안 맞으면 카드는 모양만 보이고 구독을 시작하지 않는다고 PR 본문에 적는다. 새 구독 로직은 짜지 않는다(이슈: 로직 새로 짜지 않음).
 - **내 브랜드가 localStorage뿐이라** 다른 기기와 맞지 않고, 지우면 사라진다. 시안 비교에는 충분하다. 좋은 부분을 모을 때 서버 저장을 따로 설계한다.
 - **새 오퍼 판정은 서버 `isNew`** 를 따른다. 옛 응답에는 `firstSeenAt` 오늘 규칙이 쓰여 "어제 이후"보다 좁을 수 있다(오늘만). 문구가 실제보다 넓게 말하지 않는지는 프리뷰에서 본다.
+- **알림 카드(구현 결과).** `PushNotificationSetting`은 `discount-offer-prompt` 이벤트나 개발 전용 토글로만 안내창을 열고 `toggleSlot`이 `App`의 DOM에 묶여 있어, `App` 없이는 카드 버튼에 맞지 않는다. 대신 카드 버튼이 기존 `pushNotifications.js`의 `pushAvailability`와 `enablePush`를 그대로 불러 구독을 시작한다(새 구독 로직 없음, `track` 없음). 서버 연결 재시도(`pushSyncRetry`)는 이 카드에 없다.
 - **프리뷰 push는 이 세션이 하지 않는다.** 구현 뒤 사람 또는 sub 세션이 `preview/shell-revisit-pack`를 올린다(`docs/WORKFLOW.md` §3-3). 주소는 `https://beggars-git-preview-shell-revisit-pack-nn98s-projects.vercel.app`.
+
+## 변경 이력
+
+- 2026-11-03 구현: 권한자 댓글로 바뀐 설계는 없다(댓글 없음). 구현 중 설계 문서에 없던 두 가지.
+  - `main.jsx` 둘째 줄: `const ssr = null`. 서버 HTML이 `App`이라 하이드레이션하면 반드시 어긋나서 §7의 "프리뷰에서 보이면"을 기다리지 않고 처음부터 적용했다(이슈 결정이 허용한 한 줄).
+  - `RevisitPackShell.jsx`가 `styles/coupon-card.css`를 동적으로 불러 온다. `App`이 빠지면 `coupon-card-*.css` 조각이 번들에서 사라져 `scripts/ssr-template.mjs`가 빌드를 깨뜨렸다. 기존 파일은 고치지 않았다.
