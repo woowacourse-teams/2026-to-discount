@@ -1,0 +1,74 @@
+/* 홈 리뉴얼 시안(stories, #256). 모든 클래스는 stx- 접두사. 병합하지 않는 시안. */
+body.stx-lock { overflow: hidden; }
+
+.stx-page { max-width: 480px; margin: 0 auto; padding: 16px 0 48px; background: #fff; color: #191f28; min-height: 100dvh; font-family: inherit; }
+.stx-state { padding: 48px 16px; text-align: center; color: #6b7684; }
+
+.stx-head { display: flex; align-items: baseline; justify-content: space-between; padding: 0 16px 12px; }
+.stx-head__title { margin: 0; font-size: 22px; font-weight: 800; }
+.stx-head__time { font-size: 12px; color: #6b7684; }
+
+/* 원형 브랜드 줄: 오른쪽 끝 원이 잘려 보여 가로로 넘긴다는 단서를 준다 */
+.stx-strip { display: flex; gap: 12px; overflow-x: auto; padding: 4px 16px 12px; scroll-snap-type: x proximity; scrollbar-width: none; }
+.stx-strip::-webkit-scrollbar { display: none; }
+.stx-story { flex: 0 0 68px; display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; padding: 0; cursor: pointer; scroll-snap-align: start; color: inherit; font: inherit; }
+.stx-story__ring { width: 68px; height: 68px; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, #ff7a00, #ff2d87); display: grid; place-items: center; }
+.stx-story__ring .brand-logo { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: #fff; border: 2px solid #fff; display: grid; place-items: center; }
+.stx-story__ring .brand-logo img { width: 100%; height: 100%; object-fit: cover; }
+.stx-story__name { font-size: 11px; max-width: 68px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.stx-peek { margin: 4px 16px 20px; padding: 16px; border-radius: 20px; background: #f4f6f8; }
+.stx-peek__open { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0 0 12px; font: inherit; color: inherit; cursor: pointer; }
+.stx-peek__brand { display: block; font-size: 13px; color: #6b7684; }
+.stx-peek__amount { display: block; font-size: 32px; font-weight: 800; line-height: 1.2; margin: 2px 0; }
+.stx-peek__sub { display: block; font-size: 12px; color: #6b7684; }
+
+.stx-go { display: flex; align-items: center; justify-content: center; text-decoration: none; background: #3182f6; color: #fff; font-weight: 700; border-radius: 14px; }
+.stx-go--big { height: 52px; font-size: 17px; }
+.stx-go--small { height: 32px; padding: 0 10px; font-size: 12px; border-radius: 10px; white-space: nowrap; }
+
+.stx-chips { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 8px 0 0; padding: 0; }
+.stx-chip { font-size: 12px; padding: 3px 8px; border-radius: 999px; background: #e8f3ff; color: #1b64da; }
+
+.stx-rows { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.stx-row { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 8px; font-size: 13px; }
+.stx-row .platform-badge { width: 24px; height: 24px; }
+.stx-row__amount { font-weight: 700; }
+.stx-row__min { color: #6b7684; font-size: 12px; }
+
+.stx-list { padding: 0 16px; }
+.stx-list__title { font-size: 17px; margin: 0 0 8px; }
+.stx-list__title span { font-size: 12px; font-weight: 400; color: #6b7684; margin-left: 4px; }
+.stx-list ul { list-style: none; margin: 0; padding: 0; }
+.stx-item { padding: 14px 0; border-top: 1px solid #eef0f3; }
+.stx-item__head { display: grid; grid-template-columns: 40px 1fr auto auto; gap: 8px; align-items: center; }
+.stx-item__head .brand-logo { width: 40px; height: 40px; }
+.stx-item__title { display: grid; min-width: 0; }
+.stx-item__title strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stx-item__min { font-size: 11px; color: #6b7684; }
+.stx-item__amount { font-weight: 800; font-size: 15px; }
+.stx-more { display: block; width: 100%; margin-top: 12px; height: 44px; border: 0; border-radius: 12px; background: #f4f6f8; font: inherit; font-weight: 700; cursor: pointer; }
+
+/* 전체 화면 덱 */
+.stx-deck { position: fixed; inset: 0; height: 100dvh; z-index: 1000; background: #111; color: #fff; display: flex; flex-direction: column; }
+.stx-deck__top { display: flex; align-items: center; gap: 10px; padding: 12px 12px 8px; }
+.stx-bars { flex: 1; display: flex; gap: 3px; }
+.stx-bars i { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .3); }
+.stx-bars i.is-on { background: #fff; }
+.stx-deck__count { font-size: 12px; opacity: .8; }
+.stx-deck__close { width: 36px; height: 36px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .15); color: #fff; font-size: 22px; line-height: 1; cursor: pointer; }
+.stx-deck__track { flex: 1; min-height: 0; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.stx-deck__track::-webkit-scrollbar { display: none; }
+.stx-card { flex: 0 0 100%; scroll-snap-align: center; display: flex; flex-direction: column; padding: 8px 20px 20px; box-sizing: border-box; min-height: 0; }
+.stx-card__body { flex: 1; overflow-y: auto; min-height: 0; }
+.stx-card__brand { display: flex; align-items: center; gap: 12px; }
+.stx-card__brand .brand-logo { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; background: #fff; display: grid; place-items: center; }
+.stx-card__name { margin: 0; font-size: 20px; }
+.stx-card__amount { font-size: 48px; font-weight: 800; line-height: 1.1; margin: 20px 0 6px; word-break: keep-all; }
+.stx-card__app { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; }
+.stx-card__app .platform-badge { width: 28px; height: 28px; }
+.stx-card__min { margin: 10px 0 0; font-size: 15px; opacity: .9; }
+.stx-card__time { margin: 14px 0 0; font-size: 12px; opacity: .6; }
+.stx-card .stx-chip { background: rgba(255, 255, 255, .16); color: #fff; }
+.stx-card .stx-row__min { color: rgba(255, 255, 255, .7); }
+.stx-card .stx-go--big { margin-top: 12px; flex: 0 0 auto; height: 56px; }
