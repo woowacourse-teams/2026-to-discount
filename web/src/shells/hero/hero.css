@@ -1,0 +1,96 @@
+/* 홈 리뉴얼 시안 "오늘의 한 장"(#231). 클래스는 전부 hero- 접두사. 360px 기준, 가로 스크롤 없음. */
+.hero-shell {
+  --hero-ink: #191f28;
+  --hero-sub: #6b7684;
+  --hero-line: #eef0f3;
+  --hero-accent: #3182f6;
+  box-sizing: border-box;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 16px 32px;
+  color: var(--hero-ink);
+  font-family: inherit;
+}
+.hero-shell *, .hero-shell *::before, .hero-shell *::after { box-sizing: border-box; }
+
+.hero-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 4px 0 12px; }
+.hero-head__name { font-size: 15px; font-weight: 700; }
+.hero-head__time { font-size: 12px; color: var(--hero-sub); white-space: nowrap; }
+
+.hero-card {
+  display: grid;
+  gap: 10px;
+  padding: 20px 18px 18px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(25, 31, 40, .1);
+}
+.hero-card__brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hero-card__brand strong { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero-card__amount {
+  margin: 0;
+  font-size: clamp(40px, 20vw, 80px);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  word-break: keep-all;
+}
+.hero-card__app { display: flex; align-items: center; }
+.hero-cond { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.hero-chip {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f2f4f6;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.hero-min { font-size: 13px; color: var(--hero-sub); }
+.hero-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  margin-top: 6px;
+  border-radius: 14px;
+  background: var(--hero-accent);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.hero-cta:active { filter: brightness(.92); }
+
+.hero-list { list-style: none; margin: 16px 0 0; padding: 0; }
+.hero-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hero-line);
+  color: inherit;
+  text-decoration: none;
+}
+.hero-row__main { display: grid; min-width: 0; }
+.hero-row__name { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero-row__min { font-size: 12px; color: var(--hero-sub); }
+.hero-row__amount { font-size: 17px; font-weight: 800; white-space: nowrap; }
+
+.hero-msg { padding: 32px 0; text-align: center; color: var(--hero-sub); }
+.hero-msg__retry {
+  min-height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--hero-accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.hero-skel { display: grid; gap: 12px; }
+.hero-skel__card, .hero-skel__row { border-radius: 16px; background: #f2f4f6; }
+.hero-skel__card { height: 260px; }
+.hero-skel__row { height: 56px; }
