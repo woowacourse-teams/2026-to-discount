@@ -1,0 +1,39 @@
+/* 굵은 타이포 시안(#242). 이 파일만 쓴다. 병합하지 않는다. */
+html, body { background: #0b0b0f; }
+.bd-root { min-height: 100vh; background: #0b0b0f; color: #fff; padding: 12px 16px 48px; font-family: inherit; }
+.bd-head { height: 24px; font-size: 13px; color: #9a9aa6; font-variant-numeric: tabular-nums; }
+.bd-cats { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0 16px; scrollbar-width: none; }
+.bd-cats::-webkit-scrollbar { display: none; }
+.bd-cat { flex: none; border: 1px solid #2a2a33; background: transparent; color: #cfcfd8; border-radius: 999px; padding: 8px 14px; font-size: 14px; font-weight: 600; }
+.bd-cat[aria-pressed="true"] { background: #fff; color: #0b0b0f; border-color: #fff; }
+.bd-list { display: grid; gap: 14px; }
+
+.bd-card {
+  --app: #ff3a5a;
+  position: relative; display: grid; gap: 6px; padding: 20px 18px 18px;
+  border-radius: 20px; background: #16161d; color: #fff; text-decoration: none;
+  border: 1px solid #23232c;
+}
+.bd-card[data-platform="baemin"] { --app: #2ac1bc; }
+.bd-card[data-platform="coupangeats"] { --app: #00a7e1; }
+.bd-card[data-platform="yogiyo"] { --app: #fa0050; }
+.bd-card[data-platform="ddangyo"] { --app: #ff7a1a; }
+
+.bd-brand { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: #b8b8c4; }
+.bd-rank { font-style: normal; font-size: 12px; font-weight: 800; background: #fff; color: #0b0b0f; border-radius: 6px; padding: 1px 6px; }
+.bd-amt { display: flex; align-items: baseline; gap: 6px; line-height: 1; }
+.bd-amt b { font-size: 56px; font-weight: 900; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.bd-amt small { font-size: 18px; font-weight: 700; color: #cfcfd8; }
+.bd-amt--text b { font-size: 36px; line-height: 1.15; letter-spacing: -0.03em; }
+
+/* 칩이 넘치면 줄바꿈한다. 자르지 않는다. */
+.bd-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.bd-chip { font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 8px; background: #26262f; color: #e6e6ee; }
+.bd-chip--app { background: var(--app); color: #fff; }
+.bd-min { font-size: 13px; color: #9a9aa6; }
+.bd-go {
+  display: flex; align-items: center; justify-content: center; margin-top: 10px; height: 48px; border-radius: 14px;
+  background: var(--app); color: #fff;
+}
+.bd-go svg { width: 26px; height: 26px; }
+.bd-card:active { transform: scale(0.99); }

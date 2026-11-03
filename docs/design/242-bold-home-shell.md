@@ -132,3 +132,8 @@
 2. `BoldShell.jsx`, `bold.css`, `main.jsx` 한 줄. `npm run build` 통과.
 3. 완료 조건 점검: `git diff --stat main -- web/src` 에서 `shells/` 밖 변경이 `main.jsx` 하나뿐.
 4. `preview/shell-bold` push(사람 또는 sub 세션), 실제 운영 API 데이터로 360px 스크린샷을 이슈 결과 댓글에 단다. 카드를 눌러 앱 링크가 열리는지, 콘솔에 하이드레이션 경고가 없는지 함께 본다.
+
+## 변경 이력
+
+- 2026-11-03: 이슈 "결정 (2026-11-03, 설계 점검 뒤)"를 설계로 본다. 최소주문을 모르면(`minLabel`이 `null`) 칸을 비우지 않고 기존 정식 라벨 "최소주문 미확인"을 그린다(§3-2, §4 묶음 4의 "칸을 비운다"를 바꿈). 어댑터의 `minLabel`은 `null`로 두고 화면이 라벨을 그린다.
+- 2026-11-03: `main.jsx`는 한 줄이 아니라 세 줄 바뀐다. `<App />`을 `<BoldShell />`로 바꾸고 import를 더하고, `window.__legacyApp = App`을 남긴다. `App`을 import에서 빼면 쿠폰 카드 CSS 조각이 번들에 없어 `npm run build`의 `ssr-template.mjs`가 실패한다(구현 중 확인).
