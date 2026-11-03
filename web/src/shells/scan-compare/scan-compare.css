@@ -1,0 +1,42 @@
+/* scan-compare 시안(#281). 클래스 접두사 sc-. 병합하지 않는 시안이라 기존 CSS를 고치지 않는다. */
+.sc { max-width: 480px; margin: 0 auto; padding: 0 0 32px; background: #fff; color: #191f28; min-height: 100vh; font-family: inherit; }
+.sc-head { position: sticky; top: 0; z-index: 5; background: #fff; padding: 12px 16px 8px; border-bottom: 1px solid #f2f4f6; }
+.sc-title { margin: 0 0 8px; font-size: 18px; font-weight: 800; }
+.sc-cats { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.sc-cats::-webkit-scrollbar { display: none; }
+.sc-cat { flex: none; border: 0; border-radius: 16px; background: #f2f4f6; color: #4e5968; font-size: 13px; padding: 6px 12px; cursor: pointer; }
+.sc-cat--on { background: #191f28; color: #fff; }
+
+.sc-list { list-style: none; margin: 0; padding: 0; }
+.sc-row { border-bottom: 1px solid #f2f4f6; }
+.sc-row--skeleton { height: 64px; background: linear-gradient(90deg, #f2f4f6, #f9fafb, #f2f4f6); }
+.sc-row__bar { display: flex; align-items: center; min-height: 64px; }
+.sc-row__main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 8px 4px 8px 16px; border: 0; background: none; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.sc-row--open .sc-row__main { background: #f9fafb; }
+.sc-row__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sc-row__name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-row__sub { font-size: 12px; color: #6b7684; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-row__price { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: none; }
+.sc-row__amount { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.sc-row__time { font-size: 11px; color: #8b95a1; }
+.sc-chip { font-style: normal; font-size: 11px; color: #3182f6; background: #e8f3ff; border-radius: 4px; padding: 1px 5px; margin-left: 4px; }
+
+.sc-go { flex: none; display: inline-block; text-align: center; background: #3182f6; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 700; padding: 8px 10px; text-decoration: none; }
+.sc-go--row { margin: 0 12px 0 4px; }
+
+.sc-grid { list-style: none; margin: 0; padding: 8px 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f9fafb; }
+.sc-cell { display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid #e5e8eb; border-radius: 12px; background: #fff; min-width: 0; }
+.sc-cell__head { display: flex; align-items: center; gap: 6px; }
+.sc-cell__name { font-size: 13px; font-weight: 600; }
+.sc-cell__best { margin-left: auto; font-size: 11px; font-weight: 800; color: #fff; background: #f04452; border-radius: 4px; padding: 1px 6px; }
+.sc-cell--best { border: 2px solid #f04452; background: #fff5f5; padding: 9px; }
+.sc-cell__amount { font-size: 18px; font-weight: 800; }
+.sc-cell__min { font-size: 12px; color: #6b7684; }
+.sc-chips .sc-chip { margin: 0 4px 0 0; }
+.sc-cell .sc-go { margin-top: 4px; }
+.sc-cell--none { align-items: flex-start; flex-direction: row; align-items: center; gap: 6px; background: #f9fafb; border-style: dashed; color: #8b95a1; }
+.sc-cell__dash { margin-left: auto; font-size: 18px; }
+.sc-cell--none .platform-badge { opacity: 0.5; }
+
+.sc-fail { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 16px; padding: 14px; border-radius: 12px; background: #fff5f5; color: #d22030; font-size: 14px; }
+.sc-fail button { border: 0; border-radius: 8px; background: #191f28; color: #fff; padding: 8px 12px; cursor: pointer; }
