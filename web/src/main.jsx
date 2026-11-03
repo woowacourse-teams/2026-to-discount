@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
+import CardStandardShell from './shells/card-standard/CardStandardShell.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { onRecoverableError, startErrorReporting, startWebVitals } from './telemetry.js'
 import { setHubLinks } from './offerLink.js'
@@ -19,6 +20,9 @@ import './App.css'
 import { homeUnderDirectLanding } from './backClose.js'
 
 homeUnderDirectLanding()
+
+// 시안 한정(#283): App을 안 쓰면 번들러가 지연 조각(coupon-card CSS)을 버려 빌드의 SSR 준비(ssr-template.mjs)가 실패한다. 참조만 남긴다.
+window.__legacyHome = App
 
 function configured(value) {
   return typeof value === 'string' && value.trim() !== ''
@@ -96,7 +100,7 @@ const ssr = window.__SSR__
 if (ssr) setHubLinks(ssr.banners)
 const tree = (
   <React.StrictMode>
-    <ErrorBoundary><App initial={ssr} /></ErrorBoundary>
+    <ErrorBoundary><CardStandardShell /></ErrorBoundary>
     {/* Vercel 배포 트래픽 집계. /react 엔트리를 쓴다 — Next.js가 아니라
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
         별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면
