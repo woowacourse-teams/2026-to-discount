@@ -171,3 +171,10 @@ import { offerLink } from '../../offerLink.js'
 2. `ago()`는 새 계산 한 함수다. 어댑터에 두는 것이 "계산 로직 금지"에 걸리는가? **기본 제안: 표시 글자 변환은 계산이 아니라 형식 변환으로 보고 둔다.**
 3. 머리 한 줄의 "마지막 갱신 N분 전" 문구는 임시다. 이슈 결정상 세션이 정해도 되는가? **수집기 말(확인, 관측)은 쓰지 않는다.**
 4. 카테고리 칩을 `visibleCategories`로 줄일까, 일곱 개 전부 둘까? **기본 제안: `visibleCategories`로 기존 홈과 같게.**
+
+## 변경 이력
+
+- 2026-11-03 구현: 설계와 달라진 점 둘. 권한자 댓글에 따른 변경은 없다.
+  - `main.jsx`가 `App`을 번들에 남긴다. `App` import를 지우면 `scripts/ssr-template.mjs`가 쿠폰 카드 CSS 조각(`coupon-card-*.css`)을 못 찾아 `npm run build`가 실패한다. 그래서 `?legacy`가 주소에 있으면 `<App initial={ssr} />`, 아니면 `<TrustCompactShell />`를 그린다.
+  - `const ssr = null`로 바꿨다(이슈 결정의 하이드레이션 한 줄). 프리뷰에서 불일치를 확인한 것이 아니라 서버가 `App`을 그려 보내므로 미리 적용했다.
+  - 리뷰 포인트 1(쿠팡이츠 `openWithNotice`)은 기본 제안대로 줄 `onClick`에 걸었다. 포인트 2는 `ago()`를 `data.js`에 두었고, 포인트 4는 `visibleCategories`로 줄였다.
