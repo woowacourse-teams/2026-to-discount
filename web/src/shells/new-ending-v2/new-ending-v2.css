@@ -1,0 +1,29 @@
+.ne2 { max-width: 480px; margin: 0 auto; padding: 16px 0 40px; color: #191f28; font-family: inherit; }
+.ne2 ul { list-style: none; margin: 0; padding: 0; }
+.ne2__stamp { margin: 0 16px 16px; font-size: 12px; color: #6b7684; }
+.ne2__sec { margin-bottom: 28px; }
+.ne2__title { margin: 0 16px 12px; font-size: 18px; font-weight: 700; }
+.ne2__empty { margin: 0 16px; font-size: 14px; color: #6b7684; }
+.ne2__fail { margin: 40px 16px 12px; text-align: center; color: #4e5968; }
+.ne2__retry { display: block; margin: 0 auto; min-height: 48px; padding: 0 24px; border: 0; border-radius: 12px; background: #3182f6; color: #fff; font-size: 15px; font-weight: 600; }
+.ne2__ph { margin: 0 16px; border-radius: 12px; background: #f2f4f6; }
+.ne2__ph--row { height: 150px; }
+.ne2__ph--list { height: 240px; }
+
+.ne2__rail { display: flex; gap: 8px; overflow-x: auto; padding: 0 16px; scroll-snap-type: x mandatory; scroll-padding-left: 16px; -webkit-overflow-scrolling: touch; }
+.ne2__railitem { flex: 0 0 148px; scroll-snap-align: start; }
+.ne2__card { display: flex; flex-direction: column; gap: 4px; box-sizing: border-box; height: 100%; min-height: 150px; padding: 12px; border-radius: 14px; background: #f2f4f6; color: inherit; text-decoration: none; }
+.ne2__app { font-size: 11px; color: #6b7684; }
+.ne2__brand { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ne2__amount { font-size: 22px; font-weight: 800; line-height: 1.2; color: #191f28; }
+.ne2__chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.ne2__chip { padding: 2px 6px; border-radius: 6px; background: #e8f3ff; color: #1b64da; font-size: 11px; font-weight: 600; }
+.ne2__min { margin-top: auto; font-size: 11px; color: #6b7684; }
+
+.ne2__list { padding: 0 16px; }
+.ne2__row { display: flex; align-items: center; gap: 12px; box-sizing: border-box; min-height: 56px; padding: 8px 0; border-bottom: 1px solid #f2f4f6; color: inherit; text-decoration: none; }
+.ne2__until { flex: 0 0 52px; font-size: 14px; font-weight: 700; color: #f04452; font-variant-numeric: tabular-nums; }
+.ne2__rowmain { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.ne2__rowbrand { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ne2__rowsub { font-size: 12px; color: #6b7684; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ne2__rowamount { flex: 0 0 auto; font-size: 16px; font-weight: 800; }
