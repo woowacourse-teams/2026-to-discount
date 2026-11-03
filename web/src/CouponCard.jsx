@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './cardId.js'
-import { amountText, chipsOf, onCard, onDetail, headOrder, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, beforeOpen, chipsOf, onCard, onDetail, headOrder, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
@@ -43,11 +43,12 @@ function Min({ value }) {
 function Amt({ offer }) {
   const hasNum = offer.amount != null && !isBundle(offer) // 묶음 행사의 금액 칸은 정렬값이다
   const num = hasNum ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
+  const dim = offer.soldOut || beforeOpen(offer)
   return (
     <span className="cc-amt">
       {/* 상위 오퍼 금액은 '원 할인'으로 끝낸다(2026-10-06 사용자) */}
-      {offer.soldOut ? <s>{num}{hasNum && <small>원 할인</small>}</s> : <>{num}{hasNum && <small>원 할인</small>}</>}
-      {offer.soldOut && <em className="cc-soldout">품절</em>}
+      {dim ? <s>{num}{hasNum && <small>원 할인</small>}</s> : <>{num}{hasNum && <small>원 할인</small>}</>}
+      {dim && <em className="cc-soldout">{offer.soldOut ? '품절' : '오픈 전'}</em>}
     </span>
   )
 }
@@ -450,7 +451,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       {rest.length > 0 && (
         <div className="cc-alts"><div className="cc-alts-in">
           {rest.slice(0, 3).map((o) => (
-            <span key={offerKey(o)} className={`cc-alt${o.soldOut ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
+            <span key={offerKey(o)} className={`cc-alt${o.soldOut || beforeOpen(o) ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
           ))}
         </div></div>
       )}
