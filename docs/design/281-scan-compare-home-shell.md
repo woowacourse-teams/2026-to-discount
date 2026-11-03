@@ -171,3 +171,10 @@
 3. `main.jsx` 변경, `npm run build`.
 4. `python scripts/generate_project_structure.py`로 `docs/PROJECT-STRUCTURE.md` 재생성, 커밋.
 5. 사람 또는 sub 세션이 `preview/shell-scan-compare`로 push. 프리뷰에서 360px 스크린샷을 찍어 결과 댓글에 단다.
+
+## 변경 이력
+
+- 2026-11-03 (구현): `main.jsx` 변경이 설계의 한 줄 교체보다 크다. 이유 둘.
+  1. `App`을 `main.jsx`에서 아예 빼면 쿠폰 카드 CSS 조각이 번들에서 빠져 `ssr-template.mjs`가 "CouponCard CSS를 못 찾았다"로 빌드를 멈춘다. `App`을 import로 남기고 `?legacy`일 때만 기존 홈을 그리게 했다(기존 홈 비교에도 쓴다).
+  2. 하이드레이션 불일치는 이슈 결정(2026-11-03)대로 막았다. 설계의 `ssr = null` 대신 `hydrateRoot`를 `ssr && legacy`일 때만 쓴다. 껍데기는 `createRoot`로 그린다. 기존 홈(`?legacy`)은 그대로 하이드레이션한다.
+- 2026-11-03 (구현): 칸 최소주문 숫자는 `minLabel` 결과에 `원↑`를 붙인다(`conditionTable`의 `won(min)↑`와 같은 꼴). `0`은 "최소주문 없음".
