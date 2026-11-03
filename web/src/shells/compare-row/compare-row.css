@@ -1,0 +1,33 @@
+/* 비교표 시안(#233). 이 시안의 CSS 전부, 클래스 접두사 crow- */
+.crow { max-width: 480px; margin: 0 auto; padding: 0 12px 24px; background: #fff; color: #191f28; font-size: 12px; }
+.crow-head { position: sticky; top: 0; z-index: 3; background: #fff; display: flex; align-items: baseline; justify-content: space-between; padding: 14px 0 8px; }
+.crow-title { margin: 0; font-size: 18px; font-weight: 800; }
+.crow-stamp { font-size: 12px; color: #4e5968; font-variant-numeric: tabular-nums; }
+.crow-cats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+.crow-cat { flex: none; border: 1px solid #e5e8eb; background: #fff; border-radius: 16px; padding: 5px 11px; font-size: 13px; color: #4e5968; }
+.crow-cat--on { background: #191f28; border-color: #191f28; color: #fff; font-weight: 700; }
+
+.crow-row { display: grid; grid-template-columns: 72px repeat(4, minmax(0, 1fr)); gap: 3px; padding: 6px 0; border-bottom: 1px solid #f2f4f6; align-items: stretch; }
+.crow-row--head { position: sticky; top: 46px; z-index: 2; background: #fff; padding: 4px 0; }
+.crow-app { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #6b7684; white-space: nowrap; overflow: hidden; }
+.crow-app .platform-badge { width: 22px; height: 22px; }
+
+.crow-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.crow-brand .brand-logo { width: 28px; height: 28px; }
+.crow-name { font-size: 12px; font-weight: 700; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crow-rowstamp { font-size: 10px; color: #8b95a1; font-variant-numeric: tabular-nums; }
+
+.crow-cell { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; min-width: 0; padding: 6px 2px; border-radius: 8px; background: #f9fafb; border: 1.5px solid transparent; text-decoration: none; color: inherit; text-align: center; }
+a.crow-cell:active { transform: scale(0.97); }
+.crow-cell--none { color: #b0b8c1; justify-content: center; font-size: 14px; background: none; }
+.crow-amount { font-size: 13px; font-weight: 600; letter-spacing: -0.3px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.crow-min { font-size: 10px; color: #6b7684; line-height: 1.2; word-break: keep-all; }
+.crow-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; }
+.crow-chip { font-size: 9px; line-height: 1.3; padding: 0 3px; border-radius: 4px; background: #e8f3ff; color: #1b64da; white-space: nowrap; }
+
+/* 최고 칸: 색 + 굵기 + 윤곽선(색만으로 가르지 않는다) */
+.crow-cell--top { background: #e8f3ff; border-color: #3182f6; }
+.crow-cell--top .crow-amount { color: #1b64da; font-weight: 800; }
+.crow-cell--top .crow-chip { background: #fff; }
+
+.crow-empty { text-align: center; color: #8b95a1; padding: 24px 0; }
