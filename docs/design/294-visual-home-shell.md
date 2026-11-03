@@ -154,3 +154,8 @@ window.__legacyApp = App                       // 남긴다
 4. `npm test`, `npm run build`, 360px 스크린샷, `scrollWidth` 확인.
 5. `python scripts/generate_project_structure.py`, 커밋.
 6. `preview/shell-visual` push는 사람 또는 sub 세션이 한다.
+
+## 변경 이력
+
+- 2026-11-03 구현: 이슈 결정 절("SSR 하이드레이션 불일치가 보이면 `ssr`을 무시해도 된다")에 따라 처음부터 `main.jsx`에서 `const ssr = null`로 둔다. 서버 HTML은 기존 App 모양이라 하이드레이션하지 않고 통째로 그린다. `window.__legacyApp = App`은 현재 `main.jsx`에 없어 새로 넣었다.
+- 2026-11-03 구현: `web/package.json`의 `test`는 `scripts/run-node-tests.mjs`가 `src/` 아래 `*.test.js`를 모두 찾아 돈다. 사슬에 따로 적을 필요가 없어 `package.json`은 바꾸지 않았다.
