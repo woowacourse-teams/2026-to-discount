@@ -161,3 +161,9 @@ digestOf(brands, selection)  → {
 - "갱신 시각 알 수 없음" 문구가 수집기 말 금지 규칙에 걸리는가? 걸리면 "-"만 쓴다.
 - **미확인 가정:** 운영 응답에 `capturedAt`, `isNew`, 브랜드 `links`가 채워져 있다. 구현 첫 단계에서 실제 응답으로 확인한다.
 - `main.jsx`가 `setHubLinks`를 SSR 데이터로 부르던 줄은 `DigestShell` 안으로 옮기고 `main.jsx`에서는 그대로 둔다. 이슈의 "main.jsx 한 줄 제외" 기준을 넘지 않는가?
+
+## 변경 이력
+
+- 2026-11-03 구현: 권한자 댓글로 바뀐 설계는 없다(이슈 입력에 댓글 없음). 구현 중 확인한 두 가지를 적는다.
+  - `web/scripts/run-node-tests.mjs`가 `src/` 아래 `*.test.js`를 전부 돌려서 `package.json`의 `test` 명령은 고치지 않았다(§3-3, §4-3의 가정과 다름).
+  - `main.jsx`는 `App` import를 남기고 `?home=app`이면 옛 홈을 그린다. `App`을 클라이언트 번들에서 빼면 쿠폰 카드 CSS 조각이 안 만들어져 `ssr-template.mjs`가 실패해 `npm run build`가 깨진다. 같은 이유로 SSR 하이드레이션은 `?home=app`일 때만 한다(이슈 결정의 `ssr` 무시 한 줄을 처음부터 적용).

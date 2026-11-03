@@ -1,0 +1,30 @@
+/* 오늘 요약판(digest) 시안(#259). 버리는 시안. 전역 규칙은 건드리지 않고 .dg 아래에서만 쓴다. */
+.dg { max-width: 480px; margin: 0 auto; padding: 0 12px 32px; font-family: inherit; color: #191f28; background: #f2f4f6; min-height: 100vh; box-sizing: border-box; }
+.dg *, .dg *::before, .dg *::after { box-sizing: border-box; }
+.dg-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 14px 4px 10px; }
+.dg-head__title { font-size: 16px; font-weight: 800; }
+.dg-head__time { font-size: 12px; color: #4e5968; white-space: nowrap; }
+.dg-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.dg-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px 10px; border: 2px solid transparent; border-radius: 14px; background: #fff; text-align: left; cursor: pointer; font: inherit; color: inherit; min-width: 0; }
+.dg-tile--on { border-color: #3182f6; }
+.dg-tile__num { font-size: 20px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.dg-tile__name { font-size: 12px; color: #4e5968; }
+.dg-basis { margin: 12px 4px 0; font-size: 12px; color: #4e5968; }
+.dg-msg { margin: 24px 4px; font-size: 14px; color: #4e5968; }
+.dg-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.dg-card { background: #fff; border-radius: 16px; padding: 14px; display: grid; gap: 8px; }
+.dg-card--top { outline: 2px solid #3182f6; }
+.dg-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.dg-card__name { font-size: 15px; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dg-card__app { font-size: 12px; color: #4e5968; white-space: nowrap; }
+.dg-card__amt { font-size: 28px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em; }
+.dg-soldout { margin-left: 6px; font-size: 12px; font-style: normal; color: #f04452; }
+.dg-card__cond { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; font-size: 12px; }
+.dg-chip { padding: 2px 6px; border-radius: 6px; background: #e8f3ff; color: #1b64da; font-weight: 600; }
+.dg-min { color: #4e5968; }
+.dg-card__foot { display: grid; gap: 8px; }
+.dg-cells { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.dg-cell { display: flex; flex-direction: column; gap: 2px; padding: 6px 4px; border-radius: 8px; background: #f2f4f6; text-decoration: none; color: inherit; font-size: 12px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.dg-cell small { font-size: 10px; font-weight: 500; color: #4e5968; }
+.dg-cell--none { color: #8b95a1; background: #f9fafb; }
+.dg-go { display: block; text-align: center; padding: 12px; border-radius: 12px; background: #3182f6; color: #fff; font-size: 15px; font-weight: 700; text-decoration: none; }

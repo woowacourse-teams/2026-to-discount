@@ -334,6 +334,10 @@ web/src/report.test.js
 web/src/shareAttribution.js
 web/src/shareAttribution.test.js
 web/src/sheetParts.jsx
+web/src/shells/digest/DigestShell.jsx
+web/src/shells/digest/data.js
+web/src/shells/digest/data.test.js
+web/src/shells/digest/digest.css
 web/src/shortShareLink.js
 web/src/shortShareLink.test.js
 web/src/shortShareRedirect.js
