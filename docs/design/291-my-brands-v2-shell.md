@@ -1,0 +1,153 @@
+# 291. 홈 리뉴얼 시안 my-brands-v2 (n원 할인, 배지 아래)
+
+버리는 시안(껍데기)이다. 병합하지 않는다. PR은 초안으로 두고 프리뷰만 본다. 묶음 이슈는 #230, 이슈는 [#291](https://github.com/woowacourse-teams/2026-to-discount/issues/291).
+
+## 결론
+
+- 홈을 `<MyBrandsV2Shell />`로 바꾼 껍데기를 `web/src/shells/my-brands-v2/`에만 만든다. 계산은 기존 모듈이 하고, 껍데기는 모양만 바꾼다.
+- 카드 한 장의 세로 순서: 브랜드 이름과 별표 → **"n원 할인"** → 조건 배지 한 줄(채널, 멤버십, 오픈 시각, 첫 주문, 최소주문) → 앱 이름 → 받으러 가기 버튼.
+- API, 로직 파일, 기존 컴포넌트는 고치지 않는다. 바뀌는 기존 파일은 `web/src/main.jsx` 하나.
+- API 응답 형태는 바뀌지 않는다. API 구현자 순서는 없고 웹 구현자만 돈다.
+
+## 배경과 목표
+
+사용자 피드백(2026-11-03)으로 시안 my-brands(#240)를 고친다. 리뉴얼 목표는 우선순위 순으로 ① 값이 언제 어디서 확인됐는지 믿을 수 있는 화면, ② 얼마, 어느 앱, 조건을 빠르게 전하는 화면, ③ 쿠폰 받으러 가기를 빨리 보여 클릭률과 재방문율을 올리는 화면이다. 이 시안은 ②와 ③을 금액 표기와 배지 위치로 시험한다. ①은 아래 "없음과 모름"으로 지킨다.
+
+## 변경 전파 점검
+
+`docs/CHANGE-PROPAGATION.md`에서 이번 변경이 닿는 묶음을 찾았다.
+
+| 묶음 | 닿는가 | 판단 |
+| --- | --- | --- |
+| 1. 확실성 판정 | 읽기만 | `sortBrands`, `displayBestAmount`, `splitOffers`를 불러 쓴다. 판정을 껍데기가 다시 짜면 카드 순서와 "최고"가 어긋나므로 다시 짜지 않는다 |
+| 2. 배너 모양 | 읽기만 | `fetchBanners` 결과를 `setHubLinks`로만 넘긴다. `EventBanner`, `bannerTag`는 안 쓴다 |
+| 4. 최소주문 출처 | 읽기만 | 모르면 비우지 않고 "최소주문 미확인"을 그린다. 틀린 문턱을 지어내지 않는다 |
+| 6. 화면에 나가는 글자 | **닿는다** | 아래 "문구" 참고. 새 문구는 시안용 임시 문구로 한정하고 병합하지 않는다 |
+| 7. 행동 이벤트 | 안 닿는다 | 분석 이벤트는 생략한다. `track(...)`을 새로 쏘지 않아 `ALLOWED_EVENTS`와 대조 스크립트는 그대로다 |
+| 8. 배포 순서 | 해당 없음 | API 변경이 없다 |
+| 9. 새 파일 | **닿는다** | 아래 "새 파일" 참고 |
+
+## 구조
+
+### 새 파일 (모두 `web/src/shells/my-brands-v2/` 아래)
+
+| 파일 | 일 |
+| --- | --- |
+| `MyBrandsV2Shell.jsx` | 홈 화면 컴포넌트. 데이터를 받아 그린다 |
+| `data.js` | 기존 모듈을 불러 껍데기용 모양으로 바꾸는 얇은 어댑터. 계산 로직 금지 |
+| `data.test.js` | `data.js`가 기존 모듈 값을 그대로 옮기는지 시험 |
+| `my-brands-v2.css` | 이 시안의 CSS 하나 |
+
+- `web/scripts/run-node-tests.mjs`가 `src/` 아래 `*.test.js`를 모두 찾아 돌린다. 그래서 `web/package.json`의 `test`는 고치지 않는다. 구현자는 `npm test` 출력에서 `data.test.js`가 실제로 돌았는지 본다(안 도는 줄도 모른다는 규칙, AGENTS.md).
+- 새 파일을 더했으므로 커밋 전에 `python scripts/generate_project_structure.py`로 `docs/PROJECT-STRUCTURE.md`를 다시 만든다.
+- 새 npm 의존성은 넣지 않는다.
+
+### 바뀌는 기존 파일: `web/src/main.jsx`
+
+바꾸는 곳은 아래 셋이다. 나머지 줄은 그대로다.
+
+1. 트리의 `<App initial={ssr} />`를 `<MyBrandsV2Shell />`로 바꾼다.
+2. `import App from './App.jsx'`와 `window.__legacyApp = App` 한 줄을 **남긴다**. 빼면 빌드가 쿠폰 카드 CSS 조각(지연 로드 조각)을 만들지 않아 `web/scripts/ssr-template.mjs`가 실패하고 프리뷰 배포가 깨진다(#254, #280, #289).
+3. 하이드레이션을 끈다. 서버(`web/src/entry-server.jsx`)는 여전히 `App`을 그려 보낸다. 껍데기를 하이드레이션하면 트리가 달라 불일치가 난다. 결정에 따라 `ssr`을 무시하는 한 줄을 더 바꿔 `createRoot`로 통째로 그린다. 이 변경은 PR 본문에 적는다.
+   - 대가: 서버 HTML이 먼저 보이다가 껍데기로 바뀌는 깜박임이 프리뷰에 있다. 시안이라 받아들인다.
+   - `entry-server.jsx`, `web/api/ssr.js`는 고치지 않는다.
+
+`window.__SSR__`가 없어도 `setHubLinks(ssr.banners)`를 건너뛰는 일이 없게, 허브 링크는 껍데기가 직접 채운다(`data.js` 아래).
+
+### 데이터 흐름 (`data.js`)
+
+| 필요한 값 | 읽는 곳 |
+| --- | --- |
+| 브랜드와 배너 | `api.js` `fetchBrands`, `fetchBanners` |
+| 허브 링크 | 배너를 받으면 `offerLink.js` `setHubLinks(banners)` (App이 하는 일과 같다. 없으면 허브로 풀리는 앱 링크가 비어 클릭이 안 열린다) |
+| 카드 순서 | `filters.js` `defaultFilters()` → `applyFilters` (→ `sortBrands`). 기본 필터 그대로 |
+| 대표 오퍼 | `couponModel.js` `splitOffers(offers, include)`의 `best[0]`. 최고가 없으면 `splitOffers`가 정한 앞 오퍼 |
+| 금액 | `couponModel.js` `amountText` |
+| 배지 | `couponModel.js` `chipsOf` → `onCard` → `headOrder` |
+| 최소주문 | `couponModel.js` `minLabel(offer.minOrderAmount)` |
+| 앱 이름 | `platforms.js` `PLATFORM_BY_KEY[platform].label`, 자사는 `OWN_LABEL` |
+| 마지막 확인 시각 | `filters.js` `latestCaptured(offers)` |
+| 인기 추천 | `popularStrip.js` `popularToday(brands)` |
+| 분류 탭 | `filters.js` `CATEGORIES` |
+| 링크 | `offerLink.js` `offerLink(offer, brand.links, brand.name)` |
+
+- `include`는 `filters.js`의 `includesFrom(defaultFilters())`로 얻는다. 직접 `{random:false, menu:false}`를 적지 않는다(값이 두 곳에 적히면 어긋난다).
+- `data.js`의 출력 모양(카드 한 장): `{ name, logoKey, amount, amountLabel, chips[], minLabel, appLabel, href, capturedAt, rank? }`. 필드마다 기존 함수 결과를 옮기는 것이 전부다.
+- `data.js`는 정렬, 최고 판정, 금액 비교를 새로 하지 않는다. `if`가 필요하면 "기존 값이 null이면 이 문구" 정도에 한한다.
+
+## 카드 화면
+
+360px 첫 화면에서 개념이 드러나야 한다.
+
+```
+[로고] 브랜드 이름                    ☆
+10,000원 할인
+[쿠팡와우] [11시 오픈] [포장] [첫 주문] [15,000원↑]
+쿠팡이츠
+[ 쿠폰 받으러 가기 ]
+```
+
+- **금액:** `amountText(offer)`에 " 할인"을 붙여 "10,000원 할인"으로 쓴다. 금액 칸이 큰 글씨 한 줄이다.
+  - 묶음 행사나 금액이 없는 오퍼는 `amountText`가 주는 원문(`rawText`, 예: "징거버거 1+1")을 그대로 쓰고 " 할인"을 붙이지 않는다. 판별은 `filters.js`의 `isBundle`과 `offer.amount != null`로 한다.
+  - 앱 이름은 금액 옆이 아니라 아래 줄이다.
+- **배지 줄:** 금액 바로 아래 한 줄. 순서는 `headOrder`(채널, 멤버십, 한정 시각, 나머지)를 따르고 최소주문 칸을 맨 뒤에 둔다.
+  - 한 줄에 못 들어가면 줄바꿈하지 않고 가로로 스크롤하거나 줄여도, 금액과 조건은 숨기지 않는다. 구현자는 줄바꿈을 허용하는 쪽을 먼저 쓴다(`flex-wrap`). 잘리는 쪽보다 낫다.
+  - 같은 칩이 두 번 나오지 않게 `chipsOf` 결과를 그대로 쓴다.
+- **최소주문 칸:**
+  - 숫자가 있으면 `${minLabel(m)}원↑`. 기존 상세 표(`conditionTable`)의 표기와 같다.
+  - `minOrderAmount === 0`이면 `minLabel`의 "최소주문 없음".
+  - `minLabel`이 null(모름)이면 칸을 비우지 않고 "최소주문 미확인"을 그린다(결정 2026-11-03). 기존 정식 라벨이다.
+- **앱 이름:** 배지 줄 아래. 별표 왼쪽 아래가 아니라 금액 아래 영역이다.
+- **받으러 가기 버튼:** 카드 전체와 버튼 둘 다 `offerLink`의 주소를 `<a href target="_blank" rel="noopener">`로 연다. 쿠팡이츠는 `openWithNotice`가 앱이 안 열릴 때 공유 링크로 넘기는 길이다. 시안이라 `openWithNotice`를 쓰는 쪽을 기본으로 하고, 쓰기 어려우면 일반 `<a href>`로 둔다(분석 이벤트는 생략).
+- **별표:** 내 브랜드 표시. 누르면 별이 켜지고 켜진 브랜드가 목록 위로 모인다. 저장은 이 시안 전용 `localStorage` 키 하나(`dk_v2_stars`)이고 읽기, 쓰기는 `try/catch`로 감싼다(저장소가 막힌 브라우저에서 멈추지 않게). 기존 숨김 저장(`hiddenBrands.js`)과 키가 겹치지 않아야 한다.
+  - 별 켜진 브랜드를 위로 모으는 일은 정렬 계산이 아니라 `data.js`가 기존 정렬 결과 위에 별 집합으로 두 묶음으로 가르는 것이다. 이 한 곳만 새 판단이다.
+- **인기 추천:** `popularToday(brands)` 결과를 상단 띠로 그린다. 3곳 미만이면 `popularToday`가 STRIP_MIN 규칙을 이미 적용하므로 `data.js`는 길이가 `STRIP_MIN` 미만이면 그리지 않는다.
+- **분류 탭:** `visibleCategories` 기본 규칙을 따라 `CATEGORIES`에서 고른다. 탭은 필터로 연결한다(`applyFilters`의 `categories`).
+- **신뢰성(목표 1):** 화면 위쪽에 `latestCaptured`로 얻은 마지막 확인 시각을 "N분 전" 같은 상대 표기로 한 줄 둔다. 모르면(null) 줄을 그리지 않는다. 시각 계산을 새로 하지 않고 포맷만 한다.
+
+### 없음과 모름 (목표 1)
+
+| 상황 | 화면 |
+| --- | --- |
+| 그 앱에 오퍼가 없음 | `-` |
+| 오퍼는 있고 최소주문을 모름 | "최소주문 미확인" |
+| 대표 오퍼의 금액도 원문도 없음 | `-`. 새 문구를 만들지 않는다 |
+
+앱별로 칸을 나눠 보이는 화면이 시안에 있으면(브랜드 한 장 안에 앱 여러 개), 오퍼가 없는 앱은 `-`, 있는 앱은 값 또는 기존 라벨이다. 둘을 섞지 않는다.
+
+### 문구
+
+- 수집기 말("확인", "미확인", "판독", "관측")을 새로 만들지 않는다. 쓰는 "최소주문 미확인"은 기존 모듈이 내는 정식 라벨이라 새 문구가 아니다.
+- 이 시안이 새로 쓰는 문구는 "할인"(금액 뒤), "쿠폰 받으러 가기"(버튼), 마지막 확인 시각 줄이다. 병합하지 않는 시안이라 세션이 정해도 된다(결정 2026-11-03). 병합 후보가 되면 `docs/COPY-STYLE.md` 검토를 다시 한다.
+
+## 완료 조건과 확인
+
+구현자가 PR(초안)에 남길 확인이다.
+
+- 360px 첫 화면에서 "n원 할인", 금액 아래 배지 한 줄, 앱 이름 아래 배치가 보인다(스크린샷을 결과 댓글에 단다).
+- 360px에서 가로로 넘치지 않는다: `document.documentElement.scrollWidth <= 360`을 브라우저에서 잰 값을 적는다. 버튼과 금액 칸이 잘린 시안이 있었다(#282, #284).
+- 실제 운영 API 데이터로 그려지고 카드를 누르면 앱 링크가 열린다.
+- `git diff --stat main -- web/src/*.js`에 shells 밖 변경이 없고, `main.jsx` 외 기존 파일 diff가 0줄이다. (`web/src/*.js`는 최상위 로직 파일이다. `.jsx`는 `main.jsx` 외에 없어야 한다.)
+- `cd web && npm test`, `npm run build`가 통과한다. 특히 `ssr-template.mjs` 단계까지 간다.
+- `data.test.js`가 `npm test`에서 실제로 돈다.
+
+`data.test.js`가 시험하는 것:
+
+- 금액 문구: 일반 오퍼는 "n원 할인", 묶음 행사는 원문 그대로이고 " 할인"이 안 붙는다.
+- 최소주문: 숫자, 0, null이 각각 "N원↑", "최소주문 없음", "최소주문 미확인"이 된다.
+- 순서: `applyFilters`와 같은 입력에서 별이 없을 때 카드 순서가 `applyFilters` 결과와 같다(순서를 껍데기가 다시 짜지 않았다는 증거).
+- 별: 켜진 브랜드만 위로 모이고 켜진 브랜드끼리, 나머지끼리는 원래 순서를 지킨다.
+
+## 위험과 선택하지 않은 길
+
+- **SSR 깜박임:** 하이드레이션을 끄면 서버 HTML(App)이 보이다가 껍데기로 바뀐다. 대안은 `entry-server.jsx`도 바꿔 껍데기를 서버에서 그리는 것인데, 로직 파일 무변경 조건에 어긋나 택하지 않았다.
+- **`window.__legacyApp = App` 한 줄:** 어색해 보여도 지우지 않는다. 지우면 프리뷰 배포가 깨진다.
+- **링크 사다리:** `offerLink`는 쿠팡이츠에서 공유 링크를 쓴다. 프리뷰 때 월요일 허브 교체 주간이면 링크 상태가 다를 수 있다. 시안이라 링크를 고치지 않는다.
+- **모름과 없음 혼동:** 최소주문 null을 빈칸으로 두면 "없다"로 읽힌다(AGENTS.md 먼저 알 것). 위 규칙으로 막고 `data.test.js`가 박는다.
+- **병합 금지:** 이 브랜치는 `preview/shell-my-brands-v2`로 올려 프리뷰만 본다. `main.jsx` 변경 때문에 병합되면 홈이 시안으로 바뀐다. PR은 초안으로 둔다.
+
+## 프리뷰
+
+- 구현이 끝나면 사람 또는 sub 세션이 mono `preview/shell-my-brands-v2` 브랜치로 올린다(`docs/WORKFLOW.md` §3-3). 주소는 `https://beggars-git-preview-shell-my-brands-v2-nn98s-projects.vercel.app`.
+- PR 본문 맨 위에 이 주소를 적는다.
+- 대상 브랜치는 `main`이다. 이 PR은 병합하지 않는 시안이라 프리뷰 확인만 하고 초안으로 둔다.

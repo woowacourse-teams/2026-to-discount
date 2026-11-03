@@ -1,0 +1,28 @@
+.v2 { box-sizing: border-box; max-width: 480px; margin: 0 auto; padding: 16px 12px 40px; background: #f5f6f8; min-height: 100vh; color: #191f28; overflow-x: hidden; }
+.v2 *, .v2 *::before, .v2 *::after { box-sizing: border-box; }
+.v2-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.v2-title { margin: 0; font-size: 20px; }
+.v2-ago { margin: 0; font-size: 12px; color: #6b7684; white-space: nowrap; }
+.v2-pop { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+.v2-pop__label { flex: none; font-size: 12px; font-weight: 700; align-self: center; color: #e8590c; }
+.v2-pop__item { flex: none; font-size: 12px; padding: 4px 10px; border-radius: 999px; background: #fff; color: #333d4b; text-decoration: none; }
+.v2-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 12px; scrollbar-width: none; }
+.v2-tab { flex: none; border: 0; border-radius: 999px; padding: 6px 12px; background: #e5e8eb; font-size: 13px; color: #4e5968; }
+.v2-tab[aria-selected='true'] { background: #191f28; color: #fff; }
+.v2-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.v2-card { position: relative; background: #fff; border-radius: 16px; padding: 14px 14px 12px; min-width: 0; }
+.v2-card__body { display: grid; gap: 6px; color: inherit; text-decoration: none; padding-right: 36px; min-width: 0; }
+.v2-card__head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.v2-card__logo { border-radius: 8px; flex: none; object-fit: cover; }
+.v2-card__name { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v2-card__amount { font-size: 26px; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; }
+.v2-card__chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.v2-chip { font-size: 12px; padding: 3px 7px; border-radius: 6px; background: #eef0f3; color: #4e5968; }
+.v2-chip--membership { background: #e7f1ff; color: #1b64da; }
+.v2-chip--limited, .v2-chip--channel { background: #fff3e0; color: #c25b00; }
+.v2-chip--min { background: transparent; border: 1px solid #d1d6db; }
+.v2-card__app { font-size: 13px; color: #6b7684; }
+.v2-star { position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; border: 0; background: none; font-size: 22px; color: #b0b8c1; }
+.v2-star.is-on { color: #f5a623; }
+.v2-go { display: block; margin-top: 12px; text-align: center; padding: 12px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 15px; text-decoration: none; }
+.v2-empty { text-align: center; color: #6b7684; }
