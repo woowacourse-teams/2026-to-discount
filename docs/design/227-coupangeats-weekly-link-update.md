@@ -141,3 +141,13 @@ mono 쪽(이 설계가 닫히는 범위):
 - 링크를 얻는 방법은 폰 앱의 공유 기능인가. **이 가정은 확인하지 않았다.**
 - 수집 3단계가 링크를 mono 사본의 `offerLink.js`에서 읽는가. **이 가정은 확인하지 않았다.**
 - 허브 키 `V5_DEAL_<월일>_HL`이 풀린 주소에 있는가, 본문에 있는가. **구현자가 이번 주 링크를 풀어 확인한다.**
+
+## 변경 이력
+
+- 2026-11-03 구현. `/approve-design` 앞 권한자 댓글(nn98, 2026-11-02 16:49, 17:46)을 설계로 반영했다.
+  - 링크 입수(결정 2): 정해졌다. tracker 3s(`scripts/coupangeats_share_link.py`)가 폰 공유 버튼으로 읽는다. 공유 링크는 공유할 때마다 새로 생기므로 문자열 차이는 교체 신호가 아니고, 허브 키 날짜로 판단한다(검사기가 그 일을 한다).
+  - 수집 3단계가 읽는 자리(리뷰 포인트): 확인됐다. tracker `capture/coupangeats_share.py`가 mono 사본 `offerLink.js`의 `COUPANGEATS_LINK`를 읽는다.
+  - 월요일 입구(옛 링크로는 이번 주 허브를 못 여는 문제)는 tracker 후속으로 남긴다.
+  - 허브 키 위치(리뷰 포인트): 실측했다. 공유 링크는 리디렉션 없이 200을 주고, 키는 응답 본문의 앱 링크 meta(`landing-page-v5?key=V5_DEAL_<월일>_HL`, URL 인코딩)에 있다. 최종 주소에는 없다.
+  - 검사기와 교체기는 한 파일 `scripts/coupangeats_link.py`(`check`, `replace`), 시험은 `scripts/test_coupangeats_link.py`(pytest). 종료 코드 0 통과, 1 실패(`FAIL <사유>: …`), 2 사용법.
+  - `workflow_dispatch` 보험 워크플로는 넣지 않았다(설계에 범위 미정, 댓글도 언급 없음).
