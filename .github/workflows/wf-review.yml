@@ -83,7 +83,7 @@ jobs:
           done
           p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
           echo "path=$p" >> "$GITHUB_OUTPUT"
-      # 첫 토큰이 사용량 한도면 두 번째 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)을 쓴다. 두 번째가 없으면 첫 토큰 그대로.
+      # 우선 토큰 사용률이 90% 넘으면 다른 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)으로 넘긴다. 두 번째가 없으면 첫 토큰 그대로.
       - name: 토큰 고르기
         id: tok
         if: steps.issue.outputs.num != ''
@@ -91,18 +91,24 @@ jobs:
           T1: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           T2: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN_2 }}
           CLAUDE: ${{ steps.cc.outputs.path }}
-          # 손 전환: 저장소 변수 CLAUDE_TOKEN_SLOT이 1이나 2면 시험 없이 그 토큰을 쓴다. 비면 자동.
+          # 저장소 변수 CLAUDE_TOKEN_SLOT: 1|2 = 우선 토큰(90% 넘으면 다른 쪽), 1only|2only = 고정, 비면 1 우선.
           SLOT: ${{ vars.CLAUDE_TOKEN_SLOT }}
         run: |
-          if [ "$SLOT" = 2 ] && [ -n "$T2" ]; then echo "which=2" >> "$GITHUB_OUTPUT"; echo "손 전환: 두 번째 토큰"; exit 0; fi
-          if [ "$SLOT" = 1 ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "손 전환: 첫 토큰"; exit 0; fi
-          if [ -z "$T2" ]; then echo "which=1" >> "$GITHUB_OUTPUT"; echo "두 번째 토큰 없음, 첫 토큰"; exit 0; fi
-          out=$(CLAUDE_CODE_OAUTH_TOKEN="$T1" timeout 90 "$CLAUDE" -p "1" --max-turns 1 2>&1) && rc=0 || rc=$?
-          if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then
-            echo "which=2" >> "$GITHUB_OUTPUT"; echo "첫 토큰 한도, 두 번째 토큰"
-          else
-            echo "which=1" >> "$GITHUB_OUTPUT"; echo "첫 토큰(시험 종료 코드 $rc)"
-          fi
+          # 사용률 기준 전환(2026-11-03): 우선 토큰(SLOT, 비면 1)의 5시간/주간 사용률을 한 번 물어 90% 미만이면 쓴다.
+          # 90% 이상이거나 한도 오류면 다른 토큰도 물어 사용률이 낮은 쪽을 쓴다. 사용률은 stream-json의 rate_limit_info.utilization.
+          # SLOT=1only/2only면 시험 없이 그 토큰만 쓴다.
+          case "$SLOT" in 1only) echo "which=1" >> "$GITHUB_OUTPUT"; echo "고정: 첫 토큰"; exit 0;; 2only) echo "which=2" >> "$GITHUB_OUTPUT"; echo "고정: 두 번째 토큰"; exit 0;; esac
+          pref=1; [ "$SLOT" = 2 ] && [ -n "$T2" ] && pref=2
+          use() { [ "$1" = 1 ] && echo "$T1" || echo "$T2"; }
+          util() {  # 0~100, 한도 오류면 100, 못 읽으면 0
+            out=$(CLAUDE_CODE_OAUTH_TOKEN="$(use "$1")" timeout 90 "$CLAUDE" -p "1" --max-turns 1 --output-format stream-json --verbose 2>&1) && rc=0 || rc=$?
+            if [ "$rc" -ne 0 ] && grep -qiE "limit|quota|exceeded|429" <<< "$out"; then echo 100; return; fi
+            grep -oE '"utilization":[0-9.]+' <<< "$out" | cut -d: -f2 | sort -g | tail -1 | awk '{printf "%d", $1*100}' | grep . || echo 0
+          }
+          u=$(util $pref); echo "토큰 $pref 사용률 ${u}%"
+          if [ -z "$T2" ] || [ "$u" -lt 90 ]; then echo "which=$pref" >> "$GITHUB_OUTPUT"; exit 0; fi
+          alt=$((3 - pref)); ua=$(util $alt); echo "토큰 $alt 사용률 ${ua}%"
+          if [ "$ua" -lt "$u" ]; then echo "which=$alt" >> "$GITHUB_OUTPUT"; echo "90% 넘어 토큰 $alt로 전환"; else echo "which=$pref" >> "$GITHUB_OUTPUT"; echo "둘 다 높음, 토큰 $pref 유지"; fi
       - if: steps.issue.outputs.num != ''
         id: claude
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
