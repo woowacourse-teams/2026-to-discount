@@ -1,0 +1,31 @@
+.rk { max-width: 480px; margin: 0 auto; padding: 16px 14px 40px; font-family: inherit; color: #191f28; background: #fff; min-height: 100vh; }
+.rk-head h1 { margin: 4px 0 4px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+.rk-head p { margin: 0 0 12px; font-size: 12px; color: #6b7684; }
+.rk-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.rk-tabs button { flex: 1; padding: 9px 0; border: 0; border-radius: 10px; background: #f2f4f6; color: #6b7684; font-size: 14px; font-weight: 700; }
+.rk-tabs button[aria-selected='true'] { background: #191f28; color: #fff; }
+.rk-msg { padding: 24px 0; text-align: center; color: #6b7684; font-size: 14px; }
+.rk-msg button { margin-left: 6px; padding: 4px 10px; border: 1px solid #d1d6db; border-radius: 8px; background: #fff; }
+.rk-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.rk-row { display: grid; grid-template-columns: 28px 1fr auto; column-gap: 8px; row-gap: 4px; align-items: center; padding: 12px 12px 8px; border-radius: 14px; background: #f9fafb; color: inherit; text-decoration: none; }
+a.rk-row:active { background: #eef1f4; }
+.rk-row--first { padding-top: 16px; padding-bottom: 12px; background: #fff7e6; }
+.rk-no { font-size: 18px; font-weight: 800; color: #8b95a1; text-align: center; }
+.rk-no--top { color: #f04452; }
+.rk-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rk-who { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rk-who .brand-logo { flex: none; width: 28px; height: 28px; }
+.rk-who .brand-logo img { width: 28px; height: 28px; }
+.rk-who b { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk-track { display: block; height: 10px; border-radius: 5px; background: #e5e8eb; overflow: hidden; }
+.rk-track i { display: block; height: 100%; border-radius: 5px; background: #3182f6; }
+.rk-row--first .rk-track i { background: #f04452; }
+.rk-row--first .rk-track { height: 14px; }
+.rk-val { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+.rk-val strong { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; }
+.rk-row--first .rk-val strong { font-size: 22px; }
+.rk-val small { font-size: 11px; color: #6b7684; white-space: nowrap; }
+.rk-chips { grid-column: 2 / 4; display: flex; flex-wrap: wrap; gap: 4px; }
+.rk-chips em { font-style: normal; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: #e8f3ff; color: #1b64da; }
+.rk-foot { grid-column: 2 / 4; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #8b95a1; }
+.rk-go { font-size: 12px; font-weight: 800; color: #3182f6; }
