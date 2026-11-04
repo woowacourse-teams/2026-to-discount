@@ -303,6 +303,3 @@ h1 {
 .ce-note { margin: 6px 2px 0; list-style: none; text-align: right; width: 100%; align-self: stretch; box-sizing: border-box; font-size: 12.5px; line-height: 1.4; color: var(--text-muted); word-break: keep-all; }
 /* 영역별 바탕색 차이(토스처럼, 2026-10-06): 상단(검색·분류)은 흰 판, 본문 바탕은 옅은 회색, 카드는 흰 판 */
 [data-variant="a"] .title-bar { background: var(--surface); }
-/* 앱 설치 안내: 화면을 덮지 않는 아래쪽 작은 알림(2026-11-04 사용자) */
-.install-hint { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 101; width: max-content; max-width: calc(100vw - 40px); padding: 10px 16px; border: 0; border-radius: 12px; background: rgba(28, 28, 31, .92); color: #fff; font: inherit; font-size: 14px; font-weight: 600; text-align: center; word-break: keep-all; white-space: pre-line; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); cursor: pointer; animation: install-hint-in .2s ease-out; }
-@keyframes install-hint-in { from { opacity: 0; transform: translate(-50%, 8px); } }

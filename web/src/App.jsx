@@ -120,6 +120,17 @@ export default function App({ initial = null }) {
   // 통째로 돌려주므로 "적용" 한 번에 setFilters 한 번이다.
   const [sheetOpen, setSheetOpen] = useState(false)
   useBackClose(sheetOpen, () => setSheetOpen(false))
+  // 정렬 줄은 터치로 넘기고, 마우스로도 끌어 넘긴다. 끈 뒤의 클릭은 고르기로 치지 않는다(2026-11-04 사용자)
+  const dragScroll = useMemo(() => {
+    let x0 = 0, left0 = 0, moved = false, el = null
+    return {
+      onPointerDown: (e) => { if (e.pointerType !== 'mouse') return; el = e.currentTarget; x0 = e.clientX; left0 = el.scrollLeft; moved = false },
+      onPointerMove: (e) => { if (!el) return; const dx = e.clientX - x0; if (Math.abs(dx) > 4) moved = true; el.scrollLeft = left0 - dx },
+      onPointerUp: () => { el = null },
+      onPointerLeave: () => { el = null },
+      onClickCapture: (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false } },
+    }
+  }, [])
   // 분류(또는 신규)를 고른 화면은 메인 위에 덮인 화면으로 본다: 뒤로 = 전체로(2026-11-04 사용자: 뒤로 누르면 사이트가 꺼졌다)
   useBackClose(filters.categories.size > 0 || filters.updatedOnly, () => setFilters((f) => ({ ...f, categories: new Set(), updatedOnly: false })))
   const applyFromSheet = (draft) => {
@@ -582,7 +593,7 @@ export default function App({ initial = null }) {
           상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
       {brands && (
         <div className="quick-bar">
-        <div className="quick-bar__sorts" role="group" aria-label="정렬">
+        <div className="quick-bar__sorts" role="group" aria-label="정렬" {...dragScroll}>
           {/* 2026-11-04 사용자: 넷을 가로 캐러셀로(배경 없이 굵은 회색 글씨, 고른 것은 강조색). 인기순·최신순은 방향이 고정이다 */}
           {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문금액 낮은순'], ['popularity', 'desc', '인기순'], ['recent', 'desc', '최신순']].map(([key, dir, label]) => {
             const first = primarySort(filters)
