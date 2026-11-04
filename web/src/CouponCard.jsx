@@ -454,7 +454,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       {rest.length > 0 && (
         <div className="cc-alts"><div className="cc-alts-in">
           {rest.slice(0, 3).map((o) => (
-            <span key={offerKey(o)} className={`cc-alt${stateLabel(o) ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
+            <span key={offerKey(o)} className={`cc-alt${stateLabel(o) ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}{stateLabel(o) && <em className="cc-soldout cc-alt__tag">{stateLabel(o)}</em>}</span>
           ))}
         </div></div>
       )}
