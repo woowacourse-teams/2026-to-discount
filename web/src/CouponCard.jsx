@@ -44,15 +44,12 @@ function Amt({ offer }) {
   const hasNum = offer.amount != null && !isBundle(offer) // 묶음 행사의 금액 칸은 정렬값이다
   const num = hasNum ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
   const dim = offer.soldOut || beforeOpen(offer)
-  // 품절·오픈 전 배지는 금액 옆이 아니라 최소주문과 같은 줄 높이의 자기 줄에 둔다(2026-11-04 사용자).
   return (
-    <>
-      <span className="cc-amt">
-        {/* 상위 오퍼 금액은 '원 할인'으로 끝낸다(2026-10-06 사용자) */}
-        {dim ? <s>{num}{hasNum && <small>원 할인</small>}</s> : <>{num}{hasNum && <small>원 할인</small>}</>}
-      </span>
-      {dim && <span className="cc-state"><em className="cc-soldout">{offer.soldOut ? '품절' : '오픈 전'}</em></span>}
-    </>
+    <span className="cc-amt">
+      {/* 상위 오퍼 금액은 '원 할인'으로 끝낸다(2026-10-06 사용자) */}
+      {dim ? <s>{num}{hasNum && <small>원 할인</small>}</s> : <>{num}{hasNum && <small>원 할인</small>}</>}
+      {dim && <em className="cc-soldout">{offer.soldOut ? '품절' : '오픈 전'}</em>}
+    </span>
   )
 }
 
