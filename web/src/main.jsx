@@ -16,9 +16,11 @@ import { markVariantOnRoot } from './variant.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { initializeShareAttribution } from './shareAttribution.js'
 import './App.css'
-import { homeUnderDirectLanding } from './backClose.js'
+import { exitGuard, homeUnderDirectLanding } from './backClose.js'
+import { showNotice } from './offerLink.js'
 
 homeUnderDirectLanding()
+exitGuard((text) => showNotice(text, 1600))
 
 function configured(value) {
   return typeof value === 'string' && value.trim() !== ''

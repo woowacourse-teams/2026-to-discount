@@ -280,3 +280,13 @@ test('#151 머리 줄 순서: 채널, 멤버십, 선착순(한정), 나머지, �
   assert.deepEqual(headOrder(k('best-fit', 'condition', 'limited', 'membership', 'channel', 'qualifier-plain')).map((c) => c.kind),
     ['channel', 'membership', 'limited', 'condition', 'qualifier-plain', 'best-fit'])
 })
+
+import { beforeOpen } from './couponModel.js'
+test('beforeOpen: 배지 시각 전이면 참, 지나면 거짓, 시각 없으면 거짓', () => {
+  const at = (h, m = 0) => new Date(2026, 10, 4, h, m)
+  assert.equal(beforeOpen({ badge: '오전 10시 오픈' }, at(9, 59)), true)
+  assert.equal(beforeOpen({ badge: '오전 10시 오픈' }, at(10)), false)
+  assert.equal(beforeOpen({ badge: '오후 5시 오픈' }, at(16)), true)
+  assert.equal(beforeOpen({ badge: '오후 12시 30분 오픈' }, at(12, 29)), true)
+  assert.equal(beforeOpen({ badge: '선착순' }, at(1)), false)
+})

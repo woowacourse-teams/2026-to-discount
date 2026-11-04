@@ -65,4 +65,14 @@ assert.deepEqual(
   [],
   `프론트에서 발행하지 않는 API 허용 이벤트: ${unusedAllowedEvents.join(', ')}`,
 )
+
+// 모든 이벤트에 싣는 공통 props 키(analytics.js ALL_EVENT_PROP_KEYS)를 서버가 brand_search_submitted에서도 받는지.
+// 서버는 이 이벤트만 BRAND_SEARCH_PROPS에 없는 키를 조용히 버린다(2026-10-04 home이 그렇게 빠졌다, #221).
+// 한계: 상수에 적지 않고 props에 새 공통 키를 싣는 실수는 못 잡는다.
+const { ALL_EVENT_PROP_KEYS } = await import(new URL('src/analytics.js', root).href)
+const brandSearchBlock = controllerSource.match(/BRAND_SEARCH_PROPS\s*=\s*Set\.of\(([\s\S]*?)\);/)
+assert.ok(brandSearchBlock, 'EventController.BRAND_SEARCH_PROPS를 찾을 수 없습니다.')
+const brandSearchProps = new Set([...brandSearchBlock[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]))
+const missingProps = ALL_EVENT_PROP_KEYS.filter((key) => !brandSearchProps.has(key))
+assert.deepEqual(missingProps, [], `API BRAND_SEARCH_PROPS에서 빠진 공통 props 키: ${missingProps.join(', ')}`)
 console.log('analytics frontend/API event contract: PASS')

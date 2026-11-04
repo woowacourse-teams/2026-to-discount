@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 const listeners = {}
-globalThis.window = { addEventListener: (n, f) => { listeners[n] = f } }
+globalThis.window = { addEventListener: (n, f) => { listeners[n] = f }, removeEventListener: () => {} }
 const { homeUnderDirectLanding } = await import('./backClose.js')
 
 function fakeHistory() {
@@ -27,4 +27,21 @@ test('홈, 사이트 안에서 온 하위 화면, 새로고침(state 있음)은 
     homeUnderDirectLanding(loc(href), h, ref)
     assert.deepEqual(h.entries, ['x'], href)
   }
+})
+
+test('exitGuard: 바닥에 닿은 첫 뒤로는 알리고 칸을 다시 깔고, 2초 안 두 번째는 나간다', async () => {
+  const { exitGuard } = await import('./backClose.js')
+  const calls = []
+  const h = { state: null, pushState: (s) => { h.state = s; calls.push('push') }, back: () => calls.push('back') }
+  let t = 0
+  const notes = []
+  exitGuard((x) => notes.push(x), h, () => t)
+  const pop = listeners.popstate
+  pop({ state: { guard: true } })        // 위 칸(시트)을 닫은 뒤로: 무시
+  assert.deepEqual(notes, [])
+  t = 5000; pop({ state: null })         // 바닥: 알림 + 다시 깔기
+  assert.equal(notes.length, 1)
+  assert.deepEqual(calls, ['push', 'push'])
+  t = 6000; pop({ state: null })         // 2초 안 두 번째: 나간다
+  assert.equal(calls.at(-1), 'back')
 })

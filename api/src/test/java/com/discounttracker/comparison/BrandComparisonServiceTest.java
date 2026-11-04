@@ -4,6 +4,7 @@ import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.brand.Category;
 import com.discounttracker.offer.DiscountTier;
+import com.discounttracker.offer.LinkSource;
 import com.discounttracker.offer.Offer;
 import com.discounttracker.offer.OfferRecord;
 import com.discounttracker.offer.OfferRepository;
@@ -922,6 +923,34 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void noOfferCarriesACapturedAtLaterThanNow() {
+        // #285: 배너 오퍼가 오늘 23:59:59를 capturedAt에 받아 낮 12시 응답에 미래 시각이 나갔다.
+        // 어느 경로로 만든 오퍼든 본 시각이 지금보다 뒤일 수는 없다.
+        Clock clock = on("2026-08-20");
+        OfferRecord ledger = OfferRecord.builder("baemin", "굽네치킨")
+                .amount(3000).offerType("discount").rawText("3000원")
+                .capturedAt("2026-08-19T10:00:00+09:00").screenshotPath("x.jpg").soldOut(false).build();
+        List<Offer> offers = serviceWith(List.of(ledger), """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """, clock, BANNER_YAML)
+                .compare().stream().flatMap(c -> c.offers().stream()).toList();
+        assertTrue(offers.stream().anyMatch(Offer::fromBanner), "배너 오퍼가 없으면 이 검사는 아무것도 보지 않는다");
+        for (Offer o : offers) {
+            if (o.capturedAt() != null) {
+                assertFalse(java.time.OffsetDateTime.parse(o.capturedAt()).toInstant().isAfter(clock.instant()),
+                        o.capturedAt());
+            }
+            if (o.fromBanner()) {
+                assertNull(o.capturedAt());
+                assertEquals("2026-08-20", o.capturedOn());
+            }
+        }
+    }
+
+    @Test
     void coupangeatsLedgerOfferLinkReachesTheResponseAsIs() {
         // 웹 offerLink가 쿠팡이츠 사람 링크를 그대로 쓴다. API가 link를 바꾸거나
         // 버리면 웹은 허브 링크로 내려가고 화면에서는 티가 나지 않는다.
@@ -943,6 +972,7 @@ class BrandComparisonServiceTest {
             Offer offer = serviceWith(List.of(record), brands).compare().get(0).offers().get(0);
             assertEquals(link, offer.link());
             assertFalse(offer.fromBanner());
+            assertEquals(LinkSource.RECORD, offer.linkSource(), "쿠팡이츠는 링크 필터 대상이 아니다");
         }
     }
 
@@ -965,6 +995,7 @@ class BrandComparisonServiceTest {
                 .findFirst().orElseThrow();
 
         assertEquals("https://example.test/a", card.offers().get(0).link());
+        assertEquals(LinkSource.BANNER, card.offers().get(0).linkSource());
         // 브랜드 링크는 그대로다. 배너가 끝나도 남아 있어야 하고,
         // 배너와 무관한 다른 오퍼 칩까지 행사로 끌려가면 안 된다.
         assertEquals("https://example.test/brand-yogiyo", card.links().get("yogiyo"));
@@ -1180,9 +1211,19 @@ class BrandComparisonServiceTest {
         for (BrandComparison c : serviceWith(records, brands, clock).compare()) {
             for (Offer o : c.offers()) {
                 links.put(c.brand().name() + "/" + o.platform() + (o.firstCome() ? "#first-come" : ""), o.link());
+                sources.put(c.brand().name() + "/" + o.platform() + (o.firstCome() ? "#first-come" : ""), o.linkSource());
+                assertLinkPaired(o);
             }
         }
         return links;
+    }
+
+    /** linksOf가 마지막으로 돌린 결과의 출처. 키는 linksOf와 같다. */
+    private final java.util.Map<String, LinkSource> sources = new java.util.LinkedHashMap<>();
+
+    /** link와 linkSource는 짝이다. link가 없을 때만 NONE. */
+    private static void assertLinkPaired(Offer o) {
+        assertEquals(o.link() == null, o.linkSource() == LinkSource.NONE, o.toString());
     }
 
     @Test
@@ -1197,6 +1238,12 @@ class BrandComparisonServiceTest {
         assertEquals("https://example.test/yogiyo", links.get("BBQ/yogiyo#first-come")); // 다른 앱의 선착순
         assertEquals("https://share.coupangeats.com/test", links.get("맘스터치/coupangeats"));
         assertEquals(5, links.size());
+
+        assertEquals(LinkSource.ADDED, sources.get("노랑통닭/baemin#first-come"));
+        assertEquals(LinkSource.NONE, sources.get("교촌치킨/baemin"));
+        assertEquals(LinkSource.RECORD, sources.get("굽네치킨/baemin#first-come"), "자기 링크가 있으면 필터가 덮지 않는다");
+        assertEquals(LinkSource.RECORD, sources.get("BBQ/yogiyo#first-come"));
+        assertEquals(LinkSource.RECORD, sources.get("맘스터치/coupangeats"));
     }
 
     @Test
@@ -1205,6 +1252,7 @@ class BrandComparisonServiceTest {
         var links = linksOf(tenThirty);
 
         assertNull(links.get("노랑통닭/baemin#first-come"));
+        assertEquals(LinkSource.NONE, sources.get("노랑통닭/baemin#first-come"), "오픈 뒤에는 추가된 링크가 없다");
         assertNull(links.get("교촌치킨/baemin"));
         assertEquals("https://own.test/gubne", links.get("굽네치킨/baemin#first-come"));
         assertEquals("https://example.test/yogiyo", links.get("BBQ/yogiyo#first-come"));
@@ -1227,5 +1275,51 @@ class BrandComparisonServiceTest {
 
         assertTrue(o.firstCome());
         assertEquals(com.discounttracker.offer.FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK, o.link());
+        assertEquals(LinkSource.ADDED, o.linkSource());
+    }
+
+    private static OfferRecord soldOutLedger(String section, String conditions, boolean soldOut) {
+        return OfferRecord.builder("baemin", "노랑통닭")
+                .amount(6000)
+                .offerType("discount")
+                .section(section)
+                .conditions(conditions)
+                .rawText("6000원")
+                .capturedAt("2026-10-24T08:00:00+09:00")
+                .screenshotPath("path.jpg")
+                .minOrderAmount(19000)
+                .soldOut(soldOut)
+                .build();
+    }
+
+    private static final String SOLD_OUT_BRANDS = """
+            brands:
+              노랑통닭:
+                category: chicken
+            """;
+
+    @Test
+    void soldOutBaeminFirstComeGoesToTheHubAfterOpeningToo() {
+        List<OfferRecord> records = List.of(
+                soldOutLedger("배짱할인 주말핫딜 선착순", "오전 10시 오픈 선착순", true));
+        Clock tenThirty = Clock.fixed(Instant.parse("2026-10-24T01:30:00Z"), SEOUL); // KST 10:30
+        Offer o = serviceWith(records, SOLD_OUT_BRANDS, tenThirty).compare().get(0).offers().get(0);
+
+        assertTrue(o.firstCome());
+        assertEquals(com.discounttracker.offer.FirstComeLinkFilter.BAEMIN_BAEJJANG_HUB_LINK, o.link());
+        assertEquals(LinkSource.ADDED, o.linkSource());
+    }
+
+    @Test
+    void soldOutFirstComeBehindALiveRegularOfferLeavesTheLinkAlone() {
+        List<OfferRecord> records = List.of(
+                soldOutLedger("배짱할인 주말핫딜 선착순", "오전 10시 오픈 선착순", true),
+                soldOutLedger("쿠폰함 보유쿠폰", null, false));
+        Clock tenThirty = Clock.fixed(Instant.parse("2026-10-24T01:30:00Z"), SEOUL);
+        Offer o = serviceWith(records, SOLD_OUT_BRANDS, tenThirty).compare().get(0).offers().get(0);
+
+        assertFalse(o.firstCome());
+        assertNull(o.link());
+        assertEquals(LinkSource.NONE, o.linkSource());
     }
 }

@@ -1,6 +1,6 @@
 import { isBundle, isUpdated } from './filters.js'
 import { track } from './analytics.js'
-import { badgesOf } from './couponModel.js'
+import { badgesOf, beforeOpen } from './couponModel.js'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import { PlatformBadge } from './logos.jsx'
 
@@ -76,10 +76,10 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
             ? <span key={x.kind} className="offer__status-badge">{x.text}</span>
             : <span key={x.kind} className={`offer__range-badge offer__range-badge--${x.kind === 'qualifier-plain' ? 'plain' : x.kind === 'qualifier-random' ? 'random' : 'rate'}`}>{x.text}</span>))}
         </span>
-        {offer.soldOut ? (
+        {offer.soldOut || beforeOpen(offer) ? (
           <>
             <s className="offer__amount--soldout">{offerAmountText(offer, hero)}</s>
-            <span className="offer__soldout-label">품절</span>
+            <span className="offer__soldout-label">{offer.soldOut ? '품절' : '오픈 전'}</span>
           </>
         ) : offerAmountText(offer, hero)}
       </span>

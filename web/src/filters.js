@@ -1,4 +1,3 @@
-import { STRIP_MIN, popularToday } from './popularStrip.js'
 import { findBrandSuggestions } from './brandAutocomplete.js'
 // 필터·정렬 규칙. 상단 바(TopBarA)와 목록(App)이 같은
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
@@ -381,33 +380,35 @@ export function applyFilters(brands, filters) {
   return [...sorted.filter(isNew), ...sorted.filter((b) => !isNew(b))]
 }
 
-/** 기본 정렬이면 HOT 1~5위를 맨 앞에 순위대로(2026-10-18 사용자: 신규보다 앞). 숨김을 뺀 목록에 부른다(HOT과 같은 목록). */
-// 순위는 rankBrands(카테고리와 검색을 뺀 목록)로 매긴다(#147). 카테고리를 고르면 그 안에 있는 순위권 브랜드만
-// 순위대로 세운다(2026-10-22 이슈 댓글).
-export function pinPopular(brands, filters, rankBrands = brands) {
-  if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return brands
-  const top = popularToday(rankBrands)
-  if (top.length < STRIP_MIN) return brands
-  // applyFilters가 브랜드 객체를 새로 만들 수 있어 이름으로 찾는다
-  const names = new Set(top.map((r) => r.brand.name))
-  const front = top.map((r) => brands.find((b) => b.name === r.brand.name)).filter(Boolean)
-  if (front.length === 0) return brands
-  return [...front, ...brands.filter((b) => !names.has(b.name))]
+/**
+ * 순위에서 고른 브랜드가 카드로 서게 하는 가장 작은 필터 변경(#219).
+ * listFor(f)는 필터 f로 그려질 카드 이름 목록(숨김까지 적용한 것)을 돌려준다.
+ * 분류만, 검색만, 둘 다 순서로 시험해 가장 적게 지운다. 어떻게 해도 안 서면 null.
+ * 푸는 조건은 App.jsx rankBrands가 떼는 조건(분류, 검색)과 같아야 한다.
+ */
+export function revealFilters(filters, name, listFor) {
+  const has = (f) => listFor(f).includes(name)
+  if (has(filters)) return { filters, cleared: [] }
+  const noCategory = { ...filters, categories: new Set() }
+  const noSearch = { ...filters, search: '' }
+  const neither = { ...noCategory, search: '' }
+  if (filters.categories.size > 0 && has(noCategory)) return { filters: noCategory, cleared: ['category'] }
+  if (filters.search.trim() !== '' && has(noSearch)) return { filters: noSearch, cleared: ['search'] }
+  if (has(neither)) return { filters: neither, cleared: ['category', 'search'] }
+  return null
 }
 
 /**
- * 기본 정렬에서 맨 위로 올라온 이유: 이름 → 'hot'(HOT 1~5위 고정) | 'new'(신규 앞). 올라오지 않은 브랜드는 담지 않는다.
+ * 기본 정렬에서 맨 위로 올라온 이유: 이름 → 'new'(신규 앞). 올라오지 않은 브랜드는 담지 않는다.
  * 노출과 클릭에 `pin`으로 실어, 같은 브랜드가 고정일 때와 아닐 때를 가른다(2026-10-27, 정렬 효과 분석).
- * 순서를 만드는 applyFilters(신규 앞)와 pinPopular(HOT 앞)와 같은 조건을 쓴다. 한쪽만 고치면 표시가 어긋나서
+ * 순서를 만드는 applyFilters(신규 앞)와 같은 조건을 쓴다. 한쪽만 고치면 표시가 어긋나서
  * filters.test.js가 실제 순서와 대조한다.
  */
-export function pinKinds(brands, filters, rankBrands = brands) {
+export function pinKinds(brands, filters) {
   const kinds = new Map()
   if (sortSignature(filters.sorts) !== sortSignature(DEFAULT_SCALARS.sorts)) return kinds
-  const top = popularToday(rankBrands)
-  if (top.length >= STRIP_MIN) for (const r of top) kinds.set(r.brand.name, 'hot')
   const include = includesFrom(filters)
-  for (const b of brands) if (!kinds.has(b.name) && hasNewBest(b.offers, include)) kinds.set(b.name, 'new')
+  for (const b of brands) if (hasNewBest(b.offers, include)) kinds.set(b.name, 'new')
   return kinds
 }
 

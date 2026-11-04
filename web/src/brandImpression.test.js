@@ -87,7 +87,7 @@ test('브랜드 노출 props를 화면 상태에서 정규화한다', () => {
   })
   assert.equal(brandImpressionProps({ name: '미분류', category: null, offers: [] }, 1).category, 'none')
   // 맨 위로 올라온 이유는 브랜드에 붙은 pin을 그대로 싣는다(2026-10-27)
-  assert.equal(brandImpressionProps({ name: '교촌치킨', offers: [], pin: 'hot' }, 1).pin, 'hot')
+  assert.equal(brandImpressionProps({ name: '교촌치킨', offers: [], pin: 'new' }, 1).pin, 'new')
   assert.equal(brandImpressionProps({ name: '교촌치킨', offers: [], pin: 'new' }, 2).pin, 'new')
 })
 

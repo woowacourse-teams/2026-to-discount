@@ -49,6 +49,8 @@
 | 72 | [Grafana Cloud 로그 저장 및 조회 구성](72-grafana-cloud-logs.md) | 운영 설치 및 검증 완료, PR 리뷰 대기 | 없음 | 토큰 교체 및 전송 재확인 |
 | [47](47-footer-legal-pages.md) | 바닥글 정리: 브랜드 목록 접기, 고지문을 /about·/privacy로 | **구현, 프리뷰 승인 대기** (2026-10-13) | 없음 | 없음 |
 | 67 | [요청 ID로 접근 기록과 오류 연결](67-request-id-correlation.md) | **운영 배포 및 인수 검증 완료**. 개발 Nginx 검증은 사용자 승인으로 생략 | 없음 | 없음 |
+| 215 | [무중단 배포 쓰기 시험의 저장 수 대조와 188 정정](215-zdd-write-count-check.md) | 188 정정 완료, 원장 대조는 서버 미접속으로 미확인 (2026-11-02) | 없음 | 서버 원장 읽기 |
+| 227 | [쿠팡이츠 주간 공유 링크 갱신 자동화](227-coupangeats-weekly-link-update.md) | 구현 (2026-11-03). mono 검사기·교체기(`scripts/coupangeats_link.py`)까지. 링크 입수와 월요일 입구는 tracker 후속 | 없음 | 봇의 main 직접 push 가능 여부 |
 
 트래커 쪽 설계·계획(수집 파이프라인)은 tracker 저장소(비공개)에 따로 있다
 (둘 다 구현 완료, ADR-032·조율기).

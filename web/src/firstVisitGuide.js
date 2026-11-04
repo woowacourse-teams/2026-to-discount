@@ -25,7 +25,7 @@ const DETAIL = '상세 정보도 있어요!'
 // side: 표시를 테두리 어느 쪽 위에 붙이나. 카드의 기존 표(최고, 신규 할인)와 화면 가장자리를 피한다.
 const card = (button, buttonSide, detail, detailSide) => ({ key: 'card', selector: '.brand-grid > :first-child', text: CARD_TEXT, em: '버튼',
   marks: [{ selector: button, label: '버튼', side: buttonSide }, { selector: detail, label: DETAIL, side: detailSide }] })
-const SORT = { key: 'sort', selector: '.quick-bar', text: '할인금액 높은순, 최소주문 낮은순으로 빠르게 모아 볼 수 있어요.' }
+const SORT = { key: 'sort', selector: '.quick-bar', text: '할인금액, 최소주문금액, 인기, 최신 순으로 빠르게 모아 볼 수 있어요.' }
 const CATEGORY = '카테고리를 선택해 모아 볼 수 있어요.'
 
 // 상단 바(TopBarB: 검색창 + 분류 메뉴 + 필터 시트)와 쿠폰 카드 기준. 운영 카드 안은 2026-10-17에 지웠다.
