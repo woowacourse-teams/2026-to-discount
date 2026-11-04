@@ -43,7 +43,7 @@ public class EventController {
     private static final Set<String> ALLOWED_EVENTS = Set.of(
             "offer_share_click", "offer_share_result", "offer_share_landing", "offer_share_target_view",
             // 배달앱에서 돌아옴, 앱이 안 열려 공유 링크로 넘김(2026-10-14, 신뢰를 재는 프론트 지표)
-            "app_return", "link_fallback",
+            "app_return",
             "page_view", "page_exit", "category_change", "brand_expand",
             "offer_link_click", "banner_click", "platform_filter_toggle", "filters_reset",
             "brands_retry", "scroll_to_top", "membership_toggle", "filters_apply",
@@ -74,7 +74,9 @@ public class EventController {
             // 잘못된 정보 제보(2026-10-19, ReportButton.jsx): 버튼, 말풍선 노출과 닫기, 전송 결과. 글 내용은 안 싣는다.
             "report_open", "report_tip_shown", "report_tip_closed", "report_sent", "report_failed",
             // 실사용 측정(2026-10-14, web/src/telemetry.js): 앱 열림 결과, 웹 바이탈, 클라이언트 오류.
-            "app_open_result", "web_vitals", "client_error");
+            "app_open_result", "web_vitals", "client_error",
+            // 앱이 안 열렸을 때 설치 안내(2026-11-04, web/src/offerLink.js): 띄움, 눌러 닫음, 그다음 행동.
+            "install_hint_shown", "install_hint_ack", "install_hint_next");
     private static final Set<String> BRAND_SEARCH_PROPS = Set.of(
             "inputLength", "resultCount", "submitMethod", "query", "results",
             "fCategory", "fPlatforms", "fSearch", "fSort",
