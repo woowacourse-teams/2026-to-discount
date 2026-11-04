@@ -463,10 +463,23 @@
 .cc-alt__tag { margin-left: 4px; font-size: 10px; padding: 0 4px; filter: none; }
 
 /* 좋아요/싫어요(#309): 5행 왼쪽 아래, 자세히 보기와 같은 줄. 버튼 40x34, 사이 4px */
-.cc > .cc-react { grid-row: 5; grid-column: 1; justify-self: start; align-self: end; display: flex; gap: 4px; margin: 10px 0 calc(-1 * var(--pad)) var(--pad); transition: opacity 240ms ease 280ms, visibility 0s 280ms; }
+.cc > .cc-react { grid-row: 5; grid-column: 1; justify-self: start; align-self: end; display: flex; gap: 4px; margin: 10px 0 10px var(--pad); /* 위(다른 앱 금액 줄)와 같은 여백을 아래에도(2026-11-05 사용자) */ transition: opacity 240ms ease 280ms, visibility 0s 280ms; }
 .cc--open .cc-react { opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 0s 140ms; }
 .cc-react button { all: unset; box-sizing: border-box; width: 40px; height: 34px; display: grid; place-items: center; cursor: pointer; color: var(--text-muted); }
 .cc-react button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .cc-react svg { width: 20px; height: 20px; }
 .cc-react button[aria-pressed="true"] { color: var(--text); }
 .cc-react button[aria-pressed="true"] svg path { fill: currentColor; }
+/* 유튜브식 반응(2026-11-05 사용자): 누르는 동안 눌림, 켜질 때 엄지가 튀며 기울고 둘레에 퍼지는 고리 */
+.cc-react button { position: relative; border-radius: 999px; transition: background-color .15s ease, transform .12s ease; -webkit-tap-highlight-color: transparent; }
+.cc-react button:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.cc-react button:active { transform: scale(.88); }
+.cc-react button[aria-pressed="true"] { color: var(--sale); }
+.cc-react button[aria-pressed="true"] svg { animation: react-pop .42s cubic-bezier(.2, 1.6, .4, 1); }
+.cc-react button[aria-label="싫어요"][aria-pressed="true"] { color: var(--text); }
+.cc-react button[aria-label="싫어요"][aria-pressed="true"] svg { animation-name: react-pop-down; }
+.cc-react button[aria-pressed="true"]::after { content: ""; position: absolute; inset: 2px 5px; border-radius: 999px; border: 2px solid currentColor; opacity: 0; animation: react-ring .45s ease-out; pointer-events: none; }
+@keyframes react-pop { 0% { transform: scale(.7) rotate(0); } 45% { transform: scale(1.35) rotate(-14deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes react-pop-down { 0% { transform: scale(.7) rotate(0); } 45% { transform: scale(1.3) rotate(14deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes react-ring { 0% { transform: scale(.6); opacity: .55; } 100% { transform: scale(1.35); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cc-react button svg, .cc-react button::after { animation: none !important; } }
