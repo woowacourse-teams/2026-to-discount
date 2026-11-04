@@ -167,7 +167,7 @@
 .quick-bar__sorts {
   display: flex;
   gap: 14px;
-  flex: 1 1 100%;
+  flex: 1 1 0;
   min-width: 0;
   overflow-x: auto;
   cursor: grab;
@@ -257,3 +257,8 @@
 .sheet__chips--thumb .sheet__chip--on { background: none; box-shadow: none; }
 .sheet__thumb { position: absolute; top: 3px; bottom: 3px; border-radius: 999px; background: var(--surface); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); transition: left .28s cubic-bezier(.2, .8, .2, 1), width .28s cubic-bezier(.2, .8, .2, 1); }
 @media (prefers-reduced-motion: reduce) { .sheet__thumb { transition: none; } }
+
+/* 정렬 줄 오른쪽 초기화·필터(2026-11-04 사용자) */
+.quick-bar { flex-wrap: wrap; }
+.quick-bar__tools { display: flex; align-items: center; gap: 2px; flex: none; }
+.quick-bar__actions:empty { display: none; }

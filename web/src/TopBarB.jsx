@@ -129,14 +129,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           {/* 알림 종 자리는 제보 버튼(2026-10-19 사용자). 슬롯은 알림 켜고 끈 결과 말풍선만 받는다. */}
           <span ref={pushToggleRef} id="push-toggle-slot" className="push-toggle-slot" />
           <ReportButton filters={filters} hold={reportHold} brands={brands} />
-          <button type="button" className={`icon-btn${isFiltered ? ' icon-btn--active' : ''}`} disabled={!isFiltered}
-            onClick={resetFilters} aria-label="필터 초기화" title={isFiltered ? '필터 초기화' : '되돌릴 필터가 없습니다'}>
-            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><polyline points="21 3 21 9 15 9" /></svg>
-          </button>
-          <button type="button" className={`icon-btn${sheetOpen ? ' icon-btn--on' : isFiltered ? ' icon-btn--active' : ''}`}
-            aria-expanded={sheetOpen} aria-label="필터 열기" title="필터" onClick={onOpenSheet}>
-            {/* 필터: flowbite filter-outline(MIT, 2026-11-04 사용자 선택) */}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2.2"><path d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z" /></svg>
-          </button>
+          {/* 초기화·필터 버튼은 정렬 줄 오른쪽으로 옮겼다(2026-11-04 사용자, App quick-bar__tools) */}
         </div>
       </div>
       {popular /* 실시간 인기 순위: 검색과 분류 사이(2026-10-17 사용자) */}
