@@ -161,7 +161,7 @@
 /* 안의 쿠폰과 표는 투명도와 6px 이동, 40ms씩 늦게 시작(끝날 때도 지연) */
 .cc-deal--more, .cc-tbl { opacity: 0; transform: translateY(-6px); transition: opacity 160ms ease calc(var(--i, 0) * 40ms), transform 160ms ease calc(var(--i, 0) * 40ms); }
 .cc--open .cc-deal--more, .cc--open .cc-tbl { opacity: 1; transform: none; transition: opacity 220ms ease calc(120ms + var(--i, 0) * 40ms), transform 260ms cubic-bezier(.2, 0, 0, 1) calc(120ms + var(--i, 0) * 40ms); }
-@media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-hint, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-hint, .cc-react, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
 
 /* ?compact=1 시안: 17차 시안처럼 낮고 촘촘한 쿠폰(높이 76px 안팎, 앱 로고 34px, 금액 25px, 꼭지 58px, 아래 띠 없음) */
 .cc--compact { --tk-h: 96px; } /* 76 -> 84 -> 96px(2026-10-06 사용자: 이동 영역 99px와 비율) */
@@ -461,3 +461,12 @@
 .cc-sheet__hide:active { background: #222; }
 /* 다른 앱 금액 줄: 그 앱 오퍼만 상태 배지(랜덤·품절·오픈 전, 2026-11-04 사용자) */
 .cc-alt__tag { margin-left: 4px; font-size: 10px; padding: 0 4px; filter: none; }
+
+/* 좋아요/싫어요(#309): 5행 왼쪽 아래, 자세히 보기와 같은 줄. 버튼 40x34, 사이 4px */
+.cc > .cc-react { grid-row: 5; grid-column: 1; justify-self: start; align-self: end; display: flex; gap: 4px; margin: 10px 0 calc(-1 * var(--pad)) var(--pad); transition: opacity 240ms ease 280ms, visibility 0s 280ms; }
+.cc--open .cc-react { opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 0s 140ms; }
+.cc-react button { all: unset; box-sizing: border-box; width: 40px; height: 34px; display: grid; place-items: center; cursor: pointer; color: var(--text-muted); }
+.cc-react button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cc-react svg { width: 20px; height: 20px; }
+.cc-react button[aria-pressed="true"] { color: var(--text); }
+.cc-react button[aria-pressed="true"] svg path { fill: currentColor; }

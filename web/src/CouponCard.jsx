@@ -269,11 +269,20 @@ function Ticket({ brand, best, hasBest, position, idx, setIdx }) {
   return <Carousel brand={brand} best={best} position={position} idx={idx} setIdx={setIdx} />
 }
 
+// 엄지 아이콘. 눌린 상태의 채움은 CSS(aria-pressed)가 한다. 싫어요는 위아래를 뒤집는다.
+function ThumbIcon({ down = false }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" style={down ? { transform: 'scaleY(-1)' } : undefined}>
+      <path d="M7 10v11H3V10h4zm0 0l4-8c1.5 0 2.5 1.2 2.2 2.7L12.5 8H19a2 2 0 0 1 2 2.3l-1.3 8A2 2 0 0 1 17.7 20H7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 // 펼침/접힘(CSS grid 0fr 1fr 기법, M3 확장 250ms 안팎, emphasized easing). 폭·높이를 재지 않는다.
 // phase: false(접힘, DOM에 없음) → 'enter'(내용을 0fr로 먼저 DOM에 넣음) → 'open'(두 프레임 뒤 1fr) → 'leave'(0fr로 닫는 중) → false.
 const OPEN_MS = 280
 const LEAVE_MS = 220
-function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false, compact = false, sharedKey, onShareTargetVisible }) {
+function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, onReact, reaction = 'none', leaving = false, photo = false, compact = false, sharedKey, onShareTargetVisible }) {
   const { best, rest, hasBest, bundles } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
   const [phase, setPhase] = useState(false)
   const [cur, setCur] = useState(0) // 캐러셀에서 보이는 쿠폰. 브랜드명 옆 배지가 이걸 따른다
@@ -341,7 +350,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const onSheetMove = (e) => { if (e.pointerType === 'mouse' && dragMove(e.clientY)) e.currentTarget.setPointerCapture?.(e.pointerId) }
   const onSheetUp = (e) => { if (e.pointerType === 'mouse') dragEnd() }
   const onCardClick = (e) => {
-    if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging, .cc-combo__btn')) return
+    if (e.target.closest('a, .cc-hide, .cc-react, .cc-carousel.cc-dragging, .cc-combo__btn')) return
     // 바로가기(인기 브랜드, #brand-이름)로 카드 안에서 펼쳐진 상태면 시트 대신 접는다(2026-10-16 사용자: 못 접는다)
     if (phase === 'open' || phase === 'enter') { toggle(); return }
     if (!canExpand) return
@@ -462,6 +471,13 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         자세히 보기
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>}
+      {/* 왼쪽 아래 좋아요/싫어요(#309). 숨기기와 따로다. 누른 상태는 모양(채움)과 aria-pressed로 보인다 */}
+      {onReact && (
+        <div className="cc-react" role="group" aria-label={`${brand.name} 반응`}>
+          <button type="button" aria-label="좋아요" aria-pressed={reaction === 'like'} onClick={() => onReact(brand, 'like', position)}><ThumbIcon /></button>
+          <button type="button" aria-label="싫어요" aria-pressed={reaction === 'dislike'} onClick={() => onReact(brand, 'dislike', position)}><ThumbIcon down /></button>
+        </div>
+      )}
       {/* 오른쪽 위는 공유(2026-11-04 사용자). 숨기기는 자세히 보기 시트 맨 아래로 옮겼다 */}
       {/* 특정메뉴 등 비교 밖 쿠폰만 있어도 카드 대표 쿠폰을 공유한다(스텔라떡볶이, 2026-11-04) */}
       {best[0] && <OfferShareButton offer={best[0]} brandName={brand.name} position={position} where="card" className="cc-hide cc-share" />}
