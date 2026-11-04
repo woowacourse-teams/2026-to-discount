@@ -73,7 +73,7 @@ const LinkIcon = () => (
 
 // 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기, 17차 시안): 왼쪽 앱 로고, 금액과 최소주문, 오른쪽 앱 색 이동 꼭지(링크 아이콘).
 // 배지는 쿠폰 안에 두지 않는다(브랜드명 옆, 캐러셀이면 보이는 쿠폰 것).
-const stateLabel = (o) => (o.soldOut ? '품절' : beforeOpen(o) ? '오픈 전' : o.qualifier === '랜덤' ? '랜덤' : null)
+const stateLabel = (o) => (o.soldOut ? '품절' : beforeOpen(o) ? '오픈 전' : o.qualifier === '랜덤' ? '랜덤' : o.qualifier === '최대' ? '불확정' : null)
 
 function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags = null, ...rest }) {
   return (
@@ -107,11 +107,14 @@ export function Tags({ o, detail = false }) {
   // 카드와 상세 오퍼 머리가 같은 목록(chipsOf)에서 뽑는다(#151). 복합은 늘 맨 오른쪽(사용자 2026-10-06)
   const all = headOrder(chipsOf(o).filter(detail ? (c) => c.scope === 'offer' && onDetail(c) : onCard))
   const ch = all.find((b) => b.kind === 'channel')?.text
-  const tags = all.filter((b) => b.kind !== 'channel')
-  if (!ch && tags.length === 0) return null
+  const st = stateLabel(o)
+  // 상태(랜덤·품절·오픈 전·불확정)는 쿠폰 위 배지와 같은 모양으로 채널 자리에 한 묶음(2026-11-05 사용자)
+  const tags = all.filter((b) => b.kind !== 'channel' && !(st && (b.text === '랜덤' || b.text === '불확정')))
+  if (!ch && !st && tags.length === 0) return null
   return (
     <span className="cc-tags"><span className="chip-tags">
-      {ch && <span className="offer__range-badge offer__range-badge--plain">{ch}</span>}
+      {st && <em className="cc-soldout">{st}</em>}
+      {ch && <span className="cc-ch" data-ch={ch}>{ch}</span>}
       {tags.map((b) => (b.kind === 'best-fit'
         ? <ComboInfo key={`${b.kind}:${b.text}`} o={o} text={b.text} />
         : <OpBadge key={`${b.kind}:${b.text}`} b={b} platform={o.platform} />))}
@@ -272,8 +275,9 @@ function Ticket({ brand, best, hasBest, position, idx, setIdx }) {
 // 엄지 아이콘. 눌린 상태의 채움은 CSS(aria-pressed)가 한다. 싫어요는 위아래를 뒤집는다.
 function ThumbIcon({ down = false }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" style={down ? { transform: 'scaleY(-1)' } : undefined}>
-      <path d="M7 10v11H3V10h4zm0 0l4-8c1.5 0 2.5 1.2 2.2 2.7L12.5 8H19a2 2 0 0 1 2 2.3l-1.3 8A2 2 0 0 1 17.7 20H7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+    // 뒤집기는 svg 안 g에 둔다. svg에 두면 눌림 애니메이션(transform)이 뒤집기를 덮어 싫어요가 잠깐 좋아요로 보였다(2026-11-05 사용자)
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <g transform={down ? 'matrix(1 0 0 -1 0 24)' : undefined}><path d="M7 10v11H3V10h4zm0 0l4-8c1.5 0 2.5 1.2 2.2 2.7L12.5 8H19a2 2 0 0 1 2 2.3l-1.3 8A2 2 0 0 1 17.7 20H7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></g>
     </svg>
   )
 }
@@ -417,7 +421,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   // 상세 표가 쿠폰에 이미 보이는 것(금액, 최소주문, 채널·멤버십 배지)만 되풀이하면 펼칠 것이 없다:
   // 구간이 둘 이상이거나 조건 문장이 있어야 더 볼 것이 있다(2026-10-05 사용자: 노모어피자처럼 다 보이면 자세히 보기를 없앤다).
   const hasMore = (o) => { const t = conditionTable(o); return t.rows.length > 1 || !!t.note }
-  const canExpand = rest.length > 0 || stack || best.some(hasMore)
+  const canExpand = true // 모든 카드에 자세히 보기. 하위 오퍼는 시트에서만 본다(2026-11-05 사용자)
   const top = stack ? [best[cur] ?? best[0]] : best
   const bestTables = shown ? top.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
   const listed = stack ? [...best.filter((o) => o !== top[0]), ...rest] : rest
@@ -456,14 +460,6 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         <div className="cc-x"><div className="cc-x-in">
           {bestTables.map(({ o, t }, i) => (
             <DetailTable key={offerKey(o)} t={t} i={i} />
-          ))}
-        </div></div>
-      )}
-      {/* 접힌 하위 라벨(쿠폰 아래 한 줄, 최대 3개). 펼칠 때 먼저 사라지고(같은 grid 기법), 접으면 다시 나타난다. */}
-      {rest.length > 0 && (
-        <div className="cc-alts"><div className="cc-alts-in">
-          {rest.slice(0, 3).map((o) => (
-            <span key={offerKey(o)} className={`cc-alt${stateLabel(o) ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}{stateLabel(o) && <em className="cc-soldout cc-alt__tag">{stateLabel(o)}</em>}</span>
           ))}
         </div></div>
       )}
