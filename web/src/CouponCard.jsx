@@ -535,30 +535,37 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
 // 시트 얇은 탭바(2026-10-16 사용자): 할인 상세 / 할인 기록. 둘 다 한 화면에 이어 있고 탭은 그 자리로 스크롤만 한다.
 // 스크롤하면 지금 보이는 쪽 탭이 켜진다. 그래프가 없는 브랜드는 CSS(:has)가 탭바를 숨긴다.
 function SheetTabs({ bodyRef, histRef, brand }) {
-  const [onHist, setOnHist] = useState(false)
+  // 두 탭에 각각 불: 상세가 화면에 보이면 상세, 기록 그래프가 보이면 기록. 한 화면에 둘 다 보이면 둘 다(2026-11-04 사용자:
+  // 둘 다 보일 때 기록 탭을 눌러도 아무 변화가 없어 헷갈린다).
+  const [on, setOn] = useState({ detail: true, hist: false })
   useEffect(() => {
     const body = bodyRef.current
     if (!body) return undefined
-    // 그래프 위 끝이 본문 가운데보다 위로 오거나 끝까지 내렸으면 기록 탭
     const sync = () => {
       const h = histRef.current
       if (!h) return
-      const atEnd = body.scrollTop + body.clientHeight >= body.scrollHeight - 4
-      setOnHist(atEnd || h.offsetTop - body.scrollTop < body.clientHeight / 2)
+      const top = body.scrollTop
+      const view = body.clientHeight
+      const atEnd = top + view >= body.scrollHeight - 4
+      const histVisible = atEnd || h.offsetTop - top < view - 40
+      const detailVisible = top < h.offsetTop - 40 && !(atEnd && top > 4 && h.offsetTop - top < view / 4)
+      setOn({ detail: detailVisible || !histVisible, hist: histVisible })
     }
+    sync()
+    const t = setTimeout(sync, 400) // 그래프가 늦게 그려져 높이가 바뀐다
     body.addEventListener('scroll', sync, { passive: true })
-    return () => body.removeEventListener('scroll', sync)
+    return () => { clearTimeout(t); body.removeEventListener('scroll', sync) }
   }, [bodyRef, histRef])
   const go = (hist) => {
     const body = bodyRef.current
     if (!body) return
-    track('sheet_tab', { brand, tab: hist ? 'history' : 'detail' })
+    track('sheet_tab', { brand, tab: hist ? 'history' : 'detail', bothVisible: on.detail && on.hist })
     body.scrollTo({ top: hist ? histRef.current.offsetTop - 8 : 0, behavior: 'smooth' })
   }
   return (
     <div className="cc-sheet__tabs" role="tablist" aria-label="보기">
-      <button type="button" role="tab" aria-selected={!onHist} onClick={() => go(false)}>할인 상세</button>
-      <button type="button" role="tab" aria-selected={onHist} onClick={() => go(true)}>할인 기록</button>
+      <button type="button" role="tab" aria-selected={on.detail} onClick={() => go(false)}>할인 상세</button>
+      <button type="button" role="tab" aria-selected={on.hist} onClick={() => go(true)}>할인 기록</button>
     </div>
   )
 }

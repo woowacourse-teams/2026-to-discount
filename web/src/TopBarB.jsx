@@ -8,7 +8,7 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import MenuBar from './MenuBar.jsx'
 import ReportButton from './ReportButton.jsx'
 import { PLATFORMS } from './logos.jsx'
-import { CATEGORIES, visibleCategories } from './filters.js'
+import { visibleCategories } from './filters.js'
 import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 import './styles/topbar-b.css'
 
@@ -55,8 +55,8 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
         <input
           type="search"
           className="search-field__input"
-          placeholder="브랜드 검색"
-          aria-label="브랜드 검색"
+          placeholder="브랜드, 메뉴, 카테고리 검색"
+          aria-label="브랜드, 메뉴, 카테고리 검색"
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={autocomplete.isOpen}
@@ -114,13 +114,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           chips={(
             <>
               {/* 칩 전체가 해제 버튼이다. ×는 무엇이 일어날지 알려주는 표시로만 둔다. */}
-              {CATEGORIES.filter((c) => filters.categories.has(c.key)).map((c) => (
-                <button type="button" className="search-chip" key={c.key}
-                  aria-label={`${c.label} 해제`} onClick={() => toggleCategory(c.key)}>
-                  {c.label}
-                  <span className="search-chip__x" aria-hidden="true">×</span>
-                </button>
-              ))}
+              {/* 고른 분류는 메뉴 바에서 강조되니 검색창 칩으로 넣지 않는다(2026-11-04 사용자) */}
               {filters.platforms.size < PLATFORMS.length && (
                 <button type="button" className="search-chip" aria-label="앱 선택 초기화"
                   onClick={() => setFilters((f) => ({ ...f, platforms: new Set(PLATFORMS.map((x) => x.key)) }))}>
@@ -141,7 +135,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           </button>
           <button type="button" className={`icon-btn${sheetOpen ? ' icon-btn--on' : isFiltered ? ' icon-btn--active' : ''}`}
             aria-expanded={sheetOpen} aria-label="필터 열기" title="필터" onClick={onOpenSheet}>
-            {/* 깔때기: Phosphor funnel-bold(MIT) */}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 256 256" fill="currentColor"><path d="M234.29 47.91A20 20 0 0 0 216 36H40a20 20 0 0 0-14.8 33.45l.12.14L92 140.75V216a20 20 0 0 0 31.1 16.64l32-21.33a20 20 0 0 0 8.9-16.65v-53.91l66.67-71.16l.12-.14a20 20 0 0 0 3.5-21.54m-91 79.89A12 12 0 0 0 140 136v56.52l-24 16V136a12 12 0 0 0-3.25-8.2L49.23 60h157.54Z" /></svg>
+            {/* 필터: flowbite filter-outline(MIT, 2026-11-04 사용자 선택) */}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2.2"><path d="M18.796 4H5.204a1 1 0 0 0-.753 1.659l5.302 6.058a1 1 0 0 1 .247.659v4.874a.5.5 0 0 0 .2.4l3 2.25a.5.5 0 0 0 .8-.4v-7.124a1 1 0 0 1 .247-.659l5.302-6.059c.566-.646.106-1.658-.753-1.658Z" /></svg>
           </button>
         </div>
       </div>

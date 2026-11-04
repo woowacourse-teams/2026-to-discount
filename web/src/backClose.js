@@ -29,3 +29,20 @@ export function useBackClose(open, close) {
     }
   }, [open])
 }
+
+/** 메인에서 뒤로 한 번에 사이트가 꺼지지 않게 한 칸(guard)을 깐다. 뒤로가 그 칸을 지나 바닥에 닿으면
+ *  "한 번 더 누르면 나가요"를 띄우고 칸을 다시 깐다. 2초 안에 또 누르면 그대로 나간다(2026-11-04 사용자).
+ *  시트, 검색 등 위에 쌓인 칸(overlay)을 닫는 뒤로는 바닥에 안 닿으니 여기 걸리지 않는다. */
+export function exitGuard(notify, history = window.history, now = () => Date.now()) {
+  let armedAt = 0
+  history.pushState({ ...history.state, guard: true }, '')
+  const onPop = (e) => {
+    if (e.state?.guard || e.state?.overlay) return
+    if (now() - armedAt < 2000) { window.removeEventListener('popstate', onPop); history.back(); return }
+    armedAt = now()
+    notify('뒤로 버튼을 한 번 더 누르면 나가요')
+    history.pushState({ ...history.state, guard: true }, '')
+  }
+  window.addEventListener('popstate', onPop)
+  return () => window.removeEventListener('popstate', onPop)
+}

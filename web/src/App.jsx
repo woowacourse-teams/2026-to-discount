@@ -120,6 +120,19 @@ export default function App({ initial = null }) {
   // 통째로 돌려주므로 "적용" 한 번에 setFilters 한 번이다.
   const [sheetOpen, setSheetOpen] = useState(false)
   useBackClose(sheetOpen, () => setSheetOpen(false))
+  // 정렬 줄은 터치로 넘기고, 마우스로도 끌어 넘긴다. 끈 뒤의 클릭은 고르기로 치지 않는다(2026-11-04 사용자)
+  const dragScroll = useMemo(() => {
+    let x0 = 0, left0 = 0, moved = false, el = null
+    return {
+      onPointerDown: (e) => { if (e.pointerType !== 'mouse') return; el = e.currentTarget; x0 = e.clientX; left0 = el.scrollLeft; moved = false },
+      onPointerMove: (e) => { if (!el) return; const dx = e.clientX - x0; if (Math.abs(dx) > 4) moved = true; el.scrollLeft = left0 - dx },
+      onPointerUp: () => { el = null },
+      onPointerLeave: () => { el = null },
+      onClickCapture: (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false } },
+    }
+  }, [])
+  // 분류(또는 신규)를 고른 화면은 메인 위에 덮인 화면으로 본다: 뒤로 = 전체로(2026-11-04 사용자: 뒤로 누르면 사이트가 꺼졌다)
+  useBackClose(filters.categories.size > 0 || filters.updatedOnly, () => setFilters((f) => ({ ...f, categories: new Set(), updatedOnly: false })))
   const applyFromSheet = (draft) => {
     setFilters(draft)
     saveMinAmount(draft.minAmount)
@@ -301,7 +314,8 @@ export default function App({ initial = null }) {
       (f) => applyHidden(applyFilters(brands, f), hidden, bestOf).map((b) => b.name))
     // ponytail: 어떻게 해도 안 서면(순위를 그린 뒤 목록이 바뀜) 지금은 아무 일도 안 한다. 안내 문구가 정해지면 띄운다(#219 열린 질문 3).
     if (!target) return
-    if (target.cleared.length > 0) setFilters(target.filters)
+    // 실시간 순위에서 브랜드로 가면 분류는 늘 푼다(2026-11-04 사용자: 분류가 걸려 있으면 순위에서 바로 못 넘어간다)
+    setFilters({ ...target.filters, categories: new Set() })
     setLinkedBrand(null)
     requestAnimationFrame(() => setLinkedBrand(brandCardId(name)))
   }
@@ -579,8 +593,9 @@ export default function App({ initial = null }) {
           상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
       {brands && (
         <div className="quick-bar">
-        <div className="quick-bar__sorts" role="group" aria-label="정렬">
-          {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문 낮은순']].map(([key, dir, label]) => {
+        <div className="quick-bar__sorts" role="group" aria-label="정렬" {...dragScroll}>
+          {/* 2026-11-04 사용자: 넷을 가로 캐러셀로(배경 없이 굵은 회색 글씨, 고른 것은 강조색). 인기순·최신순은 방향이 고정이다 */}
+          {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문금액 낮은순'], ['popularity', 'desc', '인기순'], ['recent', 'desc', '최신순']].map(([key, dir, label]) => {
             const first = primarySort(filters)
             const on = first.key === key && first.dir === dir
             return (
@@ -603,21 +618,7 @@ export default function App({ initial = null }) {
           })}
         </div>
         <div className="quick-bar__actions">
-        {/* N천원 이상만: 시트의 같은 칸과 한 상태, 기본은 켜짐.
-            2026-10-13 사용자: 금액은 시트에서 고르고 적용해야 바뀐다. */}
-        <button
-          type="button"
-          role="switch"
-          aria-checked={filters.minAmount5k}
-          className="quick-bar__switch"
-          onClick={() => {
-            setFilters((f) => ({ ...f, minAmount5k: !f.minAmount5k }))
-            track('quick_filter', { key: 'min5k', on: !filters.minAmount5k, amount: filters.minAmount })
-          }}
-        >
-          <span>{minAmountLabel(filters.minAmount)} 이상만</span>
-          <span className="quick-bar__switch-track" aria-hidden="true" />
-        </button>
+        {/* N천원 이상만은 메인에서 뺐다. 필터 시트에서만 켜고 끈다(2026-11-04 사용자) */}
         {/* 숨긴 목록은 정렬과 다른 일이라 오른쪽에 따로 선다. 떠 있는 알약으로 두었더니
             하단 배너와 겹쳤다(2026-09-24 사용자). 숨긴 것이 없으면 안 그린다. */}
         {Object.keys(hidden).length > 0 && (
