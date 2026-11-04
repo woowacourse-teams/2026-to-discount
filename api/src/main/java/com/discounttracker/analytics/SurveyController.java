@@ -33,7 +33,7 @@ public class SurveyController {
 
     @GetMapping
     public Map<String, Object> status(@RequestParam(required = false) String visitorId) {
-        return Map.of("eligible", survey.eligible(visitorId));
+        return Map.of("eligible", survey.eligible(visitorId), "open", survey.isOpen());
     }
 
     /**

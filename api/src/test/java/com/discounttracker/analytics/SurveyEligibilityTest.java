@@ -89,6 +89,10 @@ class SurveyEligibilityTest {
     @Test
     void qualifiesNeedsBothThresholds() {
         assertTrue(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 5, false, false)));
+        // 설정 문턱(2026-11-04): 낮춘 문턱으로도 같은 규칙(1인 1회, 개발 기기 제외)
+        assertTrue(SurveyEligibility.qualifies(new SurveyEligibility.Counts(3, 2, false, false), 3, 2));
+        assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(3, 2, true, false), 3, 2));
+        assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(2, 2, false, false), 3, 2));
         assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(6, 5, false, false)));
         assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 4, false, false)));
         assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 5, true, false)));

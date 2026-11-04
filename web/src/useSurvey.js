@@ -3,7 +3,6 @@ import { API_BASE, fetchSurveyStatus } from './api.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { getStoredCode, markAnswered, shouldShow } from './surveyDismiss.js'
 
-const SURVEY_OPEN = false
 
 export function useSurvey() {
   const [isVisible, setIsVisible] = useState(false)
@@ -12,16 +11,17 @@ export function useSurvey() {
   const [code, setCode] = useState(() => getStoredCode())
 
   useEffect(() => {
-    // 종료는 저장 코드와 개발용 강제 표시보다 우선한다. 저장값은 보존한다.
-    if (!SURVEY_OPEN) return
+    // 열고 닫기는 서버가 정한다(GET /api/survey 의 open, 서버 환경변수 DISCOUNT_SURVEY_OPEN, 2026-11-04).
+    // 닫혀 있으면 저장 코드와 개발용 강제 표시보다 우선해 아무것도 안 띄운다. 저장값은 보존한다.
+    let alive = true
+    const { visitorId } = getAnalyticsContext()
 
     async function syncCodeFromServer() {
-      const { visitorId } = getAnalyticsContext()
       if (!visitorId) return
       try {
         const res = await fetch(`${API_BASE}/api/survey/code?visitorId=${encodeURIComponent(visitorId)}`)
         const body = await res.json()
-        if (body.code && body.code !== getStoredCode()) {
+        if (alive && body.code && body.code !== getStoredCode()) {
           markAnswered(body.code)
           setCode(body.code)
         }
@@ -30,24 +30,16 @@ export function useSurvey() {
       }
     }
 
-    // 활성 상태에서는 기존 참여자가 재고와 대상 판정을 거치지 않고 링크를 다시 본다.
-    // 서버에서 코드가 바뀌었을 수 있으므로 저장본과 동기화한다.
-    if (getStoredCode()) {
-      setIsVisible(true)
-      syncCodeFromServer()
-      return
-    }
-    // 개발용 화면 확인 경로는 유지하되 설문 종료를 우회하지 못하게 한다.
-    if (localStorage.getItem('dk_survey_force') === '1') {
-      setIsVisible(true)
-      return
-    }
-    if (!shouldShow()) return
-    let alive = true
-    const { visitorId } = getAnalyticsContext()
     fetchSurveyStatus(visitorId)
-      .then((status) => { if (alive) setIsVisible(Boolean(status.eligible)) })
-      .catch(() => {}) // 대상 조회 실패 시 노출하지 않는다.
+      .then((status) => {
+        if (!alive || !status.open) return
+        // 열린 동안 기존 참여자는 재고·대상 판정 없이 받은 링크를 다시 본다(서버와 동기화).
+        if (getStoredCode()) { setIsVisible(true); syncCodeFromServer(); return }
+        if (localStorage.getItem('dk_survey_force') === '1') { setIsVisible(true); return }
+        if (!shouldShow()) return
+        setIsVisible(Boolean(status.eligible))
+      })
+      .catch(() => {}) // 조회 실패 시 노출하지 않는다.
     return () => { alive = false }
   }, [])
 
