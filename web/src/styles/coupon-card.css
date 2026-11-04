@@ -459,3 +459,5 @@
 /* 브랜드 숨기기: 품절 배지(.cc-soldout)의 어두운 바탕·붉은 글자에 주황 윤곽선, 눈에 띄는 부정 버튼(2026-11-04 사용자) */
 .cc-sheet__hide { display: block; width: 100%; margin: 16px 0 8px; padding: 12px; border: 2px solid var(--sale); border-radius: 10px; background: #333; color: #ff8a80; font-size: 15px; font-weight: 700; cursor: pointer; }
 .cc-sheet__hide:active { background: #222; }
+/* 다른 앱 금액 줄: 그 앱 오퍼만 상태 배지(랜덤·품절·오픈 전, 2026-11-04 사용자) */
+.cc-alt__tag { margin-left: 4px; font-size: 10px; padding: 0 4px; filter: none; }
