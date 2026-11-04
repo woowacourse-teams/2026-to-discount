@@ -89,6 +89,13 @@ class SurveyEligibilityTest {
     @Test
     void qualifiesNeedsBothThresholds() {
         assertTrue(SurveyEligibility.qualifies(new SurveyEligibility.Counts(7, 5, false, false)));
+        // 최근 방문·사용 기간 문턱(2026-11-04)
+        java.time.LocalDate today = java.time.LocalDate.of(2026, 11, 4);
+        var longRecent = new SurveyEligibility.Counts(12, 5, false, false, "2026-09-20", "2026-10-25");
+        assertTrue(SurveyEligibility.recentAndLong(longRecent, 14, 30, today));
+        assertFalse(SurveyEligibility.recentAndLong(longRecent, 7, 30, today));   // 최근 7일엔 안 옴
+        assertFalse(SurveyEligibility.recentAndLong(new SurveyEligibility.Counts(12, 5, false, false, "2026-10-10", "2026-11-03"), 14, 30, today)); // 25일 사용
+        assertTrue(SurveyEligibility.recentAndLong(new SurveyEligibility.Counts(1, 0, false, false), 0, 0, today)); // 끄면 통과
         // 설정 문턱(2026-11-04): 낮춘 문턱으로도 같은 규칙(1인 1회, 개발 기기 제외)
         assertTrue(SurveyEligibility.qualifies(new SurveyEligibility.Counts(3, 2, false, false), 3, 2));
         assertFalse(SurveyEligibility.qualifies(new SurveyEligibility.Counts(3, 2, true, false), 3, 2));

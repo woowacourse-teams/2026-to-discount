@@ -70,7 +70,20 @@ public class SurveyEligibility {
      * @param answered    이미 설문에 답했나 — 1인 1회를 여기서 가른다
      * @param dev         한 번이라도 개발 트래픽(?dev=1)을 보낸 브라우저인가
      */
-    public record Counts(int days, int conversions, boolean answered, boolean dev) {
+    public record Counts(int days, int conversions, boolean answered, boolean dev, String firstDay, String lastDay) {
+        public Counts(int days, int conversions, boolean answered, boolean dev) {
+            this(days, conversions, answered, dev, null, null);
+        }
+    }
+
+    /** 최근 방문·사용 기간 문턱(2026-11-04). 0이면 끈다. today는 Asia/Seoul 날짜. */
+    public static boolean recentAndLong(Counts c, int recentDays, int minSpanDays, java.time.LocalDate today) {
+        if (recentDays <= 0 && minSpanDays <= 0) return true;
+        if (c.firstDay() == null || c.lastDay() == null) return false;
+        java.time.LocalDate first = java.time.LocalDate.parse(c.firstDay());
+        java.time.LocalDate last = java.time.LocalDate.parse(c.lastDay());
+        if (recentDays > 0 && last.isBefore(today.minusDays(recentDays))) return false;
+        return minSpanDays <= 0 || !last.isBefore(first.plusDays(minSpanDays));
     }
 
     /**
@@ -118,7 +131,10 @@ public class SurveyEligibility {
         }
         Tally t = tallies.get(visitorId);
         // 새로 띄운 서버에는 원장이 아직 없다. 없으면 "대상 아님"이지 오류가 아니다.
-        return t == null ? NONE : new Counts(t.days.size(), t.conversions, t.answered, t.dev);
+        if (t == null) return NONE;
+        String first = t.days.stream().min(String::compareTo).orElse(null);
+        String last = t.days.stream().max(String::compareTo).orElse(null);
+        return new Counts(t.days.size(), t.conversions, t.answered, t.dev, first, last);
     }
 
     /** 서버가 뜨자마자 원장을 한 번 읽어 둔다. 안 하면 첫 판정을 부른 방문자가 그 값을 치른다. */

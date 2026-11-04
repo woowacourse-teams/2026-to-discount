@@ -43,6 +43,9 @@ discount:
     open: ${DISCOUNT_SURVEY_OPEN:false}
     min-days: ${DISCOUNT_SURVEY_MIN_DAYS:7}
     min-conversions: ${DISCOUNT_SURVEY_MIN_CONVERSIONS:5}
+    # 최근 N일 안에 방문(0=끔), 첫 방문부터 마지막 방문까지 N일 이상(0=끔). 2026-11-04 사용자 안: 14, 30
+    recent-days: ${DISCOUNT_SURVEY_RECENT_DAYS:0}
+    min-span-days: ${DISCOUNT_SURVEY_MIN_SPAN_DAYS:0}
   # 잘못된 정보 제보(POST /api/reports)를 보낼 슬랙. 비어 있으면 로그에만 남긴다.
   report:
     # 받은 제보 원장(append, 한 줄에 JSON 하나). 슬랙과 상관없이 먼저 여기에 적는다.
