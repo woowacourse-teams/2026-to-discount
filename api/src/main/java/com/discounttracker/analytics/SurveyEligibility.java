@@ -81,7 +81,12 @@ public class SurveyEligibility {
      * 확인은 되게 하고 집계·보상에서만 뺀다.
      */
     public static boolean qualifies(Counts c) {
-        return c.days() >= MIN_DAYS && c.conversions() >= MIN_CONVERSIONS
+        return qualifies(c, MIN_DAYS, MIN_CONVERSIONS);
+    }
+
+    /** 문턱을 설정에서 받는 판정(2026-11-04: 설문 재개 때 기준을 배포 없이 바꾼다). */
+    public static boolean qualifies(Counts c, int minDays, int minConversions) {
+        return c.days() >= minDays && c.conversions() >= minConversions
                 && !c.answered() && !c.dev();
     }
 
