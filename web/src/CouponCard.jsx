@@ -43,7 +43,7 @@ function Min({ value }) {
 function Amt({ offer }) {
   const hasNum = offer.amount != null && !isBundle(offer) // 묶음 행사의 금액 칸은 정렬값이다
   const num = hasNum ? offer.amount.toLocaleString('ko-KR') : amountText(offer)
-  const dim = offer.soldOut || beforeOpen(offer)
+  const dim = !!stateLabel(offer) // 품절·오픈 전·랜덤은 금액 채도를 뺀다(2026-11-04 사용자)
   return (
     <span className="cc-amt">
       {/* 상위 오퍼 금액은 '원 할인'으로 끝낸다(2026-10-06 사용자) */}
@@ -454,7 +454,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
       {rest.length > 0 && (
         <div className="cc-alts"><div className="cc-alts-in">
           {rest.slice(0, 3).map((o) => (
-            <span key={offerKey(o)} className={`cc-alt${o.soldOut || beforeOpen(o) ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
+            <span key={offerKey(o)} className={`cc-alt${stateLabel(o) ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}</span>
           ))}
         </div></div>
       )}
