@@ -149,7 +149,7 @@
   /* main의 좌우 여백(1.25rem) 일부를 되가져와 왼쪽에 더 붙인다. 정렬 칩은 카드보다
      작아서 카드 선에 맞추면 그 위가 휑하다(2026-09-24 사용자). */
   margin: 0;
-  padding: 8px 0 0; /* 메뉴 바와 정렬 칩, 정렬 칩과 첫 카드 간격을 같게(12px, 2026-10-05 사용자) */
+  padding: 6px 0 0; margin-bottom: -2px; /* 위아래 2px씩 더 줄였다(2026-11-04). 메뉴 바와 정렬 칩, 정렬 칩과 첫 카드 간격을 같게(12px, 2026-10-05 사용자) */
 }
 .quick-bar__actions {
   display: flex;
@@ -167,7 +167,7 @@
 .quick-bar__sorts {
   display: flex;
   gap: 14px;
-  flex: 1 1 100%;
+  flex: 1 1 0;
   min-width: 0;
   overflow-x: auto;
   cursor: grab;
@@ -257,3 +257,17 @@
 .sheet__chips--thumb .sheet__chip--on { background: none; box-shadow: none; }
 .sheet__thumb { position: absolute; top: 3px; bottom: 3px; border-radius: 999px; background: var(--surface); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); transition: left .28s cubic-bezier(.2, .8, .2, 1), width .28s cubic-bezier(.2, .8, .2, 1); }
 @media (prefers-reduced-motion: reduce) { .sheet__thumb { transition: none; } }
+
+/* 정렬 줄 오른쪽 초기화·필터(2026-11-04 사용자) */
+.quick-bar { flex-wrap: wrap; }
+.quick-bar__tools { display: flex; align-items: center; gap: 2px; flex: none; }
+.quick-bar__actions:empty { display: none; }
+/* 정렬 줄 양끝 페이드·화살표: 분류 바(.menu-bar__more)를 그대로 쓰고 바탕색만 본문색으로 */
+.quick-bar__sortwrap { position: relative; flex: 1 1 0; min-width: 0; display: flex; }
+.quick-bar__sortwrap .quick-bar__sorts { flex: 1 1 auto; }
+.quick-bar__more { width: 2.8rem; } /* 분류 바보다 넓게 흐린다(2026-11-04 사용자) */
+.quick-bar__more.menu-bar__more--left { left: 0; background: linear-gradient(to right, var(--bg) 35%, transparent); }
+.quick-bar__more.menu-bar__more--right { right: 0; background: linear-gradient(to left, var(--bg) 35%, transparent); }
+/* 정렬·초기화·필터를 한 줄로 묶는다: 버튼 바탕을 본문색과 같게(2026-11-04 사용자) */
+.quick-bar { flex-wrap: nowrap; align-items: center; }
+.quick-bar__tools .icon-btn { background: var(--bg); border-color: transparent; box-shadow: none; }
