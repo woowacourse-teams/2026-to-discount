@@ -618,21 +618,7 @@ export default function App({ initial = null }) {
           })}
         </div>
         <div className="quick-bar__actions">
-        {/* N천원 이상만: 시트의 같은 칸과 한 상태, 기본은 켜짐.
-            2026-10-13 사용자: 금액은 시트에서 고르고 적용해야 바뀐다. */}
-        <button
-          type="button"
-          role="switch"
-          aria-checked={filters.minAmount5k}
-          className="quick-bar__switch"
-          onClick={() => {
-            setFilters((f) => ({ ...f, minAmount5k: !f.minAmount5k }))
-            track('quick_filter', { key: 'min5k', on: !filters.minAmount5k, amount: filters.minAmount })
-          }}
-        >
-          <span>{minAmountLabel(filters.minAmount)} 이상만</span>
-          <span className="quick-bar__switch-track" aria-hidden="true" />
-        </button>
+        {/* N천원 이상만은 메인에서 뺐다. 필터 시트에서만 켜고 끈다(2026-11-04 사용자) */}
         {/* 숨긴 목록은 정렬과 다른 일이라 오른쪽에 따로 선다. 떠 있는 알약으로 두었더니
             하단 배너와 겹쳤다(2026-09-24 사용자). 숨긴 것이 없으면 안 그린다. */}
         {Object.keys(hidden).length > 0 && (

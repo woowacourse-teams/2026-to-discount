@@ -101,7 +101,7 @@ export default function ReportButton({ filters, hold, brands }) {
   return (
     <span className="report-btn-wrap">
       <button type="button" className="icon-btn report-btn" aria-label="잘못된 정보 제보" title="제보" aria-expanded={open} onClick={openSheet}>
-        {/* 사이렌: Phosphor siren-bold(MIT) */}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 256 256" fill="currentColor"><path d="M116 20v-8a12 12 0 0 1 24 0v8a12 12 0 0 1-24 0m84 36a12 12 0 0 0 8.49-3.51l8-8a12 12 0 1 0-17-17l-8 8A12 12 0 0 0 200 56M47.51 52.49a12 12 0 0 0 17-17l-8-8a12 12 0 0 0-17 17ZM236 176v24a20 20 0 0 1-20 20H40a20 20 0 0 1-20-20v-24a20 20 0 0 1 16-19.6V140a92 92 0 0 1 92-92h.71C179 48.38 220 90.1 220 141v15.4a20 20 0 0 1 16 19.6M60 140v16h136v-15c0-37.77-30.27-68.72-67.48-69H128a68 68 0 0 0-68 68m152 40H44v16h168Zm-75.6-66.72a28 28 0 0 1 18.32 18.32a12 12 0 0 0 22.9-7.2a52 52 0 0 0-34-34a12 12 0 0 0-7.2 22.9Z" /></svg>
+        {/* 신고: codicon report(CC BY 4.0, 2026-11-04 사용자 선택) */}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 16 16" fill="currentColor"><path d="M12.5 2h-9A2.5 2.5 0 0 0 1 4.5v5A2.5 2.5 0 0 0 3.5 12H4v1.942c0 .842.992 1.292 1.625.737l3.063-2.68H12.5a2.5 2.5 0 0 0 2.5-2.5v-5a2.5 2.5 0 0 0-2.5-2.5zM14 9.5a1.5 1.5 0 0 1-1.5 1.5H8.312L5 13.898V11H3.5A1.5 1.5 0 0 1 2 9.5v-5A1.5 1.5 0 0 1 3.5 3h9A1.5 1.5 0 0 1 14 4.5zM7.508 7.09L7.5 7V4.5l.008-.09a.5.5 0 0 1 .984 0l.008.09V7l-.008.09a.5.5 0 0 1-.984 0M8.75 9.25a.75.75 0 1 1-1.5 0a.75.75 0 0 1 1.5 0" /></svg>
       </button>
       {tip && (
         <span className={`report-tip${tipFading ? ' report-tip--out' : ''}`} role="status">
