@@ -141,7 +141,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           </button>
           <button type="button" className={`icon-btn${sheetOpen ? ' icon-btn--on' : isFiltered ? ' icon-btn--active' : ''}`}
             aria-expanded={sheetOpen} aria-label="필터 열기" title="필터" onClick={onOpenSheet}>
-            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="4" y1="7" x2="20" y2="7" /><line x1="7" y1="12" x2="17" y2="12" /><line x1="10" y1="17" x2="14" y2="17" /></svg>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M3 5h12l-4.5 6v6l-3 2v-8z" /><line x1="17" y1="8" x2="21" y2="8" /><line x1="17" y1="13" x2="21" y2="13" /><line x1="17" y1="18" x2="21" y2="18" /></svg>
           </button>
         </div>
       </div>
