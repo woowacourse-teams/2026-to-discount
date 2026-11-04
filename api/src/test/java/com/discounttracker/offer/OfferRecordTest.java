@@ -38,6 +38,18 @@ class OfferRecordTest {
     }
 
     @Test
+    void preferredOverToleratesMissingCapturedAt() {
+        // #285: 배너 오퍼는 capturedAt이 null이다. 둘 다 null이면 금액 큰 쪽, 한쪽만 null이어도 예외가 없다.
+        Offer small = Offer.from(OfferRecord.builder("baemin", "a").amount(1000).offerType("discount").build(), TODAY);
+        Offer big = Offer.from(OfferRecord.builder("baemin", "a").amount(2000).offerType("discount").build(), TODAY);
+        assertEquals(2000, small.preferredOver(big).amount());
+        assertEquals(2000, big.preferredOver(small).amount());
+        Offer dated = Offer.from(record(1500, null, null), TODAY);
+        assertEquals(2000, dated.preferredOver(big).amount());
+        assertEquals(2000, big.preferredOver(dated).amount());
+    }
+
+    @Test
     void nullTierModeIsExclusive() {
         // tracker가 tier_mode를 실어 보내기 전의 export.json에는 이 필드가
         // 아예 없다. 없으면 지금까지의 해석(택일)이다.
@@ -330,5 +342,52 @@ class OfferRecordTest {
         // 선착순을 구간으로 붙여도 오퍼의 조건은 상시 것이다(#155 열린 질문 2).
         Offer first = withQualifiers(5000, "2026-08-13T10:00:00+09:00", List.of("다른 값"));
         assertEquals(List.of("첫 주문"), o.withFirstComeTier(first).qualifiers());
+    }
+
+    private static Offer withLink(int amount, String link, String offerType) {
+        return Offer.from(OfferRecord.builder("baemin", "bhc").amount(amount).offerType(offerType)
+                .rawText(amount + "원").capturedAt("2026-08-13T10:00:00+09:00").minOrderAmount(15000)
+                .link(link).soldOut(false).build(), LocalDate.of(2026, 8, 13));
+    }
+
+    private static void assertPaired(Offer o) {
+        assertEquals(o.link() == null, o.linkSource() == LinkSource.NONE, o.toString());
+    }
+
+    @Test
+    void linkSourceFollowsTheLinkAndTheOfferType() {
+        assertEquals(LinkSource.NONE, withLink(3000, null, "discount").linkSource());
+        assertEquals(LinkSource.RECORD, withLink(3000, "https://own", "discount").linkSource());
+        assertEquals(LinkSource.BANNER, withLink(3000, "https://own", Offer.BANNER_OFFER_TYPE).linkSource());
+        assertEquals(LinkSource.BANNER, withLink(3000, "https://own", Offer.BANNER_FIRST_COME_OFFER_TYPE).linkSource());
+        assertEquals(LinkSource.NONE, withLink(3000, null, Offer.BANNER_OFFER_TYPE).linkSource(), "링크 없는 배너 오퍼");
+    }
+
+    @Test
+    void linkSourceSurvivesTransformsAndStaysPairedWithTheLink() {
+        Offer regular = withLink(3000, null, "discount");
+        Offer withOwn = withLink(3000, "https://own", "discount");
+        assertEquals(LinkSource.ADDED, regular.withFilterLink("https://hub").linkSource());
+        assertEquals(LinkSource.RECORD, withOwn.withIsNew(true).linkSource());
+        assertEquals(LinkSource.ADDED, regular.withFilterLink("https://hub").withIsNew(true).linkSource());
+        // 병합은 이긴 쪽의 링크와 출처를 그대로 둔다.
+        Offer won = withOwn.preferredOver(withLink(3000, null, "discount"));
+        assertEquals(LinkSource.RECORD, won.linkSource());
+        assertPaired(won);
+        assertPaired(regular.preferredOver(withLink(3000, "https://other", "discount")));
+
+        // 선착순을 구간으로 붙일 때 link는 대표 쪽에서 오므로 출처도 대표 쪽에서 와야 한다.
+        Offer firstLeads = withOwn.withFirstComeTier(withLink(5000, null, "discount").withFilterLink("https://hub"));
+        assertEquals("https://hub", firstLeads.link());
+        assertEquals(LinkSource.ADDED, firstLeads.linkSource());
+        Offer regularLeads = withOwn.withFirstComeTier(withLink(1000, "https://first", "discount"));
+        assertEquals("https://own", regularLeads.link());
+        assertEquals(LinkSource.RECORD, regularLeads.linkSource());
+        Offer noLinkLeads = regular.withFirstComeTier(withLink(5000, "https://first", "discount"));
+        assertEquals("https://first", noLinkLeads.link());
+        assertEquals(LinkSource.RECORD, noLinkLeads.linkSource());
+        for (Offer o : new Offer[] {firstLeads, regularLeads, noLinkLeads, regular.withFirstComeTier(withLink(1000, null, "discount"))}) {
+            assertPaired(o);
+        }
     }
 }

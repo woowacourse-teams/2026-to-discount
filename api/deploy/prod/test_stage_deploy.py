@@ -1,6 +1,9 @@
+import contextlib
 import os
 import subprocess
+import sys
 import tempfile
+import threading
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -197,6 +200,58 @@ class DeployTest(unittest.TestCase):
         ops = FakeOps(health=lambda o, p: True)
         self.assertEqual(sd.deploy(self.cfg, ops, Path(self.tmp.name) / "nope.jar", log=self.logs.append), sd.STAGE_FAILED)
         self.assertEqual(ops.events, [])
+
+
+class RecordingStream:
+    """write와 flush 호출 순서를 쌓는 가짜 표준 출력."""
+
+    def __init__(self):
+        self.calls = []
+
+    def write(self, text):
+        self.calls.append(("write", text))
+        return len(text)
+
+    def flush(self):
+        self.calls.append(("flush",))
+
+
+class DefaultLogFlushTest(unittest.TestCase):
+    def test_default_log_flushes_after_every_line(self):
+        with tempfile.TemporaryDirectory() as t:
+            d = Path(t)
+            jar = d / "delivery-discount-api-abc1234.jar"
+            jar.write_bytes(b"jar")
+            cfg = sd.Config(deploy_dir=d, stage_ready_s=3, primary_ready_s=3, failback_wait_s=15)
+            ops = FakeOps(health=lambda o, p: True, prev="/d/old.jar")
+            stream = RecordingStream()
+            with contextlib.redirect_stdout(stream):
+                self.assertEqual(sd.deploy(cfg, ops, jar), sd.OK)  # log를 안 준다
+        calls = stream.calls
+        contentful = [i for i, c in enumerate(calls) if c[0] == "write" and c[1].strip()]
+        # 양성 신호: 줄이 하나도 안 나왔다면 아래 순서 단언이 빈 채로 통과하므로 먼저 실패시킨다
+        self.assertTrue(contentful, "기본 로그가 표준 출력에 아무것도 쓰지 않았다")
+        bounds = contentful[1:] + [len(calls)]
+        for start, end in zip(contentful, bounds):
+            self.assertIn(("flush",), calls[start + 1:end], f"{calls[start][1]!r} 뒤 다음 쓰기 전에 flush가 없다")
+
+    def test_first_line_reaches_the_pipe_before_the_process_exits(self):
+        code = "import sys, stage_deploy; stage_deploy.emit('첫 줄'); sys.stdin.readline()"
+        env = dict(os.environ)
+        env.pop("PYTHONUNBUFFERED", None)
+        env["PYTHONPATH"] = str(Path(__file__).resolve().parent)
+        child = subprocess.Popen([sys.executable, "-c", code], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                 env=env)
+        timer = threading.Timer(5, child.kill)  # 버퍼에 모였다면 읽기가 막히므로 5초 뒤 죽여 시험이 멈추지 않게 한다
+        timer.start()
+        try:
+            line = child.stdout.readline()
+        finally:
+            timer.cancel()
+            child.stdin.close()
+            child.wait(timeout=5)
+            child.stdout.close()
+        self.assertEqual(line.decode("utf-8").strip(), "첫 줄")
 
 
 class SystemctlTest(unittest.TestCase):

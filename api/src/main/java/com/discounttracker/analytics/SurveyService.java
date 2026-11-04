@@ -71,10 +71,31 @@ public class SurveyService {
      */
     private final Set<String> blockedVisitors;
 
+    /** 설문을 열었나. 닫혀 있으면 아무도 대상이 아니다(테스트 id만 예외). 기본은 닫힘(2026-11-04). */
+    private final boolean open;
+    private final int minDays;
+    private final int minConversions;
+
     public SurveyService(SurveyEligibility eligibility, GifticonStore gifticons,
                          AnalyticsEventService events,
                          @Value("${discount.survey.test-visitors:}") String testVisitors,
                          @Value("${discount.survey.blocked-visitors:}") String blockedVisitors) {
+        this(eligibility, gifticons, events, testVisitors, blockedVisitors,
+                true, SurveyEligibility.MIN_DAYS, SurveyEligibility.MIN_CONVERSIONS); // 시험용: 예전처럼 열린 채
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public SurveyService(SurveyEligibility eligibility, GifticonStore gifticons,
+                         AnalyticsEventService events,
+                         @Value("${discount.survey.test-visitors:}") String testVisitors,
+                         @Value("${discount.survey.blocked-visitors:}") String blockedVisitors,
+                         @Value("${discount.survey.open:false}") boolean open,
+                         @Value("${discount.survey.min-days:" + SurveyEligibility.MIN_DAYS + "}") int minDays,
+                         @Value("${discount.survey.min-conversions:" + SurveyEligibility.MIN_CONVERSIONS + "}") int minConversions) {
+        this.open = open;
+        this.minDays = minDays;
+        this.minConversions = minConversions;
+        log.info("설문 {} — 문턱 접속일 {}일, 전환 {}회", open ? "열림" : "닫힘", minDays, minConversions);
         this.eligibility = eligibility;
         this.gifticons = gifticons;
         this.events = events;
@@ -105,7 +126,7 @@ public class SurveyService {
     private boolean qualifies(String visitorId) {
         SurveyEligibility.Counts counts = eligibility.count(visitorId);
         if (testVisitors.contains(visitorId)) return !counts.answered();
-        return SurveyEligibility.qualifies(counts);
+        return open && SurveyEligibility.qualifies(counts, minDays, minConversions);
     }
 
     /**
@@ -116,6 +137,10 @@ public class SurveyService {
      * 값이 있고, 보상은 재고가 차면 나중에라도 줄 수 있다(answer() 참고,
      * rewarded=false인 응답은 answered로 안 쳐 다시 시도할 수 있다).
      */
+    public boolean isOpen() {
+        return open;
+    }
+
     public boolean eligible(String visitorId) {
         return qualifies(visitorId);
     }
@@ -145,9 +170,11 @@ public class SurveyService {
      * 그 사이에 답한 사람이 한 번 더 받는다 — 판정은 쓰는 쪽에서 해야 한다.
      */
     // synchronized: 판정(원장 조회)부터 기록(원장 기입)까지가 한 덩어리여야
-    // 동시 요청으로 같은 사람이 코드를 여러 개 받는 것을 막는다. 서버가
-    // 단일 인스턴스이고(스펙 전제) 설문 제출은 하루 몇 건이라 이 잠금이
-    // 병목이 되지 않는다.
+    // 동시 요청으로 같은 사람이 코드를 여러 개 받는 것을 막는다. 이 잠금은
+    // 한 JVM 안에서만 유효하다. 배포 중 임시 인스턴스(#188)가 함께 뜨는
+    // 10~20초 동안은 인스턴스 사이를 막지 못하고, 같은 코드가 두 번
+    // 나가는 것은 GifticonStore의 파일 락이 막는다. 설문 제출은 하루 몇
+    // 건이라 이 잠금이 병목이 되지 않는다.
     public synchronized Answer answer(String visitorId, String choice, String text,
                                       Map<String, String> answers, String ipHash) {
         if (!qualifies(visitorId)) {

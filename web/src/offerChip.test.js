@@ -51,7 +51,9 @@ function render() {
     createElement(OfferChip, { brandName: 'BBQ', brandLinks: c.brandLinks, best: c.best, hero: c.hero, include: c.include, offer: c.offer, detailId: 'd', open: false, onToggle() {}, position: 1 })).replace(/src="data:[^"]*"/g, 'src="data:"')]))
 }
 
-test('운영 칩 HTML 스냅숏', () => {
+test('운영 칩 HTML 스냅숏', (t) => {
+  // 선착순 '오픈 전'이 시각에 따라 바뀌니 밤 11시로 고정한다(모두 열린 뒤).
+  t.mock.timers.enable({ apis: ['Date'], now: new Date(2026, 10, 4, 23, 0).getTime() })
   const got = render()
   if (process.env.UPDATE_SNAPSHOT === '1') { writeFileSync(SNAP, JSON.stringify(got, null, 2) + '\n', { encoding: 'utf8' }); return }
   assert.deepEqual(got, JSON.parse(readFileSync(SNAP, 'utf8')))

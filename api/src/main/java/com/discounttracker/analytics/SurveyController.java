@@ -45,7 +45,7 @@ public class SurveyController {
             var state = pmf.status(visitorId, sessionId);
             return Map.of("surveyId", state.surveyId(), "enabled", state.enabled(), "eligible", state.eligible(), "state", state.state());
         }
-        return Map.of("eligible", survey.eligible(visitorId));
+        return Map.of("eligible", survey.eligible(visitorId), "open", survey.isOpen());
     }
 
     /**

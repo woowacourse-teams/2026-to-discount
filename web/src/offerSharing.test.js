@@ -13,7 +13,9 @@ const hash = () => new URL(createShareLink('https://example.com/brand/old?dev=1'
 test('공유 링크는 브랜드와 개별 혜택을 보존하고 이전 경로와 쿼리는 전달하지 않는다', () => {
   const url = new URL(createShareLink('https://example.com/brand/old?dev=1', brand.name, offer, id))
   assert.equal(url.pathname, '/')
-  assert.equal(url.search, '')
+  // 유입 경로 from=share만 싣는다(#221). 이전 쿼리(dev)는 안 따라간다.
+  assert.equal(url.search, '?from=share')
+  assert.equal(url.searchParams.get('dev'), null)
   assert.deepEqual(parseShareLink(url.hash), { shareId: id, brand: brand.name, offerKey: sharedOfferKey(offer) })
 })
 

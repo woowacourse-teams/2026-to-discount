@@ -77,7 +77,7 @@ let hubLinks = {}
 
 // 쿠팡이츠는 오퍼와 배너 모두 이 링크(와우 라운지)로 보낸다(2026-10-06 사용자). 수집이 매일 받는 허브 공유 링크보다 우선.
 // 마지막 기본값이다. 수집이 매일 검증한 공유 링크를 오퍼 link로 실어 보내면 그게 먼저다(2026-10-12 만료 링크가 박혀 있었다).
-export const COUPANGEATS_LINK = 'https://share.coupangeats.com/DqsQ901Kw7b'
+export const COUPANGEATS_LINK = 'https://share.coupangeats.com/dqUf2prBE7b'
 // 쿠팡이츠 공유 링크 접두사. offerLink와 openWithNotice가 같이 쓴다(한쪽만 고치면 안내 없이 열린다, #141).
 const CE_SHARE_PREFIX = 'https://share.coupangeats.com/'
 
@@ -111,11 +111,10 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   const share = typeof href === 'string' && href.startsWith(CE_SHARE_PREFIX)
   if (typeof document === 'undefined') return
   // 앱 열림 결과(telemetry.js). 쿠팡이츠는 안내 뒤 실제로 이동할 때부터 잰다.
-  if (!share && !tab) { watchAppOpen(href); return }
+  if (!share && !tab) { watchAppOpen(href, 2500, afterOpen); return }
   e.preventDefault()
   // 공유 링크도 같은 탭으로 넘긴다. 새 탭에 넣으면 그 탭엔 누른 기록이 없어 앱 열기(intent://)가 막혀 빈 탭에 멈췄다
   // (2026-10-12 사용자: 안 넘어간다).
-  const win = null
   document.querySelector('.ce-dim')?.remove()
   // 바텀시트처럼 화면을 어둡게 깔고 그 위에 안내를 띄운다(2026-10-06 사용자)
   const dim = document.createElement('div')
@@ -128,21 +127,50 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   document.body.appendChild(dim)
   setTimeout(() => {
     dim.remove()
-    // 앱 링크(탭)는 앱이 없으면 아무 일도 안 일어난다 — 그때만 공유 링크로 다시 보낸다. 앱이 뜨는 동안에도
-    // 크롬은 잠시 visible이라(2026-10-07 실기) 상태가 아니라 "떠났다" 신호(blur, hidden, pagehide)로 가른다.
-    let left = false
-    const mark = () => { left = true }
-    if (tab) {
-      window.addEventListener('blur', mark, { once: true })
-      window.addEventListener('pagehide', mark, { once: true })
-      document.addEventListener('visibilitychange', mark, { once: true })
-    }
-    watchAppOpen(href)
-    if (tab) window.location.href = href
-    else if (win) { win.opener = null; win.location.href = href } else window.location.href = href // 차단되면 같은 탭
-    // 앱이 안 열려 공유 링크로 넘긴 것도 남긴다(link_fallback, 신뢰 지표: 링크 실패)
-    if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') { track('link_fallback', { platform: 'coupangeats' }); window.location.href = COUPANGEATS_LINK } }, 4000) // 앱이 안 열리면 4초 뒤 허브(2026-10-07 사용자: 2.5초 -> 4초)
+    // 2026-11-04 사용자: 앱이 안 열리면 허브 웹으로 넘기던 1차 폴백을 지우고, 다른 앱과 같이 설치 안내를 띄운다.
+    watchAppOpen(href, 2500, afterOpen)
+    window.location.href = href
   }, noticeMs())
+}
+
+// 앱이 없으면 아무 일도 안 일어나니 알려 준다(2026-11-04 사용자). 떠남 신호가 없으면(watchAppOpen 시간 초과) 안 넘어간 것으로 본다.
+// 이벤트: app_open_result(넘어갔나) → install_hint_shown → install_hint_ack(눌러 닫음) / install_hint_next(그다음 행동).
+export const INSTALL_HINT = '설치된 배달앱이 실행돼요.\n설치되지 않았다면 설치 후 이용해주세요!'
+const HINT_MS = 5000
+function afterOpen(opened, props) {
+  if (opened || typeof document === 'undefined' || document.visibilityState !== 'visible') return
+  document.querySelector('.ce-dim')?.remove()
+  const dim = document.createElement('div')
+  dim.className = 'ce-dim'
+  const el = document.createElement('div')
+  el.className = 'ce-toast'
+  el.setAttribute('role', 'status')
+  el.textContent = INSTALL_HINT
+  dim.appendChild(el)
+  const shownAt = Date.now()
+  const base = { platform: props?.platform, scheme: props?.scheme }
+  dim.addEventListener('click', () => { track('install_hint_ack', { ...base, ms: Date.now() - shownAt }); dim.remove() })
+  document.body.appendChild(dim)
+  track('install_hint_shown', base)
+  setTimeout(() => dim.remove(), HINT_MS)
+  // 그다음 행동 하나: 다른 쿠폰·버튼을 눌렀나, 페이지를 떠났나(앱 설치하러 갔을 수 있다), 60초 동안 없었나
+  let done = false
+  const finish = (action, extra = {}) => {
+    if (done) return
+    done = true
+    document.removeEventListener('click', onClick, true)
+    document.removeEventListener('visibilitychange', onHide)
+    track('install_hint_next', { ...base, action, ms: Date.now() - shownAt, ...extra })
+  }
+  const onClick = (e) => {
+    if (e.target.closest?.('.ce-dim')) return
+    const a = e.target.closest?.('a[href]')
+    finish(a ? 'link' : 'tap', a ? { href: a.getAttribute('href').split(':')[0] } : { target: (e.target.className || e.target.tagName || '').toString().slice(0, 40) })
+  }
+  const onHide = () => { if (document.visibilityState === 'hidden') finish('left_page') }
+  document.addEventListener('click', onClick, true)
+  document.addEventListener('visibilitychange', onHide)
+  setTimeout(() => finish('none'), 60000)
 }
 
 /** 쿠팡이츠 안내와 같은 모양(어두운 바탕 위 가운데 글)으로 잠깐 띄운다. 제보 결과도 쓴다(2026-10-19 사용자). */
@@ -212,7 +240,9 @@ export function offerClickProps({ offer, brandName, position, pin, best, where, 
     best: !!best,
     held: offer.status === 'held',
     soldOut: !!offer.soldOut,
-    fromBanner: !!offer.link,
+    // 배너에서 받아온 링크인지는 API가 준 출처로 가른다(#223). 필터가 단 허브 링크(added)나 수집 링크(record)는
+    // 배너가 아니다. 칸이 없는 옛 응답이면 예전 계산(링크가 있으면 배너)을 따른다.
+    fromBanner: offer.linkSource != null ? offer.linkSource === 'banner' : !!offer.link,
     // 2026-10-05 추가: 신규(오늘 새로 생겼거나 금액이 커짐)였는지, 선착순 칸인지, 카드 어디서 눌렀는지.
     isNew: isUpdated(offer),
     firstCome: !!offer.firstCome,

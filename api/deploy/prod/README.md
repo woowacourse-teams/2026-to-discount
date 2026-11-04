@@ -21,6 +21,10 @@ python3 deploy/prod/stage_deploy.py <새 jar> --deploy-dir <jar와 링크가 있
 
 종료 코드: `0` 성공, `1` 임시 인스턴스가 안 떴음(본 인스턴스 그대로), `2` 본 인스턴스가 안 떠서 이전 jar로 복구, `3` 복구도 실패(임시 인스턴스를 켜 둔 채 끝남) 또는 임시 인스턴스를 못 내림(수동 확인).
 
+## 배포 결과 알림
+
+`deploy_message.py`가 종료 코드(0~3)를 슬랙 문구로 바꾼다. 문구 아래에 저장소, 커밋 7자리, 실행 주소가 붙는다. 0~3 밖이면 아무것도 찍지 않고 종료 코드 10으로 끝나며, 호출한 쪽이 기존 실패 문구로 간다. 문구는 사용자가 정했으니 확인 없이 바꾸지 않는다. 호출은 미러 저장소 `.github/workflows/deploy.yml`이 한다(mono 시험이 닿지 않는다). 설계는 `docs/design/214-deploy-exit-code-slack.md`.
+
 ## 서버 쪽 준비
 
 임시 인스턴스의 서비스 유닛, 환경 파일, sudoers, nginx upstream의 `backup` 줄은 서버에 한 번 설치해야 한다. 설치 스크립트와 설계, 검증 결과는 비공개 운영 저장소(beggars-ops)의 `deploy/provision_stage.py`와 `docs/design/zero-downtime-deploy.md`에 있다. 서버 경로와 계정이 들어 있어 이 공개 저장소에는 두지 않는다.

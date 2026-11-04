@@ -84,7 +84,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 
 | 이벤트 | 언제 | 붙는 값 |
 |---|---|---|
-| `offer_link_click` | 할인 칩을 눌러 배달앱으로 나갈 때 | `brand`, `platform` + 어느 오퍼인지(09-17~): `amount`, `minOrder`, `qualifier`, `membership`, `tierMode`, `tiers`(구간 수), `best`, `held`, `soldOut`, `fromBanner`, `position`(카드 순번, 09-20~), `pin`(맨 위로 올라온 이유: `hot` HOT 1~5위 고정, `new` 신규 앞, `none`, 10-27~) |
+| `offer_link_click` | 할인 칩을 눌러 배달앱으로 나갈 때 | `brand`, `platform` + 어느 오퍼인지(09-17~): `amount`, `minOrder`, `qualifier`, `membership`, `tierMode`, `tiers`(구간 수), `best`, `held`, `soldOut`, `fromBanner`, `position`(카드 순번, 09-20~), `pin`(맨 위로 올라온 이유: `new` 신규 앞, `none`, 10-27~. `hot`(HOT 1~5위 고정)은 10-29 이후 없음, 그 전 데이터에만 남음) |
 | `brand_impression` | 브랜드 카드 헤더가 1초 이상 보임(세션당 브랜드 한 번, [설계 18](design/18-brand-impression.md)) | `brand`, `position`(카드 순번, 문자열), `pin`(위와 같음, 10-27~), `platforms`, `category`, `hasNew` |
 | `banner_click` | 상단, 하단 행사 배너 | `banner`(id), `brand`, `platform`(배달앱 밖 자체 행사는 API가 `own`으로 내려준다, 09-18~), `position`(top/bottom) + `amount`, `brands`(묶음 `a/b/c`), `minOrder`, `soldOut`, `external`(09-17~) |
 | `banner_impression` | 그 배너가 화면에 절반 이상 들어옴 | `banner`(id), `brand`, `platform`, `position` |
@@ -152,6 +152,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `form_factor` | `phone` / `desktop` / `tablet` | **서버가 `viewport` 폭으로 붙인다.** 기기를 가를 때는 `device`가 아니라 이 값을 쓴다 |
 | `viewport` | `"390x844"` | 개발 트래픽 판정의 핵심 단서 (아래 참고) |
 | `referrer` | `direct` / `internal` / `external` | 원본 URL은 안 받는다 |
+| `entryFrom` | 주소 `?from=<값>`으로 들어온 유입 경로. 이력서 `resume`, 앱이 만든 공유 링크 `share` (2026-10-31, #221) | **`props`에 실린다.** 소문자, 숫자, `-`, `_`로 20자까지만 받고 나머지는 버린다. 세션 동안 첫 값을 유지하고 다음 세션으로는 안 넘어간다. 이벤트 고유 `props.from`(출처 화면, 이전 값)과는 다른 칸이다 |
 | `path` | 경로만 | 쿼리스트링 없음 |
 | `eventId` | 이벤트마다 UUID 1개 | 재전송과 이중 경로 중복 제거 키 |
 | `ipHash` | 날짜별 솔트로 해시한 IP | **서버가 붙인다.** 하루 지나면 연결 불가 |
@@ -265,6 +266,37 @@ ORDER BY week, ff
 `viewport` 폭으로 소급해 가른다.
 
 PostHog에서는 `?dev=1` 트래픽이 애초에 안 넘어온다. 표시 없는 개발 트래픽은 PostHog 쪽에서 못 거른다. 세션 전체를 봐야 갈리기 때문이다. 그 구분이 필요한 판정은 원장으로 낸다.
+
+#### 이력서 유입 조회 (`entryFrom`)
+
+이력서 링크는 `?from=resume`으로 쓴다. 들어온 방문의 모든 이벤트 `props.entryFrom`에 `resume`이 실린다(`web/src/analytics-context.js` `getEntryFrom`). 이벤트 속성 이름이 `from`이 아닌 이유는 `props.from`을 이미 여러 이벤트가 출처 화면 뜻(`menu-bar`, `sheet`)으로 쓰기 때문이다. `from`으로 가르면 두 값이 한 칸에 섞인다.
+
+UI에서: Product analytics → Trends → 이벤트 `$pageview`, 필터 **Event property `entryFrom` = `resume`**, `bot` is not set, 집계 **Unique users**(`visitorId`가 `distinct_id`). 공유 유입과 함께 보려면 필터 대신 **Breakdown by → `entryFrom`**.
+
+HogQL로 한 번에:
+
+```sql
+SELECT properties.entryFrom              AS entry_from,
+       uniq(distinct_id)                 AS visitors,
+       uniq(properties.source_session_id) AS sessions
+FROM events
+WHERE event = '$pageview'
+  AND properties.entryFrom IS NOT NULL
+  AND properties.bot IS NULL
+GROUP BY entry_from
+```
+
+원장에서는:
+
+```bash
+ssh <서버> "jq -r 'select(.dev != true and .event == \"page_view\" and .props.entryFrom == \"resume\") | .visitorId' <서버>/delivery-discount-api/data/events.jsonl | sort -u | wc -l"
+```
+
+- 재방문은 새 세션이라 안 센다. 같은 사람이 이력서 링크를 두 번 열면 세션 둘, 방문자 하나다.
+- `dev` 이벤트(프리뷰, localhost, `?dev=1`)는 PostHog로 안 가고 원장에만 남는다.
+- 값 정하기: 채널을 나누려면 `resume-gh`처럼 값만 늘린다. 모양 규칙(소문자, 숫자, `-`, `_`, 20자)을 벗어나면 통째로 버려진다.
+- GA4는 `from`을 읽지 않는다. 쿼리가 `page_location`에 실려 오므로 필요하면 거기서 본다.
+- 홈 캐시 키에서는 `from`을 뗀다(`web/middleware.js`). 브라우저 주소는 그대로라 위 값은 그대로 읽힌다.
 
 ---
 

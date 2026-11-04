@@ -8,7 +8,7 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import MenuBar from './MenuBar.jsx'
 import ReportButton from './ReportButton.jsx'
 import { PLATFORMS } from './logos.jsx'
-import { CATEGORIES, visibleCategories } from './filters.js'
+import { visibleCategories } from './filters.js'
 import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 import './styles/topbar-b.css'
 
@@ -55,8 +55,8 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
         <input
           type="search"
           className="search-field__input"
-          placeholder="브랜드 검색"
-          aria-label="브랜드 검색"
+          placeholder="브랜드, 메뉴, 카테고리 검색"
+          aria-label="브랜드, 메뉴, 카테고리 검색"
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={autocomplete.isOpen}
@@ -114,13 +114,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           chips={(
             <>
               {/* 칩 전체가 해제 버튼이다. ×는 무엇이 일어날지 알려주는 표시로만 둔다. */}
-              {CATEGORIES.filter((c) => filters.categories.has(c.key)).map((c) => (
-                <button type="button" className="search-chip" key={c.key}
-                  aria-label={`${c.label} 해제`} onClick={() => toggleCategory(c.key)}>
-                  {c.label}
-                  <span className="search-chip__x" aria-hidden="true">×</span>
-                </button>
-              ))}
+              {/* 고른 분류는 메뉴 바에서 강조되니 검색창 칩으로 넣지 않는다(2026-11-04 사용자) */}
               {filters.platforms.size < PLATFORMS.length && (
                 <button type="button" className="search-chip" aria-label="앱 선택 초기화"
                   onClick={() => setFilters((f) => ({ ...f, platforms: new Set(PLATFORMS.map((x) => x.key)) }))}>
@@ -135,14 +129,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           {/* 알림 종 자리는 제보 버튼(2026-10-19 사용자). 슬롯은 알림 켜고 끈 결과 말풍선만 받는다. */}
           <span ref={pushToggleRef} id="push-toggle-slot" className="push-toggle-slot" />
           <ReportButton filters={filters} hold={reportHold} brands={brands} />
-          <button type="button" className={`icon-btn${isFiltered ? ' icon-btn--active' : ''}`} disabled={!isFiltered}
-            onClick={resetFilters} aria-label="필터 초기화" title={isFiltered ? '필터 초기화' : '되돌릴 필터가 없습니다'}>
-            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7" /><polyline points="21 3 21 9 15 9" /></svg>
-          </button>
-          <button type="button" className={`icon-btn${sheetOpen ? ' icon-btn--on' : isFiltered ? ' icon-btn--active' : ''}`}
-            aria-expanded={sheetOpen} aria-label="필터 열기" title="필터" onClick={onOpenSheet}>
-            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="4" y1="7" x2="20" y2="7" /><line x1="7" y1="12" x2="17" y2="12" /><line x1="10" y1="17" x2="14" y2="17" /></svg>
-          </button>
+          {/* 초기화·필터 버튼은 정렬 줄 오른쪽으로 옮겼다(2026-11-04 사용자, App quick-bar__tools) */}
         </div>
       </div>
       {popular /* 실시간 인기 순위: 검색과 분류 사이(2026-10-17 사용자) */}
