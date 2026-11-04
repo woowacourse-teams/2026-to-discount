@@ -56,7 +56,9 @@ public record OfferRecord(
         String firstSeenAt,
         // 원장의 구조화 조건(예: ["첫 주문"], #155). 키가 없는 옛 export.json은 null(모름)이고 []는 "조건 없음"이다.
         // API는 해석하지 않고 넘긴다(ADR-003).
-        List<String> qualifiers
+        List<String> qualifiers,
+        // 날짜만 아는 관측일(yyyy-MM-dd). capturedAt이 없을 때만 있다(#285). 키가 없는 옛 export.json은 null.
+        String capturedOn
 ) {
     /**
      * 이름으로 채우는 빌더. 칸이 22개이고 그중 문자열이 16칸이라, 위치로 넘기면 두 칸이 자리를 바꿔도
@@ -89,6 +91,7 @@ public record OfferRecord(
         private String kind;
         private String firstSeenAt;
         private List<String> qualifiers;
+        private String capturedOn;
 
         private Builder(String platform, String brand) {
             this.platform = platform;
@@ -115,11 +118,12 @@ public record OfferRecord(
         public Builder kind(String v) { this.kind = v; return this; }
         public Builder firstSeenAt(String v) { this.firstSeenAt = v; return this; }
         public Builder qualifiers(List<String> v) { this.qualifiers = v; return this; }
+        public Builder capturedOn(String v) { this.capturedOn = v; return this; }
 
         public OfferRecord build() {
             return new OfferRecord(platform, brand, amount, qualifier, needsReview, offerType, section,
                     rawText, capturedAt, screenshotPath, minOrderAmount, tierMode, tiers, conditions, expiresAt,
-                    badge, link, membership, soldOut, kind, firstSeenAt, qualifiers);
+                    badge, link, membership, soldOut, kind, firstSeenAt, qualifiers, capturedOn);
         }
     }
 

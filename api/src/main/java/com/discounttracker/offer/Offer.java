@@ -44,7 +44,9 @@ public record Offer(String platform, Integer amount, String qualifier,
                     // 원장의 구조화 조건(OfferRecord.qualifiers 그대로, #155). null = 모름, [] = 조건 없음.
                     List<String> qualifiers,
                     // link가 어디서 왔나(#203). link와 항상 짝이다: link가 null이면 NONE.
-                    LinkSource linkSource) {
+                    LinkSource linkSource,
+                    // 날짜만 아는 관측일(yyyy-MM-dd). capturedAt이 없을 때만 있다(#285). 배너 오퍼가 오늘 날짜를 싣는다.
+                    String capturedOn) {
 
     /** 배너에서 세운 오퍼의 offerType. BrandComparisonService가 적는 값과 같다. */
     public static final String BANNER_OFFER_TYPE = "banner";
@@ -77,7 +79,8 @@ public record Offer(String platform, Integer amount, String qualifier,
                         || (r.section() != null && r.section().contains(FIRST_COME_SECTION_MARK)),
                 Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()), r.firstSeenAt(), null,
                 r.qualifiers(),
-                r.link() == null ? LinkSource.NONE : (fromBanner ? LinkSource.BANNER : LinkSource.RECORD));
+                r.link() == null ? LinkSource.NONE : (fromBanner ? LinkSource.BANNER : LinkSource.RECORD),
+                r.capturedOn());
     }
 
     @JsonProperty("status")
@@ -132,11 +135,19 @@ public record Offer(String platform, Integer amount, String qualifier,
      * 확인하려 시도했다는 사실 자체가 사라졌다.
      */
     public Offer preferredOver(Offer other) {
-        boolean thisWins = status.isConfirmed() == other.status.isConfirmed()
-                ? (capturedAt.equals(other.capturedAt)
-                        ? amountOrZero() >= other.amountOrZero()
-                        : capturedAt.compareTo(other.capturedAt) >= 0)
-                : status.isConfirmed();
+        boolean thisWins;
+        if (status.isConfirmed() != other.status.isConfirmed()) {
+            thisWins = status.isConfirmed();
+        } else if (fromBanner != other.fromBanner) {
+            // 배너(그날 확인한 행사)가 원장을 이긴다. 예전에는 배너 capturedAt이 늘 오늘 23:59:59라 암묵적으로
+            // 그랬다. 값이 없어지면서 규칙을 여기 적는다. 빠지면 2026-09-03 사고(오늘 등록한 배너가 어제 원장에 져서
+            // 카드에 안 뜸)가 되살아난다.
+            thisWins = fromBanner;
+        } else if (capturedAt == null || other.capturedAt == null || capturedAt.equals(other.capturedAt)) {
+            thisWins = amountOrZero() >= other.amountOrZero();
+        } else {
+            thisWins = capturedAt.compareTo(other.capturedAt) >= 0;
+        }
         Offer winner = thisWins ? this : other;
         Offer loser = thisWins ? other : this;
         return winner.withDetailFrom(loser).convergedWith(loser);
@@ -198,7 +209,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, mergedBadge, soldOut,
                 link, mergedMembership, fromBanner, firstCome, certainty, kind, earlier(firstSeenAt, other.firstSeenAt), isNew,
-                mergedQualifiers, linkSource);
+                mergedQualifiers, linkSource, capturedOn);
     }
 
     /**
@@ -255,7 +266,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         }
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
-                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew, qualifiers, linkSource);
+                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew, qualifiers, linkSource, capturedOn);
     }
 
     /**
@@ -299,7 +310,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(platform, lead.amount, qualifier, status, lead.rawText, screenshotPath, capturedAt,
                 lead.minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, lead.badge,
                 soldOut && first.soldOut, lead.link, merged, fromBanner, firstLeads, certainty, kind,
-                earlier(firstSeenAt, first.firstSeenAt), isNew, qualifiers, lead.linkSource);
+                earlier(firstSeenAt, first.firstSeenAt), isNew, qualifiers, lead.linkSource, capturedOn);
     }
 
     /** 구간에 적을 멤버십 키. 모르면 null(구간 칸이 비면 "모름"이다). */
@@ -318,14 +329,14 @@ public record Offer(String platform, Integer amount, String qualifier,
     public Offer withFilterLink(String v) {
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,
                 tierMode, tiers, conditions, expiresAt, badge, soldOut, v, membership, fromBanner, firstCome,
-                certainty, kind, firstSeenAt, isNew, qualifiers, LinkSource.ADDED);
+                certainty, kind, firstSeenAt, isNew, qualifiers, LinkSource.ADDED, capturedOn);
     }
 
     /** 이력이 판정한 신규 여부를 단다. null = 모름. */
     public Offer withIsNew(Boolean v) {
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,
                 tierMode, tiers, conditions, expiresAt, badge, soldOut, link, membership, fromBanner, firstCome,
-                certainty, kind, firstSeenAt, v, qualifiers, linkSource);
+                certainty, kind, firstSeenAt, v, qualifiers, linkSource, capturedOn);
     }
 
     /** 둘 중 이른 시각. 같은 쿠폰을 두 출처에서 합칠 때 처음 본 시각은 더 이른 쪽이다. 하나가 없으면 다른 쪽. */

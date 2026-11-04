@@ -38,6 +38,18 @@ class OfferRecordTest {
     }
 
     @Test
+    void preferredOverToleratesMissingCapturedAt() {
+        // #285: 배너 오퍼는 capturedAt이 null이다. 둘 다 null이면 금액 큰 쪽, 한쪽만 null이어도 예외가 없다.
+        Offer small = Offer.from(OfferRecord.builder("baemin", "a").amount(1000).offerType("discount").build(), TODAY);
+        Offer big = Offer.from(OfferRecord.builder("baemin", "a").amount(2000).offerType("discount").build(), TODAY);
+        assertEquals(2000, small.preferredOver(big).amount());
+        assertEquals(2000, big.preferredOver(small).amount());
+        Offer dated = Offer.from(record(1500, null, null), TODAY);
+        assertEquals(2000, dated.preferredOver(big).amount());
+        assertEquals(2000, big.preferredOver(dated).amount());
+    }
+
+    @Test
     void nullTierModeIsExclusive() {
         // tracker가 tier_mode를 실어 보내기 전의 export.json에는 이 필드가
         // 아예 없다. 없으면 지금까지의 해석(택일)이다.

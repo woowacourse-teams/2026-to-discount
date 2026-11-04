@@ -30,16 +30,11 @@ public final class BannerOffers {
 
     /** @param activeMembers {@link BannerCatalog#activeMembers()} - 오늘 띄우는 배너, 묶음은 구성원마다 한 장 */
     public static List<OfferRecord> of(List<Banner> activeMembers, Clock clock) {
-        // capturedAt은 날짜가 아니라 시각까지 있어야 한다. Offer.preferredOver가
-        // 문자열로 그냥 비교하는데("2026-09-03" vs "2026-09-03T12:00:00+09:00"),
-        // 날짜만 넣으면 같은 날 찍힌 원장 레코드보다 "더 이르다"고 읽혀
-        // 배너가 항상 진다 — 오늘 등록한 배너가 어제 원장 값에 안 이겨서
-        // 카드에 안 뜨는 사고가 났다(사용자 확인, 2026-09-03).
-        // 지금 시각 대신 오늘 23:59:59로 고정한다. 같은 날 원장 기록보다 늘 늦어 배너가 이기는 것은 같고,
-        // 값이 요청마다 바뀌지 않아 응답 ETag가 하루 동안 같다(지금 시각이면 매 요청 ETag가 달라 304가
-        // 한 번도 안 났다, 2026-10-14). 웹은 이 값을 최신순 정렬에만 쓴다.
-        String today = LocalDate.now(clock).atTime(23, 59, 59)
-                .atZone(clock.getZone()).toOffsetDateTime().toString();
+        // 배너는 사람이 올린 행사라 수집기가 본 시각(capturedAt)이 없다. 오늘 23:59:59를 시각처럼 채웠더니
+        // 오지 않은 시각이 "n분 전 확인"으로 읽혔다(#285). 날짜만 아는 값은 capturedOn에 싣는다.
+        // 날짜는 자정에만 바뀌어 응답 ETag가 하루 동안 같다(지금 시각이면 매 요청 달라 304가 안 났다, 2026-10-14).
+        // 배너가 같은 칸의 원장을 이기는 규칙은 Offer.preferredOver가 fromBanner로 정한다.
+        String today = LocalDate.now(clock).toString();
         List<OfferRecord> records = new ArrayList<>();
         for (Banner banner : activeMembers) {
             if (banner.brand() == null) continue;
@@ -96,7 +91,7 @@ public final class BannerOffers {
         // qualifiers(구조화 조건)는 배너에 없는 칸이라 설정하지 않는다(null, #155).
         return OfferRecord.builder(banner.platform(), brand)
                 .section(banner.id())
-                .capturedAt(today)
+                .capturedOn(today)
                 .expiresAt(banner.endsOn().toString())
                 .badge(banner.period())
                 .link(banner.url())
