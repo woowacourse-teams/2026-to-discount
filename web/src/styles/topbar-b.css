@@ -229,7 +229,7 @@
   color: var(--text);
 }
 
-.search-field__input::placeholder { color: var(--text-muted); }
+.search-field__input::placeholder { color: var(--text-muted); font-size: .86em; letter-spacing: -.02em; } /* 문구가 길어 360px에서 잘리지 않게(2026-11-04) */
 
 /* 검색 타입 기본 X 버튼은 브라우저마다 모양이 달라 통일이 안 된다. */
 .search-field__input::-webkit-search-cancel-button { display: none; }

@@ -142,7 +142,7 @@
    같은 줄에 나란히 두면 어느 것이 정렬인지 안 읽힌다(2026-09-24 사용자). */
 .quick-bar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* 정렬 캐러셀과 금액 스위치를 한 줄에(캐러셀이 남는 폭을 가로로 넘긴다) */
   align-items: center;
   justify-content: space-between;
   gap: 6px;
@@ -167,7 +167,7 @@
 .quick-bar__sorts {
   display: flex;
   gap: 14px;
-  flex: 1 1 100%;
+  flex: 1 1 0;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
