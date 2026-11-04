@@ -484,9 +484,16 @@
 @keyframes react-ring { 0% { transform: scale(.6); opacity: .55; } 100% { transform: scale(1.35); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .cc-react button svg, .cc-react button::after { animation: none !important; } }
 /* 로고와 쿠폰 사이(.cc--compact > .cc-deal 16px)와 같은 여백을 위아래로 */
-.cc--compact > .cc-react { margin-top: 16px; margin-bottom: calc(16px - var(--pad)); }
+/* 버튼(34px) 안 아이콘(20px) 위아래 7px과 쿠폰 칸 여분 7px을 빼서 눈에 보이는 간격을 16px로 */
+.cc--compact > .cc-react { margin-top: 2px; margin-bottom: calc(9px - var(--pad)); }
 /* 채널(배달, 포장): 채도 낮은 초록, 파랑(2026-11-05 사용자) */
 .cc-ch { display: inline-flex; align-items: center; line-height: 1.3; padding: 1px 6px; border-radius: 4px; font-size: var(--cc-fs-sm, 12px); font-weight: 600; white-space: nowrap; }
-.cc-ch[data-ch="배달"] { background: #e3efe6; color: #3f6b4c; }
-.cc-ch[data-ch="포장"] { background: #e2e9f2; color: #3f5878; }
+.cc-ch { color: #fff; }
+.cc-ch[data-ch="배달"] { background: #4f8a64; }
+.cc-ch[data-ch="포장"] { background: #4f6f9a; }
+.cc-ch[data-ch="배달/포장"] { background: linear-gradient(90deg, #4f8a64, #4f6f9a); }
+/* 하위 오퍼 줄을 지워(2026-11-05) 고정 높이에서 그 줄 몫 42px을 뺀다. 안 빼면 쿠폰과 좋아요 사이가 빈다 */
+.cc--compact { grid-template-rows: auto auto auto auto auto; }
+.cc--compact:not(.cc--open)::after { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 156px - 2 * var(--pad)); }
+@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 156px); } }
 .cc-tags .cc-soldout { font-size: var(--cc-fs-sm, 12px); }

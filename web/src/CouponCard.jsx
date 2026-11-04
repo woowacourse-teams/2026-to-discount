@@ -110,11 +110,11 @@ export function Tags({ o, detail = false }) {
   const st = stateLabel(o)
   // 상태(랜덤·품절·오픈 전·불확정)는 쿠폰 위 배지와 같은 모양으로 채널 자리에 한 묶음(2026-11-05 사용자)
   const tags = all.filter((b) => b.kind !== 'channel' && !(st && (b.text === '랜덤' || b.text === '불확정')))
-  if (!ch && !st && tags.length === 0) return null
   return (
     <span className="cc-tags"><span className="chip-tags">
       {st && <em className="cc-soldout">{st}</em>}
-      {ch && <span className="cc-ch" data-ch={ch}>{ch}</span>}
+      {/* 채널: 배달, 포장은 각자 색, 둘 다 되면 배달/포장 그라데이션(2026-11-05 사용자) */}
+      <span className="cc-ch" data-ch={ch ?? '배달/포장'}>{ch ?? '배달/포장'}</span>
       {tags.map((b) => (b.kind === 'best-fit'
         ? <ComboInfo key={`${b.kind}:${b.text}`} o={o} text={b.text} />
         : <OpBadge key={`${b.kind}:${b.text}`} b={b} platform={o.platform} />))}
