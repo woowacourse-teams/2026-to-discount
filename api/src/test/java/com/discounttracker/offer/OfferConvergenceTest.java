@@ -45,6 +45,21 @@ class OfferConvergenceTest {
     }
 
     @Test
+    void bannerBeatsLedgerWhateverTheLedgerCapturedAt() {
+        // 2026-09-03 사고: 오늘 등록한 배너가 원장에 져서 카드에 안 떴다. 배너는 capturedAt이 없어
+        // 시각 비교로는 이길 수 없으니 fromBanner가 정한다(#285). 원장 시각이 미래여도 마찬가지다.
+        OfferRecord bannerRec = OfferRecord.builder("baemin", "빽다방").amount(3000).qualifier("행사")
+                .offerType(Offer.BANNER_OFFER_TYPE).rawText("3000원").capturedOn("2026-09-12").soldOut(false).build();
+        for (String ledgerAt : List.of("2026-09-12T10:00:00+09:00", "2026-09-11T10:00:00+09:00",
+                "2026-09-13T10:00:00+09:00")) {
+            Offer b = Offer.from(bannerRec, TODAY);
+            Offer l = Offer.from(ledger(7000, null, ledgerAt), TODAY);
+            assertTrue(b.preferredOver(l).fromBanner(), ledgerAt);
+            assertTrue(l.preferredOver(b).fromBanner(), ledgerAt);
+        }
+    }
+
+    @Test
     void bannerAndLedgerConvergeIntoALadder() {
         Offer fromBanner = Offer.from(banner(7000, 15000, "2026-09-12T00:00:00+09:00"), TODAY);
         Offer fromLedger = Offer.from(ledger(3000, 15000, "2026-09-11T00:00:00+09:00"), TODAY);
