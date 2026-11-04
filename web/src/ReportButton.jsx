@@ -101,7 +101,7 @@ export default function ReportButton({ filters, hold, brands }) {
   return (
     <span className="report-btn-wrap">
       <button type="button" className="icon-btn report-btn" aria-label="잘못된 정보 제보" title="제보" aria-expanded={open} onClick={openSheet}>
-        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 18v-6a5 5 0 0 1 10 0v6" /><path d="M5 21h14v-3H5z" /><path d="M12 2v2M4.2 5.2l1.4 1.4M19.8 5.2l-1.4 1.4" /></svg>
+        {/* 사이렌: Lucide siren(ISC), 선을 굵게(2026-11-04 사용자) */}<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M7 18v-6a5 5 0 1 1 10 0v6" /><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" /><path d="M21 12h1M18.5 4.5 18 5M2 12h1M12 2v1M4.9 4.9l.7.7M12 12v6" /></svg>
       </button>
       {tip && (
         <span className={`report-tip${tipFading ? ' report-tip--out' : ''}`} role="status">
