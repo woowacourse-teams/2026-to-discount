@@ -47,6 +47,8 @@ api/src/main/java/com/discounttracker/analytics/EventLog.java
 api/src/main/java/com/discounttracker/analytics/EventLogSnapshot.java
 api/src/main/java/com/discounttracker/analytics/EventRateLimiter.java
 api/src/main/java/com/discounttracker/analytics/GifticonStore.java
+api/src/main/java/com/discounttracker/analytics/PmfSurveyDemoController.java
+api/src/main/java/com/discounttracker/analytics/PmfSurveyService.java
 api/src/main/java/com/discounttracker/analytics/PopularityIndex.java
 api/src/main/java/com/discounttracker/analytics/PostHogClient.java
 api/src/main/java/com/discounttracker/analytics/PostHogConfiguration.java
@@ -130,6 +132,8 @@ api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogSnapshotTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogTest.java
 api/src/test/java/com/discounttracker/analytics/GifticonStoreTest.java
+api/src/test/java/com/discounttracker/analytics/PmfSurveyControllerTest.java
+api/src/test/java/com/discounttracker/analytics/PmfSurveyServiceTest.java
 api/src/test/java/com/discounttracker/analytics/PopularityIndexTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogClientTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java
@@ -316,6 +320,8 @@ web/src/platformBadge.test.js
 web/src/platformIcons.js
 web/src/platforms.js
 web/src/platformsContract.test.js
+web/src/pmfSurvey.js
+web/src/pmfSurvey.test.js
 web/src/popularStrip.js
 web/src/popularStrip.test.js
 web/src/posthog.js
@@ -418,8 +424,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 192 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 178 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 196 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 180 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -431,7 +437,7 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 24 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 26 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 6 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
@@ -461,6 +467,8 @@ HTTP 경계:
 - `POST /api/reports`
 - `POST /api/share-links`
 - `POST /api/survey`
+- `POST /api/survey/demo`
+- `POST /api/survey/dismiss`
 - `PUT /api/push/admin/next`
 
 ### Web
@@ -549,6 +557,8 @@ HTTP 경계:
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformsContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pmfSurvey.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pmfSurvey.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `popularStrip.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `popularStrip.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |
