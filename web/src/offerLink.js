@@ -111,7 +111,7 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   const share = typeof href === 'string' && href.startsWith(CE_SHARE_PREFIX)
   if (typeof document === 'undefined') return
   // 앱 열림 결과(telemetry.js). 쿠팡이츠는 안내 뒤 실제로 이동할 때부터 잰다.
-  if (!share && !tab) { watchAppOpen(href); return }
+  if (!share && !tab) { watchAppOpen(href); installHint(); return }
   e.preventDefault()
   // 공유 링크도 같은 탭으로 넘긴다. 새 탭에 넣으면 그 탭엔 누른 기록이 없어 앱 열기(intent://)가 막혀 빈 탭에 멈췄다
   // (2026-10-12 사용자: 안 넘어간다).
@@ -143,6 +143,31 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
     // 앱이 안 열려 공유 링크로 넘긴 것도 남긴다(link_fallback, 신뢰 지표: 링크 실패)
     if (tab) setTimeout(() => { if (!left && document.visibilityState === 'visible') { track('link_fallback', { platform: 'coupangeats' }); window.location.href = COUPANGEATS_LINK } }, 4000) // 앱이 안 열리면 4초 뒤 허브(2026-10-07 사용자: 2.5초 -> 4초)
   }, noticeMs())
+}
+
+// 앱이 없으면 아무 일도 안 일어나니 알려 준다(2026-11-04 사용자). 바로 앱으로 넘어갔으면(떠남 신호) 띄우지 않는다.
+// 띄운 것과 사용자가 눌러 확인한 것을 따로 센다(install_hint_shown, install_hint_ack).
+export const INSTALL_HINT = '설치된 배달앱이 실행돼요.\n설치되지 않았다면 설치 후 이용해주세요!'
+function installHint() {
+  if (typeof window === 'undefined') return
+  let left = false
+  const mark = () => { left = true }
+  window.addEventListener('blur', mark, { once: true })
+  window.addEventListener('pagehide', mark, { once: true })
+  document.addEventListener('visibilitychange', mark, { once: true })
+  setTimeout(() => {
+    if (left || document.visibilityState !== 'visible') return
+    document.querySelector('.install-hint')?.remove()
+    const el = document.createElement('button')
+    el.type = 'button'
+    el.className = 'install-hint'
+    el.setAttribute('role', 'status')
+    el.textContent = INSTALL_HINT
+    el.addEventListener('click', () => { track('install_hint_ack'); el.remove() })
+    document.body.appendChild(el)
+    track('install_hint_shown')
+    setTimeout(() => el.remove(), 3500)
+  }, 1200)
 }
 
 /** 쿠팡이츠 안내와 같은 모양(어두운 바탕 위 가운데 글)으로 잠깐 띄운다. 제보 결과도 쓴다(2026-10-19 사용자). */

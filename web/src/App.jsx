@@ -120,6 +120,8 @@ export default function App({ initial = null }) {
   // 통째로 돌려주므로 "적용" 한 번에 setFilters 한 번이다.
   const [sheetOpen, setSheetOpen] = useState(false)
   useBackClose(sheetOpen, () => setSheetOpen(false))
+  // 분류(또는 신규)를 고른 화면은 메인 위에 덮인 화면으로 본다: 뒤로 = 전체로(2026-11-04 사용자: 뒤로 누르면 사이트가 꺼졌다)
+  useBackClose(filters.categories.size > 0 || filters.updatedOnly, () => setFilters((f) => ({ ...f, categories: new Set(), updatedOnly: false })))
   const applyFromSheet = (draft) => {
     setFilters(draft)
     saveMinAmount(draft.minAmount)
@@ -301,7 +303,8 @@ export default function App({ initial = null }) {
       (f) => applyHidden(applyFilters(brands, f), hidden, bestOf).map((b) => b.name))
     // ponytail: 어떻게 해도 안 서면(순위를 그린 뒤 목록이 바뀜) 지금은 아무 일도 안 한다. 안내 문구가 정해지면 띄운다(#219 열린 질문 3).
     if (!target) return
-    if (target.cleared.length > 0) setFilters(target.filters)
+    // 실시간 순위에서 브랜드로 가면 분류는 늘 푼다(2026-11-04 사용자: 분류가 걸려 있으면 순위에서 바로 못 넘어간다)
+    setFilters({ ...target.filters, categories: new Set() })
     setLinkedBrand(null)
     requestAnimationFrame(() => setLinkedBrand(brandCardId(name)))
   }
@@ -580,7 +583,8 @@ export default function App({ initial = null }) {
       {brands && (
         <div className="quick-bar">
         <div className="quick-bar__sorts" role="group" aria-label="정렬">
-          {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문 낮은순']].map(([key, dir, label]) => {
+          {/* 2026-11-04 사용자: 넷을 가로 캐러셀로(배경 없이 굵은 회색 글씨, 고른 것은 강조색). 인기순·최신순은 방향이 고정이다 */}
+          {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문금액 낮은순'], ['popularity', 'desc', '인기순'], ['recent', 'desc', '최신순']].map(([key, dir, label]) => {
             const first = primarySort(filters)
             const on = first.key === key && first.dir === dir
             return (

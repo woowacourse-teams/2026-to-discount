@@ -8,7 +8,7 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import MenuBar from './MenuBar.jsx'
 import ReportButton from './ReportButton.jsx'
 import { PLATFORMS } from './logos.jsx'
-import { CATEGORIES, visibleCategories } from './filters.js'
+import { visibleCategories } from './filters.js'
 import { useBrandAutocomplete, useSearchPauseTrack } from './useBrandAutocomplete.js'
 import './styles/topbar-b.css'
 
@@ -55,8 +55,8 @@ function SearchControl({ value, onChange, onSubmit, chips, brands }) {
         <input
           type="search"
           className="search-field__input"
-          placeholder="브랜드 검색"
-          aria-label="브랜드 검색"
+          placeholder="브랜드, 메뉴, 카테고리 검색"
+          aria-label="브랜드, 메뉴, 카테고리 검색"
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={autocomplete.isOpen}
@@ -114,13 +114,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           chips={(
             <>
               {/* 칩 전체가 해제 버튼이다. ×는 무엇이 일어날지 알려주는 표시로만 둔다. */}
-              {CATEGORIES.filter((c) => filters.categories.has(c.key)).map((c) => (
-                <button type="button" className="search-chip" key={c.key}
-                  aria-label={`${c.label} 해제`} onClick={() => toggleCategory(c.key)}>
-                  {c.label}
-                  <span className="search-chip__x" aria-hidden="true">×</span>
-                </button>
-              ))}
+              {/* 고른 분류는 메뉴 바에서 강조되니 검색창 칩으로 넣지 않는다(2026-11-04 사용자) */}
               {filters.platforms.size < PLATFORMS.length && (
                 <button type="button" className="search-chip" aria-label="앱 선택 초기화"
                   onClick={() => setFilters((f) => ({ ...f, platforms: new Set(PLATFORMS.map((x) => x.key)) }))}>
