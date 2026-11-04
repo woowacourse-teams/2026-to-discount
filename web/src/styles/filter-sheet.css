@@ -262,3 +262,8 @@
 .quick-bar { flex-wrap: wrap; }
 .quick-bar__tools { display: flex; align-items: center; gap: 2px; flex: none; }
 .quick-bar__actions:empty { display: none; }
+/* 정렬 줄 양끝 페이드·화살표: 분류 바(.menu-bar__more)를 그대로 쓰고 바탕색만 본문색으로 */
+.quick-bar__sortwrap { position: relative; flex: 1 1 0; min-width: 0; display: flex; }
+.quick-bar__sortwrap .quick-bar__sorts { flex: 1 1 auto; }
+.quick-bar__more.menu-bar__more--left { left: 0; background: linear-gradient(to right, var(--bg) 55%, transparent); }
+.quick-bar__more.menu-bar__more--right { right: 0; background: linear-gradient(to left, var(--bg) 55%, transparent); }

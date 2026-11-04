@@ -29,6 +29,7 @@ const SHIFT_PAUSE_MS = 400
 // 설문 카드는 누른 뒤에만 열린다 — 첫 화면 묶음에서 뺀다(2026-10-06 성능).
 const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
 import { useSurvey } from './useSurvey.js'
+import { useScrollMore } from './MenuBar.jsx'
 import { getAnalyticsContext } from './analytics-context.js'
 import { shouldShowGuide } from './firstVisitGuide.js'
 import PushNotificationSetting from './PushNotificationSetting.jsx'
@@ -121,6 +122,7 @@ export default function App({ initial = null }) {
   const [sheetOpen, setSheetOpen] = useState(false)
   useBackClose(sheetOpen, () => setSheetOpen(false))
   // 정렬 줄은 터치로 넘기고, 마우스로도 끌어 넘긴다. 끈 뒤의 클릭은 고르기로 치지 않는다(2026-11-04 사용자)
+  const [sortRef, sortMore] = useScrollMore()
   const dragScroll = useMemo(() => {
     let x0 = 0, left0 = 0, moved = false, el = null
     return {
@@ -593,7 +595,11 @@ export default function App({ initial = null }) {
           상태(filters)를 공유하므로 어느 쪽에서 바꿔도 같다. */}
       {brands && (
         <div className="quick-bar">
-        <div className="quick-bar__sorts" role="group" aria-label="정렬" {...dragScroll}>
+        {/* 분류 바와 같은 양끝 페이드·화살표(useScrollMore, 2026-11-04 사용자) */}
+        <div className="quick-bar__sortwrap">
+        <span className={`menu-bar__more menu-bar__more--left quick-bar__more${sortMore.left ? ' menu-bar__more--on' : ''}`} aria-hidden="true">‹</span>
+        <span className={`menu-bar__more menu-bar__more--right quick-bar__more${sortMore.right ? ' menu-bar__more--on' : ''}`} aria-hidden="true">›</span>
+        <div className="quick-bar__sorts" role="group" aria-label="정렬" ref={sortRef} {...dragScroll}>
           {/* 2026-11-04 사용자: 넷을 가로 캐러셀로(배경 없이 굵은 회색 글씨, 고른 것은 강조색). 인기순·최신순은 방향이 고정이다 */}
           {[['amount', 'desc', '할인금액 높은순'], ['minOrder', 'asc', '최소주문금액 낮은순'], ['popularity', 'desc', '인기순'], ['recent', 'desc', '최신순']].map(([key, dir, label]) => {
             const first = primarySort(filters)
@@ -616,6 +622,7 @@ export default function App({ initial = null }) {
               </button>
             )
           })}
+        </div>
         </div>
         <div className="quick-bar__tools">
             <button type="button" className={`icon-btn${isFiltered ? ' icon-btn--active' : ''}`} disabled={!isFiltered}
