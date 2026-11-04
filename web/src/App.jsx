@@ -18,6 +18,7 @@ const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
 // 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
 // 서버 화면을 버리고 다시 그렸다(React #421 x 카드 수, TBT 2.3초, 2026-10-14). 15KB.
 import CouponCard from './CouponCard.jsx'
+import { nextReaction, reactionOf, readReactions, setReaction } from './brandReactions.js'
 import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import { captureRects, playShift, readCards } from './cardShift.js'
 
@@ -391,6 +392,17 @@ export default function App({ initial = null }) {
   // startTransition: 하이드레이션이 덜 끝난 Suspense(필터 시트 등)에 급한 갱신이 닿으면
   // React가 그 경계를 버리고 다시 그린다(#421). 브라우저 값 반영은 급하지 않다.
   useEffect(() => { startTransition(() => setHidden(readHidden())) }, [])
+  // 좋아요/싫어요(brandReactions.js). 첫 렌더는 빈 값(서버 렌더와 같게), 마운트 뒤 채운다.
+  const [reactions, setReactions] = useState({})
+  const reactionsRef = useRef(reactions)
+  reactionsRef.current = reactions
+  useEffect(() => { startTransition(() => setReactions(readReactions())) }, [])
+  const onReact = useCallback((brand, pressed, position) => {
+    const prev = reactionOf(reactionsRef.current, brand)
+    const reaction = nextReaction(prev, pressed)
+    setReactions(setReaction(reactionsRef.current, brand, reaction))
+    track('brand_reaction', { brand: brand.name, reaction, prev, position: String(position) })
+  }, [])
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const hiddenToggleRef = useRef(null)
   const primarySortRef = useRef(null)
@@ -759,7 +771,7 @@ export default function App({ initial = null }) {
             /></Suspense>
           )}
           {visibleBrands.slice(0, shown).map((b, index) => {
-            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
+            const props = { leaving: leaving === b.name, onHide, onReact, reaction: reactionOf(reactions, b), include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name) || shared?.brand.name === b.name, onInteract: clearLinked,
               sharedKey: shared?.brand.name === b.name ? shared.key : null, onShareTargetVisible }
             const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
