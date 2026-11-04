@@ -60,6 +60,38 @@ class OfferConvergenceTest {
     }
 
     @Test
+    void bannerWinnerKeepsItsOwnCapturedFieldsNotTheLedgerTime() {
+        // 배너가 이기면 병합 결과의 capturedAt은 null, capturedOn은 배너 날짜다(#285, PR #300 리뷰).
+        // 원장이 본 시각을 끌어오지 않는다: "capturedAt이 없을 때만 capturedOn이 있다"는 불변을
+        // 지키기 위해서다. 고치기 전에도 23:59:59가 원장 시각을 덮었으니 잃는 관측은 그때와 같다.
+        // 금액이 같으면 withDetailFrom이 새 Offer를 만들고(최소주문 끌어옴), 다르면 convergedWith가
+        // 사다리를 만든다. 두 경로 모두 본다.
+        for (Integer bannerMinOrder : java.util.Arrays.asList(null, 20000)) {
+            OfferRecord bannerRec = OfferRecord.builder("baemin", "빽다방").amount(3000).qualifier("행사")
+                    .offerType(Offer.BANNER_OFFER_TYPE).rawText("3000원").capturedOn("2026-09-12")
+                    .minOrderAmount(bannerMinOrder).soldOut(false).build();
+            for (int ledgerAmount : new int[] {3000, 7000}) {
+                Offer b = Offer.from(bannerRec, TODAY);
+                Offer l = Offer.from(ledger(ledgerAmount, 15000, "2026-09-12T10:00:00+09:00"), TODAY);
+                for (Offer merged : List.of(b.preferredOver(l), l.preferredOver(b))) {
+                    String label = "minOrder=" + bannerMinOrder + " ledger=" + ledgerAmount;
+                    assertTrue(merged.fromBanner(), label);
+                    assertNull(merged.capturedAt(), label);
+                    assertEquals("2026-09-12", merged.capturedOn(), label);
+                }
+            }
+        }
+        // 양성 신호: 같은 금액이고 배너에 최소주문이 없으면 원장 값이 실제로 끌려왔다 —
+        // 위 단언이 "병합이 안 돌아서" 통과한 것이 아님을 본다.
+        Offer b = Offer.from(OfferRecord.builder("baemin", "빽다방").amount(3000).qualifier("행사")
+                .offerType(Offer.BANNER_OFFER_TYPE).rawText("3000원").capturedOn("2026-09-12")
+                .soldOut(false).build(), TODAY);
+        Offer merged = b.preferredOver(Offer.from(ledger(3000, 15000, "2026-09-12T10:00:00+09:00"), TODAY));
+        assertEquals(15000, merged.minOrderAmount());
+        assertNull(merged.capturedAt());
+    }
+
+    @Test
     void bannerAndLedgerConvergeIntoALadder() {
         Offer fromBanner = Offer.from(banner(7000, 15000, "2026-09-12T00:00:00+09:00"), TODAY);
         Offer fromLedger = Offer.from(ledger(3000, 15000, "2026-09-11T00:00:00+09:00"), TODAY);

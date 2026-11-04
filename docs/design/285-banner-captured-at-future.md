@@ -39,6 +39,7 @@
 - `OfferRecord`와 `Offer`에 `String capturedOn`을 더한다. 형식은 `yyyy-MM-dd`. 칸 위에 한 줄 주석: "날짜만 아는 관측일. `capturedAt`이 없을 때만 있다".
 - `Offer` 레코드 끝에 추가한다(#155, #203과 같은 이유. 이웃 칸과 타입이 같은 문자열이라 위치 인자가 서로 바뀌어도 컴파일이 못 잡으므로, 이 칸을 추가할 때 `new Offer(` 호출 자리를 전부 찾아 맞춘다). `withDetailFrom`, `convergedWith`, `withFirstComeTier`, `withIsNew` 같은 복제 자리는 `this`(`withFirstComeTier`는 `lead`가 아니라 `this`) 값을 그대로 옮긴다. 이 칸은 `link`와 달리 선착순 대표로 바뀌지 않는다.
 - `Offer.capturedAt`은 null을 허용한다. `Offer.from`은 `r.capturedAt()`을 그대로 옮긴다(null이면 null).
+- 배너가 원장을 이긴 병합 결과는 배너 자신의 값을 그대로 둔다(`capturedAt: null`, `capturedOn`은 배너 날짜). 원장이 본 시각을 끌어오지 않는다. 끌어오면 두 칸이 같이 차서 위 불변이 깨진다. 고치기 전에도 23:59:59가 원장 시각을 덮었으므로 잃는 관측은 그때와 같다. 원장 시각을 살리려면 이 불변부터 다시 정해야 한다(PR #300 리뷰, `OfferConvergenceTest`가 박는다).
 - 응답에서 `capturedAt`이 null이어도 키는 남긴다(`capturedAt: null`). 키를 빼면 `offerKeys` 계약이 바뀐다.
 
 #### `BannerOffers`
@@ -96,6 +97,7 @@
 | `Offer`, `OfferRecord`, `BannerOffers` | 넣는다 | 원인 자리 |
 | `api/src/test/resources/contracts/offer-cases.json` | 넣는다 | 웹이 함께 읽는 계약. 웹 `offerContract.test.js`가 응답 예시 칸과 `offerKeys`를 맞댄다 |
 | `web/src/filters.js` | 넣는다 | 미래 시각 방어. 요구사항 2 |
+| `web/scripts/prerender.mjs` | 넣는다(웹 PR) | PR #300 리뷰가 찾았다(위 `web/src` 검색 밖). 261행 '확인일' 줄과 476~480행 `brandLastmod`가 `capturedAt`을 읽는다. API 배포 뒤 배너 오퍼와 배너가 이긴 병합 오퍼는 '확인일'이 빠지고, sitemap `lastmod`가 더 이른 원장 날짜나 `today`로 바뀐다. 두 자리가 `capturedAt ?? capturedOn`의 날짜를 읽게 한다. `capturedOn`이 없는 옛 응답에서는 지금과 같아서 API보다 먼저 나가도 된다 |
 | `web/scripts/dev/fixtures/brands.json` | 구현자가 확인해 넣는다 | 개발용 응답이다. `capturedAt`이 23:59:59인 값이 있으면 같이 고친다. 이 세션은 열어 보지 않았다 |
 | `api/README.md`, `docs/CROSS-REPO-TESTS.md` | 구현자가 확인해 칸 목록이 있으면 넣는다 | `offer-cases`를 언급하는 문서다 |
 | tracker, beggars-ops | 넣지 않는다 | `capturedOn`은 내보내기 칸이 아니다 |
@@ -103,7 +105,7 @@
 
 ### 배포 순서
 
-1. **API가 먼저.** 배포 직후 `capturedAt: null`인 오퍼와 새 칸 `capturedOn`이 나간다. **현재 웹은 `capturedAt`이 null이어도 깨지지 않는다.** `latestCaptured`가 `filter(Boolean)`으로 null을 이미 거른다. 다만 위 최신순 변화는 이 시점에 시작된다.
+1. **API가 먼저.** 배포 직후 `capturedAt: null`인 오퍼와 새 칸 `capturedOn`이 나간다. **현재 웹은 `capturedAt`이 null이어도 깨지지 않는다.** `latestCaptured`가 `filter(Boolean)`으로 null을 이미 거른다. 다만 위 최신순 변화는 이 시점에 시작된다. 이 문장은 `filters.js`에만 맞는다. `prerender.mjs`의 '확인일'과 `lastmod`는 웹 PR이 나가기 전까지 위 표대로 바뀐다.
 2. 운영 응답 확인(아래 "운영 확인").
 3. 웹(`latestCaptured` 방어)은 그 뒤. 웹이 먼저 나가도 옛 응답(23:59:59)이 미래로 걸러져 같은 효과가 나지만, 웹 프리뷰 절차(AGENTS.md, 프리뷰 승인 후 main)를 타므로 API와 웹을 한 PR에 담지 않는다. 구현자는 영역별로 PR을 나눈다(API, 웹).
    - 이 순서가 2026-09-24 사고(웹이 먼저 나가 옛 응답을 읽음)와 다른 점: 이 웹 변경은 새 칸을 읽지 않고 오직 미래 값을 버리기만 한다.
