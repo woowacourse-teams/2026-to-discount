@@ -48,7 +48,8 @@ function Amt({ offer }) {
     <span className="cc-amt">
       {/* 상위 오퍼 금액은 '원 할인'으로 끝낸다(2026-10-06 사용자) */}
       {dim ? <s>{num}{hasNum && <small>원 할인</small>}</s> : <>{num}{hasNum && <small>원 할인</small>}</>}
-      {dim && <em className="cc-soldout">{offer.soldOut ? '품절' : '오픈 전'}</em>}
+      {/* 모서리 배지: 품절·오픈 전은 금액을 흐리게, 랜덤은 금액 그대로 같은 자리에 표식만(2026-11-04 사용자) */}
+      {(dim || offer.qualifier === '랜덤') && <em className="cc-soldout">{offer.soldOut ? '품절' : dim ? '오픈 전' : '랜덤'}</em>}
     </span>
   )
 }
