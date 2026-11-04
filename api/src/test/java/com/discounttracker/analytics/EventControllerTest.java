@@ -67,6 +67,17 @@ class EventControllerTest {
     }
 
     @Test
+    void acceptsSurveyInteraction() throws Exception {
+        mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
+                        .content(batch("""
+                            {"event":"survey_interaction","visitorId":"v_pmf_flow","sessionId":"s_pmf_flow",
+                             "props":{"surveyId":"pmf-2026-11","action":"option_selected","question":"benefit","step":"2","value":"other"}}
+                            """)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.accepted").value(1));
+        assertTrue(Files.readString(Path.of(logPath)).contains("option_selected"));
+    }
+
+    @Test
     void acceptsKnownEvent() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)
                         .content(batch("""

@@ -27,7 +27,8 @@
     "test:hidden-brands": "node --test src/hiddenBrands.test.js",
     "test:card-shift": "node --test src/cardShift.test.js",
     "test:unit": "node scripts/run-node-tests.mjs",
-    "test:banner-contract": "node --test src/bannerContract.test.js"
+    "test:banner-contract": "node --test src/bannerContract.test.js",
+    "test:pmf": "node --test src/pmfSurvey.test.js"
   },
   "dependencies": {
     "@noble/hashes": "2.0.1",
