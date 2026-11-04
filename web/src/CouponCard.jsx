@@ -463,7 +463,8 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>}
       {/* 오른쪽 위는 공유(2026-11-04 사용자). 숨기기는 자세히 보기 시트 맨 아래로 옮겼다 */}
-      {hasBest && <OfferShareButton offer={best[0]} brandName={brand.name} position={position} where="card" className="cc-hide cc-share" />}
+      {/* 특정메뉴 등 비교 밖 쿠폰만 있어도 카드 대표 쿠폰을 공유한다(스텔라떡볶이, 2026-11-04) */}
+      {best[0] && <OfferShareButton offer={best[0]} brandName={brand.name} position={position} where="card" className="cc-hide cc-share" />}
       {/* 펼친 쿠폰은 펼쳤을 때만 그린다(접힌 동안 요소 수를 늘리지 않는다). */}
       {shown && (
         <div className="cc-x cc-x--rest"><div className="cc-x-in"><div className="cc-more">

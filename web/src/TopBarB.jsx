@@ -141,7 +141,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
           </button>
           <button type="button" className={`icon-btn${sheetOpen ? ' icon-btn--on' : isFiltered ? ' icon-btn--active' : ''}`}
             aria-expanded={sheetOpen} aria-label="필터 열기" title="필터" onClick={onOpenSheet}>
-            {/* 깔때기 + 옆 줄(필터 목록). 굵게(2026-11-04 사용자) */}<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 4h13l-5 6.2V17l-3 2v-8.8z" fill="currentColor" fillOpacity=".18" /><path d="M18 8h3.5M18 13h3.5M18 18h3.5" /></svg>
+            {/* 깔때기: Phosphor funnel-bold(MIT) */}<svg aria-hidden="true" width="22" height="22" viewBox="0 0 256 256" fill="currentColor"><path d="M234.29 47.91A20 20 0 0 0 216 36H40a20 20 0 0 0-14.8 33.45l.12.14L92 140.75V216a20 20 0 0 0 31.1 16.64l32-21.33a20 20 0 0 0 8.9-16.65v-53.91l66.67-71.16l.12-.14a20 20 0 0 0 3.5-21.54m-91 79.89A12 12 0 0 0 140 136v56.52l-24 16V136a12 12 0 0 0-3.25-8.2L49.23 60h157.54Z" /></svg>
           </button>
         </div>
       </div>
