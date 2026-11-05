@@ -284,6 +284,8 @@ web/src/brandAutocomplete.test.js
 web/src/brandColor.js
 web/src/brandImpression.js
 web/src/brandImpression.test.js
+web/src/brandReactions.js
+web/src/brandReactions.test.js
 web/src/cardId.js
 web/src/cardShift.js
 web/src/cardShift.test.js
@@ -426,7 +428,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 196 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 181 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 183 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -522,6 +524,8 @@ HTTP 경계:
 | `brandColor.js` | 배너 색 파생 |
 | `brandImpression.js` | 브랜드 헤더 노출 판정과 세션 중복 방지 |
 | `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
+| `brandReactions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `brandReactions.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardId.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |

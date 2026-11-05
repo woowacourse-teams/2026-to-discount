@@ -65,6 +65,9 @@ public class EventController {
             // 싫은 브랜드 숨기기(2026-09-24). 브랜드 이름은 brand 칸으로 이미 오는 값이라
             // 새로 여는 것이 없다. 어떤 브랜드가 얼마나 숨겨지는지가 목록 품질의 신호다.
             "brand_hide", "hidden_open",
+            // 브랜드 카드 좋아요/싫어요(2026-11-04, #309, CouponCard.jsx). 누를 때마다 한 건,
+            // 취소는 reaction=none. 최신값 접기는 분석 쪽이 한다.
+            "brand_reaction",
             // 메인 화면 A/B(2026-10-05): 접기(두 안 모두)와 쿠폰 카드 캐러셀 넘기기.
             "brand_collapse", "coupon_carousel_swipe",
             // 할인 그래프(2026-10-10): 날짜 짚기(누르기 한 번에 한 건)와 기간 탭 바꾸기.

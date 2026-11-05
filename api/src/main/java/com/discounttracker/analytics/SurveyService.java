@@ -75,6 +75,17 @@ public class SurveyService {
     private final boolean open;
     private final int minDays;
     private final int minConversions;
+    private int recentDays;
+    private int minSpanDays;
+
+    /** 최근 방문(일)과 사용 기간(일) 문턱. 0이면 끈다(2026-11-04: 최근 2주 방문, 한 달 이상 사용한 단골). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setWindow(@Value("${discount.survey.recent-days:0}") int recentDays,
+                   @Value("${discount.survey.min-span-days:0}") int minSpanDays) {
+        this.recentDays = recentDays;
+        this.minSpanDays = minSpanDays;
+        log.info("설문 문턱: 최근 {}일 안 방문, 사용 기간 {}일 이상(0=끔)", recentDays, minSpanDays);
+    }
 
     public SurveyService(SurveyEligibility eligibility, GifticonStore gifticons,
                          AnalyticsEventService events,
@@ -126,7 +137,9 @@ public class SurveyService {
     private boolean qualifies(String visitorId) {
         SurveyEligibility.Counts counts = eligibility.count(visitorId);
         if (testVisitors.contains(visitorId)) return !counts.answered();
-        return open && SurveyEligibility.qualifies(counts, minDays, minConversions);
+        return open && SurveyEligibility.qualifies(counts, minDays, minConversions)
+                && SurveyEligibility.recentAndLong(counts, recentDays, minSpanDays,
+                        java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")));
     }
 
     /**

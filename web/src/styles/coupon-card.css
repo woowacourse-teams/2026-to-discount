@@ -161,7 +161,7 @@
 /* 안의 쿠폰과 표는 투명도와 6px 이동, 40ms씩 늦게 시작(끝날 때도 지연) */
 .cc-deal--more, .cc-tbl { opacity: 0; transform: translateY(-6px); transition: opacity 160ms ease calc(var(--i, 0) * 40ms), transform 160ms ease calc(var(--i, 0) * 40ms); }
 .cc--open .cc-deal--more, .cc--open .cc-tbl { opacity: 1; transform: none; transition: opacity 220ms ease calc(120ms + var(--i, 0) * 40ms), transform 260ms cubic-bezier(.2, 0, 0, 1) calc(120ms + var(--i, 0) * 40ms); }
-@media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-hint, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .cc-x, .cc-alts, .cc-hint, .cc-react, .cc-deal--more, .cc-tbl, .cc-hint svg { transition: none !important; } }
 
 /* ?compact=1 시안: 17차 시안처럼 낮고 촘촘한 쿠폰(높이 76px 안팎, 앱 로고 34px, 금액 25px, 꼭지 58px, 아래 띠 없음) */
 .cc--compact { --tk-h: 96px; } /* 76 -> 84 -> 96px(2026-10-06 사용자: 이동 영역 99px와 비율) */
@@ -461,3 +461,36 @@
 .cc-sheet__hide:active { background: #222; }
 /* 다른 앱 금액 줄: 그 앱 오퍼만 상태 배지(랜덤·품절·오픈 전, 2026-11-04 사용자) */
 .cc-alt__tag { margin-left: 4px; font-size: 10px; padding: 0 4px; filter: none; }
+
+/* 좋아요/싫어요(#309): 5행 왼쪽 아래, 자세히 보기와 같은 줄. 버튼 40x34, 사이 4px */
+.cc > .cc-react { grid-row: 5; grid-column: 1; justify-self: start; align-self: end; display: flex; gap: 4px; margin: 12px 0 calc(12px - var(--pad)) var(--pad); /* 위: 로고와 쿠폰 사이와 같은 여백, 아래: 카드 끝까지 같은 여백(2026-11-05 사용자) */ transition: opacity 240ms ease 280ms, visibility 0s 280ms; }
+.cc--open .cc-react { opacity: 0; visibility: hidden; transition: opacity 140ms ease, visibility 0s 140ms; }
+.cc-react button { all: unset; box-sizing: border-box; width: 40px; height: 34px; display: grid; place-items: center; cursor: pointer; color: var(--text-muted); }
+.cc-react button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cc-react svg { width: 20px; height: 20px; }
+.cc-react button[aria-pressed="true"] { color: var(--text); }
+.cc-react button[aria-pressed="true"] svg path { fill: currentColor; }
+/* 유튜브식 반응(2026-11-05 사용자): 누르는 동안 눌림, 켜질 때 엄지가 튀며 기울고 둘레에 퍼지는 고리 */
+.cc-react button { position: relative; border-radius: 999px; transition: background-color .15s ease, transform .12s ease; -webkit-tap-highlight-color: transparent; }
+.cc-react button:hover { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.cc-react button:active { transform: scale(.88); }
+.cc-react button[aria-pressed="true"] { color: var(--sale); }
+.cc-react button[aria-pressed="true"] svg { animation: react-pop .42s cubic-bezier(.2, 1.6, .4, 1); }
+.cc-react button[aria-label="싫어요"][aria-pressed="true"] { color: var(--text); }
+.cc-react button[aria-label="싫어요"][aria-pressed="true"] svg { animation-name: react-pop-down; }
+.cc-react button[aria-pressed="true"]::after { content: ""; position: absolute; inset: 2px 5px; border-radius: 999px; border: 2px solid currentColor; opacity: 0; animation: react-ring .45s ease-out; pointer-events: none; }
+@keyframes react-pop { 0% { transform: scale(.7) rotate(0); } 45% { transform: scale(1.35) rotate(-14deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes react-pop-down { 0% { transform: scale(.7) rotate(0); } 45% { transform: scale(1.3) rotate(14deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes react-ring { 0% { transform: scale(.6); opacity: .55; } 100% { transform: scale(1.35); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cc-react button svg, .cc-react button::after { animation: none !important; } }
+/* 로고와 쿠폰 사이(.cc--compact > .cc-deal 16px)와 같은 여백을 위아래로 */
+/* 버튼(34px) 안 아이콘(20px) 위아래 7px과 쿠폰 칸 여분 7px을 빼서 눈에 보이는 간격을 16px로 */
+.cc--compact > .cc-react { margin-top: 18px; margin-bottom: calc(25px - var(--pad)); } /* 보이는 간격 32px(2026-11-05 사용자: 2배로) */
+/* 채널(배달, 포장): 채도 낮은 초록, 파랑(2026-11-05 사용자) */
+.cc-ch { display: inline-flex; align-items: center; line-height: 1.3; padding: 1px 6px; border-radius: 4px; font-size: var(--cc-fs-sm, 12px); font-weight: 600; white-space: nowrap; }
+.cc-ch { background: #c4c4c4; color: #111; } /* 색 없이 진회색 바탕, 검은 글씨(2026-11-05 사용자) */
+/* 하위 오퍼 줄을 지워(2026-11-05) 고정 높이에서 그 줄 몫 42px을 뺀다. 안 빼면 쿠폰과 좋아요 사이가 빈다 */
+.cc--compact { grid-template-rows: auto auto auto auto auto; }
+.cc--compact:not(.cc--open)::after { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 156px - 2 * var(--pad)); }
+@container (max-width: 613px) { .cc--compact:not(.cc--open) { min-height: calc((100cqw - 30px) * .96 * 11 / 37 + 156px); } }
+.cc-tags .cc-soldout { font-size: var(--cc-fs-sm, 12px); }
