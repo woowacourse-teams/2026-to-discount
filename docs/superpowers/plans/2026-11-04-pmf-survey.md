@@ -90,4 +90,4 @@ API는 local 프로필에서만 데모 사용자 생성 경로 `/api/survey/demo
 previous_clicked, next_clicked, skip_clicked, submit_step_clicked, submit_clicked,
 close_requested, close_cancelled, close_confirmed, submit_failed, dismiss_failed를 구분한다.
 문항 속성은 question, step, value이며 자유 입력 내용은 조작 이벤트에 싣지 않는다.
-개발용 안내 미리보기는 설문 계측에서 제외한다.
+개발용 안내 미리보기도 preview=true로 설문 계측을 보낸다. 실제 응답은 저장하지 않고 완료는 survey_interaction의 action=preview_completed로 구분한다. 서버가 기록하는 실제 survey_answer는 미리보기에서 발생하지 않는다.

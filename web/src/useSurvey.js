@@ -27,7 +27,7 @@ export function useSurvey() {
   const finished = useRef(false)
   const closeSource = useRef('card')
   const interact = useCallback((action, props = {}) => {
-    if (!preview.current) track('survey_interaction', { surveyId: SURVEY_ID, action, ...props })
+    track('survey_interaction', { surveyId: SURVEY_ID, preview: preview.current, action, ...props })
   }, [])
 
   useEffect(() => {
@@ -90,8 +90,11 @@ export function useSurvey() {
 
   async function finish(dismiss, submittedDraft = draft) {
     if (inFlight.current || (!context.current && !preview.current)) return
-    // 개발용 띄우기는 화면 검토 전용이다. 운영 대상 판정과 응답 원장은 바꾸지 않는다.
+    // 개발용 설문도 조작 이벤트를 보내되 실제 응답 원장은 바꾸지 않는다.
     if (preview.current) {
+      interact(dismiss ? 'close_confirmed' : 'submit_clicked')
+      if (dismiss) track('survey_dismiss', { surveyId: SURVEY_ID, preview: true, source: closeSource.current })
+      else interact('preview_completed')
       preview.current = false
       setVisible(false); setOpen(false); setConfirm(false); setCompleteClosing(false); setComplete(!dismiss)
       return
@@ -104,7 +107,7 @@ export function useSurvey() {
       const demo = import.meta.env.DEV && new URLSearchParams(location.search).get('pmfDemo') === '1'
       finished.current = true
       if (!demo) rememberTerminal(dismiss ? 'dismissed' : 'answered')
-      if (dismiss) track('survey_dismiss', { surveyId: SURVEY_ID, source: closeSource.current })
+      if (dismiss) track('survey_dismiss', { surveyId: SURVEY_ID, preview: false, source: closeSource.current })
       setVisible(false); setOpen(false); setConfirm(false)
       setCompleteClosing(false); setComplete(!dismiss)
     } catch (e) {
