@@ -85,3 +85,9 @@ test('상세 Tags 호출부는 소스에 정확히 두 곳(펼친 목록, 시트
   const src = await readFile(path.join(here, 'CouponCard.jsx'), 'utf8')
   assert.equal((src.match(/<Tags o=\{o\} detail \/>/g) ?? []).length, 2)
 })
+test('Tags: 오픈 전은 배지 줄에서 빠진다(쿠폰 로고 위에만), 품절은 남는다', () => {
+  const d = new Date()
+  if (d.getHours() === 23 && d.getMinutes() >= 59) return // 23:59에는 열린 뒤라 오픈 전이 아니다
+  assert.doesNotMatch(renderTags(o('baemin', 3000, { badge: '오후 11시 59분 오픈' }), true), /오픈 전/)
+  assert.match(renderTags(o('baemin', 3000, { soldOut: true }), true), /품절/)
+})
