@@ -91,3 +91,10 @@ previous_clicked, next_clicked, skip_clicked, submit_step_clicked, submit_clicke
 close_requested, close_cancelled, close_confirmed, submit_failed, dismiss_failed를 구분한다.
 문항 속성은 question, step, value이며 자유 입력 내용은 조작 이벤트에 싣지 않는다.
 개발용 안내 미리보기도 preview=true로 설문 계측을 보낸다. 실제 응답은 저장하지 않고 완료는 survey_interaction의 action=preview_completed로 구분한다. 서버가 기록하는 실제 survey_answer는 미리보기에서 발생하지 않는다.
+
+## 문항 노출 계측 회귀 수정 (2026-11-05)
+
+개발 원장 인수테스트에서 안내 X의 닫기 확인창만 열어도 question_viewed가 발생함을 확인했다.
+SurveyCard의 문항 노출 effect를 isCardOpen=true일 때만 실행하도록 제한했다.
+안내 닫기 확인만 열린 상태의 무발행과 실제 카드 열림의 발행을 실제 컴포넌트 effect 회귀 테스트로 검증했다.
+npm run test:pmf 9개, npm test, npm run build 통과.

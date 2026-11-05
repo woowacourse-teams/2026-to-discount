@@ -121,7 +121,10 @@ export default function SurveyCard({ survey }) {
       previousPositions.current[selector] = top
     }
   }, [step, selected === 'other'])
-  useEffect(() => { survey.interact('question_viewed', { question: question.id, step: step + 1 }) }, [step, survey.interact])
+  useEffect(() => {
+    if (!survey.isCardOpen) return
+    survey.interact('question_viewed', { question: question.id, step: step + 1 })
+  }, [question.id, step, survey.isCardOpen, survey.interact])
   function pick(value) { survey.interact('option_selected', { question: question.id, step: step + 1, value }); setDraft(d => ({ ...d, [question.id]: value })) }
   function advance() {
     if (!canContinue || busy) return
