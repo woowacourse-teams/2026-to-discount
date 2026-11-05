@@ -45,3 +45,22 @@ test('exitGuard: 바닥에 닿은 첫 뒤로는 알리고 칸을 다시 깔고, 
   t = 6000; pop({ state: null })         // 2초 안 두 번째: 나간다
   assert.equal(calls.at(-1), 'back')
 })
+
+test('같은 틱에 닫힌 칸 둘(순위판 + 분류)은 go(-2) 한 번으로 되돌리고, 카드 이동은 popstate 뒤에 한다', async () => {
+  const { popOverlays, afterHistorySettles } = await import('./backClose.js')
+  const gos = []
+  const h = { go: (n) => gos.push(n) }
+  const ls = {}
+  const target = { addEventListener: (n, f) => { ls[n] = f }, removeEventListener: (n) => { delete ls[n] } }
+  const order = []
+  popOverlays(h, target)
+  popOverlays(h, target)
+  afterHistorySettles(() => order.push('scroll'), (f) => f())
+  await Promise.resolve()
+  assert.deepEqual(gos, [-2])               // back() 두 번이 아니라 이동 한 번
+  assert.deepEqual(order, [])               // 이동이 끝나기 전에는 카드로 안 간다
+  ls.popstate()
+  assert.deepEqual(order, ['scroll'])
+  afterHistorySettles(() => order.push('again'), (f) => f())
+  assert.deepEqual(order, ['scroll', 'again']) // 이동이 없으면 바로
+})
