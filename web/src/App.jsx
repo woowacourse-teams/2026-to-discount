@@ -1,4 +1,4 @@
-import { useBackClose } from './backClose.js'
+import { afterHistorySettles, useBackClose } from './backClose.js'
 import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { fetchBanners, fetchBrands } from './api.js'
@@ -321,7 +321,9 @@ export default function App({ initial = null }) {
     // 실시간 순위에서 브랜드로 가면 분류는 늘 푼다(2026-11-04 사용자: 분류가 걸려 있으면 순위에서 바로 못 넘어간다)
     setFilters({ ...target.filters, categories: new Set() })
     setLinkedBrand(null)
-    requestAnimationFrame(() => setLinkedBrand(brandCardId(name)))
+    // 순위판과 분류가 닫히며 쌓았던 기록 칸을 되돌리는 이동(popstate, 스크롤 복원)이 끝난 뒤 카드로 간다.
+    // 바로 가면 그 이동이 카드 스크롤을 덮어 화면이 오갔다 멈췄다(2026-11-05 모바일 Firefox).
+    requestAnimationFrame(() => afterHistorySettles(() => setLinkedBrand(brandCardId(name))))
   }
   const submitSearch = (raw, submitMethod) => {
     const query = raw.trim()
