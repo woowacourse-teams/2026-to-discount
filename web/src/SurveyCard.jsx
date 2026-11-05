@@ -1,295 +1,189 @@
-import { API_BASE } from './api.js'
-import { useEffect, useRef, useState } from 'react'
-import { track } from './analytics.js'
-import { markAnswered, markDismissed } from './surveyDismiss.js'
-import { PRIMARY, SECTIONS } from './surveyQuestions.js'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { FOLLOW_UP, PMF_OPTIONS, PMF_QUESTION, validDraft, canAdvanceQuestion } from './pmfSurvey.js'
 
-const MAX_TEXT = 200
-const OTHER = 'other'
-const LAST_STEP = SECTIONS.length - 1
+let openDialogs = 0
+let originalScroll
 
-// 노출(survey_impression)은 여기서 안 쏜다. 배너를 본 것이 노출이고 이
-// 카드는 그것을 연 뒤라, 여기서 쏘면 열어 본 사람만 노출로 세어진다
-// (SurveyDock이 쏜다).
-
-function HeaderIcon() {
-  return (
-    <svg className="survey-header__icon" aria-hidden="true" width="18" height="18"
-         viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-         strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  )
+function Dialog({ children, label, onClose, busy = false, className = '', inactive = false }) {
+  const ref = useRef(null)
+  const contentRef = useRef(null)
+  const latest = useRef(onClose)
+  latest.current = onClose
+  useEffect(() => {
+    const style = document.body.style
+    if (openDialogs++ === 0) {
+      originalScroll = { overflow: style.overflow, paddingRight: style.paddingRight }
+      const bar = window.innerWidth - document.documentElement.clientWidth
+      style.overflow = 'hidden'
+      if (bar > 0) style.paddingRight = `${bar}px`
+      document.body.classList.add('has-pmf-modal')
+    }
+    return () => {
+      if (--openDialogs === 0) {
+        document.body.classList.remove('has-pmf-modal')
+        style.overflow = originalScroll.overflow
+        style.paddingRight = originalScroll.paddingRight
+      }
+    }
+  }, [])
+  useEffect(() => {
+    if (inactive) return
+    const previous = document.activeElement
+    ref.current?.focus()
+    return () => { if (previous?.isConnected) previous.focus() }
+  }, [inactive])
+  useLayoutEffect(() => {
+    const node = ref.current
+    const content = contentRef.current
+    function resize() {
+      const style = getComputedStyle(node)
+      const frame = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+        + parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth)
+      node.style.height = `${content.offsetHeight + frame}px`
+    }
+    resize()
+    const observer = new ResizeObserver(resize)
+    observer.observe(content)
+    return () => observer.disconnect()
+  }, [])
+  useLayoutEffect(() => {
+    const node = ref.current
+    function fit() {
+      const viewport = window.visualViewport
+      const height = viewport?.height || window.innerHeight
+      const width = viewport?.width || window.innerWidth
+      // 가장 긴 문항 기준 배율을 공유해 문항 전환 때 가로폭이 변하지 않게 한다.
+      const form = node.querySelector('.pmf-form')
+      let fitHeight = node.offsetHeight
+      if (form) {
+        const optionCount = form.querySelectorAll('.pmf-option').length
+        const missingRows = Number(form.dataset.maxOptions) - optionCount
+        const otherSpace = form.classList.contains('pmf-form--other') ? 0 : 88
+        const style = getComputedStyle(node)
+        const frame = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+          + parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth)
+        fitHeight = contentRef.current.offsetHeight + frame + missingRows * 50 + otherSpace
+      }
+      const scale = Math.min(1, Math.max(1, height - 76) / fitHeight, Math.max(1, width - 32) / node.offsetWidth)
+      node.style.setProperty('--pmf-scale', String(scale))
+    }
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(node)
+    window.addEventListener('resize', fit)
+    window.visualViewport?.addEventListener('resize', fit)
+    return () => { observer.disconnect(); window.removeEventListener('resize', fit); window.visualViewport?.removeEventListener('resize', fit) }
+  }, [])
+  return createPortal(<div className={`pmf-scrim${inactive ? ' pmf-scrim--inactive' : ''}`} aria-hidden={inactive || undefined}
+    onClick={e => { if (e.target === e.currentTarget && !busy && !inactive) latest.current() }}>
+    <section ref={ref} className={`pmf-modal ${className}`} role="dialog" aria-modal={inactive ? undefined : true}
+      inert={inactive ? '' : undefined} aria-labelledby={label} tabIndex={-1}
+      onKeyDown={e => {
+        if (inactive) return
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (!busy) latest.current() }
+        if (e.key === 'Tab') {
+          const items = [...ref.current.querySelectorAll('button:not(:disabled), input:not(:disabled), textarea:not(:disabled)')]
+          const first = items[0], last = items.at(-1)
+          if (!first) { e.preventDefault(); return }
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) { e.preventDefault(); last.focus() }
+          else if (!e.shiftKey && (document.activeElement === last || document.activeElement === ref.current)) { e.preventDefault(); first.focus() }
+        }
+      }}><div ref={contentRef} className="pmf-dialog-content">{children}</div></section>
+  </div>, document.body)
 }
 
-/**
- * 문항은 surveyQuestions.js에 있다. 이 파일은 그리기와 보내기만 한다 —
- * 물어볼 것을 바꾸는 사람과 화면을 고치는 사람이 같은 파일을 안 건드리게
- * 갈라 둔 것이다.
- *
- * 한 화면에 한 질문. 세 개를 한 번에 늘어놓으면 스크롤이 길어져 몇 문항인지
- * 한눈에 안 잡힌다 — 진행 막대와 넘기기로 하나씩 보여준다.
- *
- * 서버 계약은 첫 섹션 하나만 필수다(choice). 나머지 섹션은 answers 맵으로
- * 딸려 가고, 안 고른 섹션은 아예 안 보낸다 — 셋 다 필수로 만들면 세 번
- * 답해야 기프티콘이 나오는 셈이라 중간에 나가는 사람이 늘어난다.
- */
-export default function SurveyCard({ visitorId, code, onCode, onClose }) {
+export default function SurveyCard({ survey }) {
+  const { draft, setDraft, busy, confirmClose } = survey
   const [step, setStep] = useState(0)
-  const [picked, setPicked] = useState({})   // 섹션 id -> token
-  const [texts, setTexts] = useState({})     // 섹션 id -> 직접 입력
-  const [sending, setSending] = useState(false)
-  const [failed, setFailed] = useState(false)
-  // 재고가 없어 코드는 못 받았지만 응답은 갔을 때. code prop과 갈라 둔다 —
-  // code는 App이 들고 있어 필터가 바뀌어도 살아남아야 하지만(잃으면 다시
-  // 줄 방법이 없다), 이건 잃어도 그만이다(재고가 차면 다시 시도하면 된다).
-  const [noStockDone, setNoStockDone] = useState(false)
-  // 마지막 문항에 막 도착했을 때는 제출을 잠깐 잠근다. key를 갈라 DOM
-  // 노드는 새로 만들지만, 그것만으로는 "다음을 연타하다 마지막 탭이
-  // 제출로 들어가는" 것을 못 막는다 — 손가락이 이미 그 자리를 향해
-  // 내려오는 중이라 새 버튼이 그 탭을 받는다. 눈으로 문구가 바뀐 것을
-  // 볼 시간을 준다.
-  const [armed, setArmed] = useState(false)
-  const cardRef = useRef(null)
-
-  // 배너를 눌러 이 카드가 그리드에 나타나는 순간 화면이 카드로 와야 한다 —
-  // 그리드 맨 앞칸이라 화면 밖(스크롤 위쪽)일 수 있고, 눌렀는데 아무
-  // 반응이 없어 보이는 것이 제일 나쁘다. focus까지 옮겨 키보드 사용자도
-  // 바로 문항에 닿게 한다.
-  useEffect(() => {
-    const el = cardRef.current
-    if (!el) return
-    // scrollIntoView({block:'center'})는 화면 위 fixed 메뉴바(.title-bar,
-    // 60px 안팎)를 모른다 — 카드를 뷰포트 가운데로만 맞추면 카드 머리가
-    // 그 바 밑에 깔려 헤더가 안 보였다. 바 높이를 실측해 그만큼 아래에
-    // 카드 머리가 오도록 직접 스크롤 위치를 계산한다.
-    const bar = document.querySelector('.title-bar')
-    const barH = bar ? bar.getBoundingClientRect().height : 0
-    const rect = el.getBoundingClientRect()
-    const target = window.scrollY + rect.top - barH - 12
-    window.scrollTo({ top: Math.max(target, 0), behavior: 'smooth' })
-    el.focus({ preventScroll: true })
-  }, [])
-
-  function close() {
-    // 보내는 중에는 닫지 않는다. 여기서 언마운트되면 서버가 이미 발급한
-    // 코드를 보여줄 자리가 사라진다 — 연락처를 안 받으므로 다시 줄 방법이 없다.
-    if (sending) return
-    markDismissed()
-    // 배너에서 열어 보지도 않고 닫은 것과 갈라서 센다(SurveyDock 참고).
-    track('survey_dismiss', { source: 'card' })
-    onClose()
-  }
-
-  function pick(sectionId, token) {
-    setPicked((prev) => ({ ...prev, [sectionId]: token }))
-  }
-
-  // 마지막 문항에 닿고 나서 잠깐 뒤에 제출을 연다. 그 전으로 돌아가면
-  // 다시 잠근다 — 되돌아왔다 다시 오는 경우에도 같은 유예를 준다.
-  useEffect(() => {
-    if (step !== LAST_STEP) { setArmed(false); return }
-    const id = window.setTimeout(() => setArmed(true), 600)
-    return () => window.clearTimeout(id)
-  }, [step])
-
-  async function submit() {
-    const primary = picked[PRIMARY.id]
-    if (sending || !primary) return
-    setSending(true)
-
-    // 첫 섹션은 choice로, 나머지는 answers로 간다. 'other'를 고른 섹션은
-    // 적은 글을 같이 실어 보낸다(<id>_text). 서버가 지울 것 지우고 적는다.
-    const answers = {}
-    for (const s of SECTIONS) {
-      const token = picked[s.id]
-      if (!token) continue
-      if (s.id !== PRIMARY.id) answers[s.id] = token
-      if (token === OTHER) {
-        const body = (texts[s.id] || '').trim()
-        if (body) answers[`${s.id}_text`] = body
+  const formRef = useRef(null)
+  const previousPositions = useRef({})
+  const questions = [{ id: 'choice', title: PMF_QUESTION, options: PMF_OPTIONS }, ...FOLLOW_UP]
+  const question = questions[step]
+  const selected = draft[question.id]
+  const progress = step + (selected ? 1 : 0)
+  const otherText = draft[`${question.id}_text`] || ''
+  const canContinue = canAdvanceQuestion(question, draft)
+  useLayoutEffect(() => {
+    const form = formRef.current
+    if (!form) return
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    for (const selector of ['.pmf-heading', '.pmf-options', '.pmf-footer']) {
+      const element = form.querySelector(selector)
+      const top = element.offsetTop
+      const previous = previousPositions.current[selector]
+      if (!reducedMotion && previous !== undefined && previous !== top) {
+        element.animate([
+          { transform: `translateY(${previous - top}px)` },
+          { transform: 'translateY(0)' },
+        ], { duration: 260, easing: 'ease' })
       }
+      previousPositions.current[selector] = top
     }
-
-    try {
-      const res = await fetch(`${API_BASE}/api/survey`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          visitorId,
-          choice: primary,
-          text: primary === OTHER ? (texts[PRIMARY.id] || '').trim() : undefined,
-          answers,
-        }),
-      })
-      const body = await res.json()
-      if (body.ok && body.code) {
-        // 답한 사람에게는 다시 안 묻는다. 서버도 원장으로 막지만, 여기서
-        // 막아야 화면이 바로 조용해진다. 코드도 같이 저장해 둔다 —
-        // 연락처를 안 받으므로 이 링크를 다시 볼 곳은 이 브라우저뿐이다.
-        markAnswered(body.code)
-        onCode(body.code)
-      } else if (body.ok) {
-        // 재고가 없어 코드가 없다(reason: no_stock) — 서버는 이 경우
-        // "답했다"로 안 치므로(rewarded=false) 여기서도 markAnswered를
-        // 안 부른다. 재고가 차면 다시 열어 받을 수 있어야 한다.
-        setNoStockDone(true)
-      } else {
-        setFailed(true)
-      }
-    } catch {
-      setFailed(true)
-    } finally {
-      setSending(false)
-    }
+  }, [step, selected === 'other'])
+  useEffect(() => {
+    if (!survey.isCardOpen) return
+    survey.interact('question_viewed', { question: question.id, step: step + 1 })
+  }, [question.id, step, survey.isCardOpen, survey.interact])
+  function pick(value) { survey.interact('option_selected', { question: question.id, step: step + 1, value }); setDraft(d => ({ ...d, [question.id]: value })) }
+  function advance() {
+    if (!canContinue || busy) return
+    survey.interact(step < questions.length - 1 ? 'next_clicked' : 'submit_step_clicked', { question: question.id, step: step + 1 })
+    if (step < questions.length - 1) setStep(step + 1)
+    else if (validDraft(draft)) survey.submit()
   }
-
-  if (code) {
-    return (
-      <div className="survey-card" ref={cardRef} tabIndex={-1}>
-        <p className="survey-header"><HeaderIcon />어떻게 쓰고 계신가요?</p>
-        <div className="survey-body">
-          <p className="survey-thanks">답해주셔서 고맙습니다.</p>
-          {/* gifticons.yml에 넣는 값이 코드 문자열일 수도, 링크일 수도
-              있다 — 배민 기프티콘은 코드 발급이 까다로워 사람마다 다른
-              1회용 링크 쪽이 현실적이다. 어느 쪽이든 이 화면 하나로
-              받는다(연락처를 안 받으므로 다시 줄 방법이 없다). */}
-          {code.startsWith('http') ? (
-            <>
-              <p className="survey-code-label">쿠폰 링크</p>
-              <a className="survey-code-link" href={code} target="_blank" rel="noreferrer">
-                쿠폰 받으러 가기
-              </a>
-            </>
-          ) : (
-            <>
-              <p className="survey-code-label">기프티콘 번호</p>
-              <p className="survey-code">{code}</p>
-            </>
-          )}
-          {/* 링크가 이미 쓰였거나(2026-09-02 중복 발급) 브라우저 데이터를
-              지워 이 화면까지 못 오는 경우가 있다. 연락처를 안 받으므로
-              사람이 원장을 대조하는 이 창구가 유일한 복구 경로다. */}
-          <p className="survey-help">
-            링크가 안 열리면{' '}
-            <a href="https://open.kakao.com/o/sb3kQ0Li"
-               target="_blank" rel="noreferrer">오픈채팅으로 알려주세요</a>.
-          </p>
-          <button type="button" className="survey-close-btn" onClick={onClose}>닫기</button>
+  return <>
+    {survey.isCardOpen && <Dialog label="pmf-title" onClose={survey.requestClose} busy={busy} inactive={confirmClose}>
+      <button className="pmf-x" type="button" aria-label="설문 닫기" disabled={busy} onClick={() => survey.requestClose('card')}>×</button>
+      <form ref={formRef} data-max-options={Math.max(...questions.map(q => q.options.length))} className={`pmf-form${selected === 'other' ? ' pmf-form--other' : ''}`} onSubmit={e => { e.preventDefault(); advance() }}>
+        <div className="pmf-progress-group">
+        <div className="pmf-progress" role="progressbar" aria-label="설문 진행" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={progress}>
+          <span style={{ width: `${progress / questions.length * 100}%` }} />
         </div>
-      </div>
-    )
-  }
-
-  if (noStockDone) {
-    return (
-      <div className="survey-card" ref={cardRef} tabIndex={-1}>
-        <p className="survey-header"><HeaderIcon />어떻게 쓰고 계신가요?</p>
-        <div className="survey-body">
-          <p className="survey-thanks">답해주셔서 고맙습니다.</p>
-          <p className="survey-code-label">지금은 쿠폰이 소진됐어요</p>
-          <p className="survey-nostock">쿠폰이 채워지면 여기서 다시 받으실 수 있어요.</p>
-          <button type="button" className="survey-close-btn" onClick={onClose}>닫기</button>
+        <span className="pmf-progress-count" aria-hidden="true">{step + 1}/{questions.length}</span>
         </div>
-      </div>
-    )
-  }
-
-  const atLast = step === LAST_STEP
-  const canGoNext = SECTIONS[step].id !== PRIMARY.id || Boolean(picked[PRIMARY.id])
-
-  return (
-    <div className="survey-card" ref={cardRef} tabIndex={-1}>
-      <p className="survey-header"><HeaderIcon />어떻게 쓰고 계신가요?</p>
-      <button type="button" className="survey-x" onClick={close}
-              disabled={sending} aria-label="설문 닫기">×</button>
-
-      <div className="survey-body">
-        <div className="survey-viewport">
-        <div className="survey-track" style={{ transform: `translateX(-${step * 100}%)` }}>
-          {SECTIONS.map((s) => (
-            <section key={s.id} className="survey-slide">
-              <h3 className="survey-q">{s.title}</h3>
-
-              <ul className="survey-choices">
-                {s.options.map((o) => (
-                  <li key={o.token}>
-                    <button type="button" disabled={sending}
-                            className={'survey-choice'
-                              + (picked[s.id] === o.token ? ' survey-choice--on' : '')}
-                            onClick={() => pick(s.id, o.token)}>
-                      {o.label}
-                    </button>
-                  </li>
-                ))}
-                {s.other && (
-                  <li>
-                    <button type="button" disabled={sending}
-                            className={'survey-choice'
-                              + (picked[s.id] === OTHER ? ' survey-choice--on' : '')}
-                            onClick={() => pick(s.id, OTHER)}>
-                      직접 입력
-                    </button>
-                  </li>
-                )}
-              </ul>
-
-              {/* 자리를 늘 잡아 둔다 — 골랐다 뺐다 할 때마다 카드 높이가
-                  바뀌면 바로 아래 진행 막대·버튼이 같이 튀어 시선이
-                  흔들린다. display가 아니라 visibility로만 접어서 이
-                  섹션이 다른 섹션보다 얕아 보이는 것도 막는다(트랙 안
-                  섹션들은 같은 화면 폭을 나눠 쓸 뿐 서로 높이를 맞출
-                  이유가 없지만, 이 섹션 자체는 열렸다 닫혔다 해도 자기
-                  키를 지켜야 한다). */}
-              {s.other && (
-                <textarea className="survey-other-input" maxLength={MAX_TEXT} rows={3}
-                          aria-label={`${s.title} 직접 입력`}
-                          aria-hidden={picked[s.id] !== OTHER}
-                          style={{ visibility: picked[s.id] === OTHER ? 'visible' : 'hidden' }}
-                          value={texts[s.id] || ''}
-                          onChange={(e) => setTexts((p) => ({ ...p, [s.id]: e.target.value }))} />
-              )}
-            </section>
-          ))}
+        <div key={`heading-${step}`} className="pmf-heading">
+          <h2 id="pmf-title" aria-live="polite">{question.title}</h2>
         </div>
+        <div key={question.id} role="radiogroup" aria-label={question.title} className="pmf-options">
+          {question.options.map(([value, label]) => <label key={value} className={selected === value ? 'pmf-option is-selected' : 'pmf-option'}>
+            <input type="radio" disabled={busy} name={question.id} value={value} checked={selected === value} onChange={() => pick(value)} />
+            <span>{label}</span>
+          </label>)}
         </div>
-
-        <div className="survey-progress">
-          <span className="survey-progress__count">{step + 1} / {SECTIONS.length}</span>
-          <div className="survey-progress__bar">
-            <div className="survey-progress__fill"
-                 style={{ width: `${((step + 1) / SECTIONS.length) * 100}%` }} />
+        <div className="pmf-other-slot">
+        {selected === 'other' && <label className="pmf-other">직접 입력
+          <textarea disabled={busy} maxLength={200} value={otherText} onChange={e => setDraft(d => ({ ...d, [`${question.id}_text`]: e.target.value }))} />
+          <span>{otherText.length}/200</span>
+        </label>}
+        </div>
+        <div className="pmf-footer">
+          <div className="pmf-error-slot">{survey.error && <p role="alert" className="pmf-error">{survey.error}</p>}</div>
+          <div className={`pmf-navigation${step === 0 ? ' pmf-navigation--reserved' : ''}`} aria-hidden={step === 0 || undefined}>
+            <button className="pmf-text-button" type="button" disabled={busy || step === 0} tabIndex={step === 0 ? -1 : undefined} onClick={() => {
+              survey.interact('skip_clicked', { question: question.id, step: step + 1 })
+              setDraft(d => ({ ...d, [question.id]: '', [`${question.id}_text`]: '' }))
+              if (step < questions.length - 1) setStep(step + 1)
+              else survey.submit({ ...draft, [question.id]: '', [`${question.id}_text`]: '' })
+            }}>건너뛰기</button>
           </div>
-        </div>
+          <div className="pmf-step-actions">
+            {step > 0 && <button className="pmf-back" type="button" disabled={busy} onClick={() => { survey.interact('previous_clicked', { question: question.id, step: step + 1 }); setStep(step - 1) }}>이전</button>}
+            <button className="pmf-submit" type="submit" disabled={busy || !canContinue}>{busy ? '저장 중…' : step < questions.length - 1 ? '다음' : '제출하기'}</button>
+          </div>
+          <button className="pmf-close" type="button" disabled={busy} onClick={() => survey.requestClose('card')}>닫기</button>
 
-        <div className="survey-nav">
-          <button type="button" className="survey-nav__back" disabled={step === 0 || sending}
-                  onClick={() => setStep((s) => s - 1)}>
-            이전
-          </button>
-          {/* key를 갈라 둔다. 둘 다 <button>이라 React가 같은 DOM 노드를
-              재사용하는데, 그러면 마지막 문항에 닿는 순간 "다음"이던 그
-              버튼이 자리도 모양도 그대로인 채 제출 버튼이 된다 — 연타하던
-              손가락의 마지막 탭이 그대로 제출로 들어간다(2026-09-02 실측:
-              누른 적 없다는 제출로 링크가 하나 나갔다). key가 다르면 노드를
-              새로 만들어 그 연속성이 끊긴다. */}
-          {atLast ? (
-            <button key="send" type="button" className="survey-send"
-                    disabled={sending || !armed || !picked[PRIMARY.id]}
-                    onClick={submit}>
-              {sending ? '보내는 중…' : '보내고 쿠폰 받기'}
-            </button>
-          ) : (
-            <button key="next" type="button" className="survey-nav__next"
-                    disabled={!canGoNext || sending}
-                    onClick={() => setStep((s) => s + 1)}>
-              다음
-            </button>
-          )}
         </div>
-
-        {failed && <p className="survey-failed">지금은 참여할 수 없습니다.</p>}
+      </form>
+    </Dialog>}
+    {confirmClose && <Dialog label="pmf-close-title" onClose={survey.cancelClose} busy={busy} className="pmf-confirm">
+      <h2 id="pmf-close-title">설문을 닫으시겠습니까?</h2>
+      <p>이 설문을 닫으면 다시 표시되지 않습니다.</p>
+      {survey.error && <p role="alert" className="pmf-error">{survey.error}</p>}
+      <div className="pmf-confirm__actions">
+        <button className="pmf-close" type="button" disabled={busy} onClick={survey.cancelClose}>계속 응답하기</button>
+        <button className="pmf-submit" type="button" disabled={busy} onClick={survey.dismiss}>{busy ? '저장 중…' : '설문 닫기'}</button>
       </div>
-    </div>
-  )
+    </Dialog>}
+  </>
 }

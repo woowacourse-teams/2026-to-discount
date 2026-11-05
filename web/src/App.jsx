@@ -30,6 +30,7 @@ const SHIFT_PAUSE_MS = 400
 // 설문 카드는 누른 뒤에만 열린다 — 첫 화면 묶음에서 뺀다(2026-10-06 성능).
 const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
 import { useSurvey } from './useSurvey.js'
+import { canPreviewSurvey } from './pmfSurvey.js'
 import { useScrollMore } from './MenuBar.jsx'
 import { getAnalyticsContext } from './analytics-context.js'
 import { shouldShowGuide } from './firstVisitGuide.js'
@@ -600,6 +601,9 @@ export default function App({ initial = null }) {
       {/* 2026-10-05 사용자: 운영 카드 쪽도 하단 도크로 */}
       {/* 2026-10-15 사용자: 하단 도크는 배너 대신 오늘 인기. 배너(한정 오퍼)는 목록 3번째 카드 뒤에 선다 */}
       <PushNotificationSetting toggleSlot={pushToggleSlot} />
+      {canPreviewSurvey(import.meta.env) && !(survey.isCardOpen || survey.confirmClose) && (
+        <button type="button" className="pmf-preview-toggle" onClick={survey.previewSurvey}>설문 안내 띄우기</button>
+      )}
     <main>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
           높은순, 최소주문 낮은순. 랜덤쿠폰 토글은 2026-09-21에 여기서 뺐다(사용자) — 뽑기
@@ -761,15 +765,6 @@ export default function App({ initial = null }) {
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className={gridKey === stillKey ? 'brand-grid brand-grid--still' : 'brand-grid'} key={gridKey} ref={gridRef}>
-          {/* 설문 카드는 기존 목록 첫 칸에 둔다. 발급 코드는 목록 밖 Hook이 보관한다. */}
-          {survey.isVisible && survey.isCardOpen && (
-            <Suspense fallback={null}><SurveyCard
-              visitorId={getAnalyticsContext().visitorId}
-              code={survey.code}
-              onCode={survey.receiveCode}
-              onClose={survey.closeCard}
-            /></Suspense>
-          )}
           {visibleBrands.slice(0, shown).map((b, index) => {
             const props = { leaving: leaving === b.name, onHide, onReact, reaction: reactionOf(reactions, b), include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name) || shared?.brand.name === b.name, onInteract: clearLinked,
@@ -800,11 +795,14 @@ export default function App({ initial = null }) {
 
       {survey.isVisible && (
         <Suspense fallback={null}>
-        <SurveyDock open={survey.isCardOpen} answered={Boolean(survey.code)}
+        <SurveyDock open={survey.isCardOpen || survey.confirmClose}
                     onOpen={survey.openCard}
-                    onDismiss={survey.dismissDock} />
+                    onDismiss={() => survey.requestClose('dock')} preview={survey.isPreview} />
         </Suspense>
       )}
+
+      {(survey.isCardOpen || survey.confirmClose) && <Suspense fallback={null}><SurveyCard survey={survey} /></Suspense>}
+      {survey.complete && <div role="status" className={`pmf-toast${survey.completeClosing ? ' pmf-toast--leaving' : ''}`}><button type="button" onClick={survey.clearComplete}><span>소중한 의견 감사합니다!</span></button></div>}
 
       <SiteFooter />
 
