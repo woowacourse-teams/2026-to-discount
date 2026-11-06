@@ -79,7 +79,9 @@ export function beforeOpen(offer, now = new Date()) {
   const m = (offer.badge ?? '').match(/^(오전|오후)\s*(\d+)시(?:\s*(\d+)분)?\s*오픈/)
   if (!m) return false
   const h = (Number(m[2]) % 12) + (m[1] === '오후' ? 12 : 0) // 오후 12시 = 12, 오전 12시 = 0
-  return now.getHours() * 60 + now.getMinutes() < h * 60 + Number(m[3] ?? 0)
+  // 서울 시각으로 센다. 서버(UTC)와 브라우저가 같은 답을 내야 하이드레이션이 안 어긋난다(#418, 2026-11-04~05).
+  const kst = new Date(now.getTime() + 9 * 3600_000)
+  return kst.getUTCHours() * 60 + kst.getUTCMinutes() < h * 60 + Number(m[3] ?? 0)
 }
 
 const won = (n) => `${n.toLocaleString('ko-KR')}원`
