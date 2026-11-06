@@ -117,7 +117,8 @@ export function membershipOf(offer, tier) {
 // ponytail: API는 qualifiers를 이미 보낸다(2026-11-06 운영 오퍼 186개 중 값 있음 1, [] 13, null 172). 그래도 웹은 아직 안 읽고(#166)
 // 이 정확 일치가 유일한 경로다. 값이 있는 것이 적어(원장이 쿠팡이츠 쿠폰함 한 경로에서만 채움) 읽기만 켜면 GS25처럼 conditions만 '첫 주문'인 오퍼를 놓친다. docs/OFFER-KINDS.md.
 // conditions가 '첫 주문 ' 같은 공백, 표기 차이로 오면 칩이 서지 않고 문장(note)으로 남는다.
-const KNOWN_QUALIFIERS = ['첫 주문']
+// 목록은 API 계약 qualifierVocabulary와 같아야 한다(offerContract.test.js가 본다).
+export const KNOWN_QUALIFIERS = ['첫 주문']
 export function qualifiersOf(offer) {
   return KNOWN_QUALIFIERS.includes(offer.conditions) ? [offer.conditions] : []
 }
