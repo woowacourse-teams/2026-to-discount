@@ -57,7 +57,7 @@
 
 ### 웹: 과도기 대비(옛 API 응답)
 
-**현재:** API `qualifiers`를 이 이슈에서 뗐으므로(변경 이력) 운영에서 `offer.qualifiers`는 당분간 늘 비고, 아래 대체 경로가 "첫 주문" 칩의 유일한 경로다. 웹은 `qualifiers`를 읽지 않는다. 분리한 API 이슈: [#155](https://github.com/woowacourse-teams/2026-to-discount/issues/155)(PR #158 병합). 웹 읽기 켜기는 [#166](https://github.com/woowacourse-teams/2026-to-discount/issues/166). `conditions`가 `'첫 주문 '`처럼 공백이나 표기 차이로 오면 칩이 서지 않고 문장으로 남는다(조용히 칩이 사라지는 경우, 테스트로 박음).
+**현재(2026-11-06 갱신):** API는 `qualifiers`를 보낸다(#155 병합, 내보내기 #43). 운영 `/api/brands` 오퍼 186개 중 값이 있는 것은 `["첫 주문"]` 1개, `[]` 13개이고 172개는 `null`이다. `conditions`가 "첫 주문"인 오퍼는 2개(세븐일레븐, GS25. 둘 다 쿠팡이츠)인데 `qualifiers`는 세븐일레븐에만 있다. 그래서 아래 대체 경로가 아직 "첫 주문" 칩의 유일한 안전 경로다. 웹은 `qualifiers`를 읽지 않는다. 종류별 판별 정본은 [`docs/OFFER-KINDS.md`](../OFFER-KINDS.md). 분리한 API 이슈: [#155](https://github.com/woowacourse-teams/2026-to-discount/issues/155)(PR #158 병합). 웹 읽기 켜기는 [#166](https://github.com/woowacourse-teams/2026-to-discount/issues/166). `conditions`가 `'첫 주문 '`처럼 공백이나 표기 차이로 오면 칩이 서지 않고 문장으로 남는다(조용히 칩이 사라지는 경우, 테스트로 박음).
 
 API가 `qualifiers`를 아직 안 보낼 때도 웹이 깨지면 안 된다(배포 순서 8번의 되풀이 방지).
 
