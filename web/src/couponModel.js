@@ -114,8 +114,9 @@ export function membershipOf(offer, tier) {
 }
 
 // 칩으로 올리는 조건. conditions가 알려진 토큰과 정확히 같을 때만(부분 일치, 표기 차이는 문장으로 둔다).
-// ponytail: API가 qualifiers를 아직 보내지 않아(계약 offerContract.test.js) 이 정확 일치가 지금 유일한 경로다.
-// conditions가 '첫 주문 ' 같은 공백, 표기 차이로 오면 칩이 서지 않고 문장(note)으로 남는다. API가 보내기 시작하면 그 칸을 먼저 읽게 바꾼다(분리한 API 이슈 번호: 미기재).
+// ponytail: API는 qualifiers를 이미 보낸다(2026-11-06 운영 오퍼 186개 중 값 있음 1, [] 13, null 172). 그래도 웹은 아직 안 읽고(#166)
+// 이 정확 일치가 유일한 경로다. 값이 있는 것이 적어(원장이 쿠팡이츠 쿠폰함 한 경로에서만 채움) 읽기만 켜면 GS25처럼 conditions만 '첫 주문'인 오퍼를 놓친다. docs/OFFER-KINDS.md.
+// conditions가 '첫 주문 ' 같은 공백, 표기 차이로 오면 칩이 서지 않고 문장(note)으로 남는다.
 const KNOWN_QUALIFIERS = ['첫 주문']
 export function qualifiersOf(offer) {
   return KNOWN_QUALIFIERS.includes(offer.conditions) ? [offer.conditions] : []
