@@ -194,7 +194,6 @@
   transition: color .2s ease;
 }
 .quick-bar__chip--on { color: var(--sale); font-weight: 800; }
-.quick-bar__chip--on::after { content: ""; position: absolute; left: 2px; right: 2px; bottom: 0; height: 2px; border-radius: 2px; background: var(--sale); }
 .quick-bar__chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* 정렬 섹션(2026-09-19): 기준 라벨 + 방향 버튼 한 줄. 고른 기준은 번호가 붙고 진하게. */
