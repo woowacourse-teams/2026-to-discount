@@ -85,3 +85,8 @@ test('상세 Tags 호출부는 소스에 정확히 두 곳(펼친 목록, 시트
   const src = await readFile(path.join(here, 'CouponCard.jsx'), 'utf8')
   assert.equal((src.match(/<Tags o=\{o\} detail \/>/g) ?? []).length, 2)
 })
+test('Tags: 한정 오퍼는 몇 시 오픈인지, 당일 한정인지 카드에 보인다(11-05에 뺀 것을 되돌림, 2026-11-07)', () => {
+  const html = (badge) => renderTags(o('yogiyo', 7000, { firstCome: true, badge }), false)
+  assert.match(html('오전 11시 오픈'), /11시 오픈/)
+  assert.match(html('당일 한정'), /당일 한정/)
+})
