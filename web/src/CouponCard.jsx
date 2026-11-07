@@ -110,7 +110,7 @@ export function Tags({ o, detail = false }) {
   const ch = ch0 === '배달' || ch0 === '포장' ? ch0 : null // 배달/포장처럼 둘 다면 숨긴다
   const st = stateLabel(o)
   // 상태(랜덤·품절·오픈 전·불확정)는 쿠폰 위 배지와 같은 모양으로 채널 자리에 한 묶음(2026-11-05 사용자)
-  const tags = all.filter((b) => b.kind !== 'channel' && b.kind !== 'limited' /* 당일 한정, n시 오픈 배지는 뺀다(2026-11-05 사용자) */ && !(st && (b.text === '랜덤' || b.text === '불확정')))
+  const tags = all.filter((b) => b.kind !== 'channel' /* 한정 배지(당일 한정, n시 오픈)는 다시 보인다 — 11-05에 뺀 것을 되돌렸다(2026-11-07 사용자) */ && !(st && (b.text === '랜덤' || b.text === '불확정')))
   if (!ch && !st && tags.length === 0) return null
   return (
     <span className="cc-tags"><span className="chip-tags">
