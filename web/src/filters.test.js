@@ -6,7 +6,7 @@ import {
   isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES, SPECIAL_CATEGORIES,
+  hasNewBest, includesFrom, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES, SPECIAL_CATEGORIES,
 } from './filters.js'
 import { applyHidden } from './hiddenBrands.js'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
@@ -407,7 +407,7 @@ test('revealFilters: 검색을 풀어 5천원 거르기가 다시 걸려도 순�
   assert.deepEqual(card.offers.map((x) => x.amount), [6000])
 })
 
-// 랜덤, 선착순 칩(2026-11-07): 분류 칩 뒤에 따로 서고, 켜면 그 오퍼가 있는 브랜드만 그 오퍼로 보인다.
+// 한정(선착순), 랜덤 칩(2026-11-07): 분류 칩 앞에 따로 서고, 켜면 그 오퍼가 있는 브랜드만 그 오퍼로 보인다.
 const special = () => [
   { name: '교촌', category: 'chicken', offers: [
     { platform: 'baemin', amount: 5000 },
@@ -424,16 +424,27 @@ test('랜덤 칩: 랜덤 오퍼가 있는 브랜드만, 그 오퍼만 남긴다'
   assert.deepEqual(got[0].offers.map((o) => o.platform), ['coupangeats'])
 })
 
-test('선착순 칩 + 분류 칩: 분류 칩이 켜진 브랜드는 오퍼를 그대로 두고 나머지는 선착순 오퍼만 남긴다', () => {
+test('한정 칩 + 분류 칩: 분류 칩이 켜진 브랜드는 오퍼를 그대로 두고 나머지는 한정 오퍼만 남긴다', () => {
   const got = applyFilters(special(), withCats('firstCome', 'chicken'))
   assert.deepEqual(got.map((b) => b.name).sort(), ['교촌', '맘스터치'])
   assert.equal(got.find((b) => b.name === '교촌').offers.length, 3)
   assert.equal(got.find((b) => b.name === '맘스터치').offers.length, 1)
 })
 
-test('visibleCategories: 맞는 오퍼가 있는 랜덤, 선착순 칩만 분류 칩 뒤에 붙는다', () => {
-  const tail = (brands, sel) => visibleCategories(brands, sel).filter((c) => SPECIAL_CATEGORIES.some((s) => s.key === c.key)).map((c) => c.key)
-  assert.deepEqual(tail(special(), new Set()), ['random', 'firstCome'])
-  assert.deepEqual(tail([special()[1]], new Set()), [])
-  assert.deepEqual(tail([special()[1]], new Set(['random'])), ['random'])   // 고른 칩은 오퍼가 줄어도 남는다
+test('visibleCategories: 한정, 랜덤 칩이 분류 칩 앞에 서고, 맞는 오퍼가 있을 때만 보인다', () => {
+  const keys = (brands, sel) => visibleCategories(brands, sel).map((c) => c.key)
+  const many = (category) => ({ category, offers: Array.from({ length: 6 }, () => ({})) })
+  assert.deepEqual(keys([...special(), many('chicken')], new Set()), ['firstCome', 'random', 'chicken'])
+  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤'])
+  assert.deepEqual(keys([many('chicken')], new Set()), ['chicken'])
+  assert.deepEqual(keys([special()[1], many('chicken')], new Set(['random'])), ['random', 'chicken'])   // 고른 칩은 오퍼가 줄어도 남는다
+})
+
+test('한정, 랜덤 탭에서는 불확정(랜덤) 오퍼를 비교에 넣는다 — 다른 탭은 그대로', () => {
+  assert.equal(includesFrom(withCats('random')).random, true)
+  assert.equal(includesFrom(withCats('firstCome')).random, true)
+  assert.equal(includesFrom(withCats('chicken')).random, false)
+  assert.equal(includesFrom(defaultFilters()).random, false)
+  const got = applyFilters(special(), withCats('random'))
+  assert.equal(displayBestAmount(got[0].offers, includesFrom(withCats('random'))), 7000)   // 불확정 7,000이 그 탭의 최고액이다
 })

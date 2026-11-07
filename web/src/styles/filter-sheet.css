@@ -270,3 +270,6 @@
 /* 정렬·초기화·필터를 한 줄로 묶는다: 버튼 바탕을 본문색과 같게(2026-11-04 사용자) */
 .quick-bar { flex-wrap: nowrap; align-items: center; }
 .quick-bar__tools .icon-btn { background: var(--bg); border-color: transparent; box-shadow: none; }
+
+/* 한정, 랜덤 칩은 고르기 전에도 강조색 글자(2026-11-07 사용자). 고르면 다른 칩과 같은 검은 바탕. */
+.sheet__chip--special:not(.sheet__chip--on) { color: var(--sale); font-weight: 600; }

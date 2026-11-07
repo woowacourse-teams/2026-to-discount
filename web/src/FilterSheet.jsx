@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
 import { Track, useDragClose } from './sheetParts.jsx'
-import { visibleCategories, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_AMOUNT_OPTIONS, defaultFilters, isDefaultFilters, minAmountLabel } from './filters.js'
+import { visibleCategories, isSpecialCategory, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_AMOUNT_OPTIONS, defaultFilters, isDefaultFilters, minAmountLabel } from './filters.js'
 
 /**
  * 아래에서 올라오는 필터 시트. 앱·분류·정렬을 한 자리에서 고르고
@@ -107,7 +107,7 @@ export default function FilterSheet({ open, filters, brands, onApply, onClose })
               <button
                 key={c.key}
                 type="button"
-                className={`sheet__chip${draft.categories.has(c.key) ? ' sheet__chip--on' : ''}`}
+                className={`sheet__chip${draft.categories.has(c.key) ? ' sheet__chip--on' : ''}${isSpecialCategory(c.key) ? ' sheet__chip--special' : ''}`}
                 aria-pressed={draft.categories.has(c.key)}
                 onClick={() => {
                   toggleIn('categories', c.key)
