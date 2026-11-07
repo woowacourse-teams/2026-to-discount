@@ -1226,7 +1226,7 @@ brands:
   백종원의 한신포차 닭발&통닭:
     searchAliases: [백종원의 한신포차 닭발, 한신포차, 백종원의한신포차닭발&통닭]
     category: korean
-    aliases: [백종원의 한신포차 닭발]
+    aliases: [백종원의 한신포차 닭발, 한신포차]
     links:
       baemin: https://s.baemin.com/36000LscZX2wk
   백종원의 인생설렁탕&불고기:
@@ -1523,3 +1523,12 @@ brands:
   한솥도시락:
     searchAliases: [한솥도시락, 한솥]
     category: korean
+
+  # --- 2026-11-08 원장에 대표명 없이 찍힌 이름(사용자 등록 지시) ---
+  지코바:
+    searchAliases: [지코바, 지코바치킨, 지코바 숯불치킨, 지코바숯불치킨]
+    aliases: [지코바치킨, 지코바 숯불치킨, 지코바숯불치킨]
+    category: chicken
+  샐러디:
+    searchAliases: [샐러디, 샐러드, salady]
+    category: western
