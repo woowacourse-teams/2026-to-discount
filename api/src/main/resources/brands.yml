@@ -1321,6 +1321,9 @@ brands:
     aliases: [이마트]
   상상오리:
     searchAliases: [상상오리, 상상오리&삼겹, 상상오리 삼겹]
+    # 땡겨요 원장 이름이 "상상오리&삼겹"이라 별칭이 없어 8단계가 brands.yml에 없는 브랜드로 잡았다(11-03~07).
+    aliases: [상상오리&삼겹, 상상오리 삼겹]
+    category: korean
     # 행사 수집이 찾은 브랜드. 분류와 로고는 사람이 채운다
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?MdnSuOb
