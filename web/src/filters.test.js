@@ -6,7 +6,7 @@ import {
   isUpdated,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES,
+  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES, SPECIAL_CATEGORIES,
 } from './filters.js'
 import { applyHidden } from './hiddenBrands.js'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
@@ -405,4 +405,35 @@ test('revealFilters: 검색을 풀어 5천원 거르기가 다시 걸려도 순�
   assert.deepEqual(got.cleared, ['search'])
   const card = applyFilters(brands, got.filters).find((b) => b.name === '섞인집')
   assert.deepEqual(card.offers.map((x) => x.amount), [6000])
+})
+
+// 랜덤, 선착순 칩(2026-11-07): 분류 칩 뒤에 따로 서고, 켜면 그 오퍼가 있는 브랜드만 그 오퍼로 보인다.
+const special = () => [
+  { name: '교촌', category: 'chicken', offers: [
+    { platform: 'baemin', amount: 5000 },
+    { platform: 'coupangeats', amount: 7000, certainty: 'random' },
+    { platform: 'yogiyo', amount: 6000, firstCome: true }] },
+  { name: '도미노', category: 'pizza', offers: [{ platform: 'baemin', amount: 5000 }] },
+  { name: '맘스터치', category: 'fastfood', offers: [{ platform: 'yogiyo', amount: 6000, firstCome: true }] },
+]
+const withCats = (...keys) => ({ ...defaultFilters(), categories: new Set(keys) })
+
+test('랜덤 칩: 랜덤 오퍼가 있는 브랜드만, 그 오퍼만 남긴다', () => {
+  const got = applyFilters(special(), withCats('random'))
+  assert.deepEqual(got.map((b) => b.name), ['교촌'])
+  assert.deepEqual(got[0].offers.map((o) => o.platform), ['coupangeats'])
+})
+
+test('선착순 칩 + 분류 칩: 분류 칩이 켜진 브랜드는 오퍼를 그대로 두고 나머지는 선착순 오퍼만 남긴다', () => {
+  const got = applyFilters(special(), withCats('firstCome', 'chicken'))
+  assert.deepEqual(got.map((b) => b.name).sort(), ['교촌', '맘스터치'])
+  assert.equal(got.find((b) => b.name === '교촌').offers.length, 3)
+  assert.equal(got.find((b) => b.name === '맘스터치').offers.length, 1)
+})
+
+test('visibleCategories: 맞는 오퍼가 있는 랜덤, 선착순 칩만 분류 칩 뒤에 붙는다', () => {
+  const tail = (brands, sel) => visibleCategories(brands, sel).filter((c) => SPECIAL_CATEGORIES.some((s) => s.key === c.key)).map((c) => c.key)
+  assert.deepEqual(tail(special(), new Set()), ['random', 'firstCome'])
+  assert.deepEqual(tail([special()[1]], new Set()), [])
+  assert.deepEqual(tail([special()[1]], new Set(['random'])), ['random'])   // 고른 칩은 오퍼가 줄어도 남는다
 })

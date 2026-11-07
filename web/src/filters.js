@@ -25,15 +25,29 @@ export const CATEGORIES = [
 // 그 분류의 오퍼가 이만큼 이하면 탭을 숨긴다(2026-10-26 사용자: 일식처럼 빈약한 칸). 브랜드가 아니라 오퍼 수다.
 export const MIN_CATEGORY_OFFERS = 5
 
+// 랜덤, 선착순 오퍼는 치킨, 피자 같은 분류와 결이 다른 묶음이라 분류 칩 뒤에 따로 둔다(2026-11-07 사용자).
+// 같은 categories 집합에 담기므로 키가 brand.category 값과 겹치면 안 된다. 브랜드가 아니라 오퍼로 가른다.
+export const SPECIAL_CATEGORIES = [
+  { key: 'random', label: '랜덤' },
+  { key: 'firstCome', label: '선착순' },
+]
+const SPECIAL_MATCH = {
+  random: (o) => certaintyOf(o) === 'random',
+  firstCome: (o) => o.firstCome === true,
+}
+export const isSpecialCategory = (key) => Object.hasOwn(SPECIAL_MATCH, key)
+
 /**
- * 오퍼가 충분한 분류만 남긴다. 브랜드를 아직 못 받았으면 전부 보인다.
- * 지금 골라 둔 분류는 오퍼가 줄어도 남긴다(탭이 사라져 선택을 못 푸는 일을 막는다).
+ * 오퍼가 충분한 분류만 남기고, 맞는 오퍼가 하나라도 있는 랜덤, 선착순 칩을 뒤에 붙인다. 브랜드를 아직 못 받았으면 분류만 보인다.
+ * 지금 골라 둔 칩은 오퍼가 줄어도 남긴다(탭이 사라져 선택을 못 푸는 일을 막는다).
  */
 export function visibleCategories(brands, selected = new Set()) {
-  if (!brands) return CATEGORIES
+  if (!brands) return CATEGORIES            // 오퍼를 받기 전에는 랜덤, 선착순 칩을 세울 근거가 없다
   const count = new Map()
   for (const b of brands) count.set(b.category, (count.get(b.category) ?? 0) + (b.offers?.length ?? 0))
-  return CATEGORIES.filter((c) => selected.has(c.key) || (count.get(c.key) ?? 0) > MIN_CATEGORY_OFFERS)
+  const special = SPECIAL_CATEGORIES.filter((c) => selected.has(c.key)
+    || brands.some((b) => b.offers?.some(SPECIAL_MATCH[c.key])))
+  return [...CATEGORIES.filter((c) => selected.has(c.key) || (count.get(c.key) ?? 0) > MIN_CATEGORY_OFFERS), ...special]
 }
 
 // 멤버십/지역화폐 반영 로직은 아직 없다. delivery-discount-api 레포의
@@ -349,6 +363,7 @@ export function sortBrands(brands, { sorts, includeRandom = false, include = nul
  */
 export function applyFilters(brands, filters) {
   const q = filters.search.trim()
+  const special = [...filters.categories].filter(isSpecialCategory)
   const visible = brands
     .map((b) => {
       const offers = b.offers.filter((o) => (o.platform === OWN || filters.platforms.has(o.platform))
@@ -357,6 +372,13 @@ export function applyFilters(brands, filters) {
         && (!filters.minAmount5k || q !== '' || isBundle(o) || (o.amount ?? 0) >= (filters.minAmount ?? 5000))
         // 없는 멤버십의 전용 오퍼는 뺀다(MEMBERSHIP_FILTERABLE).
         && !(MEMBERSHIP_FILTERABLE[o.membership] && filters.memberships && !filters.memberships.has(MEMBERSHIP_FILTERABLE[o.membership])))
+      return offers.length === b.offers.length ? b : { ...b, offers }
+    })
+    // 랜덤, 선착순 칩만으로 들어온 브랜드(자기 분류 칩이 안 켜진 브랜드)는 그 오퍼만 남긴다. 카드에 상시 오퍼까지 섞이면
+    // 칩을 켠 이유가 안 보인다. 분류 칩이 같이 켜진 브랜드는 그대로 둔다.
+    .map((b) => {
+      if (special.length === 0 || filters.categories.has(b.category)) return b
+      const offers = b.offers.filter((o) => special.some((k) => SPECIAL_MATCH[k](o)))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
     .filter((b) => {
@@ -369,7 +391,8 @@ export function applyFilters(brands, filters) {
       if (q !== '' && findBrandSuggestions([b], q, 1).length === 0) return false
       // 아무 분류도 안 고르면 전체다.
       if (filters.categories.size === 0) return true
-      return filters.categories.has(b.category)
+      // 랜덤, 선착순 칩이 켜져 있으면 위에서 오퍼를 이미 가렸다 — 남은 브랜드는 그 칩의 대상이다.
+      return filters.categories.has(b.category) || special.length > 0
     })
   const include = includesFrom(filters)
   const sorted = sortBrands(visible, { ...filters, include })
