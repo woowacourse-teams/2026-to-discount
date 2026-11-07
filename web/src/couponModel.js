@@ -79,7 +79,9 @@ export function beforeOpen(offer, now = new Date()) {
   const m = (offer.badge ?? '').match(/^(오전|오후)\s*(\d+)시(?:\s*(\d+)분)?\s*오픈/)
   if (!m) return false
   const h = (Number(m[2]) % 12) + (m[1] === '오후' ? 12 : 0) // 오후 12시 = 12, 오전 12시 = 0
-  return now.getHours() * 60 + now.getMinutes() < h * 60 + Number(m[3] ?? 0)
+  // 서울 시각으로 센다. 서버(UTC)와 브라우저가 같은 답을 내야 하이드레이션이 안 어긋난다(#418, 2026-11-04~05).
+  const kst = new Date(now.getTime() + 9 * 3600_000)
+  return kst.getUTCHours() * 60 + kst.getUTCMinutes() < h * 60 + Number(m[3] ?? 0)
 }
 
 const won = (n) => `${n.toLocaleString('ko-KR')}원`
@@ -112,9 +114,11 @@ export function membershipOf(offer, tier) {
 }
 
 // 칩으로 올리는 조건. conditions가 알려진 토큰과 정확히 같을 때만(부분 일치, 표기 차이는 문장으로 둔다).
-// ponytail: API가 qualifiers를 아직 보내지 않아(계약 offerContract.test.js) 이 정확 일치가 지금 유일한 경로다.
-// conditions가 '첫 주문 ' 같은 공백, 표기 차이로 오면 칩이 서지 않고 문장(note)으로 남는다. API가 보내기 시작하면 그 칸을 먼저 읽게 바꾼다(분리한 API 이슈 번호: 미기재).
-const KNOWN_QUALIFIERS = ['첫 주문']
+// ponytail: API는 qualifiers를 이미 보낸다(2026-11-06 운영 오퍼 186개 중 값 있음 1, [] 13, null 172). 그래도 웹은 아직 안 읽고(#166)
+// 이 정확 일치가 유일한 경로다. 값이 있는 것이 적어(원장이 쿠팡이츠 쿠폰함 한 경로에서만 채움) 읽기만 켜면 GS25처럼 conditions만 '첫 주문'인 오퍼를 놓친다. docs/OFFER-KINDS.md.
+// conditions가 '첫 주문 ' 같은 공백, 표기 차이로 오면 칩이 서지 않고 문장(note)으로 남는다.
+// 목록은 API 계약 qualifierVocabulary와 같아야 한다(offerContract.test.js가 본다).
+export const KNOWN_QUALIFIERS = ['첫 주문']
 export function qualifiersOf(offer) {
   return KNOWN_QUALIFIERS.includes(offer.conditions) ? [offer.conditions] : []
 }

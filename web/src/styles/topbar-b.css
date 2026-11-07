@@ -360,3 +360,8 @@
 .menu-bar__item--accent, .menu-bar__item--accent:hover { color: var(--sale); font-weight: 700; isolation: isolate; }
 /* 바탕은 글자 둘레만(탭 누름 영역이 높아져도 칩 높이는 그대로) */
 .menu-bar__item--accent::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: 8px; background: var(--sale-weak); }
+
+/* 한정, 랜덤 탭(2026-11-07 사용자): 글자색은 평소부터 강조색, 고르면 밑줄이 검은색. 다른 분류 탭의 주황 밑줄과 갈라 둔다.
+   검은색은 --text라 다크 모드에서는 밝은 글자색을 따라간다. */
+.menu-bar__item--special, .menu-bar__item--special:hover { color: var(--sale); font-weight: 700; }
+.menu-bar__item--special.menu-bar__item--on::after { background: var(--text); }

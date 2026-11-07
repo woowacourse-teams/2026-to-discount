@@ -344,6 +344,23 @@ class OfferRecordTest {
         assertEquals(List.of("첫 주문"), o.withFirstComeTier(first).qualifiers());
     }
 
+    @Test
+    void firstComeTierCarriesTheStructuredQualifierAndOthersKeepTheirs() {
+        // 선착순 오퍼를 구간으로 붙이면 그 구간은 note 문장과 함께 구조값 "선착순"을 단다(2026-11-07).
+        Offer regular = withQualifiers(3000, "2026-08-13T10:00:00+09:00", null);
+        Offer merged = regular.withFirstComeTier(withQualifiers(5000, "2026-08-13T10:00:00+09:00", null));
+        assertEquals(List.of("선착순"), merged.tiers().get(0).qualifiers());
+        // 상시 쪽 구간은 모르는 채로 둔다. 조건이 없다고 단정하지 않는다.
+        assertNull(merged.tiers().get(1).qualifiers());
+        // 이미 사다리인 상시에 붙일 때 기존 구간의 qualifiers가 멤버십 복사에서 사라지지 않는다.
+        DiscountTier own = new DiscountTier(18000, 3000, null, null, null, null, null, "월 1회", null, List.of("월 1회"));
+        Offer ladder = Offer.from(OfferRecord.builder("baemin", "bhc").amount(3000).membership("baeminClub")
+                .capturedAt("2026-08-13T10:00:00+09:00").tiers(List.of(own)).build(), TODAY);
+        Offer both = ladder.withFirstComeTier(withQualifiers(5000, "2026-08-13T10:00:00+09:00", null));
+        assertEquals(List.of("월 1회"), both.tiers().get(1).qualifiers());
+        assertEquals("baeminClub", both.tiers().get(1).membership());
+    }
+
     private static Offer withLink(int amount, String link, String offerType) {
         return Offer.from(OfferRecord.builder("baemin", "bhc").amount(amount).offerType(offerType)
                 .rawText(amount + "원").capturedAt("2026-08-13T10:00:00+09:00").minOrderAmount(15000)
