@@ -108,7 +108,9 @@ export function Tags({ o, detail = false }) {
   const all = headOrder(chipsOf(o).filter(detail ? (c) => c.scope === 'offer' && onDetail(c) : onCard))
   const ch0 = all.find((b) => b.kind === 'channel')?.text
   const ch = ch0 === '배달' || ch0 === '포장' ? ch0 : null // 배달/포장처럼 둘 다면 숨긴다
-  const st = stateLabel(o)
+  // 오픈 전 상태는 배지 줄에서 빼고 쿠폰 로고 위에만 둔다 — 시트에서 두 번 떴다(2026-11-05 사용자). 한정 배지(n시 오픈, 당일 한정)는 줄에 그대로 둔다(2026-11-07 사용자, #336)
+  const st0 = stateLabel(o)
+  const st = st0 === '오픈 전' ? null : st0
   // 상태(랜덤·품절·오픈 전·불확정)는 쿠폰 위 배지와 같은 모양으로 채널 자리에 한 묶음(2026-11-05 사용자)
   const tags = all.filter((b) => b.kind !== 'channel' /* 한정 배지(당일 한정, n시 오픈)는 다시 보인다 — 11-05에 뺀 것을 되돌렸다(2026-11-07 사용자) */ && !(st && (b.text === '랜덤' || b.text === '불확정')))
   if (!ch && !st && tags.length === 0) return null

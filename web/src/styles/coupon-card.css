@@ -454,7 +454,8 @@
 /* 앱 로고 위 상태 배지(품절·오픈 전·랜덤, 2026-11-04 사용자) */
 .cc-app { position: relative; display: flex; flex: none; }
 /* 배지는 로고 위에 띄운다 — 자리를 차지하지 않아 로고와 금액 줄을 밀지 않는다(2026-11-04 사용자) */
-.cc-app .cc-soldout { position: absolute; bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%); font-size: 11px; padding: 0 5px; }
+.cc-app .cc-soldout { position: absolute; bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%); font-size: var(--cc-fs-sm, 12px); }
+/* 크기·여백은 배지 줄의 상태 배지와 같게 둬 비율을 맞춘다(2026-11-05 사용자) */
 .cc-share { display: inline-flex; }
 /* 브랜드 숨기기: 품절 배지(.cc-soldout)의 어두운 바탕·붉은 글자에 주황 윤곽선, 눈에 띄는 부정 버튼(2026-11-04 사용자) */
 .cc-sheet__hide { display: block; width: 100%; margin: 16px 0 8px; padding: 12px; border: 2px solid var(--sale); border-radius: 10px; background: #333; color: #ff8a80; font-size: 15px; font-weight: 700; cursor: pointer; }
