@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { API_BASE } from './api.js'
 import { getAnalyticsContext } from './analytics-context.js'
-import { SURVEY_ID, terminalState, rememberTerminal, submission, canPreviewSurvey } from './pmfSurvey.js'
+import { SURVEY_ID, terminalState, rememberTerminal, submission, canPreviewSurvey, surveyArm, inlineSurveyBeforeCard } from './pmfSurvey.js'
 
 async function json(url, options) {
   const res = await fetch(`${API_BASE}/api/survey${url}`, options)
@@ -14,21 +14,34 @@ const post = body => ({ method: 'POST', headers: { 'Content-Type': 'application/
 
 export function useSurvey() {
   const [isVisible, setVisible] = useState(false)
-  const [isCardOpen, setOpen] = useState(false)
+  const arm = useRef(null)
+  const beforeCard = useRef(null)
+  const assignedArm = useRef(null)
   const [confirmClose, setConfirm] = useState(false)
   const [draft, setDraft] = useState({ choice: '' })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [complete, setComplete] = useState(false)
-  const [completeClosing, setCompleteClosing] = useState(false)
+  const [modalStart, setModalStart] = useState(null)
+  const [canFollowUp, setCanFollowUp] = useState(false)
+  const [followUpComplete, setFollowUpComplete] = useState(false)
   const context = useRef(null)
   const inFlight = useRef(false)
   const preview = useRef(false)
   const finished = useRef(false)
-  const closeSource = useRef('card')
+  const closeSource = useRef('inline')
+  const viewed = useRef(false)
+  const source = useRef('inline')
   const interact = useCallback((action, props = {}) => {
-    track('survey_interaction', { surveyId: SURVEY_ID, preview: preview.current, action, ...props })
+    track('survey_interaction', { surveyId: SURVEY_ID, preview: preview.current, surveyArm: arm.current, surveyBeforeCard: beforeCard.current, source: source.current, action, ...props })
   }, [])
+
+  const markViewed = useCallback(displayedAfterCard => {
+    if (viewed.current) return
+    viewed.current = true
+    track('survey_impression', { surveyId: SURVEY_ID, preview: preview.current, surveyArm: arm.current, surveyBeforeCard: beforeCard.current, source: 'inline', displayedAfterCard })
+    interact('question_viewed', { question: 'choice', step: 1, displayedAfterCard })
+  }, [interact])
 
   useEffect(() => {
     let alive = true, timer, attempts = 0
@@ -55,7 +68,18 @@ export function useSurvey() {
         if (!visitorId || !sessionId) return
         const status = await json(`?surveyId=${SURVEY_ID}&visitorId=${encodeURIComponent(visitorId)}&sessionId=${encodeURIComponent(sessionId)}`)
         if (!alive || preview.current || finished.current || inFlight.current) return
-        setVisible(status.surveyId === SURVEY_ID && status.enabled && status.eligible)
+        const eligible = status.surveyId === SURVEY_ID && status.enabled && status.eligible
+        if (eligible) {
+          const firstAssignment = assignedArm.current === null
+          assignedArm.current ??= surveyArm(visitorId)
+          arm.current = assignedArm.current
+          beforeCard.current = arm.current === 'inline' ? inlineSurveyBeforeCard(visitorId) : null
+          if (firstAssignment) {
+            source.current = arm.current
+            interact('assigned')
+          }
+        }
+        setVisible(eligible)
         // 첫 page_view가 원장에 도착하기 전의 조회를 최종 탈락으로 보지 않는다.
         if (status.enabled && status.state === 'available' && !status.eligible && ++attempts < 6) timer = setTimeout(check, 5000)
       } catch {
@@ -66,20 +90,9 @@ export function useSurvey() {
     check()
     document.addEventListener('visibilitychange', onVisible)
     return () => { alive = false; clearTimeout(timer); document.removeEventListener('visibilitychange', onVisible) }
-  }, [])
+  }, [interact])
 
-  useEffect(() => {
-    if (!complete) return
-    const timer = setTimeout(() => setCompleteClosing(true), 4700)
-    return () => clearTimeout(timer)
-  }, [complete])
-  useEffect(() => {
-    if (!completeClosing) return
-    const timer = setTimeout(() => { setComplete(false); setCompleteClosing(false) }, 300)
-    return () => clearTimeout(timer)
-  }, [completeClosing])
-
-  const requestClose = useCallback((source = 'card') => {
+  const requestClose = useCallback((source = 'inline') => {
     if (inFlight.current) return
     closeSource.current = source
     interact('close_requested', { source })
@@ -88,15 +101,16 @@ export function useSurvey() {
   }, [interact])
   const cancelClose = useCallback(() => { if (!inFlight.current) { interact('close_cancelled', { source: closeSource.current }); setConfirm(false); setError('') } }, [interact])
 
-  async function finish(dismiss, submittedDraft = draft) {
+  async function finish(dismiss, submittedDraft = draft, inline = false) {
     if (inFlight.current || (!context.current && !preview.current)) return
+    if (!dismiss) setCanFollowUp(inline)
     // 개발용 설문도 조작 이벤트를 보내되 실제 응답 원장은 바꾸지 않는다.
     if (preview.current) {
       interact(dismiss ? 'close_confirmed' : 'submit_clicked')
       if (dismiss) track('survey_dismiss', { surveyId: SURVEY_ID, preview: true, source: closeSource.current })
       else interact('preview_completed')
-      preview.current = false
-      setVisible(false); setOpen(false); setConfirm(false); setCompleteClosing(false); setComplete(!dismiss)
+      if (dismiss) preview.current = false
+      setVisible(false); setConfirm(false); setModalStart(null); setComplete(!dismiss)
       return
     }
     interact(dismiss ? 'close_confirmed' : 'submit_clicked')
@@ -108,23 +122,95 @@ export function useSurvey() {
       finished.current = true
       if (!demo) rememberTerminal(dismiss ? 'dismissed' : 'answered')
       if (dismiss) track('survey_dismiss', { surveyId: SURVEY_ID, preview: false, source: closeSource.current })
-      setVisible(false); setOpen(false); setConfirm(false)
-      setCompleteClosing(false); setComplete(!dismiss)
+      else interact('submit_succeeded', { question: 'choice', step: 1 })
+      setVisible(false); setConfirm(false); setModalStart(null)
+      setComplete(!dismiss)
     } catch (e) {
       interact(dismiss ? 'dismiss_failed' : 'submit_failed', { reason: e.state || 'request_failed' })
       if (['answered', 'dismissed', 'closed'].includes(e.state)) {
         finished.current = true
-        setVisible(false); setOpen(false); setConfirm(false)
+        setVisible(false); setConfirm(false); setModalStart(null)
       } else setError(dismiss ? '닫기 상태를 저장하지 못했습니다. 다시 시도해 주세요.' : '응답을 저장하지 못했습니다. 다시 시도해 주세요.')
     } finally { inFlight.current = false; setBusy(false) }
   }
-  function previewSurvey() {
+  function openFollowUp() {
+    source.current = 'followup'
+    interact('followup_opened')
+    setError('')
+    setModalStart(1)
+  }
+
+  function closeFollowUp() {
+    if (inFlight.current) return
+    setModalStart(null)
+    setError('')
+    source.current = 'inline'
+  }
+
+  async function submitFollowUp(answers = draft) {
+    if (inFlight.current) return
+    if (!answers.benefit && !answers.missing) {
+      closeFollowUp()
+      return
+    }
+    interact('followup_submit_clicked')
+    inFlight.current = true
+    setBusy(true)
+    setError('')
+    try {
+      if (!preview.current) {
+        try {
+          await json('/follow-up', post(submission(answers, context.current)))
+        } catch (e) {
+          if (e.state !== 'followup_saved') throw e
+        }
+      }
+      interact('followup_submit_succeeded')
+      setModalStart(null)
+      setFollowUpComplete(true)
+    } catch (e) {
+      interact('followup_submit_failed', { reason: e.state || 'request_failed' })
+      setError('추가 응답을 저장하지 못했습니다. 다시 시도해 주세요.')
+    } finally {
+      inFlight.current = false
+      setBusy(false)
+    }
+  }
+
+  function hideComplete() {
+    if (inFlight.current) return
+    preview.current = false
+    setComplete(false)
+    setModalStart(null)
+    setError('')
+  }
+
+  function previewSurvey(previewArm) {
     if (!canPreviewSurvey(import.meta.env) || inFlight.current) return
     preview.current = true
-    setDraft({ choice: '' }); setError(''); setComplete(false); setCompleteClosing(false); setConfirm(false)
-    setVisible(true); setOpen(false)
+    arm.current = previewArm
+    beforeCard.current = previewArm === 'inline' ? inlineSurveyBeforeCard(crypto.randomUUID()) : null
+    source.current = previewArm
+    setFollowUpComplete(false)
+    setDraft({ choice: '' }); setError(''); setComplete(false); setConfirm(false)
+    viewed.current = false
+    setVisible(true)
   }
-  return { previewSurvey, interact, isPreview: preview.current, isVisible, isCardOpen, confirmClose, draft, setDraft, busy, error, complete, completeClosing,
-    openCard: () => { setOpen(true); setError('') }, requestClose, cancelClose,
-    dismiss: () => finish(true), submit: submittedDraft => finish(false, submittedDraft), clearComplete: () => setCompleteClosing(true) }
+  return { previewSurvey, arm: arm.current, beforeCard: beforeCard.current, isPreview: preview.current, markViewed, interact, isVisible, confirmClose, draft, setDraft, busy, error,
+    complete, canFollowUp, followUpComplete, openFollowUp, closeFollowUp, hideComplete,
+    modalStart, isCardOpen: modalStart !== null,
+    openCard: () => {
+      if (inFlight.current) return
+      source.current = 'dock'
+      setError('')
+      setModalStart(0)
+    },
+    submit: modalStart === 1 ? submitFollowUp : answers => finish(false, answers),
+    requestClose, cancelClose, dismiss: () => finish(true),
+    submitChoice: choice => {
+      if (inFlight.current) return
+      source.current = 'inline'
+      setDraft({ choice })
+      return finish(false, { choice }, true)
+    } }
 }

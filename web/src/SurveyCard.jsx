@@ -95,7 +95,7 @@ function Dialog({ children, label, onClose, busy = false, className = '', inacti
 
 export default function SurveyCard({ survey }) {
   const { draft, setDraft, busy, confirmClose } = survey
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState(survey.modalStart ?? 0)
   const formRef = useRef(null)
   const previousPositions = useRef({})
   const questions = [{ id: 'choice', title: PMF_QUESTION, options: PMF_OPTIONS }, ...FOLLOW_UP]
@@ -133,8 +133,8 @@ export default function SurveyCard({ survey }) {
     else if (validDraft(draft)) survey.submit()
   }
   return <>
-    {survey.isCardOpen && <Dialog label="pmf-title" onClose={survey.requestClose} busy={busy} inactive={confirmClose}>
-      <button className="pmf-x" type="button" aria-label="설문 닫기" disabled={busy} onClick={() => survey.requestClose('card')}>×</button>
+    {survey.isCardOpen && <Dialog label="pmf-title" onClose={survey.modalStart === 1 ? survey.closeFollowUp : () => survey.requestClose('card')} busy={busy} inactive={confirmClose}>
+      <button className="pmf-x" type="button" aria-label="설문 닫기" disabled={busy} onClick={survey.modalStart === 1 ? survey.closeFollowUp : () => survey.requestClose('card')}>×</button>
       <form ref={formRef} data-max-options={Math.max(...questions.map(q => q.options.length))} className={`pmf-form${selected === 'other' ? ' pmf-form--other' : ''}`} onSubmit={e => { e.preventDefault(); advance() }}>
         <div className="pmf-progress-group">
         <div className="pmf-progress" role="progressbar" aria-label="설문 진행" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={progress}>
@@ -168,10 +168,10 @@ export default function SurveyCard({ survey }) {
             }}>건너뛰기</button>
           </div>
           <div className="pmf-step-actions">
-            {step > 0 && <button className="pmf-back" type="button" disabled={busy} onClick={() => { survey.interact('previous_clicked', { question: question.id, step: step + 1 }); setStep(step - 1) }}>이전</button>}
+            {step > (survey.modalStart ?? 0) && <button className="pmf-back" type="button" disabled={busy} onClick={() => { survey.interact('previous_clicked', { question: question.id, step: step + 1 }); setStep(step - 1) }}>이전</button>}
             <button className="pmf-submit" type="submit" disabled={busy || !canContinue}>{busy ? '저장 중…' : step < questions.length - 1 ? '다음' : '제출하기'}</button>
           </div>
-          <button className="pmf-close" type="button" disabled={busy} onClick={() => survey.requestClose('card')}>닫기</button>
+          <button className="pmf-close" type="button" disabled={busy} onClick={survey.modalStart === 1 ? survey.closeFollowUp : () => survey.requestClose('card')}>닫기</button>
 
         </div>
       </form>
@@ -186,4 +186,73 @@ export default function SurveyCard({ survey }) {
       </div>
     </Dialog>}
   </>
+}
+
+export function InlineSurveyCard({ survey, displayedAfterCard }) {
+  const { draft, busy, complete, markViewed, isPreview } = survey
+  const heading = useRef(null)
+  const card = useRef(null)
+  const content = useRef(null)
+
+  useLayoutEffect(() => {
+    const element = card.current
+    const body = content.current
+    if (!element || !body || typeof ResizeObserver !== 'function') return
+
+    function fitContent() {
+      element.style.setProperty('--pmf-inline-content-height', `${body.offsetHeight}px`)
+    }
+
+    fitContent()
+    const observer = new ResizeObserver(fitContent)
+    observer.observe(body)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (complete || !heading.current) return
+    if (isPreview) heading.current.scrollIntoView({ block: 'center' })
+    const observer = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting && entry.intersectionRatio >= 0.5)) return
+      markViewed(displayedAfterCard)
+      observer.disconnect()
+    }, { threshold: 0.5 })
+    observer.observe(heading.current)
+    return () => observer.disconnect()
+  }, [complete, markViewed, isPreview, displayedAfterCard])
+
+  function pick(choice) {
+    if (busy) return
+    markViewed(displayedAfterCard)
+    survey.interact('option_selected', { question: 'choice', step: 1, value: choice })
+    survey.submitChoice(choice)
+  }
+
+  return <section ref={card} className="pmf-modal pmf-inline" aria-labelledby={complete ? undefined : 'pmf-inline-title'}>
+    <button className="pmf-x" type="button" aria-label="설문 닫기" disabled={busy}
+      onClick={complete ? survey.hideComplete : () => survey.requestClose('inline')}>×</button>
+    <div ref={content} className="pmf-inline__content">
+      {complete ? <div key={survey.followUpComplete ? 'follow-up-complete' : 'complete'} className="pmf-inline__result">
+        <p className="pmf-inline__thanks" role="status">
+          {survey.followUpComplete ? '추가 의견도 보내주셔서 감사합니다!' : '소중한 의견 감사합니다!'}
+        </p>
+        {survey.canFollowUp && !survey.followUpComplete &&
+          <button className="pmf-submit pmf-inline__follow-up" type="button" onClick={survey.openFollowUp}>
+            추가 설문 답하기
+          </button>}
+      </div> : <div className="pmf-inline__question">
+        <div className="pmf-heading" ref={heading}>
+          <h2 id="pmf-inline-title">{PMF_QUESTION}</h2>
+        </div>
+        <div role="group" aria-labelledby="pmf-inline-title" className="pmf-options">
+          {PMF_OPTIONS.map(([value, label]) => <button key={value} type="button" disabled={busy}
+            className={draft.choice === value ? 'pmf-option is-selected' : 'pmf-option'} onClick={() => pick(value)}>
+            {label}
+          </button>)}
+        </div>
+        {busy && <p role="status" className="pmf-inline__saving">저장 중…</p>}
+        {survey.error && !survey.confirmClose && <p role="alert" className="pmf-error">{survey.error}</p>}
+      </div>}
+    </div>
+  </section>
 }

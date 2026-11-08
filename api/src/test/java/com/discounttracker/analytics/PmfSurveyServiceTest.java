@@ -64,6 +64,20 @@ class PmfSurveyServiceTest {
         assertEquals("answered", service.finish("v", "new", PmfSurveyService.ID, false, "very_disappointed", Map.of(), null));
         assertEquals("answered", create(true).status("v", "new").state());
     }
+    @Test void savesFollowUpOnlyForTheOriginalAnswerSessionAndOnlyOnce() throws Exception {
+        seed();
+        String surveyId = PmfSurveyService.ID;
+        String choice = "very_disappointed";
+        var answers = Map.of("benefit", "save_money");
+        assertEquals("not_eligible", service.followUp("v", "new", surveyId, choice, answers, null));
+        assertEquals("ok", service.finish("v", "new", surveyId, false, choice, Map.of(), null));
+        assertEquals("not_eligible", service.followUp("v", "old", surveyId, choice, answers, null));
+        assertEquals("not_eligible", service.followUp("v", "new", surveyId, "not_disappointed", answers, null));
+        assertEquals("ok", create(true).followUp("v", "new", surveyId, choice, answers, null));
+        assertEquals("followup_saved", create(true).followUp("v", "new", surveyId, choice, answers, null));
+        assertEquals(1, Files.readAllLines(log.path()).stream().filter(line -> line.contains("survey_followup_answer")).count());
+        assertEquals("answered", create(true).status("v", "new").state());
+    }
     @Test void dismissSurvivesRestartAndDoesNotWriteAnswer() throws Exception {
         seed();
         assertEquals("ok", service.finish("v", "new", PmfSurveyService.ID, true, null, null, null));
