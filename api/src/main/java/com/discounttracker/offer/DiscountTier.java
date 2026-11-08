@@ -37,6 +37,12 @@ package com.discounttracker.offer;
  *
  * <p>채널과 같은 자리에 같은 결로 붙인다. 금액 옆에 있어야 어느 구간 얘기인지
  * 헷갈리지 않는다.
+ *
+ * <p>{@code qualifiers}는 {@code note}에 문장으로 적힌 구간 조건을 구조값으로 옮긴 것이다
+ * (2026-11-07, 어휘는 계약 {@code tierQualifierVocabulary}: "첫 주문", "월 1회", "선착순").
+ * 값이 없으면 null이고, null은 "모름"이다 - 조건이 없다는 뜻이 아니다. 오퍼 단위
+ * {@link Offer#qualifiers()}와 같은 자리에서 구간 단위로 읽게 하려는 칸이며, {@code note}는
+ * 사람이 읽는 문장으로 그대로 남는다.
  */
 public record DiscountTier(Integer minOrder, Integer amount, Integer percent, Integer cap,
                            String channel, Boolean soldOut, String expiresAt, String note,
@@ -44,7 +50,16 @@ public record DiscountTier(Integer minOrder, Integer amount, Integer percent, In
                            // 브랜드의 별개 쿠폰을 가르는 차원이다 — "3,000원 누구나"와
                            // "8,000원 배민클럽"이 한 오퍼 안에 구간 둘로 산다. tracker
                            // camelCase 원문("none"/"baeminClub"/…), 없으면 null.
-                           String membership) {
+                           String membership,
+                           // 구간 조건의 구조값. note 문장의 짝이고 없으면 null(모름).
+                           java.util.List<String> qualifiers) {
+
+    /** qualifiers 없는 구간. 허브·배너·선착순 붙이기에서 만들던 호출이 이쪽이다. */
+    public DiscountTier(Integer minOrder, Integer amount, Integer percent, Integer cap,
+                        String channel, Boolean soldOut, String expiresAt, String note,
+                        String membership) {
+        this(minOrder, amount, percent, cap, channel, soldOut, expiresAt, note, membership, null);
+    }
 
     /** membership 없는 구간. 허브·배너에서 만드는 구간이 이쪽이다. */
     public DiscountTier(Integer minOrder, Integer amount, Integer percent, Integer cap,

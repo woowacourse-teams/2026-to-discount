@@ -289,12 +289,14 @@ public record Offer(String platform, Integer amount, String qualifier,
         // 전용이면 선착순 구간까지 배민클럽으로 읽혔다(2026-10-15 두찜 배민 비교). 오퍼 값은 덜 제한적인
         // 쪽이다(ADR-029, Membership#restriction).
         ladder.add(new DiscountTier(first.minOrderAmount, first.amount, null, null, null,
-                first.soldOut ? Boolean.TRUE : null, until, first.firstComeNote(), tierKey(first.membership)));
+                first.soldOut ? Boolean.TRUE : null, until, first.firstComeNote(), tierKey(first.membership),
+                // 붙이는 구간은 선착순 오퍼에서 왔다. 문장(note)과 별개로 구조값에도 싣는다.
+                List.of("선착순")));
         String own = tierKey(membership);
         if (tiers != null) {
             for (DiscountTier t : tiers) {
                 ladder.add(t.membership() != null || own == null ? t : new DiscountTier(t.minOrder(), t.amount(),
-                        t.percent(), t.cap(), t.channel(), t.soldOut(), t.expiresAt(), t.note(), own));
+                        t.percent(), t.cap(), t.channel(), t.soldOut(), t.expiresAt(), t.note(), own, t.qualifiers()));
             }
         } else {
             ladder.add(new DiscountTier(minOrderAmount, amount, null, null, null, soldOut ? Boolean.TRUE : null,
