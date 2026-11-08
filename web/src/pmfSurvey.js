@@ -1,4 +1,23 @@
 export const SURVEY_ID = 'pmf-2026-11'
+function surveyHash(visitorId, purpose) {
+  let hash = 2166136261
+  for (const char of `${SURVEY_ID}:${purpose}:${visitorId}`) {
+    hash = Math.imul(hash ^ char.charCodeAt(0), 16777619)
+  }
+  return hash >>> 0
+}
+
+export function surveyArm(visitorId) {
+  const bucket = surveyHash(visitorId, 'entry-v1') / 0x100000000
+  return bucket < 0.2 ? 'dock' : 'inline'
+}
+
+export function inlineSurveyBeforeCard(visitorId) {
+  const bucket = surveyHash(visitorId, 'inline-position-v1') / 0x100000000
+  if (bucket < 0.4) return 2
+  return bucket < 0.8 ? 3 : 4
+}
+
 export const PMF_QUESTION = '저희 제품을 더 이상 쓸 수 없다면 어떨거 같으신가요?'
 export const PMF_OPTIONS = [
   ['very_disappointed', '매우 실망'], ['somewhat_disappointed', '약간 실망'],

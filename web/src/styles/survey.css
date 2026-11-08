@@ -41,7 +41,8 @@ html.has-bottom-banner .pmf-dock { bottom: calc(var(--banner-dock-h) + .5rem); }
 .pmf-modal :focus-visible, .pmf-dock button:focus-visible { outline: 2px solid var(--sale); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .pmf-progress span { transition: none; } }
 
-.pmf-preview-toggle { position: fixed; right: 12px; top: 132px; z-index: 1100; min-height: 40px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg, white); color: var(--text); font: inherit; cursor: pointer; }
+.pmf-preview-controls { position: fixed; right: 12px; top: 132px; z-index: 1100; display: grid; gap: 6px; }
+.pmf-preview-toggle { min-height: 40px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg, white); color: var(--text); font: inherit; cursor: pointer; }
 body.has-pmf-modal .push-prompt-preview-toggle { visibility: hidden; pointer-events: none; }
 
 .pmf-scrim--inactive { pointer-events: none; }
@@ -78,3 +79,36 @@ html:has(body.has-pmf-modal) { overflow: hidden; }
 @keyframes pmf-toast-in { from { transform: translate(-50%, calc(100% + 24px)); } to { transform: translate(-50%, 0); } }
 @keyframes pmf-toast-out { from { transform: translate(-50%, 0); } to { transform: translate(-50%, calc(100% + 24px)); } }
 @media (prefers-reduced-motion: reduce) { .pmf-toast, .pmf-toast--leaving { animation: none; } }
+
+.pmf-inline {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin-inline: auto;
+  transform: none;
+  box-shadow: 0 4px 12px rgba(40,25,10,.06);
+  box-sizing: content-box;
+  width: min(calc(100% - 42px), 338px);
+  height: var(--pmf-inline-content-height, auto);
+  overflow: clip;
+  transition: height .28s cubic-bezier(.22, .8, .25, 1);
+}
+.pmf-inline__content, .pmf-inline__question, .pmf-inline__result { display: flow-root; }
+.pmf-inline__question { animation: pmf-inline-reveal .22s ease-out both; }
+.pmf-inline__result { animation: pmf-inline-reveal .24s ease-out .05s both; }
+@keyframes pmf-inline-reveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pmf-inline { transition: none; }
+  .pmf-inline__question, .pmf-inline__result { animation: none; }
+}
+.pmf-inline .pmf-x { top: 6px; right: 6px; }
+.pmf-inline .pmf-heading { padding-right: 24px; }
+.pmf-inline .pmf-heading h2 { min-height: 0; }
+.pmf-inline__thanks { margin: 0; text-align: center; font-weight: 700; }
+.pmf-inline button.pmf-option { color: var(--text); font-family: inherit; }
+.pmf-inline button.pmf-option.is-selected { color: var(--sale); }
+.pmf-inline__thanks { padding-inline: 26px; }
+.pmf-inline__follow-up { margin-top: 16px; }
+.pmf-inline__saving { margin: 8px 0 0; color: var(--text-muted); font-size: .875rem; }
