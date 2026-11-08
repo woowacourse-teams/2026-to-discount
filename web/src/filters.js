@@ -74,9 +74,13 @@ export function hasNewBest(offers, include = false) {
 // 서버가 이력으로 판정한 값(isNew)이 있으면 그것을 따른다(설계 2026-10-09). null = 이력 없음, 신규로 안 친다.
 // 칸이 아예 없는 옛 응답만 firstSeenAt 오늘 규칙을 쓴다.
 export function isUpdated(offer, now = Date.now()) {
-  if (offer && 'isNew' in offer) return offer.isNew === true
   const t = offer?.firstSeenAt ? Date.parse(offer.firstSeenAt) : NaN
-  return Number.isFinite(t) && kstDay(t) === kstDay(now)
+  const today = Number.isFinite(t) && kstDay(t) === kstDay(now)
+  // 한정(선착순) 오퍼는 하루 이력의 최고액에 안 잡혀(사람이 넣은 행, 상한 오퍼) 서버가 매일 어제보다 크다며 신규로 준다.
+  // 처음 본 날이 오늘이 아니면 신규가 아니다(2026-11-08 요기요 핫딜 5건이 나흘째 NEW).
+  if (offer?.firstCome && Number.isFinite(t) && !today) return false
+  if (offer && 'isNew' in offer) return offer.isNew === true
+  return today
 }
 
 export const MEMBERSHIP_FILTERABLE = { baeminClub: 'baemin', coupangEats: 'coupangeats' }

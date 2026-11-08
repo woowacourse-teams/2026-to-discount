@@ -48,6 +48,9 @@ export function formulaOf(offer) {
 
 const RATE = /^\d+%할인$/
 
+/** 불확정(최대)으로 그릴 오퍼. 한정(선착순)은 정해진 시각에 열리는 광고 금액이라 최대여도 불확정으로 안 그린다(2026-11-08 사용자). */
+export const isUncertain = (o) => o.qualifier === '최대' && !o.firstCome
+
 /**
  * 오퍼의 배지. 순서가 뜻이다: 값의 성격 → 누구만 쓰는지 → 언제까지인지(명세 4절).
  * showBestFit=false는 운영 칩(최적을 그리지 않는다), shortTime=false는 한정 배지를 원문 그대로 둔다.
@@ -55,7 +58,7 @@ const RATE = /^\d+%할인$/
 export function badgesOf(offer, { showBestFit = true, shortTime = true } = {}) {
   const out = []
   const badge = offer.badge ?? ''
-  const q = QUALIFIER_BADGE[offer.qualifier]
+  const q = offer.qualifier === '최대' && !isUncertain(offer) ? null : QUALIFIER_BADGE[offer.qualifier]
   if (q) out.push(q)
   else if (showBestFit && offer.qualifier === '최적') out.push({ kind: 'best-fit', text: '중복 할인' }) // '최적'은 무엇을 합친 값인지 안 읽혔다(2026-10-06 사용자)
   else if (RATE.test(badge)) out.push({ kind: 'rate', text: badge })

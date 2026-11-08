@@ -1,6 +1,6 @@
 import { isBundle, isUpdated } from './filters.js'
 import { track } from './analytics.js'
-import { badgesOf, beforeOpen } from './couponModel.js'
+import { badgesOf, beforeOpen, isUncertain } from './couponModel.js'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import { PlatformBadge } from './logos.jsx'
 
@@ -35,7 +35,7 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
   // 않도록 칩 전체를 같은 회색으로 깔아 다른 확정값과 구분한다(특정메뉴는 2026-09-19).
   // 랜덤(뽑기)도 같다 — 정렬에서 빠지는 값은 셋 다 같은 회색 칩(2026-09-19). "넣기"를 켜서
   // 정렬에 들어가면 회색을 벗는다(사용자, 2026-09-19).
-  const capped = offer.qualifier === '최대'
+  const capped = isUncertain(offer)
     || (offer.qualifier === '특정메뉴' && !include?.menu)
     || (offer.qualifier === '랜덤' && !include?.random)
   const badges = badgesOf(offer, CHIP_BADGE_OPTS).filter((x) => !(best && NATURE_KINDS.has(x.kind)))

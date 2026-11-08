@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './cardId.js'
-import { amountText, beforeOpen, chipsOf, onCard, onDetail, headOrder, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
+import { amountText, beforeOpen, isUncertain, chipsOf, onCard, onDetail, headOrder, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
@@ -73,7 +73,7 @@ const LinkIcon = () => (
 
 // 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기, 17차 시안): 왼쪽 앱 로고, 금액과 최소주문, 오른쪽 앱 색 이동 꼭지(링크 아이콘).
 // 배지는 쿠폰 안에 두지 않는다(브랜드명 옆, 캐러셀이면 보이는 쿠폰 것).
-const stateLabel = (o) => (o.soldOut ? '품절' : beforeOpen(o) ? '오픈 전' : o.qualifier === '랜덤' ? '랜덤' : o.qualifier === '최대' ? '불확정' : null)
+const stateLabel = (o) => (o.soldOut ? '품절' : beforeOpen(o) ? '오픈 전' : o.qualifier === '랜덤' ? '랜덤' : isUncertain(o) ? '불확정' : null)
 
 function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags = null, ...rest }) {
   return (

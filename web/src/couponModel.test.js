@@ -290,3 +290,8 @@ test('beforeOpen: 배지 시각 전이면 참, 지나면 거짓, 시각 없으�
   assert.equal(beforeOpen({ badge: '오후 12시 30분 오픈' }, at(12, 29)), true)
   assert.equal(beforeOpen({ badge: '선착순' }, at(1)), false)
 })
+
+test('최대여도 한정(선착순) 오퍼에는 불확정 배지를 달지 않는다(2026-11-08)', () => {
+  assert.deepEqual(badgesOf(o('yogiyo', 7500, { qualifier: '최대', firstCome: true })), [])
+  assert.deepEqual(badgesOf(o('baemin', 9000, { qualifier: '최대' })), [{ kind: 'qualifier-plain', text: '불확정' }])
+})
