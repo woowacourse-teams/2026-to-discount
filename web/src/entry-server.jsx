@@ -9,6 +9,7 @@ import App from './App.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
 import { setHubLinks } from './offerLink.js'
 import { API_BASE } from './api.js'
+import { settleYogiyoCaps } from './filters.js'
 
 async function get(path) {
   const res = await fetch(`${API_BASE}${path}`, { signal: AbortSignal.timeout(2500) })
@@ -21,7 +22,7 @@ async function get(path) {
 export async function loadData() {
   const [brands, banners] = await Promise.all([get('/api/brands'), get('/api/banners').catch(() => [])])
   if (!Array.isArray(brands)) throw new Error('brands 모양이 다르다')
-  return { brands, banners: Array.isArray(banners) ? banners : [] }
+  return { brands: settleYogiyoCaps(brands), banners: Array.isArray(banners) ? banners : [] }
 }
 
 export function render(data) {

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { apiFile } from '../scripts/api-repo.mjs'
 import {
-  isUpdated,
+  isUpdated, settleYogiyoCaps,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
   hasNewBest, includesFrom, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES, SPECIAL_CATEGORIES,
@@ -455,4 +455,13 @@ test('한정 오퍼는 처음 본 날이 오늘이 아니면 서버가 신규라
   assert.equal(isUpdated(hot, now), false)
   assert.equal(isUpdated({ ...hot, firstSeenAt: '2026-11-08T10:00:00+09:00' }, now), true)
   assert.equal(isUpdated({ ...hot, firstCome: false }, now), true) // 상시 오퍼는 서버 판정 그대로
+})
+
+test('요기요의 최대는 확정 금액으로 읽어 불확정 표시와 정렬 꼴찌에서 벗어난다(2026-11-08)', () => {
+  const capped = { platform: 'yogiyo', amount: 11000, qualifier: '최대', certainty: 'capped', kind: 'discount', firstCome: true }
+  const other = { platform: 'baemin', amount: 9000, qualifier: '최대', certainty: 'capped', kind: 'discount' }
+  const [a, b] = settleYogiyoCaps([{ name: 'A', offers: [capped] }, { name: 'B', offers: [other] }])
+  assert.deepEqual([a.offers[0].qualifier, a.offers[0].certainty], [null, 'exact'])
+  assert.equal(comparable(a.offers[0]), true)
+  assert.equal(b.offers[0].qualifier, '최대') // 다른 앱은 그대로
 })
