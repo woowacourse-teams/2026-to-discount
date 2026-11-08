@@ -54,7 +54,7 @@ brands:
     aliases: [bhc, bhc치킨, BHC, BHC치킨, 비에이치씨, 비에이치씨치킨, bhc chicken]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=37
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?VofeoYn
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?ObmyZR4
       baemin: https://s.baemin.com/Rw000Lpq6OXca
   감탄계숯불치킨:
     searchAliases: [감탄계, 감탄계 치킨, gamtangye, gamtangye chicken]
@@ -73,6 +73,7 @@ brands:
     category: chicken
     aliases: [굽네, 굽네치킨, goobne, goobnechicken, 굽네치킨&피자, gubne]
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?yoO9BgR
       baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=41
       yogiyo: yogiyolink://push.page/franchise?fr_id=18
   기영이숯불두마리치킨:
@@ -317,6 +318,7 @@ brands:
     category: chicken
     aliases: [교촌치킨, 교촌, kyochon, kyochon chicken]
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?zGbRV30
       baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=121
   깐부치킨:
     searchAliases: [깐부, 깐부 치킨, kkanbu, kkanbu chicken]
@@ -389,7 +391,7 @@ brands:
     aliases: [아메리칸, american pizza, americane pizza]
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?0yNX7fH
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?1EONFFd
   오구쌀피자:
     searchAliases: [오구 피자, 오구쌀 피자, 59 pizza, ogu rice pizza]
     menus: [반미터]
@@ -1078,6 +1080,7 @@ brands:
     aliases: [피자나라치킨공주, 피나치공 피자, pizza nara chicken gongju, pinachigong]
     category: pizza
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?S35S8b3
       baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=133&brandName=%ED%94%BC%EB%82%98%EC%B9%98%EA%B3%B5
   피자에땅:
     searchAliases: [피자 에땅, 에땅피자, pizza etang, pizza ettang]
@@ -1312,9 +1315,13 @@ brands:
   곱분이곱창:
     searchAliases: [곱분이곱창, 곱분이]
     category: korean
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?j6SZpgH
   땅스즉석떡볶이:
     searchAliases: [땅스즉석떡볶이, 땅스 떡볶이]
     category: snack
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?v0sCR6a
   이마트에브리데이:
     searchAliases: [이마트에브리데이, 이마트 에브리데이, 이마트슈퍼]
     category: convenience
@@ -1378,6 +1385,7 @@ brands:
     searchAliases: [바스버거]
     category: fastfood
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?AJfSkec
       baemin: https://s.baemin.com/19000OnrS6joU
   "박가부대&치즈닭갈비":
     searchAliases: ["박가부대&치즈닭갈비"]
@@ -1443,6 +1451,7 @@ brands:
     searchAliases: [우리할매떡볶이]
     category: snack
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?XbdP0XP
       baemin: https://s.baemin.com/GF000LOfxXP0t
   원조설악칡냉면:
     searchAliases: [원조설악칡냉면]
@@ -1532,3 +1541,5 @@ brands:
   샐러디:
     searchAliases: [샐러디, 샐러드, salady]
     category: western
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?TjaY8Dz
