@@ -96,6 +96,62 @@ class BrandComparisonServiceTest {
         assertNull(offer.isNew());
     }
 
+    private OfferRecord firstComeRec(String platform, String brand, int amount, String firstSeenAt) {
+        return OfferRecord.builder(platform, brand)
+                .amount(amount)
+                .offerType("discount")
+                .section("요기핫딜 선착순")
+                .rawText(amount + "원")
+                .capturedAt("2026-08-10T10:00:00+09:00")
+                .screenshotPath("path.jpg")
+                .soldOut(false)
+                .firstSeenAt(firstSeenAt)
+                .build();
+    }
+
+    @Test
+    void firstComeNoveltyIsWhetherFirstSeenToday() {
+        String brands = """
+                brands:
+                  푸라닭:
+                    category: chicken
+                """;
+        // 어제 상시 최고액(5,000)보다 큰 한정(7,500)이지만 열흘 전부터 있었다: 이력으로 견주면 매일 신규가 된다(#342).
+        var history = new com.discounttracker.history.OfferHistory(
+                List.of(new com.discounttracker.history.BrandDay(java.time.LocalDate.parse("2026-08-19"),
+                        "yogiyo", "푸라닭", com.discounttracker.history.DayState.PUBLISHED, null, 5000)),
+                java.util.Map.of(java.time.LocalDate.parse("2026-08-19"), java.util.Set.of("yogiyo")));
+        Offer old = serviceWithHistory(List.of(firstComeRec("yogiyo", "푸라닭", 7500, "2026-08-10T17:30:00+09:00")),
+                brands, on("2026-08-20"), history).compare().get(0).offers().get(0);
+        assertEquals(Boolean.FALSE, old.isNew());
+        Offer fresh = serviceWithHistory(List.of(firstComeRec("yogiyo", "푸라닭", 7500, "2026-08-20T09:00:00+09:00")),
+                brands, on("2026-08-20"), history).compare().get(0).offers().get(0);
+        assertEquals(Boolean.TRUE, fresh.isNew());
+    }
+
+    @Test
+    void firstComeThatLeadsAStandingOfferCarriesItsOwnNovelty() {
+        String brands = """
+                brands:
+                  청년피자:
+                    category: pizza
+                """;
+        // 상시는 오래됐지만 오늘 새로 생긴 더 큰 선착순이 대표가 되면 신규다. 합친 오퍼의 처음 본 시각은 이른 쪽(상시)이다.
+        var history = new com.discounttracker.history.OfferHistory(
+                List.of(new com.discounttracker.history.BrandDay(java.time.LocalDate.parse("2026-08-19"),
+                        "coupangeats", "청년피자", com.discounttracker.history.DayState.PUBLISHED, null, 12000)),
+                java.util.Map.of(java.time.LocalDate.parse("2026-08-19"), java.util.Set.of("coupangeats")));
+        // 이력(어제 최고 12,000)만 보면 10,000은 신규가 아니다. 선착순 자신의 처음 본 날(오늘)을 따라야 TRUE다.
+        OfferRecord standing = OfferRecord.builder("coupangeats", "청년피자").amount(7000).offerType("discount")
+                .rawText("7000원").capturedAt("2026-08-10T10:00:00+09:00").screenshotPath("path.jpg").soldOut(false)
+                .firstSeenAt("2026-08-01T00:00:00+09:00").build();
+        Offer merged = serviceWithHistory(List.of(standing,
+                firstComeRec("coupangeats", "청년피자", 10000, "2026-08-20T09:00:00+09:00")),
+                brands, on("2026-08-20"), history).compare().get(0).offers().get(0);
+        assertEquals(10000, merged.amount());
+        assertEquals(Boolean.TRUE, merged.isNew());
+    }
+
     /** KST 기준 그 날짜 정오를 가리키는 시계. */
     private Clock on(String date) {
         return Clock.fixed(Instant.parse(date + "T03:00:00Z"), SEOUL);

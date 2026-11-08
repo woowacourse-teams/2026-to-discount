@@ -68,6 +68,8 @@ public record Offer(String platform, Integer amount, String qualifier,
         // fromBanner와 linkSource가 같은 판정을 쓰도록 한 번만 계산한다.
         boolean fromBanner = BANNER_OFFER_TYPE.equals(r.offerType())
                 || BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType());
+        boolean firstCome = BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType())
+                || (r.section() != null && r.section().contains(FIRST_COME_SECTION_MARK));
         return new Offer(r.platform(), r.amountAsOf(today), r.qualifier(),
                 r.status(), r.rawText(), r.screenshotPath(), r.capturedAt(),
                 r.minOrderAmount(), r.tierMode(), r.liveTiers(today), r.conditions(), r.expiresAt(), r.badge(),
@@ -75,9 +77,9 @@ public record Offer(String platform, Integer amount, String qualifier,
                 fromBanner,
                 // 원장의 선착순 관측(배짱할인 주말핫딜 선착순 등)도 선착순 칸에 선다. 소진 감시봇이 생기기 전까지는
                 // 상시와 별개 오퍼다(2026-10-01 사용자). 같은 앱에서 무엇을 보일지는 mergeSameFirstCome가 고른다.
-                BANNER_FIRST_COME_OFFER_TYPE.equals(r.offerType())
-                        || (r.section() != null && r.section().contains(FIRST_COME_SECTION_MARK)),
-                Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()), r.firstSeenAt(), null,
+                firstCome,
+                Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()), r.firstSeenAt(),
+                firstCome ? seenToday(r.firstSeenAt(), today) : null,
                 r.qualifiers(),
                 r.link() == null ? LinkSource.NONE : (fromBanner ? LinkSource.BANNER : LinkSource.RECORD),
                 r.capturedOn());
@@ -312,7 +314,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(platform, lead.amount, qualifier, status, lead.rawText, screenshotPath, capturedAt,
                 lead.minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, lead.badge,
                 soldOut && first.soldOut, lead.link, merged, fromBanner, firstLeads, certainty, kind,
-                earlier(firstSeenAt, first.firstSeenAt), isNew, qualifiers, lead.linkSource, capturedOn);
+                earlier(firstSeenAt, first.firstSeenAt), firstLeads ? first.isNew : isNew, qualifiers, lead.linkSource, capturedOn);
     }
 
     /** 구간에 적을 멤버십 키. 모르면 null(구간 칸이 비면 "모름"이다). */
@@ -339,6 +341,21 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,
                 tierMode, tiers, conditions, expiresAt, badge, soldOut, link, membership, fromBanner, firstCome,
                 certainty, kind, firstSeenAt, v, qualifiers, linkSource, capturedOn);
+    }
+
+    /**
+     * 한정(선착순) 오퍼의 신규 여부: 그 오퍼(앱, 브랜드, 금액)를 처음 본 날이 오늘인가. 이력은 사람이 넣은 한정 오퍼와 상한 오퍼를
+     * 어제 최고액에 세지 않아, 이력으로 견주면 어제 상시 최고액보다 큰 한정이 매일 신규가 된다(2026-11-08 요기요 핫딜, #342).
+     * 처음 본 시각을 못 읽으면 null(이력 판정에 맡긴다).
+     */
+    static Boolean seenToday(String firstSeenAt, LocalDate today) {
+        if (firstSeenAt == null) return null;
+        try {
+            return java.time.OffsetDateTime.parse(firstSeenAt).atZoneSameInstant(java.time.ZoneId.of("Asia/Seoul"))
+                    .toLocalDate().equals(today);
+        } catch (java.time.format.DateTimeParseException e) {
+            return null;
+        }
     }
 
     /** 둘 중 이른 시각. 같은 쿠폰을 두 출처에서 합칠 때 처음 본 시각은 더 이른 쪽이다. 하나가 없으면 다른 쪽. */

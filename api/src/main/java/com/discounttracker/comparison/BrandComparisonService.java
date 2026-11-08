@@ -239,7 +239,7 @@ public class BrandComparisonService {
                 maxConfirmed.get(name),
                 maxHeld.get(name),
                 new ArrayList<>(offersByPlatform.values().stream()
-                        .map(o -> o.amount() == null ? o
+                        .map(o -> o.amount() == null || o.isNew() != null ? o   // 한정 오퍼는 Offer.from이 이미 정했다
                                 : o.withIsNew(h.novelty(o.platform(), name, o.amount(), today).asBoolean()))
                         .toList()),
                 popularity == null ? 0 : popularity.scoreOf(name),
