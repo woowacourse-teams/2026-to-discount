@@ -455,6 +455,7 @@ test('한정 오퍼는 처음 본 날이 오늘이 아니면 서버가 신규라
   assert.equal(isUpdated(hot, now), false)
   assert.equal(isUpdated({ ...hot, firstSeenAt: '2026-11-08T10:00:00+09:00' }, now), true)
   assert.equal(isUpdated({ ...hot, firstCome: false }, now), true) // 상시 오퍼는 서버 판정 그대로
+  assert.equal(isUpdated({ ...hot, tiers: [{}] }, now), true) // 상시에 붙은 선착순 구간도 서버 판정 그대로
 })
 
 test('요기요의 최대는 확정 금액으로 읽어 불확정 표시와 정렬 꼴찌에서 벗어난다(2026-11-08)', () => {

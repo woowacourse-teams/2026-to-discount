@@ -88,7 +88,8 @@ export function isUpdated(offer, now = Date.now()) {
   const today = Number.isFinite(t) && kstDay(t) === kstDay(now)
   // 한정(선착순) 오퍼는 하루 이력의 최고액에 안 잡혀(사람이 넣은 행, 상한 오퍼) 서버가 매일 어제보다 크다며 신규로 준다.
   // 처음 본 날이 오늘이 아니면 신규가 아니다(2026-11-08 요기요 핫딜 5건이 나흘째 NEW).
-  if (offer?.firstCome && Number.isFinite(t) && !today) return false
+  // 상시에 붙은 선착순 구간(tiers)은 처음 본 날이 상시 것이라 여기서 못 가른다. 서버 판정을 따른다.
+  if (offer?.firstCome && !offer.tiers && Number.isFinite(t) && !today) return false
   if (offer && 'isNew' in offer) return offer.isNew === true
   return today
 }
