@@ -39,6 +39,28 @@ export function afterHistorySettles(fn, raf = (f) => requestAnimationFrame(f)) {
   else raf(fn)
 }
 
+// 칸이 여럿 쌓일 수 있다(분류 + 인기 독 펼침, 시트 등). 뒤로 한 번은 맨 위 칸만 닫는다.
+// 코드가 칸을 되돌리는 이동(popOverlays)도 popstate를 내는데, 이때 아래 칸이 같이 닫히면 안 된다.
+// 인기 독을 접을 때 아래 칸인 분류 필터가 같이 풀려 전체로 돌아갔다(2026-11-08 사용자).
+const layers = []
+export function openLayer(close, win = window) {
+  const me = {}
+  let popped = false
+  layers.push(me)
+  win.history.pushState({ ...win.history.state, overlay: true }, '')
+  const onPop = () => {
+    if (inFlight || layers[layers.length - 1] !== me) return
+    popped = true
+    close()
+  }
+  win.addEventListener('popstate', onPop)
+  return () => {
+    layers.splice(layers.indexOf(me), 1)
+    win.removeEventListener('popstate', onPop)
+    if (!popped && win.history.state?.overlay) popOverlays(win.history, win)
+  }
+}
+
 /** 열린 동안 방문 기록에 한 칸을 쌓아, 폰의 뒤로 버튼이 창을 떠나지 않고 이 화면(시트, 검색)만 닫게 한다(2026-10-07 사용자).
  *  다른 방법(닫기 단추, 바깥 누르기)으로 닫히면 쌓았던 칸을 되돌린다. */
 export function useBackClose(open, close) {
@@ -46,13 +68,7 @@ export function useBackClose(open, close) {
   closeRef.current = close
   useEffect(() => {
     if (!open || typeof window === 'undefined') return undefined
-    window.history.pushState({ ...window.history.state, overlay: true }, '')
-    const onPop = () => closeRef.current()
-    window.addEventListener('popstate', onPop)
-    return () => {
-      window.removeEventListener('popstate', onPop)
-      if (window.history.state?.overlay) popOverlays()
-    }
+    return openLayer(() => closeRef.current())
   }, [open])
 }
 
