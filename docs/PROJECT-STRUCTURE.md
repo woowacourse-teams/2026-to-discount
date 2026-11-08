@@ -472,6 +472,7 @@ HTTP 경계:
 - `POST /api/survey`
 - `POST /api/survey/demo`
 - `POST /api/survey/dismiss`
+- `POST /api/survey/follow-up`
 - `PUT /api/push/admin/next`
 
 ### Web

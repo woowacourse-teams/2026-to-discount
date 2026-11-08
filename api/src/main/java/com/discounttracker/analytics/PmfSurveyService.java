@@ -29,6 +29,9 @@ public class PmfSurveyService {
     private static final class User {
         boolean dev;
         String terminal;
+        String followUpSession;
+        String choice;
+        boolean followUpSaved;
         final Map<String, Instant> sessions = new HashMap<>();
         final List<Core> core = new ArrayList<>();
     }
@@ -73,9 +76,22 @@ public class PmfSurveyService {
     /** 판정부터 기록까지 파일 잠금으로 묶어 배포 중 여러 JVM의 중복 응답도 막는다. */
     public synchronized String finish(String visitor, String session, String surveyId, boolean dismiss,
                                        String choice, Map<String, String> answers, String ipHash) {
+        return save(visitor, session, surveyId, dismiss, false, choice, answers, ipHash);
+    }
+
+    public synchronized String followUp(String visitor, String session, String surveyId,
+                                        String choice, Map<String, String> answers, String ipHash) {
+        return save(visitor, session, surveyId, false, true, choice, answers, ipHash);
+    }
+
+    private String save(String visitor, String session, String surveyId, boolean dismiss, boolean followUp,
+                        String choice, Map<String, String> answers, String ipHash) {
         if (!ID.equals(surveyId)) return "unknown_survey";
         if (!enabled) return "closed";
         if (!dismiss && !validAnswers(choice, answers)) return "invalid_answer";
+        if (followUp && (answers == null || OPTIONS.keySet().stream().noneMatch(key -> answers.get(key) != null))) {
+            return "invalid_answer";
+        }
         try {
             var lockPath = log.path().toAbsolutePath().resolveSibling("pmf-survey.lock");
             Files.createDirectories(lockPath.getParent());
@@ -83,8 +99,13 @@ public class PmfSurveyService {
                  var ignored = channel.lock()) {
                 catchUp();
                 User u = users.get(visitor);
-                if (u != null && u.terminal != null) return u.terminal;
-                if (!qualifies(visitor, session)) return "not_eligible";
+                if (followUp) {
+                    if (u == null || !session.equals(u.followUpSession) || !choice.equals(u.choice)) return "not_eligible";
+                    if (u.followUpSaved) return "followup_saved";
+                } else {
+                    if (u != null && u.terminal != null) return u.terminal;
+                    if (!qualifies(visitor, session)) return "not_eligible";
+                }
                 Map<String, String> props = new LinkedHashMap<>();
                 props.put("surveyId", ID);
                 props.put("rewarded", "false");
@@ -102,7 +123,8 @@ public class PmfSurveyService {
                     });
                 }
                 // 완료는 원장 기록 성공 뒤에만 표시한다. 보상 없는 설문에는 쿠폰 예외 처리가 필요 없다.
-                events.append(List.of(new VisitEvent(clock.instant().toString(), dismiss ? "survey_closed" : "survey_answer",
+                String event = followUp ? "survey_followup_answer" : dismiss ? "survey_closed" : "survey_answer";
+                events.append(List.of(new VisitEvent(clock.instant().toString(), event,
                         visitor, session, null, null, null, null, null, null, props, null, ipHash,
                         local && visitor.startsWith("pmf_demo_") ? true : null, null, UUID.randomUUID().toString(), null)));
                 catchUp();
@@ -151,13 +173,23 @@ public class PmfSurveyService {
         User u = users.computeIfAbsent(visitor, k -> new User());
         u.dev |= n.path("dev").asBoolean(false);
         String event = n.path("event").asString("");
-        if (ID.equals(n.path("props").path("surveyId").asString(""))) {
-            if ("survey_closed".equals(event)) u.terminal = "dismissed";
-            if ("survey_answer".equals(event)) u.terminal = "answered";
+        JsonNode props = n.path("props");
+        String session = n.path("sessionId").asString("");
+        if (ID.equals(props.path("surveyId").asString(""))) {
+            if ("survey_closed".equals(event)) {
+                u.terminal = "dismissed";
+                u.followUpSession = null;
+            }
+            if ("survey_answer".equals(event)) {
+                u.terminal = "answered";
+                u.choice = props.path("choice").asString("");
+                u.followUpSession = props.hasNonNull("q_benefit") || props.hasNonNull("q_missing") ? null : session;
+                u.followUpSaved = false;
+            }
+            if ("survey_followup_answer".equals(event)) u.followUpSaved = true;
         }
         Instant at;
         try { at = Instant.parse(n.path("ts").asString("")); } catch (RuntimeException e) { return; }
-        String session = n.path("sessionId").asString("");
         if (!validId(session)) return;
         Instant cutoff = clock.instant().minus(Duration.ofDays(14));
         if (at.isAfter(clock.instant())) return;

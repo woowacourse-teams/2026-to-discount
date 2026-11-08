@@ -65,7 +65,7 @@ public class SurveyController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> answer(@RequestBody Submission body,
                                                       HttpServletRequest request) {
-        if (body != null && body.surveyId() != null) return finishPmf(body, request, false);
+        if (body != null && body.surveyId() != null) return finishPmf(body, request, false, false);
         if (body == null || body.choice() == null
                 || !SurveyService.CHOICES.contains(body.choice())) {
             return ResponseEntity.badRequest().build();
@@ -84,15 +84,23 @@ public class SurveyController {
 
     @PostMapping("/dismiss")
     public ResponseEntity<Map<String, Object>> dismiss(@RequestBody Submission body, HttpServletRequest request) {
-        return finishPmf(body, request, true);
+        return finishPmf(body, request, true, false);
     }
 
-    private ResponseEntity<Map<String, Object>> finishPmf(Submission body, HttpServletRequest request, boolean dismiss) {
+    @PostMapping("/follow-up")
+    public ResponseEntity<Map<String, Object>> followUp(@RequestBody Submission body, HttpServletRequest request) {
+        return finishPmf(body, request, false, true);
+    }
+
+    private ResponseEntity<Map<String, Object>> finishPmf(Submission body, HttpServletRequest request,
+                                                         boolean dismiss, boolean followUp) {
         if (body == null || !PmfSurveyService.validId(body.visitorId()) || !PmfSurveyService.validId(body.sessionId())) {
             return ResponseEntity.badRequest().build();
         }
-        String result = pmf.finish(body.visitorId(), body.sessionId(), body.surveyId(), dismiss,
-                body.choice(), body.answers(), fingerprint.hash(request));
+        String ipHash = fingerprint.hash(request);
+        String result = followUp
+                ? pmf.followUp(body.visitorId(), body.sessionId(), body.surveyId(), body.choice(), body.answers(), ipHash)
+                : pmf.finish(body.visitorId(), body.sessionId(), body.surveyId(), dismiss, body.choice(), body.answers(), ipHash);
         int status = "ok".equals(result) ? 200 : "invalid_answer".equals(result) || "unknown_survey".equals(result) ? 400 : 409;
         return ResponseEntity.status(status).body(Map.of("ok", "ok".equals(result), "state", result));
     }
