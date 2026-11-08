@@ -8,7 +8,8 @@ function surveyHash(visitorId, purpose) {
 }
 
 export function surveyArm(visitorId) {
-  return surveyHash(visitorId, 'entry-v1') >= 0x80000000 ? 'inline' : 'dock'
+  const bucket = surveyHash(visitorId, 'entry-v1') / 0x100000000
+  return bucket < 0.2 ? 'dock' : 'inline'
 }
 
 export function inlineSurveyBeforeCard(visitorId) {
