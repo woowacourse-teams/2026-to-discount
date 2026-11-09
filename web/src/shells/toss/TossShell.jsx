@@ -1,10 +1,13 @@
-import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { BrandLogo, PlatformBadge } from '../../logos.jsx'
 import { openWithNotice } from '../../offerLink.js'
 import TopBarB from '../../TopBarB.jsx'
+import PopularDock from '../../PopularDock.jsx'
+import PushNotificationSetting from '../../PushNotificationSetting.jsx'
+import { brandCardId } from '../../cardId.js'
 import { track } from '../../analytics.js'
 import { useScrollMore } from '../../MenuBar.jsx'
-import { defaultFilters, isDefaultFilters, primarySort, readMinAmount, saveMinAmount } from '../../filters.js'
+import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmount, saveMinAmount } from '../../filters.js'
 import { loadBrands, toRows } from './data.js'
 import './toss.css'
 
@@ -40,7 +43,9 @@ export default function TossShell() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const barRef = useRef(null)
-  const pushToggleRef = useRef(null)
+  // 알림 켜고 끈 결과 말풍선이 앉는 자리(TopBarB 안). App.jsx와 같은 방식으로 받는다.
+  const [pushToggleSlot, setPushToggleSlot] = useState(null)
+  const pushToggleRef = useCallback((el) => { startTransition(() => setPushToggleSlot(el)) }, [])
   useBarHeight(barRef)
   // 정렬 줄은 터치로 넘기고 마우스로도 끌어 넘긴다(App.jsx와 같다).
   const [sortRef, sortMore] = useScrollMore()
@@ -66,6 +71,19 @@ export default function TossShell() {
       .catch(() => { if (alive) setFailed(true) })
     return () => { alive = false }
   }, [tries])
+
+  // 인기 순위는 분류와 검색을 뺀 목록으로 낸다(App.jsx rankBrands와 같다).
+  const rankBrands = useMemo(
+    () => (brands ? applyFilters(brands, { ...filters, categories: new Set(), search: '' }) : null),
+    [brands, filters],
+  )
+  // 순위에서 브랜드를 고르면 분류와 검색을 풀고 그 줄로 간다.
+  const pickPopular = (name) => {
+    setFilters((f) => ({ ...f, categories: new Set(), search: '' }))
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.getElementById(brandCardId(name))?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }))
+  }
 
   const rows = useMemo(() => (brands ? toRows(brands, filters) : []), [brands, filters])
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
@@ -102,10 +120,11 @@ export default function TossShell() {
         resetFilters={() => setFilters(readSaved)}
         sheetOpen={sheetOpen}
         onOpenSheet={() => setSheetOpen(true)}
-        popular={null}
+        popular={rankBrands && <PopularDock brands={rankBrands} onPick={pickPopular} />}
         reportHold={false}
       />
 
+      <PushNotificationSetting toggleSlot={pushToggleSlot} />
       <main className="toss-main">
         {brands && (
           <div className="quick-bar">
@@ -158,7 +177,7 @@ export default function TossShell() {
           {!failed && !brands && [0, 1, 2, 3, 4].map((i) => <div key={i} className="toss-skel" aria-hidden="true" />)}
           {brands && rows.length === 0 && <div className="toss-empty"><p>지금 받을 수 있는 할인이 없어요</p></div>}
           {rows.map((r) => (
-            <a key={r.name} className="toss-row" href={r.href} onClick={(e) => openWithNotice(e, r.href)}>
+            <a key={r.name} id={brandCardId(r.name)} className="toss-row" href={r.href} onClick={(e) => openWithNotice(e, r.href)}>
               <BrandLogo name={r.name} />
               <span className="toss-row__mid">
                 <span className="toss-row__name">{r.name}</span>
@@ -176,13 +195,6 @@ export default function TossShell() {
         </section>
       </main>
 
-      {rows[0] && (
-        <div className="toss-cta">
-          <a className="toss-cta__btn" href={rows[0].href} onClick={(e) => openWithNotice(e, rows[0].href)}>
-            가장 큰 할인 받으러 가기
-          </a>
-        </div>
-      )}
     </div>
   )
 }

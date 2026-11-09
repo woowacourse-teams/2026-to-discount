@@ -5,7 +5,7 @@
   color: #191F28;
   font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
   font-weight: 500;
-  padding: 0 0 104px;
+  padding: 0 0 24px;
   overflow-x: hidden;
 }
 .toss *, .toss *::before, .toss *::after { box-sizing: border-box; }
@@ -31,21 +31,3 @@
 .toss-empty { padding: 32px 16px; text-align: center; color: #4E5968; }
 .toss-empty p { margin: 0 0 8px; }
 .toss-textbtn { border: 0; background: none; color: #3182F6; font: inherit; font-weight: 700; cursor: pointer; }
-.toss-cta {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
-  background: #F2F4F6;
-}
-.toss-cta__btn {
-  display: block;
-  width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  background: #3182F6;
-  color: #fff;
-  text-align: center;
-  font-size: 17px;
-  font-weight: 700;
-  text-decoration: none;
-}
