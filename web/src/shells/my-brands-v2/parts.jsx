@@ -1,3 +1,4 @@
+import { PlatformBadge } from '../../logos.jsx'
 import { splitAmount, splitMin } from './data.js'
 import baemin from './platform-logos/baemin.png'
 import coupangeats from './platform-logos/coupangeats.svg'
@@ -72,7 +73,10 @@ export function PlatformLogo({ platform, label }) {
 //  tint: 파랑 바탕, 앱 이름만 앱 색을 밝게 한 값(PlatformName)
 //  bg:   앱 고유색 바탕(진한 값), 흰 글자만
 //  logo: 파랑 바탕, 흰 알약 안에 앱 로고(투명 배경 글자 모양) + 흰 글자
-const BTN_VARIANTS = ['tint', 'bg', 'logo']
+//  icon: 파랑 바탕, 왼쪽에 앱 아이콘(기존 PlatformBadge) + 흰 글자
+//  chip: 버튼 위에 앱 로고 칩 한 줄을 따로 두고 버튼은 파랑 바탕에 "확인하기"만(새 문구라 개발자 확인 필요)
+//  ghost: 흰 바탕에 앱 색 외곽선과 앱 색 글자(파랑 면 없음)
+const BTN_VARIANTS = ['tint', 'bg', 'logo', 'icon', 'chip', 'ghost']
 const BTN_VARIANT = 'tint'
 const BTN_BG = { baemin: '#17938f', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' }
 function btnVariant() {
@@ -96,6 +100,25 @@ export function GoButton({ link, platform, appLabel }) {
         {logo ? <span className="v2-go__pill"><img src={logo} alt={appLabel} /></span> : appLabel}에서 확인하기
       </a>
     )
+  }
+  if (variant === 'icon') {
+    return (
+      <a className="v2-go v2-go--icon" {...link}>
+        <span className="v2-go__icon"><PlatformBadge platformKey={platform} /></span>{appLabel}에서 확인하기
+      </a>
+    )
+  }
+  if (variant === 'chip') {
+    const logo = WORDMARK[platform]
+    return (
+      <div className="v2-gochip">
+        <span className="v2-gochip__app">{logo ? <img src={logo} alt={appLabel} /> : appLabel}</span>
+        <a className="v2-go" aria-label={`${appLabel}에서 확인하기`} {...link}>확인하기</a>
+      </div>
+    )
+  }
+  if (variant === 'ghost') {
+    return <a className="v2-go v2-go--ghost" style={{ '--gc': BTN_BG[platform] ?? '#4e5968' }} {...link}>{appLabel}에서 확인하기</a>
   }
   return (
     <a className="v2-go" {...link}>
