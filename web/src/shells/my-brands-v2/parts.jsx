@@ -26,11 +26,20 @@ export function Chip({ c }) {
   return <span className={`v2-chip v2-chip--${c.kind}`} data-platform={c.kind === 'membership' ? c.platform : undefined}>{c.text}</span>
 }
 
+// 앱 이름. 앱 고유색 글자. 쿠팡이츠는 글자마다 색이 다르다(쿠 팡 이 츠).
+const COUPANG_CHAR_COLORS = ['#52100F', '#93BB2E', '#EA9919', '#E94B22']
+export function PlatformName({ platform, label }) {
+  if (platform === 'coupangeats' && [...label].length === COUPANG_CHAR_COLORS.length) {
+    return [...label].map((ch, i) => <span key={i} style={{ color: COUPANG_CHAR_COLORS[i] }}>{ch}</span>)
+  }
+  return <span style={{ color: platformColor(platform) }}>{label}</span>
+}
+
 // 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자는 "○○에서 받으러 가기", 앱 이름 글자만 그 앱의 고유색.
 export function GoButton({ link, platform, appLabel }) {
   return (
     <a className="v2-go" {...link}>
-      <span style={{ color: platformColor(platform) }}>{appLabel}</span>에서 받으러 가기
+      <PlatformName platform={platform} label={appLabel} />에서 받으러 가기
     </a>
   )
 }
