@@ -10,7 +10,8 @@ import { brandCardId } from '../../cardId.js'
 import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmount, saveMinAmount } from '../../filters.js'
 import OfferShareButton from '../../OfferShareButton.jsx'
 import DetailSheet from './DetailSheet.jsx'
-import { cardsFor, loadHome, splitAmount } from './data.js'
+import { cardsFor, loadHome } from './data.js'
+import { Amount, MinOrder } from './parts.jsx'
 import './my-brands-v2.css'
 
 const FilterSheet = lazy(() => import('../../FilterSheet.jsx'))
@@ -37,13 +38,6 @@ function useBarHeight(ref) {
   }, [ref])
 }
 
-// "12,000원 할인": 숫자는 파랑으로 크게, "원 할인"은 검정으로 작게. 이 꼴이 아니면 원문 그대로.
-function Amount({ label, className }) {
-  const parts = splitAmount(label)
-  if (!parts) return <span className={className}>{label}</span>
-  return <span className={className}><span className="v2-num">{parts.num}</span><span className="v2-unit">{parts.rest}</span></span>
-}
-
 function Card({ card, position, where, onDetail }) {
   const open = (e) => { if (card.href) openWithNotice(e, card.href) }
   const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
@@ -64,13 +58,15 @@ function Card({ card, position, where, onDetail }) {
         </span>
         <span className="v2-card__price">
           <Amount label={card.amountLabel} className="v2-card__amount" />
-          <span className="v2-chip v2-chip--min">{card.minLabel}</span>
+          <MinOrder label={card.minLabel} />
         </span>
       </button>
       <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
       <div className="v2-card__foot">
-        <PlatformBadge platformKey={card.platform} via={card.via} brand={card.name} />
-        <a className="v2-go" {...link}>쿠폰 받으러 가기</a>
+        <a className="v2-go v2-go--logo" {...link}>
+          <PlatformBadge platformKey={card.platform} via={card.via} brand={card.name} />
+          <span>쿠폰 받으러 가기</span>
+        </a>
       </div>
       <button type="button" className="v2-more" aria-haspopup="dialog">자세히 보기<span aria-hidden="true"> ›</span></button>
     </li>

@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { applyFilters, defaultFilters } from '../../filters.js'
 import {
-  amountLabel, buildCards, cardOf, minText, splitAmount,
+  amountLabel, buildCards, cardOf, minText, splitAmount, splitMin,
 } from './data.js'
 
 const offer = (o) => ({ platform: 'baemin', amount: 10000, minOrderAmount: 15000, ...o })
@@ -49,4 +49,10 @@ test('금액 가르기: "n원 할인"은 숫자와 나머지로, 그 밖의 원�
   assert.deepEqual(splitAmount('20% 할인'), { num: '20', rest: '% 할인' })
   assert.equal(splitAmount('1+1'), null)
   assert.equal(splitAmount('-'), null)
+})
+
+test('최소주문 가르기: "n원 이상"과 "주문시", 그 밖의 문구는 null', () => {
+  assert.deepEqual(splitMin(minText(15000)), { amt: '15,000원 이상', rest: ' 주문시' })
+  assert.equal(splitMin(minText(0)), null)
+  assert.equal(splitMin(minText(null)), null)
 })

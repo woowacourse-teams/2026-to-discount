@@ -3,7 +3,8 @@ import { BrandLogo, PlatformBadge } from '../../logos.jsx'
 import { openWithNotice } from '../../offerLink.js'
 import { useDragClose } from '../../sheetParts.jsx'
 import { includesFrom } from '../../filters.js'
-import { detailOf, splitAmount } from './data.js'
+import { detailOf } from './data.js'
+import { Amount, MinOrder } from './parts.jsx'
 
 // 자세히 보기 바텀시트. 모양과 닫는 법(배경, 닫기 버튼, ESC, 끌어내리기)은 필터 시트와 같은 클래스를 쓴다.
 export default function DetailSheet({ card, filters, onClose }) {
@@ -57,10 +58,10 @@ export default function DetailSheet({ card, filters, onClose }) {
                   <PlatformBadge platformKey={o.platform} via={o.via} brand={card.name} />
                   <span>{o.appLabel}</span>
                 </div>
-                <p className="v2-sheet__amount">{(() => { const a = splitAmount(o.amountLabel); return a ? <><span className="v2-num">{a.num}</span><span className="v2-unit">{a.rest}</span></> : o.amountLabel })()}</p>
+                <p className="v2-sheet__amount"><Amount label={o.amountLabel} /></p>
                 <div className="v2-sheet__chips">
                   {o.chips.map((c, j) => <span key={`${c.kind}${j}`} className={`v2-chip v2-chip--${c.kind}`}>{c.text}</span>)}
-                  <span className="v2-chip v2-chip--min">{o.minLabel}</span>
+                  <MinOrder label={o.minLabel} />
                 </div>
                 {o.rows.length > 0 && (
                   <ul className="v2-sheet__rows">

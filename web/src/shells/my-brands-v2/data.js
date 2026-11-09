@@ -24,6 +24,12 @@ export function splitAmount(label) {
   return m ? { num: m[1], rest: m[2] } : null
 }
 
+/** "30,000원 이상 주문시"를 금액 부분과 나머지로 가른다. 이 꼴이 아니면(최소주문 없음, 미확인) null. */
+export function splitMin(label) {
+  const m = /^(.+원 이상)( 주문시)$/.exec(label)
+  return m ? { amt: m[1], rest: m[2] } : null
+}
+
 /** 최소주문 칸. 숫자는 'N원 이상 주문시', 0은 '최소주문 없음', 모르면(null) '최소주문 미확인'. 비우지 않는다. */
 export function minText(minOrderAmount) {
   const label = minLabel(minOrderAmount)
