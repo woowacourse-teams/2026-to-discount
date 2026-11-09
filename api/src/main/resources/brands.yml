@@ -1533,6 +1533,9 @@ brands:
   홈플러스 익스프레스:
     searchAliases: [홈플러스 익스프레스, 홈플러스익스프레스]
     category: convenience
+  롯데슈퍼:
+    searchAliases: [롯데슈퍼, 롯데 슈퍼]
+    category: convenience
   푸줏간 고기도시락:
     searchAliases: [푸줏간 고기도시락, 푸줏간고기도시락]
     category: korean
