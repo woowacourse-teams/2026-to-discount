@@ -42,7 +42,6 @@
 .v2-react button[aria-pressed="true"] { color: #191f28; }
 .v2-react button[aria-pressed="true"] svg path { fill: currentColor; }
 .v2-react svg { width: 20px; height: 20px; }
-.v2-go__name { text-shadow: 0 0 1px #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff, 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; } /* 앱 이름 글자에만 흰 테두리. 파랑 위에서 앱 색 글자가 읽힌다. */
 .v2-go { flex: 1; display: block; text-align: center; padding: 18px 18px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 16px; text-decoration: none;; }
 .v2-sheet__body { padding: 12px 24px 40px; }
 .v2-sheet__head { display: flex; align-items: center; gap: 16px; margin: 8px 40px 28px 0; }

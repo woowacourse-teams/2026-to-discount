@@ -44,7 +44,7 @@ export function Reactions({ name, reaction, onReact }) {
 }
 
 // 앱 고유색(기존 상단 앱 버튼과 같은 값). 모르는 앱은 회색.
-const PLATFORM_COLOR = { baemin: '#2ac1bc', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' } // 버튼 바탕에 흰 글자가 읽히게 배민, 쿠팡이츠("eats" 갈색), 땡겨요를 진하게
+const PLATFORM_COLOR = { baemin: '#00d4c0', coupangeats: '#7a3a0c', ddangyo: '#ff5a00', yogiyo: '#ff0050' } // 앱 이름 글자색(채도를 높인 값). 쿠팡이츠는 아래 PlatformName이 "쿠팡" 빨강, "이츠" 갈색으로 나눈다
 export const platformColor = (key) => PLATFORM_COLOR[key] ?? '#4e5968'
 
 // 배지. 멤버십은 기존 앱처럼 앱마다 색이 다르다(CSS가 data-platform으로 입힌다).
@@ -52,11 +52,12 @@ export function Chip({ c }) {
   return <span className={`v2-chip v2-chip--${c.kind}`} data-platform={c.kind === 'membership' ? c.platform : undefined}>{c.text}</span>
 }
 
-// 앱 이름. 앱 고유색 글자. 쿠팡이츠는 글자마다 색이 다르다(쿠 팡 이 츠).
-const COUPANG_CHAR_COLORS = ['#52100F', '#93BB2E', '#EA9919', '#E94B22']
+// 앱 이름. 앱 고유색 글자. 쿠팡이츠는 앞 "쿠팡"과 뒤 "이츠"의 색이 다르다.
+const COUPANG_RED = '#ff1a2e'
 export function PlatformName({ platform, label }) {
-  if (platform === 'coupangeats' && [...label].length === COUPANG_CHAR_COLORS.length) {
-    return [...label].map((ch, i) => <span key={i} style={{ color: COUPANG_CHAR_COLORS[i] }}>{ch}</span>)
+  // 쿠팡이츠: "쿠팡"은 빨강, "이츠"는 갈색
+  if (platform === 'coupangeats' && label.endsWith('이츠') && label.length > 2) {
+    return <><span style={{ color: COUPANG_RED }}>{label.slice(0, -2)}</span><span style={{ color: platformColor(platform) }}>이츠</span></>
   }
   return <span style={{ color: platformColor(platform) }}>{label}</span>
 }
@@ -67,11 +68,11 @@ export function PlatformLogo({ platform, label }) {
   return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <PlatformName platform={platform} label={label} />
 }
 
-// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 바탕은 포인트 색(파랑)으로 통일하고, 앱 이름 글자만 그 앱의 고유색. 앱 이름 글자에 흰 테두리(CSS)를 걸어 파랑 위에서도 읽힌다.
+// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 바탕은 포인트 색(파랑)으로 통일하고, 앱 이름 글자만 그 앱의 고유색. 
 export function GoButton({ link, platform, appLabel }) {
   return (
     <a className="v2-go" {...link}>
-      <span className="v2-go__name"><PlatformName platform={platform} label={appLabel} /></span>에서 확인하기
+      <PlatformName platform={platform} label={appLabel} />에서 확인하기
     </a>
   )
 }
