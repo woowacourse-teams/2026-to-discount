@@ -153,3 +153,4 @@ window.__legacyApp = App           // 남긴다
 ## 변경 이력
 
 - 2026-11-03 (구현): 서버가 그린 HTML은 `App`이라 `TossShell`과 반드시 어긋난다. §7의 선택 항목대로 `main.jsx`에서 `ssr`을 무시하고 항상 `createRoot`로 그린다(`if (false && ssr)`). 그래서 `TossShell`은 `window.__SSR__.brands`가 있으면 다시 받지 않고 그 값을 쓴다.
+- 2026-11-09 (사용자 지시): 머리말(제목, 부제, 기준 시각 줄)과 "할인 큰 순" 목록 머리를 뺐다. 기존 홈의 타이틀바(`TopBarB`: 검색, 분류 메뉴 바, 제보, 필터)와 정렬 바(`quick-bar`)를 그대로 붙였고, 조건 상태(`filters`)를 `TossShell`이 가진다. 줄의 앱 이름 글자는 앱 로고(`PlatformBadge`)로 바꾸고 브랜드 로고는 기존 크기(45px)로 돌렸다. 기준 시각 줄과 `capturedLabel`은 삭제.
