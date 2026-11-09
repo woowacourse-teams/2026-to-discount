@@ -38,6 +38,18 @@ class OfferRecordTest {
     }
 
     @Test
+    void preferredOverToleratesMissingCapturedAt() {
+        // #285: 배너 오퍼는 capturedAt이 null이다. 둘 다 null이면 금액 큰 쪽, 한쪽만 null이어도 예외가 없다.
+        Offer small = Offer.from(OfferRecord.builder("baemin", "a").amount(1000).offerType("discount").build(), TODAY);
+        Offer big = Offer.from(OfferRecord.builder("baemin", "a").amount(2000).offerType("discount").build(), TODAY);
+        assertEquals(2000, small.preferredOver(big).amount());
+        assertEquals(2000, big.preferredOver(small).amount());
+        Offer dated = Offer.from(record(1500, null, null), TODAY);
+        assertEquals(2000, dated.preferredOver(big).amount());
+        assertEquals(2000, big.preferredOver(dated).amount());
+    }
+
+    @Test
     void nullTierModeIsExclusive() {
         // tracker가 tier_mode를 실어 보내기 전의 export.json에는 이 필드가
         // 아예 없다. 없으면 지금까지의 해석(택일)이다.
@@ -330,6 +342,23 @@ class OfferRecordTest {
         // 선착순을 구간으로 붙여도 오퍼의 조건은 상시 것이다(#155 열린 질문 2).
         Offer first = withQualifiers(5000, "2026-08-13T10:00:00+09:00", List.of("다른 값"));
         assertEquals(List.of("첫 주문"), o.withFirstComeTier(first).qualifiers());
+    }
+
+    @Test
+    void firstComeTierCarriesTheStructuredQualifierAndOthersKeepTheirs() {
+        // 선착순 오퍼를 구간으로 붙이면 그 구간은 note 문장과 함께 구조값 "선착순"을 단다(2026-11-07).
+        Offer regular = withQualifiers(3000, "2026-08-13T10:00:00+09:00", null);
+        Offer merged = regular.withFirstComeTier(withQualifiers(5000, "2026-08-13T10:00:00+09:00", null));
+        assertEquals(List.of("선착순"), merged.tiers().get(0).qualifiers());
+        // 상시 쪽 구간은 모르는 채로 둔다. 조건이 없다고 단정하지 않는다.
+        assertNull(merged.tiers().get(1).qualifiers());
+        // 이미 사다리인 상시에 붙일 때 기존 구간의 qualifiers가 멤버십 복사에서 사라지지 않는다.
+        DiscountTier own = new DiscountTier(18000, 3000, null, null, null, null, null, "월 1회", null, List.of("월 1회"));
+        Offer ladder = Offer.from(OfferRecord.builder("baemin", "bhc").amount(3000).membership("baeminClub")
+                .capturedAt("2026-08-13T10:00:00+09:00").tiers(List.of(own)).build(), TODAY);
+        Offer both = ladder.withFirstComeTier(withQualifiers(5000, "2026-08-13T10:00:00+09:00", null));
+        assertEquals(List.of("월 1회"), both.tiers().get(1).qualifiers());
+        assertEquals("baeminClub", both.tiers().get(1).membership());
     }
 
     private static Offer withLink(int amount, String link, String offerType) {

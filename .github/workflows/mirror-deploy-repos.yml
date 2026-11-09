@@ -79,6 +79,13 @@ jobs:
             git clone --depth 1 -b "$REF" "git@github.com:${{ matrix.repo }}.git" /tmp/target 2>/dev/null               || { git clone --depth 1 "git@github.com:${{ matrix.repo }}.git" /tmp/target && git -C /tmp/target checkout -b "$REF"; }
           fi
 
+          # 받기에 실패하면 여기서 멈춘다. 없는 저장소를 두고 아래 "바뀐 것이 없다"로 성공 처리되어
+          # 프리뷰가 조용히 옛 화면에 머물렀다(2026-11-04, Permission denied (publickey)).
+          if [ ! -d /tmp/target/.git ]; then
+            echo "::error::${{ matrix.repo }}를 받지 못했다 — deploy key(${{ matrix.secret }})와 접근 권한을 확인한다."
+            exit 1
+          fi
+
           # --delete가 있어야 여기서 지운 파일이 저쪽에서도 사라진다.
           # 없으면 미러가 쓰레기를 계속 쌓는다.
           rsync -a --delete \

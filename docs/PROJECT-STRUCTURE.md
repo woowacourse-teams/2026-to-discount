@@ -47,6 +47,8 @@ api/src/main/java/com/discounttracker/analytics/EventLog.java
 api/src/main/java/com/discounttracker/analytics/EventLogSnapshot.java
 api/src/main/java/com/discounttracker/analytics/EventRateLimiter.java
 api/src/main/java/com/discounttracker/analytics/GifticonStore.java
+api/src/main/java/com/discounttracker/analytics/PmfSurveyDemoController.java
+api/src/main/java/com/discounttracker/analytics/PmfSurveyService.java
 api/src/main/java/com/discounttracker/analytics/PopularityIndex.java
 api/src/main/java/com/discounttracker/analytics/PostHogClient.java
 api/src/main/java/com/discounttracker/analytics/PostHogConfiguration.java
@@ -130,6 +132,8 @@ api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogSnapshotTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogTest.java
 api/src/test/java/com/discounttracker/analytics/GifticonStoreTest.java
+api/src/test/java/com/discounttracker/analytics/PmfSurveyControllerTest.java
+api/src/test/java/com/discounttracker/analytics/PmfSurveyServiceTest.java
 api/src/test/java/com/discounttracker/analytics/PopularityIndexTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogClientTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java
@@ -255,6 +259,7 @@ web/src/PushNotificationSetting.jsx
 web/src/ReportButton.jsx
 web/src/SiteFooter.jsx
 web/src/SurveyCard.jsx
+web/src/SurveyCard.test.js
 web/src/SurveyDock.jsx
 web/src/TopBarB.jsx
 web/src/analytics-context.js
@@ -279,6 +284,8 @@ web/src/brandAutocomplete.test.js
 web/src/brandColor.js
 web/src/brandImpression.js
 web/src/brandImpression.test.js
+web/src/brandReactions.js
+web/src/brandReactions.test.js
 web/src/cardId.js
 web/src/cardShift.js
 web/src/cardShift.test.js
@@ -316,6 +323,8 @@ web/src/platformBadge.test.js
 web/src/platformIcons.js
 web/src/platforms.js
 web/src/platformsContract.test.js
+web/src/pmfSurvey.js
+web/src/pmfSurvey.test.js
 web/src/popularStrip.js
 web/src/popularStrip.test.js
 web/src/posthog.js
@@ -421,8 +430,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 192 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 181 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 196 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 186 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -434,7 +443,7 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 24 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 26 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 6 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
@@ -464,6 +473,9 @@ HTTP 경계:
 - `POST /api/reports`
 - `POST /api/share-links`
 - `POST /api/survey`
+- `POST /api/survey/demo`
+- `POST /api/survey/dismiss`
+- `POST /api/survey/follow-up`
 - `PUT /api/push/admin/next`
 
 ### Web
@@ -491,6 +503,7 @@ HTTP 경계:
 | `ReportButton.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SiteFooter.jsx` | 서비스 안내 푸터 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `SurveyCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `TopBarB.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
@@ -515,6 +528,8 @@ HTTP 경계:
 | `brandColor.js` | 배너 색 파생 |
 | `brandImpression.js` | 브랜드 헤더 노출 판정과 세션 중복 방지 |
 | `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
+| `brandReactions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `brandReactions.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardId.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -552,6 +567,8 @@ HTTP 경계:
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformsContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pmfSurvey.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pmfSurvey.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `popularStrip.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `popularStrip.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |

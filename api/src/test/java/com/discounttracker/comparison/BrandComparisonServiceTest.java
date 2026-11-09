@@ -923,6 +923,34 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void noOfferCarriesACapturedAtLaterThanNow() {
+        // #285: 배너 오퍼가 오늘 23:59:59를 capturedAt에 받아 낮 12시 응답에 미래 시각이 나갔다.
+        // 어느 경로로 만든 오퍼든 본 시각이 지금보다 뒤일 수는 없다.
+        Clock clock = on("2026-08-20");
+        OfferRecord ledger = OfferRecord.builder("baemin", "굽네치킨")
+                .amount(3000).offerType("discount").rawText("3000원")
+                .capturedAt("2026-08-19T10:00:00+09:00").screenshotPath("x.jpg").soldOut(false).build();
+        List<Offer> offers = serviceWith(List.of(ledger), """
+                brands:
+                  굽네치킨:
+                    category: chicken
+                    aliases: [goobne]
+                """, clock, BANNER_YAML)
+                .compare().stream().flatMap(c -> c.offers().stream()).toList();
+        assertTrue(offers.stream().anyMatch(Offer::fromBanner), "배너 오퍼가 없으면 이 검사는 아무것도 보지 않는다");
+        for (Offer o : offers) {
+            if (o.capturedAt() != null) {
+                assertFalse(java.time.OffsetDateTime.parse(o.capturedAt()).toInstant().isAfter(clock.instant()),
+                        o.capturedAt());
+            }
+            if (o.fromBanner()) {
+                assertNull(o.capturedAt());
+                assertEquals("2026-08-20", o.capturedOn());
+            }
+        }
+    }
+
+    @Test
     void coupangeatsLedgerOfferLinkReachesTheResponseAsIs() {
         // 웹 offerLink가 쿠팡이츠 사람 링크를 그대로 쓴다. API가 link를 바꾸거나
         // 버리면 웹은 허브 링크로 내려가고 화면에서는 티가 나지 않는다.

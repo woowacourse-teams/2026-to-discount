@@ -30,7 +30,8 @@ const platformOf = (href) => (/coupang/i.test(href) ? 'coupangeats'
 // blur는 따로 싣는다 — 크롬은 앱이 뜨는 동안에도 잠시 visible이다(offerLink.js 쿠팡이츠 주석, 2026-10-07 실기).
 // ponytail: 같은 탭 https 이동(유니버설 링크가 아니면 웹으로 넘어감)도 hidden이라 opened=true로 센다. 스킴 칸으로 가른다.
 let watching = false
-export function watchAppOpen(href, ms = 2500) {
+/** onDone(opened, props): 결과를 부른 쪽에 넘긴다(앱이 안 열렸으면 설치 안내, 2026-11-04). */
+export function watchAppOpen(href, ms = 2500, onDone = null) {
   if (watching || typeof window === 'undefined' || typeof href !== 'string') return
   watching = true
   let blurred = false
@@ -44,6 +45,7 @@ export function watchAppOpen(href, ms = 2500) {
     stop()
     window.removeEventListener('blur', blur)
     track('app_open_result', { ...props, opened, signal, blurred })
+    onDone?.(opened, props)
   }
   const stop = onLeave((signal) => done(true, signal))
   const timer = setTimeout(() => done(false, 'timeout'), ms)
