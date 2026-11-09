@@ -6,7 +6,7 @@ import PopularDock from '../../PopularDock.jsx'
 import PushNotificationSetting from '../../PushNotificationSetting.jsx'
 import { useScrollMore } from '../../MenuBar.jsx'
 import { track } from '../../analytics.js'
-import { useBackClose } from '../../backClose.js'
+import { afterHistorySettles, useBackClose } from '../../backClose.js'
 import { brandCardId } from '../../cardId.js'
 import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmount, saveMinAmount } from '../../filters.js'
 import OfferShareButton from '../../OfferShareButton.jsx'
@@ -39,12 +39,12 @@ function useBarHeight(ref) {
   }, [ref])
 }
 
-function Card({ card, position, where, onDetail }) {
+function Card({ card, position, where, onDetail, linked }) {
   const open = (e) => { if (card.href) openWithNotice(e, card.href) }
   const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
   // 받으러 가기 버튼과 공유 버튼 밖을 누르면 자세히 보기(바텀시트). 자세히 보기 단추의 click도 위로 올라와 여기서 한 번만 받는다.
   return (
-    <li className="v2-card" id={brandCardId(card.name)} onClick={(e) => { if (!e.target.closest('.v2-go, .v2-share')) onDetail(card, position) }}>
+    <li className={`v2-card${linked ? ' v2-card--linked' : ''}`} id={brandCardId(card.name)} onClick={(e) => { if (!e.target.closest('.v2-go, .v2-share')) onDetail(card, position) }}>
       <div className="v2-card__top">
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
@@ -80,6 +80,8 @@ export default function MyBrandsV2Shell() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [detail, setDetail] = useState(null)
+  // 순위에서 눌러 이동한 카드(파란 테두리로 보여 준다). 다음 터치나 6초 뒤에 풀린다.
+  const [linked, setLinked] = useState(null)
   const barRef = useRef(null)
   // 알림 켜고 끈 결과 말풍선이 앉는 자리(TopBarB 안). App.jsx와 같은 방식으로 받는다.
   const [pushToggleSlot, setPushToggleSlot] = useState(null)
@@ -112,13 +114,24 @@ export default function MyBrandsV2Shell() {
     () => (brands ? applyFilters(brands, { ...filters, categories: new Set(), search: '' }) : null),
     [brands, filters],
   )
-  // 순위에서 브랜드를 고르면 분류와 검색을 풀고 그 카드로 간다.
+  // 순위에서 브랜드를 고르면 분류와 검색을 풀고 그 카드로 간다. 펼친 순위판이 닫히며 쌓았던 기록 칸을 되돌리는 이동(popstate)이
+  // 스크롤을 원위치로 덮으므로, 그 이동이 끝난 뒤에 간다(기존 홈과 같은 규칙).
   const pickPopular = (name) => {
     setFilters((f) => ({ ...f, categories: new Set(), search: '' }))
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    setLinked(null)
+    requestAnimationFrame(() => afterHistorySettles(() => {
+      setLinked(name)
       document.getElementById(brandCardId(name))?.scrollIntoView({ block: 'center', behavior: 'smooth' })
     }))
   }
+  useEffect(() => {
+    if (!linked) return undefined
+    const clear = () => setLinked(null)
+    const timer = setTimeout(clear, 6000)
+    // 도착 직후의 스크롤 중 터치가 아니라 사용자가 새로 누른 것부터 푼다.
+    const arm = setTimeout(() => document.addEventListener('pointerdown', clear, { once: true }), 600)
+    return () => { clearTimeout(timer); clearTimeout(arm); document.removeEventListener('pointerdown', clear) }
+  }, [linked])
   const setSearch = (v) => setFilters((f) => ({ ...f, search: typeof v === 'function' ? v(f.search) : v }))
   // 검색을 확정하면 켜 둔 분류를 푼다(App.jsx submitSearch와 같은 규칙).
   const submitSearch = (raw) => {
@@ -211,7 +224,7 @@ export default function MyBrandsV2Shell() {
         {failed && <p className="v2-empty">-</p>}
         {!brands && !failed && <p className="v2-empty">...</p>}
         <ul className="v2-list">
-          {cards.map((card, i) => <Card key={card.name} card={card} position={i} where="my-brands-v2" onDetail={openDetail} />)}
+          {cards.map((card, i) => <Card key={card.name} card={card} position={i} where="my-brands-v2" onDetail={openDetail} linked={linked === card.name} />)}
         </ul>
       </main>
     </>

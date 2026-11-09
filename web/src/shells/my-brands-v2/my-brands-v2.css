@@ -62,3 +62,7 @@
 .v2-hist { margin: 0 0 20px; }
 .v2-hist .hist__solid { stroke-linejoin: miter; stroke-miterlimit: 10; stroke-linecap: butt; }
 .v2-hist .hist__head { margin-bottom: 0; }
+/* 터치 때 브라우저가 카드 전체에 깔던 눌림 색을 끈다(공유 버튼을 눌러도 카드 전체가 반짝이던 것). */
+.v2-card, .v2-card * { -webkit-tap-highlight-color: transparent; }
+/* 순위에서 눌러 이동한 카드: 파란 선과 파란 그림자. */
+.v2-card--linked { box-shadow: 0 0 0 2px #3182f6, 0 6px 20px rgba(49, 130, 246, .35); transition: box-shadow .2s ease; }
