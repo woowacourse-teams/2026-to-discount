@@ -4,7 +4,7 @@ import { fetchBanners, fetchBrands } from '../../api.js'
 import {
   applyFilters, defaultFilters, includesFrom, isBundle,
 } from '../../filters.js'
-import { amountText, chipsOf, conditionTable, headOrder, minLabel, onCard, splitOffers } from '../../couponModel.js'
+import { amountText, chipsOf, conditionTable, headOrder, minLabel, onCard, shortBrandName, splitOffers } from '../../couponModel.js'
 import { offerLink, setHubLinks } from '../../offerLink.js'
 import { OWN, OWN_LABEL, PLATFORM_BY_KEY } from '../../platforms.js'
 
@@ -16,6 +16,12 @@ export function amountLabel(offer) {
   const text = amountText(offer)
   if (!text) return NONE
   return isBundle(offer) || offer.amount == null ? text : `${text} 할인`
+}
+
+/** "12,000원 할인"을 숫자와 나머지로 가른다. 이 꼴이 아니면(묶음 행사 원문 등) null. */
+export function splitAmount(label) {
+  const m = /^([\d,.]+)((?:원|%) 할인)$/.exec(label)
+  return m ? { num: m[1], rest: m[2] } : null
 }
 
 /** 최소주문 칸. 숫자는 'N원 이상 주문시', 0은 '최소주문 없음', 모르면(null) '최소주문 미확인'. 비우지 않는다. */
@@ -37,6 +43,7 @@ export function cardOf(brand, include) {
   const chips = headOrder(chipsOf(offer).filter(onCard)).map((c) => ({ kind: c.kind, text: c.text }))
   return {
     name: brand.name,
+    displayName: shortBrandName(brand),
     category: brand.category,
     brand,
     offer,

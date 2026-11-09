@@ -10,7 +10,7 @@ import { brandCardId } from '../../cardId.js'
 import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmount, saveMinAmount } from '../../filters.js'
 import OfferShareButton from '../../OfferShareButton.jsx'
 import DetailSheet from './DetailSheet.jsx'
-import { cardsFor, loadHome } from './data.js'
+import { cardsFor, loadHome, splitAmount } from './data.js'
 import './my-brands-v2.css'
 
 const FilterSheet = lazy(() => import('../../FilterSheet.jsx'))
@@ -37,6 +37,13 @@ function useBarHeight(ref) {
   }, [ref])
 }
 
+// "12,000원 할인": 숫자는 파랑으로 크게, "원 할인"은 검정으로 작게. 이 꼴이 아니면 원문 그대로.
+function Amount({ label, className }) {
+  const parts = splitAmount(label)
+  if (!parts) return <span className={className}>{label}</span>
+  return <span className={className}><span className="v2-num">{parts.num}</span><span className="v2-unit">{parts.rest}</span></span>
+}
+
 function Card({ card, position, where, onDetail }) {
   const open = (e) => { if (card.href) openWithNotice(e, card.href) }
   const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
@@ -47,7 +54,7 @@ function Card({ card, position, where, onDetail }) {
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
           <span className="v2-card__headtext">
-            <span className="v2-card__name">{card.name}</span>
+            <span className="v2-card__name">{card.displayName}</span>
             {card.chips.length > 0 && (
               <span className="v2-card__chips">
                 {card.chips.map((c, i) => <span key={`${c.kind}${i}`} className={`v2-chip v2-chip--${c.kind}`}>{c.text}</span>)}
@@ -56,7 +63,7 @@ function Card({ card, position, where, onDetail }) {
           </span>
         </span>
         <span className="v2-card__price">
-          <span className="v2-card__amount">{card.amountLabel}</span>
+          <Amount label={card.amountLabel} className="v2-card__amount" />
           <span className="v2-chip v2-chip--min">{card.minLabel}</span>
         </span>
       </button>

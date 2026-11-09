@@ -1,3 +1,5 @@
+/* 포인트 색: 주황(--sale)을 파랑으로. 기존 상단 바와 정렬 바도 이 변수를 쓴다. */
+:root:root { --sale: #3182f6; --sale-weak: #e8f1ff; }
 .v2 { box-sizing: border-box; padding-bottom: 40px; background: #f5f6f8; min-height: 100vh; color: #191f28; overflow-x: hidden; }
 .v2 *, .v2 *::before, .v2 *::after { box-sizing: border-box; }
 .v2 { padding-top: 8px; }
@@ -11,10 +13,10 @@
 .v2-card__name { font-size: 20px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 .v2-card__chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .v2-card__price { display: grid; gap: 8px; justify-items: start; }
-.v2-card__amount { font-size: 34px; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+.v2-card__amount { font-size: 32px; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
 .v2-chip { font-size: 14px; font-weight: 600; padding: 5px 10px; border-radius: 8px; background: #eef0f3; color: #4e5968; }
 .v2-chip--membership { background: #e7f1ff; color: #1b64da; }
-.v2-chip--limited, .v2-chip--channel { background: #fff3e0; color: #c25b00; }
+.v2-chip--limited, .v2-chip--channel { background: #e8f1ff; color: #1b64da; }
 .v2-chip--min { justify-self: start; background: transparent; border: 1px solid #d1d6db; font-size: 15px; }
 .v2-card .v2-share { position: absolute; top: 14px; right: 6px; }
 .v2-card .v2-share .offer-share__button { width: 40px; height: 40px; opacity: 1; background: url('./share.png') center / 22px 22px no-repeat; }
@@ -22,7 +24,6 @@
 .v2-card__foot { display: flex; align-items: center; gap: 10px; margin-top: 28px; }
 .v2-card__foot .platform-badge { flex: none; width: 44px; height: 44px; border-radius: 12px; }
 .v2-go { flex: 1; display: block; text-align: center; padding: 18px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 16px; text-decoration: none; }
-.v2-more { display: block; width: 100%; margin-top: 8px; padding: 14px 0 6px; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; color: #6b7684; text-align: center; cursor: pointer; }
 .v2-sheet__body { padding: 8px 20px 32px; }
 .v2-sheet__head { display: flex; align-items: center; gap: 12px; margin: 8px 40px 24px 0; }
 .v2-sheet__head .brand-logo { width: 64px; height: 64px; border-radius: 16px; }
@@ -32,8 +33,12 @@
 .v2-sheet__offer:first-child { padding-top: 0; border-top: 0; }
 .v2-sheet__app { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; color: #4e5968; }
 .v2-sheet__app .platform-badge { width: 36px; height: 36px; border-radius: 10px; }
-.v2-sheet__amount { margin: 0; font-size: 30px; font-weight: 800; line-height: 1.15; }
+.v2-sheet__amount { margin: 0; font-size: 28px; font-weight: 800; line-height: 1.15; }
 .v2-sheet__chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .v2-sheet__rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 15px; color: #4e5968; }
 .v2-sheet__rows .v2-chip { margin-left: 6px; }
 .v2-sheet__note { margin: 0; font-size: 14px; color: #6b7684; line-height: 1.5; }
+.v2-num { color: #3182f6; font-size: 36px; }
+.v2-sheet__amount .v2-num { font-size: 32px; }
+.v2-unit { color: #191f28; }
+.v2-more { display: block; width: 100%; margin-top: 10px; padding: 14px; border: 1px solid #d1d6db; border-radius: 12px; background: #f2f4f6; font: inherit; font-size: 15px; font-weight: 600; color: #4e5968; text-align: center; cursor: pointer; }
