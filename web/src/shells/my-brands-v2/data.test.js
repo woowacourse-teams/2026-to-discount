@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { applyFilters, defaultFilters } from '../../filters.js'
 import {
-  amountLabel, buildCards, cardOf, minText, splitAmount, splitMin, detailOf,
+  amountLabel, buildCards, cardOf, minText, splitAmount, splitMin, detailOf, polyPaths,
 } from './data.js'
 
 const offer = (o) => ({ platform: 'baemin', amount: 10000, minOrderAmount: 15000, ...o })
@@ -67,4 +67,11 @@ test('자세히 보기: 중복 쿠폰의 합산식은 숨기고 결과 금액과
   assert.ok(rows.every((r) => r.extra === ''), '합산식(5,000+2,000)이 남았다')
   assert.equal(rows[0].amount, '7,000원')
   assert.equal(rows[0].min, '30,000원 이상 주문시')
+})
+
+test('꺾은선: 직선(L)으로만 잇고 값 없는 날에서 끊는다(곡선 C 없음)', () => {
+  const { solid, area } = polyPaths([{ x: 0, y: 10 }, { x: 10, y: 4 }, { x: 20, y: null }, { x: 30, y: 8 }, { x: 40, y: 2 }], 100)
+  assert.deepEqual(solid, ['M0 10 L10 4', 'M30 8 L40 2'])
+  assert.ok(solid.every((p) => !p.includes('C')))
+  assert.equal(area[0], 'M0 10 L10 4 V100 H0 Z')
 })

@@ -3,7 +3,7 @@
 .v2 { box-sizing: border-box; padding-bottom: 40px; background: #f5f6f8; min-height: 100vh; color: #191f28; overflow-x: hidden; }
 .v2 *, .v2 *::before, .v2 *::after { box-sizing: border-box; }
 .v2-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; }
-.v2-card { position: relative; background: #fff; border-radius: 22px; padding: 28px 14px 28px; min-width: 0; cursor: pointer; }
+.v2-card { position: relative; background: #fff; border-radius: 22px; padding: 14px 14px 28px; min-width: 0; cursor: pointer; }
 .v2-empty { text-align: center; color: #6b7684; }
 .v2-card__body { display: grid; gap: 14px; width: 100%; padding: 0; border: 0; background: none; font: inherit; text-align: left; color: inherit; cursor: pointer; min-width: 0; }
 .v2-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 18px; }
@@ -58,3 +58,7 @@
 .v2 .quick-bar { padding: 0; margin: 4.8px 0; }
 /* 시트 앱 줄: 직사각형 앱 로고 */
 .v2-sheet__logo { display: block; width: 132px; height: 30px; object-fit: contain; object-position: left center; }
+/* 가격 그래프: 뾰족한 꺾은선(모서리를 둥글리지 않는다). 색은 포인트 색(--sale, 파랑). */
+.v2-hist { margin: 0 0 20px; }
+.v2-hist .hist__solid { stroke-linejoin: miter; stroke-miterlimit: 10; stroke-linecap: butt; }
+.v2-hist .hist__head { margin-bottom: 0; }

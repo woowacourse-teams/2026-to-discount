@@ -101,3 +101,26 @@ export async function loadHome() {
   setHubLinks(banners)
   return brands
 }
+
+/** 뾰족한 꺾은선 경로. 이웃한 점을 직선(L)으로 잇고, 값이 없는 날(y가 null)에서 끊는다. 곡선(C)은 쓰지 않는다. */
+export function polyPaths(xy, bottom) {
+  const solid = []
+  const area = []
+  let run = null
+  const close = () => {
+    if (!run) return
+    const line = run.d.join(' ')
+    solid.push(line)
+    area.push(`${line} V${bottom} H${run.x0} Z`)
+    run = null
+  }
+  for (let i = 1; i < xy.length; i++) {
+    const a = xy[i - 1]
+    const b = xy[i]
+    if (a.y == null || b.y == null) { close(); continue }
+    if (!run) run = { x0: a.x, d: [`M${a.x} ${a.y}`] }
+    run.d.push(`L${b.x} ${b.y}`)
+  }
+  close()
+  return { solid, area }
+}
