@@ -31,7 +31,7 @@
 .v2-sheet__body { padding: 8px 20px 32px; }
 .v2-sheet__head { display: flex; align-items: center; gap: 12px; margin: 8px 40px 24px 0; }
 .v2-sheet__head .brand-logo { width: 64px; height: 64px; border-radius: 16px; }
-.v2-sheet__name { margin: 0; font-size: 22px; font-weight: 700; line-height: 1.25; }
+.v2-sheet__name { margin: 0; font-size: 26px; font-weight: 700; line-height: 1.25; }
 .v2-sheet__offers { list-style: none; margin: 0; padding: 0; display: grid; gap: 28px; }
 .v2-sheet__offer { display: grid; gap: 14px; padding-top: 24px; border-top: 1px solid #eef0f3; }
 .v2-sheet__offer:first-child { padding-top: 0; border-top: 0; }
@@ -52,5 +52,5 @@
 .v2-min__amt { color: #e8590c; font-weight: 700; }
 /* 정렬 툴바: 위(상단 바와의 간격)와 아래(첫 카드와의 간격)를 같게. 기존 규칙의 위 6px 안쪽 여백과 아래 -2px 바깥 여백은 쓰지 않는다. */
 .v2 .quick-bar { padding: 0; margin: 4.8px 0; }
-/* 파랑 버튼 위에서 앱 색 글자가 묻히지 않게, 글자 아래에 흰 윤곽을 깐다(글자 색과 버튼 색은 그대로). */
-.v2-go > span { paint-order: stroke fill; -webkit-text-stroke: 5px #fff; }
+/* 앱 로고 그림. 파랑 버튼 위에서 묻히지 않게 흰 윤곽을 깐다(drop-shadow 네 방향). 높이를 맞추고 폭은 비율대로. */
+.v2-go__logo { height: 26px; width: auto; max-width: 128px; vertical-align: middle; margin-right: 2px; filter: drop-shadow(1px 0 0 #fff) drop-shadow(-1px 0 0 #fff) drop-shadow(0 1px 0 #fff) drop-shadow(0 -1px 0 #fff); }

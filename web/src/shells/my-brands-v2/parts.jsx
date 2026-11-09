@@ -1,4 +1,11 @@
 import { splitAmount, splitMin } from './data.js'
+import baemin from './platform-logos/baemin.png'
+import coupangeats from './platform-logos/coupangeats.svg'
+import ddangyo from './platform-logos/ddangyo.png'
+import yogiyo from './platform-logos/yogiyo.svg'
+
+// 앱 로고(투명 배경, 글자 모양). 배민은 검정 원본을 배민 색(#2AC1BC)으로 새로 칠해 넣었다. 파일은 platform-logos/.
+const WORDMARK = { baemin, coupangeats, ddangyo, yogiyo }
 
 // "12,000원 할인": 숫자는 파랑으로 크게, "원 할인"은 검정으로 작게. 이 꼴이 아니면 원문 그대로.
 export function Amount({ label, className = '' }) {
@@ -35,11 +42,13 @@ export function PlatformName({ platform, label }) {
   return <span style={{ color: platformColor(platform) }}>{label}</span>
 }
 
-// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자는 "○○에서 받으러 가기", 앱 이름 글자만 그 앱의 고유색.
+// 이동 버튼. 시트와 카드가 같은 것을 쓴다. "○○에서 받으러 가기"의 ○○는 앱 로고 그림, 로고가 없는 앱은 앱 색 글자.
 export function GoButton({ link, platform, appLabel }) {
+  const logo = WORDMARK[platform]
   return (
     <a className="v2-go" {...link}>
-      <PlatformName platform={platform} label={appLabel} />에서 받으러 가기
+      {logo ? <img className="v2-go__logo" src={logo} alt={appLabel} /> : <PlatformName platform={platform} label={appLabel} />}
+      에서 받으러 가기
     </a>
   )
 }
