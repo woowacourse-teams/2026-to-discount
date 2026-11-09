@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { BrandLogo } from '../../logos.jsx'
+import { BrandLogo, PlatformBadge } from '../../logos.jsx'
 import { openWithNotice } from '../../offerLink.js'
 import { useDragClose } from '../../sheetParts.jsx'
 import { includesFrom } from '../../filters.js'
@@ -54,7 +54,10 @@ export default function DetailSheet({ card, filters, onClose }) {
           <ul className="v2-sheet__offers">
             {offers.map((o, i) => (
               <li key={`${o.platform}${i}`} className="v2-sheet__offer">
-                <div className="v2-sheet__app" style={{ color: platformColor(o.platform) }}>{o.appLabel}</div>
+                <div className="v2-sheet__app" style={{ color: platformColor(o.platform) }}>
+                  <PlatformBadge platformKey={o.platform} via={o.via} brand={card.name} />
+                  <span>{o.appLabel}</span>
+                </div>
                 <p className="v2-sheet__amount"><Amount label={o.amountLabel} /></p>
                 <div className="v2-sheet__chips">
                   {o.chips.map((c, j) => <Chip key={`${c.kind}${j}`} c={c} />)}

@@ -27,10 +27,7 @@
 .v2-card .v2-share .offer-share__button { width: 40px; height: 40px; opacity: 1; background: url('./share.png') center / 22px 22px no-repeat; }
 .v2-card .v2-share .offer-share__button svg { display: none; }
 .v2-card__foot { display: flex; align-items: center; gap: 10px; margin-top: 28px; }
-.v2-go { flex: 1; display: block; text-align: center; padding: 18px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 16px; text-decoration: none; }
-.v2-go--pill { display: flex; align-items: center; gap: 12px; padding: 24px 18px 24px 14px; font-size: 18px; }
-.v2-go__app { flex: none; padding: 8px 14px; border-radius: 999px; background: #fff; font-size: 15px; font-weight: 800; line-height: 1.2; }
-.v2-go__text { flex: 1; text-align: center; }
+.v2-go { flex: 1; display: block; text-align: center; padding: 24px 18px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 18px; text-decoration: none; }
 .v2-sheet__body { padding: 8px 20px 32px; }
 .v2-sheet__head { display: flex; align-items: center; gap: 12px; margin: 8px 40px 24px 0; }
 .v2-sheet__head .brand-logo { width: 64px; height: 64px; border-radius: 16px; }
