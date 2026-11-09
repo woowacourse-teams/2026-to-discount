@@ -55,8 +55,10 @@ function Card({ card, position, where, onDetail }) {
             )}
           </span>
         </span>
-        <span className="v2-card__amount">{card.amountLabel}</span>
-        <span className="v2-chip v2-chip--min">{card.minLabel}</span>
+        <span className="v2-card__price">
+          <span className="v2-card__amount">{card.amountLabel}</span>
+          <span className="v2-chip v2-chip--min">{card.minLabel}</span>
+        </span>
       </button>
       <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
       <div className="v2-card__foot">
