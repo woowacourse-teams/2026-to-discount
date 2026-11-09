@@ -26,11 +26,11 @@ export function Chip({ c }) {
   return <span className={`v2-chip v2-chip--${c.kind}`} data-platform={c.kind === 'membership' ? c.platform : undefined}>{c.text}</span>
 }
 
-// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자는 "○○에서 받으러 가기", 바탕색만 그 앱의 고유색.
+// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자는 "○○에서 받으러 가기", 앱 이름 글자만 그 앱의 고유색.
 export function GoButton({ link, platform, appLabel }) {
   return (
-    <a className="v2-go" style={{ background: platformColor(platform) }} {...link}>
-      {appLabel}에서 받으러 가기
+    <a className="v2-go" {...link}>
+      <span style={{ color: platformColor(platform) }}>{appLabel}</span>에서 받으러 가기
     </a>
   )
 }
