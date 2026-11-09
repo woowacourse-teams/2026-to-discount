@@ -52,5 +52,5 @@
 .v2-min__amt { color: #e8590c; font-weight: 700; }
 /* 정렬 툴바: 위(상단 바와의 간격)와 아래(첫 카드와의 간격)를 같게. 기존 규칙의 위 6px 안쪽 여백과 아래 -2px 바깥 여백은 쓰지 않는다. */
 .v2 .quick-bar { padding: 0; margin: 4.8px 0; }
-/* 앱 로고 그림. 파랑 버튼 위에서 묻히지 않게 흰 윤곽을 깐다(drop-shadow 네 방향). 높이를 맞추고 폭은 비율대로. */
-.v2-go__logo { height: 26px; width: auto; max-width: 128px; vertical-align: middle; margin-right: 2px; filter: drop-shadow(1px 0 0 #fff) drop-shadow(-1px 0 0 #fff) drop-shadow(0 1px 0 #fff) drop-shadow(0 -1px 0 #fff); }
+/* 앱 로고 그림. 높이는 옆 글자(18px)와 같게 맞추고 폭은 비율대로. 윤곽은 두지 않는다. */
+.v2-go__logo { height: 18px; width: auto; vertical-align: middle; margin-right: 2px; }
