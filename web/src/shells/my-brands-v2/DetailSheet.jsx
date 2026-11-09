@@ -66,11 +66,12 @@ export default function DetailSheet({ card, filters, onClose }) {
                 {o.rows.length > 0 && (
                   <ul className="v2-sheet__rows">
                     {o.rows.map((r, j) => (
-                      <li key={j}>
-                        <strong>{r.amount}</strong>
-                        {r.extra && <span> {r.extra}</span>}
-                        <span> · {r.min}</span>
-                        {r.chips.map((c, k) => <span key={k} className={`v2-chip v2-chip--${c.kind}`}>{c.text}</span>)}
+                      <li key={j} className="v2-sheet__row">
+                        <div className="v2-sheet__rowtop">
+                          <strong>{r.amount}</strong>
+                          {r.chips.map((c, k) => <span key={k} className={`v2-chip v2-chip--${c.kind}`}>{c.text}</span>)}
+                        </div>
+                        <div className="v2-sheet__rowsub">{[r.extra, r.min].filter(Boolean).join(' · ')}</div>
                       </li>
                     ))}
                   </ul>

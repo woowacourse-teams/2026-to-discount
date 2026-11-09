@@ -33,8 +33,10 @@
 .v2-sheet__app .platform-badge { width: 36px; height: 36px; border-radius: 10px; }
 .v2-sheet__amount { margin: 0; font-size: calc(24px + 6pt); font-weight: 800; line-height: 1.15; }
 .v2-sheet__chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.v2-sheet__rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 15px; color: #4e5968; }
-.v2-sheet__rows .v2-chip { margin-left: 6px; }
+.v2-sheet__rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.v2-sheet__row { display: grid; gap: 4px; }
+.v2-sheet__rowtop { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 17px; color: #191f28; }
+.v2-sheet__rowsub { font-size: 14px; color: #6b7684; line-height: 1.45; }
 .v2-sheet__note { margin: 0; font-size: 14px; color: #6b7684; line-height: 1.5; }
 .v2-num { color: #3182f6; font-size: calc(36px + 4pt); }
 .v2-sheet__amount .v2-num { font-size: calc(32px + 4pt); }
