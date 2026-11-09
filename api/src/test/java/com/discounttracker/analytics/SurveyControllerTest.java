@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
+        "discount.survey.open=true",
         "discount.event-log-path=build/tmp/survey-events.jsonl",
         "discount.gifticons-path=build/tmp/survey-gifticons.yml",
         "discount.survey.test-visitors=v_tester, v_spare",

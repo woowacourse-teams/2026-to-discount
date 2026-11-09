@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CATEGORIES as ALL_CATEGORIES } from './filters.js'
+import { CATEGORIES as ALL_CATEGORIES, isSpecialCategory } from './filters.js'
 
 // 분류 메뉴 바(상단 바 B안의 2줄). 2026-09 화면 실험 B안에서 되살림(1e9a40f에서 지운 파일).
 // 누르면 바로 반영한다. 고른 분류는 버튼마다 자기 배경을 그린다.
@@ -54,7 +54,7 @@ export default function MenuBar({ selected, onToggle, leading = [], categories =
               <li key={c.key}>
                 <button
                   type="button"
-                  className={`menu-bar__item${on ? ' menu-bar__item--on' : ''}`}
+                  className={`menu-bar__item${on ? ' menu-bar__item--on' : ''}${isSpecialCategory(c.key) ? ' menu-bar__item--special' : ''}`}
                   aria-pressed={on}
                   onClick={() => onToggle(c.key)}
                 >

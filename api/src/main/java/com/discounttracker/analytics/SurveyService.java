@@ -71,10 +71,42 @@ public class SurveyService {
      */
     private final Set<String> blockedVisitors;
 
+    /** 설문을 열었나. 닫혀 있으면 아무도 대상이 아니다(테스트 id만 예외). 기본은 닫힘(2026-11-04). */
+    private final boolean open;
+    private final int minDays;
+    private final int minConversions;
+    private int recentDays;
+    private int minSpanDays;
+
+    /** 최근 방문(일)과 사용 기간(일) 문턱. 0이면 끈다(2026-11-04: 최근 2주 방문, 한 달 이상 사용한 단골). */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setWindow(@Value("${discount.survey.recent-days:0}") int recentDays,
+                   @Value("${discount.survey.min-span-days:0}") int minSpanDays) {
+        this.recentDays = recentDays;
+        this.minSpanDays = minSpanDays;
+        log.info("설문 문턱: 최근 {}일 안 방문, 사용 기간 {}일 이상(0=끔)", recentDays, minSpanDays);
+    }
+
     public SurveyService(SurveyEligibility eligibility, GifticonStore gifticons,
                          AnalyticsEventService events,
                          @Value("${discount.survey.test-visitors:}") String testVisitors,
                          @Value("${discount.survey.blocked-visitors:}") String blockedVisitors) {
+        this(eligibility, gifticons, events, testVisitors, blockedVisitors,
+                true, SurveyEligibility.MIN_DAYS, SurveyEligibility.MIN_CONVERSIONS); // 시험용: 예전처럼 열린 채
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public SurveyService(SurveyEligibility eligibility, GifticonStore gifticons,
+                         AnalyticsEventService events,
+                         @Value("${discount.survey.test-visitors:}") String testVisitors,
+                         @Value("${discount.survey.blocked-visitors:}") String blockedVisitors,
+                         @Value("${discount.survey.open:false}") boolean open,
+                         @Value("${discount.survey.min-days:" + SurveyEligibility.MIN_DAYS + "}") int minDays,
+                         @Value("${discount.survey.min-conversions:" + SurveyEligibility.MIN_CONVERSIONS + "}") int minConversions) {
+        this.open = open;
+        this.minDays = minDays;
+        this.minConversions = minConversions;
+        log.info("설문 {} — 문턱 접속일 {}일, 전환 {}회", open ? "열림" : "닫힘", minDays, minConversions);
         this.eligibility = eligibility;
         this.gifticons = gifticons;
         this.events = events;
@@ -105,7 +137,9 @@ public class SurveyService {
     private boolean qualifies(String visitorId) {
         SurveyEligibility.Counts counts = eligibility.count(visitorId);
         if (testVisitors.contains(visitorId)) return !counts.answered();
-        return SurveyEligibility.qualifies(counts);
+        return open && SurveyEligibility.qualifies(counts, minDays, minConversions)
+                && SurveyEligibility.recentAndLong(counts, recentDays, minSpanDays,
+                        java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")));
     }
 
     /**
@@ -116,6 +150,10 @@ public class SurveyService {
      * 값이 있고, 보상은 재고가 차면 나중에라도 줄 수 있다(answer() 참고,
      * rewarded=false인 응답은 answered로 안 쳐 다시 시도할 수 있다).
      */
+    public boolean isOpen() {
+        return open;
+    }
+
     public boolean eligible(String visitorId) {
         return qualifies(visitorId);
     }

@@ -179,6 +179,7 @@
 - **순서**: API가 먼저, 웹이 나중. 반대로 하면 새 웹이 옛 응답을 읽어 정렬이 풀리고 배너 표식이 사라진다(2026-09-24 실측).
 - **배포 알림**: 문구 `api/deploy/prod/deploy_message.py` ↔ 종료 코드 `stage_deploy.py` ↔ 미러 `deploy.yml`. 앞 둘은 `test_deploy_message.py`가 키 집합으로 대조한다. 미러 `deploy.yml`은 `.github/`라 미러에서 제외돼 시험이 못 닿고 미러에 직접 커밋한다. 순서는 mono 병합 → 미러 반영 확인 → `deploy.yml` 커밋(반대면 알림 단계가 파일이 없어 실패한다).
 - **tracker와 mono는 별도 저장소다.** 둘 다 푸시해야 한다.
+- **쿠팡이츠 공유 링크 두 자리**: `web/src/offerLink.js`의 `COUPANGEATS_LINK` ↔ `web/src/offerChip.snapshot.json`의 `wow` 링크 ↔ 수집 3단계가 읽는 수집 PC의 mono 사본. 매주 월요일 00시에 허브가 바뀐다. 끊기면 수집 3단계가 지난주 허브로 풀려 실패하고 웹 쿠팡이츠 링크가 지난주 허브로 간다(2026-11-02). 두 자리는 `scripts/coupangeats_link.py replace`로 한 번에 바꾸고, 어긋나면 `offerChip.test.js`가 빨개진다(설계 227).
 - **mono는 tracker의 코드를 싣지 않는다**(ADR-002). `mono/tracker/`에는 README만 있다.
 - **웹 변경은 프리뷰 먼저**: 브랜치 → mono `preview/<이름>` push(CI가 미러로 옮긴다. 미러에 직접 push하지 않는다) → Vercel → 승인 → main. 360px로 찍어 본다. 절차는 [`WORKFLOW.md`](WORKFLOW.md) §3-3.
 
