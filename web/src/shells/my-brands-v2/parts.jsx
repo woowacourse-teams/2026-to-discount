@@ -44,7 +44,7 @@ export function Reactions({ name, reaction, onReact }) {
 }
 
 // 앱 고유색(기존 상단 앱 버튼과 같은 값). 모르는 앱은 회색.
-const PLATFORM_COLOR = { baemin: '#00d4c0', coupangeats: '#7a3a0c', ddangyo: '#ff5a00', yogiyo: '#ff0050' } // 앱 이름 글자색(채도를 높인 값). 쿠팡이츠는 아래 PlatformName이 "쿠팡" 빨강, "이츠" 갈색으로 나눈다
+const PLATFORM_COLOR = { baemin: '#00d4c0', coupangeats: '#f0c090', ddangyo: '#ffc299', yogiyo: '#ff9ab8' } // 파랑 버튼 위 글자색: 앱 색의 같은 색상을 밝게 한 값(배민 민트는 원래 밝아 그대로). 쿠팡이츠는 아래 PlatformName이 "쿠팡" 연한 빨강, "이츠" 연한 갈색으로 나눈다
 export const platformColor = (key) => PLATFORM_COLOR[key] ?? '#4e5968'
 
 // 배지. 멤버십은 기존 앱처럼 앱마다 색이 다르다(CSS가 data-platform으로 입힌다).
@@ -53,7 +53,7 @@ export function Chip({ c }) {
 }
 
 // 앱 이름. 앱 고유색 글자. 쿠팡이츠는 앞 "쿠팡"과 뒤 "이츠"의 색이 다르다.
-const COUPANG_RED = '#ff1a2e'
+const COUPANG_RED = '#ff9a9a'
 export function PlatformName({ platform, label }) {
   // 쿠팡이츠: "쿠팡"은 빨강, "이츠"는 갈색
   if (platform === 'coupangeats' && label.endsWith('이츠') && label.length > 2) {
