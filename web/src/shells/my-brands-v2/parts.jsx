@@ -68,8 +68,35 @@ export function PlatformLogo({ platform, label }) {
   return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <PlatformName platform={platform} label={label} />
 }
 
-// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 바탕은 포인트 색(파랑)으로 통일하고, 앱 이름 글자만 그 앱의 고유색. 
+// 이동 버튼 시안 셋(사용자 테스트로 견준다). 브랜치마다 기본값(BTN_VARIANT)을 박고, 주소에 ?btn=tint|bg|logo를 붙이면 덮는다.
+//  tint: 파랑 바탕, 앱 이름만 앱 색을 밝게 한 값(PlatformName)
+//  bg:   앱 고유색 바탕(진한 값), 흰 글자만
+//  logo: 파랑 바탕, 흰 알약 안에 앱 로고(투명 배경 글자 모양) + 흰 글자
+const BTN_VARIANTS = ['tint', 'bg', 'logo']
+const BTN_VARIANT = 'tint'
+const BTN_BG = { baemin: '#17938f', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' }
+function btnVariant() {
+  try {
+    const q = new URLSearchParams(globalThis.location?.search ?? '').get('btn')
+    if (BTN_VARIANTS.includes(q)) return q
+  } catch { /* 주소를 못 읽으면 기본값 */ }
+  return BTN_VARIANT
+}
+
+// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자는 "○○에서 확인하기".
 export function GoButton({ link, platform, appLabel }) {
+  const variant = btnVariant()
+  if (variant === 'bg') {
+    return <a className="v2-go" style={{ background: BTN_BG[platform] ?? '#4e5968' }} {...link}>{appLabel}에서 확인하기</a>
+  }
+  if (variant === 'logo') {
+    const logo = WORDMARK[platform]
+    return (
+      <a className="v2-go v2-go--logo" {...link}>
+        {logo ? <span className="v2-go__pill"><img src={logo} alt={appLabel} /></span> : appLabel}에서 확인하기
+      </a>
+    )
+  }
   return (
     <a className="v2-go" {...link}>
       <PlatformName platform={platform} label={appLabel} />에서 확인하기
