@@ -1179,6 +1179,7 @@ brands:
       baemin: https://s.baemin.com/9Q000LBUygw3u
   백종원의 새마을식당:
     searchAliases: [백종원의새마을식당, 새마을식당]
+    aliases: [새마을식당]
     category: korean
     links:
       baemin: https://s.baemin.com/Uf000LBSGkO0e
