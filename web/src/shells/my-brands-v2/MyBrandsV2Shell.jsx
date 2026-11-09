@@ -1,5 +1,5 @@
 import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { BrandLogo, PlatformBadge } from '../../logos.jsx'
+import { BrandLogo } from '../../logos.jsx'
 import { openWithNotice } from '../../offerLink.js'
 import TopBarB from '../../TopBarB.jsx'
 import PopularDock from '../../PopularDock.jsx'
@@ -11,7 +11,7 @@ import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmo
 import OfferShareButton from '../../OfferShareButton.jsx'
 import DetailSheet from './DetailSheet.jsx'
 import { cardsFor, loadHome } from './data.js'
-import { Amount, MinOrder } from './parts.jsx'
+import { Amount, Chip, GoButton, MinOrder } from './parts.jsx'
 import './my-brands-v2.css'
 
 const FilterSheet = lazy(() => import('../../FilterSheet.jsx'))
@@ -44,29 +44,26 @@ function Card({ card, position, where, onDetail }) {
   // 받으러 가기 버튼과 공유 버튼 밖을 누르면 자세히 보기(바텀시트). 자세히 보기 단추의 click도 위로 올라와 여기서 한 번만 받는다.
   return (
     <li className="v2-card" id={brandCardId(card.name)} onClick={(e) => { if (!e.target.closest('.v2-go, .v2-share')) onDetail(card, position) }}>
-      <button type="button" className="v2-card__body" aria-haspopup="dialog">
+      <div className="v2-card__top">
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
-          <span className="v2-card__headtext">
-            <span className="v2-card__name">{card.displayName}</span>
-            {card.chips.length > 0 && (
-              <span className="v2-card__chips">
-                {card.chips.map((c, i) => <span key={`${c.kind}${i}`} className={`v2-chip v2-chip--${c.kind}`}>{c.text}</span>)}
-              </span>
-            )}
-          </span>
+          <span className="v2-card__name">{card.displayName}</span>
         </span>
+        <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
+      </div>
+      <button type="button" className="v2-card__body" aria-haspopup="dialog">
+        {card.chips.length > 0 && (
+          <span className="v2-card__chips">
+            {card.chips.map((c, i) => <Chip key={`${c.kind}${i}`} c={c} />)}
+          </span>
+        )}
         <span className="v2-card__price">
           <Amount label={card.amountLabel} className="v2-card__amount" />
           <MinOrder label={card.minLabel} />
         </span>
       </button>
-      <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
       <div className="v2-card__foot">
-        <a className="v2-go v2-go--logo" {...link}>
-          <PlatformBadge platformKey={card.platform} via={card.via} brand={card.name} />
-          <span>쿠폰 받으러 가기</span>
-        </a>
+        <GoButton link={link} platform={card.platform} appLabel={card.appLabel} />
       </div>
       <button type="button" className="v2-more" aria-haspopup="dialog">자세히 보기<span aria-hidden="true"> ›</span></button>
     </li>

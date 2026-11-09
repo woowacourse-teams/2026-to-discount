@@ -46,7 +46,7 @@ export function appLabel(offer) {
 export function cardOf(brand, include) {
   const offer = splitOffers(brand.offers, include).best[0]
   if (!offer) return null
-  const chips = headOrder(chipsOf(offer).filter(onCard)).map((c) => ({ kind: c.kind, text: c.text }))
+  const chips = headOrder(chipsOf(offer).filter(onCard)).map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? offer.platform }))
   return {
     name: brand.name,
     displayName: shortBrandName(brand),
@@ -75,7 +75,7 @@ export function detailOf(brand, include) {
       appLabel: appLabel(o),
       amountLabel: amountLabel(o),
       minLabel: minText(o.minOrderAmount),
-      chips: chipsOf(o).filter((c) => c.scope === 'offer').map((c) => ({ kind: c.kind, text: c.text })),
+      chips: chipsOf(o).filter((c) => c.scope === 'offer').map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? o.platform })),
       rows: rows.map((r) => ({ ...r, min: r.min.replace('원↑', '원 이상 주문시') })),
       note,
       href: offerLink(o, brand.links, brand.name) ?? null,
