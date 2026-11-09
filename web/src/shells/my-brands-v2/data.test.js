@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { applyFilters, defaultFilters } from '../../filters.js'
 import {
-  agoLabel, amountLabel, buildCards, cardOf, minText, readStars, splitStars, writeStars, STARS_KEY,
+  amountLabel, buildCards, cardOf, minText, readStars, splitStars, writeStars, STARS_KEY,
 } from './data.js'
 
 const offer = (o) => ({ platform: 'baemin', amount: 10000, minOrderAmount: 15000, ...o })
@@ -61,12 +61,4 @@ test('별 저장: 읽고 쓰고, 저장소가 막혀도 멈추지 않는다', ()
   assert.doesNotThrow(() => writeStars(new Set(['a']), blocked))
   mem.set(STARS_KEY, '{깨짐')
   assert.equal(readStars(storage).size, 0)
-})
-
-test('상대 시각: 모르면 null', () => {
-  const now = Date.parse('2026-11-03T12:00:00Z')
-  assert.equal(agoLabel(null, now), null)
-  assert.equal(agoLabel('이상한 값', now), null)
-  assert.equal(agoLabel('2026-11-03T11:55:00Z', now), '5분 전')
-  assert.equal(agoLabel('2026-11-03T09:00:00Z', now), '3시간 전')
 })

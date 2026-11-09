@@ -151,3 +151,5 @@
 - 구현이 끝나면 사람 또는 sub 세션이 mono `preview/shell-my-brands-v2` 브랜치로 올린다(`docs/WORKFLOW.md` §3-3). 주소는 `https://beggars-git-preview-shell-my-brands-v2-nn98s-projects.vercel.app`.
 - PR 본문 맨 위에 이 주소를 적는다.
 - 대상 브랜치는 `main`이다. 이 PR은 병합하지 않는 시안이라 프리뷰 확인만 하고 초안으로 둔다.
+
+- 2026-11-09 (사용자 지시): 머리말(제목, 갱신 시각), 자체 인기 띠, 자체 분류 탭을 빼고 기존 홈의 상단 바(`TopBarB`: 검색, 인기 순위 독, 분류 메뉴 바, 제보, 알림 슬롯)와 정렬 바(`quick-bar`)와 필터 시트를 붙였다. 조건 상태(`filters`)는 껍데기가 가진다. 카드의 브랜드 로고는 기존 `BrandLogo`(45px), 앱 이름 글자는 앱 로고(`PlatformBadge`)로 바꿨다. `agoLabel`, `popularList`, `lastCaptured`는 삭제하고 `cardsFor(brands, filters)`를 더했다. main 최신(31cddef9) 기준.
