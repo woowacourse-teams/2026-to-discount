@@ -50,6 +50,8 @@ public class EventController {
             // 필터 시트는 옛 B안의 것인데 2026-09-16 A 바에 기능으로 병합했다.
             // 담기(cart_*)는 2026-09-29 웹에서 기능째 지웠다.
             "filter_sheet_open", "quick_filter",
+            // 홈 시안 my-brands-v2(#291)의 카드 자세히 보기 바텀시트 열기(2026-11-09).
+            "card_detail_open",
             // 배너 자동 넘김 멈춤/재생(2026-09-16, 캐러셀 조작 묶음).
             "banner_autoplay_toggle",
             "banner_impression", "banner_dismiss", "brand_search_submitted",
