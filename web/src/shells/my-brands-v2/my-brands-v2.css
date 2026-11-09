@@ -11,11 +11,13 @@
 .v2-card__headtext { display: grid; gap: 6px; min-width: 0; }
 .v2-card__head .brand-logo { width: 64px; height: 64px; border-radius: 16px; }
 .v2-card__name { font-size: 20px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
-.v2-card__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+/* 배지는 한 줄로 수평 배치. 넘치면 옆으로 민다. */
+.v2-card__chips { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.v2-card__chips::-webkit-scrollbar { display: none; }
 .v2-card__price { display: grid; gap: 8px; justify-items: start; }
 .v2-card__amount { font-size: calc(28px + 6pt); font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
-/* 배지 공통 서식: 글자 14px, 위아래 안쪽 여백 2px */
-.v2-chip { font-size: 14px; font-weight: 600; line-height: 1.35; padding: 2px 10px; border-radius: 8px; background: #eef0f3; color: #4e5968; }
+/* 배지 공통 서식: 글자 14px, 위아래 안쪽 여백 3.5px(5px과 2px의 중간) */
+.v2-chip { font-size: 14px; font-weight: 600; line-height: 1.35; padding: 3.5px 10px; flex: none; border-radius: 8px; background: #eef0f3; color: #4e5968; }
 /* 멤버십 배지는 기존 앱과 같이 앱마다 고유색(brand-card.css와 같은 값) */
 .v2-chip--membership { background: #333; color: #fff; }
 .v2-chip--membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
@@ -25,7 +27,8 @@
 .v2-chip--limited, .v2-chip--channel { background: #e8f1ff; color: #1b64da; }
 .v2-chip--min { justify-self: start; background: #fff; border: 0; box-shadow: 0 1px 6px rgba(0, 0, 0, .15); }
 /* 공유 버튼은 자기 칸(머리 줄 오른쪽 끝)을 가진다. 카드 위 간격과 오른쪽 간격이 같다(14px). */
-.v2-card .v2-share { position: static; flex: none; margin-top: -14px; }
+/* 공유 아이콘은 40px 버튼 안에서 9px 안쪽에 있다. 버튼을 그만큼 밖으로 당겨, 눈에 보이는 아이콘의 위와 오른쪽 간격이 브랜드 로고의 왼쪽 간격(14px)과 같다. */
+.v2-card .v2-share { position: static; flex: none; margin: -23px -9px 0 0; }
 .v2-card .v2-share .offer-share__button { width: 40px; height: 40px; opacity: 1; background: url('./share.png') center / 22px 22px no-repeat; }
 .v2-card .v2-share .offer-share__button svg { display: none; }
 .v2-card__foot { display: flex; align-items: center; gap: 10px; margin-top: 28px; }
@@ -48,7 +51,7 @@
 .v2-num { color: #3182f6; font-size: calc(36px + 4pt); }
 .v2-sheet__amount .v2-num { font-size: calc(32px + 4pt); }
 .v2-unit { color: #191f28; }
-.v2-more { display: block; width: 100%; margin-top: 22px; padding: 9px 14px; border: 1px solid #d1d6db; border-radius: 12px; background: #f2f4f6; font: inherit; font-size: 15px; font-weight: 600; color: #4e5968; text-align: center; cursor: pointer; }
+.v2-more { display: block; width: 100%; margin-top: 22px; padding: 9px 14px; border: 0; box-shadow: 0 1px 5px rgba(0, 0, 0, .14); border-radius: 12px; background: #f2f4f6; font: inherit; font-size: 15px; font-weight: 600; color: #4e5968; text-align: center; cursor: pointer; }
 .v2-card__amount.v2-plain { font-size: calc(32px + 4pt); }
 .v2-min__amt { color: #e8590c; font-weight: 700; }
 /* 정렬 툴바: 위(상단 바와의 간격)와 아래(첫 카드와의 간격)를 같게. 기존 규칙의 위 6px 안쪽 여백과 아래 -2px 바깥 여백은 쓰지 않는다. */

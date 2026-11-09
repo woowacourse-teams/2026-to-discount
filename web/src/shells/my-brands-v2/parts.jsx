@@ -48,11 +48,11 @@ export function PlatformLogo({ platform, label }) {
   return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <PlatformName platform={platform} label={label} />
 }
 
-// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자만 "○○에서 받으러 가기", 바탕색이 그 앱의 고유색.
+// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자만 "○○에서 확인하기", 바탕색이 그 앱의 고유색.
 export function GoButton({ link, platform, appLabel }) {
   return (
     <a className="v2-go" style={{ background: platformColor(platform) }} {...link}>
-      {appLabel}에서 받으러 가기
+      {appLabel}에서 확인하기
     </a>
   )
 }
