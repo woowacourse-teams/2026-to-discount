@@ -1,23 +1,23 @@
 /* 포인트 색: 주황(--sale)을 파랑으로. 기존 상단 바와 정렬 바도 이 변수를 쓴다. */
 :root:root { --sale: #3182f6; --sale-weak: #e8f1ff; }
-.v2 { box-sizing: border-box; padding-bottom: 40px; background: #f5f6f8; min-height: 100vh; color: #191f28; overflow-x: hidden; }
+.v2 { --v2-pad: 20px; box-sizing: border-box; padding-bottom: 40px; background: #f5f6f8; min-height: 100vh; color: #191f28; overflow-x: hidden; }
 .v2 *, .v2 *::before, .v2 *::after { box-sizing: border-box; }
-.v2-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; }
-.v2-card { position: relative; background: #fff; border-radius: 22px; padding: 14px 14px 28px; min-width: 0; cursor: pointer; }
+.v2-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 28px; }
+.v2-card { position: relative; background: #fff; border-radius: 22px; padding: var(--v2-pad) var(--v2-pad) 32px; min-width: 0; cursor: pointer; }
 .v2-empty { text-align: center; color: #6b7684; }
-.v2-card__body { display: grid; gap: 14px; width: 100%; padding: 0; border: 0; background: none; font: inherit; text-align: left; color: inherit; cursor: pointer; min-width: 0; }
-.v2-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 18px; }
-.v2-card__head { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-.v2-card__headtext { display: grid; gap: 6px; min-width: 0; }
-.v2-card__head .brand-logo { width: 64px; height: 64px; border-radius: 16px; }
-.v2-card__name { padding-right: 36px; font-size: 20px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.v2-card__body { display: grid; gap: 18px; width: 100%; padding: 0; border: 0; background: none; font: inherit; text-align: left; color: inherit; cursor: pointer; min-width: 0; }
+.v2-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 24px; }
+.v2-card__head { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; }
+.v2-card__headtext { display: grid; gap: 9px; min-width: 0; }
+.v2-card__head .brand-logo { width: 56px; height: 56px; border-radius: 14px; }
+.v2-card__name { padding-right: 40px; font-size: 18px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 /* 배지는 한 줄로 수평 배치. 넘치면 옆으로 민다. */
-.v2-card__chips { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.v2-card__chips { display: flex; flex-wrap: nowrap; gap: 10px; overflow-x: auto; scrollbar-width: none; }
 .v2-card__chips::-webkit-scrollbar { display: none; }
-.v2-card__price { display: grid; gap: 8px; justify-items: start; }
-.v2-card__amount { font-size: calc(28px + 6pt); font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+.v2-card__price { display: grid; gap: 12px; justify-items: start; }
+.v2-card__amount { font-size: 30px; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
 /* 배지 공통 서식: 글자 14px, 위아래 안쪽 여백 3.5px(5px과 2px의 중간) */
-.v2-chip { font-size: 14px; font-weight: 600; line-height: 1.35; padding: 3.5px 10px; flex: none; border-radius: 8px; background: #eef0f3; color: #4e5968; }
+.v2-chip { font-size: 13px; font-weight: 600; line-height: 1.35; padding: 3.5px 10px; flex: none; border-radius: 8px; background: #eef0f3; color: #4e5968; }
 /* 멤버십 배지는 기존 앱과 같이 앱마다 고유색(brand-card.css와 같은 값) */
 .v2-chip--membership { background: #333; color: #fff; }
 .v2-chip--membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
@@ -28,38 +28,38 @@
 .v2-chip--min { justify-self: start; background: #fff; border: 0; box-shadow: 0 1px 6px rgba(0, 0, 0, .15); }
 /* 공유 버튼은 자기 칸(머리 줄 오른쪽 끝)을 가진다. 카드 위 간격과 오른쪽 간격이 같다(14px). */
 /* 공유 버튼은 배경 없이 카드 위 오른쪽 모서리에 절대 위치로 얹는다(다른 내용의 자리를 안 차지한다). 40px 버튼 안의 아이콘이 9px 안쪽이라, 버튼은 5px에 두면 눈에 보이는 아이콘의 위와 오른쪽 간격이 14px(브랜드 로고 왼쪽 간격과 같다). */
-.v2-card .v2-share { position: absolute; top: 5px; right: 5px; margin: 0; background: transparent; }
+.v2-card .v2-share { position: absolute; top: calc(var(--v2-pad) - 9px); right: calc(var(--v2-pad) - 9px); margin: 0; background: transparent; }
 .v2-card .v2-share .offer-share__button { width: 40px; height: 40px; opacity: 1; background: url('./share.png') center / 22px 22px no-repeat; }
 .v2-card .v2-share .offer-share__button svg { display: none; }
-.v2-card__foot { display: flex; align-items: center; gap: 10px; margin-top: 28px; }
-.v2-go { flex: 1; display: block; text-align: center; padding: 20px 18px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 18px; text-decoration: none; }
-.v2-sheet__body { padding: 8px 20px 32px; }
-.v2-sheet__head { display: flex; align-items: center; gap: 12px; margin: 8px 40px 24px 0; }
-.v2-sheet__head .brand-logo { width: 64px; height: 64px; border-radius: 16px; }
-.v2-sheet__name { margin: 0; font-size: 26px; font-weight: 700; line-height: 1.25; }
-.v2-sheet__offers { list-style: none; margin: 0; padding: 0; display: grid; gap: 28px; }
-.v2-sheet__offer { display: grid; gap: 14px; padding-top: 24px; border-top: 1px solid #eef0f3; }
+.v2-card__foot { display: flex; align-items: center; gap: 10px; margin-top: 36px; }
+.v2-go { flex: 1; display: block; text-align: center; padding: 18px 18px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 16px; text-decoration: none; }
+.v2-sheet__body { padding: 12px 24px 40px; }
+.v2-sheet__head { display: flex; align-items: center; gap: 16px; margin: 8px 40px 28px 0; }
+.v2-sheet__head .brand-logo { width: 56px; height: 56px; border-radius: 14px; }
+.v2-sheet__name { margin: 0; font-size: 24px; font-weight: 700; line-height: 1.25; }
+.v2-sheet__offers { list-style: none; margin: 0; padding: 0; display: grid; gap: 36px; }
+.v2-sheet__offer { display: grid; gap: 18px; padding-top: 32px; border-top: 1px solid #eef0f3; }
 .v2-sheet__offer:first-child { padding-top: 0; border-top: 0; }
 .v2-sheet__app { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 800; color: #4e5968; }
-.v2-sheet__amount { margin: 0; font-size: calc(24px + 6pt); font-weight: 800; line-height: 1.15; }
+.v2-sheet__amount { margin: 0; font-size: 26px; font-weight: 800; line-height: 1.15; }
 .v2-sheet__chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.v2-sheet__rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-.v2-sheet__row { display: grid; gap: 4px; }
-.v2-sheet__rowtop { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 17px; color: #191f28; }
+.v2-sheet__rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; }
+.v2-sheet__row { display: grid; gap: 6px; }
+.v2-sheet__rowtop { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 16px; color: #191f28; }
 .v2-sheet__rowsub { font-size: 14px; color: #6b7684; line-height: 1.45; }
 .v2-sheet__note { margin: 0; font-size: 14px; color: #6b7684; line-height: 1.5; }
-.v2-num { color: #3182f6; font-size: calc(36px + 4pt); }
-.v2-sheet__amount .v2-num { font-size: calc(32px + 4pt); }
+.v2-num { color: #3182f6; font-size: 37px; }
+.v2-sheet__amount .v2-num { font-size: 33px; }
 .v2-unit { color: #191f28; }
-.v2-more { display: block; width: 100%; margin-top: 22px; padding: 9px 14px; border: 0; box-shadow: 0 1px 5px rgba(0, 0, 0, .14); border-radius: 12px; background: #f2f4f6; font: inherit; font-size: 15px; font-weight: 600; color: #4e5968; text-align: center; cursor: pointer; }
-.v2-card__amount.v2-plain { font-size: calc(32px + 4pt); }
+.v2-more { display: block; width: 100%; margin-top: 28px; padding: 10px 14px; border: 0; box-shadow: 0 1px 5px rgba(0, 0, 0, .14); border-radius: 12px; background: #f2f4f6; font: inherit; font-size: 14px; font-weight: 600; color: #4e5968; text-align: center; cursor: pointer; }
+.v2-card__amount.v2-plain { font-size: 34px; }
 .v2-min__amt { color: #e8590c; font-weight: 700; }
 /* 정렬 툴바: 위(상단 바와의 간격)와 아래(첫 카드와의 간격)를 같게. 기존 규칙의 위 6px 안쪽 여백과 아래 -2px 바깥 여백은 쓰지 않는다. */
 .v2 .quick-bar { padding: 0; margin: 4.8px 0; }
 /* 시트 앱 줄: 직사각형 앱 로고 */
 .v2-sheet__logo { display: block; width: 132px; height: 30px; object-fit: contain; object-position: left center; }
 /* 가격 그래프: 뾰족한 꺾은선(모서리를 둥글리지 않는다). 색은 포인트 색(--sale, 파랑). */
-.v2-hist { margin: 0 0 20px; }
+.v2-hist { margin: 0 0 28px; }
 .v2-hist .hist__solid { stroke-linejoin: miter; stroke-miterlimit: 10; stroke-linecap: butt; }
 .v2-hist .hist__head { margin-bottom: 0; }
 /* 터치 때 브라우저가 카드 전체에 깔던 눌림 색을 끈다(공유 버튼을 눌러도 카드 전체가 반짝이던 것). */
