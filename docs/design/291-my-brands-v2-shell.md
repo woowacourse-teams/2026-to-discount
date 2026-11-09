@@ -153,3 +153,4 @@
 - 대상 브랜치는 `main`이다. 이 PR은 병합하지 않는 시안이라 프리뷰 확인만 하고 초안으로 둔다.
 
 - 2026-11-09 (사용자 지시): 머리말(제목, 갱신 시각), 자체 인기 띠, 자체 분류 탭을 빼고 기존 홈의 상단 바(`TopBarB`: 검색, 인기 순위 독, 분류 메뉴 바, 제보, 알림 슬롯)와 정렬 바(`quick-bar`)와 필터 시트를 붙였다. 조건 상태(`filters`)는 껍데기가 가진다. 카드의 브랜드 로고는 기존 `BrandLogo`(45px), 앱 이름 글자는 앱 로고(`PlatformBadge`)로 바꿨다. `agoLabel`, `popularList`, `lastCaptured`는 삭제하고 `cardsFor(brands, filters)`를 더했다. main 최신(31cddef9) 기준.
+- 2026-11-09 (사용자 지시, 카드 개편): 별(내 브랜드)을 빼고 기존 공유 버튼(`OfferShareButton`)을 우상단에 두되 아이콘은 지정한 PNG(`share.png`, flaticon 709597)로 바꿨다. 쿠폰 받으러 가기 왼쪽에 앱 로고를 두고, 브랜드 로고(64px), 이름(20px), 할인 금액(34px), 배지(14px)를 키웠다. 최소주문은 "n원 이상 주문시"로 쓰고, 채널 배지는 브랜드 이름 아래로 옮겼다. `splitStars`, `readStars`, `writeStars`는 삭제.

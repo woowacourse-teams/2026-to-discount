@@ -8,7 +8,8 @@ import { useScrollMore } from '../../MenuBar.jsx'
 import { track } from '../../analytics.js'
 import { brandCardId } from '../../cardId.js'
 import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmount, saveMinAmount } from '../../filters.js'
-import { cardsFor, loadHome, readStars, splitStars, writeStars } from './data.js'
+import OfferShareButton from '../../OfferShareButton.jsx'
+import { cardsFor, loadHome } from './data.js'
 import './my-brands-v2.css'
 
 const FilterSheet = lazy(() => import('../../FilterSheet.jsx'))
@@ -35,7 +36,7 @@ function useBarHeight(ref) {
   }, [ref])
 }
 
-function Card({ card, starred, onStar }) {
+function Card({ card, position, where }) {
   const open = (e) => { if (card.href) openWithNotice(e, card.href) }
   const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
   return (
@@ -43,18 +44,23 @@ function Card({ card, starred, onStar }) {
       <a className="v2-card__body" {...link}>
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
-          <span className="v2-card__name">{card.name}</span>
+          <span className="v2-card__headtext">
+            <span className="v2-card__name">{card.name}</span>
+            {card.chips.length > 0 && (
+              <span className="v2-card__chips">
+                {card.chips.map((c, i) => <span key={`${c.kind}${i}`} className={`v2-chip v2-chip--${c.kind}`}>{c.text}</span>)}
+              </span>
+            )}
+          </span>
         </span>
         <span className="v2-card__amount">{card.amountLabel}</span>
-        <span className="v2-card__chips">
-          {card.chips.map((c, i) => <span key={`${c.kind}${i}`} className={`v2-chip v2-chip--${c.kind}`}>{c.text}</span>)}
-          <span className="v2-chip v2-chip--min">{card.minLabel}</span>
-        </span>
-        <span className="v2-card__app"><PlatformBadge platformKey={card.platform} via={card.via} brand={card.name} /></span>
+        <span className="v2-chip v2-chip--min">{card.minLabel}</span>
       </a>
-      <button type="button" className={`v2-star${starred ? ' is-on' : ''}`} aria-pressed={starred}
-        aria-label={`${card.name} 내 브랜드`} onClick={() => onStar(card.name)}>{starred ? '★' : '☆'}</button>
-      <a className="v2-go" {...link}>쿠폰 받으러 가기</a>
+      <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
+      <div className="v2-card__foot">
+        <PlatformBadge platformKey={card.platform} via={card.via} brand={card.name} />
+        <a className="v2-go" {...link}>쿠폰 받으러 가기</a>
+      </div>
     </li>
   )
 }
@@ -63,7 +69,6 @@ export default function MyBrandsV2Shell() {
   const [brands, setBrands] = useState(null)
   const [failed, setFailed] = useState(false)
   const [filters, setFilters] = useState(readSaved)
-  const [stars, setStars] = useState(() => readStars())
   const [sheetOpen, setSheetOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const barRef = useRef(null)
@@ -92,7 +97,7 @@ export default function MyBrandsV2Shell() {
     return () => { alive = false }
   }, [])
 
-  const cards = useMemo(() => (brands ? splitStars(cardsFor(brands, filters), stars) : []), [brands, filters, stars])
+  const cards = useMemo(() => (brands ? cardsFor(brands, filters) : []), [brands, filters])
   // 인기 순위는 분류와 검색을 뺀 목록으로 낸다(App.jsx rankBrands와 같다).
   const rankBrands = useMemo(
     () => (brands ? applyFilters(brands, { ...filters, categories: new Set(), search: '' }) : null),
@@ -116,13 +121,6 @@ export default function MyBrandsV2Shell() {
     saveMinAmount(draft.minAmount)
     setSheetOpen(false)
   }
-  const toggle = (name) => {
-    const next = new Set(stars)
-    if (!next.delete(name)) next.add(name)
-    setStars(next)
-    writeStars(next)
-  }
-
   return (
     <>
       {mounted && (
@@ -194,7 +192,7 @@ export default function MyBrandsV2Shell() {
         {failed && <p className="v2-empty">-</p>}
         {!brands && !failed && <p className="v2-empty">...</p>}
         <ul className="v2-list">
-          {cards.map((card) => <Card key={card.name} card={card} starred={stars.has(card.name)} onStar={toggle} />)}
+          {cards.map((card, i) => <Card key={card.name} card={card} position={i} where="my-brands-v2" />)}
         </ul>
       </main>
     </>

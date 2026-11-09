@@ -8,7 +8,6 @@ import { amountText, chipsOf, headOrder, minLabel, onCard, splitOffers } from '.
 import { offerLink, setHubLinks } from '../../offerLink.js'
 import { OWN, OWN_LABEL, PLATFORM_BY_KEY } from '../../platforms.js'
 
-export const STARS_KEY = 'dk_v2_stars'
 export const MIN_UNKNOWN = '최소주문 미확인' // couponModel.conditionTable이 내는 정식 라벨과 같다
 const NONE = '-' // 값이 없을 때 새 문구를 만들지 않는다
 
@@ -19,11 +18,11 @@ export function amountLabel(offer) {
   return isBundle(offer) || offer.amount == null ? text : `${text} 할인`
 }
 
-/** 최소주문 칸. 숫자는 'N원↑', 0은 '최소주문 없음', 모르면(null) '최소주문 미확인'. 비우지 않는다. */
+/** 최소주문 칸. 숫자는 'N원 이상 주문시', 0은 '최소주문 없음', 모르면(null) '최소주문 미확인'. 비우지 않는다. */
 export function minText(minOrderAmount) {
   const label = minLabel(minOrderAmount)
   if (label == null) return MIN_UNKNOWN
-  return minOrderAmount === 0 ? label : `${label}원↑`
+  return minOrderAmount === 0 ? label : `${label}원 이상 주문시`
 }
 
 export function appLabel(offer) {
@@ -39,6 +38,7 @@ export function cardOf(brand, include) {
   return {
     name: brand.name,
     category: brand.category,
+    offer,
     platform: offer.platform,
     via: offer.via ?? null,
     amount: offer.amount ?? null,
@@ -59,22 +59,6 @@ export function cardsFor(brands, filters) {
 /** 기본 필터(+ 고른 분류)로 거른 카드. */
 export function buildCards(brands, selectedCategories = []) {
   return cardsFor(brands, { ...defaultFilters(), categories: new Set(selectedCategories) })
-}
-
-/** 별 켜진 카드를 위로. 두 묶음 안의 순서는 원래대로. 이 시안에서 새로 하는 유일한 판단. */
-export function splitStars(cards, stars) {
-  return [...cards.filter((c) => stars.has(c.name)), ...cards.filter((c) => !stars.has(c.name))]
-}
-
-export function readStars(storage = globalThis.localStorage) {
-  try {
-    const raw = JSON.parse(storage?.getItem(STARS_KEY) ?? '[]')
-    return new Set(Array.isArray(raw) ? raw.filter((x) => typeof x === 'string') : [])
-  } catch { return new Set() }
-}
-
-export function writeStars(stars, storage = globalThis.localStorage) {
-  try { storage?.setItem(STARS_KEY, JSON.stringify([...stars])) } catch { /* 저장 못 해도 이번 화면은 그대로 */ }
 }
 
 /** 브랜드와 배너를 받고 허브 링크를 채운다(App이 하는 일과 같다). 배너 실패는 허브 링크만 빈다. */

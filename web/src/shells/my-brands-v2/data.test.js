@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { applyFilters, defaultFilters } from '../../filters.js'
 import {
-  amountLabel, buildCards, cardOf, minText, readStars, splitStars, writeStars, STARS_KEY,
+  amountLabel, buildCards, cardOf, minText,
 } from './data.js'
 
 const offer = (o) => ({ platform: 'baemin', amount: 10000, minOrderAmount: 15000, ...o })
@@ -15,14 +15,14 @@ test('금액 문구: 일반 오퍼는 "n원 할인", 묶음 행사는 원문 그
   assert.equal(amountLabel(offer({ amount: null, rawText: undefined })), '-')
 })
 
-test('최소주문: 숫자, 0, null이 각각 N원↑, 최소주문 없음, 최소주문 미확인', () => {
-  assert.equal(minText(15000), '15,000원↑')
+test('최소주문: 숫자, 0, null이 각각 N원 이상 주문시, 최소주문 없음, 최소주문 미확인', () => {
+  assert.equal(minText(15000), '15,000원 이상 주문시')
   assert.equal(minText(0), '최소주문 없음')
   assert.equal(minText(null), '최소주문 미확인')
   assert.equal(minText(undefined), '최소주문 미확인')
 })
 
-test('카드 순서는 applyFilters 결과와 같다(별이 없을 때)', () => {
+test('카드 순서는 applyFilters 결과와 같다', () => {
   const brands = [
     brand('가', [offer({ amount: 6000 })]),
     brand('나', [offer({ amount: 12000 })]),
@@ -42,23 +42,4 @@ test('카드: 앱 이름, 최소주문 모름, 분류 필터', () => {
   assert.equal(card.amountLabel, '10,000원 할인')
   assert.equal(buildCards([b], ['pizza']).length, 0)
   assert.equal(buildCards([b], ['chicken']).length, 1)
-})
-
-test('별: 켜진 브랜드만 위로, 각 묶음 안 순서는 그대로', () => {
-  const cards = ['a', 'b', 'c', 'd', 'e'].map((name) => ({ name }))
-  assert.deepEqual(splitStars(cards, new Set(['d', 'b'])).map((c) => c.name), ['b', 'd', 'a', 'c', 'e'])
-  assert.deepEqual(splitStars(cards, new Set()).map((c) => c.name), ['a', 'b', 'c', 'd', 'e'])
-})
-
-test('별 저장: 읽고 쓰고, 저장소가 막혀도 멈추지 않는다', () => {
-  const mem = new Map()
-  const storage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, v) }
-  writeStars(new Set(['a', 'b']), storage)
-  assert.deepEqual([...readStars(storage)], ['a', 'b'])
-  assert.equal(STARS_KEY, 'dk_v2_stars')
-  const blocked = { getItem() { throw new Error('막힘') }, setItem() { throw new Error('막힘') } }
-  assert.equal(readStars(blocked).size, 0)
-  assert.doesNotThrow(() => writeStars(new Set(['a']), blocked))
-  mem.set(STARS_KEY, '{깨짐')
-  assert.equal(readStars(storage).size, 0)
 })
