@@ -47,16 +47,18 @@ function Card({ card, position, where, onDetail }) {
       <div className="v2-card__top">
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
-          <span className="v2-card__name">{card.displayName}</span>
+          <span className="v2-card__headtext">
+            <span className="v2-card__name">{card.displayName}</span>
+            {card.chips.length > 0 && (
+              <span className="v2-card__chips">
+                {card.chips.map((c, i) => <Chip key={`${c.kind}${i}`} c={c} />)}
+              </span>
+            )}
+          </span>
         </span>
         <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
       </div>
       <button type="button" className="v2-card__body" aria-haspopup="dialog">
-        {card.chips.length > 0 && (
-          <span className="v2-card__chips">
-            {card.chips.map((c, i) => <Chip key={`${c.kind}${i}`} c={c} />)}
-          </span>
-        )}
         <span className="v2-card__price">
           <Amount label={card.amountLabel} className="v2-card__amount" />
           <MinOrder label={card.minLabel} />

@@ -42,13 +42,17 @@ export function PlatformName({ platform, label }) {
   return <span style={{ color: platformColor(platform) }}>{label}</span>
 }
 
-// 이동 버튼. 시트와 카드가 같은 것을 쓴다. "○○에서 받으러 가기"의 ○○는 앱 로고 그림, 로고가 없는 앱은 앱 색 글자.
-export function GoButton({ link, platform, appLabel }) {
+// 앱 로고(직사각형 글자 모양). 시트의 앱 줄에 쓴다. 로고가 없는 앱은 앱 색 글자.
+export function PlatformLogo({ platform, label }) {
   const logo = WORDMARK[platform]
+  return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <PlatformName platform={platform} label={label} />
+}
+
+// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자만 "○○에서 받으러 가기", 바탕색이 그 앱의 고유색.
+export function GoButton({ link, platform, appLabel }) {
   return (
-    <a className="v2-go" {...link}>
-      {logo ? <img className="v2-go__logo" src={logo} alt={appLabel} /> : <PlatformName platform={platform} label={appLabel} />}
-      에서 받으러 가기
+    <a className="v2-go" style={{ background: platformColor(platform) }} {...link}>
+      {appLabel}에서 받으러 가기
     </a>
   )
 }

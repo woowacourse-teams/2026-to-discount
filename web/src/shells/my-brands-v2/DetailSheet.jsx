@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { BrandLogo, PlatformBadge } from '../../logos.jsx'
+import { BrandLogo } from '../../logos.jsx'
 import { openWithNotice } from '../../offerLink.js'
 import { useDragClose } from '../../sheetParts.jsx'
 import { includesFrom } from '../../filters.js'
 import { detailOf } from './data.js'
-import { Amount, Chip, GoButton, MinOrder, PlatformName } from './parts.jsx'
+import { Amount, Chip, GoButton, MinOrder, PlatformLogo } from './parts.jsx'
 
 // 자세히 보기 바텀시트. 모양과 닫는 법(배경, 닫기 버튼, ESC, 끌어내리기)은 필터 시트와 같은 클래스를 쓴다.
 export default function DetailSheet({ card, filters, onClose }) {
@@ -54,10 +54,7 @@ export default function DetailSheet({ card, filters, onClose }) {
           <ul className="v2-sheet__offers">
             {offers.map((o, i) => (
               <li key={`${o.platform}${i}`} className="v2-sheet__offer">
-                <div className="v2-sheet__app">
-                  <PlatformBadge platformKey={o.platform} via={o.via} brand={card.name} />
-                  <span><PlatformName platform={o.platform} label={o.appLabel} /></span>
-                </div>
+                <div className="v2-sheet__app"><PlatformLogo platform={o.platform} label={o.appLabel} /></div>
                 <p className="v2-sheet__amount"><Amount label={o.amountLabel} /></p>
                 <div className="v2-sheet__chips">
                   {o.chips.map((c, j) => <Chip key={`${c.kind}${j}`} c={c} />)}
