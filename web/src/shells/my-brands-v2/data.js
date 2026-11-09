@@ -4,7 +4,7 @@ import { fetchBanners, fetchBrands } from '../../api.js'
 import {
   applyFilters, defaultFilters, includesFrom, isBundle,
 } from '../../filters.js'
-import { amountText, chipsOf, headOrder, minLabel, onCard, splitOffers } from '../../couponModel.js'
+import { amountText, chipsOf, conditionTable, headOrder, minLabel, onCard, splitOffers } from '../../couponModel.js'
 import { offerLink, setHubLinks } from '../../offerLink.js'
 import { OWN, OWN_LABEL, PLATFORM_BY_KEY } from '../../platforms.js'
 
@@ -38,6 +38,7 @@ export function cardOf(brand, include) {
   return {
     name: brand.name,
     category: brand.category,
+    brand,
     offer,
     platform: offer.platform,
     via: offer.via ?? null,
@@ -48,6 +49,25 @@ export function cardOf(brand, include) {
     appLabel: appLabel(offer),
     href: offerLink(offer, brand.links, brand.name) ?? null,
   }
+}
+
+/** 자세히 보기: 대표와 나머지 오퍼 전부. 줄마다 앱, 금액, 최소주문, 배지, 구간표(conditionTable), 링크. */
+export function detailOf(brand, include) {
+  const { best, rest } = splitOffers(brand.offers, include)
+  return [...best, ...rest].map((o) => {
+    const { rows, note } = conditionTable(o)
+    return {
+      platform: o.platform,
+      via: o.via ?? null,
+      appLabel: appLabel(o),
+      amountLabel: amountLabel(o),
+      minLabel: minText(o.minOrderAmount),
+      chips: chipsOf(o).filter((c) => c.scope === 'offer').map((c) => ({ kind: c.kind, text: c.text })),
+      rows: rows.map((r) => ({ ...r, min: r.min.replace('원↑', '원 이상 주문시') })),
+      note,
+      href: offerLink(o, brand.links, brand.name) ?? null,
+    }
+  })
 }
 
 /** 조건(filters)으로 거른 정렬 순서 그대로의 카드. */

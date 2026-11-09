@@ -9,6 +9,7 @@ import { track } from '../../analytics.js'
 import { brandCardId } from '../../cardId.js'
 import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmount, saveMinAmount } from '../../filters.js'
 import OfferShareButton from '../../OfferShareButton.jsx'
+import DetailSheet from './DetailSheet.jsx'
 import { cardsFor, loadHome } from './data.js'
 import './my-brands-v2.css'
 
@@ -36,12 +37,13 @@ function useBarHeight(ref) {
   }, [ref])
 }
 
-function Card({ card, position, where }) {
+function Card({ card, position, where, onDetail }) {
   const open = (e) => { if (card.href) openWithNotice(e, card.href) }
   const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
+  // 받으러 가기 버튼과 공유 버튼 밖을 누르면 자세히 보기(바텀시트). 자세히 보기 단추의 click도 위로 올라와 여기서 한 번만 받는다.
   return (
-    <li className="v2-card" id={brandCardId(card.name)}>
-      <a className="v2-card__body" {...link}>
+    <li className="v2-card" id={brandCardId(card.name)} onClick={(e) => { if (!e.target.closest('.v2-go, .v2-share')) onDetail(card, position) }}>
+      <button type="button" className="v2-card__body" aria-haspopup="dialog">
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
           <span className="v2-card__headtext">
@@ -55,12 +57,13 @@ function Card({ card, position, where }) {
         </span>
         <span className="v2-card__amount">{card.amountLabel}</span>
         <span className="v2-chip v2-chip--min">{card.minLabel}</span>
-      </a>
+      </button>
       <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
       <div className="v2-card__foot">
         <PlatformBadge platformKey={card.platform} via={card.via} brand={card.name} />
         <a className="v2-go" {...link}>쿠폰 받으러 가기</a>
       </div>
+      <button type="button" className="v2-more" aria-haspopup="dialog">자세히 보기<span aria-hidden="true"> ›</span></button>
     </li>
   )
 }
@@ -71,6 +74,7 @@ export default function MyBrandsV2Shell() {
   const [filters, setFilters] = useState(readSaved)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [detail, setDetail] = useState(null)
   const barRef = useRef(null)
   // 알림 켜고 끈 결과 말풍선이 앉는 자리(TopBarB 안). App.jsx와 같은 방식으로 받는다.
   const [pushToggleSlot, setPushToggleSlot] = useState(null)
@@ -116,6 +120,11 @@ export default function MyBrandsV2Shell() {
     const query = raw.trim()
     setFilters((f) => (query === '' ? { ...f, search: query } : { ...f, search: query, categories: new Set() }))
   }
+  const openDetail = (card, position) => {
+    setDetail(card)
+    track('card_detail_open', { brand: card.name, platform: card.platform, position, where: 'my-brands-v2' })
+  }
+  const closeDetail = useCallback(() => setDetail(null), [])
   const applyFromSheet = (draft) => {
     setFilters(draft)
     saveMinAmount(draft.minAmount)
@@ -128,6 +137,8 @@ export default function MyBrandsV2Shell() {
           <FilterSheet open={sheetOpen} filters={filters} brands={brands} onApply={applyFromSheet} onClose={() => setSheetOpen(false)} />
         </Suspense>
       )}
+
+      {detail && <DetailSheet card={detail} filters={filters} onClose={closeDetail} />}
 
       <div className="title-bar-spacer" aria-hidden="true" />
       <TopBarB
@@ -192,7 +203,7 @@ export default function MyBrandsV2Shell() {
         {failed && <p className="v2-empty">-</p>}
         {!brands && !failed && <p className="v2-empty">...</p>}
         <ul className="v2-list">
-          {cards.map((card, i) => <Card key={card.name} card={card} position={i} where="my-brands-v2" />)}
+          {cards.map((card, i) => <Card key={card.name} card={card} position={i} where="my-brands-v2" onDetail={openDetail} />)}
         </ul>
       </main>
     </>
