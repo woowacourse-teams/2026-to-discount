@@ -4,7 +4,7 @@ import { fetchBanners, fetchBrands } from '../../api.js'
 import {
   applyFilters, defaultFilters, includesFrom, isBundle,
 } from '../../filters.js'
-import { amountText, chipsOf, conditionTable, headOrder, minLabel, onCard, shortBrandName, splitOffers } from '../../couponModel.js'
+import { amountText, beforeOpen, chipsOf, conditionTable, headOrder, minLabel, onCard, shortBrandName, splitOffers } from '../../couponModel.js'
 import { offerLink, setHubLinks } from '../../offerLink.js'
 import { OWN, OWN_LABEL, PLATFORM_BY_KEY } from '../../platforms.js'
 
@@ -59,6 +59,8 @@ export function cardOf(brand, include) {
     amountLabel: amountLabel(offer),
     chips,
     minLabel: minText(offer.minOrderAmount),
+    // 품절, 오픈 전은 카드 몸통에 내고 금액 채도를 뺀다(CouponCard.jsx stateLabel과 같은 말)
+    state: offer.soldOut ? '품절' : beforeOpen(offer) ? '오픈 전' : null,
     appLabel: appLabel(offer),
     href: offerLink(offer, brand.links, brand.name) ?? null,
   }

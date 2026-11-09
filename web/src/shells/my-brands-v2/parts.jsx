@@ -24,6 +24,25 @@ export function MinOrder({ label }) {
   )
 }
 
+// 좋아요/싫어요 엄지(CouponCard.jsx ThumbIcon과 같은 그림). 싫어요는 위아래를 뒤집는다.
+function Thumb({ down }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <g transform={down ? 'matrix(1 0 0 -1 0 24)' : undefined}><path d="M7 10v11H3V10h4zm0 0l4-8c1.5 0 2.5 1.2 2.2 2.7L12.5 8H19a2 2 0 0 1 2 2.3l-1.3 8A2 2 0 0 1 17.7 20H7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></g>
+    </svg>
+  )
+}
+
+// 좋아요/싫어요. 기존 홈 카드와 같은 저장과 이벤트(App.jsx onReact)를 쓴다.
+export function Reactions({ name, reaction, onReact }) {
+  return (
+    <div className="v2-react" role="group" aria-label={`${name} 반응`}>
+      <button type="button" aria-label="좋아요" aria-pressed={reaction === 'like'} onClick={() => onReact('like')}><Thumb /></button>
+      <button type="button" aria-label="싫어요" aria-pressed={reaction === 'dislike'} onClick={() => onReact('dislike')}><Thumb down /></button>
+    </div>
+  )
+}
+
 // 앱 고유색(기존 상단 앱 버튼과 같은 값). 모르는 앱은 회색.
 const PLATFORM_COLOR = { baemin: '#17938f', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' } // 버튼 바탕에 흰 글자가 읽히게 배민, 쿠팡이츠("eats" 갈색), 땡겨요를 진하게
 export const platformColor = (key) => PLATFORM_COLOR[key] ?? '#4e5968'

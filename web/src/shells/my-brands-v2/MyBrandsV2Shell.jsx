@@ -8,11 +8,12 @@ import { useScrollMore } from '../../MenuBar.jsx'
 import { track } from '../../analytics.js'
 import { afterHistorySettles, useBackClose } from '../../backClose.js'
 import { brandCardId } from '../../cardId.js'
+import { nextReaction, reactionOf, readReactions, setReaction } from '../../brandReactions.js'
 import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmount, saveMinAmount } from '../../filters.js'
 import OfferShareButton from '../../OfferShareButton.jsx'
 import DetailSheet from './DetailSheet.jsx'
 import { cardsFor, loadHome } from './data.js'
-import { Amount, Chip, GoButton, MinOrder } from './parts.jsx'
+import { Amount, Chip, GoButton, MinOrder, Reactions } from './parts.jsx'
 import './my-brands-v2.css'
 
 const FilterSheet = lazy(() => import('../../FilterSheet.jsx'))
@@ -39,12 +40,13 @@ function useBarHeight(ref) {
   }, [ref])
 }
 
-function Card({ card, position, where, onDetail, linked }) {
+function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
   const open = (e) => { if (card.href) openWithNotice(e, card.href) }
   const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
-  // 받으러 가기 버튼과 공유 버튼 밖을 누르면 자세히 보기(바텀시트). 자세히 보기 단추의 click도 위로 올라와 여기서 한 번만 받는다.
+  // 세 영역: 머리(로고, 이름, 배지), 몸통(할인금액, 최소주문, 품절/오픈 전), 발(앱 이동, 좋아요/싫어요, 자세히 보기).
+  // 이동 버튼, 공유, 좋아요/싫어요 밖을 누르면 자세히 보기(바텀시트). 자세히 보기 단추의 click도 위로 올라와 여기서 한 번만 받는다.
   return (
-    <li className={`v2-card${linked ? ' v2-card--linked' : ''}`} id={brandCardId(card.name)} onClick={(e) => { if (!e.target.closest('.v2-go, .v2-share')) onDetail(card, position) }}>
+    <li className={`v2-card${linked ? ' v2-card--linked' : ''}${card.state ? ' v2-card--dim' : ''}`} id={brandCardId(card.name)} onClick={(e) => { if (!e.target.closest('.v2-go, .v2-share, .v2-react')) onDetail(card, position) }}>
       <div className="v2-card__top">
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
@@ -60,15 +62,19 @@ function Card({ card, position, where, onDetail, linked }) {
         <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
       </div>
       <button type="button" className="v2-card__body" aria-haspopup="dialog">
-        <span className="v2-card__price">
-          <Amount label={card.amountLabel} className="v2-card__amount" />
+        <Amount label={card.amountLabel} className="v2-card__amount" />
+        <span className="v2-card__conds">
           <MinOrder label={card.minLabel} />
+          {card.state && <span className="v2-chip v2-chip--state">{card.state}</span>}
         </span>
       </button>
       <div className="v2-card__foot">
         <GoButton link={link} platform={card.platform} appLabel={card.appLabel} />
+        <div className="v2-card__actions">
+          <Reactions name={card.name} reaction={reaction} onReact={(pressed) => onReact(card.brand, pressed, position)} />
+          <button type="button" className="v2-more" aria-haspopup="dialog">자세히 보기<span aria-hidden="true"> ›</span></button>
+        </div>
       </div>
-      <button type="button" className="v2-more" aria-haspopup="dialog">자세히 보기<span aria-hidden="true"> ›</span></button>
     </li>
   )
 }
@@ -83,6 +89,17 @@ export default function MyBrandsV2Shell() {
   // 순위에서 눌러 이동한 카드(파란 테두리로 보여 준다). 다음 터치나 6초 뒤에 풀린다.
   const [linked, setLinked] = useState(null)
   const barRef = useRef(null)
+  // 좋아요/싫어요(brandReactions.js). 첫 렌더는 빈 값, 마운트 뒤 채운다. App.jsx와 같은 저장과 이벤트.
+  const [reactions, setReactions] = useState({})
+  const reactionsRef = useRef(reactions)
+  reactionsRef.current = reactions
+  useEffect(() => { startTransition(() => setReactions(readReactions())) }, [])
+  const onReact = useCallback((brand, pressed, position) => {
+    const prev = reactionOf(reactionsRef.current, brand)
+    const reaction = nextReaction(prev, pressed)
+    setReactions(setReaction(reactionsRef.current, brand, reaction))
+    track('brand_reaction', { brand: brand.name, reaction, prev, position: String(position) })
+  }, [])
   // 알림 켜고 끈 결과 말풍선이 앉는 자리(TopBarB 안). App.jsx와 같은 방식으로 받는다.
   const [pushToggleSlot, setPushToggleSlot] = useState(null)
   const pushToggleRef = useCallback((el) => { startTransition(() => setPushToggleSlot(el)) }, [])
@@ -224,7 +241,7 @@ export default function MyBrandsV2Shell() {
         {failed && <p className="v2-empty">-</p>}
         {!brands && !failed && <p className="v2-empty">...</p>}
         <ul className="v2-list">
-          {cards.map((card, i) => <Card key={card.name} card={card} position={i} where="my-brands-v2" onDetail={openDetail} linked={linked === card.name} />)}
+          {cards.map((card, i) => <Card key={card.name} card={card} position={i} where="my-brands-v2" onDetail={openDetail} linked={linked === card.name} reaction={reactionOf(reactions, card.brand)} onReact={onReact} />)}
         </ul>
       </main>
     </>
