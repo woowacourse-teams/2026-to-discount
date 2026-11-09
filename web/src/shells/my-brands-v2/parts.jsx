@@ -44,7 +44,7 @@ export function Reactions({ name, reaction, onReact }) {
 }
 
 // 앱 고유색(기존 상단 앱 버튼과 같은 값). 모르는 앱은 회색.
-const PLATFORM_COLOR = { baemin: '#17938f', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' } // 버튼 바탕에 흰 글자가 읽히게 배민, 쿠팡이츠("eats" 갈색), 땡겨요를 진하게
+const PLATFORM_COLOR = { baemin: '#2ac1bc', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' } // 버튼 바탕에 흰 글자가 읽히게 배민, 쿠팡이츠("eats" 갈색), 땡겨요를 진하게
 export const platformColor = (key) => PLATFORM_COLOR[key] ?? '#4e5968'
 
 // 배지. 멤버십은 기존 앱처럼 앱마다 색이 다르다(CSS가 data-platform으로 입힌다).
@@ -67,11 +67,11 @@ export function PlatformLogo({ platform, label }) {
   return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <PlatformName platform={platform} label={label} />
 }
 
-// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자만 "○○에서 확인하기", 바탕색이 그 앱의 고유색.
+// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 바탕은 포인트 색(파랑)으로 통일하고, 앱 이름 글자만 그 앱의 고유색. 앱 이름 글자에 흰 테두리(CSS)를 걸어 파랑 위에서도 읽힌다.
 export function GoButton({ link, platform, appLabel }) {
   return (
-    <a className="v2-go" style={{ background: platformColor(platform) }} {...link}>
-      {appLabel}에서 확인하기
+    <a className="v2-go" {...link}>
+      <span className="v2-go__name"><PlatformName platform={platform} label={appLabel} /></span>에서 확인하기
     </a>
   )
 }
