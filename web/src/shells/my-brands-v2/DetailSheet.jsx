@@ -56,10 +56,13 @@ export default function DetailSheet({ card, filters, onClose }) {
               <li key={`${o.platform}${i}`} className="v2-sheet__offer">
                 <div className="v2-sheet__app"><PlatformLogo platform={o.platform} label={o.appLabel} /></div>
                 <p className="v2-sheet__amount"><Amount label={o.amountLabel} /></p>
-                <div className="v2-sheet__chips">
-                  {o.chips.map((c, j) => <Chip key={`${c.kind}${j}`} c={c} />)}
-                  <MinOrder label={o.minLabel} />
-                </div>
+                {/* 배지와 최소주문은 아래 구간 줄에 다 나온다. 구간이 없는 오퍼만 여기서 보인다. */}
+                {o.rows.length === 0 && (
+                  <div className="v2-sheet__chips">
+                    {o.chips.map((c, j) => <Chip key={`${c.kind}${j}`} c={c} />)}
+                    <MinOrder label={o.minLabel} />
+                  </div>
+                )}
                 {o.rows.length > 0 && (
                   <ul className="v2-sheet__rows">
                     {o.rows.map((r, j) => (

@@ -25,7 +25,7 @@ export function MinOrder({ label }) {
 }
 
 // 앱 고유색(기존 상단 앱 버튼과 같은 값). 모르는 앱은 회색.
-const PLATFORM_COLOR = { baemin: '#2ac1bc', coupangeats: '#d62d34', ddangyo: '#f5a623', yogiyo: '#fa0050' }
+const PLATFORM_COLOR = { baemin: '#2ac1bc', coupangeats: '#935227', ddangyo: '#f5a623', yogiyo: '#fa0050' } // 쿠팡이츠는 로고 "eats"의 갈색
 export const platformColor = (key) => PLATFORM_COLOR[key] ?? '#4e5968'
 
 // 배지. 멤버십은 기존 앱처럼 앱마다 색이 다르다(CSS가 data-platform으로 입힌다).

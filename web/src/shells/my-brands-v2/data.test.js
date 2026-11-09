@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { applyFilters, defaultFilters } from '../../filters.js'
 import {
-  amountLabel, buildCards, cardOf, minText, splitAmount, splitMin,
+  amountLabel, buildCards, cardOf, minText, splitAmount, splitMin, detailOf,
 } from './data.js'
 
 const offer = (o) => ({ platform: 'baemin', amount: 10000, minOrderAmount: 15000, ...o })
@@ -55,4 +55,16 @@ test('최소주문 가르기: "n원 이상"과 "주문시", 그 밖의 문구는
   assert.deepEqual(splitMin(minText(15000)), { amt: '15,000원 이상', rest: ' 주문시' })
   assert.equal(splitMin(minText(0)), null)
   assert.equal(splitMin(minText(null)), null)
+})
+
+test('자세히 보기: 중복 쿠폰의 합산식은 숨기고 결과 금액과 최소주문만 보인다(값은 그대로)', () => {
+  const combo = offer({
+    platform: 'yogiyo', qualifier: '최적', amount: 7000, minOrderAmount: 30000,
+    tiers: [{ amount: 5000, minOrder: 20000 }, { amount: 7000, minOrder: 30000, channel: '배달' }],
+  })
+  const rows = detailOf(brand('가', [combo]), { random: false, menu: false })[0].rows
+  assert.equal(rows.length, 2)
+  assert.ok(rows.every((r) => r.extra === ''), '합산식(5,000+2,000)이 남았다')
+  assert.equal(rows[0].amount, '7,000원')
+  assert.equal(rows[0].min, '30,000원 이상 주문시')
 })

@@ -6,6 +6,7 @@ import PopularDock from '../../PopularDock.jsx'
 import PushNotificationSetting from '../../PushNotificationSetting.jsx'
 import { useScrollMore } from '../../MenuBar.jsx'
 import { track } from '../../analytics.js'
+import { useBackClose } from '../../backClose.js'
 import { brandCardId } from '../../cardId.js'
 import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmount, saveMinAmount } from '../../filters.js'
 import OfferShareButton from '../../OfferShareButton.jsx'
@@ -129,6 +130,9 @@ export default function MyBrandsV2Shell() {
     track('card_detail_open', { brand: card.name, platform: card.platform, position, where: 'my-brands-v2' })
   }
   const closeDetail = useCallback(() => setDetail(null), [])
+  // 폰의 뒤로 버튼은 열려 있는 시트부터 닫는다(자세히 보기 시트와 필터 시트).
+  useBackClose(!!detail, closeDetail)
+  useBackClose(sheetOpen, () => setSheetOpen(false))
   const applyFromSheet = (draft) => {
     setFilters(draft)
     saveMinAmount(draft.minAmount)
