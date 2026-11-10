@@ -2,7 +2,7 @@
 // 정렬, 최고 판정, 금액 비교는 여기서 하지 않는다(filters.js, couponModel.js가 한다).
 import { fetchBanners, fetchBrands } from '../../api.js'
 import {
-  applyFilters, defaultFilters, includesFrom, isBundle,
+  applyFilters, defaultFilters, includesFrom, isBundle, isUpdated,
 } from '../../filters.js'
 import { amountText, beforeOpen, chipsOf, conditionTable, headOrder, minLabel, onCard, shortBrandName, splitOffers } from '../../couponModel.js'
 import { offerLink, setHubLinks } from '../../offerLink.js'
@@ -58,6 +58,8 @@ export function cardOf(brand, include) {
     amount: offer.amount ?? null,
     amountLabel: amountLabel(offer),
     chips,
+    // 신규 오퍼가 하나라도 있는 브랜드(운영 카드 왼쪽 위 NEW! 리본과 같은 조건: CouponCard.jsx brand.offers.some(isUpdated))
+    isNew: brand.offers.some((o) => isUpdated(o)),
     minLabel: minText(offer.minOrderAmount),
     // 품절, 오픈 전은 카드 몸통에 내고 금액 채도를 뺀다(CouponCard.jsx stateLabel과 같은 말)
     state: offer.soldOut ? '품절' : beforeOpen(offer) ? '오픈 전' : null,

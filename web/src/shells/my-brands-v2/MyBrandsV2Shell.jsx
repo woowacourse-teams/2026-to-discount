@@ -54,7 +54,10 @@ function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
           <span className="v2-card__headtext">
-            <span className="v2-card__name">{card.displayName}</span>
+            <span className="v2-card__namerow">
+              <span className="v2-card__name">{card.displayName}</span>
+              {card.isNew && <span className="v2-new" aria-label="신규 할인">NEW!</span>}
+            </span>
             {card.chips.length > 0 && (
               <span className="v2-card__chips">
                 {card.chips.map((c, i) => <Chip key={`${c.kind}${i}`} c={c} />)}

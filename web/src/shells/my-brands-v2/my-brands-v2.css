@@ -10,7 +10,10 @@
 .v2-card__head { display: flex; align-items: center; gap: var(--v2-in); flex: 1; min-width: 0; }
 .v2-card__headtext { display: grid; gap: calc(var(--v2-in) - 1px); min-width: 0; }
 .v2-card__head .brand-logo { width: 4.1875rem; height: 4.1875rem; border-radius: 1rem; }
-.v2-card__name { padding-right: 4.75rem; font-size: 1.125rem; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+/* 이름 줄: 이름과 오른쪽에 신규 배지. 줄 오른쪽 끝은 오른쪽 위 자세히 영역을 피해 비운다. */
+.v2-card__namerow { display: flex; align-items: center; gap: 0.375rem; padding-right: 4.75rem; min-width: 0; }
+.v2-new { flex: none; padding: 0.1875rem 0.4375rem; border-radius: 0.375rem; background: var(--sale); color: #fff; font-size: 0.6875rem; font-weight: 800; line-height: 1.2; letter-spacing: 0.02em; }
+.v2-card__name { min-width: 0; font-size: 1.125rem; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 /* 배지는 잘리지 않게 넘치면 다음 줄로 내린다. */
 .v2-card__chips { display: flex; flex-wrap: wrap; gap: var(--v2-in); }
 .v2-card__conds { display: flex; flex-wrap: wrap; align-items: center; gap: var(--v2-in); }
@@ -49,11 +52,11 @@
 .v2-panel { grid-area: 1 / 1; min-width: 0; min-height: 0; }
 .v2-panel--off { visibility: hidden; pointer-events: none; }
 .sheet .v2-panel--offers { overflow-y: auto; padding: 1.5rem 1.5rem 2.5rem; align-content: start; }
-/* 할인 기록 칸: 팝업 아래 남는 자리를 가로세로 꽉 채운다. 그래프는 이 칸 크기대로 그려진다(PriceChart.jsx). */
-.v2-panel--history { position: relative; min-height: 16.25rem; padding: 0.5rem 0 1.5rem; display: flex; flex-direction: column; }
+/* 할인 기록 칸: 그래프는 칸 너비를 채우고 높이는 최대 14rem까지(PriceChart.jsx가 칸 크기대로 그린다). */
+.v2-panel--history { position: relative; min-height: 16rem; padding: 0.5rem 0 1.5rem; display: flex; flex-direction: column; }
 .v2-hist { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .v2-hist .hist__head { display: none; }
-.v2-hist .hist__wrap { flex: 1; min-height: 0; }
+.v2-hist .hist__wrap { flex: 0 1 14rem; min-height: 0; } /* 칸을 다 채우지 않고 높이 최대 14rem(224px)까지 */
 .v2-hist .hist__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .v2-hist .hist__ytick { font-size: 0.6875rem; text-anchor: start; dominant-baseline: auto; } /* 금액 숫자는 눈금선 위 왼쪽 끝에 얹는다(칸이 꽉 차서 왼쪽 밖 자리가 없다) */
 .v2-hist .hist__xtick { font-size: 0.75rem; }
@@ -96,12 +99,7 @@
    */
 .v2-go__ext { width: 1.125em; height: 1.125em; flex: none; }
 .v2-card .v2-go { flex: 1; min-width: 0; display: flex; padding: 1.0625rem 1rem; font-size: 0.9375rem; }
-/* 뜰 때: 올라오거나 날아오지 않고 제자리에서 팝업처럼 페이드로 나타난다(180ms, 살짝 커지며). 닫을 때는 DetailSheet.jsx가 그 자리에서 140ms 투명하게 한다. */
-.sheet.v2-sheet { animation: v2-sheet-in 180ms ease-out; transform-origin: 50% 100%; }
-.sheet-scrim.v2-scrim { animation: v2-scrim-in 180ms ease-out; }
-@keyframes v2-sheet-in { from { opacity: 0; transform: scale(0.96); } }
-@keyframes v2-scrim-in { from { background-color: rgba(0, 0, 0, 0); } }
-@media (prefers-reduced-motion: reduce) { .sheet.v2-sheet, .sheet-scrim.v2-scrim { animation: none; } }
+/* 뜰 때는 필터 시트와 같은 기본 올라오기(.sheet의 sheet-rise)를 쓴다. 닫을 때만 DetailSheet.jsx가 그 자리에서 140ms 투명하게 한다. */
 /* 자세히 보기는 아래에서 올라오는 바텀시트다(모양은 필터 시트와 같은 .sheet). 높이는 내용만큼(최대 화면의 75%)이고 바닥에 맞추려 키우지 않는다. 두 탭의 칸이 같은 자리에 겹쳐 있어 높이는 더 긴 칸에 맞고 탭을 바꿔도, 가격 그래프가 나중에 받아져도 안 변한다. */
 .sheet.v2-sheet { height: auto; max-height: 75vh; max-height: 75dvh; overflow: hidden; }
 .v2-sheet__top { flex: none; padding: 0.75rem 1.5rem 0; }
