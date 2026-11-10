@@ -33,11 +33,20 @@ function Thumb({ down }) {
   )
 }
 
-// 좋아요/싫어요. 기존 홈 카드와 같은 저장과 이벤트(App.jsx onReact)를 쓴다.
+// 좋아요 하트. 누르면 채운다.
+function Heart() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 20.5s-7.2-4.5-9.4-9C1.1 8.2 2.9 4.8 6.3 4.8c2 0 3.5 1.1 5.7 3.3 2.2-2.2 3.7-3.3 5.7-3.3 3.4 0 5.2 3.4 3.7 6.7-2.2 4.5-9.4 9-9.4 9z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+// 좋아요(하트)/싫어요(엄지). 기존 홈 카드와 같은 저장과 이벤트(App.jsx onReact)를 쓴다.
 export function Reactions({ name, reaction, onReact }) {
   return (
     <div className="v2-react" role="group" aria-label={`${name} 반응`}>
-      <button type="button" aria-label="좋아요" aria-pressed={reaction === 'like'} onClick={() => onReact('like')}><Thumb /></button>
+      <button type="button" aria-label="좋아요" aria-pressed={reaction === 'like'} onClick={() => onReact('like')}><Heart /></button>
       <button type="button" aria-label="싫어요" aria-pressed={reaction === 'dislike'} onClick={() => onReact('dislike')}><Thumb down /></button>
     </div>
   )

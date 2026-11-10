@@ -43,10 +43,11 @@ function useBarHeight(ref) {
 function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
   const open = (e) => { if (card.href) openWithNotice(e, card.href) }
   const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
-  // 세 영역: 머리(로고, 이름, 배지), 몸통(할인금액, 최소주문, 품절/오픈 전), 발(앱 이동, 좋아요/싫어요, 자세히 보기).
-  // 이동 버튼, 공유, 좋아요/싫어요 밖을 누르면 자세히 보기(바텀시트). 자세히 보기 단추의 click도 위로 올라와 여기서 한 번만 받는다.
+  // 세 영역: 머리(로고, 이름, 배지 / 오른쪽 위에 자세히 ›와 공유), 몸통(할인금액, 최소주문, 품절/오픈 전), 발(앱 이동 버튼 / 오른쪽에 좋아요, 싫어요).
+  // 이동 버튼, 공유, 좋아요/싫어요 밖을 누르면 자세히 보기(바텀시트). 자세히 › 의 click도 위로 올라와 여기서 한 번만 받는다.
+  // 카드의 화면 위치(rect)를 같이 넘겨, 시트가 그 자리에서 펼쳐지게 한다.
   return (
-    <li className={`v2-card${linked ? ' v2-card--linked' : ''}${card.state ? ' v2-card--dim' : ''}`} id={brandCardId(card.name)} onClick={(e) => { if (!e.target.closest('.v2-go, .v2-share, .v2-react')) onDetail(card, position) }}>
+    <li className={`v2-card${linked ? ' v2-card--linked' : ''}${card.state ? ' v2-card--dim' : ''}`} id={brandCardId(card.name)} onClick={(e) => { if (!e.target.closest('.v2-go, .v2-share, .v2-react')) onDetail(card, position, e.currentTarget.getBoundingClientRect()) }}>
       <div className="v2-card__top">
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
@@ -59,7 +60,10 @@ function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
             )}
           </span>
         </span>
-        <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
+        <div className="v2-card__corner">
+          <span className="v2-detail" aria-hidden="true">자세히<span> ›</span></span>
+          <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
+        </div>
       </div>
       <button type="button" className="v2-card__body" aria-haspopup="dialog">
         <Amount label={card.amountLabel} className="v2-card__amount" />
@@ -70,10 +74,7 @@ function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
       </button>
       <div className="v2-card__foot">
         <GoButton link={link} platform={card.platform} appLabel={card.appLabel} />
-        <div className="v2-card__actions">
-          <Reactions name={card.name} reaction={reaction} onReact={(pressed) => onReact(card.brand, pressed, position)} />
-          <button type="button" className="v2-more" aria-haspopup="dialog">자세히 보기<span aria-hidden="true"> ›</span></button>
-        </div>
+        <Reactions name={card.name} reaction={reaction} onReact={(pressed) => onReact(card.brand, pressed, position)} />
       </div>
     </li>
   )
@@ -86,6 +87,8 @@ export default function MyBrandsV2Shell() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [detail, setDetail] = useState(null)
+  // 시트를 닫는 중(카드로 오므라드는 동안). 다 오므라들면 시트를 내린다.
+  const [closing, setClosing] = useState(false)
   // 순위에서 눌러 이동한 카드(파란 테두리로 보여 준다). 다음 터치나 6초 뒤에 풀린다.
   const [linked, setLinked] = useState(null)
   const barRef = useRef(null)
@@ -155,11 +158,13 @@ export default function MyBrandsV2Shell() {
     const query = raw.trim()
     setFilters((f) => (query === '' ? { ...f, search: query } : { ...f, search: query, categories: new Set() }))
   }
-  const openDetail = (card, position) => {
-    setDetail(card)
+  const openDetail = (card, position, from) => {
+    setClosing(false)
+    setDetail({ card, from })
     track('card_detail_open', { brand: card.name, platform: card.platform, position, where: 'my-brands-v2' })
   }
-  const closeDetail = useCallback(() => setDetail(null), [])
+  const closeDetail = useCallback(() => setClosing(true), [])
+  const exitDetail = useCallback(() => { setDetail(null); setClosing(false) }, [])
   // 폰의 뒤로 버튼은 열려 있는 시트부터 닫는다(자세히 보기 시트와 필터 시트).
   useBackClose(!!detail, closeDetail)
   useBackClose(sheetOpen, () => setSheetOpen(false))
@@ -176,7 +181,7 @@ export default function MyBrandsV2Shell() {
         </Suspense>
       )}
 
-      {detail && <DetailSheet card={detail} filters={filters} onClose={closeDetail} />}
+      {detail && <DetailSheet card={detail.card} from={detail.from} closing={closing} filters={filters} onClose={closeDetail} onExited={exitDetail} />}
 
       <div className="title-bar-spacer" aria-hidden="true" />
       <TopBarB
