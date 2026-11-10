@@ -1,3 +1,6 @@
+import { track } from '../../analytics.js'
+import { amountText } from '../../couponModel.js'
+import { offerClickProps, offerLink, openWithNotice } from '../../offerLink.js'
 import { splitAmount, splitMin } from './data.js'
 import baemin from './platform-logos/baemin.png'
 import coupangeats from './platform-logos/coupangeats.svg'
@@ -55,6 +58,27 @@ export function Chip({ c }) {
 export function PlatformLogo({ platform, label }) {
   const logo = WORDMARK[platform]
   return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <span style={{ color: appColor(platform) }}>{label}</span>
+}
+
+// 앱 이동 링크 속성. 운영 카드(CouponCard.jsx OfferLinkA)와 같은 규칙이다:
+// - 주소는 offerLink(수집 링크, 브랜드 링크, 앱 검색 링크, 허브, 앱 기본 링크 순 폴백, 쿠팡이츠는 허브 탭 링크).
+// - 웹 주소(http)만 새 탭(noreferrer). 앱 스킴(coupangeats://, baemin:// 등)은 같은 탭이어야 앱이 열린다.
+// - 누르면 offer_link_click을 남기고, openWithNotice가 앱 열림 확인, 쿠팡이츠 안내, 설치 안내와 푸시 안내(offerPrompt)를 맡는다.
+// where: main(카드 대표 버튼) | sheet(자세히 보기 시트), slot은 1부터.
+export function offerLinkProps({ offer, brand, position, best, where, slot, expanded }) {
+  const href = offerLink(offer, brand.links, brand.name)
+  if (!href) return {}
+  const web = href.startsWith('http')
+  return {
+    href,
+    target: web ? '_blank' : undefined,
+    rel: web ? 'noreferrer' : undefined,
+    'aria-label': `${brand.name} ${amountText(offer)}, 앱으로 이동`,
+    onClick: (e) => {
+      track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, pin: brand.pin, best, where, slot, expanded }))
+      openWithNotice(e, href, { offerPrompt: true })
+    },
+  }
 }
 
 // 링크로 나가는 표시(상자에서 오른쪽 위로 나가는 화살표). 글자 색을 따른다.

@@ -71,9 +71,11 @@ export function cardOf(brand, include) {
 /** 자세히 보기: 대표와 나머지 오퍼 전부. 줄마다 앱, 금액, 최소주문, 배지, 구간표(conditionTable), 링크. */
 export function detailOf(brand, include) {
   const { best, rest } = splitOffers(brand.offers, include)
-  return [...best, ...rest].map((o) => {
+  return [...best, ...rest].map((o, i) => {
     const { rows, note } = conditionTable(o)
     return {
+      offer: o, // 링크와 클릭 기록이 운영과 같은 입력을 쓰도록 원본 오퍼를 같이 준다
+      best: i < best.length,
       platform: o.platform,
       via: o.via ?? null,
       appLabel: appLabel(o),

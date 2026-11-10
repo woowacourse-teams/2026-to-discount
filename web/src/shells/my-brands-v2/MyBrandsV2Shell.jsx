@@ -1,6 +1,5 @@
 import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { BrandLogo } from '../../logos.jsx'
-import { openWithNotice } from '../../offerLink.js'
 import TopBarB from '../../TopBarB.jsx'
 import PopularDock from '../../PopularDock.jsx'
 import PushNotificationSetting from '../../PushNotificationSetting.jsx'
@@ -13,7 +12,7 @@ import { applyFilters, defaultFilters, isDefaultFilters, primarySort, readMinAmo
 import OfferShareButton from '../../OfferShareButton.jsx'
 import DetailSheet from './DetailSheet.jsx'
 import { cardsFor, loadHome } from './data.js'
-import { Amount, Chip, GoButton, MinOrder, Reactions } from './parts.jsx'
+import { Amount, Chip, GoButton, MinOrder, Reactions, offerLinkProps } from './parts.jsx'
 import { prefetchHistory } from './PriceChart.jsx'
 import './my-brands-v2.css'
 
@@ -42,8 +41,7 @@ function useBarHeight(ref) {
 }
 
 function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
-  const open = (e) => { if (card.href) openWithNotice(e, card.href) }
-  const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
+  const link = offerLinkProps({ offer: card.offer, brand: card.brand, position, best: true, where: 'main' })
   // 세 영역: 머리(로고, 이름, 배지 / 오른쪽 위에 자세히 ⌄(운영 "자세히 보기" 뒤와 같은 꺾쇠) — 머리와 따로 카드 위에 얹은 독립 칸), 몸통(할인금액, 최소주문, 품절/오픈 전), 발(남은 너비를 채운 앱 이동 버튼 / 오른쪽에 좋아요 하트와 공유).
   // 이동 버튼, 공유, 좋아요/싫어요 밖을 누르면 자세히 보기(바텀시트). 자세히 영역의 click도 위로 올라와 여기서 한 번만 받는다.
   // 누르는 순간 가격 이력도 미리 받기 시작한다.
@@ -54,10 +52,7 @@ function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
           <span className="v2-card__headtext">
-            <span className="v2-card__namerow">
-              <span className="v2-card__name">{card.displayName}</span>
-              {card.isNew && <span className="v2-new" aria-label="신규 할인">NEW!</span>}
-            </span>
+            <span className="v2-card__name">{card.displayName}{card.isNew && <span className="v2-new">신규</span>}</span>
             {card.chips.length > 0 && (
               <span className="v2-card__chips">
                 {card.chips.map((c, i) => <Chip key={`${c.kind}${i}`} c={c} />)}
@@ -164,7 +159,7 @@ export default function MyBrandsV2Shell() {
   }
   const openDetail = (card, position) => {
     setClosing(false)
-    setDetail(card)
+    setDetail({ ...card, position })
     track('card_detail_open', { brand: card.name, platform: card.platform, position, where: 'my-brands-v2' })
   }
   const closeDetail = useCallback(() => setClosing(true), [])
@@ -250,7 +245,7 @@ export default function MyBrandsV2Shell() {
         {failed && <p className="v2-empty">-</p>}
         {!brands && !failed && <p className="v2-empty">...</p>}
         <ul className="v2-list">
-          {cards.map((card, i) => <Card key={card.name} card={card} position={i} where="my-brands-v2" onDetail={openDetail} linked={linked === card.name} reaction={reactionOf(reactions, card.brand)} onReact={onReact} />)}
+          {cards.map((card, i) => <Card key={card.name} card={card} position={i + 1} where="my-brands-v2" onDetail={openDetail} linked={linked === card.name} reaction={reactionOf(reactions, card.brand)} onReact={onReact} />)}
         </ul>
       </main>
     </>

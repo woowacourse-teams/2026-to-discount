@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { BrandLogo } from '../../logos.jsx'
 import { useDragClose } from '../../sheetParts.jsx'
-import { openWithNotice } from '../../offerLink.js'
+import { track } from '../../analytics.js'
 import { includesFrom } from '../../filters.js'
 import { detailOf } from './data.js'
 import PriceChart, { prefetchHistory } from './PriceChart.jsx'
-import { Amount, Chip, GoButton, MinOrder, PlatformLogo } from './parts.jsx'
+import { Amount, Chip, GoButton, MinOrder, PlatformLogo, offerLinkProps } from './parts.jsx'
 
 const FADE = 140  // 닫힘: 그 자리에서 투명해진다. 열림(180ms 페이드와 살짝 커짐)은 my-brands-v2.css의 v2-sheet-in.
 
@@ -76,8 +76,8 @@ export default function DetailSheet({ card, closing, filters, onClose, onExited 
             <h2 className="v2-sheet__name">{card.displayName}</h2>
           </div>
           <div className="v2-tabs" role="tablist" aria-label="자세히 보기">
-            {[['offers', '혜택'], ['history', '할인 기록']].map(([k, label]) => (
-              <button key={k} type="button" role="tab" id={`v2tab-${k}`} aria-selected={tab === k} aria-controls={`v2panel-${k}`} className="v2-tab" onClick={() => setTab(k)}>{label}</button>
+            {[['offers', '할인 상세'], ['history', '할인 기록']].map(([k, label]) => (
+              <button key={k} type="button" role="tab" id={`v2tab-${k}`} aria-selected={tab === k} aria-controls={`v2panel-${k}`} className="v2-tab" onClick={() => { track('sheet_tab', { brand: card.name, tab: k === 'history' ? 'history' : 'detail', bothVisible: false }); setTab(k) }}>{label}</button>
             ))}
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function DetailSheet({ card, closing, filters, onClose, onExited 
                 )}
                 {o.note && <p className="v2-sheet__note">{o.note}</p>}
                 <GoButton
-                  link={o.href ? { href: o.href, target: '_blank', rel: 'noopener', onClick: (e) => openWithNotice(e, o.href) } : {}}
+                  link={offerLinkProps({ offer: o.offer, brand: card.brand, position: card.position, best: o.best, where: 'sheet', slot: i + 1, expanded: true })}
                   platform={o.platform}
                   appLabel={o.appLabel}
                 />
