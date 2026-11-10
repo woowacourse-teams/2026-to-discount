@@ -97,7 +97,7 @@
 .v2-sheet__offer.shared-offer-target { outline: 2px solid #3182f6; outline-offset: 6px; border-radius: 4px; }
 /* 이 브랜드 숨기기: 운영 시트 맨 아래 글자 단추와 같은 문구와 자리(혜택 칸 맨 아래). */
 .v2-sheet__hideitem { display: grid; justify-items: center; padding-top: 1.5rem; border-top: 1px solid #eef0f3; }
-.v2-sheet__hide { all: unset; cursor: pointer; font-size: 0.875rem; color: #8b95a1; padding: 0.5rem 1rem; }
+.v2-sheet__hide { all: unset; cursor: pointer; font-size: 0.875rem; font-weight: 600; color: #f04452; padding: 0.5rem 1rem; } /* 밝은 빨강(2026-11-10 사용자) */
 .v2-sheet__hide:focus-visible { outline: 2px solid #3182f6; }
 /* 순위에서 눌러 이동한 카드: 파란 선과 파란 그림자. */
 .v2-card--linked { box-shadow: 0 0 0 2px #3182f6, 0 6px 20px rgba(49, 130, 246, .35); transition: box-shadow .2s ease; }
