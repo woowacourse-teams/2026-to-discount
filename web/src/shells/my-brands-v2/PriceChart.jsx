@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { fetchHistory } from '../../api.js'
 import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H, TOP } from '../../historyChart.js'
 import { won } from '../../OfferChip.jsx'
@@ -27,6 +27,9 @@ export default function PriceChart({ brand }) {
   const [data, setData] = useState(null)
   const [sel, setSel] = useState(null)
   const svgRef = useRef(null)
+  const wrapRef = useRef(null)
+  // 칸(탭 안 남는 자리) 크기. 이 크기 그대로 그려 칸을 꽉 채운다(글자는 늘어나지 않는다). 재기 전에는 기본 크기.
+  const [size, setSize] = useState({ w: W, h: H })
   const timer = useRef(null)
   const drag = useRef(null) // 누른 채 끄는 중이면 { pointer, seen: 지나간 점 번호 }
   useEffect(() => {
@@ -35,6 +38,16 @@ export default function PriceChart({ brand }) {
     return () => { live = false }
   }, [brand])
   useEffect(() => () => clearTimeout(timer.current), [])
+  const hasChart = data != null
+  useLayoutEffect(() => {
+    const el = wrapRef.current
+    if (!el) return undefined
+    const set = () => { const r = el.getBoundingClientRect(); if (r.width > 0 && r.height > 0) setSize((o) => (o.w === Math.round(r.width) && o.h === Math.round(r.height) ? o : { w: Math.round(r.width), h: Math.round(r.height) })) }
+    set()
+    const ro = new ResizeObserver(set)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [hasChart])
   // 손가락 끌기: 처음 움직임이 위아래면 그대로 시트 스크롤·끌어 닫기에 맡긴다.
   // 좌우로 먼저 끌기 시작한 뒤에만 그 손짓이 끝날 때까지 시트로 올라가지 않게 막는다.
   useEffect(() => {
@@ -59,12 +72,13 @@ export default function PriceChart({ brand }) {
   }, [data])
   const all = data?.best ?? []
   const pts = all
-  const chart = chartModel(pts)
+  const { w: cw, h: ch } = size
+  const chart = chartModel(pts, cw, ch)
   if (!chart) return null
-  const m = { ...chart, ...polyPaths(chart.xy, H - BOTTOM) } // 곡선 대신 직선으로 이은 뾰족한 꺾은선
+  const m = { ...chart, ...polyPaths(chart.xy, ch - BOTTOM) } // 곡선 대신 직선으로 이은 뾰족한 꺾은선
   const sum = summary(pts)
   const xs = m.xy.map((p) => p.x)
-  const pills = callouts(pts, m.xy)
+  const pills = callouts(pts, m.xy, cw)
   let cur = pts.length - 1
   while (pts[cur].amount == null) cur--
   const midI = nearestIndex((xs[0] + xs[xs.length - 1]) / 2, xs)
@@ -74,7 +88,7 @@ export default function PriceChart({ brand }) {
     e.stopPropagation()
     clearTimeout(timer.current)
     const r = svgRef.current.getBoundingClientRect()
-    const i = nearestIndex(((e.clientX - r.left) / r.width) * W, xs)
+    const i = nearestIndex(((e.clientX - r.left) / r.width) * cw, xs)
     if (drag.current) drag.current.seen.add(i)
     setSel(i)
   }
@@ -98,7 +112,7 @@ export default function PriceChart({ brand }) {
   }
   const sp = sel != null ? pts[sel] : null
   // 말풍선 대신 판 없는 값 표시(2026-10-14 사용자). 최고, 현재, 누른 점 모두 같은 모양과 자리 규칙이다.
-  const at = (c) => ({ left: `${(c.cx / W) * 100}%`, top: `${(c.top / H) * 100}%` })
+  const at = (c) => ({ left: `${(c.cx / cw) * 100}%`, top: `${(c.top / ch) * 100}%` })
 
   return (
     <figure className="hist v2-hist" tabIndex={0} onKeyDown={onKey} onBlur={() => setSel(null)}
@@ -106,18 +120,18 @@ export default function PriceChart({ brand }) {
       <div className="hist__head">
         <figcaption className="hist__title">할인 기록</figcaption>
       </div>
-      <div className="hist__wrap">
-        <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="hist__svg" aria-hidden="true"
+      <div className="hist__wrap" ref={wrapRef}>
+        <svg ref={svgRef} viewBox={`0 0 ${cw} ${ch}`} className="hist__svg" aria-hidden="true"
           onPointerDown={(e) => { track('history_point_select', { brand, range, pointer: e.pointerType || 'none' }); drag.current = { pointer: e.pointerType || 'none', seen: new Set() }; pick(e) }} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}
           onPointerLeave={(e) => { if (e.pointerType === 'mouse') setSel(null) }}>
-          <line x1={GUTTER} y1={m.yHi} x2={W} y2={m.yHi} className="hist__grid" />
-          <line x1={GUTTER} y1={m.yLo} x2={W} y2={m.yLo} className="hist__grid" />
-          <text x={GUTTER - 6} y={m.yHi} className="hist__ytick">{num(m.hi)}</text>
-          <text x={GUTTER - 6} y={m.yLo} className="hist__ytick">{num(m.lo)}</text>
+          <line x1={0} y1={m.yHi} x2={cw} y2={m.yHi} className="hist__grid" />
+          <line x1={0} y1={m.yLo} x2={cw} y2={m.yLo} className="hist__grid" />
+          <text x={8} y={m.yHi - 5} className="hist__ytick">{num(m.hi)}</text>
+          <text x={8} y={m.yLo - 5} className="hist__ytick">{num(m.lo)}</text>
           {m.area.map((d, i) => <path key={`a${i}`} d={d} className="hist__area" />)}
           {m.solid.map((d, i) => <path key={`s${i}`} d={d} className="hist__solid" />)}
           {xTicks.map(([i, anchor]) => (
-            <text key={anchor} x={xs[i]} y={H - 4} textAnchor={anchor} className="hist__xtick">{md(pts[i].date)}</text>
+            <text key={anchor} x={xs[i]} y={ch - 4} textAnchor={anchor} className="hist__xtick">{md(pts[i].date)}</text>
           ))}
           {sel == null && pills.map((c) => (
             <line key={`g${c.i}`} x1={xs[c.i]} y1={c.top + PILL_H} x2={xs[c.i]} y2={m.xy[c.i].y} className="hist__guide" />
@@ -125,7 +139,7 @@ export default function PriceChart({ brand }) {
           {(sel == null ? pills.map((c) => c.i) : m.xy[sel].y == null ? [] : [sel]).map((i) => (
             <circle key={i} cx={xs[i]} cy={m.xy[i].y} r="3.5" className="hist__dot" />
           ))}
-          {sel != null && <line x1={xs[sel]} y1={TOP - 6} x2={xs[sel]} y2={m.xy[sel].y ?? H - BOTTOM} className="hist__guide" />}
+          {sel != null && <line x1={xs[sel]} y1={TOP - 6} x2={xs[sel]} y2={m.xy[sel].y ?? ch - BOTTOM} className="hist__guide" />}
         </svg>
         {sel == null && pills.map((c) => (
           <div key={c.i}>
@@ -136,7 +150,7 @@ export default function PriceChart({ brand }) {
           </div>
         ))}
         {sp && (() => {
-                const c = placeCallout(m.xy.map((p) => ({ ...p, y: p.y ?? m.yLo })), sel)
+                const c = placeCallout(m.xy.map((p) => ({ ...p, y: p.y ?? m.yLo })), sel, cw)
           return (
             <>
               <div className="hist__tip" role="status" style={at(c)}>

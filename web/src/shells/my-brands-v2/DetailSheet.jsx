@@ -6,7 +6,8 @@ import { detailOf } from './data.js'
 import PriceChart, { prefetchHistory } from './PriceChart.jsx'
 import { Amount, Chip, GoButton, MinOrder, PlatformLogo } from './parts.jsx'
 
-const DUR = 220
+const DUR = 180   // 펼침
+const FADE = 140  // 닫힘(접지 않고 그 자리에서 투명해진다)
 const EASE = 'cubic-bezier(.2, .8, .2, 1)'
 const px = (r) => ({ left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` })
 const FIX = ['position', 'left', 'top', 'width', 'height', 'margin', 'maxHeight']
@@ -15,7 +16,7 @@ const fixAt = (el, r) => Object.assign(el.style, px(r), { position: 'fixed', mar
 
 // 자세히 보기 팝업(화면 가운데). 닫는 법은 배경 누르기, 닫기 버튼, ESC, 뒤로 버튼.
 // from(눌린 카드의 화면 위치)이 있으면 팝업이 그 카드 자리에서 늘어나 가운데 팝업 크기가 되고 배경이 어두워진다.
-// closing이면 거꾸로 카드 크기로 오므라든 뒤 onExited를 부른다. 움직임을 줄이는 설정이면 모션 없이 바로 뜨고 닫힌다.
+// closing이면 오므라들지 않고 그 자리에서 투명해진 뒤 onExited를 부른다. 움직임을 줄이는 설정이면 모션 없이 바로 뜨고 닫힌다.
 export default function DetailSheet({ card, from, closing, filters, onClose, onExited }) {
   const sheetRef = useRef(null)
   const scrimRef = useRef(null)
@@ -23,7 +24,6 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
   const exitedRef = useRef(onExited)
   exitedRef.current = onExited
   const morph = !!from && typeof matchMedia === 'function' && !matchMedia('(prefers-reduced-motion: reduce)').matches
-  const bodyRef = useRef(null)
   const downOnScrim = useRef(false)
   const offers = detailOf(card.brand, includesFrom(filters))
 
@@ -52,17 +52,14 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
     anims[0].onfinish = () => unfix(sheet)
     return () => { anims.forEach((a) => a.cancel()); unfix(sheet) }
   }, [])
-  // 닫기: 지금 모양에서 카드 자리와 크기로 오므라든다. 끌어내려 이미 화면 밖으로 간 시트는 그대로 내린다.
+  // 닫기: 모양은 그대로 두고 팝업과 배경이 투명해진다. 움직임 줄이기 설정이면 바로 닫는다.
   useEffect(() => {
     const sheet = sheetRef.current
     if (!closing) return undefined
-    if (!morph || !sheet?.animate || sheet.style.transform) { exitedRef.current(); return undefined }
-    const cur = sheet.getBoundingClientRect()
-    fixAt(sheet, cur)
-    const opt = { duration: 180, easing: EASE, fill: 'forwards' }
-    const a = sheet.animate([px(cur), px(from)], opt)
+    if (!morph || !sheet?.animate) { exitedRef.current(); return undefined }
+    const opt = { duration: FADE, easing: 'ease-out', fill: 'forwards' }
+    const a = sheet.animate([{ opacity: 1 }, { opacity: 0 }], opt)
     scrimRef.current.animate([{ backgroundColor: 'rgba(0, 0, 0, .32)' }, { backgroundColor: 'rgba(0, 0, 0, 0)' }], opt)
-    ;[...sheet.children].forEach((c) => c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 100, fill: 'forwards' }))
     a.onfinish = () => exitedRef.current()
     return undefined
   }, [closing])
@@ -100,11 +97,12 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
             ))}
           </div>
         </div>
-        <div ref={bodyRef} className="sheet__body v2-sheet__body">
-          <div role="tabpanel" id="v2panel-history" aria-labelledby="v2tab-history" hidden={tab !== 'history'}>
+        <div className="sheet__body v2-sheet__body">
+          {/* 두 탭의 칸이 같은 자리에 겹쳐 있어(숨긴 쪽은 안 보일 뿐 자리는 차지) 팝업 높이는 더 긴 쪽에 맞고 탭을 바꿔도 안 변한다. */}
+          <div role="tabpanel" id="v2panel-history" aria-labelledby="v2tab-history" className={`v2-panel v2-panel--history${tab === 'history' ? '' : ' v2-panel--off'}`} aria-hidden={tab !== 'history'} inert={tab !== 'history' ? '' : undefined}>
             <PriceChart brand={card.name} />
           </div>
-          <ul className="v2-sheet__offers" role="tabpanel" id="v2panel-offers" aria-labelledby="v2tab-offers" hidden={tab !== 'offers'}>
+          <ul role="tabpanel" id="v2panel-offers" aria-labelledby="v2tab-offers" className={`v2-panel v2-panel--offers v2-sheet__offers${tab === 'offers' ? '' : ' v2-panel--off'}`} aria-hidden={tab !== 'offers'} inert={tab !== 'offers' ? '' : undefined}>
             {offers.map((o, i) => (
               <li key={`${o.platform}${i}`} className="v2-sheet__offer">
                 <div className="v2-sheet__app"><PlatformLogo platform={o.platform} label={o.appLabel} /></div>

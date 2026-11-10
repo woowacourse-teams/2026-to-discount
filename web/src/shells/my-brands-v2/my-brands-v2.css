@@ -8,16 +8,15 @@
 .v2-card__body { display: grid; gap: var(--v2-in); justify-items: start; width: 100%; padding: 0; border: 0; background: none; font: inherit; text-align: left; color: inherit; cursor: pointer; min-width: 0; }
 .v2-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .v2-card__head { display: flex; align-items: center; gap: var(--v2-in); flex: 1; min-width: 0; }
-.v2-card__headtext { display: grid; gap: var(--v2-in); min-width: 0; }
+.v2-card__headtext { display: grid; gap: calc(var(--v2-in) - 1px); min-width: 0; }
 .v2-card__head .brand-logo { width: 67px; height: 67px; border-radius: 16px; }
-.v2-card__name { padding-right: 64px; font-size: 18px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
-/* 배지는 한 줄로 수평 배치. 넘치면 옆으로 민다. */
-.v2-card__chips { display: flex; flex-wrap: nowrap; gap: var(--v2-in); overflow-x: auto; scrollbar-width: none; }
-.v2-card__chips::-webkit-scrollbar { display: none; }
+.v2-card__name { padding-right: 56px; font-size: 18px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+/* 배지는 잘리지 않게 넘치면 다음 줄로 내린다. */
+.v2-card__chips { display: flex; flex-wrap: wrap; gap: var(--v2-in); }
 .v2-card__conds { display: flex; flex-wrap: wrap; align-items: center; gap: var(--v2-in); }
 .v2-card__amount { font-size: 30px; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
 /* 배지 공통 서식: 글자 14px, 위아래 안쪽 여백 3.5px(5px과 2px의 중간) */
-.v2-chip { font-size: 13px; font-weight: 600; line-height: 1.35; padding: 4.5px 11px; flex: none; border-radius: 8px; background: #eef0f3; color: #4e5968; }
+.v2-chip { font-size: 13px; font-weight: 600; line-height: 1.35; padding: 5px 11px; flex: none; border-radius: 8px; background: #eef0f3; color: #4e5968; }
 /* 멤버십 배지는 기존 앱과 같이 앱마다 고유색(brand-card.css와 같은 값) */
 .v2-chip--membership { background: #333; color: #fff; }
 .v2-chip--membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
@@ -31,11 +30,10 @@
 /* 공유 버튼은 자기 칸(머리 줄 오른쪽 끝)을 가진다. 카드 위 간격과 오른쪽 간격이 같다(14px). */
 /* 공유 버튼은 배경 없이 카드 위 오른쪽 모서리에 절대 위치로 얹는다(다른 내용의 자리를 안 차지한다). 40px 버튼 안의 아이콘이 9px 안쪽이라, 버튼은 5px에 두면 눈에 보이는 아이콘의 위와 오른쪽 간격이 14px(브랜드 로고 왼쪽 간격과 같다). */
 .v2-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--v2-btn); }
-/* 오른쪽 위: 자세히 ›(글자). 다른 내용의 자리를 안 차지하게 카드 위 오른쪽 모서리에 얹는다. */
-.v2-card__corner { position: absolute; top: calc(var(--v2-pad) - 9px); right: var(--v2-pad); display: flex; align-items: center; height: 40px; }
 /* 발 오른쪽: 좋아요 하트와 공유. 오른쪽 끝 아이콘이 카드 오른쪽 안쪽 여백과 맞는다(버튼 40px 안의 아이콘이 10px 안쪽). */
+/* 오른쪽 위 "자세히 ›": 머리 칸 밖의 독립 칸. 카드 위 오른쪽 모서리에 얹혀(절대 위치) 뒤의 내용 자리를 안 차지한다. 오른쪽 여백은 카드 안쪽 여백보다 2px 더. */
+.v2-detail { position: absolute; top: calc(var(--v2-pad) - 9px); right: calc(var(--v2-pad) + 2px); height: 40px; display: flex; align-items: center; font-size: 14px; font-weight: 600; color: #6b7684; pointer-events: none; }
 .v2-card__side { display: flex; gap: 2px; margin-right: -10px; flex: none; }
-.v2-detail { font-size: 14px; font-weight: 600; color: #6b7684; }
 /* 좋아요/싫어요: 기존 홈 카드와 같은 엄지. 누르면 채운다. */
 .v2-react { display: flex; }
 .v2-react button { all: unset; box-sizing: border-box; width: 40px; height: 36px; display: grid; place-items: center; border-radius: 999px; color: #8b95a1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -45,7 +43,18 @@
 .v2-react button[aria-pressed="true"] svg path { fill: currentColor; }
 .v2-react svg { width: 20px; height: 20px; }
 .v2-go { display: block; text-align: center; padding: 18px 18px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 16px; text-decoration: none;; }
-.sheet .v2-sheet__body { flex: 1; min-height: 0; padding: 24px 24px 32px; }
+.sheet .v2-sheet__body { flex: 1 1 auto; min-height: 0; padding: 0; overflow: hidden; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.v2-panel { grid-area: 1 / 1; min-width: 0; min-height: 0; }
+.v2-panel--off { visibility: hidden; pointer-events: none; }
+.v2-panel--offers { overflow-y: auto; padding: 24px 24px 32px; align-content: start; }
+/* 할인 기록 칸: 팝업 아래 남는 자리를 가로세로 꽉 채운다. 그래프는 이 칸 크기대로 그려진다(PriceChart.jsx). */
+.v2-panel--history { position: relative; min-height: 260px; padding: 8px 0 12px; display: flex; flex-direction: column; }
+.v2-hist { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.v2-hist .hist__head { display: none; }
+.v2-hist .hist__wrap { flex: 1; min-height: 0; }
+.v2-hist .hist__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.v2-hist .hist__ytick { font-size: 11px; text-anchor: start; dominant-baseline: auto; } /* 금액 숫자는 눈금선 위 왼쪽 끝에 얹는다(칸이 꽉 차서 왼쪽 밖 자리가 없다) */
+.v2-hist .hist__xtick { font-size: 12px; }
 .v2-sheet__head { display: flex; align-items: center; gap: 16px; margin: 0 40px 18px 0; }
 .v2-sheet__head .brand-logo { width: 56px; height: 56px; border-radius: 14px; }
 .v2-sheet__name { margin: 0; font-size: 24px; font-weight: 700; line-height: 1.25; }
@@ -70,9 +79,7 @@
 /* 시트 앱 줄: 직사각형 앱 로고 */
 .v2-sheet__logo { display: block; width: 132px; height: 30px; object-fit: contain; object-position: left center; }
 /* 가격 그래프: 뾰족한 꺾은선(모서리를 둥글리지 않는다). 색은 포인트 색(--sale, 파랑). */
-.v2-hist { margin: 0 0 28px; }
 .v2-hist .hist__solid { stroke-linejoin: miter; stroke-miterlimit: 10; stroke-linecap: butt; }
-.v2-hist .hist__head { margin-bottom: 0; }
 /* 터치 때 브라우저가 카드 전체에 깔던 눌림 색을 끈다(공유 버튼을 눌러도 카드 전체가 반짝이던 것). */
 .v2-card, .v2-card * { -webkit-tap-highlight-color: transparent; }
 /* 순위에서 눌러 이동한 카드: 파란 선과 파란 그림자. */
@@ -88,16 +95,14 @@
 .v2-card .v2-go { flex: 1; min-width: 0; display: block; padding: 17px 16px; font-size: 15px; }
 /* 팝업이 카드 자리에서 늘어나는 동안은 기본 올라오기 모션을 끈다(DetailSheet.jsx). */
 .sheet.v2-sheet--morph { animation: none; }
-/* 자세히 보기는 화면 가운데 팝업이다. 높이는 늘 같아서 탭을 바꿔도, 가격 그래프가 나중에 받아져도 크기가 안 변하고 펼침이 끝나는 자리가 틀어지지 않는다. */
+/* 자세히 보기는 화면 가운데 팝업이다. 높이는 내용만큼(최대 화면의 75%). 두 탭의 칸이 같은 자리에 겹쳐 있어 높이는 더 긴 칸에 맞고 탭을 바꿔도, 가격 그래프가 나중에 받아져도 안 변한다. */
 .sheet-scrim.v2-scrim { align-items: center; }
-.sheet.v2-sheet { width: calc(100% - 32px); max-width: 520px; height: min(640px, 80vh); height: min(640px, 80dvh); max-height: none; border-radius: 22px; overflow: hidden; }
-.v2-sheet [hidden] { display: none; }
+.sheet.v2-sheet { width: calc(100% - 32px); max-width: 520px; height: auto; max-height: 75vh; max-height: 75dvh; border-radius: 22px; overflow: hidden; }
 .v2-sheet__top { flex: none; padding: 24px 24px 0; }
 .v2-tabs { display: flex; gap: 22px; margin: 0 -24px; padding: 0 24px; border-bottom: 1px solid #eef0f3; }
 .v2-tab { all: unset; box-sizing: border-box; cursor: pointer; padding: 10px 2px 12px; margin-bottom: -1px; font-size: 16px; font-weight: 700; color: #8b95a1; border-bottom: 2px solid transparent; -webkit-tap-highlight-color: transparent; }
 .v2-tab[aria-selected="true"] { color: #191f28; border-bottom-color: #191f28; }
 .v2-tab:focus-visible { outline: 2px solid #3182f6; outline-offset: -2px; }
-.v2-hist .hist__title { display: none; }
 /* 오른쪽 스크롤바를 보이지 않게 한다(홈, 시트). 스크롤은 그대로 된다. */
 html:has(.v2), html:has(.v2) body { scrollbar-width: none; -ms-overflow-style: none; }
 html:has(.v2)::-webkit-scrollbar, html:has(.v2) body::-webkit-scrollbar, html:has(.v2) .sheet__body::-webkit-scrollbar { display: none; }

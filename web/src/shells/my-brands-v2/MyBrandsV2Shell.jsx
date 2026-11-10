@@ -44,11 +44,12 @@ function useBarHeight(ref) {
 function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
   const open = (e) => { if (card.href) openWithNotice(e, card.href) }
   const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
-  // 세 영역: 머리(로고, 이름, 배지 / 오른쪽 위에 자세히 ›), 몸통(할인금액, 최소주문, 품절/오픈 전), 발(남은 너비를 채운 앱 이동 버튼 / 오른쪽에 좋아요 하트와 공유).
+  // 세 영역: 머리(로고, 이름, 배지 / 오른쪽 위에 자세히 › — 머리와 따로 카드 위에 얹은 독립 칸), 몸통(할인금액, 최소주문, 품절/오픈 전), 발(남은 너비를 채운 앱 이동 버튼 / 오른쪽에 좋아요 하트와 공유).
   // 이동 버튼, 공유, 좋아요/싫어요 밖을 누르면 자세히 보기(바텀시트). 자세히 › 의 click도 위로 올라와 여기서 한 번만 받는다.
   // 카드의 화면 위치(rect)를 같이 넘겨, 팝업이 그 자리에서 펼쳐지게 한다. 누르는 순간 가격 이력도 미리 받기 시작한다.
   return (
     <li onPointerDown={() => prefetchHistory(card.name)} className={`v2-card${linked ? ' v2-card--linked' : ''}${card.state ? ' v2-card--dim' : ''}`} id={brandCardId(card.name)} onClick={(e) => { if (!e.target.closest('.v2-go, .v2-share, .v2-react')) onDetail(card, position, e.currentTarget.getBoundingClientRect()) }}>
+      <div className="v2-detail" aria-hidden="true">자세히<span> ›</span></div>
       <div className="v2-card__top">
         <span className="v2-card__head">
           <BrandLogo name={card.name} />
@@ -61,9 +62,6 @@ function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
             )}
           </span>
         </span>
-        <div className="v2-card__corner">
-          <span className="v2-detail" aria-hidden="true">자세히<span> ›</span></span>
-        </div>
       </div>
       <button type="button" className="v2-card__body" aria-haspopup="dialog">
         <Amount label={card.amountLabel} className="v2-card__amount" />
