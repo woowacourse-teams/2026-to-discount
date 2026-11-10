@@ -27,11 +27,11 @@ test('카드 순서는 applyFilters 결과와 같다', () => {
     brand('가', [offer({ amount: 6000 })]),
     brand('나', [offer({ amount: 12000 })]),
     brand('다', [offer({ amount: 9000 })]),
-    brand('라', [offer({ amount: 3000 })]), // 5천원 미만은 기본 필터가 뺀다
+    brand('라', [offer({ amount: 3000 })]), // 기본 필터는 5천원 미만을 빼지 않는다(2026-11-10부터)
   ]
   const want = applyFilters(brands, defaultFilters()).map((b) => b.name)
   assert.deepEqual(buildCards(brands).map((c) => c.name), want)
-  assert.deepEqual(want, ['나', '다', '가'])
+  assert.deepEqual(want, ['나', '다', '가', '라'])
 })
 
 test('카드: 앱 이름, 최소주문 모름, 분류 필터', () => {
