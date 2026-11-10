@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { BrandLogo } from '../../logos.jsx'
+import { useDragClose } from '../../sheetParts.jsx'
 import { openWithNotice } from '../../offerLink.js'
 import { includesFrom } from '../../filters.js'
 import { detailOf } from './data.js'
@@ -14,11 +15,12 @@ const FIX = ['position', 'left', 'top', 'width', 'height', 'margin', 'maxHeight'
 const unfix = (el) => FIX.forEach((k) => { el.style[k] = '' })
 const fixAt = (el, r) => Object.assign(el.style, px(r), { position: 'fixed', margin: '0', maxHeight: 'none' })
 
-// 자세히 보기 팝업(화면 가운데). 닫는 법은 배경 누르기, 닫기 버튼, ESC, 뒤로 버튼.
-// from(눌린 카드의 화면 위치)이 있으면 팝업이 그 카드 자리에서 늘어나 가운데 팝업 크기가 되고 배경이 어두워진다.
+// 자세히 보기 바텀시트. 모양과 닫는 법(배경, 닫기 버튼, ESC, 끌어내리기, 뒤로 버튼)은 필터 시트와 같은 클래스를 쓴다. 높이는 내용만큼이다(바닥에 맞추려 키우지 않는다).
+// from(눌린 카드의 화면 위치)이 있으면 시트가 그 카드 자리에서 늘어나 바텀시트 모양이 되고 배경이 어두워진다.
 // closing이면 오므라들지 않고 그 자리에서 투명해진 뒤 onExited를 부른다. 움직임을 줄이는 설정이면 모션 없이 바로 뜨고 닫힌다.
 export default function DetailSheet({ card, from, closing, filters, onClose, onExited }) {
   const sheetRef = useRef(null)
+  const offersRef = useRef(null)
   const scrimRef = useRef(null)
   const [tab, setTab] = useState('offers')
   const exitedRef = useRef(onExited)
@@ -36,7 +38,8 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
     if (bar > 0) s.paddingRight = `${bar}px`
     return () => { s.overflow = prev.overflow; s.paddingRight = prev.paddingRight }
   }, [])
-  // 팝업이 뜨는 순간 가격 이력을 받기 시작한다(카드를 누를 때 이미 받기 시작했으면 그 요청을 쓴다). 기록 탭은 열기 전에 이미 그려져 있다.
+  useDragClose(sheetRef, offersRef, true, onClose)
+  // 시트가 뜨는 순간 가격 이력을 받기 시작한다(카드를 누를 때 이미 받기 시작했으면 그 요청을 쓴다). 기록 탭은 열기 전에 이미 그려져 있다.
   useEffect(() => { prefetchHistory(card.name) }, [card.name])
   // 열기: 최종 자리를 재어 두고, 카드 자리에서 거기까지 모양(위치, 크기, 모서리)을 바꾼다. 안의 내용은 중간부터 나타난다.
   useLayoutEffect(() => {
@@ -45,18 +48,18 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
     const to = sheet.getBoundingClientRect()
     fixAt(sheet, to)
     const anims = [
-      sheet.animate([px(from), px(to)], { duration: DUR, easing: EASE }),
+      sheet.animate([{ ...px(from), borderRadius: '22px' }, { ...px(to), borderRadius: '18px 18px 0 0' }], { duration: DUR, easing: EASE }),
       scrimRef.current.animate([{ backgroundColor: 'rgba(0, 0, 0, 0)' }, { backgroundColor: 'rgba(0, 0, 0, .32)' }], { duration: DUR, easing: 'ease-out' }),
       ...[...sheet.children].map((c) => c.animate([{ opacity: 0 }, { opacity: 0, offset: 0.25 }, { opacity: 1 }], { duration: DUR, easing: 'linear' })),
     ]
     anims[0].onfinish = () => unfix(sheet)
     return () => { anims.forEach((a) => a.cancel()); unfix(sheet) }
   }, [])
-  // 닫기: 모양은 그대로 두고 팝업과 배경이 투명해진다. 움직임 줄이기 설정이면 바로 닫는다.
+  // 닫기: 모양은 그대로 두고 시트와 배경이 투명해진다. 끌어내려 이미 화면 밖으로 간 시트와 움직임 줄이기 설정은 바로 닫는다.
   useEffect(() => {
     const sheet = sheetRef.current
     if (!closing) return undefined
-    if (!morph || !sheet?.animate) { exitedRef.current(); return undefined }
+    if (!morph || !sheet?.animate || sheet.style.transform) { exitedRef.current(); return undefined }
     const opt = { duration: FADE, easing: 'ease-out', fill: 'forwards' }
     const a = sheet.animate([{ opacity: 1 }, { opacity: 0 }], opt)
     scrimRef.current.animate([{ backgroundColor: 'rgba(0, 0, 0, .32)' }, { backgroundColor: 'rgba(0, 0, 0, 0)' }], opt)
@@ -81,6 +84,7 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
       }}
     >
       <section ref={sheetRef} className={`sheet v2-sheet${morph ? ' v2-sheet--morph' : ''}`} role="dialog" aria-modal="true" aria-label={`${card.name} 자세히 보기`}>
+        <div className="sheet__grip" aria-hidden="true" />
         <button type="button" className="sheet__close" aria-label="닫기" onClick={onClose}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
             <path d="M6 6l12 12M18 6L6 18" />
@@ -102,7 +106,7 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
           <div role="tabpanel" id="v2panel-history" aria-labelledby="v2tab-history" className={`v2-panel v2-panel--history${tab === 'history' ? '' : ' v2-panel--off'}`} aria-hidden={tab !== 'history'} inert={tab !== 'history' ? '' : undefined}>
             <PriceChart brand={card.name} />
           </div>
-          <ul role="tabpanel" id="v2panel-offers" aria-labelledby="v2tab-offers" className={`v2-panel v2-panel--offers v2-sheet__offers${tab === 'offers' ? '' : ' v2-panel--off'}`} aria-hidden={tab !== 'offers'} inert={tab !== 'offers' ? '' : undefined}>
+          <ul ref={offersRef} role="tabpanel" id="v2panel-offers" aria-labelledby="v2tab-offers" className={`v2-panel v2-panel--offers v2-sheet__offers${tab === 'offers' ? '' : ' v2-panel--off'}`} aria-hidden={tab !== 'offers'} inert={tab !== 'offers' ? '' : undefined}>
             {offers.map((o, i) => (
               <li key={`${o.platform}${i}`} className="v2-sheet__offer">
                 <div className="v2-sheet__app"><PlatformLogo platform={o.platform} label={o.appLabel} /></div>
