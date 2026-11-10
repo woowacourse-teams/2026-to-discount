@@ -45,7 +45,7 @@ export function Reactions({ name, reaction, onReact }) {
 }
 
 // 앱 고유색(기존 상단 앱 버튼과 같은 값). 모르는 앱은 회색.
-const PLATFORM_COLOR = { baemin: '#00d4c0', coupangeats: '#f0c090', ddangyo: '#ffc299', yogiyo: '#ff9ab8' } // 파랑 버튼 위 글자색: 앱 색의 같은 색상을 밝게 한 값(배민 민트는 원래 밝아 그대로). 쿠팡이츠는 아래 PlatformName이 "쿠팡" 연한 빨강, "이츠" 연한 갈색으로 나눈다
+const PLATFORM_COLOR = { baemin: '#2ac1bc', coupangeats: '#f0c090', ddangyo: '#ffc299', yogiyo: '#ff9ab8' } // 파랑 버튼 위 글자색: 앱 색의 같은 색상을 밝게 한 값(배민은 최초 민트 그대로). 쿠팡이츠는 아래 PlatformName이 "쿠팡" 연한 빨강, "이츠" 연한 갈색으로 나눈다
 export const platformColor = (key) => PLATFORM_COLOR[key] ?? '#4e5968'
 
 // 배지. 멤버십은 기존 앱처럼 앱마다 색이 다르다(CSS가 data-platform으로 입힌다).
@@ -69,16 +69,15 @@ export function PlatformLogo({ platform, label }) {
   return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <PlatformName platform={platform} label={label} />
 }
 
-// 이동 버튼 시안 셋(사용자 테스트로 견준다). 브랜치마다 기본값(BTN_VARIANT)을 박고, 주소에 ?btn=tint|bg|logo를 붙이면 덮는다.
+// 이동 버튼 시안(사용자 테스트로 견준다). 브랜치마다 기본값(BTN_VARIANT)을 박고, 주소에 ?btn=tint|bg|logo|icon|ghost를 붙이면 덮는다.
 //  tint: 파랑 바탕, 앱 이름만 앱 색을 밝게 한 값(PlatformName)
 //  bg:   앱 고유색 바탕(진한 값), 흰 글자만
 //  logo: 파랑 바탕, 흰 알약 안에 앱 로고(투명 배경 글자 모양) + 흰 글자
 //  icon: 파랑 바탕, 왼쪽에 앱 아이콘(기존 PlatformBadge) + 흰 글자
-//  chip: 버튼 위에 앱 로고 칩 한 줄을 따로 두고 버튼은 파랑 바탕에 "확인하기"만(새 문구라 개발자 확인 필요)
 //  ghost: 흰 바탕에 앱 색 외곽선과 앱 색 글자(파랑 면 없음)
-const BTN_VARIANTS = ['tint', 'bg', 'logo', 'icon', 'chip', 'ghost']
+const BTN_VARIANTS = ['tint', 'bg', 'logo', 'icon', 'ghost']
 const BTN_VARIANT = 'tint'
-const BTN_BG = { baemin: '#17938f', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' }
+const BTN_BG = { baemin: '#2ac1bc', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' }
 function btnVariant() {
   try {
     const q = new URLSearchParams(globalThis.location?.search ?? '').get('btn')
@@ -106,15 +105,6 @@ export function GoButton({ link, platform, appLabel }) {
       <a className="v2-go v2-go--icon" {...link}>
         <span className="v2-go__icon"><PlatformBadge platformKey={platform} /></span>{appLabel}에서 확인하기
       </a>
-    )
-  }
-  if (variant === 'chip') {
-    const logo = WORDMARK[platform]
-    return (
-      <div className="v2-gochip">
-        <span className="v2-gochip__app">{logo ? <img src={logo} alt={appLabel} /> : appLabel}</span>
-        <a className="v2-go" aria-label={`${appLabel}에서 확인하기`} {...link}>확인하기</a>
-      </div>
     )
   }
   if (variant === 'ghost') {

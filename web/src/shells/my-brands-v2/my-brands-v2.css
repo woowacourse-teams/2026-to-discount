@@ -49,9 +49,6 @@
 .v2-go--icon { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .v2-go__icon { display: inline-flex; }
 .v2-go__icon .platform-badge { width: 28px; height: 28px; border-radius: 9px; box-shadow: none; }
-.v2-gochip { display: grid; gap: var(--v2-in); }
-.v2-gochip__app { justify-self: start; display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 8px; background: #f2f4f6; }
-.v2-gochip__app img { display: block; width: 72px; height: 18px; object-fit: contain; object-position: left center; }
 .v2-go--ghost { background: #fff; color: var(--gc); box-shadow: inset 0 0 0 2px var(--gc); }
 .v2-sheet__body { padding: 12px 24px 40px; }
 .v2-sheet__head { display: flex; align-items: center; gap: 16px; margin: 8px 40px 28px 0; }
