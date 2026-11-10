@@ -1,5 +1,6 @@
 package com.discounttracker.sharing;
 
+import com.discounttracker.storage.InterProcessFileLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
@@ -49,6 +50,10 @@ public class ShareLinkStore {
         }
     }
     public synchronized String create(Target target) throws IOException {
+        return InterProcessFileLock.withOperationsWrite(() -> createLocked(target));
+    }
+
+    private String createLocked(Target target) throws IOException {
         if (!target.valid()) throw new IllegalArgumentException("Invalid share target");
         if (codes.containsKey(target)) return codes.get(target);
         byte[] bytes = new byte[12];
