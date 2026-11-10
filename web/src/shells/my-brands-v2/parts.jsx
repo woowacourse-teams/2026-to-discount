@@ -42,54 +42,22 @@ export function Reactions({ name, reaction, onReact }) {
   )
 }
 
-// 앱 고유색(기존 상단 앱 버튼과 같은 값). 모르는 앱은 회색.
-const PLATFORM_COLOR = { baemin: '#2ac1bc', coupangeats: '#f0c090', ddangyo: '#fb521c', yogiyo: '#ff9ab8' } // 파랑 버튼 위 글자색: 앱 색의 같은 색상을 밝게 한 값(배민은 최초 민트 그대로). 쿠팡이츠는 아래 PlatformName이 "쿠팡" 연한 빨강, "이츠" 연한 갈색으로 나눈다
-export const platformColor = (key) => PLATFORM_COLOR[key] ?? '#4e5968'
+// 앱 고유색. 이동 버튼 바탕과 시트 앱 줄 글자(로고가 없을 때)에 쓴다. 배민은 앱 민트(#2ac1bc)보다 조금 밝게(2026-11-10 사용자). 모르는 앱은 회색.
+const BTN_BG = { baemin: '#36d3ce', coupangeats: '#4d2610', ddangyo: '#fb521c', yogiyo: '#fa0050' }
+const appColor = (key) => BTN_BG[key] ?? '#4e5968'
 
 // 배지. 멤버십은 기존 앱처럼 앱마다 색이 다르다(CSS가 data-platform으로 입힌다).
 export function Chip({ c }) {
   return <span className={`v2-chip v2-chip--${c.kind}`} data-platform={c.kind === 'membership' ? c.platform : undefined}>{c.text}</span>
 }
 
-// 앱 이름. 앱 고유색 글자. 쿠팡이츠는 앞 "쿠팡"과 뒤 "이츠"의 색이 다르다.
-const COUPANG_RED = '#ff9a9a'
-export function PlatformName({ platform, label }) {
-  // 쿠팡이츠: "쿠팡"은 빨강, "이츠"는 갈색
-  if (platform === 'coupangeats' && label.endsWith('이츠') && label.length > 2) {
-    return <><span style={{ color: COUPANG_RED }}>{label.slice(0, -2)}</span><span style={{ color: platformColor(platform) }}>이츠</span></>
-  }
-  return <span style={{ color: platformColor(platform) }}>{label}</span>
-}
-
 // 앱 로고(직사각형 글자 모양). 시트의 앱 줄에 쓴다. 로고가 없는 앱은 앱 색 글자.
 export function PlatformLogo({ platform, label }) {
   const logo = WORDMARK[platform]
-  return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <PlatformName platform={platform} label={label} />
-}
-
-// 이동 버튼 시안 둘(사용자 테스트로 견준다). 브랜치마다 기본값(BTN_VARIANT)을 박고, 주소에 ?btn=tint|bg를 붙이면 덮는다.
-//  tint: 파랑 바탕, 앱 이름만 앱 색을 밝게 한 값(PlatformName)
-//  bg:   앱 고유색 바탕(진한 값), 흰 글자만
-const BTN_VARIANTS = ['tint', 'bg']
-const BTN_VARIANT = 'tint'
-const BTN_BG = { baemin: '#2ac1bc', coupangeats: '#4d2610', ddangyo: '#fb521c', yogiyo: '#fa0050' }
-function btnVariant() {
-  try {
-    const q = new URLSearchParams(globalThis.location?.search ?? '').get('btn')
-    if (BTN_VARIANTS.includes(q)) return q
-  } catch { /* 주소를 못 읽으면 기본값 */ }
-  return BTN_VARIANT
+  return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <span style={{ color: appColor(platform) }}>{label}</span>
 }
 
 // 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자는 "○○에서 확인하기".
 export function GoButton({ link, platform, appLabel }) {
-  const variant = btnVariant()
-  if (variant === 'bg') {
-    return <a className="v2-go" style={{ background: BTN_BG[platform] ?? '#4e5968' }} {...link}>{appLabel}에서 확인하기</a>
-  }
-  return (
-    <a className="v2-go" {...link}>
-      <PlatformName platform={platform} label={appLabel} />에서 확인하기
-    </a>
-  )
+  return <a className="v2-go" style={{ background: appColor(platform) }} {...link}>{appLabel}에서 확인하기</a>
 }
