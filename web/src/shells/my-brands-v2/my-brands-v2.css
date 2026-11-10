@@ -10,7 +10,7 @@
 .v2-card__head { display: flex; align-items: center; gap: var(--v2-in); flex: 1; min-width: 0; }
 .v2-card__headtext { display: grid; gap: var(--v2-in); min-width: 0; }
 .v2-card__head .brand-logo { width: 67px; height: 67px; border-radius: 16px; }
-.v2-card__name { padding-right: 82px; font-size: 18px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.v2-card__name { padding-right: 64px; font-size: 18px; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
 /* 배지는 한 줄로 수평 배치. 넘치면 옆으로 민다. */
 .v2-card__chips { display: flex; flex-wrap: nowrap; gap: var(--v2-in); overflow-x: auto; scrollbar-width: none; }
 .v2-card__chips::-webkit-scrollbar { display: none; }
@@ -21,7 +21,7 @@
 /* 멤버십 배지는 기존 앱과 같이 앱마다 고유색(brand-card.css와 같은 값) */
 .v2-chip--membership { background: #333; color: #fff; }
 .v2-chip--membership[data-platform="baemin"] { background: #0cefd3; color: #06382f; }
-.v2-chip--membership[data-platform="coupangeats"] { background: #333; color: #fff; }
+.v2-chip--membership[data-platform="coupangeats"] { background: #4d2610; color: #fff; } /* 쿠팡이츠 이동 버튼 색(진갈색)과 같다 */
 .v2-chip--membership[data-platform="ddangyo"] { background: #f5a623; color: #fff; }
 .v2-chip--membership[data-platform="yogiyo"] { background: #d6004a; color: #fff; }
 .v2-chip--limited, .v2-chip--channel { background: #e8f1ff; color: #1b64da; }
@@ -30,15 +30,14 @@
 .v2-chip--min { justify-self: start; background: #fff; border: 0; box-shadow: 0 1px 6px rgba(0, 0, 0, .15); }
 /* 공유 버튼은 자기 칸(머리 줄 오른쪽 끝)을 가진다. 카드 위 간격과 오른쪽 간격이 같다(14px). */
 /* 공유 버튼은 배경 없이 카드 위 오른쪽 모서리에 절대 위치로 얹는다(다른 내용의 자리를 안 차지한다). 40px 버튼 안의 아이콘이 9px 안쪽이라, 버튼은 5px에 두면 눈에 보이는 아이콘의 위와 오른쪽 간격이 14px(브랜드 로고 왼쪽 간격과 같다). */
-.v2-card .v2-share { position: static; margin: 0; background: transparent; }
-.v2-card .v2-share .offer-share__button { width: 40px; height: 40px; opacity: 1; background: url('./share.png') center / 22px 22px no-repeat; }
-.v2-card .v2-share .offer-share__button svg { display: none; }
 .v2-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--v2-btn); }
-/* 오른쪽 위: 자세히 ›(글자)와 공유 아이콘. 다른 내용의 자리를 안 차지하게 카드 위 오른쪽 모서리에 얹는다. */
-.v2-card__corner { position: absolute; top: calc(var(--v2-pad) - 9px); right: calc(var(--v2-pad) - 9px); display: flex; align-items: center; height: 40px; }
+/* 오른쪽 위: 자세히 ›(글자). 다른 내용의 자리를 안 차지하게 카드 위 오른쪽 모서리에 얹는다. */
+.v2-card__corner { position: absolute; top: calc(var(--v2-pad) - 9px); right: var(--v2-pad); display: flex; align-items: center; height: 40px; }
+/* 발 오른쪽: 좋아요 하트와 공유. 오른쪽 끝 아이콘이 카드 오른쪽 안쪽 여백과 맞는다(버튼 40px 안의 아이콘이 10px 안쪽). */
+.v2-card__side { display: flex; gap: 2px; margin-right: -10px; flex: none; }
 .v2-detail { font-size: 14px; font-weight: 600; color: #6b7684; }
 /* 좋아요/싫어요: 기존 홈 카드와 같은 엄지. 누르면 채운다. */
-.v2-react { display: flex; gap: 2px; margin-right: -10px; } /* 오른쪽 끝 아이콘이 카드 오른쪽 안쪽 여백과 맞는다(버튼 40px 안의 아이콘이 10px 안쪽) */
+.v2-react { display: flex; }
 .v2-react button { all: unset; box-sizing: border-box; width: 40px; height: 36px; display: grid; place-items: center; border-radius: 999px; color: #8b95a1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .v2-react button:focus-visible { outline: 2px solid #3182f6; outline-offset: -2px; }
 .v2-react button[aria-pressed="true"] { color: #191f28; }
@@ -78,8 +77,15 @@
 .v2-card, .v2-card * { -webkit-tap-highlight-color: transparent; }
 /* 순위에서 눌러 이동한 카드: 파란 선과 파란 그림자. */
 .v2-card--linked { box-shadow: 0 0 0 2px #3182f6, 0 6px 20px rgba(49, 130, 246, .35); transition: box-shadow .2s ease; }
-/* 카드의 이동 버튼은 내용 너비만큼(컴팩트). 시트 안의 버튼은 위 .v2-go대로 너비를 채운다. */
-.v2-card .v2-go { flex: none; display: inline-block; padding: 12px 20px; font-size: 15px; }
+/* 공유 버튼: 싫어요 자리에 있던 좋아요 옆 버튼과 같은 크기(40x36)와 색(#8b95a1). 아이콘은 기존 share.png를 마스크로 써 색만 맞춘다. 안내 글자와 주소 칸은 버튼 위로 띄운다. */
+.v2-card .v2-share { margin: 0; }
+.v2-card .v2-share .offer-share__button { width: 40px; height: 36px; padding: 0; opacity: 1; background: #8b95a1; -webkit-mask: url('./share.png') center / 20px 20px no-repeat; mask: url('./share.png') center / 20px 20px no-repeat; border-radius: 0; }
+.v2-card .v2-share .offer-share__button:disabled { opacity: .5; }
+.v2-card .v2-share .offer-share__button svg { display: none; }
+.v2-card .v2-share .offer-share__status, .v2-card .v2-share .offer-share__url { position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 1; width: max-content; max-width: 180px; background: #fff; color: #222; padding: 6px 8px; border: 1px solid #e5e8eb; border-radius: 6px; }
+/* 카드의 이동 버튼은 이동 버튼 줄에서 남은 너비를 다 채운다(높이는 컴팩트). 시트 안 이동 버튼은 위 .v2-go대로 너비를 채운다.
+   */
+.v2-card .v2-go { flex: 1; min-width: 0; display: block; padding: 12px 16px; font-size: 15px; }
 /* 시트가 카드 자리에서 늘어나는 동안은 기본 올라오기 모션을 끈다(DetailSheet.jsx). */
 .sheet.v2-sheet--morph { animation: none; overflow: hidden; }
 /* 시트 높이는 늘 같다. 안의 가격 그래프가 나중에 받아져도 높이가 안 변해, 펼침이 끝나는 자리가 틀어지지 않는다. */

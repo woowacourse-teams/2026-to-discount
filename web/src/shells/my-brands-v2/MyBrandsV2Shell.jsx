@@ -43,7 +43,7 @@ function useBarHeight(ref) {
 function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
   const open = (e) => { if (card.href) openWithNotice(e, card.href) }
   const link = card.href ? { href: card.href, target: '_blank', rel: 'noopener', onClick: open } : {}
-  // 세 영역: 머리(로고, 이름, 배지 / 오른쪽 위에 자세히 ›와 공유), 몸통(할인금액, 최소주문, 품절/오픈 전), 발(앱 이동 버튼 / 오른쪽에 좋아요, 싫어요).
+  // 세 영역: 머리(로고, 이름, 배지 / 오른쪽 위에 자세히 ›), 몸통(할인금액, 최소주문, 품절/오픈 전), 발(남은 너비를 채운 앱 이동 버튼 / 오른쪽에 좋아요 하트와 공유).
   // 이동 버튼, 공유, 좋아요/싫어요 밖을 누르면 자세히 보기(바텀시트). 자세히 › 의 click도 위로 올라와 여기서 한 번만 받는다.
   // 카드의 화면 위치(rect)를 같이 넘겨, 시트가 그 자리에서 펼쳐지게 한다.
   return (
@@ -62,7 +62,6 @@ function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
         </span>
         <div className="v2-card__corner">
           <span className="v2-detail" aria-hidden="true">자세히<span> ›</span></span>
-          <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
         </div>
       </div>
       <button type="button" className="v2-card__body" aria-haspopup="dialog">
@@ -74,7 +73,10 @@ function Card({ card, position, where, onDetail, linked, reaction, onReact }) {
       </button>
       <div className="v2-card__foot">
         <GoButton link={link} platform={card.platform} appLabel={card.appLabel} />
-        <Reactions name={card.name} reaction={reaction} onReact={(pressed) => onReact(card.brand, pressed, position)} />
+        <div className="v2-card__side">
+          <Reactions name={card.name} reaction={reaction} onReact={(pressed) => onReact(card.brand, pressed, position)} />
+          <OfferShareButton offer={card.offer} brandName={card.name} position={position} where={where} className="v2-share" />
+        </div>
       </div>
     </li>
   )

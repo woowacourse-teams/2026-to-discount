@@ -24,15 +24,6 @@ export function MinOrder({ label }) {
   )
 }
 
-// 좋아요/싫어요 엄지(CouponCard.jsx ThumbIcon과 같은 그림). 싫어요는 위아래를 뒤집는다.
-function Thumb({ down }) {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <g transform={down ? 'matrix(1 0 0 -1 0 24)' : undefined}><path d="M7 10v11H3V10h4zm0 0l4-8c1.5 0 2.5 1.2 2.2 2.7L12.5 8H19a2 2 0 0 1 2 2.3l-1.3 8A2 2 0 0 1 17.7 20H7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></g>
-    </svg>
-  )
-}
-
 // 좋아요 하트. 누르면 채운다.
 function Heart() {
   return (
@@ -42,12 +33,11 @@ function Heart() {
   )
 }
 
-// 좋아요(하트)/싫어요(엄지). 기존 홈 카드와 같은 저장과 이벤트(App.jsx onReact)를 쓴다.
+// 좋아요(하트). 기존 홈 카드와 같은 저장과 이벤트(App.jsx onReact)를 쓴다. 싫어요 버튼은 두지 않는다.
 export function Reactions({ name, reaction, onReact }) {
   return (
     <div className="v2-react" role="group" aria-label={`${name} 반응`}>
       <button type="button" aria-label="좋아요" aria-pressed={reaction === 'like'} onClick={() => onReact('like')}><Heart /></button>
-      <button type="button" aria-label="싫어요" aria-pressed={reaction === 'dislike'} onClick={() => onReact('dislike')}><Thumb down /></button>
     </div>
   )
 }
@@ -82,7 +72,7 @@ export function PlatformLogo({ platform, label }) {
 //  bg:   앱 고유색 바탕(진한 값), 흰 글자만
 const BTN_VARIANTS = ['tint', 'bg']
 const BTN_VARIANT = 'tint'
-const BTN_BG = { baemin: '#2ac1bc', coupangeats: '#6f3a18', ddangyo: '#fb521c', yogiyo: '#fa0050' }
+const BTN_BG = { baemin: '#2ac1bc', coupangeats: '#4d2610', ddangyo: '#fb521c', yogiyo: '#fa0050' }
 function btnVariant() {
   try {
     const q = new URLSearchParams(globalThis.location?.search ?? '').get('btn')
