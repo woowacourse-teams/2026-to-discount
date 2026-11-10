@@ -32,16 +32,32 @@ public final class InterProcessFileLock {
     private InterProcessFileLock() {}
 
     public static <T> T withLock(Path lockFile, Duration timeout, IOAction<T> action) throws IOException {
+        return withLock(lockFile, timeout, false, action);
+    }
+
+    public static <T> T withOperationsWrite(IOAction<T> action) throws IOException {
+        String path = System.getenv("OPERATIONS_BACKUP_LOCK");
+        if (path == null || path.isBlank()) return action.run();
+        Path key = Path.of(path).toAbsolutePath().normalize();
+        ReentrantLock current = JVM_LOCKS.get(key);
+        if (current != null && current.isHeldByCurrentThread()) return action.run();
+        return withLock(key, Duration.ofSeconds(10), true, action);
+    }
+
+    private static <T> T withLock(Path lockFile, Duration timeout, boolean shared, IOAction<T> action)
+            throws IOException {
         Path key = lockFile.toAbsolutePath().normalize();
         if (key.getParent() != null) Files.createDirectories(key.getParent());
         long deadline = System.nanoTime() + timeout.toNanos();
 
         ReentrantLock jvmLock = JVM_LOCKS.computeIfAbsent(key, k -> new ReentrantLock());
         if (!tryJvm(jvmLock, timeout)) throw timedOut(key, timeout);
-        try (FileChannel channel = FileChannel.open(key, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+        try (FileChannel channel = shared
+                ? FileChannel.open(key, StandardOpenOption.READ)
+                : FileChannel.open(key, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
             FileLock os = null;
             while (os == null) {
-                os = channel.tryLock();
+                os = channel.tryLock(0, Long.MAX_VALUE, shared);
                 if (os != null) break;
                 if (System.nanoTime() - deadline > 0) throw timedOut(key, timeout);
                 sleep();
