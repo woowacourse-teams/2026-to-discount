@@ -1,4 +1,3 @@
-import { PlatformBadge } from '../../logos.jsx'
 import { splitAmount, splitMin } from './data.js'
 import baemin from './platform-logos/baemin.png'
 import coupangeats from './platform-logos/coupangeats.svg'
@@ -69,13 +68,11 @@ export function PlatformLogo({ platform, label }) {
   return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <PlatformName platform={platform} label={label} />
 }
 
-// 이동 버튼 시안(사용자 테스트로 견준다). 브랜치마다 기본값(BTN_VARIANT)을 박고, 주소에 ?btn=tint|bg|logo|icon|ghost를 붙이면 덮는다.
+// 이동 버튼 시안 셋(사용자 테스트로 견준다). 브랜치마다 기본값(BTN_VARIANT)을 박고, 주소에 ?btn=tint|bg|ghost를 붙이면 덮는다.
 //  tint: 파랑 바탕, 앱 이름만 앱 색을 밝게 한 값(PlatformName)
 //  bg:   앱 고유색 바탕(진한 값), 흰 글자만
-//  logo: 파랑 바탕, 흰 알약 안에 앱 로고(투명 배경 글자 모양) + 흰 글자
-//  icon: 파랑 바탕, 왼쪽에 앱 아이콘(기존 PlatformBadge) + 흰 글자
 //  ghost: 흰 바탕에 앱 색 외곽선과 앱 색 글자(파랑 면 없음)
-const BTN_VARIANTS = ['tint', 'bg', 'logo', 'icon', 'ghost']
+const BTN_VARIANTS = ['tint', 'bg', 'ghost']
 const BTN_VARIANT = 'tint'
 const BTN_BG = { baemin: '#2ac1bc', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' }
 function btnVariant() {
@@ -91,21 +88,6 @@ export function GoButton({ link, platform, appLabel }) {
   const variant = btnVariant()
   if (variant === 'bg') {
     return <a className="v2-go" style={{ background: BTN_BG[platform] ?? '#4e5968' }} {...link}>{appLabel}에서 확인하기</a>
-  }
-  if (variant === 'logo') {
-    const logo = WORDMARK[platform]
-    return (
-      <a className="v2-go v2-go--logo" {...link}>
-        {logo ? <span className="v2-go__pill"><img src={logo} alt={appLabel} /></span> : appLabel}에서 확인하기
-      </a>
-    )
-  }
-  if (variant === 'icon') {
-    return (
-      <a className="v2-go v2-go--icon" {...link}>
-        <span className="v2-go__icon"><PlatformBadge platformKey={platform} /></span>{appLabel}에서 확인하기
-      </a>
-    )
   }
   if (variant === 'ghost') {
     return <a className="v2-go v2-go--ghost" style={{ '--gc': BTN_BG[platform] ?? '#4e5968' }} {...link}>{appLabel}에서 확인하기</a>

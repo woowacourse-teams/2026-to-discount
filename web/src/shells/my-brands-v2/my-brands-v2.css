@@ -43,12 +43,6 @@
 .v2-react button[aria-pressed="true"] svg path { fill: currentColor; }
 .v2-react svg { width: 20px; height: 20px; }
 .v2-go { flex: 1; display: block; text-align: center; padding: 18px 18px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 16px; text-decoration: none;; }
-.v2-go--logo { display: flex; align-items: center; justify-content: center; gap: 8px; }
-.v2-go__pill { display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 8px; background: #fff; }
-.v2-go__pill img { display: block; width: 72px; height: 18px; object-fit: contain; }
-.v2-go--icon { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.v2-go__icon { display: inline-flex; }
-.v2-go__icon .platform-badge { width: 28px; height: 28px; border-radius: 9px; box-shadow: none; }
 .v2-go--ghost { background: #fff; color: var(--gc); box-shadow: inset 0 0 0 2px var(--gc); }
 .v2-sheet__body { padding: 12px 24px 40px; }
 .v2-sheet__head { display: flex; align-items: center; gap: 16px; margin: 8px 40px 28px 0; }

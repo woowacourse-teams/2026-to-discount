@@ -167,3 +167,4 @@
 - 2026-11-10 (사용자 지시, 이동 버튼 시안 셋 UT): 이동 버튼을 세 시안으로 만들어 견준다. tint(파랑 바탕, 앱 이름만 앱 색을 밝게 한 값), bg(앱 고유색 바탕, 흰 글자: 배민 #17938f, 쿠팡이츠 #6f3a18, 땡겨요 #e8590c, 요기요 #fa0050), logo(파랑 바탕, 흰 알약 안에 앱 로고 + 흰 글자). 코드는 parts.jsx GoButton에 셋을 다 두고 BTN_VARIANT 기본값으로 고르며, 주소에 ?btn=tint|bg|logo를 붙이면 덮는다. 시안별 프리뷰 브랜치: preview/shell-v2-btn-tint, preview/shell-v2-btn-bg, preview/shell-v2-btn-logo. 테스트가 끝나면 진 둘과 이 분기를 지운다.
 - 2026-11-10 (사용자 지시, 이동 버튼 시안 셋 더): icon(파랑 바탕, 왼쪽에 앱 아이콘 PlatformBadge), chip(버튼 위에 앱 로고 칩 한 줄, 버튼은 파랑 바탕에 "확인하기"만. 새 문구라 개발자 확인 필요), ghost(흰 바탕, 앱 색 외곽선과 글자)를 더했다. 프리뷰 브랜치 preview/shell-v2-btn-icon, -chip, -ghost. 기존 tint, bg, logo 브랜치는 그대로. chip은 시트에서 위 앱 로고와 겹쳐 보인다.
 - 2026-11-10 (사용자 지시, 시안 정리): chip 시안을 뺐다(코드와 preview/shell-v2-btn-chip 브랜치). 배민 색을 세 시안(bg, tint, ghost)에서 모두 최초 민트 #2ac1bc로 맞췄다. bg와 ghost는 이 색 위 흰 글자 대비가 낮은 것을 알고 맞췄다.
+- 2026-11-10 (사용자 지시, 시안 정리 2): logo와 icon 시안을 뺐다(코드, CSS, preview/shell-v2-btn-logo, -icon 브랜치). bg, tint, ghost 셋만 남긴다.
