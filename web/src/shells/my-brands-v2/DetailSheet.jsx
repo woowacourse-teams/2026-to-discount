@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { BrandLogo } from '../../logos.jsx'
 import { useDragClose } from '../../sheetParts.jsx'
 import { track } from '../../analytics.js'
-import { includesFrom } from '../../filters.js'
+import { useShareTargetFocus } from '../../useShareTargetFocus.js'
+import { sharedOfferKey } from '../../offerSharing.js'
 import { detailOf } from './data.js'
 import PriceChart, { prefetchHistory } from './PriceChart.jsx'
 import { Amount, Chip, GoButton, MinOrder, PlatformLogo, offerLinkProps } from './parts.jsx'
@@ -12,7 +13,7 @@ const FADE = 140  // 닫힘: 그 자리에서 투명해진다. 열림(180ms 페�
 // 자세히 보기 바텀시트. 레이아웃과 스타일(바닥에 붙은 너비 전체 시트, 위 모서리 둥글게, 손잡이, 탭)과 닫는 법(배경, 닫기 버튼, ESC, 끌어내리기, 뒤로 버튼)은 필터 시트와 같은 클래스를 쓴다.
 // 높이는 내용만큼이다(바닥에 맞추려 키우지 않는다). 뜰 때는 올라오거나 카드에서 날아오지 않고 제자리에서 팝업처럼 페이드로 나타난다.
 // closing이면 그 자리에서 투명해진 뒤 onExited를 부른다. 움직임을 줄이는 설정이면 모션 없이 바로 뜨고 닫힌다.
-export default function DetailSheet({ card, closing, filters, onClose, onExited }) {
+export default function DetailSheet({ card, position, include, closing, sharedKey, onShareTargetVisible, onHide, onClose, onExited }) {
   const sheetRef = useRef(null)
   const offersRef = useRef(null)
   const scrimRef = useRef(null)
@@ -21,7 +22,7 @@ export default function DetailSheet({ card, closing, filters, onClose, onExited 
   exitedRef.current = onExited
   const animated = typeof matchMedia === 'function' && !matchMedia('(prefers-reduced-motion: reduce)').matches
   const downOnScrim = useRef(false)
-  const offers = detailOf(card.brand, includesFrom(filters))
+  const offers = detailOf(card.brand, include)
 
   // 열려 있는 동안 뒤 목록은 스크롤되지 않는다(FilterSheet와 같은 방식).
   useEffect(() => {
@@ -33,6 +34,8 @@ export default function DetailSheet({ card, closing, filters, onClose, onExited 
     return () => { s.overflow = prev.overflow; s.paddingRight = prev.paddingRight }
   }, [])
   useDragClose(sheetRef, offersRef, true, onClose)
+  // 공유 링크로 들어온 오퍼는 시트 안에서 그 자리로 가서 포커스를 받는다(운영 카드와 같다).
+  useShareTargetFocus(sheetRef, sharedKey, true, onShareTargetVisible)
   // 시트가 뜨는 순간 가격 이력을 받기 시작한다(카드를 누를 때 이미 받기 시작했으면 그 요청을 쓴다). 기록 탭은 열기 전에 이미 그려져 있다.
   useEffect(() => { prefetchHistory(card.name) }, [card.name])
   // 닫기: 모양은 그대로 두고 시트와 배경이 투명해진다. 끌어내려 이미 화면 밖으로 간 시트와 움직임 줄이기 설정은 바로 닫는다.
@@ -58,6 +61,8 @@ export default function DetailSheet({ card, closing, filters, onClose, onExited 
       className="sheet-scrim v2-scrim"
       onPointerDown={(e) => { downOnScrim.current = e.target === e.currentTarget }}
       onClick={(e) => {
+        // 포털이라도 React 이벤트는 카드로 올라가 카드 클릭이 시트를 다시 연다. 여기서 끊는다(운영 카드와 같다).
+        e.stopPropagation()
         if (!downOnScrim.current || e.target !== e.currentTarget) return
         downOnScrim.current = false
         onClose()
@@ -88,7 +93,7 @@ export default function DetailSheet({ card, closing, filters, onClose, onExited 
           </div>
           <ul ref={offersRef} role="tabpanel" id="v2panel-offers" aria-labelledby="v2tab-offers" className={`v2-panel v2-panel--offers v2-sheet__offers${tab === 'offers' ? '' : ' v2-panel--off'}`} aria-hidden={tab !== 'offers'} inert={tab !== 'offers' ? '' : undefined}>
             {offers.map((o, i) => (
-              <li key={`${o.platform}${i}`} className="v2-sheet__offer">
+              <li key={`${o.platform}${i}`} className={`v2-sheet__offer${sharedKey === sharedOfferKey(o.offer) ? ' shared-offer-target' : ''}`} tabIndex={-1} data-offer-key={sharedOfferKey(o.offer)}>
                 <div className="v2-sheet__app"><PlatformLogo platform={o.platform} label={o.appLabel} /></div>
                 <p className="v2-sheet__amount"><Amount label={o.amountLabel} /></p>
                 {/* 배지와 최소주문은 아래 구간 줄에 다 나온다. 구간이 없는 오퍼만 여기서 보인다. */}
@@ -113,12 +118,17 @@ export default function DetailSheet({ card, closing, filters, onClose, onExited 
                 )}
                 {o.note && <p className="v2-sheet__note">{o.note}</p>}
                 <GoButton
-                  link={offerLinkProps({ offer: o.offer, brand: card.brand, position: card.position, best: o.best, where: 'sheet', slot: i + 1, expanded: true })}
+                  link={offerLinkProps({ offer: o.offer, brand: card.brand, position, best: o.best, where: 'sheet', slot: i + 1, expanded: true })}
                   platform={o.platform}
                   appLabel={o.appLabel}
                 />
               </li>
             ))}
+            {onHide && (
+              <li className="v2-sheet__hideitem">
+                <button type="button" className="v2-sheet__hide" aria-label={`${card.name} 숨기기`} onClick={onHide}>이 브랜드 숨기기</button>
+              </li>
+            )}
           </ul>
         </div>
       </section>

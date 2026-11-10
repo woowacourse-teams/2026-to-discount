@@ -2,7 +2,8 @@
 :root:root { --sale: #3182f6; --sale-weak: #e8f1ff; }
 .v2 { --v2-pad: 1.25rem; --v2-in: 0.625rem; --v2-btn: 0.875rem; --v2-between: 1.75rem; box-sizing: border-box; padding-bottom: 2.5rem; background: #f5f6f8; min-height: 100vh; color: #191f28; overflow-x: hidden; }
 .v2 *, .v2 *::before, .v2 *::after { box-sizing: border-box; }
-.v2-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.75rem; }
+/* 목록은 App.jsx의 .brand-grid(운영과 같은 열 수와 떠오르는 효과). 카드 사이 간격만 시안 값. */
+.v2 .brand-grid { gap: 1.75rem; }
 .v2-card { position: relative; background: #fff; border-radius: 1.375rem; padding: var(--v2-pad); min-width: 0; cursor: pointer; display: flex; flex-direction: column; gap: var(--v2-between); }
 .v2-empty { text-align: center; color: #6b7684; }
 .v2-card__body { margin-top: -2px; display: grid; gap: var(--v2-in); justify-items: start; width: 100%; padding: 0; border: 0; background: none; font: inherit; text-align: left; color: inherit; cursor: pointer; min-width: 0; }
@@ -89,6 +90,15 @@
 .v2-hist .hist__solid { stroke-linejoin: miter; stroke-miterlimit: 10; stroke-linecap: butt; }
 /* 터치 때 브라우저가 카드 전체에 깔던 눌림 색을 끈다(공유 버튼을 눌러도 카드 전체가 반짝이던 것). */
 .v2-card, .v2-card * { -webkit-tap-highlight-color: transparent; }
+/* 숨기는 중인 카드: 운영 카드와 같은 사라지는 효과(hide-ask.css의 brand-card-leave). */
+.v2-card--leaving { pointer-events: none; transform-origin: 100% 0; animation: brand-card-leave 0.1s cubic-bezier(0.55, 0, 1, 0.45) both; }
+@media (prefers-reduced-motion: reduce) { .v2-card--leaving { animation: none; opacity: 0; } }
+/* 공유 링크로 들어온 오퍼(시트 안): 운영 시트와 같은 표시. */
+.v2-sheet__offer.shared-offer-target { outline: 2px solid #3182f6; outline-offset: 6px; border-radius: 4px; }
+/* 이 브랜드 숨기기: 운영 시트 맨 아래 글자 단추와 같은 문구와 자리(혜택 칸 맨 아래). */
+.v2-sheet__hideitem { display: grid; justify-items: center; padding-top: 1.5rem; border-top: 1px solid #eef0f3; }
+.v2-sheet__hide { all: unset; cursor: pointer; font-size: 0.875rem; color: #8b95a1; padding: 0.5rem 1rem; }
+.v2-sheet__hide:focus-visible { outline: 2px solid #3182f6; }
 /* 순위에서 눌러 이동한 카드: 파란 선과 파란 그림자. */
 .v2-card--linked { box-shadow: 0 0 0 2px #3182f6, 0 6px 20px rgba(49, 130, 246, .35); transition: box-shadow .2s ease; }
 /* 공유 버튼: 싫어요 자리에 있던 좋아요 옆 버튼과 같은 크기(40x36)와 색(#8b95a1). 아이콘은 기존 share.png를 마스크로 써 색만 맞춘다. 안내 글자와 주소 칸은 버튼 위로 띄운다. */
