@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BrandLogo } from '../../logos.jsx'
 import { useDragClose } from '../../sheetParts.jsx'
 import { openWithNotice } from '../../offerLink.js'
@@ -7,25 +7,19 @@ import { detailOf } from './data.js'
 import PriceChart, { prefetchHistory } from './PriceChart.jsx'
 import { Amount, Chip, GoButton, MinOrder, PlatformLogo } from './parts.jsx'
 
-const DUR = 180   // 펼침
-const FADE = 140  // 닫힘(접지 않고 그 자리에서 투명해진다)
-const EASE = 'cubic-bezier(.2, .8, .2, 1)'
-const px = (r) => ({ left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` })
-const FIX = ['position', 'left', 'top', 'width', 'height', 'margin', 'maxHeight']
-const unfix = (el) => FIX.forEach((k) => { el.style[k] = '' })
-const fixAt = (el, r) => Object.assign(el.style, px(r), { position: 'fixed', margin: '0', maxHeight: 'none' })
+const FADE = 140  // 닫힘: 그 자리에서 투명해진다. 열림(180ms 페이드와 살짝 커짐)은 my-brands-v2.css의 v2-sheet-in.
 
-// 자세히 보기 바텀시트. 모양과 닫는 법(배경, 닫기 버튼, ESC, 끌어내리기, 뒤로 버튼)은 필터 시트와 같은 클래스를 쓴다. 높이는 내용만큼이다(바닥에 맞추려 키우지 않는다).
-// from(눌린 카드의 화면 위치)이 있으면 시트가 그 카드 자리에서 늘어나 바텀시트 모양이 되고 배경이 어두워진다.
-// closing이면 오므라들지 않고 그 자리에서 투명해진 뒤 onExited를 부른다. 움직임을 줄이는 설정이면 모션 없이 바로 뜨고 닫힌다.
-export default function DetailSheet({ card, from, closing, filters, onClose, onExited }) {
+// 자세히 보기 바텀시트. 레이아웃과 스타일(바닥에 붙은 너비 전체 시트, 위 모서리 둥글게, 손잡이, 탭)과 닫는 법(배경, 닫기 버튼, ESC, 끌어내리기, 뒤로 버튼)은 필터 시트와 같은 클래스를 쓴다.
+// 높이는 내용만큼이다(바닥에 맞추려 키우지 않는다). 뜰 때는 올라오거나 카드에서 날아오지 않고 제자리에서 팝업처럼 페이드로 나타난다.
+// closing이면 그 자리에서 투명해진 뒤 onExited를 부른다. 움직임을 줄이는 설정이면 모션 없이 바로 뜨고 닫힌다.
+export default function DetailSheet({ card, closing, filters, onClose, onExited }) {
   const sheetRef = useRef(null)
   const offersRef = useRef(null)
   const scrimRef = useRef(null)
   const [tab, setTab] = useState('offers')
   const exitedRef = useRef(onExited)
   exitedRef.current = onExited
-  const morph = !!from && typeof matchMedia === 'function' && !matchMedia('(prefers-reduced-motion: reduce)').matches
+  const animated = typeof matchMedia === 'function' && !matchMedia('(prefers-reduced-motion: reduce)').matches
   const downOnScrim = useRef(false)
   const offers = detailOf(card.brand, includesFrom(filters))
 
@@ -41,25 +35,11 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
   useDragClose(sheetRef, offersRef, true, onClose)
   // 시트가 뜨는 순간 가격 이력을 받기 시작한다(카드를 누를 때 이미 받기 시작했으면 그 요청을 쓴다). 기록 탭은 열기 전에 이미 그려져 있다.
   useEffect(() => { prefetchHistory(card.name) }, [card.name])
-  // 열기: 최종 자리를 재어 두고, 카드 자리에서 거기까지 모양(위치, 크기, 모서리)을 바꾼다. 안의 내용은 중간부터 나타난다.
-  useLayoutEffect(() => {
-    const sheet = sheetRef.current
-    if (!morph || !sheet || !sheet.animate) return undefined
-    const to = sheet.getBoundingClientRect()
-    fixAt(sheet, to)
-    const anims = [
-      sheet.animate([{ ...px(from), borderRadius: '22px' }, { ...px(to), borderRadius: '18px 18px 0 0' }], { duration: DUR, easing: EASE }),
-      scrimRef.current.animate([{ backgroundColor: 'rgba(0, 0, 0, 0)' }, { backgroundColor: 'rgba(0, 0, 0, .32)' }], { duration: DUR, easing: 'ease-out' }),
-      ...[...sheet.children].map((c) => c.animate([{ opacity: 0 }, { opacity: 0, offset: 0.25 }, { opacity: 1 }], { duration: DUR, easing: 'linear' })),
-    ]
-    anims[0].onfinish = () => unfix(sheet)
-    return () => { anims.forEach((a) => a.cancel()); unfix(sheet) }
-  }, [])
   // 닫기: 모양은 그대로 두고 시트와 배경이 투명해진다. 끌어내려 이미 화면 밖으로 간 시트와 움직임 줄이기 설정은 바로 닫는다.
   useEffect(() => {
     const sheet = sheetRef.current
     if (!closing) return undefined
-    if (!morph || !sheet?.animate || sheet.style.transform) { exitedRef.current(); return undefined }
+    if (!animated || !sheet?.animate || sheet.style.transform) { exitedRef.current(); return undefined }
     const opt = { duration: FADE, easing: 'ease-out', fill: 'forwards' }
     const a = sheet.animate([{ opacity: 1 }, { opacity: 0 }], opt)
     scrimRef.current.animate([{ backgroundColor: 'rgba(0, 0, 0, .32)' }, { backgroundColor: 'rgba(0, 0, 0, 0)' }], opt)
@@ -83,7 +63,7 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
         onClose()
       }}
     >
-      <section ref={sheetRef} className={`sheet v2-sheet${morph ? ' v2-sheet--morph' : ''}`} role="dialog" aria-modal="true" aria-label={`${card.name} 자세히 보기`}>
+      <section ref={sheetRef} className="sheet v2-sheet" role="dialog" aria-modal="true" aria-label={`${card.name} 자세히 보기`}>
         <div className="sheet__grip" aria-hidden="true" />
         <button type="button" className="sheet__close" aria-label="닫기" onClick={onClose}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">

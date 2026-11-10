@@ -42,7 +42,8 @@ export default function PriceChart({ brand }) {
   useLayoutEffect(() => {
     const el = wrapRef.current
     if (!el) return undefined
-    const set = () => { const r = el.getBoundingClientRect(); if (r.width > 0 && r.height > 0) setSize((o) => (o.w === Math.round(r.width) && o.h === Math.round(r.height) ? o : { w: Math.round(r.width), h: Math.round(r.height) })) }
+    // 레이아웃 크기(clientWidth, clientHeight)로 잰다. 시트가 뜨는 동안의 살짝 커지는 효과(transform)가 getBoundingClientRect 값을 줄여 놓기 때문이다.
+    const set = () => { const w = el.clientWidth; const h = el.clientHeight; if (w > 0 && h > 0) setSize((o) => (o.w === w && o.h === h ? o : { w, h })) }
     set()
     const ro = new ResizeObserver(set)
     ro.observe(el)

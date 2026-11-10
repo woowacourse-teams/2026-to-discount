@@ -57,7 +57,16 @@ export function PlatformLogo({ platform, label }) {
   return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <span style={{ color: appColor(platform) }}>{label}</span>
 }
 
-// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자는 "○○에서 확인하기".
+// 링크로 나가는 표시(상자에서 오른쪽 위로 나가는 화살표). 글자 색을 따른다.
+function ExternalIcon() {
+  return (
+    <svg className="v2-go__ext" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+// 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자는 "○○에서 확인" 뒤에 링크 이동 아이콘.
 export function GoButton({ link, platform, appLabel }) {
-  return <a className="v2-go" style={{ background: appColor(platform) }} {...link}>{appLabel}에서 확인하기</a>
+  return <a className="v2-go" style={{ background: appColor(platform) }} {...link}>{appLabel}에서 확인<ExternalIcon /></a>
 }
