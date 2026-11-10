@@ -11,6 +11,16 @@ const range = '1m'
 const md = (iso) => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}`
 const num = (n) => n.toLocaleString('ko-KR')
 
+// 받은 이력은 이 브라우저 탭 안에서 브랜드별로 들고 있다. 카드를 누르는 순간(또는 팝업이 뜨는 순간) 미리 받아 두면 탭을 열 때 바로 그린다.
+// 실패(null)는 들고 있지 않아 다음에 다시 받는다.
+const historyCache = new Map()
+export function prefetchHistory(brand) {
+  if (!historyCache.has(brand)) {
+    historyCache.set(brand, fetchHistory(brand, range).then((d) => { if (d == null) historyCache.delete(brand); return d }))
+  }
+  return historyCache.get(brand)
+}
+
 // 열릴 때만 받는다. 이력이 없거나 점이 둘 미만이면 아무것도 안 그린다(시트는 그대로).
 // 기간을 바꾸는 동안은 앞 그래프를 그대로 둔다(깜빡임 없음).
 export default function PriceChart({ brand }) {
@@ -21,7 +31,7 @@ export default function PriceChart({ brand }) {
   const drag = useRef(null) // 누른 채 끄는 중이면 { pointer, seen: 지나간 점 번호 }
   useEffect(() => {
     let live = true
-    fetchHistory(brand, range).then((d) => { if (live) { setData(d); setSel(null) } })
+    prefetchHistory(brand).then((d) => { if (live) { setData(d); setSel(null) } })
     return () => { live = false }
   }, [brand])
   useEffect(() => () => clearTimeout(timer.current), [])

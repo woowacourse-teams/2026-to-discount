@@ -1,6 +1,6 @@
 /* 포인트 색: 주황(--sale)을 파랑으로. 기존 상단 바와 정렬 바도 이 변수를 쓴다. */
 :root:root { --sale: #3182f6; --sale-weak: #e8f1ff; }
-.v2 { --v2-pad: 20px; --v2-in: 10px; --v2-btn: 14px; --v2-between: 20px; box-sizing: border-box; padding-bottom: 40px; background: #f5f6f8; min-height: 100vh; color: #191f28; overflow-x: hidden; }
+.v2 { --v2-pad: 20px; --v2-in: 10px; --v2-btn: 14px; --v2-between: 28px; box-sizing: border-box; padding-bottom: 40px; background: #f5f6f8; min-height: 100vh; color: #191f28; overflow-x: hidden; }
 .v2 *, .v2 *::before, .v2 *::after { box-sizing: border-box; }
 .v2-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 28px; }
 .v2-card { position: relative; background: #fff; border-radius: 22px; padding: var(--v2-pad); min-width: 0; cursor: pointer; display: flex; flex-direction: column; gap: var(--v2-between); }
@@ -45,8 +45,8 @@
 .v2-react button[aria-pressed="true"] svg path { fill: currentColor; }
 .v2-react svg { width: 20px; height: 20px; }
 .v2-go { display: block; text-align: center; padding: 18px 18px; border-radius: 12px; background: #3182f6; color: #fff; font-weight: 700; font-size: 16px; text-decoration: none;; }
-.v2-sheet__body { padding: 12px 24px 40px; }
-.v2-sheet__head { display: flex; align-items: center; gap: 16px; margin: 8px 40px 28px 0; }
+.sheet .v2-sheet__body { flex: 1; min-height: 0; padding: 24px 24px 32px; }
+.v2-sheet__head { display: flex; align-items: center; gap: 16px; margin: 0 40px 18px 0; }
 .v2-sheet__head .brand-logo { width: 56px; height: 56px; border-radius: 14px; }
 .v2-sheet__name { margin: 0; font-size: 24px; font-weight: 700; line-height: 1.25; }
 .v2-sheet__offers { list-style: none; margin: 0; padding: 0; display: grid; gap: 36px; }
@@ -85,11 +85,19 @@
 .v2-card .v2-share .offer-share__status, .v2-card .v2-share .offer-share__url { position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 1; width: max-content; max-width: 180px; background: #fff; color: #222; padding: 6px 8px; border: 1px solid #e5e8eb; border-radius: 6px; }
 /* 카드의 이동 버튼은 이동 버튼 줄에서 남은 너비를 다 채운다(높이는 컴팩트). 시트 안 이동 버튼은 위 .v2-go대로 너비를 채운다.
    */
-.v2-card .v2-go { flex: 1; min-width: 0; display: block; padding: 12px 16px; font-size: 15px; }
-/* 시트가 카드 자리에서 늘어나는 동안은 기본 올라오기 모션을 끈다(DetailSheet.jsx). */
-.sheet.v2-sheet--morph { animation: none; overflow: hidden; }
-/* 시트 높이는 늘 같다. 안의 가격 그래프가 나중에 받아져도 높이가 안 변해, 펼침이 끝나는 자리가 틀어지지 않는다. */
-.sheet.v2-sheet { height: 86vh; height: 86dvh; }
+.v2-card .v2-go { flex: 1; min-width: 0; display: block; padding: 17px 16px; font-size: 15px; }
+/* 팝업이 카드 자리에서 늘어나는 동안은 기본 올라오기 모션을 끈다(DetailSheet.jsx). */
+.sheet.v2-sheet--morph { animation: none; }
+/* 자세히 보기는 화면 가운데 팝업이다. 높이는 늘 같아서 탭을 바꿔도, 가격 그래프가 나중에 받아져도 크기가 안 변하고 펼침이 끝나는 자리가 틀어지지 않는다. */
+.sheet-scrim.v2-scrim { align-items: center; }
+.sheet.v2-sheet { width: calc(100% - 32px); max-width: 520px; height: min(640px, 80vh); height: min(640px, 80dvh); max-height: none; border-radius: 22px; overflow: hidden; }
+.v2-sheet [hidden] { display: none; }
+.v2-sheet__top { flex: none; padding: 24px 24px 0; }
+.v2-tabs { display: flex; gap: 22px; margin: 0 -24px; padding: 0 24px; border-bottom: 1px solid #eef0f3; }
+.v2-tab { all: unset; box-sizing: border-box; cursor: pointer; padding: 10px 2px 12px; margin-bottom: -1px; font-size: 16px; font-weight: 700; color: #8b95a1; border-bottom: 2px solid transparent; -webkit-tap-highlight-color: transparent; }
+.v2-tab[aria-selected="true"] { color: #191f28; border-bottom-color: #191f28; }
+.v2-tab:focus-visible { outline: 2px solid #3182f6; outline-offset: -2px; }
+.v2-hist .hist__title { display: none; }
 /* 오른쪽 스크롤바를 보이지 않게 한다(홈, 시트). 스크롤은 그대로 된다. */
 html:has(.v2), html:has(.v2) body { scrollbar-width: none; -ms-overflow-style: none; }
 html:has(.v2)::-webkit-scrollbar, html:has(.v2) body::-webkit-scrollbar, html:has(.v2) .sheet__body::-webkit-scrollbar { display: none; }

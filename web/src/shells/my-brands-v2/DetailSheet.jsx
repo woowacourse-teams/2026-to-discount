@@ -1,25 +1,25 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { BrandLogo } from '../../logos.jsx'
 import { openWithNotice } from '../../offerLink.js'
-import { useDragClose } from '../../sheetParts.jsx'
 import { includesFrom } from '../../filters.js'
 import { detailOf } from './data.js'
-import PriceChart from './PriceChart.jsx'
+import PriceChart, { prefetchHistory } from './PriceChart.jsx'
 import { Amount, Chip, GoButton, MinOrder, PlatformLogo } from './parts.jsx'
 
-const DUR = 360
+const DUR = 220
 const EASE = 'cubic-bezier(.2, .8, .2, 1)'
 const px = (r) => ({ left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` })
 const FIX = ['position', 'left', 'top', 'width', 'height', 'margin', 'maxHeight']
 const unfix = (el) => FIX.forEach((k) => { el.style[k] = '' })
 const fixAt = (el, r) => Object.assign(el.style, px(r), { position: 'fixed', margin: '0', maxHeight: 'none' })
 
-// 자세히 보기 바텀시트. 모양과 닫는 법(배경, 닫기 버튼, ESC, 끌어내리기)은 필터 시트와 같은 클래스를 쓴다.
-// from(눌린 카드의 화면 위치)이 있으면 시트가 그 카드 자리에서 늘어나 바텀시트 모양이 되고 배경이 어두워진다.
+// 자세히 보기 팝업(화면 가운데). 닫는 법은 배경 누르기, 닫기 버튼, ESC, 뒤로 버튼.
+// from(눌린 카드의 화면 위치)이 있으면 팝업이 그 카드 자리에서 늘어나 가운데 팝업 크기가 되고 배경이 어두워진다.
 // closing이면 거꾸로 카드 크기로 오므라든 뒤 onExited를 부른다. 움직임을 줄이는 설정이면 모션 없이 바로 뜨고 닫힌다.
 export default function DetailSheet({ card, from, closing, filters, onClose, onExited }) {
   const sheetRef = useRef(null)
   const scrimRef = useRef(null)
+  const [tab, setTab] = useState('offers')
   const exitedRef = useRef(onExited)
   exitedRef.current = onExited
   const morph = !!from && typeof matchMedia === 'function' && !matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -36,7 +36,8 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
     if (bar > 0) s.paddingRight = `${bar}px`
     return () => { s.overflow = prev.overflow; s.paddingRight = prev.paddingRight }
   }, [])
-  useDragClose(sheetRef, bodyRef, true, onClose)
+  // 팝업이 뜨는 순간 가격 이력을 받기 시작한다(카드를 누를 때 이미 받기 시작했으면 그 요청을 쓴다). 기록 탭은 열기 전에 이미 그려져 있다.
+  useEffect(() => { prefetchHistory(card.name) }, [card.name])
   // 열기: 최종 자리를 재어 두고, 카드 자리에서 거기까지 모양(위치, 크기, 모서리)을 바꾼다. 안의 내용은 중간부터 나타난다.
   useLayoutEffect(() => {
     const sheet = sheetRef.current
@@ -44,9 +45,9 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
     const to = sheet.getBoundingClientRect()
     fixAt(sheet, to)
     const anims = [
-      sheet.animate([{ ...px(from), borderRadius: '22px' }, { ...px(to), borderRadius: '18px 18px 0 0' }], { duration: DUR, easing: EASE }),
+      sheet.animate([px(from), px(to)], { duration: DUR, easing: EASE }),
       scrimRef.current.animate([{ backgroundColor: 'rgba(0, 0, 0, 0)' }, { backgroundColor: 'rgba(0, 0, 0, .32)' }], { duration: DUR, easing: 'ease-out' }),
-      ...[...sheet.children].map((c) => c.animate([{ opacity: 0 }, { opacity: 0, offset: 0.3 }, { opacity: 1 }], { duration: DUR, easing: 'linear' })),
+      ...[...sheet.children].map((c) => c.animate([{ opacity: 0 }, { opacity: 0, offset: 0.25 }, { opacity: 1 }], { duration: DUR, easing: 'linear' })),
     ]
     anims[0].onfinish = () => unfix(sheet)
     return () => { anims.forEach((a) => a.cancel()); unfix(sheet) }
@@ -58,10 +59,10 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
     if (!morph || !sheet?.animate || sheet.style.transform) { exitedRef.current(); return undefined }
     const cur = sheet.getBoundingClientRect()
     fixAt(sheet, cur)
-    const opt = { duration: 280, easing: EASE, fill: 'forwards' }
-    const a = sheet.animate([{ ...px(cur), borderRadius: '18px 18px 0 0' }, { ...px(from), borderRadius: '22px' }], opt)
+    const opt = { duration: 180, easing: EASE, fill: 'forwards' }
+    const a = sheet.animate([px(cur), px(from)], opt)
     scrimRef.current.animate([{ backgroundColor: 'rgba(0, 0, 0, .32)' }, { backgroundColor: 'rgba(0, 0, 0, 0)' }], opt)
-    ;[...sheet.children].forEach((c) => c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'forwards' }))
+    ;[...sheet.children].forEach((c) => c.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 100, fill: 'forwards' }))
     a.onfinish = () => exitedRef.current()
     return undefined
   }, [closing])
@@ -74,7 +75,7 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
   return (
     <div
       ref={scrimRef}
-      className="sheet-scrim"
+      className="sheet-scrim v2-scrim"
       onPointerDown={(e) => { downOnScrim.current = e.target === e.currentTarget }}
       onClick={(e) => {
         if (!downOnScrim.current || e.target !== e.currentTarget) return
@@ -83,19 +84,27 @@ export default function DetailSheet({ card, from, closing, filters, onClose, onE
       }}
     >
       <section ref={sheetRef} className={`sheet v2-sheet${morph ? ' v2-sheet--morph' : ''}`} role="dialog" aria-modal="true" aria-label={`${card.name} 자세히 보기`}>
-        <div className="sheet__grip" aria-hidden="true" />
         <button type="button" className="sheet__close" aria-label="닫기" onClick={onClose}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
-        <div ref={bodyRef} className="sheet__body v2-sheet__body">
+        <div className="v2-sheet__top">
           <div className="v2-sheet__head">
             <BrandLogo name={card.name} />
             <h2 className="v2-sheet__name">{card.displayName}</h2>
           </div>
-          <PriceChart brand={card.name} />
-          <ul className="v2-sheet__offers">
+          <div className="v2-tabs" role="tablist" aria-label="자세히 보기">
+            {[['offers', '혜택'], ['history', '할인 기록']].map(([k, label]) => (
+              <button key={k} type="button" role="tab" id={`v2tab-${k}`} aria-selected={tab === k} aria-controls={`v2panel-${k}`} className="v2-tab" onClick={() => setTab(k)}>{label}</button>
+            ))}
+          </div>
+        </div>
+        <div ref={bodyRef} className="sheet__body v2-sheet__body">
+          <div role="tabpanel" id="v2panel-history" aria-labelledby="v2tab-history" hidden={tab !== 'history'}>
+            <PriceChart brand={card.name} />
+          </div>
+          <ul className="v2-sheet__offers" role="tabpanel" id="v2panel-offers" aria-labelledby="v2tab-offers" hidden={tab !== 'offers'}>
             {offers.map((o, i) => (
               <li key={`${o.platform}${i}`} className="v2-sheet__offer">
                 <div className="v2-sheet__app"><PlatformLogo platform={o.platform} label={o.appLabel} /></div>
