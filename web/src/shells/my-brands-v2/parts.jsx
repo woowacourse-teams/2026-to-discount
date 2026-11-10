@@ -44,7 +44,7 @@ export function Reactions({ name, reaction, onReact }) {
 }
 
 // 앱 고유색(기존 상단 앱 버튼과 같은 값). 모르는 앱은 회색.
-const PLATFORM_COLOR = { baemin: '#2ac1bc', coupangeats: '#f0c090', ddangyo: '#ffc299', yogiyo: '#ff9ab8' } // 파랑 버튼 위 글자색: 앱 색의 같은 색상을 밝게 한 값(배민은 최초 민트 그대로). 쿠팡이츠는 아래 PlatformName이 "쿠팡" 연한 빨강, "이츠" 연한 갈색으로 나눈다
+const PLATFORM_COLOR = { baemin: '#2ac1bc', coupangeats: '#f0c090', ddangyo: '#fb521c', yogiyo: '#ff9ab8' } // 파랑 버튼 위 글자색: 앱 색의 같은 색상을 밝게 한 값(배민은 최초 민트 그대로). 쿠팡이츠는 아래 PlatformName이 "쿠팡" 연한 빨강, "이츠" 연한 갈색으로 나눈다
 export const platformColor = (key) => PLATFORM_COLOR[key] ?? '#4e5968'
 
 // 배지. 멤버십은 기존 앱처럼 앱마다 색이 다르다(CSS가 data-platform으로 입힌다).
@@ -68,13 +68,12 @@ export function PlatformLogo({ platform, label }) {
   return logo ? <img className="v2-sheet__logo" src={logo} alt={label} /> : <PlatformName platform={platform} label={label} />
 }
 
-// 이동 버튼 시안 셋(사용자 테스트로 견준다). 브랜치마다 기본값(BTN_VARIANT)을 박고, 주소에 ?btn=tint|bg|ghost를 붙이면 덮는다.
+// 이동 버튼 시안 둘(사용자 테스트로 견준다). 브랜치마다 기본값(BTN_VARIANT)을 박고, 주소에 ?btn=tint|bg를 붙이면 덮는다.
 //  tint: 파랑 바탕, 앱 이름만 앱 색을 밝게 한 값(PlatformName)
 //  bg:   앱 고유색 바탕(진한 값), 흰 글자만
-//  ghost: 흰 바탕에 앱 색 외곽선과 앱 색 글자(파랑 면 없음)
-const BTN_VARIANTS = ['tint', 'bg', 'ghost']
+const BTN_VARIANTS = ['tint', 'bg']
 const BTN_VARIANT = 'tint'
-const BTN_BG = { baemin: '#2ac1bc', coupangeats: '#6f3a18', ddangyo: '#e8590c', yogiyo: '#fa0050' }
+const BTN_BG = { baemin: '#2ac1bc', coupangeats: '#6f3a18', ddangyo: '#fb521c', yogiyo: '#fa0050' }
 function btnVariant() {
   try {
     const q = new URLSearchParams(globalThis.location?.search ?? '').get('btn')
@@ -88,9 +87,6 @@ export function GoButton({ link, platform, appLabel }) {
   const variant = btnVariant()
   if (variant === 'bg') {
     return <a className="v2-go" style={{ background: BTN_BG[platform] ?? '#4e5968' }} {...link}>{appLabel}에서 확인하기</a>
-  }
-  if (variant === 'ghost') {
-    return <a className="v2-go v2-go--ghost" style={{ '--gc': BTN_BG[platform] ?? '#4e5968' }} {...link}>{appLabel}에서 확인하기</a>
   }
   return (
     <a className="v2-go" {...link}>

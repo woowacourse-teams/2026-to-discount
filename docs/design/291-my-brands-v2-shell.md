@@ -168,3 +168,4 @@
 - 2026-11-10 (사용자 지시, 이동 버튼 시안 셋 더): icon(파랑 바탕, 왼쪽에 앱 아이콘 PlatformBadge), chip(버튼 위에 앱 로고 칩 한 줄, 버튼은 파랑 바탕에 "확인하기"만. 새 문구라 개발자 확인 필요), ghost(흰 바탕, 앱 색 외곽선과 글자)를 더했다. 프리뷰 브랜치 preview/shell-v2-btn-icon, -chip, -ghost. 기존 tint, bg, logo 브랜치는 그대로. chip은 시트에서 위 앱 로고와 겹쳐 보인다.
 - 2026-11-10 (사용자 지시, 시안 정리): chip 시안을 뺐다(코드와 preview/shell-v2-btn-chip 브랜치). 배민 색을 세 시안(bg, tint, ghost)에서 모두 최초 민트 #2ac1bc로 맞췄다. bg와 ghost는 이 색 위 흰 글자 대비가 낮은 것을 알고 맞췄다.
 - 2026-11-10 (사용자 지시, 시안 정리 2): logo와 icon 시안을 뺐다(코드, CSS, preview/shell-v2-btn-logo, -icon 브랜치). bg, tint, ghost 셋만 남긴다.
+- 2026-11-10 (사용자 지시, 시안 정리 3): ghost 시안을 뺐다(코드, CSS, preview/shell-v2-btn-ghost, -prev 브랜치). bg, tint 둘만 남긴다. 땡겨요 색을 bg(#e8590c)와 tint(#ffc299) 모두 #fb521c로 통일했다. tint는 파랑 바탕 위 땡겨요 글자색이라 대비가 낮다.
