@@ -69,7 +69,7 @@
 .v2-sheet__offers { list-style: none; margin: 0; padding: 0; display: grid; gap: 2.25rem; }
 .v2-sheet__offer { display: grid; gap: 1.125rem; padding-top: 2rem; border-top: 1px solid #eef0f3; }
 .v2-sheet__offer:first-child { padding-top: 0; border-top: 0; }
-.v2-sheet__app { display: flex; align-items: center; gap: 0.625rem; font-size: 1.125rem; font-weight: 800; color: #4e5968; }
+.v2-sheet__app { display: flex; align-items: center; justify-content: space-between; gap: 0.625rem; font-size: 1.125rem; font-weight: 800; color: #4e5968; }
 .v2-sheet__amount { margin: 0; font-size: 1.625rem; font-weight: 800; line-height: 1.15; }
 .v2-sheet__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .v2-sheet__rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.25rem; }
@@ -102,11 +102,11 @@
 /* 순위에서 눌러 이동한 카드: 파란 선과 파란 그림자. */
 .v2-card--linked { box-shadow: 0 0 0 2px #3182f6, 0 6px 20px rgba(49, 130, 246, .35); transition: box-shadow .2s ease; }
 /* 공유 버튼: 싫어요 자리에 있던 좋아요 옆 버튼과 같은 크기(40x36)와 색(#8b95a1). 아이콘은 기존 share.png를 마스크로 써 색만 맞춘다. 안내 글자와 주소 칸은 버튼 위로 띄운다. */
-.v2-card .v2-share { margin: 0; }
-.v2-card .v2-share .offer-share__button { width: 40px; height: 36px; padding: 0; opacity: 1; background: #8b95a1; -webkit-mask: url('./share.png') center / 20px 20px no-repeat; mask: url('./share.png') center / 20px 20px no-repeat; border-radius: 0; }
-.v2-card .v2-share .offer-share__button:disabled { opacity: .5; }
-.v2-card .v2-share .offer-share__button svg { display: none; }
-.v2-card .v2-share .offer-share__status, .v2-card .v2-share .offer-share__url { position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 1; width: max-content; max-width: 180px; background: #fff; color: #222; padding: 6px 8px; border: 1px solid #e5e8eb; border-radius: 6px; }
+.v2-card .v2-share, .v2-sheet .v2-share { margin: 0; }
+.v2-card .v2-share .offer-share__button, .v2-sheet .v2-share .offer-share__button { width: 40px; height: 36px; padding: 0; opacity: 1; background: #8b95a1; -webkit-mask: url('./share.png') center / 20px 20px no-repeat; mask: url('./share.png') center / 20px 20px no-repeat; border-radius: 0; }
+.v2-card .v2-share .offer-share__button:disabled, .v2-sheet .v2-share .offer-share__button:disabled { opacity: .5; }
+.v2-card .v2-share .offer-share__button svg, .v2-sheet .v2-share .offer-share__button svg { display: none; }
+.v2-card .v2-share .offer-share__status, .v2-card .v2-share .offer-share__url, .v2-sheet .v2-share .offer-share__status, .v2-sheet .v2-share .offer-share__url { position: absolute; bottom: calc(100% + 4px); right: 0; z-index: 1; width: max-content; max-width: 180px; background: #fff; color: #222; padding: 6px 8px; border: 1px solid #e5e8eb; border-radius: 6px; }
 /* 카드의 이동 버튼은 이동 버튼 줄에서 남은 너비를 다 채운다(높이는 컴팩트). 시트 안 이동 버튼은 위 .v2-go대로 너비를 채운다.
    */
 .v2-go__ext { width: 1.125em; height: 1.125em; flex: none; }

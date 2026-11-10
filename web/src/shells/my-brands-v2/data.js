@@ -44,7 +44,8 @@ export function appLabel(offer) {
 
 /** 카드 한 장. 대표 오퍼는 splitOffers가 정한 best[0]. */
 export function cardOf(brand, include) {
-  const offer = splitOffers(brand.offers, include).best[0]
+  const { best, hasBest } = splitOffers(brand.offers, include)
+  const offer = best[0]
   if (!offer) return null
   const chips = headOrder(chipsOf(offer).filter(onCard)).map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? offer.platform }))
   return {
@@ -53,6 +54,8 @@ export function cardOf(brand, include) {
     category: brand.category,
     brand,
     offer,
+    // 비교할 수 있는 최고 할인이 있는 브랜드인가(운영 카드의 hasBest). 클릭 기록의 best 값과 숨기기 기준 금액이 쓴다.
+    hasBest,
     platform: offer.platform,
     via: offer.via ?? null,
     amount: offer.amount ?? null,
@@ -70,12 +73,14 @@ export function cardOf(brand, include) {
 
 /** 자세히 보기: 대표와 나머지 오퍼 전부. 줄마다 앱, 금액, 최소주문, 배지, 구간표(conditionTable), 링크. */
 export function detailOf(brand, include) {
-  const { best, rest } = splitOffers(brand.offers, include)
+  const { best, rest, bundles } = splitOffers(brand.offers, include)
   return [...best, ...rest].map((o, i) => {
     const { rows, note } = conditionTable(o)
     return {
       offer: o, // 링크와 클릭 기록이 운영과 같은 입력을 쓰도록 원본 오퍼를 같이 준다
       best: i < best.length,
+      // 운영 시트는 [...묶음, ...최고, ...나머지]의 순번을 slot으로 기록한다. 이 시안 시트는 묶음 행사를 안 그리지만 순번은 운영과 같게 센다.
+      slotBase: bundles.length,
       platform: o.platform,
       via: o.via ?? null,
       appLabel: appLabel(o),

@@ -43,7 +43,7 @@ function V2Card({ brand, position, highlighted, onInteract, include = null, onHi
     (p) => track('brand_impression', p)), [brand, position])
 
   if (!card) return null
-  const link = offerLinkProps({ offer: card.offer, brand, position, best: true, where: 'main' })
+  const link = offerLinkProps({ offer: card.offer, brand, position, best: card.hasBest, where: 'main' })
   // 세 영역: 머리(로고, 이름, 배지 / 오른쪽 위에 자세히 ⌄: 머리와 따로 카드 위에 얹은 독립 칸), 몸통(할인금액, 최소주문, 품절/오픈 전),
   // 발(남은 너비를 채운 앱 이동 버튼 / 오른쪽에 좋아요 하트와 공유).
   // 링크, 공유, 좋아요 밖을 누르면 자세히 보기 시트(운영 카드와 같은 brand_expand via sheet 기록).
@@ -93,7 +93,7 @@ function V2Card({ brand, position, highlighted, onInteract, include = null, onHi
         <DetailSheet
           card={card} position={position} include={include} closing={closing} sharedKey={sharedKey}
           onShareTargetVisible={onShareTargetVisible} onClose={closeSheet} onExited={exitSheet}
-          onHide={onHide ? () => { setSheet(false); setClosing(false); onHide(brand.name, card.offer.amount ?? null) } : undefined}
+          onHide={onHide ? () => { setSheet(false); setClosing(false); onHide(brand.name, card.hasBest ? card.offer.amount : null) } : undefined}
         />, document.body)}
     </article>
   )

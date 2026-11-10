@@ -6,6 +6,7 @@ import { useShareTargetFocus } from '../../useShareTargetFocus.js'
 import { sharedOfferKey } from '../../offerSharing.js'
 import { detailOf } from './data.js'
 import PriceChart, { prefetchHistory } from './PriceChart.jsx'
+import OfferShareButton from '../../OfferShareButton.jsx'
 import { Amount, Chip, GoButton, MinOrder, PlatformLogo, offerLinkProps } from './parts.jsx'
 
 const FADE = 140  // 닫힘: 그 자리에서 투명해진다. 열림(180ms 페이드와 살짝 커짐)은 my-brands-v2.css의 v2-sheet-in.
@@ -94,7 +95,10 @@ export default function DetailSheet({ card, position, include, closing, sharedKe
           <ul ref={offersRef} role="tabpanel" id="v2panel-offers" aria-labelledby="v2tab-offers" className={`v2-panel v2-panel--offers v2-sheet__offers${tab === 'offers' ? '' : ' v2-panel--off'}`} aria-hidden={tab !== 'offers'} inert={tab !== 'offers' ? '' : undefined}>
             {offers.map((o, i) => (
               <li key={`${o.platform}${i}`} className={`v2-sheet__offer${sharedKey === sharedOfferKey(o.offer) ? ' shared-offer-target' : ''}`} tabIndex={-1} data-offer-key={sharedOfferKey(o.offer)}>
-                <div className="v2-sheet__app"><PlatformLogo platform={o.platform} label={o.appLabel} /></div>
+                <div className="v2-sheet__app">
+                  <PlatformLogo platform={o.platform} label={o.appLabel} />
+                  <OfferShareButton offer={o.offer} brandName={card.name} position={position} where="sheet" className="v2-share" />
+                </div>
                 <p className="v2-sheet__amount"><Amount label={o.amountLabel} /></p>
                 {/* 배지와 최소주문은 아래 구간 줄에 다 나온다. 구간이 없는 오퍼만 여기서 보인다. */}
                 {o.rows.length === 0 && (
@@ -118,7 +122,7 @@ export default function DetailSheet({ card, position, include, closing, sharedKe
                 )}
                 {o.note && <p className="v2-sheet__note">{o.note}</p>}
                 <GoButton
-                  link={offerLinkProps({ offer: o.offer, brand: card.brand, position, best: o.best, where: 'sheet', slot: i + 1, expanded: true })}
+                  link={offerLinkProps({ offer: o.offer, brand: card.brand, position, best: o.best, where: 'sheet', slot: o.slotBase + i + 1, expanded: true })}
                   platform={o.platform}
                   appLabel={o.appLabel}
                 />
