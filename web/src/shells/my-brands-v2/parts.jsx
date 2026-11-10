@@ -82,7 +82,7 @@ export function offerLinkProps({ offer, brand, position, best, where, slot, expa
 }
 
 // 링크로 나가는 표시(상자에서 오른쪽 위로 나가는 화살표). 글자 색을 따른다.
-function ExternalIcon() {
+export function ExternalIcon() {
   return (
     <svg className="v2-go__ext" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />

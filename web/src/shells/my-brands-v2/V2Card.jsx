@@ -9,7 +9,7 @@ import OfferShareButton from '../../OfferShareButton.jsx'
 import { cardOf } from './data.js'
 import DetailSheet from './DetailSheet.jsx'
 import { prefetchHistory } from './PriceChart.jsx'
-import { Amount, Chip, GoButton, MinOrder, Reactions, offerLinkProps } from './parts.jsx'
+import { Amount, Chip, ExternalIcon, GoButton, MinOrder, Reactions, offerLinkProps } from './parts.jsx'
 
 // 홈 시안(my-brands-v2)의 카드 한 장. App.jsx가 운영 쿠폰 카드(CouponCard)에 주는 props를 그대로 받는다:
 // brand, position(1부터), highlighted(#brand-이름이나 순위로 찾아온 카드), onInteract, include, onHide, onReact, reaction,
@@ -73,6 +73,12 @@ function V2Card({ brand, position, highlighted, onInteract, include = null, onHi
           </span>
         </span>
       </div>
+      {/* 1+1 묶음 행사: 운영 카드처럼 대표 금액 위 한 줄. 누르면 앱으로 간다(offer_link_click where main, slot bundle). */}
+      {card.bundles.map(({ offer, label }) => (
+        <a key={`${label}`} className="v2-bundle" {...offerLinkProps({ offer, brand, position, best: false, where: 'main', slot: 'bundle' })}>
+          <span className="v2-bundle__tag">행사</span><b>{label}</b><ExternalIcon />
+        </a>
+      ))}
       <button type="button" className="v2-card__body" aria-haspopup="dialog">
         <Amount label={card.amountLabel} className="v2-card__amount" />
         <span className="v2-card__conds">

@@ -75,3 +75,15 @@ test('꺾은선: 직선(L)으로만 잇고 값 없는 날에서 끊는다(곡선
   assert.ok(solid.every((p) => !p.includes('C')))
   assert.equal(area[0], 'M0 10 L10 4 V100 H0 Z')
 })
+
+test('카드: 1+1 묶음 행사는 대표와 따로 bundles에 담기고, 묶음뿐인 브랜드는 그것이 대표', () => {
+  const bundle = offer({ kind: 'bundle', amount: 15000, rawText: '징거버거 1+1', platform: 'baemin' })
+  const mixed = cardOf(brand('가', [offer({ amount: 6000 }), bundle]), { random: false, menu: false })
+  assert.equal(mixed.bundles.length, 1)
+  assert.equal(mixed.bundles[0].label, '징거버거 1+1')
+  assert.equal(mixed.amountLabel, '6,000원 할인')
+  const only = cardOf(brand('나', [bundle]), { random: false, menu: false })
+  assert.equal(only.bundles.length, 0)
+  assert.equal(only.amountLabel, '징거버거 1+1')
+  assert.equal(only.hasBest, false)
+})

@@ -44,7 +44,7 @@ export function appLabel(offer) {
 
 /** 카드 한 장. 대표 오퍼는 splitOffers가 정한 best[0]. */
 export function cardOf(brand, include) {
-  const { best, hasBest } = splitOffers(brand.offers, include)
+  const { best, hasBest, bundles } = splitOffers(brand.offers, include)
   const offer = best[0]
   if (!offer) return null
   const chips = headOrder(chipsOf(offer).filter(onCard)).map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? offer.platform }))
@@ -56,6 +56,8 @@ export function cardOf(brand, include) {
     offer,
     // 비교할 수 있는 최고 할인이 있는 브랜드인가(운영 카드의 hasBest). 클릭 기록의 best 값과 숨기기 기준 금액이 쓴다.
     hasBest,
+    // 1+1 같은 묶음 행사: 운영 카드처럼 카드 맨 위 한 줄로 따로 선다(대표 금액 비교 밖). 묶음뿐인 브랜드는 그것이 대표라 여기엔 없다.
+    bundles: bundles.map((o) => ({ offer: o, label: o.rawText })),
     platform: offer.platform,
     via: offer.via ?? null,
     amount: offer.amount ?? null,
