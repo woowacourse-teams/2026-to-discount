@@ -102,8 +102,7 @@ function routeFilters() {
 // (localStorage, 시각, 화면 폭)은 전부 effect에서 읽는다.
 // Card: 카드 한 장을 그리는 컴포넌트. 기본은 운영 쿠폰 카드이고, 홈 시안(shells/)이 자기 카드를 끼워 넣을 때만 바꾼다.
 // mainClassName: 본문 <main>에 더하는 클래스(시안의 스타일 걸이). 둘 다 기본값이면 운영 동작은 그대로다.
-// Footer: 맨 아래 안내와 링크. 기본은 운영 바닥글(SiteFooter)이고 시안이 자기 것을 끼울 때만 바꾼다.
-export default function App({ initial = null, Card = CouponCard, mainClassName, Footer = SiteFooter }) {
+export default function App({ initial = null, Card = CouponCard, mainClassName }) {
   const [pushToggleSlot, setPushToggleSlot] = useState(null)
   // 알림 토글 자리는 ref가 붙을 때 받는다. 급한 업데이트로 받으면 하이드레이션 중인 쿠폰 카드(Suspense)가
   // 업데이트를 받아 통째로 다시 그려져, a홈이 서버 화면 -> 운영 카드 -> 쿠폰 카드로 바뀌어 보였다(React #421,
@@ -818,7 +817,7 @@ export default function App({ initial = null, Card = CouponCard, mainClassName, 
         <SurveyCard survey={survey} />
       </Suspense>}
 
-      <Footer />
+      <SiteFooter />
 
       {guideOn && (
         <Suspense fallback={null}>

@@ -1,6 +1,8 @@
-/* 포인트 색: 주황(--sale)을 파랑으로. 기존 상단 바와 정렬 바도 이 변수를 쓴다. */
-:root:root { --sale: #3182f6; --sale-weak: #e8f1ff; }
-.v2 { --v2-pad: 1.25rem; --v2-in: 0.625rem; --v2-btn: 0.875rem; --v2-between: 1.75rem; box-sizing: border-box; padding-bottom: 2.5rem; background: #f5f6f8; min-height: 100vh; color: #191f28; overflow-x: hidden; }
+/* 포인트 색: 카드와 자세히 시트 안에서만 주황(--sale)을 파랑으로 바꾼다. 상단 바, 빠른 정렬, 바닥글 같은 공용 영역은 운영과 같게 둔다(A/B에서 새로 그리지 않는 영역). */
+.v2-card, .v2-sheet { --sale: #3182f6; --sale-weak: #e8f1ff; }
+/* 바탕색과 글자색도 공용 영역(빠른 정렬 등)에는 주지 않고 카드에만 준다. 페이지 바탕은 운영과 같다. */
+.v2-card { color: #191f28; }
+.v2 { --v2-pad: 1.25rem; --v2-in: 0.625rem; --v2-btn: 0.875rem; --v2-between: 1.75rem; box-sizing: border-box; padding-bottom: 2.5rem; min-height: 100vh; overflow-x: hidden; }
 .v2 *, .v2 *::before, .v2 *::after { box-sizing: border-box; }
 /* 목록은 App.jsx의 .brand-grid(운영과 같은 열 수와 떠오르는 효과). 카드 사이 간격만 시안 값. */
 .v2 .brand-grid { gap: 1.75rem; }
@@ -89,8 +91,6 @@
 .v2-sheet__amount .v2-unit { font-size: 1.2375rem; }
 .v2-card__amount.v2-plain { font-size: 2.125rem; }
 .v2-min__amt { color: #e8590c; font-weight: 700; }
-/* 정렬 툴바: 위(상단 바와의 간격)와 아래(첫 카드와의 간격)를 같게. 기존 규칙의 위 6px 안쪽 여백과 아래 -2px 바깥 여백은 쓰지 않는다. */
-.v2 .quick-bar { padding: 0; margin: 0.3rem 0; }
 /* 시트 앱 줄: 직사각형 앱 로고 */
 .v2-sheet__logo { display: block; width: 8.25rem; height: 1.875rem; object-fit: contain; object-position: left center; }
 /* 가격 그래프: 뾰족한 꺾은선(모서리를 둥글리지 않는다). 색은 포인트 색(--sale, 파랑). */
@@ -135,9 +135,3 @@
 html:has(.v2), html:has(.v2) body { scrollbar-width: none; -ms-overflow-style: none; }
 html:has(.v2)::-webkit-scrollbar, html:has(.v2) body::-webkit-scrollbar, html:has(.v2) .sheet__body::-webkit-scrollbar { display: none; }
 html:has(.v2) .sheet__body { scrollbar-width: none; }
-
-/* 바닥글: 안내 한 줄 아래에 구분선으로 나뉜 버튼 셋을 너비 100%로 둔다. */
-.v2-footer { border-top: 0; padding-top: 0; }
-.v2-footer__links { display: flex; width: 100%; margin-top: 0.75rem; overflow: hidden; border-radius: 0.75rem; background: #fff; }
-.v2-footer__links a { flex: 1 1 auto; min-width: 0; padding: 0.8125rem 0.5rem; text-align: center; white-space: nowrap; font-size: 0.78rem; color: #4e5968; text-decoration: none; }
-.v2-footer__links a + a { border-left: 1px solid #e5e8eb; }
