@@ -24,8 +24,8 @@
 .v2-chip--membership { background: #333; color: #fff; }
 .v2-chip--membership[data-platform="baemin"] { background: #36d3ce; color: #fff; } /* 배민 이동 버튼 색(parts.jsx BTN_BG)과 같다 */
 .v2-chip--membership[data-platform="coupangeats"] { background: #4d2610; color: #fff; } /* 쿠팡이츠 이동 버튼 색(진갈색)과 같다 */
-.v2-chip--membership[data-platform="ddangyo"] { background: #f5a623; color: #fff; }
-.v2-chip--membership[data-platform="yogiyo"] { background: #d6004a; color: #fff; }
+.v2-chip--membership[data-platform="ddangyo"] { background: #fb521c; color: #fff; } /* 이동 버튼 색(parts.jsx BTN_BG)과 같다 */
+.v2-chip--membership[data-platform="yogiyo"] { background: #fa0050; color: #fff; } /* 이동 버튼 색(parts.jsx BTN_BG)과 같다 */
 .v2-chip--limited, .v2-chip--channel { background: #e8f1ff; color: #1b64da; }
 .v2-chip--state { background: #f2f4f6; color: #4e5968; }
 .v2-chip--qualifier-random { background: #111; color: #ff8a1f; } /* 랜덤: 검정 바탕 주황 글씨 */
@@ -63,6 +63,11 @@
 .v2-hist .hist__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .v2-hist .hist__ytick { font-size: 0.6875rem; text-anchor: start; dominant-baseline: auto; } /* 금액 숫자는 눈금선 위 왼쪽 끝에 얹는다(칸이 꽉 차서 왼쪽 밖 자리가 없다) */
 .v2-hist .hist__xtick { font-size: 0.75rem; }
+/* 기간 버튼 줄: 그래프 아래 가로로 밀어 넘기는 줄(스크롤바 없음) */
+.v2-hist__ranges { display: flex; gap: 0.5rem; margin-top: 0.75rem; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; -ms-overflow-style: none; }
+.v2-hist__ranges::-webkit-scrollbar { display: none; }
+.v2-hist__range { flex: none; scroll-snap-align: start; font: inherit; font-size: 0.8125rem; font-weight: 600; line-height: 1.35; padding: 0.3125rem 0.9375rem; border: 0; border-radius: 999px; background: #f2f4f6; color: #4e5968; cursor: pointer; }
+.v2-hist__range[aria-pressed="true"] { background: var(--sale); color: #fff; }
 .v2-sheet__head { display: flex; align-items: center; gap: 1rem; margin: 0.5rem 2.5rem 1.125rem 0; }
 .v2-sheet__head .brand-logo { width: 3.5rem; height: 3.5rem; border-radius: 0.875rem; }
 .v2-sheet__name { margin: 0; font-size: 1.5rem; font-weight: 700; line-height: 1.25; }
@@ -80,7 +85,7 @@
 .v2-num { color: #3182f6; font-size: 2.3125rem; }
 .v2-sheet__amount .v2-num { font-size: 2.0625rem; }
 /* "원 할인"은 운영 카드(.cc-amt small)처럼 숫자의 0.6배 */
-.v2-unit { color: #191f28; font-size: 1.3875rem; margin-left: 1px; }
+.v2-unit { color: #191f28; font-size: 1.3875rem; margin-left: 1px; vertical-align: 1px; } /* 한글 밑단이 숫자 밑단보다 1px 아래로 내려가 그만큼 올린다 */
 .v2-sheet__amount .v2-unit { font-size: 1.2375rem; }
 .v2-card__amount.v2-plain { font-size: 2.125rem; }
 .v2-min__amt { color: #e8590c; font-weight: 700; }

@@ -162,3 +162,4 @@
 - 첫 방문 처리(2026-11-11): 시험이 켜진 뒤 B로 배정된 방문자의 첫 방문은 서버가 그린 화면(A)을 보고 home=coupon으로 기록된다(갈래를 저장한 다음 방문부터 home=v2). 그래서 B 갈래 분석은 방문자 단위로 보면 첫 방문이 A로 섞여 있으니, 이벤트의 home 값으로 가르거나 첫 방문을 빼고 읽는다.
 - 클릭 집계: 1+1 묶음 행사 줄을 누르면 offer_link_click이 brand=그 브랜드(예: KFC), slot=bundle, where=main으로 남는다. 브랜드 단위 클릭에는 포함되고, 대표 버튼 클릭만 보려면 slot이 bundle이 아닌 것으로 거른다.
 - 이벤트 대조(2026-11-11, 코드 기준): 운영 카드에만 있고 시안에 없는 이벤트는 의도한 것(coupon_carousel_swipe, brand_collapse, 싫어요 brand_reaction, where=carousel과 expanded)과 의도하지 않은 것 하나(history_range_change: 시안 그래프에 기간 탭이 없음)다. 나머지 카드 이벤트(offer_link_click, brand_expand, brand_impression, sheet_tab, history_drag, history_point_select, 공유)와 목록 이벤트는 둘 다 남긴다.
+- 정정(2026-11-11): 시안 그래프에 기간 버튼 줄(2주, 1달, 전체)을 넣어 history_range_change도 시안에서 남는다. 위의 "기간 탭이 없다"와 "history_range_change 누락" 설명은 이 변경 전 기준이다. 시안에 없는 이벤트는 의도한 것(캐러셀, 접기, 싫어요)뿐이다.

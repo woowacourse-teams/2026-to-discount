@@ -6,24 +6,28 @@ import { track } from '../../analytics.js'
 import { polyPaths } from './data.js'
 import '../../styles/hist.css'
 
-// 기간 탭은 두지 않는다. 1달 고정.
-const range = '1m'
+// 기간: 그래프 아래 버튼 줄(캐러셀)로 고른다. 2주는 API에 없어 1달을 받아 마지막 14일만 그린다(운영 BestHistoryChart와 같다).
+const RANGES = [['2w', '2주'], ['1m', '1달'], ['all', '전체']]
+const TWO_WEEKS_MS = 13 * 864e5
 const md = (iso) => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}`
 const num = (n) => n.toLocaleString('ko-KR')
 
 // 받은 이력은 이 브라우저 탭 안에서 브랜드별로 들고 있다. 카드를 누르는 순간(또는 팝업이 뜨는 순간) 미리 받아 두면 탭을 열 때 바로 그린다.
 // 실패(null)는 들고 있지 않아 다음에 다시 받는다.
 const historyCache = new Map()
-export function prefetchHistory(brand) {
-  if (!historyCache.has(brand)) {
-    historyCache.set(brand, fetchHistory(brand, range).then((d) => { if (d == null) historyCache.delete(brand); return d }))
+export function prefetchHistory(brand, range = '1m') {
+  const api = range === '2w' ? '1m' : range
+  const key = `${brand}|${api}`
+  if (!historyCache.has(key)) {
+    historyCache.set(key, fetchHistory(brand, api).then((d) => { if (d == null) historyCache.delete(key); return d }))
   }
-  return historyCache.get(brand)
+  return historyCache.get(key)
 }
 
 // 열릴 때만 받는다. 이력이 없거나 점이 둘 미만이면 아무것도 안 그린다(시트는 그대로).
 // 기간을 바꾸는 동안은 앞 그래프를 그대로 둔다(깜빡임 없음).
 export default function PriceChart({ brand }) {
+  const [range, setRange] = useState('1m')
   const [data, setData] = useState(null)
   const [sel, setSel] = useState(null)
   const svgRef = useRef(null)
@@ -34,9 +38,9 @@ export default function PriceChart({ brand }) {
   const drag = useRef(null) // 누른 채 끄는 중이면 { pointer, seen: 지나간 점 번호 }
   useEffect(() => {
     let live = true
-    prefetchHistory(brand).then((d) => { if (live) { setData(d); setSel(null) } })
+    prefetchHistory(brand, range).then((d) => { if (live) { setData(d); setSel(null) } })
     return () => { live = false }
-  }, [brand])
+  }, [brand, range])
   useEffect(() => () => clearTimeout(timer.current), [])
   const hasChart = data != null
   useLayoutEffect(() => {
@@ -72,10 +76,19 @@ export default function PriceChart({ brand }) {
     return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
   }, [data])
   const all = data?.best ?? []
-  const pts = all
+  const pts = range === '2w' && all.length ? all.filter((p) => Date.parse(p.date) >= Date.parse(all[all.length - 1].date) - TWO_WEEKS_MS) : all
   const { w: cw, h: ch } = size
   const chart = chartModel(pts, cw, ch)
-  if (!chart) return null
+  // 기간 버튼 줄. 고른 기간에 점이 모자라 그래프가 비어도 버튼은 남겨 다른 기간으로 돌아갈 수 있다.
+  const ranges = (
+    <div className="v2-hist__ranges" role="group" aria-label="기간">
+      {RANGES.map(([k, label]) => (
+        <button key={k} type="button" className="v2-hist__range" aria-pressed={range === k}
+          onClick={() => { if (k !== range) track('history_range_change', { brand, from: range, to: k }); setRange(k) }}>{label}</button>
+      ))}
+    </div>
+  )
+  if (!chart) return range === '1m' ? null : <figure className="hist v2-hist">{ranges}</figure>
   const m = { ...chart, ...polyPaths(chart.xy, ch - BOTTOM) } // 곡선 대신 직선으로 이은 뾰족한 꺾은선
   const sum = summary(pts)
   const xs = m.xy.map((p) => p.x)
@@ -162,6 +175,7 @@ export default function PriceChart({ brand }) {
           )
         })()}
       </div>
+      {ranges}
     </figure>
   )
 }
