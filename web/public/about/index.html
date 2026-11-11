@@ -203,6 +203,15 @@
       #s1 .btn { height: 44px; margin-top: 14px; }
       #s1 .split { gap: 16px; }
     }
+  
+    /* 오른쪽 세로 색인: 장 이동 */
+    .dots { position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 4; display: flex; flex-direction: column; gap: 2px; }
+    .dots button { width: 24px; height: 24px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer; }
+    .dots button::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: .4; transition: transform .25s, opacity .25s, background .25s; }
+    .dots button:hover::before { opacity: .8; }
+    .dots button[aria-current="true"]::before { background: var(--sale); opacity: 1; transform: scale(1.7); }
+    .dots button:focus-visible { outline: 2px solid var(--sale); outline-offset: -2px; border-radius: 6px; }
+    @media (max-width: 767px) { .dots { right: 2px; } .dots button { width: 20px; height: 20px; } }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -292,21 +301,6 @@
       <div class="slide__in split">
         <div>
           
-          <h2 class="rise" style="--i:1">검색은<br /><em>초성만</em> 쳐도</h2>
-          <p class="lead rise" style="--i:2">브랜드, 메뉴, 카테고리를 한 번에 찾아요.<br />'ㅂㄱ'만 입력해도 버거킹이 나와요.</p>
-          
-        </div>
-        <div class="phone rise" style="--i:2">
-          <div class="phone__screen"><img src="/about/now-search.jpg" width="390" height="844" alt="검색창에 초성을 입력한 화면. 버거킹 등 브랜드 추천이 나온다." /></div>
-        </div>
-      </div>
-      <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
-    </section>
-    <section class="slide slide--shot" id="s7">
-      
-      <div class="slide__in split">
-        <div>
-          
           <h2 class="rise" style="--i:1"><em>앱별 금액</em>과<br /><em>할인 기록</em>까지</h2>
           <p class="lead rise" style="--i:2">자세히 보기에서 앱별 할인과 최소주문금액, 배달과 포장 차이를 보고<br />최근 할인이 어떻게 변했는지 그래프로 확인해요.</p>
           
@@ -315,9 +309,9 @@
           <div class="phone__screen"><img src="/about/now-detail.jpg" width="390" height="844" alt="자세히 보기 화면. 앱별 할인금액과 최소주문금액, 할인 기록 그래프가 보인다." /></div>
         </div>
       </div>
-      <a class="next" href="#s8" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide slide--diff" id="s8">
+    <section class="slide slide--diff" id="s7">
       <div class="slide__in diff">
         <div>
           <h2 class="rise"><em>멤버십, 타겟</em>으로<br />다르게 뜨는 할인</h2>
@@ -336,9 +330,9 @@
           </div>
         </div>
       </div>
-      <a class="next" href="#s9" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s8" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide slide--cards" id="s9">
+    <section class="slide slide--cards" id="s8">
       <div class="slide__in diff">
         <div>
           <h2 class="rise">놓치지 않고 <em>틀리지 않게</em></h2>
@@ -362,21 +356,19 @@
           </li>
         </ol>
       </div>
-      <a class="next" href="#s10" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s9" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide final" id="s10">
+    <section class="slide final" id="s9">
       <div class="slide__in">
         <div class="split">
           <h2 class="rise">고르는 데 걸리는 시간,<br /><em>확 줄여요</em></h2>
           <ul class="tech">
             <li class="rise" style="--i:1"><div><b>4개 앱 할인을 브랜드별로 한 장에</b></div></li>
-            <li class="rise" style="--i:2"><div><b>새로 뜬 할인엔 NEW 표시</b></div></li>
-            <li class="rise" style="--i:3"><div><b>버튼 하나로 해당 앱으로 이동</b></div></li>
-            <li class="rise" style="--i:4"><div><b>마음에 드는 할인은 공유하기</b></div></li>
-            <li class="rise" style="--i:5"><div><b>안 쓰는 브랜드는 숨기기</b><span>잘못된 정보는 바로 제보</span></div></li>
+            <li class="rise" style="--i:2"><div><b>버튼 하나로 해당 앱으로 이동</b></div></li>
+            <li class="rise" style="--i:3"><div><b>마음에 드는 할인은 공유하기</b></div></li>
           </ul>
         </div>
-        <div class="cta rise" style="--i:6">
+        <div class="cta rise" style="--i:4">
           <p>지금 받을 수 있는 할인,<br /><em>바로 확인</em>해 보세요</p>
           <a class="btn" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
         </div>
@@ -400,6 +392,20 @@
     const track = document.querySelector('.track')
     const pg = document.getElementById('pg')
     pg.textContent = 1
+    // 오른쪽 세로 색인(장 이동)
+    const dots = document.createElement('nav')
+    dots.className = 'dots'
+    dots.setAttribute('aria-label', '장 이동')
+    slides.forEach((_, i) => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.setAttribute('aria-label', `${i + 1}번째 장`)
+      b.addEventListener('click', () => go(i))
+      dots.appendChild(b)
+    })
+    document.body.appendChild(dots)
+    const markDots = (i) => [...dots.children].forEach((b, k) => b.setAttribute('aria-current', String(k === i)))
+    markDots(0)
     const go = (i) => {
       i = Math.min(slides.length - 1, Math.max(0, i))
       if (i === cur || busy) return
@@ -407,6 +413,7 @@
       track.style.transform = `translate3d(0, ${-i * box.clientHeight}px, 0)`
       slides[i].classList.add('in')
       pg.textContent = i + 1
+      markDots(i)
       setTimeout(() => { busy = false }, reduce ? 50 : 600)
     }
     box.addEventListener('wheel', (e) => {
