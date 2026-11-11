@@ -1,7 +1,6 @@
-/* 포인트 색: 주황(--sale)을 파랑으로. 필터 시트, 배너, 숨긴 목록 같은 공용 영역도 파랑이다.
-   헤더(.title-bar: 검색바, 인기 도크, 분류 바)와 빠른 정렬은 A/B에서 새로 그리지 않는 영역이라 운영 주황(styles/base.css의 :root 값)을 그대로 둔다. */
+/* 테마색: A는 주황, B는 파랑으로 일부러 다르게 둔다(2026-11-11 사용자). 화면 전체(헤더, 빠른 정렬, 시트, 배너, 카드)가 쓰는 변수 --sale과
+   --sale-weak만 B에서 바꾸고, 공용 영역(헤더, 빠른 정렬, 바닥글)의 UI와 배치는 A와 같게 둔다. A의 값은 styles/base.css의 :root에 있다. */
 :root:has(.v2) { --sale: #3182f6; --sale-weak: #e8f1ff; }
-:root:has(.v2) .title-bar, .v2 .quick-bar { --sale: #c44200; --sale-weak: #fdf0e9; }
 /* 글자색은 카드에만 준다. 페이지 바탕과 빠른 정렬의 글자색은 운영과 같다. */
 .v2-card { color: #191f28; }
 .v2 { --v2-pad: 1.25rem; --v2-in: 0.625rem; --v2-btn: 0.875rem; --v2-between: 1.75rem; box-sizing: border-box; padding-bottom: 2.5rem; min-height: 100vh; overflow-x: hidden; }
