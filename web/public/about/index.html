@@ -212,6 +212,12 @@
     .dots button[aria-current="true"]::before { background: var(--sale); opacity: 1; transform: scale(1.7); }
     .dots button:focus-visible { outline: 2px solid var(--sale); outline-offset: -2px; border-radius: 6px; }
     @media (max-width: 767px) { .dots { right: 2px; } .dots button { width: 20px; height: 20px; } }
+  
+    /* 실제 화면 시연: 폰 안 iframe. 눌리지 않고, 준비가 끝나면 포스터 위로 서서히 나타난다 */
+    .phone iframe.live { position: absolute; top: 38px; left: 0; width: 390px; height: 844px; border: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; transition: opacity .5s; background: #fbfbfa; }
+    .phone iframe.live.on { opacity: 1; }
+    .phone .tap { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: rgba(221, 75, 2, .4); pointer-events: none; z-index: 2; animation: tap .6s ease-out forwards; }
+    @keyframes tap { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -228,7 +234,7 @@
           <a class="btn rise" style="--i:3" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
         </div>
         <div class="phone rise" style="--i:2">
-          <div class="phone__screen"><img src="/about/hero.webp" width="480" height="1038" alt="치킨 카테고리 화면. 브랜드마다 가장 큰 할인금액, 멤버십, 이동할 앱이 카드 하나에 보이고 스크롤된다." /></div>
+          <div class="phone__screen" data-scene="hero"><img src="/about/hero.jpg" width="480" height="1038" alt="치킨 카테고리 화면. 브랜드마다 가장 큰 할인금액, 멤버십, 이동할 앱이 카드 하나에 보이고 스크롤된다." /></div>
         </div>
       </div>
       <a class="next" href="#s2" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -246,7 +252,7 @@
           <p class="lead rise" style="--i:2">플랫폼별 할인 정보를 비교하고,<br />최고 할인을 선정해요.</p>
         </div>
         <div class="phone rise" style="--i:2">
-          <div class="phone__screen"><img src="/about/sheet.webp" width="480" height="1038" alt="청년피자 자세히 보기. 쿠팡이츠, 배달의민족, 요기요, 땡겨요별 할인이 스크롤하며 나열된다." /></div>
+          <div class="phone__screen" data-scene="sheet"><img src="/about/sheet.jpg" width="480" height="1038" alt="청년피자 자세히 보기. 쿠팡이츠, 배달의민족, 요기요, 땡겨요별 할인이 스크롤하며 나열된다." /></div>
         </div>
       </div>
       <a class="next" href="#s3" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -261,7 +267,7 @@
           
         </div>
         <div class="phone rise" style="--i:2">
-          <div class="phone__screen"><img src="/about/hot.webp" width="480" height="1038" alt="인기 브랜드 순위 화면. 1위부터 5위까지 브랜드와 할인금액이 목록으로 보인다." /></div>
+          <div class="phone__screen" data-scene="hot"><img src="/about/hot.jpg" width="480" height="1038" alt="인기 브랜드 순위 화면. 1위부터 5위까지 브랜드와 할인금액이 목록으로 보인다." /></div>
         </div>
       </div>
       <a class="next" href="#s4" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -276,7 +282,7 @@
           
         </div>
         <div class="phone rise" style="--i:2">
-          <div class="phone__screen"><img src="/about/category.webp" width="480" height="1038" alt="피자 카테고리를 고른 화면. 피자 브랜드 카드를 스크롤하며 본다." /></div>
+          <div class="phone__screen" data-scene="category"><img src="/about/category.jpg" width="480" height="1038" alt="피자 카테고리를 고른 화면. 피자 브랜드 카드를 스크롤하며 본다." /></div>
         </div>
       </div>
       <a class="next" href="#s5" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -291,7 +297,7 @@
           
         </div>
         <div class="phone rise" style="--i:2">
-          <div class="phone__screen"><img src="/about/filter.webp" width="480" height="1038" alt="필터 화면. 배달앱, 카테고리, 정렬, 멤버십을 고를 수 있다." /></div>
+          <div class="phone__screen" data-scene="filter"><img src="/about/filter.jpg" width="480" height="1038" alt="필터 화면. 배달앱, 카테고리, 정렬, 멤버십을 고를 수 있다." /></div>
         </div>
       </div>
       <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -306,7 +312,7 @@
           
         </div>
         <div class="phone rise" style="--i:2">
-          <div class="phone__screen"><img src="/about/detail.webp" width="480" height="1038" alt="자세히 보기 화면. 앱별 할인금액과 최소주문금액, 할인 기록 그래프가 보인다." /></div>
+          <div class="phone__screen" data-scene="detail"><img src="/about/detail.jpg" width="480" height="1038" alt="자세히 보기 화면. 앱별 할인금액과 최소주문금액, 할인 기록 그래프가 보인다." /></div>
         </div>
       </div>
       <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -414,6 +420,7 @@
       slides[i].classList.add('in')
       pg.textContent = i + 1
       markDots(i)
+      showLive(i)
       setTimeout(() => { busy = false }, reduce ? 50 : 600)
     }
     box.addEventListener('wheel', (e) => {
@@ -435,6 +442,133 @@
       if (d) { e.preventDefault(); go(cur + d) }
     })
     document.querySelectorAll('.next').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); go(slides.indexOf(document.querySelector(a.getAttribute('href')))) }))
+    // ===== 화면 시연 =====
+    // 폰 안에 실제 서비스(B 홈)를 띄우고 아래 대본대로 누르고 스크롤한다. 슬라이드에 들어올 때 한 번 재생한다.
+    // 대본(SCENES)만 고치면 된다. 단계 종류:
+    //   { tap: '글자' | (d) => 요소 }   그 요소를 누른다(주황 원이 번쩍)
+    //   { scroll: 900, ms: 1800 }       창을 그 위치까지 부드럽게. el: '선택자'를 주면 그 요소 안을 민다
+    //   { wait: 800 }                   쉰다
+    //   { run: async (d, w) => {} }     화면을 직접 만진다(연출용 값 바꾸기 등)
+    //   { reveal: true }                여기까지는 가려진 채 준비하고, 이 단계에서 실제 화면을 보여 준다
+    const APP = '/?home=b&dev=1'
+    const byText = (d, t, last) => { const l = [...d.querySelectorAll('button,a,[role=tab]')].filter((x) => (x.getAttribute('aria-label') || x.innerText || '').trim().startsWith(t)); return last ? l[l.length - 1] : l[0] }
+    const card = (d, brand) => [...d.querySelectorAll('article.v2-card')].find((x) => x.dataset.brand === brand)
+    const nap = (ms) => new Promise((r) => setTimeout(r, ms))
+    // 연출: 카드의 금액, 채널, 멤버십, 이동 앱을 바꿔 맨 위로 올린다(실제 값이 아니다)
+    const stage = (d, brand, amount, channel, member, app, bg) => {
+      const c = card(d, brand); if (!c) return
+      c.querySelector('.v2-num').textContent = amount
+      let box = c.querySelector('.v2-card__chips')
+      if (!box) { box = d.createElement('span'); box.className = 'v2-card__chips'; c.querySelector('.v2-card__headtext').appendChild(box) }
+      const m = d.querySelector('.v2-chip--membership')
+      box.innerHTML = `<span class="v2-chip v2-chip--channel">${channel}</span>`
+      const chip = m ? m.cloneNode(true) : d.createElement('span'); chip.className = m ? m.className : 'v2-chip v2-chip--membership'; chip.textContent = member
+      if (member === '배민클럽') { chip.style.background = bg; chip.style.color = '#fff' }
+      box.appendChild(chip)
+      const g = c.querySelector('a.v2-go'); g.textContent = app + '에서 확인'; g.style.background = bg
+      c.parentElement.insertBefore(c, c.parentElement.firstChild)
+    }
+    const SCENES = {
+      // 1장: 치킨, 푸라닭과 BBQ를 8,000원으로 연출
+      hero: [
+        { tap: '치킨' }, { wait: 1200 },
+        { run: async (d, w) => { for (let i = 0; i < 6; i++) { w.scrollTo(0, d.documentElement.scrollHeight); await nap(350) } } }, // BBQ가 목록 아래라 끝까지 내려 불러온다
+        { run: (d, w) => { stage(d, 'BBQ', '8,000', '배달', '쿠팡와우', '쿠팡이츠', '#4a2410'); stage(d, '푸라닭', '8,000', '배달', '배민클럽', '배달의민족', '#2ac1bc'); w.scrollTo(0, 0) } },
+        { reveal: true }, { wait: 900 },
+        { scroll: 900, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1600 },
+      ],
+      // 2장: 피자에서 청년피자 자세히 시트를 띄우고 앱별 할인을 내려 본다
+      sheet: [
+        { tap: '피자' }, { wait: 1200 },
+        { run: (d) => { const c = card(d, '청년피자'); c.scrollIntoView({ block: 'center' }); c.querySelector('.v2-card__body').click() } }, { wait: 900 },
+        { reveal: true }, { wait: 900 },
+        { scroll: 9999, ms: 2600, el: '.v2-sheet__offers' }, { wait: 500 }, { scroll: 0, ms: 1600, el: '.v2-sheet__offers' },
+      ],
+      // 3장: 인기 브랜드(HOT)를 펼치고 아래 목록을 내려 본다
+      hot: [
+        { tap: '인기 브랜드 펼치기' }, { wait: 900 },
+        { reveal: true }, { wait: 900 },
+        { scroll: 700, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1400 },
+      ],
+      // 4장: 피자 카테고리를 내려 본다
+      category: [
+        { tap: '피자' }, { wait: 1200 },
+        { reveal: true }, { wait: 900 },
+        { scroll: 1000, ms: 2600 }, { wait: 500 }, { scroll: 0, ms: 1600 },
+      ],
+      // 5장: 필터에서 피자를 골라 적용하고 결과를 내려 본다
+      filter: [
+        { tap: '필터 열기' }, { wait: 900 },
+        { reveal: true }, { wait: 1000 },
+        { tap: (d) => [...d.querySelectorAll('button')].find((x) => x.innerText.trim() === '피자' && x.getBoundingClientRect().top > 400) }, // 필터 창의 칩(위쪽 탭 줄의 '피자'와 구분), { wait: 700 },
+        { tap: '적용' }, { wait: 1100 },
+        { scroll: 700, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1400 },
+      ],
+      // 6장: 자세히를 열어 할인을 보고 할인 기록 탭으로 넘긴다
+      detail: [
+        { tap: (d) => [...d.querySelectorAll('*')].filter((x) => x.children.length < 3 && (x.innerText || '').trim().startsWith('자세히'))[0] }, { wait: 1000 },
+        { reveal: true }, { wait: 1000 },
+        { scroll: 600, ms: 1600, el: '.v2-sheet__offers' }, { wait: 400 }, { scroll: 0, ms: 1000, el: '.v2-sheet__offers' }, { wait: 300 },
+        { tap: '할인 기록' }, { wait: 3000 },
+      ],
+    }
+    const ease = (t) => t * t * (3 - 2 * t)
+    const live = new Map() // 화면 요소 -> 재생 번호
+    const fit = (scr, fr) => { fr.style.transform = `scale(${scr.clientWidth / 390})` }
+    const stop = (scr) => { live.delete(scr); scr.querySelector('iframe')?.remove(); scr.querySelectorAll('.tap').forEach((x) => x.remove()) }
+    async function play(scr) {
+      const id = Symbol(); live.set(scr, id)
+      const ok = () => live.get(scr) === id
+      const fr = document.createElement('iframe')
+      fr.className = 'live'; fr.src = APP; fr.title = '서비스 화면 시연'; fr.tabIndex = -1; fr.setAttribute('aria-hidden', 'true')
+      scr.appendChild(fr); fit(scr, fr)
+      await new Promise((r) => fr.addEventListener('load', r, { once: true }))
+      if (!ok()) return
+      const w = fr.contentWindow, d = fr.contentDocument
+      const st = d.createElement('style')
+      st.textContent = '.dev-badge,.night-notice,.report-tip,.push-setting-preview-backdrop{display:none!important}html{scroll-behavior:auto!important}::-webkit-scrollbar{display:none}'
+      d.head.appendChild(st)
+      await nap(1600)
+      let shown = false
+      for (const s of SCENES[scr.dataset.scene]) {
+        if (!ok()) return
+        if (s.wait) await nap(s.wait)
+        else if (s.run) await s.run(d, w)
+        else if (s.reveal) { fr.classList.add('on'); shown = true }
+        else if (s.tap) {
+          const el = typeof s.tap === 'function' ? s.tap(d) : byText(d, s.tap)
+          if (!el) { console.warn('탭할 요소 없음', s.tap); continue }
+          if (shown) { // 누르는 곳에 원 표시
+            const r = el.getBoundingClientRect(), k = scr.clientWidth / 390, dot = document.createElement('i')
+            dot.className = 'tap'; dot.style.left = (r.left + r.width / 2) * k + 'px'; dot.style.top = 38 + (r.top + r.height / 2) * k + 'px'
+            scr.appendChild(dot); setTimeout(() => dot.remove(), 600); await nap(250)
+          }
+          el.click()
+        } else if (s.scroll !== undefined) {
+          const t = s.el ? d.querySelector(s.el) : null
+          const from = t ? t.scrollTop : w.scrollY
+          const to = Math.min(s.scroll, t ? t.scrollHeight - t.clientHeight : d.documentElement.scrollHeight - w.innerHeight)
+          const t0 = performance.now()
+          await new Promise((res) => {
+            const tick = (now) => {
+              const p = Math.min(1, (now - t0) / s.ms), y = from + (to - from) * ease(p)
+              if (t) t.scrollTop = y; else w.scrollTo(0, y)
+              if (p < 1 && ok()) requestAnimationFrame(tick); else res()
+            }
+            requestAnimationFrame(tick)
+          })
+        }
+      }
+    }
+    const screens = slides.map((s) => s.querySelector('[data-scene]'))
+    const showLive = (i) => {
+      if (reduce) return
+      const scr = screens[i]
+      if (scr && !live.has(scr)) play(scr)
+      setTimeout(() => screens.forEach((x, k) => { if (x && k !== cur) stop(x) }), 700)
+    }
+    addEventListener('resize', () => screens.forEach((x) => { const f = x?.querySelector('iframe'); if (f) fit(x, f) }))
+    showLive(0)
     addEventListener('resize', () => { track.style.transform = `translate3d(0, ${-cur * box.clientHeight}px, 0)` })
   </script>
 <script>/* 밖에서 바로 들어왔으면 뒤로 = 홈(2026-10-19, src/backClose.js homeUnderDirectLanding과 같다) */(function(){var s=false;try{s=new URL(document.referrer).origin===location.origin}catch(e){}if(!s&&!history.state){var h=location.href;history.replaceState({home:true},'','/');history.pushState({landed:true},'',h)}addEventListener('popstate',function(e){if(e.state&&e.state.home)location.replace('/')})})()</script></body>
