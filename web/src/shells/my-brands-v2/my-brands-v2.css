@@ -135,3 +135,9 @@
 html:has(.v2), html:has(.v2) body { scrollbar-width: none; -ms-overflow-style: none; }
 html:has(.v2)::-webkit-scrollbar, html:has(.v2) body::-webkit-scrollbar, html:has(.v2) .sheet__body::-webkit-scrollbar { display: none; }
 html:has(.v2) .sheet__body { scrollbar-width: none; }
+
+/* 바닥글: 안내 한 줄 아래에 구분선으로 나뉜 버튼 셋을 너비 100%로 둔다. */
+.v2-footer { border-top: 0; padding-top: 0; }
+.v2-footer__links { display: flex; width: 100%; margin-top: 0.75rem; overflow: hidden; border-radius: 0.75rem; background: #fff; }
+.v2-footer__links a { flex: 1 1 auto; min-width: 0; padding: 0.8125rem 0.5rem; text-align: center; white-space: nowrap; font-size: 0.78rem; color: #4e5968; text-decoration: none; }
+.v2-footer__links a + a { border-left: 1px solid #e5e8eb; }
