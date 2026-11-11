@@ -34,6 +34,17 @@
     <link rel="preload" as="style" href="/fonts/pretendard-optional.css" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="/fonts/pretendard-optional.css" /></noscript>
     <title>배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 최고 할인 쿠폰 비교</title>
+    <!-- 홈 카드 A/B(#291): 갈래가 B로 저장된 방문(home_arm, homeExperiment.js가 저장)은 서버가 그린 운영 카드(A)를 첫 화면 전에
+         숨긴다. A가 보였다 B로 바뀌는 깜박임을 막는 것이다. main.jsx가 그릴 준비가 되면 풀고, 3초 안에 못 풀어도 여기서 푼다. -->
+    <style>html[data-home-wait] #root{visibility:hidden}</style>
+    <script>
+      try {
+        if (localStorage.getItem('home_arm') === 'v2') {
+          document.documentElement.setAttribute('data-home-wait', '')
+          setTimeout(function () { document.documentElement.removeAttribute('data-home-wait') }, 3000)
+        }
+      } catch (e) {}
+    </script>
     <script>
       // 배너는 첫 화면에서 가장 늦게 뜨는 요소다. 앱 번들을 받고 실행한 뒤에야 요청하던 것을
       // 여기서 먼저 보낸다(2026-09-30 Lighthouse LCP 8초대). 앱은 이 응답을 받아 쓴다(api.js).

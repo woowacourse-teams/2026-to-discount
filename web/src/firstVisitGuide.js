@@ -30,7 +30,7 @@ const CATEGORY = '카테고리를 선택해 모아 볼 수 있어요.'
 
 // 상단 바(TopBarB: 검색창 + 분류 메뉴 + 필터 시트)와 쿠폰 카드 기준. 운영 카드 안은 2026-10-17에 지웠다.
 export function guideSteps() {
-  return [card('.brand-grid > :first-child .cc-ticket', 'left', '.brand-grid > :first-child .cc-hint', 'right'), SORT,
+  return [card('.brand-grid > :first-child .cc-ticket, .brand-grid > :first-child .v2-go', 'left', '.brand-grid > :first-child .cc-hint, .brand-grid > :first-child .v2-detail', 'right'), SORT,
     { key: 'category', selector: '.menu-bar', text: CATEGORY },
     { key: 'search', selector: '.search-field', text: '브랜드를 검색할 수 있어요.' },
     { key: 'filter', selector: '[aria-label="필터 열기"]', text: '필터 페이지에서 원하는 조건을 선택할 수 있어요.' }]

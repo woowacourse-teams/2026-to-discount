@@ -123,6 +123,12 @@ export function qualifiersOf(offer) {
   return KNOWN_QUALIFIERS.includes(offer.conditions) ? [offer.conditions] : []
 }
 
+// 빼빼로 한정 추가 할인(2026-11-11 사용자): 세븐일레븐과 CU의 "10,000원 이상 1,900원" 추가 할인은 빼빼로 상품에만 쓴다.
+// 합산 금액(1,900원 + 쿠폰)과 정렬은 그대로 두어 상단 노출은 유지하고, 한정 배지만 더한다. 원장이 이 조건을 담기 전까지 웹이 브랜드와 구간으로 짚는다.
+const PEPERO_BRANDS = ['세븐일레븐', 'CU']
+export const peperoLimited = (brandName, offer) =>
+  PEPERO_BRANDS.includes(brandName) && (offer.tiers ?? []).some((t) => t.minOrder === 10000 && t.amount === 1900)
+
 /** 칩마다 뜨는 자리. 'head' 카드 머리나 상세 오퍼 머리, 'row' 상세 표 줄, false 안 뜸. 정본: docs/design/151 표시 위치 표. */
 export const CHIP_PLACEMENT = {
   'qualifier-plain': { card: 'head', detail: 'head' },
@@ -141,7 +147,7 @@ export const CHIP_PLACEMENT = {
  * 오퍼 하나의 칩 목록(#151). 카드와 상세가 여기서 뽑는다(onCard, onDetail).
  * scope 'offer': 대표 구간의 채널, badgesOf(멤버십은 대표 구간의 membershipOf로), qualifiers. scope 'tier': 상세 표 줄의 칩.
  */
-export function chipsOf(offer) {
+export function chipsOf(offer, brandName) {
   const ch = channelOf(offer)
   const rep = (offer.tiers ?? []).find((t) => t.amount === offer.amount)
   // 대표 구간을 못 찾으면(구간은 있되 금액이 오퍼와 안 맞음) 오퍼 값으로 판단한다. 빈 구간을 넣으면 오퍼 멤버십 칩이 사라졌다.
@@ -150,6 +156,7 @@ export function chipsOf(offer) {
   const offerChips = [
     ...(ch ? [{ kind: 'channel', text: ch }] : []),
     ...badges.filter((b) => b.kind !== 'membership' || showMem),
+    ...(peperoLimited(brandName, offer) ? [{ kind: 'limited', text: '빼빼로 한정할인' }] : []),
     // 오퍼 값은 없고 대표 구간만 멤버십을 말할 때
     ...(showMem && !badges.some((b) => b.kind === 'membership')
       ? [{ kind: 'membership', text: MEMBERSHIP_LABEL[offer.platform] ?? offer.badge }] : []),

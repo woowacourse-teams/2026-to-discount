@@ -6,6 +6,7 @@ import ErrorBoundary from './ErrorBoundary.jsx'
 import { onRecoverableError, startErrorReporting, startWebVitals } from './telemetry.js'
 import { setHubLinks } from './offerLink.js'
 import {
+  setHomeContext,
   disablePostHogFanout,
   registerPostHogSink,
   startAnalyticsDelivery,
@@ -13,12 +14,22 @@ import {
 import { startGa4 } from './ga4.js'
 import { optedOut } from './privacy.js'
 import { markVariantOnRoot } from './variant.js'
-import { getAnalyticsContext } from './analytics-context.js'
+import { getAnalyticsContext, isProdHost } from './analytics-context.js'
+import { currentHomeArm, saveHomeArm, savedHomeArm } from './homeExperiment.js'
 import { initializeShareAttribution } from './shareAttribution.js'
 import './App.css'
 import { exitGuard, homeUnderDirectLanding } from './backClose.js'
 import { showNotice } from './offerLink.js'
 
+// 홈 카드 A/B(#291): 이번 방문의 안을 첫 이벤트 전에 정한다. 이벤트마다 props.home(+ 강제면 home_forced)로 실린다.
+const { arm: homeArm, forced: homeForced, save: homeSave } = currentHomeArm({
+  visitorId: getAnalyticsContext().visitorId, prodHost: isProdHost(), search: window.location.search, saved: savedHomeArm(),
+})
+if (homeSave) saveHomeArm(homeSave)
+// index.html 머리가 B로 저장된 방문의 서버 HTML(운영 카드)을 숨겨 뒀다. 그릴 준비가 되면 푼다.
+const releaseHomeWait = () => document.documentElement.removeAttribute('data-home-wait')
+setHomeContext(homeArm, homeForced)
+document.documentElement.dataset.home = homeArm
 homeUnderDirectLanding()
 exitGuard((text) => showNotice(text, 1600))
 
@@ -96,9 +107,9 @@ if (!quiet) {
 // 버리지 않고 하이드레이션한다. 없으면(브랜드 페이지, SSR 실패) 예전처럼 통째로 그린다.
 const ssr = window.__SSR__
 if (ssr) setHubLinks(ssr.banners)
-const tree = (
+const makeTree = (home) => (
   <React.StrictMode>
-    <ErrorBoundary><App initial={ssr} /></ErrorBoundary>
+    <ErrorBoundary>{home}</ErrorBoundary>
     {/* Vercel 배포 트래픽 집계. /react 엔트리를 쓴다 — Next.js가 아니라
         Vite라 /next는 안 맞는다. 자체 /api/events 수집(analytics.js)과는
         별개로, Vercel 대시보드에서 보는 용도다. DNT/GPC opt-out이면
@@ -106,11 +117,20 @@ const tree = (
     {!optedOut() && !quiet && <Analytics />}
   </React.StrictMode>
 )
+const tree = makeTree(<App initial={ssr} />)
 const rootEl = document.getElementById('root')
 // ?home=a면 쿠폰 카드 조각을 하이드레이션 전에 미리 받는다(받는 동안 운영 카드가 보였다가 바뀌는 깜박임과 최대 콘텐츠 표시 시간 손해를 줄인다).
 // 첫 렌더에는 영향이 없다(App은 마운트 뒤에 주소를 읽는다).
 
-if (ssr) {
+if (homeArm !== 'v2') releaseHomeWait()
+if (homeArm === 'v2') {
+  // 시안 카드(B, #291): 서버가 그려 보낸 HTML은 운영 카드라 하이드레이션하지 않고 통째로 새로 그린다. 서버 데이터(initial)는 그대로 넘겨
+  // 다시 받지 않는다. 시안 코드와 CSS는 이 갈래에서만 받는다(A에는 시안 CSS가 실리지 않는다). 못 받으면 운영 카드로 그린다.
+  // 받는 동안은 숨겨 둔 서버 HTML을 비우고 푼다(운영 카드가 보였다 시안으로 바뀌는 깜박임 방지).
+  import('./shells/my-brands-v2/MyBrandsV2Shell.jsx')
+    .then(({ default: MyBrandsV2Shell }) => { rootEl.replaceChildren(); releaseHomeWait(); ReactDOM.createRoot(rootEl).render(makeTree(<MyBrandsV2Shell initial={ssr} />)) })
+    .catch(() => { rootEl.replaceChildren(); releaseHomeWait(); ReactDOM.createRoot(rootEl).render(tree) })
+} else if (ssr) {
   ReactDOM.hydrateRoot(rootEl, tree, { onRecoverableError })
   // iOS WebKit(사파리, 카카오톡 인앱)은 서버가 그린 쿠폰의 컨테이너 단위(cqw) 글자를 처음 한 번 잘못 배치한다.
   // 금액 위에 '원 할인'이 겹치고 최소주문 글자가 사라진 채 남았다(2026-10-07 실기). 다시 그리면 풀리므로

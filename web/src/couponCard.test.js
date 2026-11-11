@@ -83,7 +83,7 @@ test('Tags: 상세에 condition 칩(클래스)과 멤버십 칩이 뜬다', () =
 test('상세 Tags 호출부는 소스에 정확히 두 곳(펼친 목록, 시트)이다', async () => {
   const { readFile } = await import('node:fs/promises')
   const src = await readFile(path.join(here, 'CouponCard.jsx'), 'utf8')
-  assert.equal((src.match(/<Tags o=\{o\} detail \/>/g) ?? []).length, 2)
+  assert.equal((src.match(/<Tags o=\{o\} detail\b[^>]*\/>/g) ?? []).length, 2) // brandName 같은 속성이 붙어도 센다
 })
 test('Tags: 오픈 전은 배지 줄에서 빠진다(쿠폰 로고 위에만), 품절은 남는다', () => {
   const d = new Date()

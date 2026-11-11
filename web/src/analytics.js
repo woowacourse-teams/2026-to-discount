@@ -59,10 +59,14 @@ const makeContext = () => ({
 // prop으로 끌고 다니면 새 필터가 늘 때 빠뜨린다.
 let filterContext = {}
 // 메인 화면 A/B(2026-10-05 ~ 10-17)는 쿠폰 카드로 끝났다. 집계가 이어지게 home 값은 계속 싣는다.
-const HOME_CONTEXT = { home: 'coupon' }
+let homeContext = { home: 'coupon' }
+// 홈 A/B(#291): main.jsx가 첫 이벤트 전에 이번 방문의 안(coupon | v2)을 정한다. 강제한 방문은 home_forced=1.
+export function setHomeContext(arm, forced = false) {
+  homeContext = forced ? { home: arm, home_forced: 1 } : { home: arm }
+}
 // 모든 이벤트 props에 싣는 공통 키. 서버 BRAND_SEARCH_PROPS가 이 이름을 모두 받는지
 // scripts/verify-analytics-event-contract.mjs가 맞댄다. 공통 키를 늘리면 여기에도 적는다.
-export const ALL_EVENT_PROP_KEYS = [...Object.keys(HOME_CONTEXT), 'entryFrom']
+export const ALL_EVENT_PROP_KEYS = ['home', 'home_forced', 'entryFrom']
 function entryFromProps() {
   const entryFrom = getEntryFrom()
   return entryFrom ? { entryFrom } : {}
@@ -151,10 +155,10 @@ function createAnalyticsEvent(event, additions = {}) {
     // 그 이벤트가 말하려던 값이었다 — banner_impression의 position이
     // 통째로 유실돼 상단/하단 구분이 안 됐다(2026-08-22). 넘치면 맥락이
     // 먼저 떨어져야 한다.
-    // home 값(HOME_CONTEXT)은 모든 이벤트에 싣는다. 서버가 18개에서 자르므로(EventController.MAX_PROPS)
+    // home 값(homeContext)은 모든 이벤트에 싣는다. 서버가 18개에서 자르므로(EventController.MAX_PROPS)
     // 필터 맥락보다 앞에 둔다: 링크 클릭은 고유 13 + A/B 1 + 필터 4 = 18이라 넘치면 필터가 먼저 떨어진다.
     // entryFrom(주소 ?from=, #221)도 필터 맥락 앞이다. 값이 없으면 키를 안 만든다.
-    props: { ...shareAnalyticsProps(), ...props, ...HOME_CONTEXT, ...entryFromProps(), ...filterContext },
+    props: { ...shareAnalyticsProps(), ...props, ...homeContext, ...entryFromProps(), ...filterContext },
 
     clientTs: new Date().toISOString(),
   }

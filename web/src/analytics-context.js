@@ -4,6 +4,8 @@ const SESSION_KEY = 'dk_session'
 const DEV_KEY = 'dk_dev'
 // 운영 호스트. 여기 없는 주소에서 난 이벤트는 dev로 찍힌다.
 const PROD_HOSTS = new Set(['beggars-five.vercel.app'])
+// 홈 A/B 배정(homeExperiment.js)이 쓴다: 운영 주소에서만 방문자를 나눈다.
+export const isProdHost = () => typeof location !== 'undefined' && PROD_HOSTS.has(location.hostname)
 
 // localStorage가 막힌 환경(사파리 프라이빗 등)에서 앱까지 멈추지 않게 한다.
 function safeStore(store, key, value) {

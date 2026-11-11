@@ -56,7 +56,7 @@ export function linePaths(xy, bottom) {
   return { solid, area, carried }
 }
 
-export function chartModel(points) {
+export function chartModel(points, w = W, h = H) {
   const drawable = points.filter((p) => p.amount != null)
   if (drawable.length < 2) return null
   const amounts = drawable.map((p) => p.amount)
@@ -64,11 +64,11 @@ export function chartModel(points) {
   const t0 = Date.parse(points[0].date)
   const span = Math.max(1, Date.parse(points[points.length - 1].date) - t0)
   const r = (n) => Math.round(n * 10) / 10
-  const x = (p) => r(GUTTER + ((Date.parse(p.date) - t0) / span) * (W - GUTTER - RIGHT))
-  const yOf = (v) => r(TOP + ((hi - v) / (hi - lo)) * (H - BOTTOM - TOP))
+  const x = (p) => r(GUTTER + ((Date.parse(p.date) - t0) / span) * (w - GUTTER - RIGHT))
+  const yOf = (v) => r(TOP + ((hi - v) / (hi - lo)) * (h - BOTTOM - TOP))
   // 그리기는 한 가지 선으로(2026-10-14 사용자: 점선 빼고 균일하게). 못 본 날 구분은 누를 때 글자로만 남긴다.
   const xy = points.map((p) => ({ x: x(p), y: p.amount == null ? null : yOf(p.amount), line: 'solid' }))
-  return { ...linePaths(xy, H - BOTTOM), xy, lo, hi, yLo: yOf(lo), yHi: yOf(hi) }
+  return { ...linePaths(xy, h - BOTTOM), xy, lo, hi, yLo: yOf(lo), yHi: yOf(hi) }
 }
 
 export function nearestIndex(xPx, xs) {
