@@ -7,6 +7,7 @@
 // 실패하면(API 장애, 렌더 오류) 사전 렌더링 HTML을 그대로 보낸다 — 예전 CSR과 같다.
 import { loadData, render } from '../dist-server/entry-server.js'
 import template, { couponCss } from '../dist-server/template.js'
+import { ssrJson } from '../src/ssrJson.js'
 
 const ROOT_OPEN = '<div id="root">'
 
@@ -19,8 +20,8 @@ const RELAYOUT = "(function(){if(!/iP(hone|ad|od)/.test(navigator.userAgent)&&!(
 export function inject(html, appHtml, data) {
   const start = html.indexOf(ROOT_OPEN)
   const end = html.lastIndexOf('</div>', html.indexOf('</body>'))
-  // null 칸은 싣지 않는다. 화면은 null과 없는 칸을 같게 다룬다(!= null, ??). 실린 데이터가 약 20% 준다(2026-10-06).
-  const json = JSON.stringify(data, (_k, v) => (v === null ? undefined : v)).replace(/</g, '\\u003c')
+  // null 칸은 싣지 않는다(isNew 제외). 이유와 예외는 src/ssrJson.js.
+  const json = ssrJson(data)
   const out = html.slice(0, start)
     + `${ROOT_OPEN}${appHtml}</div>\n    <script>${RELAYOUT}</script><script>window.__SSR__=${json}</script>`
     + html.slice(end + '</div>'.length)
