@@ -24,7 +24,17 @@ test('주소로 강제하면 배정과 상관없이 그 안이고 forced로 표�
   assert.deepEqual(currentHomeArm({ ...base, search: '?home=v2' }), { arm: 'v2', forced: true })
 })
 
-test('운영 주소가 아니면(프리뷰, localhost) 기본이 시안이고, 운영 주소는 배정을 따른다', () => {
-  assert.deepEqual(currentHomeArm({ visitorId: 'v_x', prodHost: false, search: '', now: after, start: START }), { arm: 'v2', forced: false })
+test('운영 주소가 아니면(프리뷰, localhost) 기본이 시안이고, 운영 주소는 시험을 켜기 전까지 A', () => {
+  assert.deepEqual(currentHomeArm({ visitorId: 'v_x', prodHost: false, search: '', now: after, start: START }), { arm: 'v2', forced: false, save: 'v2' })
   assert.deepEqual(currentHomeArm({ visitorId: 'v_x', prodHost: true, search: '', now: after, start: null }), { arm: 'coupon', forced: false })
+})
+
+test('B로 배정된 방문자는 첫 방문에 A, 갈래를 저장한 다음 방문부터 B', () => {
+  let id = 0
+  const pick = (want) => { for (;;) { const v = `v_${id++}`; if (homeArm(v, after, START) === want) return v } }
+  const base = { prodHost: true, search: '', now: after, start: START }
+  const b = pick('v2')
+  assert.deepEqual(currentHomeArm({ ...base, visitorId: b, saved: null }), { arm: 'coupon', forced: false, save: 'v2' })
+  assert.deepEqual(currentHomeArm({ ...base, visitorId: b, saved: 'v2' }), { arm: 'v2', forced: false, save: 'v2' })
+  assert.deepEqual(currentHomeArm({ ...base, visitorId: pick('coupon'), saved: null }), { arm: 'coupon', forced: false, save: 'coupon' })
 })

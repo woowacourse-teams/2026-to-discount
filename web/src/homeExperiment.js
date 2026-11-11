@@ -22,14 +22,31 @@ export function homeArm(visitorId, now = Date.now(), start = HOME_V2_START) {
   return (h >>> 31) === 1 ? 'v2' : 'coupon'
 }
 
-/** 이번 방문의 안. 브라우저에서만 부른다. { arm: 'coupon' | 'v2', forced } */
-export function currentHomeArm({ visitorId, prodHost, search, now, start }) {
+// 갈래를 브라우저에 저장하는 자리. index.html 머리의 작은 스크립트가 같은 키를 읽어, B로 저장된 방문이면 서버가 그린 운영 카드(A)를
+// 첫 화면 전에 숨긴다(A가 보였다 B로 바뀌는 깜박임 방지). 키 이름을 바꾸면 index.html도 같이 바꾼다.
+const SAVED_KEY = 'home_arm'
+export function savedHomeArm() {
+  try { return localStorage.getItem(SAVED_KEY) } catch { return null }
+}
+export function saveHomeArm(arm) {
+  try { localStorage.setItem(SAVED_KEY, arm) } catch { /* 저장 못 하면 다음 방문도 첫 방문처럼 A */ }
+}
+
+/**
+ * 이번 방문의 안. 브라우저에서만 부른다. { arm: 'coupon' | 'v2', forced, save? }
+ * 운영 주소에서 시험이 켜진 뒤 B로 배정된 방문자는 첫 방문에 서버가 그린 화면(A)을 그대로 빠르게 보고, save로 받은 갈래를
+ * 저장한 다음 방문부터 B를 본다. 이벤트의 home은 실제로 본 안이라, 그 첫 방문은 coupon으로 남는다.
+ */
+export function currentHomeArm({ visitorId, prodHost, search, now = Date.now(), start = HOME_V2_START, saved = null }) {
   let forced = null
   try {
     const h = new URLSearchParams(search).get('home')
     forced = h === 'a' ? 'coupon' : h === 'v2' ? 'v2' : null
   } catch { /* 주소를 못 읽으면 배정대로 */ }
   if (forced) return { arm: forced, forced: true }
-  if (!prodHost) return { arm: 'v2', forced: false }
-  return { arm: homeArm(visitorId, now, start), forced: false }
+  // 프리뷰와 localhost는 시안 확인용이라 첫 방문부터 B다.
+  if (!prodHost) return { arm: 'v2', forced: false, save: 'v2' }
+  if (start == null || now < start || !visitorId) return { arm: 'coupon', forced: false }
+  const assigned = homeArm(visitorId, now, start)
+  return { arm: assigned === 'v2' && saved !== 'v2' ? 'coupon' : assigned, forced: false, save: assigned }
 }
