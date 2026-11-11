@@ -22,6 +22,7 @@ test('주소로 강제하면 배정과 상관없이 그 안이고 forced로 표�
   const base = { visitorId: 'v_x', prodHost: true, now: after, start: START }
   assert.deepEqual(currentHomeArm({ ...base, search: '?home=a' }), { arm: 'coupon', forced: true })
   assert.deepEqual(currentHomeArm({ ...base, search: '?home=v2' }), { arm: 'v2', forced: true })
+  assert.deepEqual(currentHomeArm({ ...base, search: '?home=b' }), { arm: 'v2', forced: true })
 })
 
 test('운영 주소가 아니면(프리뷰, localhost) 기본이 시안이고, 운영 주소는 시험을 켜기 전까지 A', () => {

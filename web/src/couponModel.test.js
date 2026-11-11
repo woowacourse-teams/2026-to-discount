@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, shortBrandName, conditionTable, nameCutPx, amountText, chipsOf, onCard, onDetail, headOrder, CHIP_PLACEMENT, membershipOf, qualifiersOf } from './couponModel.js'
+import { splitOffers, minLabel, formulaOf, badgesOf, channelOf, shortBrandName, conditionTable, nameCutPx, amountText, chipsOf, onCard, onDetail, headOrder, CHIP_PLACEMENT, membershipOf, qualifiersOf, peperoLimited } from './couponModel.js'
 
 const o = (platform, amount, extra = {}) => ({ platform, amount, certainty: 'exact', kind: 'discount', ...extra })
 
@@ -289,4 +289,14 @@ test('beforeOpen: 배지 시각 전이면 참, 지나면 거짓, 시각 없으�
   assert.equal(beforeOpen({ badge: '오후 5시 오픈' }, at(16)), true)
   assert.equal(beforeOpen({ badge: '오후 12시 30분 오픈' }, at(12, 29)), true)
   assert.equal(beforeOpen({ badge: '선착순' }, at(1)), false)
+})
+
+test('빼빼로 한정할인 배지: 세븐일레븐과 CU의 10,000원 이상 1,900원 구간에만 붙고 금액과 순서는 그대로', () => {
+  const offer = o('yogiyo', 7900, { tiers: [{ minOrder: 10000, amount: 1900 }, { minOrder: 20000, amount: 7900 }] })
+  const text = (brand) => chipsOf(offer, brand).filter(onCard).map((c) => c.text)
+  assert.ok(text('세븐일레븐').includes('빼빼로 한정할인'))
+  assert.ok(text('CU').includes('빼빼로 한정할인'))
+  assert.ok(!text('GS25').includes('빼빼로 한정할인'))
+  assert.ok(!chipsOf(offer).some((c) => c.text === '빼빼로 한정할인')) // 브랜드를 모르면 붙이지 않는다
+  assert.equal(peperoLimited('CU', o('yogiyo', 5000, { tiers: [{ minOrder: 20000, amount: 5000 }] })), false) // 1,900원 구간이 없으면 아님
 })

@@ -47,7 +47,7 @@ export function cardOf(brand, include) {
   const { best, hasBest, bundles } = splitOffers(brand.offers, include)
   const offer = best[0]
   if (!offer) return null
-  const chips = headOrder(chipsOf(offer).filter(onCard)).map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? offer.platform }))
+  const chips = headOrder(chipsOf(offer, brand.name).filter(onCard)).map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? offer.platform }))
   return {
     name: brand.name,
     displayName: shortBrandName(brand),
@@ -88,7 +88,7 @@ export function detailOf(brand, include) {
       appLabel: appLabel(o),
       amountLabel: amountLabel(o),
       minLabel: minText(o.minOrderAmount),
-      chips: chipsOf(o).filter((c) => c.scope === 'offer').map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? o.platform })),
+      chips: chipsOf(o, brand.name).filter((c) => c.scope === 'offer').map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? o.platform })),
       // 합산식(10,000+2,000)은 화면에 안 낸다. 결과 금액과 최소주문만 다른 쿠폰과 같게 보인다. 값과 속성(최적 등)은 그대로.
       rows: rows.map((r) => ({ ...r, extra: /^[\d,]+\+[\d,]+$/.test(r.extra) ? '' : r.extra, min: r.min.replace('원↑', '원 이상 주문시') })),
       note,
