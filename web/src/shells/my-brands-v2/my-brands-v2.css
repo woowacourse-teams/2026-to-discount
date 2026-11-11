@@ -11,8 +11,6 @@
 .v2-card__head { display: flex; align-items: center; gap: var(--v2-in); flex: 1; min-width: 0; }
 .v2-card__headtext { display: grid; gap: calc(var(--v2-in) - 1px); min-width: 0; }
 .v2-card__head .brand-logo { width: 4.1875rem; height: 4.1875rem; border-radius: 1rem; }
-/* 신규 배지: 이름 바로 뒤(이름이 줄을 바꾸면 이름 따라간다). 강조색 바탕 흰 글씨. */
-.v2-new { display: inline-block; vertical-align: middle; margin-left: 0.375rem; padding: 0.1875rem 0.4375rem; border-radius: 0.375rem; background: var(--sale); color: #fff; font-size: 0.6875rem; font-weight: 800; line-height: 1.2; }
 /* 이름 첫 줄만 오른쪽 위 자세히 영역을 피해 좁아진다(float 빈칸). 둘째 줄부터는 전체 너비라 이름이 자리 때문에 짤리지 않는다. */
 .v2-card__name::before { content: ''; float: right; width: 4.5rem; height: 1.25em; }
 .v2-card__name { font-size: 1.125rem; font-weight: 700; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
@@ -30,6 +28,7 @@
 .v2-chip--membership[data-platform="yogiyo"] { background: #d6004a; color: #fff; }
 .v2-chip--limited, .v2-chip--channel { background: #e8f1ff; color: #1b64da; }
 .v2-chip--state { background: #f2f4f6; color: #4e5968; }
+.v2-chip--new { background: var(--sale); color: #fff; } /* 신규: 다른 배지와 같은 칸, 강조색 바탕 흰 글씨 */
 .v2-card--dim .v2-num { color: #b0b8c1; }
 .v2-chip--min { justify-self: start; background: #fff; border: 0; box-shadow: 0 1px 6px rgba(0, 0, 0, .15); }
 /* 공유 버튼은 자기 칸(머리 줄 오른쪽 끝)을 가진다. 카드 위 간격과 오른쪽 간격이 같다(14px). */

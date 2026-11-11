@@ -64,9 +64,10 @@ function V2Card({ brand, position, highlighted, onInteract, include = null, onHi
         <span className="v2-card__head" ref={headRef}>
           <BrandLogo name={card.name} />
           <span className="v2-card__headtext">
-            <span className="v2-card__name">{card.displayName}{card.isNew && <span className="v2-new">신규</span>}</span>
-            {card.chips.length > 0 && (
+            <span className="v2-card__name">{card.displayName}</span>
+            {(card.isNew || card.chips.length > 0) && (
               <span className="v2-card__chips">
+                {card.isNew && <Chip c={{ kind: 'new', text: '신규' }} />}
                 {card.chips.map((c, i) => <Chip key={`${c.kind}${i}`} c={c} />)}
               </span>
             )}
