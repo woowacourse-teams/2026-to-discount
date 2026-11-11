@@ -193,7 +193,17 @@
       .next svg { animation: bob 1.8s ease-in-out infinite; }
       @keyframes bob { 50% { transform: translateY(5px); } }
     }
-      </style>
+      
+    /* 폰 화면이 잘리지 않게: 데스크톱은 화면 높이에 맞춰 폰을 줄이고, 첫 장은 모바일에서 글을 작게 둔다 */
+    @media (min-width: 768px) { .slide--shot .phone { width: min(450px, calc((100dvh - 120px) * .462)); } }
+    @media (max-width: 767px) {
+      #s1 { padding-top: 48px; }
+      #s1 h1 { font-size: 2rem; }
+      #s1 .lead { margin-top: 8px; font-size: 1rem; }
+      #s1 .btn { height: 44px; margin-top: 14px; }
+      #s1 .split { gap: 16px; }
+    }
+  </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -204,14 +214,8 @@
       <a class="brand" href="/">배달앱 할인모음</a>
       <div class="slide__in split">
         <div>
-          <div class="apps rise">
-            <img src="/platform-icons/baemin.png" alt="배달의민족" />
-            <img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" />
-            <img src="/platform-icons/yogiyo.png" alt="요기요" />
-            <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
-          </div>
           <h1 class="rise" style="--i:1">배달앱 할인,<br /><em>한 화면</em>에서</h1>
-          <p class="lead rise" style="--i:2">배민, 쿠팡이츠, 요기요, 땡겨요.<br />브랜드별로 가장 큰 할인만 모았어요.</p>
+          <p class="lead rise" style="--i:2">브랜드별 최대 할인만 모았어요.</p>
           <a class="btn rise" style="--i:3" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
         </div>
         <div class="phone rise" style="--i:2">
