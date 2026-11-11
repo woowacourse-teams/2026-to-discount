@@ -1,11 +1,10 @@
 // 시안 my-brands-v2(#291)의 얇은 어댑터. 기존 모듈 값을 껍데기용 모양으로 옮기기만 한다.
 // 정렬, 최고 판정, 금액 비교는 여기서 하지 않는다(filters.js, couponModel.js가 한다).
-import { fetchBanners, fetchBrands } from '../../api.js'
 import {
   applyFilters, defaultFilters, includesFrom, isBundle, isUpdated,
 } from '../../filters.js'
 import { amountText, beforeOpen, chipsOf, conditionTable, headOrder, minLabel, onCard, shortBrandName, splitOffers } from '../../couponModel.js'
-import { offerLink, setHubLinks } from '../../offerLink.js'
+import { offerLink } from '../../offerLink.js'
 import { OWN, OWN_LABEL, PLATFORM_BY_KEY } from '../../platforms.js'
 
 export const MIN_UNKNOWN = '최소주문 미확인' // couponModel.conditionTable이 내는 정식 라벨과 같다
@@ -106,13 +105,6 @@ export function cardsFor(brands, filters) {
 /** 기본 필터(+ 고른 분류)로 거른 카드. */
 export function buildCards(brands, selectedCategories = []) {
   return cardsFor(brands, { ...defaultFilters(), categories: new Set(selectedCategories) })
-}
-
-/** 브랜드와 배너를 받고 허브 링크를 채운다(App이 하는 일과 같다). 배너 실패는 허브 링크만 빈다. */
-export async function loadHome() {
-  const [brands, banners] = await Promise.all([fetchBrands(), fetchBanners().catch(() => [])])
-  setHubLinks(banners)
-  return brands
 }
 
 /** 뾰족한 꺾은선 경로. 이웃한 점을 직선(L)으로 잇고, 값이 없는 날(y가 null)에서 끊는다. 곡선(C)은 쓰지 않는다. */
