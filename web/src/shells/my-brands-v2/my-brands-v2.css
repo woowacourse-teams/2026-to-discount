@@ -1,6 +1,8 @@
-/* 포인트 색: 카드와 자세히 시트 안에서만 주황(--sale)을 파랑으로 바꾼다. 상단 바, 빠른 정렬, 바닥글 같은 공용 영역은 운영과 같게 둔다(A/B에서 새로 그리지 않는 영역). */
-.v2-card, .v2-sheet { --sale: #3182f6; --sale-weak: #e8f1ff; }
-/* 바탕색과 글자색도 공용 영역(빠른 정렬 등)에는 주지 않고 카드에만 준다. 페이지 바탕은 운영과 같다. */
+/* 포인트 색: 주황(--sale)을 파랑으로. 필터 시트, 배너, 숨긴 목록 같은 공용 영역도 파랑이다.
+   헤더(.title-bar: 검색바, 인기 도크, 분류 바)와 빠른 정렬은 A/B에서 새로 그리지 않는 영역이라 운영 주황(styles/base.css의 :root 값)을 그대로 둔다. */
+:root:has(.v2) { --sale: #3182f6; --sale-weak: #e8f1ff; }
+:root:has(.v2) .title-bar, .v2 .quick-bar { --sale: #c44200; --sale-weak: #fdf0e9; }
+/* 글자색은 카드에만 준다. 페이지 바탕과 빠른 정렬의 글자색은 운영과 같다. */
 .v2-card { color: #191f28; }
 .v2 { --v2-pad: 1.25rem; --v2-in: 0.625rem; --v2-btn: 0.875rem; --v2-between: 1.75rem; box-sizing: border-box; padding-bottom: 2.5rem; min-height: 100vh; overflow-x: hidden; }
 .v2 *, .v2 *::before, .v2 *::after { box-sizing: border-box; }

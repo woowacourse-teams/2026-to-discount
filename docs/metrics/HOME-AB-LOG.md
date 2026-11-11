@@ -164,3 +164,4 @@
 - 이벤트 대조(2026-11-11, 코드 기준): 운영 카드에만 있고 시안에 없는 이벤트는 의도한 것(coupon_carousel_swipe, brand_collapse, 싫어요 brand_reaction, where=carousel과 expanded)과 의도하지 않은 것 하나(history_range_change: 시안 그래프에 기간 탭이 없음)다. 나머지 카드 이벤트(offer_link_click, brand_expand, brand_impression, sheet_tab, history_drag, history_point_select, 공유)와 목록 이벤트는 둘 다 남긴다.
 - 정정(2026-11-11): 시안 그래프에 기간 버튼 줄(2주, 1달, 전체)을 넣어 history_range_change도 시안에서 남는다. 위의 "기간 탭이 없다"와 "history_range_change 누락" 설명은 이 변경 전 기준이다. 시안에 없는 이벤트는 의도한 것(캐러셀, 접기, 싫어요)뿐이다.
 - 같은 영역(2026-11-11): A와 B가 같은 것을 쓰는 곳은 헤더(검색바, 인기 도크, 분류 바), 빠른 정렬, 바닥글이다. 다른 곳은 카드와 자세히 시트뿐이다. 바닥글을 새 모양으로 바꾼 것은 A와 B 모두에 적용되므로 A/B 비교에 영향이 없다.
+- 시작 전 확인(2026-11-11): 운영 주소로 인식시키고 HOME_V2_START를 과거로 둔 로컬 실행에서 (1) B로 배정된 방문자는 첫 방문에 A(data-home=coupon)를 보고 home_arm=v2가 저장되며, 다음 방문에 B(main.v2)가 그려지고 숨김 속성(data-home-wait)이 0.06초에 붙어 0.69초에 풀린다. (2) A로 배정된 방문자는 두 방문 모두 A다. 임시로 바꾼 값(시작 시각, 운영 주소 목록)은 되돌렸다. 시작하려면 web/src/homeExperiment.js의 HOME_V2_START에 시각을 넣어 배포한다.
