@@ -193,17 +193,7 @@
       .next svg { animation: bob 1.8s ease-in-out infinite; }
       @keyframes bob { 50% { transform: translateY(5px); } }
     }
-      
-    /* 핵심 3요소 장과 앱 카드 모음 */
-    .pil { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
-    .pil i { font-style: normal; padding: 6px 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-weight: 700; font-size: .95rem; }
-    .pil i b { color: var(--sale); margin-right: 4px; }
-    .cardshot, .apps4 img { display: block; width: 100%; height: auto; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 22px 44px -22px rgba(0, 0, 0, .45); }
-    .cardshot { width: min(100%, 440px); justify-self: center; }
-    .apps4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: 560px; justify-self: center; }
-    .slide--pillar { padding-top: 64px; padding-bottom: 56px; }
-    @media (min-width: 768px) { .slide--pillar .split { grid-template-columns: 1fr 1fr; gap: 56px; } }
-</style>
+      </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -213,57 +203,117 @@
     <section class="slide slide--shot" id="s1">
       <a class="brand" href="/">배달앱 할인모음</a>
       <div class="slide__in split">
-        <div><div class="apps rise">
+        <div>
+          <div class="apps rise">
             <img src="/platform-icons/baemin.png" alt="배달의민족" />
             <img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" />
             <img src="/platform-icons/yogiyo.png" alt="요기요" />
             <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
-          </div><h1 class="rise" style="--i:1">배달앱 할인,<br /><em>한 화면</em>에서</h1><p class="lead rise" style="--i:2">열자마자 최대 할인이 보여요.</p><a class="btn rise" style="--i:3" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a></div>
-        <div class="phone rise" style="--i:2"><div class="phone__screen"><img src="/about/b-home.jpg" width="390" height="844" alt="홈 화면. 브랜드마다 가장 큰 할인금액이 크게 보인다." /></div></div>
+          </div>
+          <h1 class="rise" style="--i:1">배달앱 할인,<br /><em>한 화면</em>에서</h1>
+          <p class="lead rise" style="--i:2">배민, 쿠팡이츠, 요기요, 땡겨요.<br />브랜드별로 가장 큰 할인만 모았어요.</p>
+          <a class="btn rise" style="--i:3" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/now-home.jpg" width="390" height="844" alt="홈 화면. 브랜드마다 가장 큰 할인금액과 최소주문금액이 카드 하나에 보인다." /></div>
+        </div>
       </div>
       <a class="next" href="#s2" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide slide--pillar" id="s2">
-      
+    <section class="slide slide--shot" id="s2">
       <div class="slide__in split">
-        <div><h2 class="rise" style="--i:1"><em>최대 할인</em>만,<br />크게 바로</h2><p class="lead rise" style="--i:2">브랜드마다 하나씩.</p></div>
-        <img class="cardshot rise" style="--i:2" src="/about/b-card-yogiyo.jpg" width="716" height="598" alt="브랜드 카드. 최대 할인금액이 크게 보이고 요기요 이동 버튼이 있다." />
+        <div>
+          <div class="apps rise">
+            <img src="/platform-icons/baemin.png" alt="배달의민족" />
+            <img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" />
+            <img src="/platform-icons/yogiyo.png" alt="요기요" />
+            <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
+          </div>
+          <h2 class="rise" style="--i:1">4개 배달 플랫폼 중<br /><em>가장 큰 할인</em>을 탐색</h2>
+          <p class="lead rise" style="--i:2">플랫폼별 할인 정보를 비교하고,<br />최고 할인을 선정해요.</p>
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/sheet.jpg" width="390" height="844" alt="한 브랜드의 할인을 배달앱 네 곳별로 나열한 화면." /></div>
+        </div>
       </div>
       <a class="next" href="#s3" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide slide--pillar" id="s3">
+    <section class="slide slide--shot" id="s3">
       
       <div class="slide__in split">
-        <div><h2 class="rise" style="--i:1">눌러서 <em>익숙한 앱</em>으로</h2><p class="lead rise" style="--i:2">배민, 쿠팡이츠, 요기요, 땡겨요.</p></div>
-        <div class="apps4 rise" style="--i:2"><img src="/about/b-card-baemin.jpg" width="716" height="598" alt="배달의민족으로 이동하는 카드" /><img src="/about/b-card-coupangeats.jpg" width="716" height="598" alt="쿠팡이츠로 이동하는 카드" /><img src="/about/b-card-yogiyo.jpg" width="716" height="598" alt="요기요로 이동하는 카드" /><img src="/about/b-card-ddangyo.jpg" width="716" height="598" alt="땡겨요로 이동하는 카드" /></div>
+        <div>
+          
+          <h2 class="rise" style="--i:1">지금 많이 찾는<br /><em>인기 브랜드</em></h2>
+          <p class="lead rise" style="--i:2">맨 위 HOT에서 인기 순위를 확인하고,<br />누르면 그 브랜드 카드로 바로 가요.</p>
+          
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/now-hot.jpg" width="390" height="844" alt="인기 브랜드 순위 화면. 1위부터 5위까지 브랜드와 할인금액이 목록으로 보인다." /></div>
+        </div>
       </div>
       <a class="next" href="#s4" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
     <section class="slide slide--shot" id="s4">
       
       <div class="slide__in split">
-        <div><h2 class="rise" style="--i:1">앱별 할인,<br /><em>한 번에</em> 비교</h2><p class="lead rise" style="--i:2"></p></div>
-        <div class="phone rise" style="--i:2"><div class="phone__screen"><img src="/about/b-detail.jpg" width="390" height="844" alt="자세히 보기 화면. 앱별 할인금액과 최소주문금액을 한 번에 비교한다." /></div></div>
+        <div>
+          
+          <h2 class="rise" style="--i:1"><em>카테고리</em>로<br />골라 보기</h2>
+          <p class="lead rise" style="--i:2">치킨, 피자, 패스트푸드, 카페까지.<br />기간 한정 할인은 '한정', 뽑기형 할인은 '랜덤'에서 따로 봐요.</p>
+          
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/now-category.jpg" width="390" height="844" alt="치킨 카테고리를 고른 화면. 치킨 브랜드 카드만 모아 보인다." /></div>
+        </div>
       </div>
       <a class="next" href="#s5" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
     <section class="slide slide--shot" id="s5">
       
       <div class="slide__in split">
-        <div><h2 class="rise" style="--i:1">내 앱, <em>내 멤버십</em>만<br />골라서</h2><p class="lead rise" style="--i:2"></p></div>
-        <div class="phone rise" style="--i:2"><div class="phone__screen"><img src="/about/b-filter.jpg" width="390" height="844" alt="필터 화면. 배달앱, 카테고리, 정렬, 멤버십을 고른다." /></div></div>
+        <div>
+          
+          <h2 class="rise" style="--i:1"><em>내게 맞게</em><br />걸러 보기</h2>
+          <p class="lead rise" style="--i:2">쓰는 배달앱, 정렬, 멤버십(배민클럽, 쿠팡와우)을 고르면<br />내가 받을 수 있는 할인만 남아요.</p>
+          
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/now-filter.jpg" width="390" height="844" alt="필터 화면. 배달앱, 카테고리, 정렬, 멤버십을 고를 수 있다." /></div>
+        </div>
       </div>
       <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
     <section class="slide slide--shot" id="s6">
       
       <div class="slide__in split">
-        <div><h2 class="rise" style="--i:1">검색은<br /><em>초성만</em> 쳐도</h2><p class="lead rise" style="--i:2"></p></div>
-        <div class="phone rise" style="--i:2"><div class="phone__screen"><img src="/about/b-search.jpg" width="390" height="844" alt="검색창에 초성을 입력한 화면." /></div></div>
+        <div>
+          
+          <h2 class="rise" style="--i:1">검색은<br /><em>초성만</em> 쳐도</h2>
+          <p class="lead rise" style="--i:2">브랜드, 메뉴, 카테고리를 한 번에 찾아요.<br />'ㅂㄱ'만 입력해도 버거킹이 나와요.</p>
+          
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/now-search.jpg" width="390" height="844" alt="검색창에 초성을 입력한 화면. 버거킹 등 브랜드 추천이 나온다." /></div>
+        </div>
       </div>
       <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide slide--diff" id="s7">
+    <section class="slide slide--shot" id="s7">
+      
+      <div class="slide__in split">
+        <div>
+          
+          <h2 class="rise" style="--i:1"><em>앱별 금액</em>과<br /><em>할인 기록</em>까지</h2>
+          <p class="lead rise" style="--i:2">자세히 보기에서 앱별 할인과 최소주문금액, 배달과 포장 차이를 보고<br />최근 할인이 어떻게 변했는지 그래프로 확인해요.</p>
+          
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen"><img src="/about/now-detail.jpg" width="390" height="844" alt="자세히 보기 화면. 앱별 할인금액과 최소주문금액, 할인 기록 그래프가 보인다." /></div>
+        </div>
+      </div>
+      <a class="next" href="#s8" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
+    <section class="slide slide--diff" id="s8">
       <div class="slide__in diff">
         <div>
           <h2 class="rise"><em>멤버십, 타겟</em>으로<br />다르게 뜨는 할인</h2>
@@ -282,9 +332,9 @@
           </div>
         </div>
       </div>
-      <a class="next" href="#s8" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s9" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide slide--cards" id="s8">
+    <section class="slide slide--cards" id="s9">
       <div class="slide__in diff">
         <div>
           <h2 class="rise">놓치지 않고 <em>틀리지 않게</em></h2>
@@ -308,11 +358,21 @@
           </li>
         </ol>
       </div>
-      <a class="next" href="#s9" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s10" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide final" id="s9">
+    <section class="slide final" id="s10">
       <div class="slide__in">
-        <div class="cta rise" style="--i:1">
+        <div class="split">
+          <h2 class="rise">고르는 데 걸리는 시간,<br /><em>확 줄여요</em></h2>
+          <ul class="tech">
+            <li class="rise" style="--i:1"><div><b>4개 앱 할인을 브랜드별로 한 장에</b></div></li>
+            <li class="rise" style="--i:2"><div><b>새로 뜬 할인엔 NEW 표시</b></div></li>
+            <li class="rise" style="--i:3"><div><b>버튼 하나로 해당 앱으로 이동</b></div></li>
+            <li class="rise" style="--i:4"><div><b>마음에 드는 할인은 공유하기</b></div></li>
+            <li class="rise" style="--i:5"><div><b>안 쓰는 브랜드는 숨기기</b><span>잘못된 정보는 바로 제보</span></div></li>
+          </ul>
+        </div>
+        <div class="cta rise" style="--i:6">
           <p>지금 받을 수 있는 할인,<br /><em>바로 확인</em>해 보세요</p>
           <a class="btn" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
         </div>
