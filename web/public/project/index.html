@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>프로젝트 소개 - 오늘의 할인</title>
+  <meta name="description" content="우아한테크코스 8기 팀 프로젝트. 배달앱 네 곳의 할인을 실제 폰 화면에서 읽어 한 화면에 비교하기까지의 가설, 결정, 운영, 협업 기록." />
+  <meta name="robots" content="noindex" /><!-- 초안. 공개 전에 지운다 -->
+  <link rel="icon" href="/favicon-48.png" />
+  <link rel="stylesheet" href="/fonts/pretendard-block.css" />
+  <!-- 초안: 레이아웃과 스텁만. 내용 우선. 그림 자리는 .stub, 확인이 필요한 숫자와 문장은 .chk -->
+  <style>
+    :root {
+      --bg: #fbfbfa; --surface: #ffffff; --border: #eaeaea;
+      --text: #171717; --muted: #64635f; --accent: #3182f6; --accent-weak: #eaf2fe; --warn: #b45309; --warn-weak: #fef3c7;
+      color-scheme: light dark;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121211; --surface: #1c1c1a; --border: #2c2c29;
+        --text: #f1f0ee; --muted: #a8a7a2; --accent: #5b9dff; --accent-weak: #16233a; --warn: #fbbf24; --warn-weak: #3a2a08;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; }
+    a { color: var(--accent); }
+    .band { padding: 72px 16px; border-bottom: 1px solid var(--border); }
+    .band:nth-of-type(even) { background: var(--surface); }
+    .in { max-width: 1040px; margin: 0 auto; }
+    .tag { display: inline-block; font-size: .75rem; font-weight: 700; letter-spacing: .06em; color: var(--accent); text-transform: uppercase; margin-bottom: 12px; }
+    .course { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 99px; background: var(--accent-weak); color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: 0; text-transform: none; }
+    h1, h2, h3 { margin: 0; letter-spacing: -.03em; text-wrap: balance; }
+    h1 { font-size: clamp(2.2rem, 7vw, 3.6rem); line-height: 1.15; font-weight: 800; }
+    h2 { font-size: clamp(1.7rem, 5vw, 2.5rem); line-height: 1.2; font-weight: 800; margin-bottom: 16px; }
+    h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    em { font-style: normal; color: var(--accent); }
+    .lead { font-size: 1.12rem; color: var(--muted); max-width: 680px; }
+    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 28px; }
+    .card { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+    .band:nth-of-type(odd) .card { background: var(--surface); }
+    .card p { margin: 6px 0 0; color: var(--muted); font-size: .94rem; }
+    .card dl { margin: 10px 0 0; font-size: .92rem; }
+    .card dt { font-weight: 700; margin-top: 8px; }
+    .card dd { margin: 0; color: var(--muted); }
+    .stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 32px; }
+    .stat b { display: block; font-size: 1.9rem; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+    .stat span { color: var(--muted); font-size: .85rem; }
+    blockquote { margin: 20px 0 0; padding: 14px 18px; border-left: 3px solid var(--accent); background: var(--accent-weak); border-radius: 0 10px 10px 0; }
+    blockquote cite { display: block; margin-top: 6px; color: var(--muted); font-size: .82rem; font-style: normal; }
+    .stub { margin-top: 28px; min-height: 220px; display: grid; place-items: center; text-align: center; padding: 20px; border: 2px dashed var(--border); border-radius: 14px; color: var(--muted); font-size: .9rem; }
+    .chk { background: var(--warn-weak); color: var(--warn); border-radius: 4px; padding: 0 3px; }
+    .chk::after { content: " 확인"; font-size: .7em; font-weight: 700; }
+    ol.flow { padding-left: 20px; } ol.flow li { margin: 6px 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: .92rem; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    .scroll { overflow-x: auto; }
+    footer { padding: 40px 16px 64px; color: var(--muted); font-size: .88rem; text-align: center; }
+  </style>
+</head>
+<body>
+
+<!-- 01 표지 -->
+<section class="band" id="hero">
+  <div class="in">
+    <span class="tag">우아한테크코스 8기 웹 백엔드 · 팀 프로젝트</span>
+    <h1>배달앱 할인은<br /><em>웹에 없었다</em></h1>
+    <p class="lead">배민, 쿠팡이츠, 요기요, 땡겨요는 같은 브랜드에 서로 다른 할인을 겁니다. 웹으로 확인되는 앱은 요기요 하나뿐이라, 실제 폰 화면을 읽어 원장에 쌓고 한 화면에서 비교하게 만들었습니다. 팀 이름은 "오늘의 할인", 서비스 이름은 SaveEats입니다.</p>
+    <div class="stats">
+      <div class="stat"><b>16주</b><span>2026-07-26 첫 커밋 ~ 11-13</span></div>
+      <div class="stat"><b>201</b><span>병합된 PR (mono)</span></div>
+      <div class="stat"><b>57</b><span>결정 기록(ADR)</span></div>
+      <div class="stat"><b><span class="chk">12,036</span></b><span>방문자 (07-29 ~ 10-15)</span></div>
+      <div class="stat"><b>6</b><span>공개 장애 회고</span></div>
+    </div>
+    <div class="stub">[배너 이미지 자리] 폰 3대가 앱 화면을 넘기는 사진 + 완성된 비교 화면</div>
+  </div>
+</section>
+
+<!-- 02 출발점 -->
+<section class="band" id="why">
+  <div class="in">
+    <span class="tag">출발점 <span class="course">사용자가 있는 서비스</span></span>
+    <h2>기술보다 <em>사용자를 먼저</em> 모으기로 했다</h2>
+    <p class="lead">과정이 처음 던진 말은 "유저를 모으는 과정을 하다 보면 기술은 따라온다"였습니다. 그래서 첫 목표를 기능이 아니라 가설 검증에 두었습니다.</p>
+    <blockquote>지금은 1차 목표 구간이다. 기능을 늘리는 게 아니라 가설을 검증한다. 가설이 틀리면 전부 버릴 것들이다. 검증 후에 만든다.<cite>글렌, 프로젝트 1차 명세서</cite></blockquote>
+    <div class="grid">
+      <div class="card"><h3>가설</h3><p>절약 성향의 커뮤니티 사용자는 앱 간 할인 비교가 한 화면에 있으면 주문 전에 한 번 들른다.</p></div>
+      <div class="card"><h3>기각 조건</h3><p>반응은 있는데 재방문이 없다면, 정보 탐색 비용은 생각보다 문제가 아니었다는 뜻이다. 그때는 기능을 더하지 않고 가설을 다시 세운다.</p></div>
+      <div class="card"><h3>일부러 뺀 것</h3><p>로그인, 알림, 개인화, 즐겨찾기, 검색, 매장 단위 할인, 멤버십 자동 계산. "기능 추가는 1번의 결과를 본 뒤에 결정한다."</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 실험 -->
+<section class="band" id="experiments">
+  <div class="in">
+    <span class="tag">검증 <span class="course">제품 요구사항 · 가설 → 실험 → 관측 → 결론</span></span>
+    <h2>직감이 아니라 <em>원장으로 다시 센 값</em>으로 말한다</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>커뮤니티 실험 3회</h3>
+        <p>핫딜 커뮤니티에 할인 정보만, 쿠폰과 함께, 서비스 링크로 세 번 올렸습니다. 가장 중요하게 본 것은 조회수보다 "오류 지적 댓글"이었습니다. 신뢰를 잃으면 서비스 자체가 무의미하니까요.</p>
+        <p><span class="chk">조회수, 댓글, 재방문 수치 미기록</span></p>
+      </div>
+      <div class="card">
+        <h3>홈 A/B: 기존 카드 vs 쿠폰 카드</h3>
+        <p>839명 대 884명. 링크 클릭률 +17%(z = 2.04), 7일 재방문 +12%. 진 쪽 코드 16파일 732줄을 지웠습니다.</p>
+        <p>정직하게 적은 것: 최소 2주에서 이틀 모자라게 끝냈고, 실험 중 결과를 네 번 엿봤고, 폰 방문자만 보면 유의하지 않았다.</p>
+      </div>
+      <div class="card">
+        <h3>무엇을 재야 하나</h3>
+        <p>"DAU/MAU 같은 붙잡아 두는 지표는 이 서비스를 잘못 잰다. 매일 오면 오히려 이상하다." 주문 직전에 들르는 서비스라, 재방문 주기와 링크 이동을 봤습니다.</p>
+      </div>
+    </div>
+    <blockquote>판정 문장, 지표, 기간을 시작 전에 적어 둔 덕에 끝낸 뒤 무엇이 모자랐는지 숨길 수 없었다. 채택 값은 엿본 값이다. 결론은 원장으로 다시 센 값으로 말한다.<cite>홈 A/B 회고</cite></blockquote>
+    <div class="stub">[차트 자리] 일 방문자 추이 74명 → 1,000명대, 홍보·실험 시점 표시</div>
+  </div>
+</section>
+
+<!-- 04 결정 -->
+<section class="band" id="decisions">
+  <div class="in">
+    <span class="tag">결정 <span class="course">왜, 얼마나, 어떻게</span></span>
+    <h2>고른 것보다 <em>버린 것</em>이 더 많았다</h2>
+    <p class="lead">결정마다 대안과 근거를 ADR로 남겼습니다. 2차 데일리에서 정한 원칙입니다. "근거를 그때그때 남겨 두면 나중에 우리가 볼 때도, AI에게 맡길 때도 좋다."</p>
+    <div class="grid">
+      <div class="card"><h3>앱 내부 API를 쓰지 않는다</h3><dl><dt>대안</dt><dd>배민 내부 엔드포인트. 직접 호출해 보니 인증 없이 400, 요기요는 403.</dd><dt>근거</dt><dd>토큰 추출과 만료 관리를 떠안고, 약관 위반 소지가 있다.</dd></dl></div>
+      <div class="card"><h3>공개된 경로로만 수집한다</h3><dl><dt>근거</dt><dd>크롤링 판례(야놀자 대 여기어때, 잡코리아 대 사람인)와 robots.txt를 검토했다.</dd><dt>내 말</dt><dd>"나중에 누가, 또는 미래의 내가 편의를 위해 선을 넘을 수 있다." 그래서 문서로 못박았다.</dd></dl></div>
+      <div class="card"><h3>에뮬레이터 대신 USB 실기 폰</h3><dl><dt>대안</dt><dd>클라우드 에뮬레이터. 무료 인스턴스에서 가상 기기가 돌지 않았다.</dd><dt>근거</dt><dd>앱 무결성 검사를 피하고, 코드는 기기 serial만 다르다.</dd></dl></div>
+      <div class="card"><h3>자동화가 막히면 범위를 줄인다</h3><dl><dt>내 말</dt><dd>"화면 스와이프·캡처 자동화가 힘들면 그냥 이미지 인식만 해라. 캡처해서 넘겨주는 건 얼마든지 가능하니까." (07-27)</dd><dt>이후</dt><dd>08-29부터 네 앱 모두 자동 경로가 생겼다.</dd></dl></div>
+      <div class="card"><h3>DB 없이 파일</h3><dl><dt>근거</dt><dd>"데이터 137건, 하루 한 번 갱신. 파일로 충분하다." 원장은 덧붙이기만 하는 jsonl.</dd><dt>뒤집힐 조건</dt><dd>스택마다 한계와 플랜 B를 적어 뒀다.</dd></dl></div>
+      <div class="card"><h3>세 저장소를 하나로, 이력은 그대로</h3><dl><dt>계기</dt><dd>계약 문서 셋이 따로 낡았고, 같은 500 사고가 세 번 났다.</dd><dt>내 말</dt><dd>"복사하면 이력이 사라지고, 이력이 사라지면 왜 그렇게 됐는지도 사라진다." 223커밋을 보존했다.</dd></dl></div>
+      <div class="card"><h3>할인 비교 규칙은 판정표 하나</h3><dl><dt>계기</dt><dd>서버와 웹이 같은 할인에 다른 답을 냈다.</dd><dt>결정</dt><dd>Java와 JS 테스트가 같은 JSON 표를 읽는다. 8행에서 40행으로 자랐다.</dd></dl></div>
+      <div class="card"><h3>사람 판단과 기계 관측을 가른다</h3><dl><dt>결정</dt><dd>배너는 기계가 수집하고 사람이 확인한 뒤 반영한다. 사람이 고친 문구를 기계가 이기지 않는다.</dd></dl></div>
+      <div class="card"><h3>가변 값과 로직을 가른다</h3><dl><dt>내 말</dt><dd>"기기 추가, 계정 변동, 순서 변동 같은 가변 값은 가변 파일로만, 구동과 수집 로직은 캡슐화된 도메인 모델에 둔다." (11-07)</dd></dl></div>
+    </div>
+    <blockquote>모르는 값을 지어내지 않는다. 비어 있다는 사실도 데이터다.<cite>기술 선택 문서의 공통 원칙</cite></blockquote>
+  </div>
+</section>
+
+<!-- 05 구조 -->
+<section class="band" id="architecture">
+  <div class="in">
+    <span class="tag">구조 <span class="course">핵심 개발 환경 · 배포</span></span>
+    <h2>도는 길은 <em>셋</em>이다</h2>
+    <ol class="flow">
+      <li><b>데이터 길</b>: 수집 PC가 하루 세 번 폰 3대를 ADB로 조작해 앱 화면을 읽고, 원장에 덧붙이고, 서버에 배포합니다. 첫 단계 테스트가 실패하면 그 회차는 건너뜁니다.</li>
+      <li><b>코드 길</b>: mono main에 push하면 API는 자체 러너가 빌드, 배포, 헬스체크, 실패 시 롤백까지 하고, 웹은 Vercel이 배포합니다.</li>
+      <li><b>운영 길</b>: 운영 콘솔이 5분마다 수집, API, 데이터, 웹, 서버 상태를 모으고, 사람이 배너 제안을 승인합니다. 경보는 Slack 채널 하나로 모읍니다.</li>
+    </ol>
+    <div class="stub">[도식 자리] 폰 3대 → 수집 PC(Python, ADB) → 원장 → API(Spring Boot, OCI) → 웹(React, Vercel SSR) · 운영 콘솔 · Slack · 이벤트 원장 / PostHog</div>
+    <div class="scroll"><table>
+      <tr><th>구성</th><th>기술</th><th>메모</th></tr>
+      <tr><td>수집</td><td>Python, ADB, 실기 폰 3대</td><td>한 바퀴 25~130분, 테스트 700건 넘음</td></tr>
+      <tr><td>API</td><td>Java, Spring Boot 4.1</td><td>3.3에서 올림(10-14), 브랜드 사전 <span class="chk">242개</span></td></tr>
+      <tr><td>웹</td><td>React 18, Vite</td><td>홈만 SSR</td></tr>
+      <tr><td>분석</td><td>자체 이벤트 원장 + PostHog</td><td>원장이 단일 진실. IP는 날마다 바뀌는 솔트로 해시</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- 06 운영 -->
+<section class="band" id="operations">
+  <div class="in">
+    <span class="tag">운영 <span class="course">사용자 모니터링 · 운영을 돕는 기술</span></span>
+    <h2>틀린 값보다 무서운 건 <em>조용히 사라진 값</em></h2>
+    <p class="lead">"없다, 0, 통과"를 출력할 때 그것이 관측인지 미관측인지 구분되지 않습니다. 수집은 틀린 값을 내기보다 값을 조용히 잃습니다. 장애 회고 여섯 건이 모두 이 문장으로 모입니다.</p>
+    <div class="grid">
+      <div class="card"><h3>배민 할인 98건이 21건으로</h3><p>6시간 52분 노출. 반영은 보류됐는데 "다 봤다"는 기록만 남았다. 처음 발견한 건 다른 일을 하던 AI 에이전트. 같은 계열을 막는 장치를 9단계로 쌓았다.</p></div>
+      <div class="card"><h3>배포가 진화한 길</h3><p>덮어쓰기 → 링크 교체와 자동 롤백 → 무중단 교대. 약 5초 끊김은 한 번 "지금은 유지"로 두었다가 필요해진 때 없앴다. 일부러 실패를 넣어 자동 복구를 운영에서 확인했다.</p><p>"되돌릴 길부터, 끊김 제거는 필요해진 때."</p></div>
+      <div class="card"><h3>요청마다 로그 전체를 읽던 API</h3><p>1.9초까지 느려졌다가 증분 읽기로 8~16ms. 온보딩 때 이미 위험으로 꼽았는데 우선순위를 미룬 사이 터졌다.</p></div>
+      <div class="card"><h3>방문 1회당 요청 700건</h3><p>DAU 50인데 Edge 요청 한도가 찼다. 범인은 크롤러가 아니라 기본값 그대로 둔 정적 파일 재검증. 1인당 약 25건으로 줄인 뒤 하루 1,000명 방문을 버텼다.</p><p>"이번 부채는 복잡한 코드가 아니라 확인하지 않은 기본값과 설정이었다."</p></div>
+    </div>
+    <div class="stub">[스크린샷 자리] 운영 콘솔 탭 화면 / Slack 경보 / Edge 요청 그래프 전후</div>
+  </div>
+</section>
+
+<!-- 07 협업 -->
+<section class="band" id="team">
+  <div class="in">
+    <span class="tag">협업 <span class="course">소프트스킬 · 그라운드 룰 · 회고</span></span>
+    <h2>3명이 같은 단어를 <em>다르게</em> 듣고 있었다</h2>
+    <p class="lead">이미 돌아가던 개인 프로젝트에 팀이 합류한 구조였습니다. 그래서 첫 주의 일은 기능이 아니라 이해를 맞추는 것이었습니다.</p>
+    <div class="grid">
+      <div class="card"><h3>그라운드 룰</h3><p>핵심은 "솔직하게 소통하기" 하나. "모르는 건 모른다고 말하기", "지적은 명령이 아니라 권유로". 스프린트마다 지켜진 룰, 안 지켜진 룰, 필요 없는 룰로 나눠 다시 세웠다.</p></div>
+      <div class="card"><h3>유비쿼터스 언어</h3><p>"브랜드 카드라고 했는데 3명이 다르게 받아들이고 있으면 문제." 첫 주 할 일에 도메인 용어 통일을 넣었다.</p></div>
+      <div class="card"><h3>기록 원칙</h3><p>최종 합의만이 아니라 의견, 고르지 않은 대안, 해결 과정까지 남긴다. 목적 중 하나는 AI 에이전트에게 줄 프로젝트 맥락이다.</p></div>
+      <div class="card"><h3>온보딩 분석이 맞았다</h3><p>합류한 팀원이 첫 주에 꼽은 위험 4개가 이후 모두 실제로 반영됐다.</p></div>
+    </div>
+    <div class="stub">[사진 자리] 팀 사진 / 그라운드 룰 회고 보드 · <span class="chk">팀원별 역할 분담 미기재</span></div>
+  </div>
+</section>
+
+<!-- 08 AI와 일하기 -->
+<section class="band" id="agents">
+  <div class="in">
+    <span class="tag">AI 에이전트와 일하기</span>
+    <h2>에이전트는 결과물이 없어도 <em>성공이라 보고했다</em></h2>
+    <p class="lead">설계, 구현, 리뷰 상당 부분을 AI 에이전트와 했습니다. 빨라진 만큼 같은 실수가 같은 모양으로 되풀이됐고, 그걸 막는 장치를 따로 만들었습니다.</p>
+    <div class="grid">
+      <div class="card"><h3>이슈에서 병합까지</h3><p>이슈에 라벨을 달면 설계 세션이 돌고, 사람은 설계 승인과 병합 승인 두 번만 한다. 완료는 에이전트의 보고가 아니라 워크플로가 직접 확인한다.</p></div>
+      <div class="card"><h3>하네스</h3><p>사람이 세션을 바로잡은 127건을 분류해, 되풀이된 것만 규칙과 훅으로 올렸다. "공통 규칙은 모든 세션에 걸려 비용이 크다. 한 번 나온 문제는 그 자리에서 막고, 되풀이될 때만 올린다."</p></div>
+      <div class="card"><h3>내가 배운 것</h3><p>"잘못된 정보가 한 번 들어가면 유지된다." "실제 예시와 레퍼런스가 명확해야 실제와 괴리 없이 설계·구현한다." "브레인스토밍에 참여하지 않으면 경도를 보정하지 못한다."</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 회고 -->
+<section class="band" id="retro">
+  <div class="in">
+    <span class="tag">회고</span>
+    <h2>되돌림을 막은 건 <em>전부 테스트</em>였다</h2>
+    <blockquote>문서로 적은 전제는 자동화가 빠뜨린다. 전제는 함수와 테스트로 묶어야 지켜진다.<cite>배민 할인 소실 회고</cite></blockquote>
+    <blockquote>결정 문서가 있어도 코드가 지키는지 확인하지 않으면, 문서는 틀린 안심만 준다.<cite>글렌, Vercel Edge 요청 글</cite></blockquote>
+    <blockquote>부채가 청구서로 날아오기 전에 미리 다 막기는 어렵다. 그래도 첫 고지서가 오는 순간 빠르게 대응할 여력과 역량은 키워 두겠다.<cite>글렌, 같은 글</cite></blockquote>
+    <div class="stub">[자리] 데모데이 발표 요약 · 코치 피드백 · 다음 단계 <span class="chk">자료 없음</span></div>
+  </div>
+</section>
+
+<footer>
+  <p><a href="/">서비스 보기</a> · <a href="/about">서비스 소개</a> · <span class="chk">GitHub 저장소 링크</span></p>
+  <p>우아한테크코스 8기 팀 "오늘의 할인" · 글렌, 고래, 피온</p>
+</footer>
+</body>
+</html>
