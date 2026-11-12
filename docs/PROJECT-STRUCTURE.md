@@ -262,6 +262,7 @@ web/src/SurveyCard.jsx
 web/src/SurveyCard.test.js
 web/src/SurveyDock.jsx
 web/src/TopBarB.jsx
+web/src/aboutPage.test.js
 web/src/analytics-context.js
 web/src/analytics-context.test.js
 web/src/analytics.js
@@ -307,6 +308,7 @@ web/src/historyChart.test.js
 web/src/homeExperiment.js
 web/src/homeExperiment.test.js
 web/src/homeRollout.test.js
+web/src/linkPreviewMeta.test.js
 web/src/linkReturn.js
 web/src/linkReturn.test.js
 web/src/logoManifest.js
@@ -395,6 +397,7 @@ web/src/useShareTargetFocus.js
 web/src/useSharedOffer.js
 web/src/useSurvey.js
 web/src/variant.js
+web/src/vercelHeaders.test.js
 web/vercel.json
 web/vite.config.js
 -->
@@ -445,7 +448,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 196 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 200 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 203 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -520,6 +523,7 @@ HTTP 경계:
 | `SurveyCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `TopBarB.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `aboutPage.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics-context.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics.js` | 자체 행동 이벤트 |
@@ -565,6 +569,7 @@ HTTP 경계:
 | `homeExperiment.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeExperiment.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeRollout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `linkPreviewMeta.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoManifest.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -617,6 +622,7 @@ HTTP 경계:
 | `useSharedOffer.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useSurvey.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `variant.js` | 화면 안 상수(a 고정, A/B 종료 2026-09-15) |
+| `vercelHeaders.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 
 `public/`은 런타임 자산이지만 대형 로고 목록은 구조 문서에서 제외한다.
 
