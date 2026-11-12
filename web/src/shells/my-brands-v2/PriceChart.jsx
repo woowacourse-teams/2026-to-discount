@@ -84,7 +84,7 @@ export default function PriceChart({ brand }) {
     <div className="v2-hist__ranges" role="group" aria-label="기간">
       {RANGES.map(([k, label]) => (
         <button key={k} type="button" className="v2-hist__range" aria-pressed={range === k}
-          onClick={() => { if (k !== range) track('history_range_change', { brand, from: range, to: k }); setRange(k) }}>{label}</button>
+          onClick={() => { if (k !== range) track('history_range_change', { brand, from: range, to: k }); setSel(null); setRange(k) }}>{label}</button>
       ))}
     </div>
   )
