@@ -426,8 +426,8 @@
     const solo = document.documentElement.classList.contains('solo')
     const start = solo ? Math.min(slides.length, +new URLSearchParams(location.search).get('s')) - 1 : 0
     slides[start].classList.add('in')
-    // 다른 사이트에 끼워 넣었으면 링크는 바깥 창에서 열린다(# 이동은 그대로)
-    document.querySelectorAll('a:not([href^="#"])').forEach((a) => { a.target = '_top' })
+    // 다른 사이트에 끼워 넣었으면 링크는 새 탭에서 연다(Sites 같은 샌드박스는 바깥 창 이동을 막는다. # 이동은 그대로)
+    if (self !== top) document.querySelectorAll('a:not([href^="#"])').forEach((a) => { a.target = '_blank'; a.rel = 'noopener' })
     // 풀페이지 고정: 기본 스크롤과 관성을 끄고, 휠이나 스와이프 방향을 받아 한 장씩 바로 넘긴다.
     // 손을 떼자마자 넘어가므로 브라우저 스냅의 관성 대기가 없다
     const box = document.querySelector('main')
