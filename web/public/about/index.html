@@ -74,8 +74,8 @@
     @media (max-width: 767px) { #s1 .btn { display: flex; width: fit-content; margin-left: auto; margin-right: auto; } }
     .phone { justify-self: center; width: min(calc(100vw - 32px), 450px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(49, 130, 246, .35); }
     .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 38px; overflow: hidden; overflow: clip; background: #fbfbfa; }
-    .phone__screen::before { content: ''; position: absolute; top: 9px; left: 50%; width: 30%; height: 24px; transform: translateX(-50%); border-radius: 999px; background: var(--bezel); z-index: 1; }
-    .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; padding-top: 38px; }
+    .phone__screen::before { content: ''; position: absolute; top: 7px; left: 50%; width: 7px; height: 7px; transform: translateX(-50%); border-radius: 50%; background: var(--bezel); z-index: 1; } /* 카메라 구멍: 표시만 */
+    .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
     .apps { display: flex; gap: 10px; margin-bottom: 22px; }
     .apps img { width: 44px; height: 44px; border-radius: 12px; }
 
@@ -213,7 +213,7 @@
     @media (max-width: 767px) { .dots { right: 2px; } .dots button { width: 20px; height: 20px; } }
   
     /* 실제 화면 시연: 폰 안 iframe. 눌리지 않고, 준비가 끝나면 포스터 위로 서서히 나타난다 */
-    .phone iframe.live { position: absolute; top: 38px; left: 0; width: 390px; height: 844px; border: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; transition: opacity .5s; background: #fbfbfa; }
+    .phone iframe.live { position: absolute; top: 0; left: 0; width: 390px; height: 844px; border: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; transition: opacity .5s; background: #fbfbfa; }
     .phone iframe.live.on { opacity: 1; }
     .phone .tap { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: rgba(49, 130, 246, .4); pointer-events: none; z-index: 2; animation: tap .6s ease-out forwards; }
     .phone .tap.finger { animation: none; opacity: .45; transform: none; transition-property: transform, opacity; transition-timing-function: cubic-bezier(.2, .7, .3, 1); }
@@ -240,14 +240,10 @@
     @keyframes reveal { to { opacity: 1; } }
   
   
-    /* 3장: 쿠팡이츠 두 캡처 사이 화살표, 청년피자 시트 폰 */
-    .grid4 .row--between { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
-    .grid4 .row--between .row__app { grid-column: 1 / -1; }
-    .between { display: grid; place-items: center; gap: 4px; align-self: center; color: var(--sale); text-align: center; font-size: .72rem; font-weight: 700; line-height: 1.25; }
-    .between svg { width: 38px; height: 14px; }
-    .between span { color: var(--muted); }
+    /* 3장: 청년피자 시트 폰, 쿠팡이츠 이름 옆 표시 */
+    .tagc { margin-left: 6px; padding: 2px 9px; border: 1px solid var(--border); border-radius: 999px; font-size: .74rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
     @media (min-width: 768px) {
-      #s3 .diff { grid-template-columns: 250px minmax(0, 1fr) min(300px, calc((100dvh - 130px) * .462 + 20px)); gap: 36px; }
+      #s3 .diff { grid-template-columns: 310px minmax(0, 1fr) min(290px, calc((100dvh - 130px) * .462 + 20px)); gap: 32px; }
       #s3 .grid4 { max-width: 460px; }
       #s3 .phone { width: 100%; }
     }
@@ -267,6 +263,22 @@
     /* 마무리: 가운데 구분선(제목과 바로가기 사이) */
     .final .cta { border-left: 1px solid var(--border); padding-left: 48px; align-self: stretch; justify-content: center; }
     @media (max-width: 767px) { .final .cta { border-left: 0; padding-left: 0; border-top: 1px solid var(--border); padding-top: 18px; align-items: center; text-align: center; } }
+  
+    /* 제목과 설명을 한 묶음으로: 사이에 구분선, 왼쪽 여백. 폰은 조금 아래로 */
+    :root { --hx: clamp(8px, 3.5vw, 56px); }
+    .split > div:first-child, .diff > div:first-child, .final .split > h2 { padding-left: var(--hx); }
+    .slide--shot .lead, #s3 .lead { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); max-width: 24rem; }
+    .phone { margin-top: 18px; }
+    @media (max-width: 767px) {
+      .split > div:first-child, .diff > div:first-child, .final .split > h2 { padding-left: 0; }
+      .slide--shot { padding-left: 24px; }
+      .slide--shot .split > div:first-child, #s3 .diff > div:first-child { display: flex; justify-content: center; align-items: center; gap: 0; padding: 0 6px; }
+      .slide--shot h1, .slide--shot h2, #s3 h2 { flex: 0 0 auto; max-width: 46%; padding-right: 14px; border-right: 1px solid var(--border); }
+      .slide--shot .lead, #s3 .lead { flex: 0 1 auto; max-width: 52%; margin: 0; padding: 0 0 0 14px; border-top: 0; }
+      .slide--shot .lead br, #s3 .lead br { display: inline; }
+      .phone { margin-top: 16px; }
+      .final h2 { padding-left: 8px; }
+    }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -310,13 +322,12 @@
       <div class="slide__in diff">
         <div>
           <h2 class="rise"><em>할인 조건</em><br />명확하게 확인하기</h2>
-          <p class="lead rise" style="--i:1">숨겨진 조건, 최소주문, 멤버십, <br />한정 조건을 먼저 확인해서 <br />보여드려요.</p>
+          <p class="lead rise" style="--i:1">숨겨진 조건, 최소주문, 멤버십, <br />한정 조건을 먼저 확인해서 보여드려요.</p>
         </div>
         <div class="grid4 rise" style="--i:2">
-          <div class="row row--between">
-            <p class="row__app"><img src="/platform-icons/coupangeats.png" alt="" />쿠팡이츠</p>
+          <div class="row">
+            <p class="row__app"><img src="/platform-icons/coupangeats.png" alt="" />쿠팡이츠 <span class="tagc"><em>멤버십 전용</em> 쿠폰</span></p>
             <figure class="is-member"><img class="shot" src="/about/diff-wow.jpg" width="900" height="828" alt="쿠팡이츠 멤버십(와우) 화면. 치킨 브랜드 할인 맨 위에 기영이숯불치킨 5,000원 할인이 있다." /><figcaption>멤버십 화면</figcaption></figure>
-            <div class="between" aria-label="멤버십 전용 쿠폰"><svg viewBox="0 0 48 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h42M3 8l6-5M3 8l6 5M45 8l-6-5M45 8l-6 5" /></svg><span><em>멤버십</em> 전용 쿠폰</span></div>
             <figure><img class="shot" src="/about/diff-nonwow.jpg" width="900" height="828" alt="쿠팡이츠 비회원 화면. 같은 목록에 기영이숯불치킨이 없고 훌라라치킨이 맨 위다." /><figcaption>비회원 화면</figcaption></figure>
           </div>
           <div class="row">
@@ -476,6 +487,8 @@
       const g = c.querySelector('a.v2-go'); g.textContent = app + '에서 확인'; g.style.background = bg
       c.parentElement.insertBefore(c, c.parentElement.firstChild)
     }
+    // 장면별로 앱에 덧입히는 CSS. sheet: 뒤 목록을 가리고 시트를 화면 가득 키워 시트만 보이게
+    const SCENE_CSS = { sheet: '.v2-scrim{background:#f2f4f6!important}.sheet.v2-sheet{max-height:calc(100dvh - 30px)!important}' }
     const SCENES = {
       // 1장: 치킨, 푸라닭과 BBQ를 8,000원으로 연출
       hero: [
@@ -511,7 +524,7 @@
       // 3장: 청년피자 시트를 띄우고 배달앱별 할인 조건이 구간마다 멈춰서 보이게 내려 본다
       sheet: [
         { tap: tab('피자') },
-        { run: async (d) => { const c = await until(() => card(d, '청년피자')); c.scrollIntoView({ block: 'center' }); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
+        { run: async (d, w) => { await until(() => /--on/.test(tab('피자')(d)?.className || ''), 4000); await nap(800); const c = (await until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, '청년피자') }, 8000, 450)) || d.querySelector('article.v2-card'); c.scrollIntoView({ block: 'center' }); await nap(300); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } }, // 목록 아래에 있으면 내려 불러오며 찾는다
         { reveal: true }, { wait: 900 },
         { loop: true },
         { scroll: sec(1), ms: 900, el: '.v2-sheet__offers' }, { wait: 1500 },
@@ -539,7 +552,7 @@
     const EASE = { out: (t) => 1 - (1 - t) ** 3, inout: (t) => t * t * (3 - 2 * t) } // out: 튕기듯 시작이 빠르고 끝이 느림
     const live = new Map() // 화면 요소 -> 재생 번호
     const gates = new Map() // 화면 요소 -> 그 장에 들어오면 풀리는 문
-    const fit = (scr, fr) => { const k = scr.clientWidth / 390; fr.style.transform = `scale(${k})`; fr.style.height = (scr.clientHeight - 38) / k + 'px' } // 높이: 노치 아래에서 폰 화면 끝까지
+    const fit = (scr, fr) => { const k = scr.clientWidth / 390; fr.style.transform = `scale(${k})`; fr.style.height = scr.clientHeight / k + 'px' } // 높이: 폰 화면 끝까지(카메라 구멍은 위에 겹쳐 그림)
     const stop = (scr) => { live.delete(scr); gates.delete(scr); scr.querySelector('iframe')?.remove(); scr.querySelectorAll('.tap').forEach((x) => x.remove()) }
     async function play(scr) {
       const id = Symbol(); live.set(scr, id)
@@ -551,7 +564,7 @@
       if (!ok()) return
       const w = fr.contentWindow, d = fr.contentDocument
       const st = d.createElement('style')
-      st.textContent = '.dev-badge,.night-notice,.report-tip,.push-setting-preview-backdrop{display:none!important}html{scroll-behavior:auto!important}::-webkit-scrollbar{display:none}'
+      st.textContent = '.dev-badge,.night-notice,.report-tip,.push-setting-preview-backdrop{display:none!important}html{scroll-behavior:auto!important}::-webkit-scrollbar{display:none}' + (SCENE_CSS[scr.dataset.scene] || '')
       d.head.appendChild(st)
       const lk = d.createElement('link'); lk.rel = 'stylesheet'; lk.href = '/fonts/pretendard-block.css'; d.head.appendChild(lk) // 앱의 optional 글꼴을 block으로 덮는다
       await until(() => d.querySelector('article.v2-card')); await nap(500) // 카드가 뜬 뒤 앱이 이벤트를 붙일 틈
@@ -568,7 +581,7 @@
           if (!el) { console.warn('탭할 요소 없음', s.tap); continue }
           if (shown) { // 누르는 곳에 원 표시
             const r = el.getBoundingClientRect(), k = scr.clientWidth / 390, dot = document.createElement('i')
-            dot.className = 'tap'; dot.style.left = (r.left + r.width / 2) * k + 'px'; dot.style.top = 38 + (r.top + r.height / 2) * k + 'px'
+            dot.className = 'tap'; dot.style.left = (r.left + r.width / 2) * k + 'px'; dot.style.top = (r.top + r.height / 2) * k + 'px'
             scr.appendChild(dot); setTimeout(() => dot.remove(), 600); await nap(250)
           }
           el.click()
@@ -580,7 +593,7 @@
           const t0 = performance.now(), dur = s.ms * SLOW, ez = EASE[s.ease || 'out']
           if (shown && Math.abs(to - from) > 40) { // 손가락처럼 보이는 점이 밀어 올리거나 내리는 방향으로 움직인다
             const f = document.createElement('i'), dir = to > from ? -1 : 1
-            f.className = 'tap finger'; f.style.left = scr.clientWidth * 0.64 + 'px'; f.style.top = 38 + scr.clientHeight * (dir < 0 ? 0.66 : 0.46) + 'px'; f.style.transitionDuration = dur + 'ms'
+            f.className = 'tap finger'; f.style.left = scr.clientWidth * 0.64 + 'px'; f.style.top = scr.clientHeight * (dir < 0 ? 0.66 : 0.46) + 'px'; f.style.transitionDuration = dur + 'ms'
             scr.appendChild(f); requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transform = `translateY(${dir * 90}px)`; f.style.opacity = '.0' })); setTimeout(() => f.remove(), dur + 200)
           }
           await new Promise((res) => {
