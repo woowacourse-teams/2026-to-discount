@@ -352,7 +352,7 @@ export default function PushNotificationSetting({ toggleSlot }) {
             <div className="push-notification-example" aria-label="푸시 알림 예시">
               <div className="push-notification-example__sender">
                 <img src="/favicon-192.png" width="24" height="24" alt="" />
-                <span>배달앱 할인모음</span>
+                <span>SaveEats</span>
               </div>
               <strong className="push-notification-example__title">BHC 8,000원 할인이 시작되었어요!</strong>
               <p>알림을 눌러 확인하기 {'>'}</p>

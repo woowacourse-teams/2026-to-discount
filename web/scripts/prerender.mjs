@@ -149,7 +149,7 @@ function bodyHtml(brands, today) {
   const names = brands.map((b) => b.name)
   return [
     '    <header class="seo">',
-    '      <h1>배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 최고 할인 쿠폰 비교</h1>',
+    '      <h1>SaveEats - 한 눈에 보는 배달앱 할인</h1>',
     `      <p>배달의민족·쿠팡이츠·요기요·땡겨요 네 앱의 브랜드 할인 쿠폰을 한 화면에서 견줍니다. ${today} 기준 ${blocks.length}개 브랜드.</p>`,
     '    </header>',
     '    <main class="seo">',
@@ -204,8 +204,8 @@ function metaTags(brands, today) {
     `    <link rel="canonical" href="${SITE}/" />`,
     `    <meta name="keywords" content="${esc(keywords)}" />`,
     '    <meta property="og:type" content="website" />',
-    '    <meta property="og:site_name" content="배달앱 할인모음" />',
-    '    <meta property="og:title" content="배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 최고 할인 쿠폰 비교" />',
+    '    <meta property="og:site_name" content="SaveEats" />',
+    '    <meta property="og:title" content="SaveEats - 한 눈에 보는 배달앱 할인" />',
     `    <meta property="og:description" content="${esc(desc)}" />`,
     `    <meta property="og:url" content="${SITE}/" />`,
     '    <meta property="og:locale" content="ko_KR" />',
@@ -214,13 +214,13 @@ function metaTags(brands, today) {
     '    <meta property="og:image:height" content="630" />',
     '    <meta name="twitter:card" content="summary_large_image" />',
     `    <meta name="twitter:image" content="${SITE}/og-image.png" />`,
-    '    <meta name="twitter:title" content="배달앱 할인모음 - 배민, 쿠팡이츠, 요기요, 땡겨요 최고 할인 쿠폰 비교" />',
+    '    <meta name="twitter:title" content="SaveEats - 한 눈에 보는 배달앱 할인" />',
     `    <meta name="twitter:description" content="${esc(desc)}" />`,
     // 사이트 이름을 검색엔진에 알린다(구조화 데이터, JSON-LD). 상품, 가격 마크업은 쓰지 않는다.
     // 거래가 일어나는 페이지가 아니다(SEO-ACTIONS.md, ADR-015 고지).
     `    <script type="application/ld+json">${JSON.stringify({
       '@context': 'https://schema.org', '@type': 'WebSite',
-      name: '배달앱 할인모음', alternateName: '배달앱 할인 쿠폰 비교', url: `${SITE}/`, inLanguage: 'ko-KR',
+      name: 'SaveEats', alternateName: '배달앱 할인 쿠폰 비교', url: `${SITE}/`, inLanguage: 'ko-KR',
     })}</script>`,
   ].join('\n')
 }
@@ -318,7 +318,7 @@ export function brandPage(b, siblings, today, appTags) {
     <meta name="description" content="${esc(desc)}" />
     <link rel="canonical" href="${url}" />
     <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="배달앱 할인모음" />
+    <meta property="og:site_name" content="SaveEats" />
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${url}" />
@@ -362,7 +362,7 @@ ${siblings.map((n) => `          <li><a href="${SITE}/brand/${encodeURIComponent
       </main>
       <footer class="seo footer">
         <p>${today} 기준. 개인이 만든 비영리 정보 제공 페이지입니다. 배달의민족·쿠팡이츠·요기요·땡겨요의 공식 서비스가 아니며 제휴 관계가 없습니다.</p>
-        <p><a href="${SITE}/">배달앱 할인모음 홈</a></p>
+        <p><a href="${SITE}/">SaveEats 홈</a></p>
       </footer>
     </div>
   </body>
