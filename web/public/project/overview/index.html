@@ -13,18 +13,19 @@
        움직임: 화면에 들어오면 떠오르기, 숫자 세기, 막대 늘이기, 수집 흐름 점 이동. 움직임 줄이기를 켠 기기는 처음부터 최종 상태로 보인다 -->
   <style>
     :root {
-      --bg: #fbfbfa; --surface: #ffffff; --border: #eaeaea;
-      --text: #171717; --muted: #64635f; --sale: #3182f6; --sale-weak: #eaf2fe; --no: #c2410c; --no-weak: #fff1e8; --na: #f1f0ee; --base: #8f8d87;
+      --bg: #f2f4f6; --surface: #ffffff; --border: #e5e8eb;
+      --text: #1c1d1f; --muted: #646a73; --navy: #152746; --pale: #c9dcfc; --sale: #3182f6; --sale-weak: #eaf2fe; --no: #c2410c; --no-weak: #fff1e8; --na: #f1f0ee; --base: #8f8d87;
       color-scheme: light;
     }
     @media (prefers-color-scheme: dark) {
-      :root:not(.solo) { --bg: #121211; --surface: #1c1c1a; --border: #2c2c29; --text: #f1f0ee; --muted: #a8a7a2; --sale: #5b9dff; --sale-weak: #16233a; --no: #fb923c; --no-weak: #3a1f0e; --na: #262624; --base: #8a8984; color-scheme: dark; }
+      :root:not(.solo) { --bg: #121211; --surface: #1c1c1a; --border: #2c2c29; --text: #f1f0ee; --muted: #a8a7a2; --sale: #5b9dff; --sale-weak: #16233a; --no: #fb923c; --no-weak: #3a1f0e; --na: #262624; --base: #8a8984; --navy: #0f1d36; --pale: #22406e; color-scheme: dark; }
     }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; text-align: left; word-break: keep-all; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; }
     a { color: var(--sale); }
     p, li, dd, figcaption { text-wrap: pretty; }
-    .sec { padding: 64px 20px; border-bottom: 1px solid var(--border); }
+    .sec { padding: 56px 20px; }
+    .sec + .sec { padding-top: 24px; }
     .in { max-width: 1040px; margin: 0 auto; }
     .solo .sec { display: none; padding: 24px 16px; border: 0; }
     .solo .sec.on { display: block; }
@@ -42,7 +43,7 @@
     .grid { display: grid; gap: 12px; margin-top: 26px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
     .grid.nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     @media (min-width: 700px) { .grid.nums, .grid.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grid.nums.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-    .box { padding: 18px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s, border-color .25s; }
+    .box { padding: 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s, border-color .25s; }
     .box:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--sale) 35%, var(--border)); box-shadow: 0 14px 30px -18px rgba(49, 130, 246, .45); }
     .box p { margin: 6px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.6; }
     .num, .box p.num { display: block; white-space: nowrap; font-size: clamp(1.6rem, 3.4vw, 2.1rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -126,6 +127,61 @@
       .js .rise.seen { opacity: 1; transform: none; }
     }
     @media (prefers-reduced-motion: reduce) { .flow li.hop::after { animation: none; display: none; } .bar i { transition: none; } }
+
+    /* 남색 배너: 데모데이 사이트(to-discount-demo)와 같은 첫 화면 */
+    .hero { display: grid; gap: 20px; padding: 32px 28px; border-radius: 16px; background: var(--navy); color: #fdfdfc; }
+    @media (min-width: 760px) { .hero { grid-template-columns: 1.4fr 1fr; align-items: end; padding: 44px 40px; } }
+    .hero__kicker { margin: 0; color: #9fb6dc; font-size: .82rem; font-weight: 700; }
+    .hero__mark { margin: 6px 0 0; font-size: clamp(2.8rem, 9vw, 5rem); font-weight: 900; letter-spacing: -.05em; line-height: 1; }
+    .hero__sub { margin: 12px 0 0; color: #d6e0f0; }
+    .hero .links a { background: transparent; color: #fdfdfc; border-color: rgba(255,255,255,.35); }
+    .hero .links a:first-child { background: #fdfdfc; color: var(--navy); border-color: #fdfdfc; }
+    .hero__stat { padding: 18px 20px; border-radius: 14px; background: rgba(255,255,255,.08); }
+    .hero__stat .num { color: #8fb8ff; font-size: clamp(2.2rem, 5vw, 3rem); }
+    .hero__stat > span:last-child { display: block; margin-top: 6px; color: #d6e0f0; font-size: .85rem; line-height: 1.5; }
+    .intro { margin-top: 36px; }
+
+    /* 성과 카드: 첫 칸은 강조(남색) */
+    .box.point { background: var(--navy); border-color: var(--navy); color: #fdfdfc; }
+    .box.point .num { color: #8fb8ff; }
+    .box.point p { color: #c4d1e6; }
+    .box.point:hover { border-color: var(--navy); }
+
+    /* 그림: SVG를 스크립트가 그린다. 값은 글자로 늘 보이고, 막대 위에 올리면 풀이가 뜬다 */
+    .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .chart svg text { font: 600 11px 'Pretendard Variable', Pretendard, sans-serif; fill: var(--muted); }
+    .chart svg .val { fill: var(--text); font-weight: 800; }
+    .chart svg .grid-line { stroke: var(--border); stroke-width: 1; }
+    .chart svg .line { fill: none; stroke: var(--sale); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+    .chart svg .area { fill: var(--sale); opacity: .12; }
+    .chart svg .dot { fill: var(--surface); stroke: var(--sale); stroke-width: 2.5; }
+    .chart svg .mile { stroke: var(--sale); stroke-dasharray: 4 4; opacity: .5; }
+    .chart svg .b-all { fill: var(--pale); }
+    .chart svg .b-act { fill: var(--sale); }
+    .chart svg .hit { fill: transparent; cursor: default; }
+    .chart svg g.col:hover .b-all { fill: color-mix(in srgb, var(--pale) 70%, var(--sale)); }
+    .js .chart:not(.seen) svg .line { stroke-dashoffset: var(--len); }
+    .chart svg .line { stroke-dasharray: var(--len); transition: stroke-dashoffset 1.6s cubic-bezier(.16,1,.3,1); }
+    .chart svg .bars rect.grow { transform-box: fill-box; transform-origin: bottom; transition: transform .9s cubic-bezier(.16,1,.3,1); transition-delay: calc(var(--k) * 40ms); }
+    .js .chart:not(.seen) svg .bars rect.grow { transform: scaleY(0); }
+    .tip { position: absolute; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--text); color: var(--bg); font-size: .78rem; line-height: 1.45; white-space: nowrap; opacity: 0; transition: opacity .15s; z-index: 5; }
+    .tip.on { opacity: 1; }
+    .chart { position: relative; }
+    .two { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 860px) { .two { grid-template-columns: 1fr 1fr; } }
+    .two .chart { margin-top: 12px; }
+
+    /* 스프린트별 도달률: 목표선 34% */
+    .reach { margin: 6px 0 0; padding: 0; list-style: none; }
+    .reach li { display: grid; grid-template-columns: 6.5em 1fr 4.4em; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--border); font-size: .86rem; }
+    .reach li:first-child { border-top: 0; }
+    .reach small { display: block; color: var(--muted); font-size: .74rem; }
+    .reach .track { position: relative; height: 12px; border-radius: 0 4px 4px 0; background: transparent; }
+    .reach .track i { position: absolute; left: 0; top: 0; bottom: 0; width: var(--w); border-radius: 0 4px 4px 0; background: var(--sale); transition: width 1s cubic-bezier(.16,1,.3,1); }
+    .reach .track i.miss { background: var(--base); }
+    .reach .track::after { content: ''; position: absolute; left: 68%; top: -4px; bottom: -4px; border-left: 2px dashed var(--no); }
+    .js .chart:not(.seen) .reach .track i { width: 0; }
+    .reach b { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
   </style>
   <script>(function () { var d = document.documentElement; d.classList.add('js'); var m = location.search.match(/[?&]s=(\d+)/); if (m) { d.classList.add('solo'); d.dataset.s = m[1] } })()</script>
 </head>
@@ -133,25 +189,34 @@
 
 <section class="sec" id="s1">
   <div class="in">
-    <p class="eyebrow rise">프로젝트 개요</p>
-    <h1 class="rise" style="--i:1">배달앱 네 곳의 할인을<br /><em>한 화면에서</em> 비교합니다</h1>
-    <p class="lead rise" style="--i:2">배민, 쿠팡이츠, 요기요, 땡겨요는 같은 브랜드에 서로 다른 할인을 겁니다.<br class="pc" /> 웹으로 확인되는 앱은 요기요 하나뿐이어서, 실제 폰으로 앱 화면을 읽어<br class="pc" /> 브랜드마다 가장 큰 할인을 모았습니다.</p>
-    <dl class="facts rise" style="--i:3">
-      <dt>서비스</dt><dd>SaveEats. 2026-07-26 첫 배포 뒤 지금까지 운영하고 있습니다.</dd>
-      <dt>팀</dt><dd>우아한테크코스 8기 팀 오늘의 할인입니다. 글렌, 고래, 피온 세 명입니다.</dd>
-      <dt>기간</dt><dd>2026-08-03 ~ 2026-11-13. 레벨3 스프린트 5회, 레벨4 스프린트 4회입니다.</dd>
-      <dt>역할</dt><dd>글렌은 기획, 수집과 인프라, 제품 실험, 운영 화면을 맡았습니다.<br />고래는 수집 환경 조사, 온보딩 문서, 디자인 시스템을 맡았습니다.<br />피온은 분석 계측, 알림, 운영 안정화, 만족도 설문을 맡았습니다.</dd>
-    </dl>
-    <div class="ribbon rise" style="--i:4">
-      <div><b><span data-count="16">16</span>주</b><span>개발과 운영</span></div>
-      <div><b><span data-count="4">4</span>곳</b><span>비교하는 배달앱</span></div>
-      <div><b><span data-count="3">3</span>대</b><span>수집하는 실제 폰</span></div>
-      <div><b>하루 <span data-count="3">3</span>회</b><span>할인 갱신</span></div>
+    <div class="hero rise">
+      <div>
+        <p class="hero__kicker">우아한테크코스 8기 팀 오늘의 할인</p>
+        <p class="hero__mark">SaveEats</p>
+        <p class="hero__sub">여러 배달앱의 할인을 한곳에서 비교합니다.</p>
+        <div class="links">
+          <a href="/">서비스 체험하기</a>
+          <a href="/project">프로젝트 이야기</a>
+          <a href="https://github.com/woowacourse-teams/2026-to-discount">GitHub</a>
+        </div>
+      </div>
+      <div class="hero__stat"><span class="num"><span data-count="14486">14,486</span>명</span><span>누적 고유 방문자<br />2026-07-29 ~ 2026-11-11, 팀원과 개발 접속 제외</span></div>
     </div>
-    <div class="links rise" style="--i:5">
-      <a href="/">서비스 보기</a>
-      <a href="/project">프로젝트 이야기</a>
-      <a href="https://github.com/woowacourse-teams/2026-to-discount">GitHub</a>
+    <div class="intro">
+      <h1 class="rise">배달앱 네 곳의 할인,<br /><em>한 화면 비교</em></h1>
+      <p class="lead rise" style="--i:1">배민, 쿠팡이츠, 요기요, 땡겨요는 같은 브랜드에 서로 다른 할인을 겁니다.<br class="pc" /> 웹으로 확인되는 앱은 요기요 하나뿐이어서, 실제 폰으로 앱 화면을 읽어<br class="pc" /> 브랜드마다 가장 큰 할인을 모았습니다.</p>
+      <dl class="facts rise" style="--i:2">
+        <dt>서비스</dt><dd>SaveEats. 2026-07-26 첫 배포 뒤 지금까지 운영하고 있습니다.</dd>
+        <dt>팀</dt><dd>우아한테크코스 8기 팀 오늘의 할인입니다. 글렌, 고래, 피온 세 명입니다.</dd>
+        <dt>기간</dt><dd>2026-08-03 ~ 2026-11-13. 레벨3 스프린트 5회, 레벨4 스프린트 4회입니다.</dd>
+        <dt>역할</dt><dd>글렌은 기획, 수집과 인프라, 제품 실험, 운영 화면을 맡았습니다.<br />고래는 수집 환경 조사, 온보딩 문서, 디자인 시스템을 맡았습니다.<br />피온은 분석 계측, 알림, 운영 안정화, 만족도 설문을 맡았습니다.</dd>
+      </dl>
+      <div class="ribbon rise" style="--i:3">
+        <div><b><span data-count="16">16</span>주</b><span>개발과 운영</span></div>
+        <div><b><span data-count="4">4</span>곳</b><span>비교하는 배달앱</span></div>
+        <div><b><span data-count="3">3</span>대</b><span>수집하는 실제 폰</span></div>
+        <div><b>하루 <span data-count="3">3</span>회</b><span>할인 갱신</span></div>
+      </div>
     </div>
   </div>
 </section>
@@ -159,24 +224,38 @@
 <section class="sec" id="s2">
   <div class="in">
     <p class="eyebrow rise">성과</p>
-    <h2 class="rise" style="--i:1">홍보 없이도<br /><em>다시 찾아오는</em> 사용자가 생겼습니다</h2>
-    <p class="lead rise" style="--i:2">네이버 카페, 핫딜 커뮤니티, 검색에서 사용자가 스스로 들어왔습니다.<br class="pc" /> 숫자는 팀원과 개발 접속을 뺀 자체 이벤트 기록 기준입니다.</p>
+    <h2 class="rise" style="--i:1">홍보 없이 늘어난 방문,<br /><em>다시 찾아오는 사용자</em></h2>
+    <p class="lead rise" style="--i:2">네이버 카페, 핫딜 커뮤니티, 검색에서 사용자가 스스로 들어왔습니다.<br class="pc" /> 숫자는 PostHog 이벤트 기록에서 팀원, 테스트, 개발 접속과 봇을 뺀 값입니다.</p>
     <div class="grid nums">
-      <div class="box stat rise"><span class="num" data-count="12036">12,036</span><span class="lbl">방문자</span><p>2026-07-29 ~ 2026-10-15</p></div>
-      <div class="box stat rise" style="--i:1"><span class="num" data-count="2341">2,341</span><span class="lbl">한 주 방문자 최다</span><p>2026-09-28 주</p></div>
-      <div class="box stat rise" style="--i:2"><span class="num" data-count="688">688</span><span class="lbl">주간 활성 사용자 최다</span><p>할인 링크나 배너를 누른 사람입니다.</p></div>
-      <div class="box stat rise" style="--i:3"><span class="num"><span data-count="1000">1,000</span>+</span><span class="lbl">하루 방문 최다</span><p>2026-09-11, 이용자가 네이버 카페에 공유한 날입니다.</p></div>
-      <div class="box stat rise" style="--i:4"><span class="num"><span data-count="31.5" data-dec="1">31.5</span><small>%</small></span><span class="lbl">할인 선택 도달률</span><p>방문자 가운데 할인을 누른 비율의 주간 중앙값입니다.</p></div>
-      <div class="box stat rise" style="--i:5"><span class="num"><span data-count="17.8" data-dec="1">17.8</span><small>%</small></span><span class="lbl">4주 뒤 다시 온 비율</span><p>2026-10-05 주 첫 방문자 기준입니다. 전체 평균은 9.1%입니다.</p></div>
+      <div class="box stat point rise"><span class="num" data-count="14486">14,486</span><span class="lbl">누적 고유 방문자</span><p>2026-09-12에 5,000명, 2026-10-06에 10,000명을 넘었습니다.</p></div>
+      <div class="box stat rise" style="--i:1"><span class="num" data-count="2341">2,341</span><span class="lbl">한 주 방문자 최다</span><p>2026-09-28 주입니다.</p></div>
+      <div class="box stat rise" style="--i:2"><span class="num" data-count="688">688</span><span class="lbl">한 주 활성 사용자 최다</span><p>2026-09-21 주. 할인 링크나 배너를 한 번 이상 누른 사람입니다.</p></div>
+      <div class="box stat rise" style="--i:3"><span class="num"><span data-count="36.4" data-dec="1">36.4</span><small>%</small></span><span class="lbl">스프린트 1 할인 선택 도달률</span><p>방문자 3,401명 중 1,238명이 할인을 눌렀습니다.</p></div>
+      <div class="box stat rise" style="--i:4"><span class="num"><span data-count="79">79</span><small>%</small></span><span class="lbl">설문 응답자 7일 안 재방문</span><p>응답자 29명 기준입니다. 30일 안에는 97%가 다시 왔습니다.</p></div>
+      <div class="box stat rise" style="--i:5"><span class="num"><span data-count="17.8" data-dec="1">17.8</span><small>%</small></span><span class="lbl">4주 뒤 다시 할인을 누른 비율</span><p>2026-10-05 주 활성 사용자 기준입니다. 10개 주 합산은 9.1%입니다.</p></div>
     </div>
-    <div class="chart rise" role="img" aria-label="화면 개편 실험. 기존 화면 623명, 쿠폰 카드 화면 661명. 링크 클릭 22.5%에서 27.2%, 전환 25.2%에서 29.5%, 무동작 방문 41.3%에서 36.3%, 검색 4.7%에서 11.0%.">
-      <h3>화면 개편 실험: 가장 큰 할인을 앞세운 카드</h3>
-      <p class="legend"><span><i style="background:var(--base)"></i>기존 화면 623명</span><span><i style="background:var(--sale)"></i>쿠폰 카드 화면 661명</span></p>
-      <div class="metric"><b>링크 클릭<small>+21%</small></b><span class="bar" title="기존 22.5%"><i style="--w:45%"></i>22.5%</span><span class="bar new" title="쿠폰 카드 27.2%"><i style="--w:54.4%"></i>27.2%</span></div>
-      <div class="metric"><b>전환<small>+17%</small></b><span class="bar" title="기존 25.2%"><i style="--w:50.4%"></i>25.2%</span><span class="bar new" title="쿠폰 카드 29.5%"><i style="--w:59%"></i>29.5%</span></div>
-      <div class="metric"><b>무동작 방문<small>-12%</small></b><span class="bar" title="기존 41.3%"><i style="--w:82.6%"></i>41.3%</span><span class="bar new" title="쿠폰 카드 36.3%"><i style="--w:72.6%"></i>36.3%</span></div>
-      <div class="metric"><b>검색 사용<small>+137%</small></b><span class="bar" title="기존 4.7%"><i style="--w:9.4%"></i>4.7%</span><span class="bar new" title="쿠폰 카드 11.0%"><i style="--w:22%"></i>11.0%</span></div>
-      <p class="note">진 쪽 화면 코드 16개 파일, 732줄을 지웠습니다.</p>
+    <div class="two">
+      <div class="chart rise" data-chart="cum" role="img" aria-label="누적 고유 방문자. 7월 후반 808명, 8월 전반 1,694명, 8월 후반 3,255명, 9월 전반 5,998명, 9월 후반 7,834명, 10월 전반 10,874명, 10월 후반 13,503명, 11월 전반 잠정 14,486명.">
+        <h3>누적 고유 방문자</h3>
+        <p class="legend"><span>반달 단위, 11월 전반은 2026-11-11까지 잠정</span></p>
+        <svg viewBox="0 0 480 230" aria-hidden="true"></svg>
+      </div>
+      <div class="chart rise" data-chart="weekly" role="img" aria-label="주별 방문자와 활성 사용자. 2026-08-03 주부터 2026-11-02 주까지 14주. 방문자 최다 2,341명(9월 28일 주), 활성 사용자 최다 688명(9월 21일 주).">
+        <h3>주별 방문자와 활성 사용자</h3>
+        <p class="legend"><span><i style="background:var(--pale)"></i>방문자</span><span><i style="background:var(--sale)"></i>활성 사용자(할인이나 배너 클릭)</span></p>
+        <svg viewBox="0 0 480 230" aria-hidden="true"></svg>
+      </div>
+    </div>
+    <div class="chart rise" role="img" aria-label="스프린트별 할인 선택 도달률. 목표 34%. 스프린트 1 36.40%, 스프린트 2 35.07%, 스프린트 3 25.62%, 스프린트 4 30.96%.">
+      <h3>스프린트별 할인 선택 도달률</h3>
+      <p class="legend"><span><i style="background:var(--sale)"></i>목표 달성</span><span><i style="background:var(--base)"></i>목표 미달</span><span><i style="background:var(--no)"></i>목표 34%</span><span>할인을 누른 사람 ÷ 방문자</span></p>
+      <ul class="reach">
+        <li><span>스프린트 1<small>09-21 ~ 10-04</small></span><span class="track"><i style="--w:72.8%"></i></span><b>36.40%</b></li>
+        <li><span>스프린트 2<small>10-05 ~ 10-18</small></span><span class="track"><i style="--w:70.1%"></i></span><b>35.07%</b></li>
+        <li><span>스프린트 3<small>10-19 ~ 11-01</small></span><span class="track"><i class="miss" style="--w:51.2%"></i></span><b>25.62%</b></li>
+        <li><span>스프린트 4<small>11-02 ~ 11-11</small></span><span class="track"><i class="miss" style="--w:61.9%"></i></span><b>30.96%</b></li>
+      </ul>
+      <p class="note">방문자 3,401명, 2,378명, 2,303명, 1,405명 가운데 1,238명, 834명, 590명, 435명이 할인을 눌렀습니다. 막대 끝은 50%입니다.</p>
     </div>
   </div>
 </section>
@@ -184,7 +263,7 @@
 <section class="sec" id="s3">
   <div class="in">
     <p class="eyebrow rise">기능</p>
-    <h2 class="rise" style="--i:1">할인을 찾고, 비교하고,<br /><em>바로 엽니다</em></h2>
+    <h2 class="rise" style="--i:1">찾고, 비교하고,<br /><em>바로 열기</em></h2>
     <p class="lead rise" style="--i:2">브랜드 하나에 앱 네 곳의 할인을 모아, 가장 큰 할인과 받는 조건을 함께 보여 줍니다.<br class="pc" /> 누르면 그 할인이 있는 배달앱 화면으로 바로 이동합니다.</p>
     <div class="feat">
       <figure class="rise"><img src="/about/hero.jpg" width="480" height="1038" loading="lazy" alt="카테고리별 브랜드 카드. 브랜드마다 가장 큰 할인금액이 보입니다." /><figcaption><b>브랜드별 최대 할인</b>앱 네 곳 중 가장 큰 할인을 맨 앞에 둡니다.</figcaption></figure>
@@ -199,13 +278,33 @@
 <section class="sec" id="s4">
   <div class="in">
     <p class="eyebrow rise">실험과 검증</p>
-    <h2 class="rise" style="--i:1">가설 13개를 세우고<br /><em>6개를 기각</em>했습니다</h2>
+    <h2 class="rise" style="--i:1">가설 13개,<br /><em>기각 6개</em></h2>
     <p class="lead rise" style="--i:2">기능마다 가설, 성공 기준, 기각 조건을 먼저 적고 실험했습니다.<br class="pc" /> 기각된 기능은 지우거나 노출을 줄였습니다.</p>
     <div class="grid nums c4">
       <div class="box stat rise"><span class="num" data-count="13">13</span><span class="lbl">세운 가설</span></div>
       <div class="box stat rise" style="--i:1"><span class="num" data-count="4">4</span><span class="lbl">채택하거나 검증</span></div>
       <div class="box stat rise" style="--i:2"><span class="num" data-count="6">6</span><span class="lbl">기각</span></div>
-      <div class="box stat rise" style="--i:3"><span class="num" data-count="41">41</span><span class="lbl">설문을 띄운 충성 사용자</span></div>
+      <div class="box stat rise" style="--i:3"><span class="num" data-count="29">29</span><span class="lbl">설문에 답한 사용자</span></div>
+    </div>
+    <div class="two">
+    <div class="chart rise" role="img" aria-label="설문. 할인을 볼 때 무엇을 먼저 보나, 28명 응답. 할인 금액 16명, 조건 5명, 한정 수량 4명, 앱 3명.">
+      <h3>할인을 볼 때 무엇을 먼저 보나요</h3>
+      <p class="legend"><span>다시 찾아오는 사용자 설문, 28명 응답</span></p>
+      <div class="metric"><b>할인 금액</b><span class="bar new"><i style="--w:57%"></i>16명</span></div>
+      <div class="metric"><b>조건</b><span class="bar"><i style="--w:18%"></i>5명</span></div>
+      <div class="metric"><b>한정 수량</b><span class="bar"><i style="--w:14%"></i>4명</span></div>
+      <div class="metric"><b>앱</b><span class="bar"><i style="--w:11%"></i>3명</span></div>
+      <p class="note">쓰는 목적은 앱 비교 10명, 새 할인 정보 9명, 돈 아끼기 9명이었습니다. 이 결과로 화면 개편의 방향을 정했습니다.</p>
+    </div>
+    <div class="chart rise" role="img" aria-label="화면 개편 실험. 기존 화면 623명, 쿠폰 카드 화면 661명. 링크 클릭 22.5%에서 27.2%, 전환 25.2%에서 29.5%, 무동작 방문 41.3%에서 36.3%, 검색 4.7%에서 11.0%.">
+      <h3>화면 개편 실험: 가장 큰 할인을 앞세운 카드</h3>
+      <p class="legend"><span><i style="background:var(--base)"></i>기존 화면 623명</span><span><i style="background:var(--sale)"></i>쿠폰 카드 화면 661명</span></p>
+      <div class="metric"><b>링크 클릭<small>+21%</small></b><span class="bar" title="기존 22.5%"><i style="--w:45%"></i>22.5%</span><span class="bar new" title="쿠폰 카드 27.2%"><i style="--w:54.4%"></i>27.2%</span></div>
+      <div class="metric"><b>전환<small>+17%</small></b><span class="bar" title="기존 25.2%"><i style="--w:50.4%"></i>25.2%</span><span class="bar new" title="쿠폰 카드 29.5%"><i style="--w:59%"></i>29.5%</span></div>
+      <div class="metric"><b>무동작 방문<small>-12%</small></b><span class="bar" title="기존 41.3%"><i style="--w:82.6%"></i>41.3%</span><span class="bar new" title="쿠폰 카드 36.3%"><i style="--w:72.6%"></i>36.3%</span></div>
+      <div class="metric"><b>검색 사용<small>+137%</small></b><span class="bar" title="기존 4.7%"><i style="--w:9.4%"></i>4.7%</span><span class="bar new" title="쿠폰 카드 11.0%"><i style="--w:22%"></i>11.0%</span></div>
+      <p class="note">진 쪽 화면 코드 16개 파일, 732줄을 지웠습니다.</p>
+    </div>
     </div>
     <p class="chips rise" role="group" aria-label="판정으로 거르기"><button type="button" data-f="all" aria-pressed="true">전체</button><button type="button" data-f="ok" aria-pressed="false">채택, 검증</button><button type="button" data-f="no" aria-pressed="false">기각</button><button type="button" data-f="na" aria-pressed="false">판단 불가, 진행 중</button></p>
     <div class="scroll rise"><table>
@@ -230,7 +329,7 @@
 <section class="sec" id="s5">
   <div class="in">
     <p class="eyebrow rise">기술 구조</p>
-    <h2 class="rise" style="--i:1">폰 화면에서 웹까지<br /><em>사람 손 없이</em> 흐릅니다</h2>
+    <h2 class="rise" style="--i:1">폰 화면에서 웹까지,<br /><em>사람 손 없는</em> 수집</h2>
     <p class="lead rise" style="--i:2">배달앱은 할인 정보를 내주는 공개 통로(API)가 없어서 실제 폰 화면을 읽습니다.<br class="pc" /> 앱 내부 통신은 쓰지 않고, 누구나 보는 화면만 읽습니다.</p>
     <ol class="flow rise" style="--i:3">
       <li class="node"><b>실제 폰</b><span class="num"><span data-count="3">3</span>대</span><span>USB로 연결한 폰이 배달앱 네 곳을 돕니다.</span></li>
@@ -253,7 +352,7 @@
 <section class="sec" id="s6">
   <div class="in">
     <p class="eyebrow rise">기술 과제</p>
-    <h2 class="rise" style="--i:1">운영하면서 만난 문제와<br /><em>측정한 결과</em>입니다</h2>
+    <h2 class="rise" style="--i:1">운영 중 만난 문제와<br /><em>측정 결과</em></h2>
     <div class="grid c3">
       <div class="box rise"><h3>방문당 요청 수</h3><p class="num big"><span data-count="700">700</span> → <span data-count="25" data-from="700">25</span></p><p>하루 방문 50명에 무료 요청 한도 93%가 찼습니다. 로고에 캐시 설정을 붙여 줄였고, 직후 하루 1,000명 방문을 버텼습니다.</p></div>
       <div class="box rise" style="--i:1"><h3>응답 크기</h3><p class="num big">-<span data-count="91">91</span><small>%</small></p><p>부하 시험에서 느린 응답 상위 5%가 555ms였습니다. 원인은 압축 없이 나가던 154KB 응답이었습니다.</p></div>
@@ -268,7 +367,7 @@
 <section class="sec" id="s7">
   <div class="in">
     <p class="eyebrow rise">과정</p>
-    <h2 class="rise" style="--i:1">결정과 실패를<br /><em>기록으로</em> 남겼습니다</h2>
+    <h2 class="rise" style="--i:1">결정과 실패,<br /><em>기록으로 남기기</em></h2>
     <div class="grid nums">
       <div class="box stat rise"><span class="num" data-count="3464">3,464</span><span class="lbl">커밋</span><p>서비스 저장소 1,877개, 수집기 저장소 1,587개입니다.</p></div>
       <div class="box stat rise" style="--i:1"><span class="num" data-count="201">201</span><span class="lbl">병합한 변경 요청(PR)</span><p>기능 하나, 실험 하나 단위로 리뷰 뒤 병합했습니다.</p></div>
@@ -312,6 +411,61 @@
       })
     }, { threshold: .2 })
     document.querySelectorAll('.rise, .chart').forEach(function (el) { io.observe(el) })
+
+
+    // ===== 그림 =====
+    var NS = 'http://www.w3.org/2000/svg'
+    var mk = function (tag, at, txt) { var e = document.createElementNS(NS, tag); for (var k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e }
+    var num = function (v) { return v.toLocaleString('ko-KR') }
+    var tipOf = function (box) { var t = document.createElement('div'); t.className = 'tip'; box.appendChild(t); return t }
+    var show = function (tip, box, ev, html) { tip.innerHTML = html; tip.classList.add('on'); var r = box.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top; tip.style.left = Math.min(Math.max(8, x - tip.offsetWidth / 2), r.width - tip.offsetWidth - 8) + 'px'; tip.style.top = Math.max(4, y - tip.offsetHeight - 14) + 'px' }
+
+    // 누적 고유 방문자: 반달 단위 꺾은선과 영역, 5,000명과 10,000명 돌파 표시
+    var cum = document.querySelector('[data-chart="cum"]')
+    if (cum) {
+      var svg = cum.querySelector('svg'), tip = tipOf(cum)
+      var P = [['7월 후반', 808], ['8월 전반', 1694], ['8월 후반', 3255], ['9월 전반', 5998], ['9월 후반', 7834], ['10월 전반', 10874], ['10월 후반', 13503], ['11월 전반*', 14486]]
+      var L = 44, R = 466, T = 26, B = 196, MAX = 16000
+      var X = function (i) { return L + (R - L) * i / (P.length - 1) }, Y = function (v) { return B - (B - T) * v / MAX }
+      ;[0, 5000, 10000, 15000].forEach(function (v) { svg.appendChild(mk('line', { class: 'grid-line', x1: L, x2: R, y1: Y(v), y2: Y(v) })); svg.appendChild(mk('text', { x: L - 8, y: Y(v) + 4, 'text-anchor': 'end' }, v ? num(v) : '0')) })
+      ;[[5000, '5,000명 돌파 09-12', 2.64], [10000, '10,000명 돌파 10-06', 4.71]].forEach(function (m) { svg.appendChild(mk('line', { class: 'mile', x1: X(m[2]), x2: X(m[2]), y1: Y(m[0]), y2: B })); svg.appendChild(mk('text', { x: X(m[2]) + 4, y: B - 6 }, m[1])) })
+      var d = P.map(function (p, i) { return (i ? 'L' : 'M') + X(i) + ' ' + Y(p[1]) }).join(' ')
+      svg.appendChild(mk('path', { class: 'area', d: d + ' L' + R + ' ' + B + ' L' + L + ' ' + B + ' Z' }))
+      var line = mk('path', { class: 'line', d: d }); svg.appendChild(line)
+      line.style.setProperty('--len', Math.ceil(line.getTotalLength ? line.getTotalLength() : 900))
+      P.forEach(function (p, i) {
+        svg.appendChild(mk('circle', { class: 'dot', cx: X(i), cy: Y(p[1]), r: 4 }))
+        if (i % 2 === 1 || i === P.length - 1) svg.appendChild(mk('text', { class: 'val', x: X(i), y: Y(p[1]) - 10, 'text-anchor': 'middle' }, num(p[1])))
+        if (i % 2 === 0) svg.appendChild(mk('text', { x: X(i), y: B + 18, 'text-anchor': 'middle' }, p[0]))
+        var hit = mk('rect', { class: 'hit', x: X(i) - 26, y: T - 10, width: 52, height: B - T + 30 }); svg.appendChild(hit)
+        hit.addEventListener('pointermove', function (e) { show(tip, cum, e, '<b>' + p[0] + '</b><br />누적 ' + num(p[1]) + '명') })
+        hit.addEventListener('pointerleave', function () { tip.classList.remove('on') })
+      })
+    }
+
+    // 주별 방문자(옅은 막대)와 그 안의 활성 사용자(진한 막대)
+    var wk = document.querySelector('[data-chart="weekly"]')
+    if (wk) {
+      var svg2 = wk.querySelector('svg'), tip2 = tipOf(wk)
+      var W = [['08-03', 546, 266], ['08-10', 521, 178], ['08-17', 733, 187], ['08-24', 1165, 390], ['08-31', 605, 199], ['09-07', 2067, 481], ['09-14', 1239, 374], ['09-21', 1533, 688], ['09-28', 2341, 589], ['10-05', 1228, 303], ['10-12', 1760, 613], ['10-19', 1951, 376], ['10-26', 919, 305], ['11-02', 1299, 349]]
+      var l = 44, r = 466, t2 = 26, b = 196, M = 2500, step = (r - l) / W.length, bw = step - 6
+      var y = function (v) { return b - (b - t2) * v / M }
+      ;[0, 1000, 2000].forEach(function (v) { svg2.appendChild(mk('line', { class: 'grid-line', x1: l, x2: r, y1: y(v), y2: y(v) })); svg2.appendChild(mk('text', { x: l - 8, y: y(v) + 4, 'text-anchor': 'end' }, v ? num(v) : '0')) })
+      var g = mk('g', { class: 'bars' }); svg2.appendChild(g)
+      W.forEach(function (w, i) {
+        var x = l + step * i + 3, col = mk('g', { class: 'col' })
+        var a = mk('rect', { class: 'b-all grow', x: x, y: y(w[1]), width: bw, height: b - y(w[1]), rx: 3 }); a.style.setProperty('--k', i)
+        var c = mk('rect', { class: 'b-act grow', x: x, y: y(w[2]), width: bw, height: b - y(w[2]), rx: 3 }); c.style.setProperty('--k', i)
+        col.appendChild(a); col.appendChild(c)
+        if (w[1] === 2341) col.appendChild(mk('text', { class: 'val', x: x + bw / 2, y: y(w[1]) - 6, 'text-anchor': 'middle' }, '2,341'))
+        if (w[2] === 688) col.appendChild(mk('text', { class: 'val', x: x + bw / 2, y: y(w[2]) - 6, 'text-anchor': 'middle', fill: '#fff' }, '688'))
+        if (i % 3 === 0) col.appendChild(mk('text', { x: x + bw / 2, y: b + 18, 'text-anchor': 'middle' }, w[0]))
+        var hit = mk('rect', { class: 'hit', x: l + step * i, y: t2 - 10, width: step, height: b - t2 + 30 }); col.appendChild(hit)
+        hit.addEventListener('pointermove', function (e) { show(tip2, wk, e, '<b>' + w[0] + ' 주</b><br />방문자 ' + num(w[1]) + '명<br />활성 ' + num(w[2]) + '명 (' + (w[2] / w[1] * 100).toFixed(1) + '%)') })
+        hit.addEventListener('pointerleave', function () { tip2.classList.remove('on') })
+        g.appendChild(col)
+      })
+    }
 
     // 실험 표 거르기
     var btns = document.querySelectorAll('[data-f]')
