@@ -109,7 +109,7 @@
     /* 첫 장: 데모데이 사이트의 남색 배너 */
     #s1 .slide__in { padding: clamp(28px, 5vw, 56px); border-radius: 16px; background: var(--navy); color: #fdfdfc; }
     #s1 .mark { margin: 0 0 10px; font-size: clamp(2.6rem, 7vw, 4.6rem); line-height: 1; letter-spacing: -.02em; }
-    #s1 h1 { font-size: clamp(1.6rem, 3.6vw, 2.4rem); }
+    #s1 h1 { font-size: clamp(2.8rem, 5.6vw, 5.4rem); }
     #s1 em { color: #8fb8ff; }
     #s1 .lead { color: #d7e4fa; border-top-color: rgba(255,255,255,.2); }
     #s1 .kicker i { background: rgba(255,255,255,.12); color: #d7e4fa; }
@@ -122,6 +122,59 @@
     .dots button { width: 24px; height: 24px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer; }
     .dots button::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: .4; transition: transform .25s, opacity .25s, background .25s; }
     .dots button[aria-current="true"]::before { background: var(--sale); opacity: 1; transform: scale(1.7); }
+
+    /* ===== 데모 배너 형식: 왼쪽 밝은 판의 큰 글자, 오른쪽 파란 판 ===== */
+    :root { --sale: #2f7bf5; --sale-weak: #e6efff; --bg: #f4f7fc; --panel: linear-gradient(150deg, #4a93ff 0%, #2f7bf5 45%, #2563eb 100%); }
+    .slide::before { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 44%; background: var(--panel); z-index: 0; }
+    .slide { padding: 0; }
+    .slide__in.split { position: relative; z-index: 1; max-width: none; height: 100%; grid-template-columns: 56fr 44fr; gap: 0; align-items: center; }
+    .split > div:first-child { padding: 0 5vw 0 8vw; }
+    .split > :last-child { padding: 0 4vw; }
+    h1 { font-size: clamp(2.8rem, 5.6vw, 5.4rem); line-height: 1.1; }
+    h2 { font-size: clamp(2.4rem, 4.4vw, 4.2rem); line-height: 1.15; }
+    .split > div:first-child h1::after, .split > div:first-child h2::after { content: ''; display: block; width: 88px; height: 6px; margin-top: 30px; border-radius: 3px; background: var(--sale); }
+    .lead { margin-top: 22px; padding-top: 0; border-top: 0; max-width: 34rem; font-size: clamp(1.05rem, 1.6vw, 1.45rem); color: #3a3f47; }
+    .tech, .stat, .quote, .node { box-shadow: 0 18px 40px -24px rgba(14, 40, 100, .55); border-color: transparent; }
+    .tech { padding: 8px 26px; }
+    .tech b { font-size: 1.1rem; }
+    .pitch { background: rgba(255,255,255,.16); color: #fff; }
+    .verdicts i { background: rgba(255,255,255,.9); }
+    .verdicts i.plain { background: rgba(255,255,255,.18); color: #fff; border-color: rgba(255,255,255,.35); }
+    .dots button::before { background: #fff; opacity: .55; }
+    .dots button[aria-current="true"]::before { background: #fff; opacity: 1; }
+    .pg, .next { color: #fff; }
+    .next { left: 78%; }
+    .arch.v { display: grid; grid-template-columns: 1fr; gap: 6px; }
+    .arch.v .node { justify-items: start; text-align: left; padding: 14px 20px; }
+    .arch.v .hop { height: 14px; color: #fff; }
+    .arch.v .hop::after { border-color: #fff; transform: rotate(45deg); }
+
+    /* 첫 장 */
+    #s1 .slide__in { padding: 0; border-radius: 0; background: none; color: var(--text); }
+    .logo { display: flex; align-items: center; gap: 18px; margin: 0 0 34px; }
+    .logo img { width: clamp(52px, 5.5vw, 84px); height: auto; transform: rotate(-12deg); }
+    .logo span { font-family: 'Pretendard Variable', Pretendard, sans-serif; font-weight: 900; font-style: italic; font-synthesis: style; font-size: clamp(2.6rem, 5vw, 4.6rem); letter-spacing: -.03em; color: var(--sale); line-height: 1; }
+    #s1 em { color: var(--sale); }
+    #s1 .lead { color: #3a3f47; }
+    .apps { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 40px; }
+    .apps > img { width: clamp(48px, 4.6vw, 72px); height: auto; border-radius: 18px; box-shadow: 0 8px 20px -12px rgba(0,0,0,.4); }
+    .qr { display: flex; align-items: center; gap: 16px; margin-left: 10px; padding: 14px 22px 14px 14px; border-radius: 20px; background: #fff; text-decoration: none; box-shadow: 0 12px 30px -18px rgba(14,40,100,.5); }
+    .qr img { width: clamp(56px, 5vw, 80px); height: auto; }
+    .qr b { display: block; font-size: clamp(1.05rem, 1.6vw, 1.5rem); font-weight: 400; color: var(--text); }
+    .qr span { color: #4e5968; font-size: .95rem; }
+    .phones { position: relative; height: 86dvh; }
+    .ph { position: absolute; width: min(52%, 300px); aspect-ratio: 390 / 820; object-fit: cover; object-position: top; border: 10px solid #15161a; border-radius: 42px; background: #fff; box-shadow: 0 30px 60px -20px rgba(0,0,0,.45); }
+    .ph1 { left: 4%; top: 14%; transform: rotate(-6deg); }
+    .ph2 { right: 4%; top: 2%; transform: rotate(-4deg); }
+
+    /* 좁거나 낮은 화면: 파란 판은 내용 뒤 카드로 */
+    .flow .slide::before { display: none; }
+    .flow .slide__in.split { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+    .flow .split > div:first-child { padding: 0; }
+    .flow .split > :last-child { padding: 20px; border-radius: 22px; background: var(--panel); }
+    .flow .phones { height: 520px; }
+    .flow .ph { width: 46%; }
+    .flow .logo span { font-size: 2.4rem; }
   </style>
   <script>document.documentElement.classList.add('js'); if (!matchMedia('(min-width: 900px) and (min-height: 700px)').matches) document.documentElement.classList.add('flow')</script>
 </head>
@@ -131,19 +184,19 @@
 <div class="track">
 
 <section class="slide" id="s1">
-  <a class="brand" href="/"><img src="/favicon-48.png" alt="" width="24" height="24" />오늘의 할인</a>
   <div class="slide__in split">
     <div>
-      <p class="kicker rise"><i>우아한테크코스 8기</i><i class="plain">레벨3~4 팀 프로젝트</i><i class="plain">2026-08 ~ 2026-11</i></p>
-      <p class="mark rise" style="--i:1">SaveEats</p>
-      <h1 class="rise" style="--i:1">배달앱 할인은 <em>웹에 없었다</em></h1>
-      <p class="lead rise" style="--i:2">앱 네 곳의 할인을 실제 폰 화면에서 읽어 한 화면에 모았습니다.</p>
+      <p class="logo rise"><img src="/favicon-192.png" width="64" height="64" alt="" /><span>SaveEats</span></p>
+      <h1 class="rise" style="--i:1">배달앱 할인은,<br /><em>웹에 없었다</em></h1>
+      <p class="lead rise" style="--i:2">우아한테크코스 8기 팀 오늘의 할인<br />배달앱 네 곳 할인 비교, 15주의 기록</p>
+      <div class="apps rise" style="--i:3">
+        <img src="/platform-icons/baemin.png" alt="배달의민족" /><img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" /><img src="/platform-icons/yogiyo.png" alt="요기요" /><img src="/platform-icons/ddangyo.png" alt="땡겨요" />
+        <a class="qr" href="/"><img src="/project/qr.svg" alt="서비스 주소 QR" /><span><b>지금 바로 확인</b>QR을 스캔하세요</span></a>
+      </div>
     </div>
-    <div class="stats rise" style="--i:2">
-      <div class="stat"><b>13</b><span>세우고 검증한 가설</span></div>
-      <div class="stat"><b>688</b><span>한 주에 할인을 누른 사람, 최다 기록</span></div>
-      <div class="stat"><b>14,486</b><span>누적 고유 방문자<br />2026-07-29 ~ 2026-11-11</span></div>
-      <div class="stat"><b>201</b><span>병합한 변경 요청(PR)</span></div>
+    <div class="phones rise" style="--i:2" aria-hidden="true">
+      <img class="ph ph1" src="/about/sheet.jpg" alt="" />
+      <img class="ph ph2" src="/about/hero.jpg" alt="" />
     </div>
   </div>
   <a class="next" href="#s2" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -219,23 +272,23 @@
 </section>
 
 <section class="slide" id="s6">
-  <div class="slide__in">
-    <div class="split" style="margin-bottom:28px">
-      <div>
-        <h2 class="rise">할인이<br /><em>화면에 오기까지</em></h2>
-      </div>
-      <p class="lead rise" style="--i:1;margin:0">핵심 기술은 "할인이 지금도 맞다"를 보장하는 일입니다.</p>
+  <div class="slide__in split">
+    <div>
+      <h2 class="rise">할인이<br /><em>화면에 오기까지</em></h2>
+      <p class="lead rise" style="--i:1">핵심 기술은 "할인이 지금도 맞다"를 보장하는 일입니다.</p>
     </div>
-    <ol class="arch rise" style="--i:2">
-      <li class="node"><b>폰 3대</b><span class="sub">배달앱 네 곳의<br />할인 화면</span></li>
-      <li class="hop" aria-hidden="true"></li>
-      <li class="node"><b>수집 PC</b><span class="sub">하루 세 번 화면을 읽어<br />원장에 쌓습니다</span></li>
-      <li class="hop" aria-hidden="true"></li>
-      <li class="node"><b>서버</b><span class="sub">빠진 값이 없는지 검사한 뒤<br />배포합니다</span></li>
-      <li class="hop" aria-hidden="true"></li>
-      <li class="node"><b>웹</b><span class="sub">브랜드마다 가장 큰<br />할인을 보여 줍니다</span></li>
-    </ol>
-    <p class="pitch rise" style="--i:3">운영 화면과 Slack 알림이 수집, 서버, 배포를 지켜보고, 배너는 사람이 확인한 뒤에만 반영합니다</p>
+    <div class="rise" style="--i:2">
+      <ol class="arch v">
+        <li class="node"><b>폰 3대</b><span class="sub">배달앱 네 곳의 할인 화면</span></li>
+        <li class="hop" aria-hidden="true"></li>
+        <li class="node"><b>수집 PC</b><span class="sub">하루 세 번 읽어 원장에 쌓습니다</span></li>
+        <li class="hop" aria-hidden="true"></li>
+        <li class="node"><b>서버</b><span class="sub">빠진 값을 검사한 뒤 배포합니다</span></li>
+        <li class="hop" aria-hidden="true"></li>
+        <li class="node"><b>웹</b><span class="sub">브랜드마다 가장 큰 할인</span></li>
+      </ol>
+      <p class="pitch">배너는 사람이 확인한 뒤에만 반영합니다</p>
+    </div>
   </div>
   <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
 </section>
