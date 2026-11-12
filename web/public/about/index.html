@@ -278,9 +278,14 @@
       .slide--shot .lead, #s3 .lead { flex: 0 1 auto; max-width: 52%; margin: 0; padding: 0 0 0 14px; border-top: 0; }
       .slide--shot .lead br, #s3 .lead br { display: inline; }
       .phone { margin-top: 30px; }
-      .final h2 { padding-left: 12px; font-size: 1.3rem; }
     }
-      .final h2 { white-space: nowrap; font-size: clamp(1.5rem, 3.2vw, 2.6rem); }
+    .final h2 { white-space: nowrap; font-size: clamp(1.5rem, 3.2vw, 2.6rem); }
+    /* 모바일: 제목+바로가기 묶음을 내용 폭으로 줄여 가운데에 두고, 안의 글은 왼쪽 정렬 */
+    @media (max-width: 767px) {
+      .final .split { width: fit-content; max-width: 100%; margin: 0 auto; text-align: left; }
+      .final .split > h2 { padding-left: 0; font-size: clamp(1.15rem, 6vw, 1.5rem); }
+      .final .cta { align-items: flex-start; text-align: left; }
+    }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
