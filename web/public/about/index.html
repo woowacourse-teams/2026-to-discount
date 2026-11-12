@@ -503,7 +503,7 @@
         { loop: true },
         { scroll: 300, ms: 800 }, { scroll: 520, ms: 900 },
         { tap: tab('한정') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 }, { scroll: 300, ms: 800 }, { scroll: 520, ms: 900 },
-        { tap: tab('랜덤') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 }, { scroll: 300, ms: 800 }, { scroll: 520, ms: 900 },
+        { tap: tab('랜덤') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 }, { scroll: 520, ms: 1000 }, // 랜덤은 한 번만 내린다
         { tap: tab('치킨') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 }, { scroll: 300, ms: 800 }, { scroll: 520, ms: 900 },
         { tap: tab('피자') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 }, { scroll: 300, ms: 800 }, { scroll: 640, ms: 1000 },
         { tap: tab('전체') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 },
