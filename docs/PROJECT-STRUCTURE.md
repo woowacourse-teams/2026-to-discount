@@ -304,6 +304,8 @@ web/src/hiddenBrands.js
 web/src/hiddenBrands.test.js
 web/src/historyChart.js
 web/src/historyChart.test.js
+web/src/homeExperiment.js
+web/src/homeExperiment.test.js
 web/src/homeRollout.test.js
 web/src/linkReturn.js
 web/src/linkReturn.test.js
@@ -343,9 +345,24 @@ web/src/report.test.js
 web/src/shareAttribution.js
 web/src/shareAttribution.test.js
 web/src/sheetParts.jsx
+web/src/shells/my-brands-v2/DetailSheet.jsx
+web/src/shells/my-brands-v2/MyBrandsV2Shell.jsx
+web/src/shells/my-brands-v2/PriceChart.jsx
+web/src/shells/my-brands-v2/V2Card.jsx
+web/src/shells/my-brands-v2/data.js
+web/src/shells/my-brands-v2/data.test.js
+web/src/shells/my-brands-v2/my-brands-v2.css
+web/src/shells/my-brands-v2/parts.jsx
+web/src/shells/my-brands-v2/platform-logos/baemin.png
+web/src/shells/my-brands-v2/platform-logos/coupangeats.svg
+web/src/shells/my-brands-v2/platform-logos/ddangyo.png
+web/src/shells/my-brands-v2/platform-logos/yogiyo.svg
+web/src/shells/my-brands-v2/share.png
 web/src/shortShareLink.js
 web/src/shortShareLink.test.js
 web/src/shortShareRedirect.js
+web/src/ssrJson.js
+web/src/ssrJson.test.js
 web/src/styles/banner.css
 web/src/styles/base.css
 web/src/styles/brand-card.css
@@ -428,7 +445,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 196 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 183 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 200 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -545,6 +562,8 @@ HTTP 경계:
 | `hiddenBrands.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `historyChart.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `historyChart.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `homeExperiment.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `homeExperiment.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeRollout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -587,6 +606,8 @@ HTTP 경계:
 | `shortShareLink.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `shortShareLink.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `shortShareRedirect.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `ssrJson.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `ssrJson.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |

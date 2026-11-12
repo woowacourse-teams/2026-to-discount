@@ -175,7 +175,7 @@
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
-  padding: 0 2px 2px;
+  padding: 0 2px; /* 아래만 더 주면 글자가 아이콘보다 위로 뜬다(2026-11-11): 위아래를 같게 */
 }
 .quick-bar__sorts::-webkit-scrollbar { display: none; }
 .quick-bar__chip {
@@ -185,7 +185,7 @@
   font: inherit;
   font-size: .8rem;
   font-weight: 700;
-  padding: 2px 2px 4px;
+  padding: 4px 2px; /* 위아래 같게: 글자 줄의 세로 가운데가 옆 아이콘(.quick-bar__tools)과 맞는다 */
   border: 0;
   background: none;
   color: #8a8a8a;

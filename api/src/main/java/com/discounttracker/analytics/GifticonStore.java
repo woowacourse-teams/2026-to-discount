@@ -93,7 +93,8 @@ public class GifticonStore {
      */
     public Optional<String> issue(String visitorId) {
         try {
-            return InterProcessFileLock.withLock(lockPath, lockTimeout, () -> issueLocked(visitorId));
+            return InterProcessFileLock.withOperationsWrite(() ->
+                    InterProcessFileLock.withLock(lockPath, lockTimeout, () -> issueLocked(visitorId)));
         } catch (IOException e) {
             log.error("기프티콘 발급 락을 잡지 못했다 — 코드를 내주지 않는다: {}", lockPath, e);
             return Optional.empty();

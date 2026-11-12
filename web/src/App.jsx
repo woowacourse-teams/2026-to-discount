@@ -100,7 +100,9 @@ function routeFilters() {
 // initial은 서버 렌더(SSR, api/ssr.js)가 요청 시점에 받은 데이터다. 있으면 첫 화면을 그걸로
 // 그리고 같은 값을 다시 부르지 않는다. 첫 렌더는 서버와 같아야 하므로 브라우저에만 있는 값
 // (localStorage, 시각, 화면 폭)은 전부 effect에서 읽는다.
-export default function App({ initial = null }) {
+// Card: 카드 한 장을 그리는 컴포넌트. 기본은 운영 쿠폰 카드이고, 홈 시안(shells/)이 자기 카드를 끼워 넣을 때만 바꾼다.
+// mainClassName: 본문 <main>에 더하는 클래스(시안의 스타일 걸이). 둘 다 기본값이면 운영 동작은 그대로다.
+export default function App({ initial = null, Card = CouponCard, mainClassName }) {
   const [pushToggleSlot, setPushToggleSlot] = useState(null)
   // 알림 토글 자리는 ref가 붙을 때 받는다. 급한 업데이트로 받으면 하이드레이션 중인 쿠폰 카드(Suspense)가
   // 업데이트를 받아 통째로 다시 그려져, a홈이 서버 화면 -> 운영 카드 -> 쿠폰 카드로 바뀌어 보였다(React #421,
@@ -615,7 +617,7 @@ export default function App({ initial = null }) {
           <button type="button" className="pmf-preview-toggle" onClick={() => survey.previewSurvey('dock')}>하단 설문 안내 표시</button>
         </div>
       )}
-    <main>
+    <main className={mainClassName}>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
           높은순, 최소주문 낮은순. 랜덤쿠폰 토글은 2026-09-21에 여기서 뺐다(사용자) — 뽑기
           값은 사람마다 달라 자주 켤 것이 아니다. 시트에는 그대로 있다. 시트의 같은 값과 한
@@ -780,7 +782,7 @@ export default function App({ initial = null }) {
             const props = { leaving: leaving === b.name, onHide, onReact, reaction: reactionOf(reactions, b), include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name) || shared?.brand.name === b.name, onInteract: clearLinked,
               sharedKey: shared?.brand.name === b.name ? shared.key : null, onShareTargetVisible }
-            const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
+            const card = <Card key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
             // 한정 오퍼는 세 번째 카드 뒤에 유지한다.
             const banner = index === 2 && (banners == null
               ? <div key="inline-banners" className="inline-banners banner-slot banner-slot--pending" aria-hidden="true" />

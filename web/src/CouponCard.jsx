@@ -103,9 +103,9 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
 }
 
 // 배지 묶음(채널 + 배지). 운영 탭 마크업, 쿠폰 배지 규격 하나(coupon-card.css .cc-tags)
-export function Tags({ o, detail = false }) {
+export function Tags({ o, detail = false, brandName }) {
   // 카드와 상세 오퍼 머리가 같은 목록(chipsOf)에서 뽑는다(#151). 복합은 늘 맨 오른쪽(사용자 2026-10-06)
-  const all = headOrder(chipsOf(o).filter(detail ? (c) => c.scope === 'offer' && onDetail(c) : onCard))
+  const all = headOrder(chipsOf(o, brandName).filter(detail ? (c) => c.scope === 'offer' && onDetail(c) : onCard))
   const ch0 = all.find((b) => b.kind === 'channel')?.text
   const ch = ch0 === '배달' || ch0 === '포장' ? ch0 : null // 배달/포장처럼 둘 다면 숨긴다
   // 오픈 전 상태는 배지 줄에서 빼고 쿠폰 로고 위에만 둔다 — 시트에서 두 번 떴다(2026-11-05 사용자). 한정 배지(n시 오픈, 당일 한정)는 줄에 그대로 둔다(2026-11-07 사용자, #336)
@@ -444,7 +444,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           </button>
         </div>
         {/* 2줄: 배지(예전 계산식 자리). 계산식은 복합 배지의 (i) 설명으로 옮겼다(2026-10-06 사용자) */}
-        {best[cur] && <div className="cc-fx cc-badges"><Tags o={best[cur]} /></div>}
+        {best[cur] && <div className="cc-fx cc-badges"><Tags o={best[cur]} brandName={brand.name} /></div>}
       </div>
       {/* 1+1 묶음 행사는 대표 쿠폰 위 한 줄(2026-10-11 사용자: 오퍼 최상단). 금액 비교 밖이라 대표를 뺏지 않는다. */}
       {/* 감싸는 div는 묶음이 있을 때만. 모든 카드에 두면 쿠폰이 사라진다(2026-10-11 회귀). */}
@@ -493,7 +493,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
               <Fragment key={offerKey(o)}>
                 <div className="cc-deal cc-deal--more" style={anim}>
                   <div className="cc-deal-col">
-                    <Tags o={o} detail />
+                    <Tags o={o} detail brandName={brand.name} />
                     <Coupon o={o} brand={brand} position={position} best={stack && i < best.length - 1} where="expanded" slot={i + 1} expanded />
                   </div>
                 </div>
@@ -529,7 +529,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                 return (
                   <div key={offerKey(o)} className={`cc-sheet__item${sharedKey === sharedOfferKey(o) ? ' shared-offer-target' : ''}`}
                     tabIndex={-1} data-offer-key={sharedOfferKey(o)}>
-                    <Coupon o={o} brand={brand} position={position} best={best.includes(o)} where="sheet" slot={i + 1} expanded tags={<Tags o={o} detail />} />
+                    <Coupon o={o} brand={brand} position={position} best={best.includes(o)} where="sheet" slot={i + 1} expanded tags={<Tags o={o} detail brandName={brand.name} />} />
 
                     {hasTbl && <DetailTable t={tb} i={0} />}
                   </div>

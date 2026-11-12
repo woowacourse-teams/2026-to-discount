@@ -1,5 +1,6 @@
 package com.discounttracker.analytics;
 
+import com.discounttracker.storage.InterProcessFileLock;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,10 +112,13 @@ public class ReportController {
     }
 
     private synchronized void append(String line) throws IOException {
-        Path parent = reportPath.toAbsolutePath().getParent();
-        if (parent != null) Files.createDirectories(parent);
-        Files.writeString(reportPath, line + "\n", StandardCharsets.UTF_8,
-                StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        InterProcessFileLock.withOperationsWrite(() -> {
+            Path parent = reportPath.toAbsolutePath().getParent();
+            if (parent != null) Files.createDirectories(parent);
+            Files.writeString(reportPath, line + "\n", StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            return null;
+        });
     }
 
     synchronized boolean allow(String key, Instant now) {

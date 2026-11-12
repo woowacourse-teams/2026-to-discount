@@ -39,8 +39,8 @@ const KEY = `dk_survey_${SURVEY_ID}`
 export function terminalState(storage = globalThis.localStorage) {
   try { const value = storage.getItem(KEY); return ['answered', 'dismissed'].includes(value) ? value : null } catch { return null }
 }
-export function rememberTerminal(value, storage = globalThis.localStorage) {
-  try { storage.setItem(KEY, value) } catch { /* 서버 기록으로도 중복 참여를 막는다. */ }
+export function rememberTerminal(value, storage) {
+  try { (storage ?? globalThis.localStorage).setItem(KEY, value) } catch { /* 서버 기록으로도 중복 참여를 막는다. */ }
 }
 export function validDraft(draft) {
   return PMF_OPTIONS.some(([key]) => key === draft.choice) && FOLLOW_UP.every(q => {

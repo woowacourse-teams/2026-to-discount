@@ -246,14 +246,15 @@ public class PushStateStore {
         Path path = properties.statePath();
         if (path == null) return change.apply(state);
         try {
-            return InterProcessFileLock.withLock(path.resolveSibling(path.getFileName() + ".lock"),
+            return InterProcessFileLock.withOperationsWrite(() ->
+                    InterProcessFileLock.withLock(path.resolveSibling(path.getFileName() + ".lock"),
                     lockTimeout, () -> {
                         state = load(state);
                         R result = change.apply(state);
                         save();
                         signature = signatureOf();
                         return result;
-                    });
+                    }));
         } catch (IOException e) {
             throw new UncheckedIOException("Push 상태 파일 저장 실패: " + path, e);
         }
@@ -308,7 +309,8 @@ public class PushStateStore {
         Path damaged = properties.statePath().resolveSibling(
                 properties.statePath().getFileName() + ".corrupt-" + clock.instant().toEpochMilli());
         try {
-            Files.move(properties.statePath(), damaged, StandardCopyOption.REPLACE_EXISTING);
+            InterProcessFileLock.withOperationsWrite(() ->
+                    Files.move(properties.statePath(), damaged, StandardCopyOption.REPLACE_EXISTING));
             log.error("손상된 Push 상태 파일을 격리하고 메모리 상태로 잇는다: backup={}", damaged, cause);
         } catch (IOException backupError) {
             log.error("Push 상태 파일을 읽거나 격리하지 못해 메모리 상태로 잇는다: path={}",
