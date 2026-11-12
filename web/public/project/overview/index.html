@@ -172,6 +172,13 @@
     .two { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
     @media (min-width: 860px) { .two { grid-template-columns: 1fr 1fr; } }
     .two .chart { margin-top: 12px; }
+    /* GA 실시간 캡처 */
+    .snaps { display: grid; gap: 12px; margin-top: 12px; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 860px) { .snaps { grid-template-columns: .7fr 1.3fr; align-items: start; } }
+    .snaps figure { margin: 12px 0 0; }
+    .snaps img { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--border); }
+    .snaps figcaption { margin-top: 10px; color: var(--muted); font-size: .86rem; line-height: 1.6; }
+    .snaps figcaption b { display: block; color: var(--text); font-size: 1rem; }
 
     /* 스프린트별 도달률: 목표선 34% */
     .reach { margin: 6px 0 0; padding: 0; list-style: none; }
@@ -235,6 +242,10 @@
       <div class="box stat rise" style="--i:3"><span class="num"><span data-count="36.4" data-dec="1">36.4</span><small>%</small></span><span class="lbl">스프린트 1 할인 선택 도달률</span><p>방문자 3,401명 중 1,238명이 할인을 눌렀습니다.</p></div>
       <div class="box stat rise" style="--i:4"><span class="num"><span data-count="79">79</span><small>%</small></span><span class="lbl">설문 응답자 7일 안 재방문</span><p>응답자 29명 기준입니다. 30일 안에는 97%가 다시 왔습니다.</p></div>
       <div class="box stat rise" style="--i:5"><span class="num"><span data-count="17.8" data-dec="1">17.8</span><small>%</small></span><span class="lbl">4주 뒤 다시 할인을 누른 비율</span><p>2026-10-05 주 활성 사용자 기준입니다. 10개 주 합산은 9.1%입니다.</p></div>
+    </div>
+    <div class="snaps">
+      <figure class="chart rise"><img src="/project/overview/img/ga-realtime-2026-09-11.png" loading="lazy" alt="GA 실시간 화면. 지난 30분 동안 활성 사용자 252명, 국가별로 한국 251명, 일본 1명." /><figcaption><b>30분 동안 252명</b>2026-09-11 18:42. 네이버 카페에 공유된 직후의 GA 실시간 화면입니다.</figcaption></figure>
+      <figure class="chart rise" style="--i:1"><img src="/project/overview/img/ga-realtime-2026-10-03.png" loading="lazy" alt="GA 실시간 개요. 지난 30분 활성 사용자 127명, 지난 5분 24명. 수도권, 강원, 충청, 대구, 부산, 광주에서 접속. 페이지 조회 144회." /><figcaption><b>토요일 오후, 30분 동안 127명</b>2026-10-03 17:10. 수도권부터 부산, 광주까지 전국에서 접속했습니다.</figcaption></figure>
     </div>
     <div class="two">
       <div class="chart rise" data-chart="cum" role="img" aria-label="누적 고유 방문자. 7월 후반 808명, 8월 전반 1,694명, 8월 후반 3,255명, 9월 전반 5,998명, 9월 후반 7,834명, 10월 전반 10,874명, 10월 후반 13,503명, 11월 전반 잠정 14,486명.">
@@ -402,6 +413,8 @@
         if (p < 1) requestAnimationFrame(step)
       }
       requestAnimationFrame(step)
+      // 화면 밖 임베드나 캡처에서 그리기가 멈춰도 끝값은 반드시 남긴다(세다 만 3,905 같은 값이 보였다)
+      setTimeout(function () { n.textContent = fmt(to, dec) }, 1300)
     }
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (e) {
