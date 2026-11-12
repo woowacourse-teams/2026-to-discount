@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SaveEats 배너</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/favicon-48.png" />
+  <link rel="stylesheet" href="/fonts/pretendard-block.css" />
+  <!-- 데모데이 배너(1920x1080). 소개 페이지와 같은 Pretendard로 다시 만든 판. 화면 폭에 맞춰 통째로 줄어든다.
+       PNG가 필요하면 1920x1080 창에서 이 페이지를 캡처한다 -->
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #0f1115; }
+    body { display: grid; place-items: center; overflow: hidden; font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+    .b { position: relative; width: 1920px; height: 1080px; flex: none; overflow: hidden; background: #f4f7fc; color: #191f28; transform-origin: center; }
+    .b__left { position: absolute; left: 124px; top: 96px; bottom: 88px; width: 860px; display: flex; flex-direction: column; }
+    .logo { display: flex; align-items: center; gap: 30px; }
+    .logo img { width: 116px; height: 116px; transform: rotate(-12deg); }
+    .logo span { font-size: 108px; font-weight: 900; font-style: italic; letter-spacing: -.04em; color: #3182f6; line-height: 1; }
+    h1 { margin: 88px 0 0; font-size: 150px; font-weight: 900; line-height: 1.12; letter-spacing: -.05em; }
+    h1 em { font-style: normal; color: #3182f6; }
+    .rule { width: 120px; height: 8px; margin: 54px 0 0; border-radius: 4px; background: #3182f6; }
+    .sub { margin: 46px 0 0; font-size: 42px; font-weight: 700; line-height: 1.5; color: #4e5968; letter-spacing: -.02em; }
+    .sub b { color: #191f28; font-weight: 800; }
+    .row { display: flex; align-items: center; gap: 18px; margin-top: auto; }
+    .row > img { width: 92px; height: 92px; border-radius: 24px; box-shadow: 0 10px 24px -14px rgba(0,0,0,.45); }
+    .qr { display: flex; align-items: center; gap: 22px; margin-left: 22px; padding: 18px 32px 18px 18px; border-radius: 26px; background: #fff; box-shadow: 0 16px 40px -24px rgba(25,31,40,.5); }
+    .qr img { width: 100px; height: 100px; }
+    .qr b { display: block; font-size: 38px; font-weight: 800; letter-spacing: -.03em; }
+    .qr span { font-size: 26px; font-weight: 600; color: #6b7684; }
+    .b__right { position: absolute; top: 0; right: 0; bottom: 0; width: 900px; background: linear-gradient(150deg, #4a93ff 0%, #3182f6 45%, #1b64da 100%); }
+    .ph { position: absolute; width: 380px; height: 800px; border: 14px solid #15161a; border-radius: 56px; background: #fff; overflow: hidden; box-shadow: 0 40px 80px -30px rgba(0,0,0,.5); }
+    .ph img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+    .ph1 { left: 70px; top: 150px; transform: rotate(-7deg); }
+    .ph2 { right: 60px; top: 70px; transform: rotate(-4deg); }
+  </style>
+</head>
+<body>
+  <div class="b" id="b">
+    <div class="b__left">
+      <p class="logo"><img src="/favicon-192.png" alt="" /><span>SaveEats</span></p>
+      <h1>배달앱 할인,<br /><em>한 눈에 보기</em></h1>
+      <div class="rule"></div>
+      <p class="sub"><b>배민, 쿠팡이츠, 요기요, 땡겨요</b><br />오늘의 할인을 한 화면에서 비교해요</p>
+      <div class="row">
+        <img src="/platform-icons/baemin.png" alt="배달의민족" /><img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" /><img src="/platform-icons/yogiyo.png" alt="요기요" /><img src="/platform-icons/ddangyo.png" alt="땡겨요" />
+        <div class="qr"><img src="/project/qr.svg" alt="서비스 주소 QR" /><div><b>지금 바로 확인</b><span>QR을 스캔하세요</span></div></div>
+      </div>
+    </div>
+    <div class="b__right">
+      <div class="ph ph1"><img src="/about/sheet.jpg" alt="" /></div>
+      <div class="ph ph2"><img src="/about/hero.jpg" alt="" /></div>
+    </div>
+  </div>
+  <script>
+    // 창 크기에 맞춰 1920x1080 판을 통째로 줄인다(창이 정확히 1920x1080이면 그대로)
+    var b = document.getElementById('b')
+    var fit = function () { var s = Math.min(innerWidth / 1920, innerHeight / 1080); b.style.transform = s === 1 ? '' : 'scale(' + s + ')' }
+    fit(); addEventListener('resize', fit)
+  </script>
+</body>
+</html>

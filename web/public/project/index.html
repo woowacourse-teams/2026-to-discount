@@ -12,7 +12,6 @@
   <!-- /about과 같은 풀페이지 배너. 넓은 화면은 한 장씩 넘기고, 좁거나 낮은 화면은 글이 잘리지 않게 그냥 스크롤한다(.flow) -->
   <style>
     /* 데모데이 사이트(to-discount-demo)와 같은 글꼴과 색. 배민 도현은 굵기가 하나라 가짜 굵게를 끈다 */
-    @font-face { font-family: 'BM Dohyeon'; src: url('/fonts/BMDOHYEON.woff') format('woff'); font-display: swap; }
     :root {
       --bg: #f2f4f6; --surface: #ffffff; --border: #e5e8eb; --navy: #152746;
       --text: #1c1d1f; --muted: #4e5968; --sale: #245bc5; --sale-weak: #e8eff9; --no: #c2410c; --no-weak: #fff1e8;
@@ -20,7 +19,7 @@
       color-scheme: light;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.7 'BM Dohyeon', 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; font-synthesis: none; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
     a { color: inherit; }
     a:focus-visible, button:focus-visible { outline: 2px solid var(--sale); outline-offset: 3px; }
 
@@ -41,7 +40,7 @@
     .flow .next, .flow .pg, .flow .dots { display: none; }
     .pg { position: fixed; right: 16px; bottom: 12px; z-index: 3; color: var(--muted); font-size: .72rem; font-variant-numeric: tabular-nums; pointer-events: none; }
 
-    h1, h2 { margin: 0; letter-spacing: -.01em; font-weight: 400; text-wrap: balance; }
+    h1, h2 { margin: 0; letter-spacing: -.035em; font-weight: 800; text-wrap: balance; }
     h1 { font-size: clamp(2.2rem, 6.5vw, 3.6rem); line-height: 1.12; }
     h2 { font-size: clamp(1.8rem, 4.6vw, 2.8rem); line-height: 1.18; }
     em { font-style: normal; color: var(--sale); }
@@ -160,7 +159,7 @@
     .apps > img { width: clamp(48px, 4.6vw, 72px); height: auto; border-radius: 18px; box-shadow: 0 8px 20px -12px rgba(0,0,0,.4); }
     .qr { display: flex; align-items: center; gap: 16px; margin-left: 10px; padding: 14px 22px 14px 14px; border-radius: 20px; background: #fff; text-decoration: none; box-shadow: 0 12px 30px -18px rgba(14,40,100,.5); }
     .qr img { width: clamp(56px, 5vw, 80px); height: auto; }
-    .qr b { display: block; font-size: clamp(1.05rem, 1.6vw, 1.5rem); font-weight: 400; color: var(--text); }
+    .qr b { display: block; font-size: clamp(1.05rem, 1.6vw, 1.5rem); font-weight: 800; color: var(--text); }
     .qr span { color: #4e5968; font-size: .95rem; }
     .phones { position: relative; height: 86dvh; }
     .ph { position: absolute; width: min(52%, 300px); aspect-ratio: 390 / 820; object-fit: cover; object-position: top; border: 10px solid #15161a; border-radius: 42px; background: #fff; box-shadow: 0 30px 60px -20px rgba(0,0,0,.45); }
@@ -187,7 +186,7 @@
   <div class="slide__in split">
     <div>
       <p class="logo rise"><img src="/favicon-192.png" width="64" height="64" alt="" /><span>SaveEats</span></p>
-      <h1 class="rise" style="--i:1">배달앱 할인은,<br /><em>웹에 없었다</em></h1>
+      <h1 class="rise" style="--i:1">배달앱 할인은<br /><em>앱마다 흩어져 있었다</em></h1>
       <p class="lead rise" style="--i:2">우아한테크코스 8기 팀 오늘의 할인<br />배달앱 네 곳 할인 비교, 15주의 기록</p>
       <div class="apps rise" style="--i:3">
         <img src="/platform-icons/baemin.png" alt="배달의민족" /><img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" /><img src="/platform-icons/yogiyo.png" alt="요기요" /><img src="/platform-icons/ddangyo.png" alt="땡겨요" />
@@ -205,7 +204,7 @@
 <section class="slide" id="s2">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">혼자 띄운 서비스에<br /><em>두 사람이 합류</em>했다</h2>
+      <h2 class="rise">1인 서비스에서<br /><em>3인 팀으로</em></h2>
       <p class="lead rise" style="--i:1">글렌이 띄운 서비스에 고래와 피온이 합류했습니다.</p>
     </div>
     <ol class="tech plain rise" style="--i:2">
@@ -223,8 +222,8 @@
 <section class="slide" id="s3">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">비교에서<br /><em>발견으로</em></h2>
-      <p class="lead rise" style="--i:1">핵심 가치를 "유리한 할인을 빠르게 찾기"로 고쳤습니다.</p>
+      <h2 class="rise">핵심 가치<br /><em>다시 정하기</em></h2>
+      <p class="lead rise" style="--i:1">"비교"에서 "나한테 유리한 할인 빨리 찾기"로 바꿨습니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
       <li><div><b>"시간을 아껴 준다는 건 아직 팀의 가설입니다"</b><span>2026-08-28 프로젝트 밍글링에서 코치가 한 말. 다시 오는 사용자에게 이유를 직접 묻기로 했습니다</span></div></li>
@@ -238,8 +237,8 @@
 <section class="slide" id="s4">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">가설 13개 중<br /><em>6개를 버렸다</em></h2>
-      <p class="lead rise" style="--i:1">성공 기준을 먼저 적고, 기각도 근거로 남겼습니다.</p>
+      <h2 class="rise">가설 13개,<br /><em>기각 6개</em></h2>
+      <p class="lead rise" style="--i:1">기준을 먼저 정하고 실험했습니다.</p>
     </div>
     <div class="rise" style="--i:2">
       <p class="verdicts"><i>검증 4</i><i class="no">기각 6</i><i class="plain">판단 불가 2</i><i class="plain">진행 중 1</i></p>
@@ -258,8 +257,8 @@
 <section class="slide" id="s5">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">고른 것보다<br /><em>버린 것</em>을 적었다</h2>
-      <p class="lead rise" style="--i:1">결정마다 대안과 이유를 남겨 57건이 됐습니다.</p>
+      <h2 class="rise">기술 결정과<br /><em>그 이유</em></h2>
+      <p class="lead rise" style="--i:1">결정마다 대안과 이유를 문서로 남겼습니다. 총 57건입니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
       <li><div><b>앱 내부 API를 쓰지 않는다</b><span>직접 호출해 보니 인증 없이는 거부됐습니다. 인증 토큰을 뽑아 쓰면 약관 위반과 만료 관리를 떠안습니다</span></div></li>
@@ -274,8 +273,8 @@
 <section class="slide" id="s6">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">할인이<br /><em>화면에 오기까지</em></h2>
-      <p class="lead rise" style="--i:1">핵심 기술은 "할인이 지금도 맞다"를 보장하는 일입니다.</p>
+      <h2 class="rise">수집부터<br /><em>화면까지</em></h2>
+      <p class="lead rise" style="--i:1">할인 정보가 지금도 맞는지 계속 확인하는 게 핵심입니다.</p>
     </div>
     <div class="rise" style="--i:2">
       <ol class="arch v">
@@ -296,8 +295,8 @@
 <section class="slide" id="s7">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">숫자로 남은<br /><em>운영 사고</em></h2>
-      <p class="lead rise" style="--i:1">수집은 틀린 값보다 값을 조용히 잃습니다.</p>
+      <h2 class="rise">운영하며 겪은<br /><em>장애</em></h2>
+      <p class="lead rise" style="--i:1">대부분 값이 틀리기보다 조용히 빠지는 장애였습니다.</p>
     </div>
     <div class="stats rise" style="--i:2">
       <div class="stat"><b>700 → 25</b><span>방문 한 번에 생기는 요청 수. 하루 50명에 무료 한도 93%가 찼습니다. 원인은 캐시 설정 없는 로고 재요청</span></div>
@@ -312,8 +311,8 @@
 <section class="slide" id="s8">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">앞서가던 한 사람,<br /><em>기다리던 두 사람</em></h2>
-      <p class="lead rise" style="--i:1">한 사람의 그림과 팀의 결과물이 자주 달랐습니다.</p>
+      <h2 class="rise">팀 안의<br /><em>속도 차이</em></h2>
+      <p class="lead rise" style="--i:1">먼저 만든 사람과 합류한 사람의 속도가 달랐습니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
       <li><div><b>혼자 코치를 찾아갔다</b><span>코치 제이슨은 설득하지 말고 구조를 고치라고 했습니다. 문제를 적는 작업 카드, 시간 제한, 감정 회고를 붙였습니다</span></div></li>
@@ -328,7 +327,7 @@
 <section class="slide" id="s9">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">그라운드 룰을<br /><em>세 번 고쳐 썼다</em></h2>
+      <h2 class="rise">그라운드 룰<br /><em>세 번 수정</em></h2>
       <ol class="tech plain rise" style="--i:1;margin-top:18px">
         <li><span class="k">1판 8월</span><div><b>모든 것을 솔직하게</b><span>단, 각자 피해 달라고 한 행동은 삼갑니다</span></div></li>
         <li><span class="k">2판 9월</span><div><b>잘한 점을 의식해서 말하기</b><span>레벨3 규칙 자가 채점 117점(150점 만점)</span></div></li>
@@ -347,8 +346,8 @@
 <section class="slide" id="s10">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">들은 말과<br /><em>바꾼 것</em></h2>
-      <p class="lead rise" style="--i:1">코치와 데모데이 피드백을 다음 목표로 옮겼습니다.</p>
+      <h2 class="rise">받은 피드백과<br /><em>반영</em></h2>
+      <p class="lead rise" style="--i:1">코치와 데모데이 피드백을 다음 스프린트 목표로 삼았습니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
       <li><div><b>"누가 무엇을 결정할지부터 정하세요"</b><span>코치 네오, 08-14. 기획 의도와 대상 사용자를 문서로 꺼내고, 실험마다 판단 기준을 적었습니다</span></div></li>
@@ -363,8 +362,8 @@
 <section class="slide" id="s11">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">빨라진 만큼<br /><em>이해 부채</em>가 쌓였다</h2>
-      <p class="lead rise" style="--i:1">가장 큰 부채는 사람이 맥락을 놓치는 이해 부채였습니다.</p>
+      <h2 class="rise">AI와 일하며 생긴<br /><em>이해 부채</em></h2>
+      <p class="lead rise" style="--i:1">개발은 빨라졌지만 코드를 이해하는 속도가 못 따라갔습니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
       <li><div><b>완료 보고를 믿지 않는다</b><span>에이전트는 결과물 없이 성공을 보고한 적이 있습니다. 완료는 자동화 흐름이 직접 확인하고, 사람은 설계와 병합만 승인합니다</span></div></li>
@@ -378,7 +377,7 @@
 <section class="slide" id="s12">
   <div class="slide__in split">
     <div>
-      <h2 class="rise">되돌림을 막은 건<br /><em>전부 테스트</em>였다</h2>
+      <h2 class="rise">프로젝트<br /><em>회고</em></h2>
       <div class="cta rise" style="--i:2">
         <a class="btn" href="/">서비스 보기</a>
         <a class="btn btn--ghost" href="https://github.com/woowacourse-teams/2026-to-discount">GitHub</a>

@@ -13,7 +13,6 @@
        움직임: 화면에 들어오면 떠오르기, 숫자 세기, 막대 늘이기, 수집 흐름 점 이동. 움직임 줄이기를 켠 기기는 처음부터 최종 상태로 보인다 -->
   <style>
     /* 데모데이 사이트와 같은 배민 도현. 굵기가 하나라 가짜 굵게를 끈다 */
-    @font-face { font-family: 'BM Dohyeon'; src: url('/fonts/BMDOHYEON.woff') format('woff'); font-display: swap; }
     :root {
       --bg: #f2f4f6; --surface: #ffffff; --border: #e5e8eb;
       --text: #1c1d1f; --muted: #4e5968; --navy: #152746; --pale: #c9dcfc; --sale: #245bc5; --sale-weak: #e8eff9; --no: #c2410c; --no-weak: #fff1e8; --na: #f1f0ee; --base: #8f8d87;
@@ -23,7 +22,7 @@
       :root:not(.solo) { --bg: #121211; --surface: #1c1c1a; --border: #2c2c29; --text: #f1f0ee; --muted: #a8a7a2; --sale: #5b9dff; --sale-weak: #16233a; --no: #fb923c; --no-weak: #3a1f0e; --na: #262624; --base: #8a8984; --navy: #0f1d36; --pale: #22406e; color-scheme: dark; }
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.75 'BM Dohyeon', 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; font-synthesis: none; text-align: left; word-break: keep-all; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; text-align: left; word-break: keep-all; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; }
     a { color: var(--sale); }
     p, li, dd, figcaption { text-wrap: pretty; }
     .sec { padding: 56px 20px; }
@@ -33,7 +32,7 @@
     .solo .sec.on { display: block; }
 
     .eyebrow { margin: 0 0 10px; color: var(--sale); font-size: .8rem; font-weight: 800; letter-spacing: .04em; }
-    h1, h2, h3 { margin: 0; letter-spacing: -.01em; font-weight: 400; }
+    h1, h2, h3 { margin: 0; letter-spacing: -.03em; }
     h1 { font-size: clamp(2rem, 5.2vw, 3rem); line-height: 1.2; font-weight: 800; }
     h2 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.3; font-weight: 800; }
     h3 { font-size: 1rem; line-height: 1.4; letter-spacing: -.015em; }
@@ -151,7 +150,7 @@
 
     /* 그림: SVG를 스크립트가 그린다. 값은 글자로 늘 보이고, 막대 위에 올리면 풀이가 뜬다 */
     .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-    .chart svg text { font: 11px 'BM Dohyeon', 'Pretendard Variable', Pretendard, sans-serif; fill: var(--muted); }
+    .chart svg text { font: 600 11px 'Pretendard Variable', Pretendard, sans-serif; fill: var(--muted); }
     .chart svg .val { fill: var(--text); font-weight: 800; }
     .chart svg .grid-line { stroke: var(--border); stroke-width: 1; }
     .chart svg .line { fill: none; stroke: var(--sale); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
@@ -229,7 +228,7 @@
       <div class="hero__stat"><span class="num"><span data-count="14486">14,486</span>명</span><span>누적 고유 방문자<br />2026-07-29 ~ 2026-11-11, 팀원과 개발 접속 제외</span></div>
     </div>
     <div class="intro">
-      <h1 class="rise">배달앱 네 곳의 할인,<br /><em>한 화면 비교</em></h1>
+      <h1 class="rise">배달앱 네 곳의 할인을<br /><em>한 화면에서 비교</em></h1>
       <p class="lead rise" style="--i:1">앱 네 곳의 할인을 실제 폰 화면에서 읽어 한 화면에 모읍니다.</p>
       <div class="tl rise" style="--i:2" role="img" aria-label="일정. 2026-07-26 첫 배포, 08-03 팀 결성, 레벨3 스프린트 5회, 09-14 레벨4 시작, 레벨4 스프린트 4회, 데모데이 10-02, 10-16, 10-30, 최종 11-13.">
         <div class="tl__bar">
@@ -258,7 +257,7 @@
 <section class="sec" id="s2">
   <div class="in">
     <p class="eyebrow rise">성과</p>
-    <h2 class="rise" style="--i:1">늘어난 방문,<br /><em>다시 찾아오는 사용자</em></h2>
+    <h2 class="rise" style="--i:1">방문자와<br /><em>재방문</em></h2>
     <p class="lead rise" style="--i:2">커뮤니티 공유와 검색으로 들어온 사용자입니다. 팀원, 테스트, 봇 제외.</p>
     <div class="grid nums">
       <div class="box stat point rise"><span class="num" data-count="14486">14,486</span><span class="lbl">누적 고유 방문자</span><p>09-12 5천 돌파, 10-06 1만 돌파</p></div>
@@ -301,8 +300,8 @@
 <section class="sec" id="s3">
   <div class="in">
     <p class="eyebrow rise">기능</p>
-    <h2 class="rise" style="--i:1">찾고, 비교하고,<br /><em>바로 열기</em></h2>
-    <p class="lead rise" style="--i:2">가장 큰 할인과 조건을 보고, 누르면 그 배달앱 화면으로 이동합니다.</p>
+    <h2 class="rise" style="--i:1">주요<br /><em>기능</em></h2>
+    <p class="lead rise" style="--i:2">가장 큰 할인과 조건을 보여 주고, 누르면 해당 배달앱으로 이동합니다.</p>
     <div class="feat">
       <figure class="rise"><img src="/about/hero.jpg" width="480" height="1038" loading="lazy" alt="카테고리별 브랜드 카드. 브랜드마다 가장 큰 할인금액이 보입니다." /><figcaption><b>브랜드별 최대 할인</b>가장 큰 할인을 맨 앞에</figcaption></figure>
       <figure class="rise" style="--i:1"><img src="/about/sheet.jpg" width="480" height="1038" loading="lazy" alt="브랜드 상세 시트. 앱별 할인과 최소주문, 멤버십 조건이 보입니다." /><figcaption><b>조건까지 비교</b>최소주문, 멤버십, 선착순</figcaption></figure>
@@ -367,8 +366,8 @@
 <section class="sec" id="s5">
   <div class="in">
     <p class="eyebrow rise">기술 구조</p>
-    <h2 class="rise" style="--i:1">폰 화면에서 웹까지,<br /><em>사람 손 없는</em> 수집</h2>
-    <p class="lead rise" style="--i:2">공개 API가 없어 누구나 보는 화면만 읽습니다.</p>
+    <h2 class="rise" style="--i:1">수집<br /><em>구조</em></h2>
+    <p class="lead rise" style="--i:2">배달앱은 공개 API가 없어서 실제 폰 화면을 읽습니다.</p>
     <ol class="flow rise" style="--i:3">
       <li class="node"><b>실제 폰</b><span class="num"><span data-count="3">3</span>대</span><span>USB로 연결한 폰이 배달앱 네 곳을 돕니다.</span></li>
       <li class="hop" aria-hidden="true"></li>
@@ -390,7 +389,7 @@
 <section class="sec" id="s6">
   <div class="in">
     <p class="eyebrow rise">기술 과제</p>
-    <h2 class="rise" style="--i:1">운영 중 만난 문제와<br /><em>측정 결과</em></h2>
+    <h2 class="rise" style="--i:1">운영 문제와<br /><em>개선 수치</em></h2>
     <div class="grid c3">
       <div class="box rise"><h3>방문당 요청 수</h3><p class="num big"><span data-count="700">700</span> → <span data-count="25" data-from="700">25</span></p><p>로고 캐시로 한도 93% 위기 해소</p></div>
       <div class="box rise" style="--i:1"><h3>응답 크기</h3><p class="num big">-<span data-count="91">91</span><small>%</small></p><p>압축 없던 154KB 응답, p95 555ms</p></div>
@@ -405,7 +404,7 @@
 <section class="sec" id="s7">
   <div class="in">
     <p class="eyebrow rise">과정</p>
-    <h2 class="rise" style="--i:1">결정과 실패,<br /><em>기록으로 남기기</em></h2>
+    <h2 class="rise" style="--i:1">작업<br /><em>기록</em></h2>
     <div class="grid nums">
       <div class="box stat rise"><span class="num" data-count="3464">3,464</span><span class="lbl">커밋</span><p>서비스 1,877, 수집기 1,587</p></div>
       <div class="box stat rise" style="--i:1"><span class="num" data-count="201">201</span><span class="lbl">병합한 변경 요청(PR)</span><p>기능, 실험 단위 리뷰</p></div>
