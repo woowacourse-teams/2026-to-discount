@@ -40,13 +40,13 @@
     /* 풀페이지 고정. 넘김은 아래 스크립트가 한다 */
     main { height: 100dvh; overflow-y: auto; }
     /* 넘김은 스크롤이 아니라 트랙을 옮기는 transform이라 합성 단계에서만 돌아 버벅이지 않는다 */
-    .js main { overflow: hidden; overscroll-behavior: none; touch-action: none; }
+    .js main { overflow: hidden; overflow: clip; overscroll-behavior: none; touch-action: none; } /* clip: 폰 안 앱의 scrollIntoView가 바깥을 밀지 못하게 */
     .js .track { transition: transform .6s cubic-bezier(.22, .8, .3, 1); will-change: transform; }
     @media (prefers-reduced-motion: reduce) { .js .track { transition: none; } }
     body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
     a { color: inherit; }
 
-    .slide { position: relative; height: 100dvh; display: flex; flex-direction: column; justify-content: center; padding: 72px 20px 88px; overflow: hidden; }
+    .slide { position: relative; height: 100dvh; display: flex; flex-direction: column; justify-content: center; padding: 72px 20px 88px; overflow: hidden; overflow: clip; }
     .slide__in { width: 100%; max-width: 1080px; margin: 0 auto; }
     .brand { position: absolute; top: 20px; left: 20px; right: 20px; max-width: 1080px; margin: 0 auto; font-weight: 800; text-decoration: none; letter-spacing: -.01em; }
     .next { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); text-decoration: none; z-index: 2; }
@@ -73,7 +73,7 @@
     .split .btn { margin-top: 28px; }
     @media (max-width: 767px) { #s1 .btn { display: flex; width: fit-content; margin-left: auto; margin-right: auto; } }
     .phone { justify-self: center; width: min(calc(100vw - 32px), 450px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(221, 75, 2, .35); }
-    .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 38px; overflow: hidden; background: #fbfbfa; }
+    .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 38px; overflow: hidden; overflow: clip; background: #fbfbfa; }
     .phone__screen::before { content: ''; position: absolute; top: 9px; left: 50%; width: 30%; height: 24px; transform: translateX(-50%); border-radius: 999px; background: var(--bezel); z-index: 1; }
     .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; padding-top: 38px; }
     .apps { display: flex; gap: 10px; margin-bottom: 22px; }
@@ -220,16 +220,17 @@
     .phone .tap.finger { animation: none; opacity: .45; transform: none; transition-property: transform, opacity; transition-timing-function: cubic-bezier(.2, .7, .3, 1); }
     @keyframes tap { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
   
-    /* 모바일: 글(왼쪽)과 폰(오른쪽)을 좌우로 둔다. 폰은 열 너비를 다 쓴다 */
+    /* 모바일: 폰은 아래, 글은 그 위에서 가로로(제목 왼쪽, 설명 오른쪽). 폰은 남는 높이에 맞춘다 */
     @media (max-width: 767px) {
-      .slide--shot { padding: 36px 22px 36px 12px; justify-content: center; }
-      .slide--shot .split { display: grid; flex: none; grid-template-columns: 100px minmax(0, 1fr); gap: 6px; align-items: center; align-content: center; }
-      .slide--shot h1, .slide--shot h2 { font-size: 1.12rem; line-height: 1.25; }
-      .slide--shot .lead { margin-top: 6px; font-size: .76rem; line-height: 1.45; }
+      .slide--shot { padding: 40px 22px 32px 16px; justify-content: center; }
+      .slide--shot .split { display: flex; flex-direction: column; flex: none; gap: 14px; align-items: stretch; align-content: center; }
+      .slide--shot .split > div:first-child { display: flex; align-items: center; gap: 12px; }
+      .slide--shot h1, .slide--shot h2 { flex: 0 0 42%; font-size: 1.2rem; line-height: 1.25; }
+      .slide--shot .lead { flex: 1; margin: 0; font-size: .8rem; line-height: 1.45; }
       .slide--shot .lead br { display: none; }
-      .slide--shot .phone { width: min(100%, calc((100dvh - 90px) * .462 + 16px)); justify-self: end; align-self: center; padding: 8px; border-radius: 34px; }
+      .slide--shot .phone { width: min(100%, calc((100dvh - 190px) * .462 + 16px)); justify-self: center; align-self: center; padding: 8px; border-radius: 34px; }
       .slide--shot .phone__screen { border-radius: 27px; }
-      #s1 h1 { font-size: 1.4rem; }
+      #s1 h1 { font-size: 1.35rem; }
       #s1 .btn, #s2 .apps { display: none; }
     }
   
@@ -489,7 +490,7 @@
     const card = (d, brand) => [...d.querySelectorAll('article.v2-card')].find((x) => x.dataset.brand === brand)
     const nap = (ms) => new Promise((r) => setTimeout(r, ms))
     // 조건이 참이 될 때까지 0.1초마다 본다(최대 ms). 고정 대기보다 빠르다
-    const until = async (fn, ms = 4000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { const v = fn(); if (v) return v } catch {} await nap(100) } }
+    const until = async (fn, ms = 4000, gap = 100) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { const v = fn(); if (v) return v } catch {} await nap(gap) } }
     // 연출: 카드의 금액, 채널, 멤버십, 이동 앱을 바꿔 맨 위로 올린다(실제 값이 아니다)
     const stage = (d, brand, amount, channel, member, app, bg) => {
       const c = card(d, brand); if (!c) return
@@ -508,7 +509,7 @@
       // 1장: 치킨, 푸라닭과 BBQ를 8,000원으로 연출
       hero: [
         { tap: '치킨' }, { wait: 500 },
-        { run: (d, w) => until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, 'BBQ') && card(d, '푸라닭') }, 5000) }, // BBQ가 목록 아래라 끝까지 내려 불러온다
+        { run: (d, w) => until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, 'BBQ') && card(d, '푸라닭') }, 6000, 450) }, // BBQ가 목록 아래라 끝까지 내려 불러온다
         { run: (d, w) => { stage(d, 'BBQ', '8,000', '배달', '쿠팡와우', '쿠팡이츠', '#4a2410'); stage(d, '푸라닭', '8,000', '배달', '배민클럽', '배달의민족', '#2ac1bc'); w.scrollTo(0, 0) } },
         { reveal: true }, { wait: 500 },
         { loop: true },
@@ -559,7 +560,7 @@
       ],
       // 6장: 피자헛 자세히를 열어 앱별 할인을 내려 보고 할인 기록 탭으로 넘겼다가 되돌아온다
       detail: [
-        { run: async (d, w) => { const c = await until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, '피자헛') }, 6000); c.scrollIntoView({ block: 'center' }); await nap(300); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
+        { run: async (d, w) => { const c = await until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, '피자헛') }, 8000, 450); c.scrollIntoView({ block: 'center' }); await nap(300); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
         { reveal: true }, { wait: 700 },
         { loop: true },
         { scroll: 300, ms: 800, el: '.v2-sheet__offers' }, { wait: 500 }, { scroll: 600, ms: 1000, el: '.v2-sheet__offers' }, { wait: 600 }, { scroll: 0, ms: 700, el: '.v2-sheet__offers' }, { wait: 300 },
@@ -628,6 +629,8 @@
       }
     }
     const screens = slides.map((s) => s.querySelector('[data-scene]'))
+    // clip을 모르는 브라우저용: 바깥 틀이 스크롤되면 바로 0으로 되돌린다
+    addEventListener('scroll', (e) => { const t = e.target; if (t !== document && t.matches?.('main,.slide,.phone__screen')) { t.scrollTop = 0; t.scrollLeft = 0 } }, true)
     const entered = (scr) => (screens[cur] === scr ? Promise.resolve() : new Promise((r) => gates.set(scr, r)))
     const showLive = (i) => {
       if (reduce) return
@@ -635,7 +638,7 @@
       if (scr && !live.has(scr)) play(scr)
       gates.get(scr)?.(); gates.delete(scr)
       // 다음 장은 미리 띄워 준비만 해 두고(공개는 들어올 때), 그래야 넘기자마자 움직인다
-      setTimeout(() => { const n = screens[i + 1]; if (cur === i && n && !live.has(n)) play(n) }, 2500)
+      setTimeout(() => { const n = screens[i + 1]; if (cur === i && n && !live.has(n)) play(n) }, 3500)
       setTimeout(() => screens.forEach((x, k) => { if (x && k !== cur && k !== cur + 1) stop(x) }), 700)
     }
     addEventListener('resize', () => screens.forEach((x) => { const f = x?.querySelector('iframe'); if (f) fit(x, f) }))
