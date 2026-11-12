@@ -6,22 +6,21 @@
   <title>프로젝트 소개 - 오늘의 할인</title>
   <meta name="description" content="우아한테크코스 8기 팀 오늘의 할인이 배달앱 네 곳의 할인을 실제 폰 화면에서 읽어 한 화면에 모으기까지 15주의 가설, 결정, 운영, 협업 기록." />
   <meta name="robots" content="noindex" /><!-- 초안. 공개 전에 지운다 -->
-  <meta name="theme-color" content="#171717" />
+  <meta name="theme-color" content="#152746" />
   <link rel="icon" href="/favicon-48.png" />
   <link rel="stylesheet" href="/fonts/pretendard-block.css" />
   <!-- /about과 같은 풀페이지 배너. 넓은 화면은 한 장씩 넘기고, 좁거나 낮은 화면은 글이 잘리지 않게 그냥 스크롤한다(.flow) -->
   <style>
+    /* 데모데이 사이트(to-discount-demo)와 같은 글꼴과 색. 배민 도현은 굵기가 하나라 가짜 굵게를 끈다 */
+    @font-face { font-family: 'BM Dohyeon'; src: url('/fonts/BMDOHYEON.woff') format('woff'); font-display: swap; }
     :root {
-      --bg: #fbfbfa; --surface: #ffffff; --border: #eaeaea;
-      --text: #171717; --muted: #64635f; --sale: #3182f6; --sale-weak: #eaf2fe; --no: #c2410c; --no-weak: #fff1e8;
+      --bg: #f2f4f6; --surface: #ffffff; --border: #e5e8eb; --navy: #152746;
+      --text: #1c1d1f; --muted: #4e5968; --sale: #245bc5; --sale-weak: #e8eff9; --no: #c2410c; --no-weak: #fff1e8;
       --hx: clamp(12px, 3.5vw, 56px);
-      color-scheme: light dark;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg: #121211; --surface: #1c1c1a; --border: #2c2c29; --text: #f1f0ee; --muted: #a8a7a2; --sale: #5b9dff; --sale-weak: #16233a; --no: #fb923c; --no-weak: #3a1f0e; }
+      color-scheme: light;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.7 'BM Dohyeon', 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; font-synthesis: none; word-break: keep-all; -webkit-font-smoothing: antialiased; }
     a { color: inherit; }
     a:focus-visible, button:focus-visible { outline: 2px solid var(--sale); outline-offset: 3px; }
 
@@ -42,11 +41,11 @@
     .flow .next, .flow .pg, .flow .dots { display: none; }
     .pg { position: fixed; right: 16px; bottom: 12px; z-index: 3; color: var(--muted); font-size: .72rem; font-variant-numeric: tabular-nums; pointer-events: none; }
 
-    h1, h2 { margin: 0; letter-spacing: -.035em; font-weight: 800; text-wrap: balance; }
+    h1, h2 { margin: 0; letter-spacing: -.01em; font-weight: 400; text-wrap: balance; }
     h1 { font-size: clamp(2.2rem, 6.5vw, 3.6rem); line-height: 1.12; }
     h2 { font-size: clamp(1.8rem, 4.6vw, 2.8rem); line-height: 1.18; }
     em { font-style: normal; color: var(--sale); }
-    .lead { margin: 18px 0 0; padding-top: 18px; border-top: 1px solid var(--border); max-width: 26rem; color: var(--muted); font-size: 1.05rem; }
+    .lead { margin: 18px 0 0; padding-top: 18px; border-top: 1px solid var(--border); max-width: 28rem; color: var(--muted); font-size: 1.05rem; }
     .kicker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
     .kicker i { font-style: normal; padding: 2px 9px; border-radius: 999px; font-size: .74rem; font-weight: 700; background: var(--sale-weak); color: var(--sale); }
     .kicker i.plain { background: transparent; border: 1px solid var(--border); color: var(--muted); }
@@ -57,20 +56,21 @@
     @media (max-width: 767px) { .split > div:first-child { padding-left: 0; } }
 
     /* 번호 목록: /about 6장과 같은 모양 */
-    .tech { margin: 0; padding: 0; list-style: none; counter-reset: t; }
+    .tech { margin: 0; padding: 6px 22px; list-style: none; counter-reset: t; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
+    .split > div:first-child .tech { margin-top: 18px; }
     .tech li { counter-increment: t; display: grid; grid-template-columns: 2rem 1fr; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
     .tech li:last-child { border-bottom: 0; }
     .tech li::before { content: counter(t); color: var(--sale); font-weight: 800; font-variant-numeric: tabular-nums; }
     .tech.plain li { grid-template-columns: 4.6rem 1fr; }
     .tech.plain li::before { content: none; }
     .tech .k { color: var(--sale); font-weight: 800; font-size: .9rem; font-variant-numeric: tabular-nums; }
-    .tech b { display: block; font-size: 1.04rem; letter-spacing: -.015em; line-height: 1.4; }
+    .tech b { display: block; font-size: 1.04rem; line-height: 1.45; }
     .tech span { display: block; margin-top: 2px; color: var(--muted); font-size: .9rem; line-height: 1.5; }
 
     /* 숫자 타일 */
     .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    .stat { padding: 18px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
-    .stat b { display: block; font-size: clamp(1.6rem, 3.6vw, 2.2rem); letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .stat { padding: 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+    .stat b { display: block; font-size: clamp(1.6rem, 3.6vw, 2.2rem); letter-spacing: 0; color: var(--sale); line-height: 1.1; font-variant-numeric: tabular-nums; }
     .stat span { display: block; margin-top: 6px; color: var(--muted); font-size: .85rem; line-height: 1.45; }
 
     .verdicts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
@@ -80,7 +80,7 @@
 
     /* 구조 도식: /about 5장의 노드 */
     .arch { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-    .node { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 14px 12px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+    .node { display: grid; gap: 4px; justify-items: center; text-align: center; padding: 14px 12px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
     .node b { font-size: 1rem; letter-spacing: -.02em; }
     .node .sub { color: var(--muted); font-size: .82rem; line-height: 1.4; }
     .hop { display: flex; justify-content: center; color: var(--sale); }
@@ -88,7 +88,7 @@
     @media (min-width: 768px) { .arch { grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: center; gap: 10px; } .node { padding: 22px 12px; } .hop::after { transform: rotate(-45deg); } }
     .pitch { margin: 18px 0 0; padding: 10px 14px; border-radius: 14px; background: var(--sale-weak); color: var(--sale); font-size: .92rem; font-weight: 700; line-height: 1.45; }
 
-    .quote { margin: 0 0 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); font-size: .95rem; line-height: 1.55; }
+    .quote { margin: 0 0 12px; padding: 16px 18px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); font-size: .95rem; line-height: 1.65; }
     .quote cite { display: block; margin-top: 6px; color: var(--muted); font-size: .8rem; font-style: normal; font-weight: 700; }
 
     .stub { min-height: 260px; display: grid; place-items: center; text-align: center; padding: 20px; border: 2px dashed var(--border); border-radius: 32px; color: var(--muted); font-size: .9rem; }
@@ -106,6 +106,18 @@
       @keyframes bob { 50% { transform: translateY(5px); } }
     }
 
+    /* 첫 장: 데모데이 사이트의 남색 배너 */
+    #s1 .slide__in { padding: clamp(28px, 5vw, 56px); border-radius: 16px; background: var(--navy); color: #fdfdfc; }
+    #s1 .mark { margin: 0 0 10px; font-size: clamp(2.6rem, 7vw, 4.6rem); line-height: 1; letter-spacing: -.02em; }
+    #s1 h1 { font-size: clamp(1.6rem, 3.6vw, 2.4rem); }
+    #s1 em { color: #8fb8ff; }
+    #s1 .lead { color: #d7e4fa; border-top-color: rgba(255,255,255,.2); }
+    #s1 .kicker i { background: rgba(255,255,255,.12); color: #d7e4fa; }
+    #s1 .kicker i.plain { border-color: rgba(255,255,255,.25); background: transparent; }
+    #s1 .stat { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.12); }
+    #s1 .stat b { color: #8fb8ff; }
+    #s1 .stat span { color: #d7e4fa; }
+    #s1 .brand { color: var(--text); }
     .dots { position: fixed; right: 10px; top: 50%; transform: translateY(-50%); z-index: 4; display: flex; flex-direction: column; gap: 2px; }
     .dots button { width: 24px; height: 24px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer; }
     .dots button::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); opacity: .4; transition: transform .25s, opacity .25s, background .25s; }
@@ -123,13 +135,14 @@
   <div class="slide__in split">
     <div>
       <p class="kicker rise"><i>우아한테크코스 8기</i><i class="plain">레벨3~4 팀 프로젝트</i><i class="plain">2026-08 ~ 2026-11</i></p>
-      <h1 class="rise" style="--i:1">배달앱 할인은<br /><em>웹에 없었다</em></h1>
+      <p class="mark rise" style="--i:1">SaveEats</p>
+      <h1 class="rise" style="--i:1">배달앱 할인은 <em>웹에 없었다</em></h1>
       <p class="lead rise" style="--i:2">배민, 쿠팡이츠, 요기요, 땡겨요는 같은 브랜드에 다른 할인을 겁니다. 팀 오늘의 할인은 실제 폰 화면을 읽어 네 앱의 할인을 한 화면에 모은 서비스 SaveEats를 만들었습니다.</p>
     </div>
     <div class="stats rise" style="--i:2">
       <div class="stat"><b>13</b><span>세우고 검증한 가설</span></div>
       <div class="stat"><b>688</b><span>한 주에 할인을 누른 사람, 최다 기록</span></div>
-      <div class="stat"><b>12,036</b><span>방문자 수<br />2026-07-29 ~ 2026-10-15</span></div>
+      <div class="stat"><b>14,486</b><span>누적 고유 방문자<br />2026-07-29 ~ 2026-11-11</span></div>
       <div class="stat"><b>201</b><span>병합한 변경 요청(PR)</span></div>
     </div>
   </div>
@@ -144,10 +157,10 @@
     </div>
     <ol class="tech plain rise" style="--i:2">
       <li><span class="k">07-26</span><div><b>첫 커밋</b><span>수집기, 서버, 웹 세 저장소. 핫딜 커뮤니티에 첫 공유</span></div></li>
-      <li><span class="k">08-03</span><div><b>팀 결성</b><span>그라운드 룰을 정하고 세 저장소를 하나로 합쳤다</span></div></li>
+      <li><span class="k">08-03</span><div><b>팀 결성</b><span>그라운드 룰을 정하고 세 저장소를 하나로 합쳤습니다</span></div></li>
       <li><span class="k">08-10</span><div><b>첫 가설 공유회</b><span>각자 가설과 통과 기준을 적어 오는 실험 주기 시작</span></div></li>
-      <li><span class="k">09-11</span><div><b>하루 방문 1,000명</b><span>네이버 카페에 이용자가 스스로 공유했다</span></div></li>
-      <li><span class="k">09-21</span><div><b>레벨4 시작</b><span>한 사람이 알던 운영을 팀 전체로 나눴다</span></div></li>
+      <li><span class="k">09-11</span><div><b>하루 방문 1,000명</b><span>네이버 카페에 이용자가 스스로 공유했습니다</span></div></li>
+      <li><span class="k">09-21</span><div><b>레벨4 시작</b><span>한 사람이 알던 운영을 팀 전체로 나눴습니다</span></div></li>
       <li><span class="k">10-02</span><div><b>데모데이 세 번</b><span>10-02, 10-16, 10-30. 최종 데모데이는 11-13</span></div></li>
     </ol>
   </div>
@@ -161,7 +174,7 @@
       <p class="lead rise" style="--i:1">첫 가설은 "할인 비교가 한 화면에 있으면 주문 전에 들른다"였습니다. 코치들은 그 가치가 확인된 것인지 계속 물었습니다. 레벨4를 시작하며 핵심 가치를 "나에게 유리한 할인을 빠르게 찾게 돕기"로 고쳤습니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
-      <li><div><b>"시간을 아껴 준다는 건 아직 팀의 가설입니다"</b><span>2026-08-28 프로젝트 밍글링에서 코치가 한 말. 다시 오는 사용자에게 이유를 직접 묻기로 했다</span></div></li>
+      <li><div><b>"시간을 아껴 준다는 건 아직 팀의 가설입니다"</b><span>2026-08-28 프로젝트 밍글링에서 코치가 한 말. 다시 오는 사용자에게 이유를 직접 묻기로 했습니다</span></div></li>
       <li><div><b>18명 중 13명이 할인 금액을 골랐다</b><span>다시 찾아오는 사용자 41명에게 띄운 설문. 바라는 기능 1위는 새 할인 알림</span></div></li>
       <li><div><b>친숙함, 빠르기, 실익</b><span>익숙한 브랜드 로고, 가장 큰 할인을 맨 앞에, "최대 9,000원" 대신 실제로 받는 금액</span></div></li>
     </ol>
@@ -178,11 +191,11 @@
     <div class="rise" style="--i:2">
       <p class="verdicts"><i>검증 4</i><i class="no">기각 6</i><i class="plain">판단 불가 2</i><i class="plain">진행 중 1</i></p>
       <ol class="tech">
-        <li><div><b>튜토리얼을 넣자 바로 떠나는 사람이 20% 늘었다</b><span>이틀 만에 지웠다. 사용자는 설명보다 바로 보이는 할인을 원했다</span></div></li>
-        <li><div><b>가장 큰 할인을 앞세운 화면에서 링크 클릭 21% 증가</b><span>623명과 661명에게 두 화면을 나눠 보여 준 실험(A/B 테스트). 진 쪽 코드 732줄을 지웠다</span></div></li>
-        <li><div><b>검색 자동완성이 성공한 검색의 62%를 만들었다</b><span>검색 성공률이 33%에서 40%로 올랐다</span></div></li>
-        <li><div><b>새 할인을 위로 올리자 클릭이 줄었다</b><span>바로 되돌렸다. 나눠 보여 주지 않고 전후만 비교한 실험이었다</span></div></li>
-        <li><div><b>알림, 공유, 배달 외 브랜드는 모두 기준 미달</b><span>웹 알림 활성화 0.17%, 공유 사용 3.73%. 버튼 클릭과 실제 행동은 다른 단계였다</span></div></li>
+        <li><div><b>튜토리얼을 넣자 바로 떠나는 사람이 20% 늘었다</b><span>이틀 만에 지웠습니다. 사용자는 설명보다 바로 보이는 할인을 원했습니다</span></div></li>
+        <li><div><b>가장 큰 할인을 앞세운 화면에서 링크 클릭 21% 증가</b><span>623명과 661명에게 두 화면을 나눠 보여 준 실험(A/B 테스트). 진 쪽 코드 732줄을 지웠습니다</span></div></li>
+        <li><div><b>검색 자동완성이 성공한 검색의 62%를 만들었다</b><span>검색 성공률이 33%에서 40%로 올랐습니다</span></div></li>
+        <li><div><b>새 할인을 위로 올리자 클릭이 줄었다</b><span>바로 되돌렸습니다. 나눠 보여 주지 않고 전후만 비교한 실험이었습니다</span></div></li>
+        <li><div><b>알림, 공유, 배달 외 브랜드는 모두 기준 미달</b><span>웹 알림 활성화 0.17%, 공유 사용 3.73%. 버튼 클릭과 실제 행동은 다른 단계였습니다</span></div></li>
       </ol>
     </div>
   </div>
@@ -196,10 +209,10 @@
       <p class="lead rise" style="--i:1">첫 주에 "근거를 그때그때 남기자"고 정했습니다. 결정마다 대안과 이유를 결정 기록(ADR)으로 남겼고, 57건이 쌓였습니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
-      <li><div><b>앱 내부 API를 쓰지 않는다</b><span>직접 호출해 보니 인증 없이는 거부됐다. 인증 토큰을 뽑아 쓰면 약관 위반과 만료 관리를 떠안는다</span></div></li>
-      <li><div><b>가상 기기 대신 실제 폰</b><span>무료 서버에서는 가상 기기가 돌지 않았다. USB로 연결한 폰 3대가 하루 세 번 앱을 돌며 읽는다</span></div></li>
-      <li><div><b>데이터베이스 없이 파일</b><span>하루 한 번 바뀌는 수백 건이면 파일로 충분했다. 코치도 "파일의 문제가 도입 비용보다 커질 때" 넣으라고 했다</span></div></li>
-      <li><div><b>저장소 셋을 하나로, 이력은 그대로</b><span>"이력이 사라지면 왜 그렇게 됐는지도 사라진다." 커밋 223개를 보존해 옮겼다</span></div></li>
+      <li><div><b>앱 내부 API를 쓰지 않는다</b><span>직접 호출해 보니 인증 없이는 거부됐습니다. 인증 토큰을 뽑아 쓰면 약관 위반과 만료 관리를 떠안습니다</span></div></li>
+      <li><div><b>가상 기기 대신 실제 폰</b><span>무료 서버에서는 가상 기기가 돌지 않았습니다. USB로 연결한 폰 3대가 하루 세 번 앱을 돌며 읽습니다</span></div></li>
+      <li><div><b>데이터베이스 없이 파일</b><span>하루 한 번 바뀌는 수백 건이면 파일로 충분했습니다. 코치도 "파일의 문제가 도입 비용보다 커질 때" 넣으라고 했습니다</span></div></li>
+      <li><div><b>저장소 셋을 하나로, 이력은 그대로</b><span>"이력이 사라지면 왜 그렇게 됐는지도 사라진다." 커밋 223개를 보존해 옮겼습니다</span></div></li>
     </ol>
   </div>
   <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -216,13 +229,13 @@
     <ol class="arch rise" style="--i:2">
       <li class="node"><b>폰 3대</b><span class="sub">배달앱 네 곳의<br />할인 화면</span></li>
       <li class="hop" aria-hidden="true"></li>
-      <li class="node"><b>수집 PC</b><span class="sub">하루 세 번 화면을 읽어<br />원장에 쌓는다</span></li>
+      <li class="node"><b>수집 PC</b><span class="sub">하루 세 번 화면을 읽어<br />원장에 쌓습니다</span></li>
       <li class="hop" aria-hidden="true"></li>
-      <li class="node"><b>서버</b><span class="sub">빠진 값이 없는지 검사한 뒤<br />배포한다</span></li>
+      <li class="node"><b>서버</b><span class="sub">빠진 값이 없는지 검사한 뒤<br />배포합니다</span></li>
       <li class="hop" aria-hidden="true"></li>
-      <li class="node"><b>웹</b><span class="sub">브랜드마다 가장 큰<br />할인을 보여 준다</span></li>
+      <li class="node"><b>웹</b><span class="sub">브랜드마다 가장 큰<br />할인을 보여 줍니다</span></li>
     </ol>
-    <p class="pitch rise" style="--i:3">운영 화면과 Slack 알림이 수집, 서버, 배포를 지켜보고, 배너는 사람이 확인한 뒤에만 반영한다</p>
+    <p class="pitch rise" style="--i:3">운영 화면과 Slack 알림이 수집, 서버, 배포를 지켜보고, 배너는 사람이 확인한 뒤에만 반영합니다</p>
   </div>
   <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
 </section>
@@ -234,10 +247,10 @@
       <p class="lead rise" style="--i:1">장애는 회고 문서로 남기고, 같은 종류를 막는 장치를 붙였습니다. 수집은 틀린 값을 내기보다 값을 조용히 잃습니다.</p>
     </div>
     <div class="stats rise" style="--i:2">
-      <div class="stat"><b>700 → 25</b><span>방문 한 번에 생기는 요청 수. 하루 50명에 무료 한도 93%가 찼다. 원인은 캐시 설정 없는 로고 재요청</span></div>
-      <div class="stat"><b>98 → 21</b><span>배민 할인이 6시간 52분 동안 줄어 보였다. 같은 계열을 막는 검사를 9단계로 쌓았다</span></div>
-      <div class="stat"><b>91%</b><span>부하 시험에서 찾은 병목은 응답 크기. 압축으로 그만큼 줄였다</span></div>
-      <div class="stat"><b>17.64초</b><span>백업을 격리된 환경에 실제로 복원하는 데 걸린 시간. 파일 지문이 전부 일치했다</span></div>
+      <div class="stat"><b>700 → 25</b><span>방문 한 번에 생기는 요청 수. 하루 50명에 무료 한도 93%가 찼습니다. 원인은 캐시 설정 없는 로고 재요청</span></div>
+      <div class="stat"><b>98 → 21</b><span>배민 할인이 6시간 52분 동안 줄어 보였습니다. 같은 계열을 막는 검사를 9단계로 쌓았습니다</span></div>
+      <div class="stat"><b>91%</b><span>부하 시험에서 찾은 병목은 응답 크기. 압축으로 그만큼 줄였습니다</span></div>
+      <div class="stat"><b>17.64초</b><span>백업을 격리된 환경에 실제로 복원하는 데 걸린 시간. 파일 지문이 전부 일치했습니다</span></div>
     </div>
   </div>
   <a class="next" href="#s8" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -250,10 +263,10 @@
       <p class="lead rise" style="--i:1">글렌에게는 처음부터 그림이 있었습니다. 팀의 결과물은 자주 그 그림과 달랐고, 회의에서 한 동의가 결과물로 이어지지 않았습니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
-      <li><div><b>혼자 코치를 찾아갔다</b><span>코치 제이슨은 설득하지 말고 구조를 고치라고 했다. 문제를 적는 작업 카드, 시간 제한, 감정 회고를 붙였다</span></div></li>
-      <li><div><b>대신 하지 않고 기다렸다</b><span>예전처럼 다시 만들어 버리지 않았다. 목표는 잘 설득당하는 법을 배우는 것</span></div></li>
-      <li><div><b>기다림도 답은 아니었다</b><span>데모데이 1의 지적. 팀원들은 "더 빨리 가도 된다, 설계만 공유해 달라"고 했다</span></div></li>
-      <li><div><b>두 명이 읽어야 완료</b><span>멈추지 않고 공유하기로 했다. 공유한 작업은 칸반의 리뷰 대기에서 다른 두 명이 읽으면 끝난다</span></div></li>
+      <li><div><b>혼자 코치를 찾아갔다</b><span>코치 제이슨은 설득하지 말고 구조를 고치라고 했습니다. 문제를 적는 작업 카드, 시간 제한, 감정 회고를 붙였습니다</span></div></li>
+      <li><div><b>대신 하지 않고 기다렸다</b><span>예전처럼 다시 만들어 버리지 않았습니다. 목표는 잘 설득당하는 법을 배우는 것</span></div></li>
+      <li><div><b>기다림도 답은 아니었다</b><span>데모데이 1의 지적. 팀원들은 "더 빨리 가도 된다, 설계만 공유해 달라"고 했습니다</span></div></li>
+      <li><div><b>두 명이 읽어야 완료</b><span>멈추지 않고 공유하기로 했습니다. 공유한 작업은 칸반의 리뷰 대기에서 다른 두 명이 읽으면 끝납니다</span></div></li>
     </ol>
   </div>
   <a class="next" href="#s9" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -264,9 +277,9 @@
     <div>
       <h2 class="rise">그라운드 룰을<br /><em>세 번 고쳐 썼다</em></h2>
       <ol class="tech plain rise" style="--i:1;margin-top:18px">
-        <li><span class="k">1판 8월</span><div><b>모든 것을 솔직하게</b><span>단, 각자 피해 달라고 한 행동은 삼간다</span></div></li>
+        <li><span class="k">1판 8월</span><div><b>모든 것을 솔직하게</b><span>단, 각자 피해 달라고 한 행동은 삼갑니다</span></div></li>
         <li><span class="k">2판 9월</span><div><b>잘한 점을 의식해서 말하기</b><span>레벨3 규칙 자가 채점 117점(150점 만점)</span></div></li>
-        <li><span class="k">3판 10월</span><div><b>일단 시도하고 결과 공유</b><span>지켜지지 않는 규칙은 지웠다. "실패할수록 좋다"</span></div></li>
+        <li><span class="k">3판 10월</span><div><b>일단 시도하고 결과 공유</b><span>지켜지지 않는 규칙은 지웠습니다. "실패할수록 좋다"</span></div></li>
       </ol>
     </div>
     <div class="rise" style="--i:2">
@@ -285,10 +298,10 @@
       <p class="lead rise" style="--i:1">코치 원온원과 데모데이에서 받은 피드백을 다음 스프린트 목표로 옮겼습니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
-      <li><div><b>"누가 무엇을 결정할지부터 정하세요"</b><span>코치 네오, 08-14. 기획 의도와 대상 사용자를 문서로 꺼내고, 실험마다 판단 기준을 적었다</span></div></li>
-      <li><div><b>"잘 되는 서비스를 멈추지 말고, 일하면서 맞추세요"</b><span>코치 구구, 09-15. 기능 확장과 정리를 함께 했다. 한 사람이 하던 운영을 실제로 넘겼다</span></div></li>
-      <li><div><b>"부하 기준을 6배로 잡은 근거가 없습니다"</b><span>데모데이 2. 홍보로 방문이 몰린 시간대를 기준으로 다시 쟀다</span></div></li>
-      <li><div><b>"사용자 문제가 줄었다는 증거를 보여 주세요"</b><span>데모데이 3. 사용자 데이터 리포트와 "못 쓰게 되면 실망할까" 설문(PMF 설문)을 돌렸다</span></div></li>
+      <li><div><b>"누가 무엇을 결정할지부터 정하세요"</b><span>코치 네오, 08-14. 기획 의도와 대상 사용자를 문서로 꺼내고, 실험마다 판단 기준을 적었습니다</span></div></li>
+      <li><div><b>"잘 되는 서비스를 멈추지 말고, 일하면서 맞추세요"</b><span>코치 구구, 09-15. 기능 확장과 정리를 함께 했습니다. 한 사람이 하던 운영을 실제로 넘겼습니다</span></div></li>
+      <li><div><b>"부하 기준을 6배로 잡은 근거가 없습니다"</b><span>데모데이 2. 홍보로 방문이 몰린 시간대를 기준으로 다시 쟀습니다</span></div></li>
+      <li><div><b>"사용자 문제가 줄었다는 증거를 보여 주세요"</b><span>데모데이 3. 사용자 데이터 리포트와 "못 쓰게 되면 실망할까" 설문(PMF 설문)을 돌렸습니다</span></div></li>
     </ol>
   </div>
   <a class="next" href="#s11" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -301,8 +314,8 @@
       <p class="lead rise" style="--i:1">코드 상당 부분을 AI 에이전트와 썼습니다. 레벨4를 시작하며 꼽은 가장 큰 부채는 사람이 맥락을 따라가지 못하는 이해의 부채였습니다.</p>
     </div>
     <ol class="tech rise" style="--i:2">
-      <li><div><b>완료 보고를 믿지 않는다</b><span>에이전트는 결과물 없이 성공을 보고한 적이 있다. 완료는 자동화 흐름이 직접 확인하고, 사람은 설계와 병합만 승인한다</span></div></li>
-      <li><div><b>되풀이된 실수만 장치로 막는다</b><span>사람이 에이전트를 바로잡은 127건을 분류해, 반복된 것만 규칙과 차단 장치로 올렸다</span></div></li>
+      <li><div><b>완료 보고를 믿지 않는다</b><span>에이전트는 결과물 없이 성공을 보고한 적이 있습니다. 완료는 자동화 흐름이 직접 확인하고, 사람은 설계와 병합만 승인합니다</span></div></li>
+      <li><div><b>되풀이된 실수만 장치로 막는다</b><span>사람이 에이전트를 바로잡은 127건을 분류해, 반복된 것만 규칙과 차단 장치로 올렸습니다</span></div></li>
       <li><div><b>판단과 화면은 사람 몫</b><span>"클로드는 화면을 잘 못 짠다. 중요한 건 경험과 생각과 능력." 글렌의 화면 리뉴얼 회고</span></div></li>
     </ol>
   </div>
@@ -319,9 +332,9 @@
       </div>
     </div>
     <ol class="tech rise" style="--i:1">
-      <li><div><b>판정 기준을 먼저 적으면 숨길 수 없다</b><span>판정 문장, 지표, 기간을 시작 전에 적어 둔 덕에 끝낸 뒤 모자란 점이 그대로 드러났다</span></div></li>
-      <li><div><b>문서로 적은 전제는 자동화가 빠뜨린다</b><span>전제는 함수와 테스트로 묶어야 지켜졌다</span></div></li>
-      <li><div><b>"솔직한 피드백을 받을 수 있는 지금이 소중하다"</b><span>글렌, 2026-10-30 감정 회고. 사용자가 늘고 다시 오는 사람이 보일 때 보람을 느꼈다</span></div></li>
+      <li><div><b>판정 기준을 먼저 적으면 숨길 수 없다</b><span>판정 문장, 지표, 기간을 시작 전에 적어 둔 덕에 끝낸 뒤 모자란 점이 그대로 드러났습니다</span></div></li>
+      <li><div><b>문서로 적은 전제는 자동화가 빠뜨린다</b><span>전제는 함수와 테스트로 묶어야 지켜졌습니다</span></div></li>
+      <li><div><b>"솔직한 피드백을 받을 수 있는 지금이 소중하다"</b><span>글렌, 2026-10-30 감정 회고. 사용자가 늘고 다시 오는 사람이 보일 때 보람을 느꼈습니다</span></div></li>
     </ol>
   </div>
   <!-- 최종 데모데이(2026-11-13) 내용은 발표 뒤 이 장에 채운다 -->
