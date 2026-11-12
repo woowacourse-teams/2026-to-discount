@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>개요 소스 복사 - 오늘의 할인</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/favicon-48.png" />
+  <link rel="stylesheet" href="/fonts/pretendard-block.css" />
+  <!-- /project/overview를 그 자리에서 읽어 절마다 혼자 도는 HTML을 만든다. Google Sites "삽입 > 코드 삽입"에 붙여 넣는 용도.
+       개요를 고치면 이 페이지는 따로 고칠 것이 없다 -->
+  <style>
+    body { margin: 0; background: #f2f4f6; color: #1c1d1f; font: 15px/1.6 'Pretendard Variable', Pretendard, sans-serif; word-break: keep-all; }
+    main { max-width: 960px; margin: 0 auto; padding: 40px 16px 64px; }
+    h1 { margin: 0; font-size: 1.6rem; letter-spacing: -.03em; }
+    p.lead { color: #646a73; margin: 8px 0 24px; }
+    section { margin-top: 16px; padding: 18px; border: 1px solid #e5e8eb; border-radius: 16px; background: #fff; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    h2 { margin: 0; font-size: 1.05rem; flex: 1; }
+    .meta { color: #646a73; font-size: .8rem; }
+    button, a.btn { font: inherit; font-size: .85rem; font-weight: 700; height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid #e5e8eb; background: #fff; color: #1c1d1f; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+    button.copy { background: #152746; border-color: #152746; color: #fff; }
+    textarea { width: 100%; height: 120px; margin-top: 12px; padding: 10px; border: 1px solid #e5e8eb; border-radius: 10px; font: 12px/1.5 ui-monospace, Consolas, monospace; resize: vertical; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>개요 소스 복사</h1>
+  <p class="lead">절마다 혼자 도는 HTML입니다. Google Sites에서 삽입, 코드 삽입을 고르고 붙여 넣은 뒤 높이를 맞춥니다. 권장 높이는 PC 폭 기준입니다.</p>
+  <div id="list">불러오는 중입니다.</div>
+</main>
+<script>
+  (async function () {
+    var ORIGIN = location.origin
+    var html = await (await fetch('/project/overview/')).text()
+    var doc = new DOMParser().parseFromString(html, 'text/html')
+    // 상대 주소를 절대 주소로: 붙여 넣는 곳은 다른 사이트다
+    doc.querySelectorAll('[src],[href]').forEach(function (e) {
+      ['src', 'href'].forEach(function (k) { var v = e.getAttribute(k); if (v && v.startsWith('/')) e.setAttribute(k, ORIGIN + v) })
+    })
+    var style = doc.querySelector('head style').outerHTML
+    var font = doc.querySelector('link[rel=stylesheet]').outerHTML
+    var main = [...doc.querySelectorAll('body > script')].map(function (s) { return s.outerHTML }).join('\n')
+    var heights = { s1: 910, s2: 1350, s3: 740, s4: 1420, s5: 590, s6: 570, s7: 560 }
+    var list = document.getElementById('list'); list.textContent = ''
+    var make = function (secs, id) {
+      var cls = id ? ' class="js solo" data-s="' + id.slice(1) + '"' : ' class="js"'
+      return '<!doctype html>\n<html lang="ko"' + cls + '>\n<head>\n<meta charset="UTF-8" />\n<meta name="viewport" content="width=device-width, initial-scale=1" />\n' + font + '\n' + style + '\n</head>\n<body>\n' + secs + '\n' + main + '\n</body>\n</html>\n'
+    }
+    var items = [...doc.querySelectorAll('section.sec')].map(function (s) {
+      var sec = s.cloneNode(true); sec.classList.add('on')
+      return { id: s.id, name: (s.querySelector('.eyebrow') || {}).textContent || '개요', code: make(sec.outerHTML, s.id) }
+    })
+    items.push({ id: '', name: '전체 한 번에', code: make(items.map(function (i) { return doc.getElementById(i.id).outerHTML }).join('\n'), '') })
+    items.forEach(function (it) {
+      var box = document.createElement('section')
+      box.innerHTML = '<div class="row"><h2></h2><span class="meta"></span><a class="btn" target="_blank" rel="noopener">미리 보기</a><button class="copy" type="button">복사</button></div><textarea readonly spellcheck="false"></textarea>'
+      box.querySelector('h2').textContent = (it.id ? it.id.slice(1) + '. ' : '') + it.name
+      box.querySelector('.meta').textContent = it.id ? '권장 높이 ' + heights[it.id] + 'px' : '스크롤로 보기'
+      box.querySelector('a').href = '/project/overview/' + (it.id ? '?s=' + it.id.slice(1) : '')
+      var ta = box.querySelector("textarea"); ta.textContent = it.code
+      var btn = box.querySelector('button')
+      btn.addEventListener('click', async function () {
+        try { await navigator.clipboard.writeText(it.code) } catch (e) { ta.select(); document.execCommand('copy') }
+        btn.textContent = '복사했습니다'; setTimeout(function () { btn.textContent = '복사' }, 1500)
+      })
+      list.appendChild(box)
+    })
+  })()
+</script>
+</body>
+</html>
