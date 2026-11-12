@@ -98,7 +98,7 @@ export default function BestHistoryChart({ brand }) {
         <div className="hist__tabs" role="group" aria-label="기간">
           {RANGES.map(([k, label]) => (
             <button key={k} type="button" className="hist__tab" aria-pressed={range === k}
-              onClick={() => { if (k !== range) track('history_range_change', { brand, from: range, to: k }); setRange(k) }}>{label}</button>
+              onClick={() => { if (k !== range) track('history_range_change', { brand, from: range, to: k }); setSel(null); setRange(k) }}>{label}</button>
           ))}
         </div>
       </div>

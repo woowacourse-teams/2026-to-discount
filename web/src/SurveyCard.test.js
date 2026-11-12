@@ -1,12 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { build } from 'esbuild'
+import { fileURLToPath } from 'node:url'
 
 // 실제 SurveyCard의 effect를 실행한다. 브라우저의 노출 판정을 모사해 문항 계측 시점을 검증한다.
 const compiled = await build({
   stdin: {
     contents: "export { default as SurveyModal, InlineSurveyCard as SurveyCard } from './SurveyCard.jsx'; export { effects } from 'react';",
-    resolveDir: new URL('.', import.meta.url).pathname,
+    resolveDir: fileURLToPath(new URL('.', import.meta.url)), // pathname은 윈도에서 /C:/...가 되어 경로를 못 찾는다
   },
   bundle: true, write: false, format: 'esm', platform: 'node', jsx: 'automatic',
   plugins: [{
