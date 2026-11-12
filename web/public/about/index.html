@@ -483,6 +483,7 @@
     // 카테고리 탭 줄의 글자(필터 창 안의 같은 글자와 구분)
     const tab = (n) => (d) => [...d.querySelectorAll('button,[role=tab]')].find((x) => x.innerText.trim() === n && !x.closest('.sheet') && x.getBoundingClientRect().top > 40 && x.getBoundingClientRect().top < 300)
     const chip = (t) => (d) => [...d.querySelectorAll('.sheet .sheet__chip')].find((x) => x.innerText.trim().startsWith(t))
+    const hot = (rank) => (d) => d.querySelectorAll('.pop-dock__row')[rank - 1] // HOT 목록의 n위 줄
     const card = (d, brand) => [...d.querySelectorAll('article.v2-card')].find((x) => x.dataset.brand === brand)
     const nap = (ms) => new Promise((r) => setTimeout(r, ms))
     // 조건이 참이 될 때까지 0.1초마다 본다(최대 ms). 고정 대기보다 빠르다
@@ -517,20 +518,22 @@
         { reveal: true }, { wait: 500 },
         { scroll: 9999, ms: 2600, el: '.v2-sheet__offers' }, { wait: 500 }, { scroll: 0, ms: 1600, el: '.v2-sheet__offers' },
       ],
-      // 3장: 인기 브랜드(HOT)를 펼치고 아래 목록을 내려 본다
+      // 3장: 인기 브랜드(HOT)를 펼쳐 브랜드를 눌러 그 카드로 이동하고, 다시 펼쳐 다른 브랜드로 이동
       hot: [
         { tap: '인기 브랜드 펼치기' }, { wait: 600 },
-        { reveal: true }, { wait: 500 },
-        { scroll: 700, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1400 },
+        { reveal: true }, { wait: 1000 },
+        { tap: hot(3) }, { wait: 2500 },
+        { tap: '인기 브랜드 펼치기' }, { wait: 1000 },
+        { tap: hot(1) }, { wait: 2500 },
       ],
-      // 4장: 카테고리 탭을 한정, 랜덤, 치킨, 피자로 바꿔 가며 조금씩 내려 본다
+      // 4장: 카테고리 탭을 한정, 랜덤, 치킨, 피자로 바꿔 가며, 내려 보다가 다음 카테고리로 넘어간다
       category: [
         { tap: tab('한정') }, { wait: 600 },
         { reveal: true }, { wait: 500 },
-        { scroll: 450, ms: 1200 }, { scroll: 0, ms: 900 },
-        { tap: tab('랜덤') }, { wait: 600 }, { scroll: 450, ms: 1200 }, { scroll: 0, ms: 900 },
-        { tap: tab('치킨') }, { wait: 600 }, { scroll: 450, ms: 1200 }, { scroll: 0, ms: 900 },
-        { tap: tab('피자') }, { wait: 600 }, { scroll: 600, ms: 1400 }, { scroll: 0, ms: 1000 },
+        { scroll: 450, ms: 1200 }, { wait: 300 },
+        { tap: tab('랜덤') }, { wait: 600 }, { scroll: 450, ms: 1200 }, { wait: 300 },
+        { tap: tab('치킨') }, { wait: 600 }, { scroll: 450, ms: 1200 }, { wait: 300 },
+        { tap: tab('피자') }, { wait: 600 }, { scroll: 600, ms: 1400 }, { wait: 300 },
       ],
       // 5장: 필터에서 앱, 카테고리, 정렬, 멤버십을 여러 개 고르고 적용한 뒤 결과를 내려 본다
       filter: [
@@ -543,9 +546,9 @@
         { tap: '적용' }, { wait: 900 },
         { scroll: 700, ms: 1800 }, { wait: 400 }, { scroll: 0, ms: 1200 },
       ],
-      // 6장: 자세히를 열어 할인을 보고 할인 기록 탭으로 넘긴다
+      // 6장: 피자헛 자세히를 열어 앱별 할인을 내려 보고 할인 기록 탭으로 넘긴다
       detail: [
-        { tap: (d) => [...d.querySelectorAll('*')].filter((x) => x.children.length < 3 && (x.innerText || '').trim().startsWith('자세히'))[0] }, { wait: 700 },
+        { run: async (d, w) => { const c = await until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, '피자헛') }, 6000); c.scrollIntoView({ block: 'center' }); await nap(300); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
         { reveal: true }, { wait: 700 },
         { scroll: 600, ms: 1600, el: '.v2-sheet__offers' }, { wait: 400 }, { scroll: 0, ms: 1000, el: '.v2-sheet__offers' }, { wait: 300 },
         { tap: '할인 기록' }, { wait: 3000 },
