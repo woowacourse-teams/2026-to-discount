@@ -11,7 +11,7 @@
       ]
     },
     {
-      "source": "/((?!about(?:/|$)).*)",
+      "source": "/((?!(?:about|project)(?:/|$)).*)",
       "headers": [
         { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
       ]

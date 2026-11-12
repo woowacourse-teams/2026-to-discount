@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>프로젝트 개요 - 오늘의 할인</title>
+  <meta name="description" content="배달앱 네 곳의 할인을 실제 폰 화면에서 읽어 비교하는 SaveEats 프로젝트의 성과, 기능, 실험, 기술 개요입니다." />
+  <meta name="robots" content="noindex" /><!-- 초안. 공개 전에 지운다 -->
+  <link rel="icon" href="/favicon-48.png" />
+  <link rel="stylesheet" href="/fonts/pretendard-block.css" />
+  <!-- 프로젝트 개요. 그냥 스크롤하는 한 장짜리 문서이고, ?s=1~7이면 그 절만 보인다(Google Sites 임베드용, /about의 ?s=와 같은 방식).
+       임베드는 Sites 페이지가 밝은 배경이라 어두운 모드를 따르지 않는다.
+       움직임: 화면에 들어오면 떠오르기, 숫자 세기, 막대 늘이기, 수집 흐름 점 이동. 움직임 줄이기를 켠 기기는 처음부터 최종 상태로 보인다 -->
+  <style>
+    :root {
+      --bg: #fbfbfa; --surface: #ffffff; --border: #eaeaea;
+      --text: #171717; --muted: #64635f; --sale: #3182f6; --sale-weak: #eaf2fe; --no: #c2410c; --no-weak: #fff1e8; --na: #f1f0ee; --base: #8f8d87;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not(.solo) { --bg: #121211; --surface: #1c1c1a; --border: #2c2c29; --text: #f1f0ee; --muted: #a8a7a2; --sale: #5b9dff; --sale-weak: #16233a; --no: #fb923c; --no-weak: #3a1f0e; --na: #262624; --base: #8a8984; color-scheme: dark; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; text-align: left; word-break: keep-all; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; }
+    a { color: var(--sale); }
+    p, li, dd, figcaption { text-wrap: pretty; }
+    .sec { padding: 64px 20px; border-bottom: 1px solid var(--border); }
+    .in { max-width: 1040px; margin: 0 auto; }
+    .solo .sec { display: none; padding: 24px 16px; border: 0; }
+    .solo .sec.on { display: block; }
+
+    .eyebrow { margin: 0 0 10px; color: var(--sale); font-size: .8rem; font-weight: 800; letter-spacing: .04em; }
+    h1, h2, h3 { margin: 0; letter-spacing: -.03em; }
+    h1 { font-size: clamp(2rem, 5.2vw, 3rem); line-height: 1.2; font-weight: 800; }
+    h2 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.3; font-weight: 800; }
+    h3 { font-size: 1rem; line-height: 1.4; letter-spacing: -.015em; }
+    em { font-style: normal; color: var(--sale); }
+    .lead { margin: 14px 0 0; max-width: 38em; color: var(--muted); }
+    .note { margin: 14px 0 0; color: var(--muted); font-size: .82rem; }
+    @media (max-width: 599px) { .pc { display: none; } }
+
+    .grid { display: grid; gap: 12px; margin-top: 26px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
+    .grid.nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (min-width: 700px) { .grid.nums, .grid.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grid.nums.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    .box { padding: 18px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s, border-color .25s; }
+    .box:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--sale) 35%, var(--border)); box-shadow: 0 14px 30px -18px rgba(49, 130, 246, .45); }
+    .box p { margin: 6px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.6; }
+    .num, .box p.num { display: block; white-space: nowrap; font-size: clamp(1.6rem, 3.4vw, 2.1rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .num small { font-size: .55em; font-weight: 700; margin-left: 2px; }
+    .stat .lbl { display: block; margin-top: 8px; font-weight: 700; font-size: .92rem; line-height: 1.4; }
+    .box p.big { margin: 10px 0 4px; color: var(--sale); font-size: clamp(1.5rem, 3vw, 1.9rem); }
+
+    .facts { display: grid; gap: 10px 20px; margin: 24px 0 0; grid-template-columns: max-content 1fr; font-size: .94rem; }
+    .facts dt { color: var(--muted); }
+    .facts dd { margin: 0; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+    .links a { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border); color: var(--text); font-weight: 700; font-size: .9rem; text-decoration: none; background: var(--surface); transition: transform .2s; }
+    .links a:hover { transform: translateY(-2px); }
+    .links a:first-child { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .ribbon { display: grid; gap: 10px; margin-top: 28px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+    .ribbon div { padding: 12px 14px; border-left: 3px solid var(--sale); background: var(--sale-weak); border-radius: 0 12px 12px 0; }
+    .ribbon b { display: block; font-size: 1.3rem; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    .ribbon div > span { color: var(--muted); font-size: .8rem; }
+
+    /* 전후 막대: 기존(회색)과 바뀐 화면(파랑). 값은 막대 옆 글자로 늘 보인다 */
+    .chart { margin-top: 28px; padding: 20px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+    .chart h3 { margin-bottom: 4px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 6px 0 14px; color: var(--muted); font-size: .8rem; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+    .metric { display: grid; grid-template-columns: 7.5em 1fr; gap: 4px 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); }
+    .metric:first-of-type { border-top: 0; }
+    .metric > b { grid-row: span 2; font-size: .88rem; line-height: 1.35; }
+    .metric > b small { display: block; color: var(--sale); font-size: .78rem; }
+    .bar { position: relative; display: flex; align-items: center; gap: 8px; height: 14px; font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; cursor: default; }
+    .bar i { display: block; height: 10px; width: var(--w); border-radius: 0 4px 4px 0; background: var(--base); transition: width 1s cubic-bezier(.16,1,.3,1); }
+    .bar.new i { background: var(--sale); }
+    .bar.new { color: var(--text); font-weight: 700; }
+    .js .chart:not(.seen) .bar i { width: 0; }
+
+    .feat { display: grid; gap: 16px 12px; margin-top: 26px; grid-template-columns: repeat(2, minmax(0, 180px)); }
+    @media (min-width: 760px) { .feat { grid-template-columns: repeat(4, minmax(0, 180px)); gap: 20px; } }
+    .feat figure { margin: 0; }
+    .feat img { display: block; width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s; }
+    .feat figure:hover img { transform: translateY(-6px) rotate(-1deg); box-shadow: 0 22px 40px -22px rgba(0, 0, 0, .45); }
+    .feat figcaption { margin-top: 10px; font-size: .86rem; color: var(--muted); line-height: 1.5; }
+    .feat figcaption b { display: block; color: var(--text); font-size: .95rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 0; }
+    .chips i, .chips button { font: inherit; font-style: normal; padding: 4px 12px; border-radius: 999px; border: 1px solid transparent; font-size: .8rem; font-weight: 700; background: var(--sale-weak); color: var(--sale); }
+    .chips button { cursor: pointer; background: transparent; border-color: var(--border); color: var(--muted); transition: background .2s, color .2s; }
+    .chips button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+    .scroll { overflow-x: auto; margin-top: 14px; }
+    table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: .88rem; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    td:last-child { white-space: nowrap; }
+    tr[data-v] { transition: opacity .3s, background .2s; }
+    tr[data-v]:hover { background: var(--sale-weak); }
+    tr.off { display: none; }
+    .v { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .75rem; font-weight: 700; background: var(--sale-weak); color: var(--sale); }
+    .v.no { background: var(--no-weak); color: var(--no); }
+    .v.na { background: var(--na); color: var(--muted); }
+
+    /* 수집 흐름: 노드 사이를 점이 지나간다 */
+    .flow { display: grid; gap: 6px; margin: 26px 0 0; padding: 0; list-style: none; }
+    .flow li.node { padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+    .flow li.node b { display: block; }
+    .flow li.node .num { font-size: 1.4rem; color: var(--sale); margin: 6px 0 2px; }
+    .flow li.node > span:last-child { color: var(--muted); font-size: .86rem; }
+    .flow li.hop { position: relative; height: 22px; overflow: hidden; }
+    .flow li.hop::before { content: ''; position: absolute; left: 22px; top: 0; bottom: 0; border-left: 2px dashed color-mix(in srgb, var(--sale) 45%, transparent); }
+    .flow li.hop::after { content: ''; position: absolute; left: 19px; width: 8px; height: 8px; border-radius: 50%; background: var(--sale); animation: drop 1.6s linear infinite; }
+    @keyframes drop { from { top: -8px; } to { top: 100%; } }
+    @media (min-width: 860px) {
+      .flow { grid-template-columns: 1fr 28px 1fr 28px 1fr 28px 1fr; align-items: stretch; }
+      .flow li.hop { height: auto; }
+      .flow li.hop::before { left: 0; right: 0; top: 50%; bottom: auto; border-left: 0; border-top: 2px dashed color-mix(in srgb, var(--sale) 45%, transparent); }
+      .flow li.hop::after { top: calc(50% - 3px); left: auto; animation-name: run; }
+      @keyframes run { from { left: -8px; } to { left: 100%; } }
+    }
+    .stack { display: grid; gap: 12px; margin-top: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+
+    /* 떠오르는 등장 */
+    @media (prefers-reduced-motion: no-preference) {
+      .js .rise { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1); transition-delay: calc(var(--i, 0) * 70ms); }
+      .js .rise.seen { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { .flow li.hop::after { animation: none; display: none; } .bar i { transition: none; } }
+  </style>
+  <script>(function () { var d = document.documentElement; d.classList.add('js'); var m = location.search.match(/[?&]s=(\d+)/); if (m) { d.classList.add('solo'); d.dataset.s = m[1] } })()</script>
+</head>
+<body>
+
+<section class="sec" id="s1">
+  <div class="in">
+    <p class="eyebrow rise">프로젝트 개요</p>
+    <h1 class="rise" style="--i:1">배달앱 네 곳의 할인을<br /><em>한 화면에서</em> 비교합니다</h1>
+    <p class="lead rise" style="--i:2">배민, 쿠팡이츠, 요기요, 땡겨요는 같은 브랜드에 서로 다른 할인을 겁니다.<br class="pc" /> 웹으로 확인되는 앱은 요기요 하나뿐이어서, 실제 폰으로 앱 화면을 읽어<br class="pc" /> 브랜드마다 가장 큰 할인을 모았습니다.</p>
+    <dl class="facts rise" style="--i:3">
+      <dt>서비스</dt><dd>SaveEats. 2026-07-26 첫 배포 뒤 지금까지 운영하고 있습니다.</dd>
+      <dt>팀</dt><dd>우아한테크코스 8기 팀 오늘의 할인입니다. 글렌, 고래, 피온 세 명입니다.</dd>
+      <dt>기간</dt><dd>2026-08-03 ~ 2026-11-13. 레벨3 스프린트 5회, 레벨4 스프린트 4회입니다.</dd>
+      <dt>역할</dt><dd>글렌은 기획, 수집과 인프라, 제품 실험, 운영 화면을 맡았습니다.<br />고래는 수집 환경 조사, 온보딩 문서, 디자인 시스템을 맡았습니다.<br />피온은 분석 계측, 알림, 운영 안정화, 만족도 설문을 맡았습니다.</dd>
+    </dl>
+    <div class="ribbon rise" style="--i:4">
+      <div><b><span data-count="16">16</span>주</b><span>개발과 운영</span></div>
+      <div><b><span data-count="4">4</span>곳</b><span>비교하는 배달앱</span></div>
+      <div><b><span data-count="3">3</span>대</b><span>수집하는 실제 폰</span></div>
+      <div><b>하루 <span data-count="3">3</span>회</b><span>할인 갱신</span></div>
+    </div>
+    <div class="links rise" style="--i:5">
+      <a href="/">서비스 보기</a>
+      <a href="/project">프로젝트 이야기</a>
+      <a href="https://github.com/woowacourse-teams/2026-to-discount">GitHub</a>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="s2">
+  <div class="in">
+    <p class="eyebrow rise">성과</p>
+    <h2 class="rise" style="--i:1">홍보 없이도<br /><em>다시 찾아오는</em> 사용자가 생겼습니다</h2>
+    <p class="lead rise" style="--i:2">네이버 카페, 핫딜 커뮤니티, 검색에서 사용자가 스스로 들어왔습니다.<br class="pc" /> 숫자는 팀원과 개발 접속을 뺀 자체 이벤트 기록 기준입니다.</p>
+    <div class="grid nums">
+      <div class="box stat rise"><span class="num" data-count="12036">12,036</span><span class="lbl">방문자</span><p>2026-07-29 ~ 2026-10-15</p></div>
+      <div class="box stat rise" style="--i:1"><span class="num" data-count="2341">2,341</span><span class="lbl">한 주 방문자 최다</span><p>2026-09-28 주</p></div>
+      <div class="box stat rise" style="--i:2"><span class="num" data-count="688">688</span><span class="lbl">주간 활성 사용자 최다</span><p>할인 링크나 배너를 누른 사람입니다.</p></div>
+      <div class="box stat rise" style="--i:3"><span class="num"><span data-count="1000">1,000</span>+</span><span class="lbl">하루 방문 최다</span><p>2026-09-11, 이용자가 네이버 카페에 공유한 날입니다.</p></div>
+      <div class="box stat rise" style="--i:4"><span class="num"><span data-count="31.5" data-dec="1">31.5</span><small>%</small></span><span class="lbl">할인 선택 도달률</span><p>방문자 가운데 할인을 누른 비율의 주간 중앙값입니다.</p></div>
+      <div class="box stat rise" style="--i:5"><span class="num"><span data-count="17.8" data-dec="1">17.8</span><small>%</small></span><span class="lbl">4주 뒤 다시 온 비율</span><p>2026-10-05 주 첫 방문자 기준입니다. 전체 평균은 9.1%입니다.</p></div>
+    </div>
+    <div class="chart rise" role="img" aria-label="화면 개편 실험. 기존 화면 623명, 쿠폰 카드 화면 661명. 링크 클릭 22.5%에서 27.2%, 전환 25.2%에서 29.5%, 무동작 방문 41.3%에서 36.3%, 검색 4.7%에서 11.0%.">
+      <h3>화면 개편 실험: 가장 큰 할인을 앞세운 카드</h3>
+      <p class="legend"><span><i style="background:var(--base)"></i>기존 화면 623명</span><span><i style="background:var(--sale)"></i>쿠폰 카드 화면 661명</span></p>
+      <div class="metric"><b>링크 클릭<small>+21%</small></b><span class="bar" title="기존 22.5%"><i style="--w:45%"></i>22.5%</span><span class="bar new" title="쿠폰 카드 27.2%"><i style="--w:54.4%"></i>27.2%</span></div>
+      <div class="metric"><b>전환<small>+17%</small></b><span class="bar" title="기존 25.2%"><i style="--w:50.4%"></i>25.2%</span><span class="bar new" title="쿠폰 카드 29.5%"><i style="--w:59%"></i>29.5%</span></div>
+      <div class="metric"><b>무동작 방문<small>-12%</small></b><span class="bar" title="기존 41.3%"><i style="--w:82.6%"></i>41.3%</span><span class="bar new" title="쿠폰 카드 36.3%"><i style="--w:72.6%"></i>36.3%</span></div>
+      <div class="metric"><b>검색 사용<small>+137%</small></b><span class="bar" title="기존 4.7%"><i style="--w:9.4%"></i>4.7%</span><span class="bar new" title="쿠폰 카드 11.0%"><i style="--w:22%"></i>11.0%</span></div>
+      <p class="note">진 쪽 화면 코드 16개 파일, 732줄을 지웠습니다.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="s3">
+  <div class="in">
+    <p class="eyebrow rise">기능</p>
+    <h2 class="rise" style="--i:1">할인을 찾고, 비교하고,<br /><em>바로 엽니다</em></h2>
+    <p class="lead rise" style="--i:2">브랜드 하나에 앱 네 곳의 할인을 모아, 가장 큰 할인과 받는 조건을 함께 보여 줍니다.<br class="pc" /> 누르면 그 할인이 있는 배달앱 화면으로 바로 이동합니다.</p>
+    <div class="feat">
+      <figure class="rise"><img src="/about/hero.jpg" width="480" height="1038" loading="lazy" alt="카테고리별 브랜드 카드. 브랜드마다 가장 큰 할인금액이 보입니다." /><figcaption><b>브랜드별 최대 할인</b>앱 네 곳 중 가장 큰 할인을 맨 앞에 둡니다.</figcaption></figure>
+      <figure class="rise" style="--i:1"><img src="/about/sheet.jpg" width="480" height="1038" loading="lazy" alt="브랜드 상세 시트. 앱별 할인과 최소주문, 멤버십 조건이 보입니다." /><figcaption><b>조건까지 비교</b>최소주문, 멤버십, 선착순을 먼저 보여 줍니다.</figcaption></figure>
+      <figure class="rise" style="--i:2"><img src="/about/filter.jpg" width="480" height="1038" loading="lazy" alt="필터 화면. 배달앱, 카테고리, 정렬, 멤버십을 고릅니다." /><figcaption><b>필터와 정렬</b>쓰는 앱과 멤버십에 맞는 할인만 남깁니다.</figcaption></figure>
+      <figure class="rise" style="--i:3"><img src="/about/hot.jpg" width="480" height="1038" loading="lazy" alt="실시간 인기 브랜드 순위 화면." /><figcaption><b>실시간 인기</b>지금 많이 누르는 할인을 보여 줍니다.</figcaption></figure>
+    </div>
+    <p class="chips rise"><i>검색 자동완성</i><i>한정 할인 배너</i><i>할인 공유 링크</i><i>새 할인 웹 알림</i><i>앱 바로가기 링크</i></p>
+  </div>
+</section>
+
+<section class="sec" id="s4">
+  <div class="in">
+    <p class="eyebrow rise">실험과 검증</p>
+    <h2 class="rise" style="--i:1">가설 13개를 세우고<br /><em>6개를 기각</em>했습니다</h2>
+    <p class="lead rise" style="--i:2">기능마다 가설, 성공 기준, 기각 조건을 먼저 적고 실험했습니다.<br class="pc" /> 기각된 기능은 지우거나 노출을 줄였습니다.</p>
+    <div class="grid nums c4">
+      <div class="box stat rise"><span class="num" data-count="13">13</span><span class="lbl">세운 가설</span></div>
+      <div class="box stat rise" style="--i:1"><span class="num" data-count="4">4</span><span class="lbl">채택하거나 검증</span></div>
+      <div class="box stat rise" style="--i:2"><span class="num" data-count="6">6</span><span class="lbl">기각</span></div>
+      <div class="box stat rise" style="--i:3"><span class="num" data-count="41">41</span><span class="lbl">설문을 띄운 충성 사용자</span></div>
+    </div>
+    <p class="chips rise" role="group" aria-label="판정으로 거르기"><button type="button" data-f="all" aria-pressed="true">전체</button><button type="button" data-f="ok" aria-pressed="false">채택, 검증</button><button type="button" data-f="no" aria-pressed="false">기각</button><button type="button" data-f="na" aria-pressed="false">판단 불가, 진행 중</button></p>
+    <div class="scroll rise"><table>
+      <tr><th>실험</th><th>기준</th><th>결과</th><th>판정</th></tr>
+      <tr data-v="ok"><td>화면 개편: 가장 큰 할인을 앞세운 카드</td><td>핵심 지표 8% 이상 개선</td><td>링크 클릭 +21%, 검색 +137%</td><td><span class="v">채택</span></td></tr>
+      <tr data-v="ok"><td>검색 자동완성</td><td>검색 성공률 +5%p</td><td>33.3% → 39.5%, 성공 검색의 62%</td><td><span class="v">채택</span></td></tr>
+      <tr data-v="ok"><td>필터 위치: 상단 메뉴바와 아래 시트</td><td>필터 탐색과 할인 클릭</td><td>클릭은 같고 탐색은 메뉴바가 높음</td><td><span class="v">채택</span></td></tr>
+      <tr data-v="ok"><td>첫 방문 튜토리얼</td><td>이탈이 5% 넘게 늘면 검증</td><td>바로 떠나는 사람 20% 증가, 이틀 만에 제거</td><td><span class="v">검증</span></td></tr>
+      <tr data-v="no"><td>새 할인을 인기 영역 위로</td><td>클릭률 +3%p</td><td>클릭과 이동 감소, 되돌림</td><td><span class="v no">기각</span></td></tr>
+      <tr data-v="no"><td>알림 안내 문구 개선</td><td>알림 켜기 5%</td><td>4.51% (29/643)</td><td><span class="v no">기각</span></td></tr>
+      <tr data-v="no"><td>할인 하나 공유 링크</td><td>활성 사용자 5% 사용</td><td>3.73% (9/241)</td><td><span class="v no">기각</span></td></tr>
+      <tr data-v="no"><td>한정 할인 배너</td><td>배너 클릭 유의미</td><td>효과가 일정하지 않아 노출 축소</td><td><span class="v no">기각</span></td></tr>
+      <tr data-v="no"><td>검수 도구로 오류 찾기</td><td>미발견 오류 50% 감소</td><td>14% 감소, 검수 시간은 19% 증가</td><td><span class="v no">기각</span></td></tr>
+      <tr data-v="no"><td>큰 할인 하나만 홍보</td><td>모음 홍보보다 큰 반응</td><td>반응 저조, 브랜드 인지도가 더 컸음</td><td><span class="v no">기각</span></td></tr>
+      <tr data-v="na"><td>배달 외 브랜드(카페 등) 할인</td><td>배달 배너보다 높은 클릭률</td><td>1.02% 대 1.72%, 표본과 위치 영향으로 보류</td><td><span class="v na">판단 불가</span></td></tr>
+      <tr data-v="na"><td>새 할인 웹 알림</td><td>활성화 5%</td><td>0.17% (6/3,499)</td><td><span class="v na">판단 불가</span></td></tr>
+      <tr data-v="na"><td>만족도 설문: 못 쓰게 되면 매우 실망</td><td>40% 이상</td><td>37.5% (3/8), 응답 부족</td><td><span class="v na">진행 중</span></td></tr>
+    </table></div>
+  </div>
+</section>
+
+<section class="sec" id="s5">
+  <div class="in">
+    <p class="eyebrow rise">기술 구조</p>
+    <h2 class="rise" style="--i:1">폰 화면에서 웹까지<br /><em>사람 손 없이</em> 흐릅니다</h2>
+    <p class="lead rise" style="--i:2">배달앱은 할인 정보를 내주는 공개 통로(API)가 없어서 실제 폰 화면을 읽습니다.<br class="pc" /> 앱 내부 통신은 쓰지 않고, 누구나 보는 화면만 읽습니다.</p>
+    <ol class="flow rise" style="--i:3">
+      <li class="node"><b>실제 폰</b><span class="num"><span data-count="3">3</span>대</span><span>USB로 연결한 폰이 배달앱 네 곳을 돕니다.</span></li>
+      <li class="hop" aria-hidden="true"></li>
+      <li class="node"><b>수집 PC</b><span class="num">하루 <span data-count="3">3</span>회</span><span>화면을 읽어 덧붙이기만 하는 원장에 쌓습니다.</span></li>
+      <li class="hop" aria-hidden="true"></li>
+      <li class="node"><b>서버</b><span class="num"><span data-count="24365">24,365</span>줄</span><span>원장 기록입니다. 빠진 값이 없는지 검사한 뒤 배포합니다.</span></li>
+      <li class="hop" aria-hidden="true"></li>
+      <li class="node"><b>웹</b><span class="num"><span data-count="4">4</span>개 앱</span><span>브랜드마다 가장 큰 할인과 조건을 보여 줍니다.</span></li>
+    </ol>
+    <div class="stack">
+      <div class="box rise"><h3>수집</h3><p>Python으로 안드로이드 디버그 브리지(ADB)를 써서 폰을 조작합니다. 테스트가 700건 넘습니다.</p></div>
+      <div class="box rise" style="--i:1"><h3>서버</h3><p>Java와 Spring Boot 4.1입니다. 데이터베이스 없이 JSON 파일로 운영하고, Oracle Cloud에 자체 배포합니다.</p></div>
+      <div class="box rise" style="--i:2"><h3>웹</h3><p>React 18과 Vite입니다. Vercel에 배포하고, 첫 화면은 서버에서 그려 보냅니다.</p></div>
+      <div class="box rise" style="--i:3"><h3>분석과 운영</h3><p>자체 이벤트 원장, PostHog, GA4로 행동을 봅니다. 운영 화면, Slack 알림, 3분 주기 외부 점검으로 장애를 잡습니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="s6">
+  <div class="in">
+    <p class="eyebrow rise">기술 과제</p>
+    <h2 class="rise" style="--i:1">운영하면서 만난 문제와<br /><em>측정한 결과</em>입니다</h2>
+    <div class="grid c3">
+      <div class="box rise"><h3>방문당 요청 수</h3><p class="num big"><span data-count="700">700</span> → <span data-count="25" data-from="700">25</span></p><p>하루 방문 50명에 무료 요청 한도 93%가 찼습니다. 로고에 캐시 설정을 붙여 줄였고, 직후 하루 1,000명 방문을 버텼습니다.</p></div>
+      <div class="box rise" style="--i:1"><h3>응답 크기</h3><p class="num big">-<span data-count="91">91</span><small>%</small></p><p>부하 시험에서 느린 응답 상위 5%가 555ms였습니다. 원인은 압축 없이 나가던 154KB 응답이었습니다.</p></div>
+      <div class="box rise" style="--i:2"><h3>이벤트 기록 읽기</h3><p class="num big"><span data-count="1900">1,900</span> → <span data-count="16" data-from="1900">16</span><small>ms</small></p><p>요청마다 기록 전체를 읽던 서버를 새로 쌓인 부분만 읽게 바꿔, 1.9초가 8~16ms로 줄었습니다.</p></div>
+      <div class="box rise"><h3>백업 복원 시간</h3><p class="num big"><span data-count="17.64" data-dec="2">17.64</span><small>초</small></p><p>매일 암호화 백업을 30일 보관합니다. 격리 환경에 실제로 복원해 파일 지문이 전부 일치하는 것을 확인했습니다.</p></div>
+      <div class="box rise" style="--i:1"><h3>조용한 데이터 손실</h3><p class="num big"><span data-count="98">98</span> → <span data-count="21" data-from="98">21</span><small>건</small></p><p>배민 할인이 6시간 52분 동안 줄어 보였습니다. 이후 배포 전에 건수와 필드를 대조하는 검사를 9단계로 쌓았습니다.</p></div>
+      <div class="box rise" style="--i:2"><h3>무중단 배포</h3><p class="num big"><span data-count="30">30</span><small>초</small></p><p>새 버전이 30초 안에 응답하지 않으면 이전 버전으로 자동 복구합니다. 일부러 실패를 넣어 복구를 확인했습니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="s7">
+  <div class="in">
+    <p class="eyebrow rise">과정</p>
+    <h2 class="rise" style="--i:1">결정과 실패를<br /><em>기록으로</em> 남겼습니다</h2>
+    <div class="grid nums">
+      <div class="box stat rise"><span class="num" data-count="3464">3,464</span><span class="lbl">커밋</span><p>서비스 저장소 1,877개, 수집기 저장소 1,587개입니다.</p></div>
+      <div class="box stat rise" style="--i:1"><span class="num" data-count="201">201</span><span class="lbl">병합한 변경 요청(PR)</span><p>기능 하나, 실험 하나 단위로 리뷰 뒤 병합했습니다.</p></div>
+      <div class="box stat rise" style="--i:2"><span class="num" data-count="57">57</span><span class="lbl">결정 기록(ADR)</span><p>고른 것, 버린 대안, 다시 볼 조건을 적었습니다.</p></div>
+      <div class="box stat rise" style="--i:3"><span class="num" data-count="97">97</span><span class="lbl">작업 카드</span><p>스프린트 9회 동안 칸반으로 나눴습니다.</p></div>
+      <div class="box stat rise" style="--i:4"><span class="num" data-count="49">49</span><span class="lbl">회의록</span><p>데모데이 3회, 코치 피드백, 감정 회고를 포함합니다.</p></div>
+      <div class="box stat rise" style="--i:5"><span class="num" data-count="6">6</span><span class="lbl">공개 장애 회고</span><p>원인, 대응, 같은 계열을 막은 장치를 적었습니다.</p></div>
+    </div>
+    <p class="note rise">팀의 협업 과정과 회고는 <a href="/project">프로젝트 이야기</a>에 있습니다.</p>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var d = document.documentElement
+    // ?s=N: 그 절만 보입니다. 다른 사이트에 끼워 넣었으면 링크는 새 탭에서 연다(Sites는 바깥 창 이동을 막는다)
+    if (d.dataset.s) { var el = document.getElementById('s' + d.dataset.s); if (el) el.classList.add('on') }
+    if (self !== top) document.querySelectorAll('a[href]').forEach(function (a) { a.target = '_blank'; a.rel = 'noopener' })
+
+    var still = matchMedia('(prefers-reduced-motion: reduce)').matches
+    var fmt = function (v, dec) { return v.toLocaleString('ko-KR', { minimumFractionDigits: dec, maximumFractionDigits: dec }) }
+    // 숫자 세기: data-from(없으면 0)에서 data-count까지 1.2초
+    var count = function (n) {
+      var to = +n.dataset.count, from = +(n.dataset.from || 0), dec = +(n.dataset.dec || 0)
+      if (still) { n.textContent = fmt(to, dec); return }
+      var t0 = performance.now()
+      var step = function (t) {
+        var p = Math.min(1, (t - t0) / 1200), e = 1 - Math.pow(1 - p, 3)
+        n.textContent = fmt(from + (to - from) * e, dec)
+        if (p < 1) requestAnimationFrame(step)
+      }
+      requestAnimationFrame(step)
+    }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return
+        e.target.classList.add('seen')
+        e.target.querySelectorAll('[data-count]').forEach(count)
+        if (e.target.matches('[data-count]')) count(e.target)
+        io.unobserve(e.target)
+      })
+    }, { threshold: .2 })
+    document.querySelectorAll('.rise, .chart').forEach(function (el) { io.observe(el) })
+
+    // 실험 표 거르기
+    var btns = document.querySelectorAll('[data-f]')
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        btns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)) })
+        document.querySelectorAll('tr[data-v]').forEach(function (r) { r.classList.toggle('off', b.dataset.f !== 'all' && r.dataset.v !== b.dataset.f) })
+      })
+    })
+  })()
+</script>
+</body>
+</html>

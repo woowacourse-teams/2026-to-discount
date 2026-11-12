@@ -107,7 +107,7 @@ React 18 + Vite 5, 정적 `dist/`. 라우터는 안 쓴다. **홈(`/`)만 Vercel
 | 계측 | 이벤트 하나를 만들어 서버 큐와 PostHog로 동시에 부친다 |
 | SEO 프리렌더 | 빌드 후 `prerender.mjs`가 크롤러용 본문 주입 + `robots.txt` + `sitemap.xml`(111 URL) + `/brand/*.html` 110장 |
 | 소유 확인 | 구글, 네이버 verification 메타 태그 배포됨 |
-| 보안 헤더 | `vercel.json`: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `X-Frame-Options: SAMEORIGIN`(`/about`은 임베드를 위해 제외) |
+| 보안 헤더 | `vercel.json`: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `X-Frame-Options: SAMEORIGIN`(`/about`, `/project`는 임베드를 위해 제외) |
 | 하이드레이션 시각 고정 | `web/src/pageNow.js`. 서버가 `renderedAt`을 `window.__SSR__`에 싣고, 하이드레이션이 끝날 때까지 '오픈 전' 판정 시각을 그 시각에 고정한다(CDN이 든 HTML과 어긋나는 오류 방지) |
 | 지연 로딩 재시도 | `web/src/lazyRetry.js`의 `importRetry`가 `React.lazy` import를 한 번 더 시도한다 |
 | 소개 페이지 | `/about`(`web/public/about/index.html`, 6장). `?s=1..6`은 한 장만 보이는 임베드 모드(Google Sites 등) |

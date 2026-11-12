@@ -82,7 +82,7 @@
 
 **고려한 대안.** 검토한 적 없다. 제품 자체가 계정 개념 없이 "할인 정보를 누구나 본다"는 전제로 설계됐다. 비로그인 서비스이며, [TECH-CHOICES.md](TECH-CHOICES.md#관통하는-원칙)의 "공개된 경로로만 수집한다" 원칙과 같은 결이다.
 
-**한계.** `/api/reload`는 계정 인증이 아니라 호출 위치로 막는다. 서버 안에서 직접 부른 요청(루프백이고 `X-Forwarded-For`가 없는 것)만 통과하고 나머지는 403이다. 공개 쓰기 경로는 IP별 분당 제한을 둔다(푸시 구독 10건, 공유 링크 30건, 이벤트 120건). 웹은 `vercel.json`에서 `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`와 `X-Frame-Options: SAMEORIGIN`(`/about` 제외)을 붙인다. 계정이나 개인정보를 다루는 기능이 생기면 이 항목 전체를 다시 설계해야 한다.
+**한계.** `/api/reload`는 계정 인증이 아니라 호출 위치로 막는다. 서버 안에서 직접 부른 요청(루프백이고 `X-Forwarded-For`가 없는 것)만 통과하고 나머지는 403이다. 공개 쓰기 경로는 IP별 분당 제한을 둔다(푸시 구독 10건, 공유 링크 30건, 이벤트 120건). 웹은 `vercel.json`에서 `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`와 `X-Frame-Options: SAMEORIGIN`(`/about`, `/project` 제외)을 붙인다. 계정이나 개인정보를 다루는 기능이 생기면 이 항목 전체를 다시 설계해야 한다.
 
 ---
 
