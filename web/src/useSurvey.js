@@ -102,7 +102,7 @@ export function useSurvey() {
   const cancelClose = useCallback(() => { if (!inFlight.current) { interact('close_cancelled', { source: closeSource.current }); setConfirm(false); setError('') } }, [interact])
 
   async function finish(dismiss, submittedDraft = draft, inline = false) {
-    if (inFlight.current || (!context.current && !preview.current)) return
+    if (inFlight.current || (!context.current && !preview.current) || (finished.current && !preview.current)) return
     if (!dismiss) setCanFollowUp(inline)
     // 개발용 설문도 조작 이벤트를 보내되 실제 응답 원장은 바꾸지 않는다.
     if (preview.current) {
@@ -113,24 +113,32 @@ export function useSurvey() {
       setVisible(false); setConfirm(false); setModalStart(null); setComplete(!dismiss)
       return
     }
+    const demo = import.meta.env.DEV && new URLSearchParams(location.search).get('pmfDemo') === '1'
+    if (dismiss) {
+      finished.current = true
+      if (!demo) rememberTerminal('dismissed')
+      setVisible(false)
+      setConfirm(false)
+      setModalStart(null)
+    }
     interact(dismiss ? 'close_confirmed' : 'submit_clicked')
     inFlight.current = true
     setBusy(true); setError('')
     try {
       await json(dismiss ? '/dismiss' : '', post(submission(submittedDraft, context.current)))
-      const demo = import.meta.env.DEV && new URLSearchParams(location.search).get('pmfDemo') === '1'
       finished.current = true
-      if (!demo) rememberTerminal(dismiss ? 'dismissed' : 'answered')
+      if (!demo && !dismiss) rememberTerminal('answered')
       if (dismiss) track('survey_dismiss', { surveyId: SURVEY_ID, preview: false, source: closeSource.current })
       else interact('submit_succeeded', { question: 'choice', step: 1 })
       setVisible(false); setConfirm(false); setModalStart(null)
       setComplete(!dismiss)
     } catch (e) {
       interact(dismiss ? 'dismiss_failed' : 'submit_failed', { reason: e.state || 'request_failed' })
+      if (dismiss) return
       if (['answered', 'dismissed', 'closed'].includes(e.state)) {
         finished.current = true
         setVisible(false); setConfirm(false); setModalStart(null)
-      } else setError(dismiss ? '닫기 상태를 저장하지 못했습니다. 다시 시도해 주세요.' : '응답을 저장하지 못했습니다. 다시 시도해 주세요.')
+      } else setError('응답을 저장하지 못했습니다. 다시 시도해 주세요.')
     } finally { inFlight.current = false; setBusy(false) }
   }
   function openFollowUp() {
