@@ -195,7 +195,7 @@
     }
       
     /* 폰 화면이 잘리지 않게: 데스크톱은 화면 높이에 맞춰 폰을 줄이고, 첫 장은 모바일에서 글을 작게 둔다 */
-    @media (min-width: 768px) { .slide--shot .phone { width: min(450px, calc((100dvh - 120px) * .462)); } }
+    @media (min-width: 768px) { .slide--shot .phone { width: min(450px, calc((100dvh - 76px) * .462)); } .slide--shot .next { bottom: 6px; } }
     @media (max-width: 767px) {
       #s1 { padding-top: 48px; }
       #s1 h1 { font-size: 2rem; }
@@ -217,20 +217,20 @@
     .phone iframe.live { position: absolute; top: 38px; left: 0; width: 390px; height: 844px; border: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; transition: opacity .5s; background: #fbfbfa; }
     .phone iframe.live.on { opacity: 1; }
     .phone .tap { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: rgba(221, 75, 2, .4); pointer-events: none; z-index: 2; animation: tap .6s ease-out forwards; }
+    .phone .tap.finger { animation: none; opacity: .45; transform: none; transition-property: transform, opacity; transition-timing-function: cubic-bezier(.2, .7, .3, 1); }
     @keyframes tap { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
   
-    /* 모바일: 폰이 잘리지 않게 높이에 맞춰 줄이고, 장마다 제목만 둔다(첫 장은 한 줄 설명 유지) */
+    /* 모바일: 글(왼쪽)과 폰(오른쪽)을 좌우로 둔다. 폰은 열 너비를 다 쓴다 */
     @media (max-width: 767px) {
-      .slide--shot { padding: 40px 16px 40px; }
-      .slide--shot .split { gap: 12px; }
-      .slide--shot h2 { font-size: 1.55rem; }
-      .slide--shot:not(#s1) .lead { display: none; }
-      .slide--shot .phone { width: min(calc(100vw - 32px), calc((100dvh - 200px) * .462 + 20px)); align-self: center; padding: 8px; border-radius: 38px; }
-      .slide--shot .phone__screen { border-radius: 30px; }
-      #s1 h1 { font-size: 1.8rem; }
-      #s1 { padding-top: 52px; }
+      .slide--shot { padding: 36px 22px 36px 12px; justify-content: center; }
+      .slide--shot .split { display: grid; flex: none; grid-template-columns: 100px minmax(0, 1fr); gap: 6px; align-items: center; align-content: center; }
+      .slide--shot h1, .slide--shot h2 { font-size: 1.12rem; line-height: 1.25; }
+      .slide--shot .lead { margin-top: 6px; font-size: .76rem; line-height: 1.45; }
+      .slide--shot .lead br { display: none; }
+      .slide--shot .phone { width: min(100%, calc((100dvh - 90px) * .462 + 16px)); justify-self: end; align-self: center; padding: 8px; border-radius: 34px; }
+      .slide--shot .phone__screen { border-radius: 27px; }
+      #s1 h1 { font-size: 1.4rem; }
       #s1 .btn, #s2 .apps { display: none; }
-      #s1 .phone, #s2 .phone { width: min(calc(100vw - 32px), calc((100dvh - 235px) * .462 + 20px)); }
     }
   
     /* 글꼴이 오기 전 글자가 바뀌는 깜빡임 방지: 준비되면(.ready) 한 번에 보인다. 스크립트가 실패해도 4초 뒤 보인다 */
@@ -268,7 +268,7 @@
             <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
           </div>
           <h2 class="rise" style="--i:1">4개 배달 플랫폼 중<br /><em>가장 큰 할인</em>을 탐색</h2>
-          <p class="lead rise" style="--i:2">플랫폼별 할인 정보를 비교하고,<br />최고 할인을 선정해요.</p>
+          <p class="lead rise" style="--i:2">플랫폼별 할인 정보를 비교하고, <br />최고 할인을 선정해요.</p>
         </div>
         <div class="phone rise" style="--i:2">
           <div class="phone__screen" data-scene="sheet"><img src="/about/sheet.jpg" width="480" height="1038" alt="청년피자 자세히 보기. 쿠팡이츠, 배달의민족, 요기요, 땡겨요별 할인이 스크롤하며 나열된다." /></div>
@@ -282,7 +282,7 @@
         <div>
           
           <h2 class="rise" style="--i:1">지금 많이 찾는<br /><em>인기 브랜드</em></h2>
-          <p class="lead rise" style="--i:2">맨 위 HOT에서 인기 순위를 확인하고,<br />누르면 그 브랜드 카드로 바로 가요.</p>
+          <p class="lead rise" style="--i:2">맨 위 HOT에서 순위를 보고, <br />눌러서 그 브랜드로 이동해요.</p>
           
         </div>
         <div class="phone rise" style="--i:2">
@@ -297,7 +297,7 @@
         <div>
           
           <h2 class="rise" style="--i:1"><em>카테고리</em>로<br />골라 보기</h2>
-          <p class="lead rise" style="--i:2">치킨, 피자, 패스트푸드, 카페까지.<br />기간 한정 할인은 '한정', 뽑기형 할인은 '랜덤'에서 따로 봐요.</p>
+          <p class="lead rise" style="--i:2">한정, 랜덤, 치킨, 피자… <br />카테고리를 바꿔 가며 봐요.</p>
           
         </div>
         <div class="phone rise" style="--i:2">
@@ -312,7 +312,7 @@
         <div>
           
           <h2 class="rise" style="--i:1"><em>내게 맞게</em><br />걸러 보기</h2>
-          <p class="lead rise" style="--i:2">쓰는 배달앱, 정렬, 멤버십(배민클럽, 쿠팡와우)을 고르면<br />내가 받을 수 있는 할인만 남아요.</p>
+          <p class="lead rise" style="--i:2">앱, 카테고리, 정렬, 멤버십을 <br />여러 개 골라 한 번에 적용해요.</p>
           
         </div>
         <div class="phone rise" style="--i:2">
@@ -327,7 +327,7 @@
         <div>
           
           <h2 class="rise" style="--i:1"><em>앱별 금액</em>과<br /><em>할인 기록</em>까지</h2>
-          <p class="lead rise" style="--i:2">자세히 보기에서 앱별 할인과 최소주문금액, 배달과 포장 차이를 보고<br />최근 할인이 어떻게 변했는지 그래프로 확인해요.</p>
+          <p class="lead rise" style="--i:2">앱별 할인과 <br />최근 할인 기록을 한 곳에서 봐요.</p>
           
         </div>
         <div class="phone rise" style="--i:2">
@@ -477,6 +477,8 @@
     //   { wait: 800 }                   쉰다
     //   { run: async (d, w) => {} }     화면을 직접 만진다(연출용 값 바꾸기 등)
     //   { reveal: true }                여기까지는 가려진 채 준비하고, 이 단계에서 실제 화면을 보여 준다
+    //   { loop: true }                  끝까지 가면 이 표시 다음부터 되풀이한다(계속 보는 사람을 위해). 표시가 없으면 한 번만
+    // scroll은 손가락으로 튕기듯 처음에 빠르고 끝에서 느려진다(ease: 'inout'이면 일정하게 가감속)
     const APP = '/?home=b&dev=1'
     const SLOW = 2 // 움직임 시간 배수. 2면 스크롤이 절반 속도, 1이면 원래 속도
     const byText = (d, t, last) => { const l = [...d.querySelectorAll('button,a,[role=tab]')].filter((x) => (x.getAttribute('aria-label') || x.innerText || '').trim().startsWith(t)); return last ? l[l.length - 1] : l[0] }
@@ -509,52 +511,63 @@
         { run: (d, w) => until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, 'BBQ') && card(d, '푸라닭') }, 5000) }, // BBQ가 목록 아래라 끝까지 내려 불러온다
         { run: (d, w) => { stage(d, 'BBQ', '8,000', '배달', '쿠팡와우', '쿠팡이츠', '#4a2410'); stage(d, '푸라닭', '8,000', '배달', '배민클럽', '배달의민족', '#2ac1bc'); w.scrollTo(0, 0) } },
         { reveal: true }, { wait: 500 },
-        { scroll: 900, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1600 },
+        { loop: true },
+        { wait: 500 }, { scroll: 280, ms: 800 }, { wait: 600 }, { scroll: 900, ms: 1200 }, { wait: 1000 }, { scroll: 0, ms: 1000 }, { wait: 800 },
       ],
-      // 2장: 피자에서 청년피자 자세히 시트를 띄우고 여러 플랫폼의 할인이 있는 것만 천천히 보여 준다
+      // 2장: 피자에서 청년피자 자세히 시트를 띄우고 여러 플랫폼의 할인이 있는 것만 보여 준다
       sheet: [
         { tap: '피자' },
         { run: async (d) => { const c = await until(() => card(d, '청년피자')); c.scrollIntoView({ block: 'center' }); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
         { reveal: true }, { wait: 500 },
-        { scroll: 640, ms: 3000, el: '.v2-sheet__offers' }, { wait: 800 }, // 쿠팡이츠, 배민, 요기요가 차례로 보일 만큼만 천천히
+        { loop: true },
+        { wait: 600 }, { scroll: 220, ms: 800, el: '.v2-sheet__offers' }, { wait: 800 }, { scroll: 640, ms: 1400, el: '.v2-sheet__offers' }, { wait: 1500 }, { scroll: 0, ms: 900, el: '.v2-sheet__offers' }, { wait: 600 },
       ],
       // 3장: 인기 브랜드(HOT)를 펼쳐 브랜드를 눌러 그 카드로 이동하고, 다시 펼쳐 다른 브랜드로 이동
       hot: [
         { tap: '인기 브랜드 펼치기' }, { wait: 600 },
         { reveal: true }, { wait: 1000 },
-        { tap: hot(3) }, { wait: 2500 },
-        { tap: '인기 브랜드 펼치기' }, { wait: 1000 },
-        { tap: hot(1) }, { wait: 2500 },
+        { loop: true },
+        { tap: hot(3) }, { wait: 2200 },
+        { tap: '인기 브랜드 펼치기' }, { wait: 900 },
+        { tap: hot(1) }, { wait: 2200 },
+        { tap: '인기 브랜드 펼치기' }, { wait: 900 },
       ],
       // 4장: 카테고리 탭을 한정, 랜덤, 치킨, 피자로 바꿔 가며, 내려 보다가 다음 카테고리로 넘어간다
       category: [
         { tap: tab('한정') }, { wait: 600 },
         { reveal: true }, { wait: 500 },
-        { scroll: 450, ms: 1200 }, { wait: 300 },
-        { tap: tab('랜덤') }, { wait: 600 }, { scroll: 450, ms: 1200 }, { wait: 300 },
-        { tap: tab('치킨') }, { wait: 600 }, { scroll: 450, ms: 1200 }, { wait: 300 },
-        { tap: tab('피자') }, { wait: 600 }, { scroll: 600, ms: 1400 }, { wait: 300 },
+        { loop: true },
+        { scroll: 300, ms: 800 }, { wait: 400 }, { scroll: 520, ms: 900 }, { wait: 500 },
+        { tap: tab('랜덤') }, { wait: 600 }, { scroll: 300, ms: 800 }, { wait: 400 }, { scroll: 520, ms: 900 }, { wait: 500 },
+        { tap: tab('치킨') }, { wait: 600 }, { scroll: 300, ms: 800 }, { wait: 400 }, { scroll: 520, ms: 900 }, { wait: 500 },
+        { tap: tab('피자') }, { wait: 600 }, { scroll: 300, ms: 800 }, { wait: 400 }, { scroll: 640, ms: 1000 }, { wait: 700 },
+        { scroll: 0, ms: 700 }, { tap: tab('한정') }, { wait: 700 },
       ],
-      // 5장: 필터에서 앱, 카테고리, 정렬, 멤버십을 여러 개 고르고 적용한 뒤 결과를 내려 본다
+      // 5장: 필터에서 앱, 카테고리, 정렬, 멤버십을 여러 개 고르고 적용한 뒤 결과를 내려 보고, 초기화해서 되풀이
       filter: [
         { tap: '필터 열기' }, { wait: 600 },
         { reveal: true }, { wait: 800 },
+        { loop: true },
         { tap: (d) => [...d.querySelectorAll('.sheet__apps button')].pop() }, { wait: 500 },   // 땡겨요 끄기
         { tap: chip('피자') }, { wait: 500 },                                                  // 카테고리: 피자
         { tap: chip('최소주문금액 낮은순') }, { wait: 500 },                                  // 정렬
         { tap: chip('배민클럽') }, { wait: 600 },                                              // 멤버십 끄기
         { tap: '적용' }, { wait: 900 },
-        { scroll: 700, ms: 1800 }, { wait: 400 }, { scroll: 0, ms: 1200 },
+        { scroll: 300, ms: 800 }, { wait: 500 }, { scroll: 700, ms: 1000 }, { wait: 800 }, { scroll: 0, ms: 800 }, { wait: 300 },
+        { tap: '필터 열기' }, { wait: 800 },
+        { tap: (d) => d.querySelector('.sheet__reset') }, { wait: 900 },                      // 초기화하고 처음부터
       ],
-      // 6장: 피자헛 자세히를 열어 앱별 할인을 내려 보고 할인 기록 탭으로 넘긴다
+      // 6장: 피자헛 자세히를 열어 앱별 할인을 내려 보고 할인 기록 탭으로 넘겼다가 되돌아온다
       detail: [
         { run: async (d, w) => { const c = await until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, '피자헛') }, 6000); c.scrollIntoView({ block: 'center' }); await nap(300); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
         { reveal: true }, { wait: 700 },
-        { scroll: 600, ms: 1600, el: '.v2-sheet__offers' }, { wait: 400 }, { scroll: 0, ms: 1000, el: '.v2-sheet__offers' }, { wait: 300 },
+        { loop: true },
+        { scroll: 300, ms: 800, el: '.v2-sheet__offers' }, { wait: 500 }, { scroll: 600, ms: 1000, el: '.v2-sheet__offers' }, { wait: 600 }, { scroll: 0, ms: 700, el: '.v2-sheet__offers' }, { wait: 300 },
         { tap: '할인 기록' }, { wait: 3000 },
+        { tap: '할인 상세' }, { wait: 900 },
       ],
     }
-    const ease = (t) => t * t * (3 - 2 * t)
+    const EASE = { out: (t) => 1 - (1 - t) ** 3, inout: (t) => t * t * (3 - 2 * t) } // out: 튕기듯 시작이 빠르고 끝이 느림
     const live = new Map() // 화면 요소 -> 재생 번호
     const gates = new Map() // 화면 요소 -> 그 장에 들어오면 풀리는 문
     const fit = (scr, fr) => { fr.style.transform = `scale(${scr.clientWidth / 390})` }
@@ -574,7 +587,9 @@
       const lk = d.createElement('link'); lk.rel = 'stylesheet'; lk.href = '/fonts/pretendard-block.css'; d.head.appendChild(lk) // 앱의 optional 글꼴을 block으로 덮는다
       await until(() => d.querySelector('article.v2-card')); await nap(500) // 카드가 뜬 뒤 앱이 이벤트를 붙일 틈
       let shown = false
-      for (const s of SCENES[scr.dataset.scene]) {
+      const steps = SCENES[scr.dataset.scene], mk = steps.findIndex((x) => x.loop)
+      for (let from = 0; ; from = mk + 1) {
+      for (const s of steps.slice(from)) {
         if (!ok()) return
         if (s.wait) await nap(s.wait)
         else if (s.run) await s.run(d, w)
@@ -592,16 +607,24 @@
           const t = s.el ? d.querySelector(s.el) : null
           const from = t ? t.scrollTop : w.scrollY
           const to = Math.min(s.scroll, t ? t.scrollHeight - t.clientHeight : d.documentElement.scrollHeight - w.innerHeight)
-          const t0 = performance.now()
+          const t0 = performance.now(), dur = s.ms * SLOW, ez = EASE[s.ease || 'out']
+          if (shown && Math.abs(to - from) > 40) { // 손가락처럼 보이는 점이 밀어 올리거나 내리는 방향으로 움직인다
+            const f = document.createElement('i'), dir = to > from ? -1 : 1
+            f.className = 'tap finger'; f.style.left = scr.clientWidth * 0.64 + 'px'; f.style.top = 38 + scr.clientHeight * (dir < 0 ? 0.66 : 0.46) + 'px'; f.style.transitionDuration = dur + 'ms'
+            scr.appendChild(f); requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transform = `translateY(${dir * 90}px)`; f.style.opacity = '.0' })); setTimeout(() => f.remove(), dur + 200)
+          }
           await new Promise((res) => {
             const tick = (now) => {
-              const p = Math.min(1, (now - t0) / (s.ms * SLOW)), y = from + (to - from) * ease(p)
+              const p = Math.min(1, (now - t0) / dur), y = from + (to - from) * ez(p)
               if (t) t.scrollTop = y; else w.scrollTo(0, y)
               if (p < 1 && ok()) requestAnimationFrame(tick); else res()
             }
             requestAnimationFrame(tick)
           })
         }
+      }
+      if (mk < 0 || !ok()) return
+      await nap(800)
       }
     }
     const screens = slides.map((s) => s.querySelector('[data-scene]'))
