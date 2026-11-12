@@ -12,16 +12,18 @@
        임베드는 Sites 페이지가 밝은 배경이라 어두운 모드를 따르지 않는다.
        움직임: 화면에 들어오면 떠오르기, 숫자 세기, 막대 늘이기, 수집 흐름 점 이동. 움직임 줄이기를 켠 기기는 처음부터 최종 상태로 보인다 -->
   <style>
+    /* 데모데이 사이트와 같은 배민 도현. 굵기가 하나라 가짜 굵게를 끈다 */
+    @font-face { font-family: 'BM Dohyeon'; src: url('/fonts/BMDOHYEON.woff') format('woff'); font-display: swap; }
     :root {
       --bg: #f2f4f6; --surface: #ffffff; --border: #e5e8eb;
-      --text: #1c1d1f; --muted: #646a73; --navy: #152746; --pale: #c9dcfc; --sale: #3182f6; --sale-weak: #eaf2fe; --no: #c2410c; --no-weak: #fff1e8; --na: #f1f0ee; --base: #8f8d87;
+      --text: #1c1d1f; --muted: #4e5968; --navy: #152746; --pale: #c9dcfc; --sale: #245bc5; --sale-weak: #e8eff9; --no: #c2410c; --no-weak: #fff1e8; --na: #f1f0ee; --base: #8f8d87;
       color-scheme: light;
     }
     @media (prefers-color-scheme: dark) {
       :root:not(.solo) { --bg: #121211; --surface: #1c1c1a; --border: #2c2c29; --text: #f1f0ee; --muted: #a8a7a2; --sale: #5b9dff; --sale-weak: #16233a; --no: #fb923c; --no-weak: #3a1f0e; --na: #262624; --base: #8a8984; --navy: #0f1d36; --pale: #22406e; color-scheme: dark; }
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; text-align: left; word-break: keep-all; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.75 'BM Dohyeon', 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; font-synthesis: none; text-align: left; word-break: keep-all; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; }
     a { color: var(--sale); }
     p, li, dd, figcaption { text-wrap: pretty; }
     .sec { padding: 56px 20px; }
@@ -31,7 +33,7 @@
     .solo .sec.on { display: block; }
 
     .eyebrow { margin: 0 0 10px; color: var(--sale); font-size: .8rem; font-weight: 800; letter-spacing: .04em; }
-    h1, h2, h3 { margin: 0; letter-spacing: -.03em; }
+    h1, h2, h3 { margin: 0; letter-spacing: -.01em; font-weight: 400; }
     h1 { font-size: clamp(2rem, 5.2vw, 3rem); line-height: 1.2; font-weight: 800; }
     h2 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.3; font-weight: 800; }
     h3 { font-size: 1rem; line-height: 1.4; letter-spacing: -.015em; }
@@ -46,7 +48,7 @@
     .box { padding: 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s, border-color .25s; }
     .box:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--sale) 35%, var(--border)); box-shadow: 0 14px 30px -18px rgba(49, 130, 246, .45); }
     .box p { margin: 6px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.6; }
-    .num, .box p.num { display: block; white-space: nowrap; font-size: clamp(1.6rem, 3.4vw, 2.1rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+    .num, .box p.num { display: block; white-space: nowrap; font-size: clamp(1.6rem, 3.4vw, 2.1rem); font-weight: 800; letter-spacing: 0; line-height: 1.1; font-variant-numeric: tabular-nums; }
     .num small { font-size: .55em; font-weight: 700; margin-left: 2px; }
     .stat .lbl { display: block; margin-top: 8px; font-weight: 700; font-size: .92rem; line-height: 1.4; }
     .box p.big { margin: 10px 0 4px; color: var(--sale); font-size: clamp(1.5rem, 3vw, 1.9rem); }
@@ -91,7 +93,7 @@
     .chips button[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
 
     .scroll { overflow-x: auto; margin-top: 14px; }
-    table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: .88rem; }
+    table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: .9rem; }
     th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
     th { color: var(--muted); font-weight: 600; white-space: nowrap; }
     td:last-child { white-space: nowrap; }
@@ -132,8 +134,8 @@
     .hero { display: grid; gap: 20px; padding: 32px 28px; border-radius: 16px; background: var(--navy); color: #fdfdfc; }
     @media (min-width: 760px) { .hero { grid-template-columns: 1.4fr 1fr; align-items: end; padding: 44px 40px; } }
     .hero__kicker { margin: 0; color: #9fb6dc; font-size: .82rem; font-weight: 700; }
-    .hero__mark { margin: 6px 0 0; font-size: clamp(2.8rem, 9vw, 5rem); font-weight: 900; letter-spacing: -.05em; line-height: 1; }
-    .hero__sub { margin: 12px 0 0; color: #d6e0f0; }
+    .hero__mark { margin: 6px 0 0; font-size: clamp(2.8rem, 9vw, 5rem); font-weight: 900; letter-spacing: -.02em; line-height: 1; }
+    .hero__sub { margin: 12px 0 0; color: #d7e4fa; }
     .hero .links a { background: transparent; color: #fdfdfc; border-color: rgba(255,255,255,.35); }
     .hero .links a:first-child { background: #fdfdfc; color: var(--navy); border-color: #fdfdfc; }
     .hero__stat { padding: 18px 20px; border-radius: 14px; background: rgba(255,255,255,.08); }
@@ -149,7 +151,7 @@
 
     /* 그림: SVG를 스크립트가 그린다. 값은 글자로 늘 보이고, 막대 위에 올리면 풀이가 뜬다 */
     .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
-    .chart svg text { font: 600 11px 'Pretendard Variable', Pretendard, sans-serif; fill: var(--muted); }
+    .chart svg text { font: 11px 'BM Dohyeon', 'Pretendard Variable', Pretendard, sans-serif; fill: var(--muted); }
     .chart svg .val { fill: var(--text); font-weight: 800; }
     .chart svg .grid-line { stroke: var(--border); stroke-width: 1; }
     .chart svg .line { fill: none; stroke: var(--sale); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }

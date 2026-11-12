@@ -38,7 +38,7 @@
     doc.querySelectorAll('[src],[href]').forEach(function (e) {
       ['src', 'href'].forEach(function (k) { var v = e.getAttribute(k); if (v && v.startsWith('/')) e.setAttribute(k, ORIGIN + v) })
     })
-    var style = doc.querySelector('head style').outerHTML
+    var style = doc.querySelector('head style').outerHTML.replace(/url\('\//g, "url('" + ORIGIN + '/')
     var font = doc.querySelector('link[rel=stylesheet]').outerHTML
     var main = [...doc.querySelectorAll('body > script')].map(function (s) { return s.outerHTML }).join('\n')
     var heights = { s1: 910, s2: 1350, s3: 740, s4: 1420, s5: 590, s6: 570, s7: 560 }
