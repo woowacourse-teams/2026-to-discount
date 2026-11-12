@@ -48,7 +48,8 @@
 
     .slide { position: relative; height: 100dvh; display: flex; flex-direction: column; justify-content: center; padding: 72px 20px 88px; overflow: hidden; overflow: clip; }
     .slide__in { width: 100%; max-width: 1080px; margin: 0 auto; }
-    .brand { position: absolute; top: 20px; left: 20px; right: 20px; max-width: 1080px; margin: 0 auto; font-weight: 800; text-decoration: none; letter-spacing: -.01em; }
+    .brand { position: absolute; top: 12px; left: 12px; display: flex; align-items: center; gap: 8px; font-weight: 800; text-decoration: none; letter-spacing: -.01em; z-index: 3; } /* 왼쪽 위 모서리. 로고는 .brand__logo에 src를 넣고 hidden을 지우면 이름 앞에 붙는다 */
+    .brand__logo { width: 24px; height: 24px; border-radius: 6px; object-fit: contain; }
     .next { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--muted); text-decoration: none; z-index: 2; }
     .next svg { width: 20px; height: 20px; }
     @media (max-width: 767px) { .next { bottom: 6px; width: 36px; height: 36px; background: color-mix(in srgb, var(--bg) 72%, transparent); } }
@@ -73,7 +74,7 @@
     .split .btn { margin-top: 28px; }
     @media (max-width: 767px) { #s1 .btn { display: flex; width: fit-content; margin-left: auto; margin-right: auto; } }
     .phone { justify-self: center; width: min(calc(100vw - 32px), 450px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(49, 130, 246, .35); }
-    .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 38px; overflow: hidden; overflow: clip; background: #fbfbfa; }
+    .phone__screen { position: relative; aspect-ratio: 390 / 780; border-radius: 38px; overflow: hidden; overflow: clip; background: #fbfbfa; }
     .phone__screen::before { content: ''; position: absolute; top: 7px; left: 50%; width: 7px; height: 7px; transform: translateX(-50%); border-radius: 50%; background: var(--bezel); z-index: 1; } /* 카메라 구멍: 표시만 */
     .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
     .apps { display: flex; gap: 10px; margin-bottom: 22px; }
@@ -194,7 +195,7 @@
     }
       
     /* 폰 화면이 잘리지 않게: 데스크톱은 화면 높이에 맞춰 폰을 줄이고, 첫 장은 모바일에서 글을 작게 둔다 */
-    @media (min-width: 768px) { .slide--shot .phone { width: min(450px, calc((100dvh - 76px) * .462)); } .slide--shot .next { bottom: 6px; } }
+    @media (min-width: 768px) { .slide--shot .phone { width: min(480px, calc((100dvh - 90px) * .5)); } .slide--shot .next { bottom: 6px; } }
     @media (max-width: 767px) {
       #s1 { padding-top: 48px; }
       #s1 h1 { font-size: 2rem; }
@@ -227,7 +228,7 @@
       .slide--shot h1, .slide--shot h2 { flex: 0 0 42%; font-size: 1.2rem; line-height: 1.25; }
       .slide--shot .lead { flex: 1; margin: 0; font-size: .8rem; line-height: 1.45; }
       .slide--shot .lead br { display: none; }
-      .slide--shot .phone { width: min(100%, calc((100dvh - 190px) * .462 + 16px)); justify-self: center; align-self: center; padding: 8px; border-radius: 34px; }
+      .slide--shot .phone { width: min(100%, calc((100dvh - 218px) * .5 + 16px)); justify-self: center; align-self: center; padding: 8px; border-radius: 34px; }
       .slide--shot .phone__screen { border-radius: 27px; }
       #s1 h1 { font-size: 1.35rem; }
       #s1 .btn, #s2 .apps { display: none; }
@@ -243,7 +244,7 @@
     /* 3장: 청년피자 시트 폰, 쿠팡이츠 이름 옆 표시 */
     .tagc { margin-left: 6px; padding: 2px 9px; border: 1px solid var(--border); border-radius: 999px; font-size: .74rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
     @media (min-width: 768px) {
-      #s3 .diff { grid-template-columns: 310px minmax(0, 1fr) min(290px, calc((100dvh - 130px) * .462 + 20px)); gap: 32px; }
+      #s3 .diff { grid-template-columns: 310px minmax(0, 1fr) min(300px, calc((100dvh - 90px) * .5)); gap: 32px; }
       #s3 .grid4 { max-width: 460px; }
       #s3 .phone { width: 100%; }
     }
@@ -257,7 +258,7 @@
       #s3 .grid4 .row + .row { display: none; }
       #s3 .grid4 img.shot { max-height: 96px; }
       #s3 .grid4 figcaption { font-size: .8rem; margin-top: 4px; }
-      #s3 .phone { width: min(100%, calc((100dvh - 320px) * .462 + 16px)); justify-self: center; padding: 8px; border-radius: 34px; }
+      #s3 .phone { width: min(100%, calc((100dvh - 330px) * .5 + 16px)); justify-self: center; padding: 8px; border-radius: 34px; }
       #s3 .phone__screen { border-radius: 27px; }
     }
     /* 마무리: 가운데 구분선(제목과 바로가기 사이) */
@@ -265,10 +266,10 @@
     @media (max-width: 767px) { .final .cta { border-left: 0; padding-left: 0; border-top: 1px solid var(--border); padding-top: 18px; align-items: center; text-align: center; } }
   
     /* 제목과 설명을 한 묶음으로: 사이에 구분선, 왼쪽 여백. 폰은 조금 아래로 */
-    :root { --hx: clamp(8px, 3.5vw, 56px); }
+    :root { --hx: clamp(12px, 3.5vw, 56px); }
     .split > div:first-child, .diff > div:first-child, .final .split > h2 { padding-left: var(--hx); }
     .slide--shot .lead, #s3 .lead { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); max-width: 24rem; }
-    .phone { margin-top: 18px; }
+    .phone { margin-top: 40px; }
     @media (max-width: 767px) {
       .split > div:first-child, .diff > div:first-child, .final .split > h2 { padding-left: 0; }
       .slide--shot { padding-left: 24px; }
@@ -276,9 +277,10 @@
       .slide--shot h1, .slide--shot h2, #s3 h2 { flex: 0 0 auto; max-width: 46%; padding-right: 14px; border-right: 1px solid var(--border); }
       .slide--shot .lead, #s3 .lead { flex: 0 1 auto; max-width: 52%; margin: 0; padding: 0 0 0 14px; border-top: 0; }
       .slide--shot .lead br, #s3 .lead br { display: inline; }
-      .phone { margin-top: 16px; }
-      .final h2 { padding-left: 8px; }
+      .phone { margin-top: 30px; }
+      .final h2 { padding-left: 12px; font-size: 1.3rem; }
     }
+      .final h2 { white-space: nowrap; font-size: clamp(1.5rem, 3.2vw, 2.6rem); }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -287,7 +289,7 @@
    <div class="pg" id="pg" aria-hidden="true"></div>
    <div class="track">
     <section class="slide slide--shot" id="s1">
-      <a class="brand" href="/">배달앱 할인모음</a>
+      <a class="brand" href="/"><img class="brand__logo" alt="" hidden width="24" height="24" /><span class="brand__name">배달앱 할인모음</span></a>
       <div class="slide__in split">
         <div>
           <h1 class="rise" style="--i:1">배달앱 할인,<br /><em>한 눈에</em> 보기</h1>
@@ -373,7 +375,7 @@
     <section class="slide final" id="s6">
       <div class="slide__in">
         <div class="split">
-          <h2 class="rise">빠르고 저렴하게,<br /><em>한 눈에 보는<br />오늘의 할인</em></h2>
+          <h2 class="rise">빠르고 저렴하게,<br /><em>한 눈에 보는 오늘의 할인</em></h2>
           <div class="cta rise" style="--i:1">
             <p>지금 받을 수 있는 할인,<br /><em>바로 확인</em>해 보세요</p>
             <a class="btn" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
