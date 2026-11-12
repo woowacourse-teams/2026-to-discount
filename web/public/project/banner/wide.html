@@ -7,53 +7,61 @@
   <meta name="robots" content="noindex" />
   <link rel="icon" href="/favicon-48.png" />
   <link rel="stylesheet" href="/fonts/pretendard-block.css" />
-  <!-- 부스 배너(1920x1080)를 Google Sites 머리글용 가로형으로 줄인 판. 폭 1920, 높이는 ?h=(기본 600) -->
+  <!-- 부스 배너(1920x1080)를 Google Sites 머리글용 가로형으로 줄인 판. 폭 1920, 높이는 ?h=(기본 600).
+       왼쪽: 로고, 한 줄 제목, 앱 로고(아이콘+이름) 넷 / 오른쪽 파란 판: QR과 폰 두 대 -->
   <style>
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; background: #0f1115; }
     body { display: grid; place-items: center; overflow: hidden; font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
-    .b { --h: 600px; position: relative; width: 1920px; height: var(--h); flex: none; overflow: hidden; background: #f4f7fc; color: #191f28; transform-origin: center; }
-    .b__left { position: absolute; left: 130px; top: 0; bottom: 0; width: 700px; display: flex; flex-direction: column; justify-content: center; }
-    .logo { display: flex; align-items: center; gap: 18px; margin: 0; }
-    .logo img { width: calc(var(--h) * .12); height: auto; transform: rotate(-12deg); }
-    .logo span { font-size: calc(var(--h) * .11); font-weight: 900; font-style: italic; letter-spacing: -.04em; color: #3182f6; line-height: 1; }
-    h1 { margin: calc(var(--h) * .05) 0 0; font-size: calc(var(--h) * .15); font-weight: 900; line-height: 1.12; letter-spacing: -.05em; }
+    .b { --h: 600px; --u: 1; position: relative; width: 1920px; height: var(--h); flex: none; overflow: hidden; background: #f4f7fc; color: #191f28; transform-origin: center; }
+    .b__left { position: absolute; left: 120px; right: 700px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; }
+    .top { display: flex; align-items: center; gap: 28px; }
+    .logo { display: flex; align-items: center; gap: 16px; margin: 0; }
+    .logo img { width: calc(78px * var(--u)); height: auto; transform: rotate(-12deg); }
+    .logo span { font-size: calc(72px * var(--u)); font-weight: 900; font-style: italic; letter-spacing: -.04em; color: #3182f6; line-height: 1; }
+    .sub { margin: 0; padding-left: 28px; border-left: 3px solid #d1d6db; font-size: calc(30px * var(--u)); font-weight: 700; color: #4e5968; letter-spacing: -.02em; line-height: 1.35; }
+    h1 { margin: calc(34px * var(--u)) 0 0; font-size: calc(118px * var(--u)); font-weight: 900; line-height: 1.05; letter-spacing: -.05em; white-space: nowrap; }
     h1 em { font-style: normal; color: #3182f6; }
-    .sub { margin: calc(var(--h) * .05) 0 0; font-size: calc(var(--h) * .048); font-weight: 700; line-height: 1.5; color: #4e5968; letter-spacing: -.02em; }
-    .sub b { color: #191f28; font-weight: 800; }
-    .side { position: absolute; left: 860px; top: 50%; transform: translateY(-50%); display: grid; gap: 16px; }
-    .apps { display: flex; gap: 12px; }
-    .apps img { width: calc(var(--h) * .11); height: auto; border-radius: 18px; box-shadow: 0 10px 24px -14px rgba(0,0,0,.45); }
-    .qr { display: flex; align-items: center; gap: 18px; padding: 14px 26px 14px 14px; border-radius: 22px; background: #fff; box-shadow: 0 16px 40px -24px rgba(25,31,40,.5); }
-    .qr img { width: calc(var(--h) * .13); height: auto; }
-    .qr b { display: block; font-size: calc(var(--h) * .048); font-weight: 800; letter-spacing: -.03em; }
-    .qr span { font-size: calc(var(--h) * .032); font-weight: 600; color: #6b7684; }
-    .b__right { position: absolute; top: 0; right: 0; bottom: 0; width: 600px; background: linear-gradient(150deg, #4a93ff 0%, #3182f6 45%, #1b64da 100%); }
-    .ph { position: absolute; width: 260px; height: 560px; border: 11px solid #15161a; border-radius: 42px; background: #fff; overflow: hidden; box-shadow: 0 30px 60px -24px rgba(0,0,0,.5); }
+    .apps { display: flex; gap: 14px; margin-top: calc(44px * var(--u)); }
+    .app { display: flex; align-items: center; gap: 14px; height: calc(84px * var(--u)); padding: 0 22px 0 12px; border-radius: 20px; background: #fff; box-shadow: 0 10px 26px -18px rgba(25,31,40,.55); }
+    .app .ic { height: calc(60px * var(--u)); width: auto; border-radius: 14px; }
+    .app .wm { height: calc(30px * var(--u)); width: auto; }
+    .app .wm.tall { height: calc(36px * var(--u)); }
+    .b__right { position: absolute; top: 0; right: 0; bottom: 0; width: 640px; background: linear-gradient(150deg, #4a93ff 0%, #3182f6 45%, #1b64da 100%); }
+    .ph { position: absolute; width: 250px; height: 540px; border: 10px solid #15161a; border-radius: 40px; background: #fff; overflow: hidden; box-shadow: 0 30px 60px -24px rgba(0,0,0,.5); }
     .ph img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
-    .ph1 { left: 50px; top: calc(var(--h) * .16); transform: rotate(-7deg); }
-    .ph2 { right: 46px; top: calc(var(--h) * .06); transform: rotate(-4deg); }
+    .ph1 { right: 250px; top: calc(110px * var(--u)); transform: rotate(-7deg); }
+    .ph2 { right: 40px; top: calc(40px * var(--u)); transform: rotate(-4deg); }
+    .qr { position: absolute; left: 40px; bottom: calc(40px * var(--u)); z-index: 2; display: flex; align-items: center; gap: 16px; padding: 14px 22px 14px 14px; border-radius: 20px; background: #fff; box-shadow: 0 18px 40px -20px rgba(0,0,0,.45); }
+    .qr img { width: calc(92px * var(--u)); height: auto; }
+    .qr b { display: block; font-size: calc(30px * var(--u)); font-weight: 800; letter-spacing: -.03em; }
+    .qr span { font-size: calc(20px * var(--u)); font-weight: 600; color: #6b7684; }
   </style>
 </head>
 <body>
   <div class="b" id="b">
     <div class="b__left">
-      <p class="logo"><img src="/favicon-192.png" alt="" /><span>SaveEats</span></p>
-      <h1>배달앱 할인,<br /><em>한 눈에 보기</em></h1>
-      <p class="sub"><b>배민, 쿠팡이츠, 요기요, 땡겨요</b><br />오늘의 할인을 한 화면에서 비교해요</p>
-    </div>
-    <div class="side">
-      <div class="apps"><img src="/platform-icons/baemin.png" alt="배달의민족" /><img src="/platform-icons/coupangeats.png" alt="쿠팡이츠" /><img src="/platform-icons/yogiyo.png" alt="요기요" /><img src="/platform-icons/ddangyo.png" alt="땡겨요" /></div>
-      <div class="qr"><img src="/project/qr.svg" alt="서비스 주소 QR" /><div><b>지금 바로 확인</b><span>QR을 스캔하세요</span></div></div>
+      <div class="top">
+        <p class="logo"><img src="/favicon-192.png" alt="" /><span>SaveEats</span></p>
+        <p class="sub">오늘의 할인을<br />한 화면에서 비교해요</p>
+      </div>
+      <h1>배달앱 할인, <em>한 눈에 보기</em></h1>
+      <div class="apps">
+        <span class="app"><img class="ic" src="/platform-icons/baemin.png" alt="" /><img class="wm" src="word-baemin.png" alt="배달의민족" /></span>
+        <span class="app"><img class="ic" src="/platform-icons/coupangeats.png" alt="" /><img class="wm" src="word-coupangeats.svg" alt="쿠팡이츠" /></span>
+        <span class="app"><img class="ic" src="/platform-icons/yogiyo.png" alt="" /><img class="wm tall" src="word-yogiyo.svg" alt="요기요" /></span>
+        <span class="app"><img class="ic" src="/platform-icons/ddangyo.png" alt="" /><img class="wm tall" src="word-ddangyo.png" alt="땡겨요" /></span>
+      </div>
     </div>
     <div class="b__right">
       <div class="ph ph1"><img src="/about/sheet.jpg" alt="" /></div>
       <div class="ph ph2"><img src="/about/hero.jpg" alt="" /></div>
+      <div class="qr"><img src="/project/qr.svg" alt="서비스 주소 QR" /><div><b>지금 바로 확인</b><span>QR을 스캔하세요</span></div></div>
     </div>
   </div>
   <script>
     var b = document.getElementById('b'), h = +(new URLSearchParams(location.search).get('h') || 600)
-    b.style.setProperty('--h', h + 'px')
+    b.style.setProperty('--h', h + 'px'); b.style.setProperty('--u', h / 600)
     var fit = function () { var s = Math.min(innerWidth / 1920, innerHeight / h); b.style.transform = s === 1 ? '' : 'scale(' + s + ')' }
     fit(); addEventListener('resize', fit)
   </script>
