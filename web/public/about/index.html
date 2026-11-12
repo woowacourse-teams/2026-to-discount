@@ -511,12 +511,12 @@
         { reveal: true }, { wait: 500 },
         { scroll: 900, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1600 },
       ],
-      // 2장: 피자에서 청년피자 자세히 시트를 띄우고 앱별 할인을 내려 본다
+      // 2장: 피자에서 청년피자 자세히 시트를 띄우고 여러 플랫폼의 할인이 있는 것만 천천히 보여 준다
       sheet: [
         { tap: '피자' },
         { run: async (d) => { const c = await until(() => card(d, '청년피자')); c.scrollIntoView({ block: 'center' }); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
         { reveal: true }, { wait: 500 },
-        { scroll: 9999, ms: 2600, el: '.v2-sheet__offers' }, { wait: 500 }, { scroll: 0, ms: 1600, el: '.v2-sheet__offers' },
+        { scroll: 640, ms: 3000, el: '.v2-sheet__offers' }, { wait: 800 }, // 쿠팡이츠, 배민, 요기요가 차례로 보일 만큼만 천천히
       ],
       // 3장: 인기 브랜드(HOT)를 펼쳐 브랜드를 눌러 그 카드로 이동하고, 다시 펼쳐 다른 브랜드로 이동
       hot: [
