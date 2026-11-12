@@ -25,14 +25,14 @@
   <style>
     :root {
       --bg: #fbfbfa; --surface: #ffffff; --border: #eaeaea;
-      --text: #171717; --muted: #64635f; --sale: #dd4b02; --sale-weak: #fdf0e9;
+      --text: #171717; --muted: #64635f; --sale: #3182f6; --sale-weak: #eaf2fe;
       --btn: #171717; --btn-text: #ffffff; --bezel: #171717;
       color-scheme: light dark;
     }
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #121211; --surface: #1c1c1a; --border: #2c2c29;
-        --text: #f1f0ee; --muted: #a8a7a2; --sale: #ff7a3d; --sale-weak: #2a1c14;
+        --text: #f1f0ee; --muted: #a8a7a2; --sale: #5b9dff; --sale-weak: #16233a;
         --btn: #f1f0ee; --btn-text: #121211; --bezel: #3a3a37;
       }
     }
@@ -72,7 +72,7 @@
     .split { display: grid; gap: 28px; align-items: center; }
     .split .btn { margin-top: 28px; }
     @media (max-width: 767px) { #s1 .btn { display: flex; width: fit-content; margin-left: auto; margin-right: auto; } }
-    .phone { justify-self: center; width: min(calc(100vw - 32px), 450px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(221, 75, 2, .35); }
+    .phone { justify-self: center; width: min(calc(100vw - 32px), 450px); padding: 10px; border-radius: 48px; background: var(--bezel); box-shadow: 0 30px 70px -30px rgba(49, 130, 246, .35); }
     .phone__screen { position: relative; aspect-ratio: 390 / 844; border-radius: 38px; overflow: hidden; overflow: clip; background: #fbfbfa; }
     .phone__screen::before { content: ''; position: absolute; top: 9px; left: 50%; width: 30%; height: 24px; transform: translateX(-50%); border-radius: 999px; background: var(--bezel); z-index: 1; }
     .phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; padding-top: 38px; }
@@ -88,7 +88,7 @@
     .js .in .snaps img.rise:nth-child(1) { transform: rotate(-3deg); }
     .js .in .snaps img.rise:nth-child(2) { transform: rotate(3deg); }
     .phone img.fit-w { height: auto; object-fit: initial; }
-    #s5 .phone__screen { background: #f1f2f4; }
+    #s4 .phone__screen { background: #f1f2f4; }
     @media (max-width: 767px) { .snaps { width: min(100%, 340px); margin-top: 18px; } }
 
     /* 모바일: 폰을 크게 두고 아래는 화면 밖으로 흘린다 */
@@ -148,7 +148,6 @@
       .diff { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 48px; }
       .slide--diff { padding-top: 56px; }
       .grid4 { gap: 20px; max-width: 540px; }
-      #s3 .diff { grid-template-columns: minmax(0, 1fr); gap: 30px; }
       .arch { grid-template-columns: 1.55fr auto 1fr auto 1fr; gap: 12px; align-items: center; }
       .arch.arch--plain { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
       .node { padding: 26px 16px; gap: 14px; }
@@ -173,7 +172,7 @@
 
     /* 7. 문의 */
     .final .slide__in { display: grid; gap: 44px; }
-    .cta { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; padding-top: 36px; border-top: 1px solid var(--border); }
+    .cta { display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 20px; }
     .cta p { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.25; }
     .cta .btn { flex: none; }
     @media (max-width: 767px) { .final { padding: 40px 16px 22px; } .final .slide__in { gap: 22px; } .final h2 { font-size: 1.6rem; } .final h2 br { display: none; } .final h2 br + em { margin-left: .28em; } .final .split { gap: 10px; } .final .tech li { padding: 8px 0 8px 14px; } .final .tech b { font-size: 1rem; } .final .tech span { font-size: .85rem; } .cta { gap: 12px; padding-top: 20px; } .cta p { font-size: 1.2rem; } .cta p br { display: none; } .cta p br + em { margin-left: .25em; } .cta .btn { height: 46px; } .final .foot { position: static; margin-top: 12px; font-size: .74rem; } .final .foot p { margin-bottom: 2px; } }
@@ -216,7 +215,7 @@
     /* 실제 화면 시연: 폰 안 iframe. 눌리지 않고, 준비가 끝나면 포스터 위로 서서히 나타난다 */
     .phone iframe.live { position: absolute; top: 38px; left: 0; width: 390px; height: 844px; border: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; transition: opacity .5s; background: #fbfbfa; }
     .phone iframe.live.on { opacity: 1; }
-    .phone .tap { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: rgba(221, 75, 2, .4); pointer-events: none; z-index: 2; animation: tap .6s ease-out forwards; }
+    .phone .tap { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: rgba(49, 130, 246, .4); pointer-events: none; z-index: 2; animation: tap .6s ease-out forwards; }
     .phone .tap.finger { animation: none; opacity: .45; transform: none; transition-property: transform, opacity; transition-timing-function: cubic-bezier(.2, .7, .3, 1); }
     @keyframes tap { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
   
@@ -233,20 +232,13 @@
       #s1 h1 { font-size: 1.35rem; }
       #s1 .btn, #s2 .apps { display: none; }
     }
+    @media (max-width: 767px) { .final h2 br { display: inline; } .final h2 br + em { margin-left: 0; } }
   
     /* 글꼴이 오기 전 글자가 바뀌는 깜빡임 방지: 준비되면(.ready) 한 번에 보인다. 스크립트가 실패해도 4초 뒤 보인다 */
     .js:not(.ready) body { opacity: 0; animation: reveal .01s 4s forwards; }
     .js body { transition: opacity .3s; }
     @keyframes reveal { to { opacity: 1; } }
   
-    /* 4장(놓치지 않고 틀리지 않게)에 서비스 화면을 곁들인다. 모바일은 자리가 없어 숨긴다 */
-    .slide--cards .phone { display: none; }
-    @media (min-width: 768px) {
-      #s4 .diff { grid-template-columns: minmax(0, 1fr) 280px; grid-template-areas: "t p" "a p"; gap: 28px 48px; }
-      #s4 .diff > div:first-child { grid-area: t; align-self: end; }
-      #s4 .arch { grid-area: a; align-self: start; }
-      #s4 .phone { display: block; grid-area: p; width: 280px; align-self: center; }
-    }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -258,8 +250,8 @@
       <a class="brand" href="/">배달앱 할인모음</a>
       <div class="slide__in split">
         <div>
-          <h1 class="rise" style="--i:1">배달앱 할인,<br /><em>한 화면</em>에서</h1>
-          <p class="lead rise" style="--i:2">브랜드별 최대 할인만 모았어요.</p>
+          <h1 class="rise" style="--i:1">배달앱 할인,<br /><em>한 눈에</em> 보기</h1>
+          <p class="lead rise" style="--i:2">오늘의 할인을 확인하세요.</p>
           <a class="btn rise" style="--i:3" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
         </div>
         <div class="phone rise" style="--i:2">
@@ -277,11 +269,11 @@
             <img src="/platform-icons/yogiyo.png" alt="요기요" />
             <img src="/platform-icons/ddangyo.png" alt="땡겨요" />
           </div>
-          <h2 class="rise" style="--i:1">4개 배달 플랫폼 중<br /><em>가장 큰 할인</em>을 탐색</h2>
-          <p class="lead rise" style="--i:2">플랫폼별 할인 정보를 비교하고, <br />최고 할인을 선정해요.</p>
+          <h2 class="rise" style="--i:1">4개 배달앱의<br /><em>할인 정보</em> 비교</h2>
+          <p class="lead rise" style="--i:2">배달앱의 할인 정보를 비교하고, <br />가장 큰 할인을 찾아요.</p>
         </div>
         <div class="phone rise" style="--i:2">
-          <div class="phone__screen" data-scene="sheet"><img src="/about/sheet.jpg" width="480" height="1038" alt="청년피자 자세히 보기. 쿠팡이츠, 배달의민족, 요기요, 땡겨요별 할인이 스크롤하며 나열된다." /></div>
+          <div class="phone__screen" data-scene="category"><img src="/about/category.jpg" width="480" height="1038" alt="피자 카테고리를 고른 화면. 피자 브랜드 카드를 스크롤하며 본다." /></div>
         </div>
       </div>
       <a class="next" href="#s3" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -289,48 +281,36 @@
     <section class="slide slide--diff" id="s3">
       <div class="slide__in diff">
         <div>
-          <h2 class="rise"><em>멤버십, 타겟</em>으로<br />다르게 뜨는 할인</h2>
-          <p class="lead rise" style="--i:1">같은 날에도 사용자에 따라<br />할인이 다르게 나와요</p>
+          <h2 class="rise"><em>할인 조건</em><br />명시하기</h2>
+          <p class="lead rise" style="--i:1">최소주문, 멤버십, 한정 조건을 <br />보여드려요.</p>
         </div>
         <div class="grid4 rise" style="--i:2">
           <div class="row">
             <p class="row__app"><img src="/platform-icons/coupangeats.png" alt="" />쿠팡이츠</p>
-            <figure class="is-member"><img class="shot" src="/about/diff-wow.jpg" width="900" height="828" alt="쿠팡이츠 멤버십(와우) 화면. 치킨 브랜드 할인 맨 위에 기영이숯불치킨 5,000원 할인이 있다." /><figcaption>멤버십 화면<span>오후 5:54</span></figcaption></figure>
-            <figure><img class="shot" src="/about/diff-nonwow.jpg" width="900" height="828" alt="쿠팡이츠 비회원 화면. 같은 목록에 기영이숯불치킨이 없고 훌라라치킨이 맨 위다." /><figcaption>비회원 화면<span>오후 5:54</span></figcaption></figure>
+            <figure class="is-member"><img class="shot" src="/about/diff-wow.jpg" width="900" height="828" alt="쿠팡이츠 멤버십(와우) 화면. 치킨 브랜드 할인 맨 위에 기영이숯불치킨 5,000원 할인이 있다." /><figcaption>멤버십 화면</figcaption></figure>
+            <figure><img class="shot" src="/about/diff-nonwow.jpg" width="900" height="828" alt="쿠팡이츠 비회원 화면. 같은 목록에 기영이숯불치킨이 없고 훌라라치킨이 맨 위다." /><figcaption>비회원 화면</figcaption></figure>
           </div>
           <div class="row">
             <p class="row__app"><img src="/platform-icons/baemin.png" alt="" />배달의민족</p>
-            <figure class="is-member"><img class="shot" src="/about/diff-club.jpg" width="900" height="807" alt="배민 멤버십(배민클럽) 화면. 60계치킨 5,500원 선착순 할인과 3,000원 할인, 가게 배달팁 0원." /><figcaption>멤버십 화면<span>오후 5:50</span></figcaption></figure>
-            <figure><img class="shot" src="/about/diff-nonclub.jpg" width="900" height="807" alt="배민 비회원 화면. 60계치킨 3,000원 할인만 있고 가게 배달팁 2,700원, 3,400원." /><figcaption>비회원 화면<span>오후 5:50</span></figcaption></figure>
+            <figure class="is-member"><img class="shot" src="/about/diff-club.jpg" width="900" height="807" alt="배민 멤버십(배민클럽) 화면. 60계치킨 5,500원 선착순 할인과 3,000원 할인, 가게 배달팁 0원." /><figcaption>멤버십 화면</figcaption></figure>
+            <figure><img class="shot" src="/about/diff-nonclub.jpg" width="900" height="807" alt="배민 비회원 화면. 60계치킨 3,000원 할인만 있고 가게 배달팁 2,700원, 3,400원." /><figcaption>비회원 화면</figcaption></figure>
           </div>
         </div>
       </div>
       <a class="next" href="#s4" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide slide--cards" id="s4">
-      <div class="slide__in diff">
+    <section class="slide slide--shot" id="s4">
+      
+      <div class="slide__in split">
         <div>
-          <h2 class="rise">놓치지 않고 <em>틀리지 않게</em></h2>
-          <p class="lead rise" style="--i:1">할인이 사라지기 전에,<br />정확한 값만 보여 드려요.</p>
+          
+          <h2 class="rise" style="--i:1">실시간<br /><em>인기 브랜드</em></h2>
+          <p class="lead rise" style="--i:2">사용자들의 실시간 <br />인기 순위를 보여드려요.</p>
+          
         </div>
-        <ol class="arch arch--plain rise" style="--i:2">
-          <li class="node">
-            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" /><path d="M24 13v11l7 4" /></svg></div></div>
-            <b>소진 상시 감시</b>
-            <span class="sub">선착순 할인이 소진되는지 계속 지켜봐요.</span>
-          </li>
-          <li class="node">
-            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><path d="M24 5l16 6v11c0 11-7 18-16 21-9-3-16-10-16-21V11z" /><path d="M17 24l5 5 9-10" /></svg></div></div>
-            <b>실패 노출 방지</b>
-            <span class="sub">읽지 못했거나 검증에 실패한 할인은 보여 주지 않아요.</span>
-          </li>
-          <li class="node">
-            <div class="icons"><div class="ico"><svg viewBox="0 0 48 48"><path d="M12 34V22a12 12 0 0 1 24 0v12l4 4H8z" /><path d="M20 43h8" /></svg></div></div>
-            <b>신규 할인 알림</b>
-            <span class="sub">새 할인이 뜨면 바로 알려 드려요.</span>
-          </li>
-        </ol>
-        <div class="phone rise" style="--i:3"><div class="phone__screen"><img src="/about/category.jpg" width="480" height="1038" alt="한정 카테고리 화면. 곧 열리는 선착순 할인에 오픈 전, 시간 표시가 붙어 있다." /></div></div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen" data-scene="hot"><img src="/about/hot.jpg" width="480" height="1038" alt="인기 브랜드 순위 화면. 1위부터 5위까지 브랜드와 할인금액이 목록으로 보인다." /></div>
+        </div>
       </div>
       <a class="next" href="#s5" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
@@ -339,74 +319,24 @@
       <div class="slide__in split">
         <div>
           
-          <h2 class="rise" style="--i:1">지금 많이 찾는<br /><em>인기 브랜드</em></h2>
-          <p class="lead rise" style="--i:2">맨 위 HOT에서 순위를 보고, <br />눌러서 그 브랜드로 이동해요.</p>
-          
-        </div>
-        <div class="phone rise" style="--i:2">
-          <div class="phone__screen" data-scene="hot"><img src="/about/hot.jpg" width="480" height="1038" alt="인기 브랜드 순위 화면. 1위부터 5위까지 브랜드와 할인금액이 목록으로 보인다." /></div>
-        </div>
-      </div>
-      <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
-    </section>
-    <section class="slide slide--shot" id="s6">
-      
-      <div class="slide__in split">
-        <div>
-          
-          <h2 class="rise" style="--i:1"><em>카테고리</em>로<br />골라 보기</h2>
-          <p class="lead rise" style="--i:2">한정, 랜덤, 치킨, 피자… <br />카테고리를 바꿔 가며 봐요.</p>
-          
-        </div>
-        <div class="phone rise" style="--i:2">
-          <div class="phone__screen" data-scene="category"><img src="/about/category.jpg" width="480" height="1038" alt="피자 카테고리를 고른 화면. 피자 브랜드 카드를 스크롤하며 본다." /></div>
-        </div>
-      </div>
-      <a class="next" href="#s7" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
-    </section>
-    <section class="slide slide--shot" id="s7">
-      
-      <div class="slide__in split">
-        <div>
-          
-          <h2 class="rise" style="--i:1"><em>내게 맞게</em><br />걸러 보기</h2>
-          <p class="lead rise" style="--i:2">앱, 카테고리, 정렬, 멤버십을 <br />여러 개 골라 한 번에 적용해요.</p>
+          <h2 class="rise" style="--i:1">개인 맞춤<br /><em>필터 설정</em></h2>
+          <p class="lead rise" style="--i:2">사용하는 앱, 원하는 조건에 맞는 <br />할인 정보만 볼 수 있어요.</p>
           
         </div>
         <div class="phone rise" style="--i:2">
           <div class="phone__screen" data-scene="filter"><img src="/about/filter.jpg" width="480" height="1038" alt="필터 화면. 배달앱, 카테고리, 정렬, 멤버십을 고를 수 있다." /></div>
         </div>
       </div>
-      <a class="next" href="#s8" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+      <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
-    <section class="slide slide--shot" id="s8">
-      
-      <div class="slide__in split">
-        <div>
-          
-          <h2 class="rise" style="--i:1"><em>앱별 금액</em>과<br /><em>할인 기록</em>까지</h2>
-          <p class="lead rise" style="--i:2">앱별 할인과 <br />최근 할인 기록을 한 곳에서 봐요.</p>
-          
-        </div>
-        <div class="phone rise" style="--i:2">
-          <div class="phone__screen" data-scene="detail"><img src="/about/detail.jpg" width="480" height="1038" alt="자세히 보기 화면. 앱별 할인금액과 최소주문금액, 할인 기록 그래프가 보인다." /></div>
-        </div>
-      </div>
-      <a class="next" href="#s9" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
-    </section>
-    <section class="slide final" id="s9">
+    <section class="slide final" id="s6">
       <div class="slide__in">
         <div class="split">
-          <h2 class="rise">고르는 데 걸리는 시간,<br /><em>확 줄여요</em></h2>
-          <ul class="tech">
-            <li class="rise" style="--i:1"><div><b>4개 앱 할인을 브랜드별로 한 장에</b></div></li>
-            <li class="rise" style="--i:2"><div><b>버튼 하나로 해당 앱으로 이동</b></div></li>
-            <li class="rise" style="--i:3"><div><b>마음에 드는 할인은 공유하기</b></div></li>
-          </ul>
-        </div>
-        <div class="cta rise" style="--i:4">
-          <p>지금 받을 수 있는 할인,<br /><em>바로 확인</em>해 보세요</p>
-          <a class="btn" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
+          <h2 class="rise">빠르고 저렴하게,<br /><em>한 눈에 보는<br />오늘의 할인</em></h2>
+          <div class="cta rise" style="--i:1">
+            <p>지금 받을 수 있는 할인,<br /><em>바로 확인</em>해 보세요</p>
+            <a class="btn" href="/">바로가기 <i><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4" /></svg></i></a>
+          </div>
         </div>
       </div>
       <footer class="foot">
@@ -525,14 +455,6 @@
         { loop: true },
         { wait: 500 }, { scroll: 280, ms: 800 }, { wait: 600 }, { scroll: 900, ms: 1200 }, { wait: 1000 }, { scroll: 0, ms: 1000 }, { wait: 800 },
       ],
-      // 2장: 피자에서 청년피자 자세히 시트를 띄우고 여러 플랫폼의 할인이 있는 것만 보여 준다
-      sheet: [
-        { tap: '피자' },
-        { run: async (d) => { const c = await until(() => card(d, '청년피자')); c.scrollIntoView({ block: 'center' }); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
-        { reveal: true }, { wait: 500 },
-        { loop: true },
-        { wait: 600 }, { scroll: 220, ms: 800, el: '.v2-sheet__offers' }, { wait: 800 }, { scroll: 640, ms: 1400, el: '.v2-sheet__offers' }, { wait: 1500 }, { scroll: 0, ms: 900, el: '.v2-sheet__offers' }, { wait: 600 },
-      ],
       // 3장: 인기 브랜드(HOT)를 펼쳐 브랜드를 눌러 그 카드로 이동하고, 다시 펼쳐 다른 브랜드로 이동
       hot: [
         { tap: '인기 브랜드 펼치기' }, { wait: 600 },
@@ -567,15 +489,6 @@
         { scroll: 300, ms: 800 }, { wait: 500 }, { scroll: 700, ms: 1000 }, { wait: 800 }, { scroll: 0, ms: 800 }, { wait: 300 },
         { tap: '필터 열기' }, { wait: 800 },
         { tap: (d) => d.querySelector('.sheet__reset') }, { wait: 900 },                      // 초기화하고 처음부터
-      ],
-      // 6장: 피자헛 자세히를 열어 앱별 할인을 내려 보고 할인 기록 탭으로 넘겼다가 되돌아온다
-      detail: [
-        { run: async (d, w) => { const c = await until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, '피자헛') }, 8000, 450); c.scrollIntoView({ block: 'center' }); await nap(300); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
-        { reveal: true }, { wait: 700 },
-        { loop: true },
-        { scroll: 300, ms: 800, el: '.v2-sheet__offers' }, { wait: 500 }, { scroll: 600, ms: 1000, el: '.v2-sheet__offers' }, { wait: 600 }, { scroll: 0, ms: 700, el: '.v2-sheet__offers' }, { wait: 300 },
-        { tap: '할인 기록' }, { wait: 3000 },
-        { tap: '할인 상세' }, { wait: 900 },
       ],
     }
     const EASE = { out: (t) => 1 - (1 - t) ** 3, inout: (t) => t * t * (3 - 2 * t) } // out: 튕기듯 시작이 빠르고 끝이 느림
