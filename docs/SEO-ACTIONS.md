@@ -879,7 +879,7 @@ E-E-A-T 최약점이 그대로 간다. 검색엔진도 AI도 우리를 인용할
 `Referrer-Policy`, `Permissions-Policy`가 전부 없다.
 
 > **2026-11-12 갱신.** `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`는
-> `web/vercel.json`에 붙였고 `X-Frame-Options: SAMEORIGIN`은 `/about`만 빼고 붙였다
+> `web/vercel.json`에 붙였고 `X-Frame-Options: SAMEORIGIN`은 `/about`, `/project`만 빼고 붙였다
 > (Google Sites 임베드 때문). `Content-Security-Policy`만 남았다.
 
 ### 왜 이게 문제인가
