@@ -191,6 +191,23 @@
     .reach .track::after { content: ''; position: absolute; left: 68%; top: -4px; bottom: -4px; border-left: 2px dashed var(--no); }
     .js .chart:not(.seen) .reach .track i { width: 0; }
     .reach b { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* 개요 타임라인 */
+    .tl { margin-top: 26px; }
+    .tl__bar { position: relative; height: 34px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); overflow: hidden; }
+    .tl__seg { position: absolute; top: 0; bottom: 0; left: calc(var(--a) * 1%); width: calc((var(--b) - var(--a)) * 1%); display: flex; align-items: center; padding: 0 10px; font-size: .8rem; white-space: nowrap; overflow: hidden; }
+    .tl__seg.l0 { background: var(--na); color: var(--muted); }
+    .tl__seg.l3 { background: var(--sale-weak); color: var(--sale); }
+    .tl__seg.l4 { background: var(--sale); color: #fff; }
+    .tl__dot { position: absolute; top: 50%; left: calc(var(--x) * 1%); width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--navy); }
+    .tl__dot.end { margin-left: -12px; background: #ffd34d; }
+    .tl__ticks { position: relative; height: 22px; margin-top: 6px; font-size: .74rem; color: var(--muted); }
+    .tl__ticks span { position: absolute; left: calc(var(--x) * 1%); transform: translateX(-50%); white-space: nowrap; }
+    .tl__ticks span:first-child { transform: none; } .tl__ticks span:last-child { transform: translateX(-100%); }
+    @media (max-width: 599px) { .tl__ticks span:nth-child(2), .tl__ticks span:nth-child(4) { display: none; } }
+    .roles { display: grid; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); font-size: .9rem; color: var(--muted); }
+    .roles li { padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); }
+    .roles b { display: block; color: var(--text); font-size: 1rem; }
   </style>
   <script>(function () { var d = document.documentElement; d.classList.add('js'); var m = location.search.match(/[?&]s=(\d+)/); if (m) { d.classList.add('solo'); d.dataset.s = m[1] } })()</script>
 </head>
@@ -213,13 +230,21 @@
     </div>
     <div class="intro">
       <h1 class="rise">배달앱 네 곳의 할인,<br /><em>한 화면 비교</em></h1>
-      <p class="lead rise" style="--i:1">배민, 쿠팡이츠, 요기요, 땡겨요는 같은 브랜드에 서로 다른 할인을 겁니다.<br class="pc" /> 웹으로 확인되는 앱은 요기요 하나뿐이어서, 실제 폰으로 앱 화면을 읽어<br class="pc" /> 브랜드마다 가장 큰 할인을 모았습니다.</p>
-      <dl class="facts rise" style="--i:2">
-        <dt>서비스</dt><dd>SaveEats. 2026-07-26 첫 배포 뒤 지금까지 운영하고 있습니다.</dd>
-        <dt>팀</dt><dd>우아한테크코스 8기 팀 오늘의 할인입니다. 글렌, 고래, 피온 세 명입니다.</dd>
-        <dt>기간</dt><dd>2026-08-03 ~ 2026-11-13. 레벨3 스프린트 5회, 레벨4 스프린트 4회입니다.</dd>
-        <dt>역할</dt><dd>글렌은 기획, 수집과 인프라, 제품 실험, 운영 화면을 맡았습니다.<br />고래는 수집 환경 조사, 온보딩 문서, 디자인 시스템을 맡았습니다.<br />피온은 분석 계측, 알림, 운영 안정화, 만족도 설문을 맡았습니다.</dd>
-      </dl>
+      <p class="lead rise" style="--i:1">앱 네 곳의 할인을 실제 폰 화면에서 읽어 한 화면에 모읍니다.</p>
+      <div class="tl rise" style="--i:2" role="img" aria-label="일정. 2026-07-26 첫 배포, 08-03 팀 결성, 레벨3 스프린트 5회, 09-14 레벨4 시작, 레벨4 스프린트 4회, 데모데이 10-02, 10-16, 10-30, 최종 11-13.">
+        <div class="tl__bar">
+          <span class="tl__seg l0" style="--a:0;--b:7">혼자</span>
+          <span class="tl__seg l3" style="--a:7;--b:45">레벨3 스프린트 1~5</span>
+          <span class="tl__seg l4" style="--a:45;--b:100">레벨4 스프린트 1~4</span>
+          <i class="tl__dot" style="--x:62" title="데모데이 1, 10-02"></i><i class="tl__dot" style="--x:74.5" title="데모데이 2, 10-16"></i><i class="tl__dot" style="--x:87" title="데모데이 3, 10-30"></i><i class="tl__dot end" style="--x:100" title="최종 데모데이, 11-13"></i>
+        </div>
+        <div class="tl__ticks"><span style="--x:0">07-26 첫 배포</span><span style="--x:7">08-03 팀 결성</span><span style="--x:45">09-14 레벨4</span><span style="--x:74.5">데모데이 ×3</span><span style="--x:100">11-13</span></div>
+      </div>
+      <ul class="roles rise" style="--i:2">
+        <li><b>글렌</b>기획, 수집, 인프라, 제품 실험</li>
+        <li><b>고래</b>수집 환경, 온보딩, 디자인 시스템</li>
+        <li><b>피온</b>분석 계측, 알림, 운영 안정화</li>
+      </ul>
       <div class="ribbon rise" style="--i:3">
         <div><b><span data-count="16">16</span>주</b><span>개발과 운영</span></div>
         <div><b><span data-count="4">4</span>곳</b><span>비교하는 배달앱</span></div>
@@ -233,19 +258,19 @@
 <section class="sec" id="s2">
   <div class="in">
     <p class="eyebrow rise">성과</p>
-    <h2 class="rise" style="--i:1">홍보 없이 늘어난 방문,<br /><em>다시 찾아오는 사용자</em></h2>
-    <p class="lead rise" style="--i:2">네이버 카페, 핫딜 커뮤니티, 검색에서 사용자가 스스로 들어왔습니다.<br class="pc" /> 숫자는 PostHog 이벤트 기록에서 팀원, 테스트, 개발 접속과 봇을 뺀 값입니다.</p>
+    <h2 class="rise" style="--i:1">늘어난 방문,<br /><em>다시 찾아오는 사용자</em></h2>
+    <p class="lead rise" style="--i:2">커뮤니티 공유와 검색으로 들어온 사용자입니다. 팀원, 테스트, 봇 제외.</p>
     <div class="grid nums">
-      <div class="box stat point rise"><span class="num" data-count="14486">14,486</span><span class="lbl">누적 고유 방문자</span><p>2026-09-12에 5,000명, 2026-10-06에 10,000명을 넘었습니다.</p></div>
-      <div class="box stat rise" style="--i:1"><span class="num" data-count="2341">2,341</span><span class="lbl">한 주 방문자 최다</span><p>2026-09-28 주입니다.</p></div>
-      <div class="box stat rise" style="--i:2"><span class="num" data-count="688">688</span><span class="lbl">한 주 활성 사용자 최다</span><p>2026-09-21 주. 할인 링크나 배너를 한 번 이상 누른 사람입니다.</p></div>
-      <div class="box stat rise" style="--i:3"><span class="num"><span data-count="36.4" data-dec="1">36.4</span><small>%</small></span><span class="lbl">스프린트 1 할인 선택 도달률</span><p>방문자 3,401명 중 1,238명이 할인을 눌렀습니다.</p></div>
-      <div class="box stat rise" style="--i:4"><span class="num"><span data-count="79">79</span><small>%</small></span><span class="lbl">설문 응답자 7일 안 재방문</span><p>응답자 29명 기준입니다. 30일 안에는 97%가 다시 왔습니다.</p></div>
-      <div class="box stat rise" style="--i:5"><span class="num"><span data-count="17.8" data-dec="1">17.8</span><small>%</small></span><span class="lbl">4주 뒤 다시 할인을 누른 비율</span><p>2026-10-05 주 활성 사용자 기준입니다. 10개 주 합산은 9.1%입니다.</p></div>
+      <div class="box stat point rise"><span class="num" data-count="14486">14,486</span><span class="lbl">누적 고유 방문자</span><p>09-12 5천 돌파, 10-06 1만 돌파</p></div>
+      <div class="box stat rise" style="--i:1"><span class="num" data-count="2341">2,341</span><span class="lbl">한 주 방문자 최다</span><p>2026-09-28 주</p></div>
+      <div class="box stat rise" style="--i:2"><span class="num" data-count="688">688</span><span class="lbl">한 주 활성 사용자 최다</span><p>2026-09-21 주, 할인 클릭 기준</p></div>
+      <div class="box stat rise" style="--i:3"><span class="num"><span data-count="36.4" data-dec="1">36.4</span><small>%</small></span><span class="lbl">스프린트 1 할인 선택 도달률</span><p>3,401명 중 1,238명</p></div>
+      <div class="box stat rise" style="--i:4"><span class="num"><span data-count="79">79</span><small>%</small></span><span class="lbl">설문 응답자 7일 안 재방문</span><p>응답 29명, 30일 안 97%</p></div>
+      <div class="box stat rise" style="--i:5"><span class="num"><span data-count="17.8" data-dec="1">17.8</span><small>%</small></span><span class="lbl">4주 뒤 다시 할인을 누른 비율</span><p>10-05 주 기준, 전체 평균 9.1%</p></div>
     </div>
     <div class="snaps">
-      <figure class="chart rise"><img src="/project/overview/img/ga-realtime-2026-09-11.png" loading="lazy" alt="GA 실시간 화면. 지난 30분 동안 활성 사용자 252명, 국가별로 한국 251명, 일본 1명." /><figcaption><b>30분 동안 252명</b>2026-09-11 18:42. 네이버 카페에 공유된 직후의 GA 실시간 화면입니다.</figcaption></figure>
-      <figure class="chart rise" style="--i:1"><img src="/project/overview/img/ga-realtime-2026-10-03.png" loading="lazy" alt="GA 실시간 개요. 지난 30분 활성 사용자 127명, 지난 5분 24명. 수도권, 강원, 충청, 대구, 부산, 광주에서 접속. 페이지 조회 144회." /><figcaption><b>토요일 오후, 30분 동안 127명</b>2026-10-03 17:10. 수도권부터 부산, 광주까지 전국에서 접속했습니다.</figcaption></figure>
+      <figure class="chart rise"><img src="/project/overview/img/ga-realtime-2026-09-11.png" loading="lazy" alt="GA 실시간 화면. 지난 30분 동안 활성 사용자 252명, 국가별로 한국 251명, 일본 1명." /><figcaption><b>30분 동안 252명</b>2026-09-11 18:42, 네이버 카페 공유 직후</figcaption></figure>
+      <figure class="chart rise" style="--i:1"><img src="/project/overview/img/ga-realtime-2026-10-03.png" loading="lazy" alt="GA 실시간 개요. 지난 30분 활성 사용자 127명, 지난 5분 24명. 수도권, 강원, 충청, 대구, 부산, 광주에서 접속. 페이지 조회 144회." /><figcaption><b>토요일 오후, 30분 동안 127명</b>2026-10-03 17:10, 전국 접속</figcaption></figure>
     </div>
     <div class="two">
       <div class="chart rise" data-chart="cum" role="img" aria-label="누적 고유 방문자. 7월 후반 808명, 8월 전반 1,694명, 8월 후반 3,255명, 9월 전반 5,998명, 9월 후반 7,834명, 10월 전반 10,874명, 10월 후반 13,503명, 11월 전반 잠정 14,486명.">
@@ -268,7 +293,7 @@
         <li><span>스프린트 3<small>10-19 ~ 11-01</small></span><span class="track"><i class="miss" style="--w:51.2%"></i></span><b>25.62%</b></li>
         <li><span>스프린트 4<small>11-02 ~ 11-11</small></span><span class="track"><i class="miss" style="--w:61.9%"></i></span><b>30.96%</b></li>
       </ul>
-      <p class="note">방문자 3,401명, 2,378명, 2,303명, 1,405명 가운데 1,238명, 834명, 590명, 435명이 할인을 눌렀습니다. 막대 끝은 50%입니다.</p>
+      <p class="note">막대 끝 50%, 점선 목표 34%</p>
     </div>
   </div>
 </section>
@@ -277,12 +302,12 @@
   <div class="in">
     <p class="eyebrow rise">기능</p>
     <h2 class="rise" style="--i:1">찾고, 비교하고,<br /><em>바로 열기</em></h2>
-    <p class="lead rise" style="--i:2">브랜드 하나에 앱 네 곳의 할인을 모아, 가장 큰 할인과 받는 조건을 함께 보여 줍니다.<br class="pc" /> 누르면 그 할인이 있는 배달앱 화면으로 바로 이동합니다.</p>
+    <p class="lead rise" style="--i:2">가장 큰 할인과 조건을 보고, 누르면 그 배달앱 화면으로 이동합니다.</p>
     <div class="feat">
-      <figure class="rise"><img src="/about/hero.jpg" width="480" height="1038" loading="lazy" alt="카테고리별 브랜드 카드. 브랜드마다 가장 큰 할인금액이 보입니다." /><figcaption><b>브랜드별 최대 할인</b>앱 네 곳 중 가장 큰 할인을 맨 앞에 둡니다.</figcaption></figure>
-      <figure class="rise" style="--i:1"><img src="/about/sheet.jpg" width="480" height="1038" loading="lazy" alt="브랜드 상세 시트. 앱별 할인과 최소주문, 멤버십 조건이 보입니다." /><figcaption><b>조건까지 비교</b>최소주문, 멤버십, 선착순을 먼저 보여 줍니다.</figcaption></figure>
-      <figure class="rise" style="--i:2"><img src="/about/filter.jpg" width="480" height="1038" loading="lazy" alt="필터 화면. 배달앱, 카테고리, 정렬, 멤버십을 고릅니다." /><figcaption><b>필터와 정렬</b>쓰는 앱과 멤버십에 맞는 할인만 남깁니다.</figcaption></figure>
-      <figure class="rise" style="--i:3"><img src="/about/hot.jpg" width="480" height="1038" loading="lazy" alt="실시간 인기 브랜드 순위 화면." /><figcaption><b>실시간 인기</b>지금 많이 누르는 할인을 보여 줍니다.</figcaption></figure>
+      <figure class="rise"><img src="/about/hero.jpg" width="480" height="1038" loading="lazy" alt="카테고리별 브랜드 카드. 브랜드마다 가장 큰 할인금액이 보입니다." /><figcaption><b>브랜드별 최대 할인</b>가장 큰 할인을 맨 앞에</figcaption></figure>
+      <figure class="rise" style="--i:1"><img src="/about/sheet.jpg" width="480" height="1038" loading="lazy" alt="브랜드 상세 시트. 앱별 할인과 최소주문, 멤버십 조건이 보입니다." /><figcaption><b>조건까지 비교</b>최소주문, 멤버십, 선착순</figcaption></figure>
+      <figure class="rise" style="--i:2"><img src="/about/filter.jpg" width="480" height="1038" loading="lazy" alt="필터 화면. 배달앱, 카테고리, 정렬, 멤버십을 고릅니다." /><figcaption><b>필터와 정렬</b>쓰는 앱과 멤버십만</figcaption></figure>
+      <figure class="rise" style="--i:3"><img src="/about/hot.jpg" width="480" height="1038" loading="lazy" alt="실시간 인기 브랜드 순위 화면." /><figcaption><b>실시간 인기</b>지금 많이 누르는 할인</figcaption></figure>
     </div>
     <p class="chips rise"><i>검색 자동완성</i><i>한정 할인 배너</i><i>할인 공유 링크</i><i>새 할인 웹 알림</i><i>앱 바로가기 링크</i></p>
   </div>
@@ -292,7 +317,7 @@
   <div class="in">
     <p class="eyebrow rise">실험과 검증</p>
     <h2 class="rise" style="--i:1">가설 13개,<br /><em>기각 6개</em></h2>
-    <p class="lead rise" style="--i:2">기능마다 가설, 성공 기준, 기각 조건을 먼저 적고 실험했습니다.<br class="pc" /> 기각된 기능은 지우거나 노출을 줄였습니다.</p>
+    <p class="lead rise" style="--i:2">성공 기준을 먼저 적고, 기각된 기능은 지웠습니다.</p>
     <div class="grid nums c4">
       <div class="box stat rise"><span class="num" data-count="13">13</span><span class="lbl">세운 가설</span></div>
       <div class="box stat rise" style="--i:1"><span class="num" data-count="4">4</span><span class="lbl">채택하거나 검증</span></div>
@@ -307,7 +332,7 @@
       <div class="metric"><b>조건</b><span class="bar"><i style="--w:18%"></i>5명</span></div>
       <div class="metric"><b>한정 수량</b><span class="bar"><i style="--w:14%"></i>4명</span></div>
       <div class="metric"><b>앱</b><span class="bar"><i style="--w:11%"></i>3명</span></div>
-      <p class="note">쓰는 목적은 앱 비교 10명, 새 할인 정보 9명, 돈 아끼기 9명이었습니다. 이 결과로 화면 개편의 방향을 정했습니다.</p>
+      <p class="note">쓰는 목적: 앱 비교 10, 새 할인 9, 돈 아끼기 9</p>
     </div>
     <div class="chart rise" role="img" aria-label="화면 개편 실험. 기존 화면 623명, 쿠폰 카드 화면 661명. 링크 클릭 22.5%에서 27.2%, 전환 25.2%에서 29.5%, 무동작 방문 41.3%에서 36.3%, 검색 4.7%에서 11.0%.">
       <h3>화면 개편 실험: 가장 큰 할인을 앞세운 카드</h3>
@@ -316,7 +341,7 @@
       <div class="metric"><b>전환<small>+17%</small></b><span class="bar" title="기존 25.2%"><i style="--w:50.4%"></i>25.2%</span><span class="bar new" title="쿠폰 카드 29.5%"><i style="--w:59%"></i>29.5%</span></div>
       <div class="metric"><b>무동작 방문<small>-12%</small></b><span class="bar" title="기존 41.3%"><i style="--w:82.6%"></i>41.3%</span><span class="bar new" title="쿠폰 카드 36.3%"><i style="--w:72.6%"></i>36.3%</span></div>
       <div class="metric"><b>검색 사용<small>+137%</small></b><span class="bar" title="기존 4.7%"><i style="--w:9.4%"></i>4.7%</span><span class="bar new" title="쿠폰 카드 11.0%"><i style="--w:22%"></i>11.0%</span></div>
-      <p class="note">진 쪽 화면 코드 16개 파일, 732줄을 지웠습니다.</p>
+      <p class="note">진 쪽 코드 732줄 삭제</p>
     </div>
     </div>
     <p class="chips rise" role="group" aria-label="판정으로 거르기"><button type="button" data-f="all" aria-pressed="true">전체</button><button type="button" data-f="ok" aria-pressed="false">채택, 검증</button><button type="button" data-f="no" aria-pressed="false">기각</button><button type="button" data-f="na" aria-pressed="false">판단 불가, 진행 중</button></p>
@@ -343,7 +368,7 @@
   <div class="in">
     <p class="eyebrow rise">기술 구조</p>
     <h2 class="rise" style="--i:1">폰 화면에서 웹까지,<br /><em>사람 손 없는</em> 수집</h2>
-    <p class="lead rise" style="--i:2">배달앱은 할인 정보를 내주는 공개 통로(API)가 없어서 실제 폰 화면을 읽습니다.<br class="pc" /> 앱 내부 통신은 쓰지 않고, 누구나 보는 화면만 읽습니다.</p>
+    <p class="lead rise" style="--i:2">공개 API가 없어 누구나 보는 화면만 읽습니다.</p>
     <ol class="flow rise" style="--i:3">
       <li class="node"><b>실제 폰</b><span class="num"><span data-count="3">3</span>대</span><span>USB로 연결한 폰이 배달앱 네 곳을 돕니다.</span></li>
       <li class="hop" aria-hidden="true"></li>
@@ -354,10 +379,10 @@
       <li class="node"><b>웹</b><span class="num"><span data-count="4">4</span>개 앱</span><span>브랜드마다 가장 큰 할인과 조건을 보여 줍니다.</span></li>
     </ol>
     <div class="stack">
-      <div class="box rise"><h3>수집</h3><p>Python으로 안드로이드 디버그 브리지(ADB)를 써서 폰을 조작합니다. 테스트가 700건 넘습니다.</p></div>
-      <div class="box rise" style="--i:1"><h3>서버</h3><p>Java와 Spring Boot 4.1입니다. 데이터베이스 없이 JSON 파일로 운영하고, Oracle Cloud에 자체 배포합니다.</p></div>
-      <div class="box rise" style="--i:2"><h3>웹</h3><p>React 18과 Vite입니다. Vercel에 배포하고, 첫 화면은 서버에서 그려 보냅니다.</p></div>
-      <div class="box rise" style="--i:3"><h3>분석과 운영</h3><p>자체 이벤트 원장, PostHog, GA4로 행동을 봅니다. 운영 화면, Slack 알림, 3분 주기 외부 점검으로 장애를 잡습니다.</p></div>
+      <div class="box rise"><h3>수집</h3><p>Python, ADB, 테스트 700건 이상</p></div>
+      <div class="box rise" style="--i:1"><h3>서버</h3><p>Spring Boot 4.1, JSON 파일, Oracle Cloud</p></div>
+      <div class="box rise" style="--i:2"><h3>웹</h3><p>React 18, Vite, Vercel 서버 렌더링</p></div>
+      <div class="box rise" style="--i:3"><h3>분석과 운영</h3><p>PostHog, GA4, Slack 알림, 3분 외부 점검</p></div>
     </div>
   </div>
 </section>
@@ -367,12 +392,12 @@
     <p class="eyebrow rise">기술 과제</p>
     <h2 class="rise" style="--i:1">운영 중 만난 문제와<br /><em>측정 결과</em></h2>
     <div class="grid c3">
-      <div class="box rise"><h3>방문당 요청 수</h3><p class="num big"><span data-count="700">700</span> → <span data-count="25" data-from="700">25</span></p><p>하루 방문 50명에 무료 요청 한도 93%가 찼습니다. 로고에 캐시 설정을 붙여 줄였고, 직후 하루 1,000명 방문을 버텼습니다.</p></div>
-      <div class="box rise" style="--i:1"><h3>응답 크기</h3><p class="num big">-<span data-count="91">91</span><small>%</small></p><p>부하 시험에서 느린 응답 상위 5%가 555ms였습니다. 원인은 압축 없이 나가던 154KB 응답이었습니다.</p></div>
-      <div class="box rise" style="--i:2"><h3>이벤트 기록 읽기</h3><p class="num big"><span data-count="1900">1,900</span> → <span data-count="16" data-from="1900">16</span><small>ms</small></p><p>요청마다 기록 전체를 읽던 서버를 새로 쌓인 부분만 읽게 바꿔, 1.9초가 8~16ms로 줄었습니다.</p></div>
-      <div class="box rise"><h3>백업 복원 시간</h3><p class="num big"><span data-count="17.64" data-dec="2">17.64</span><small>초</small></p><p>매일 암호화 백업을 30일 보관합니다. 격리 환경에 실제로 복원해 파일 지문이 전부 일치하는 것을 확인했습니다.</p></div>
-      <div class="box rise" style="--i:1"><h3>조용한 데이터 손실</h3><p class="num big"><span data-count="98">98</span> → <span data-count="21" data-from="98">21</span><small>건</small></p><p>배민 할인이 6시간 52분 동안 줄어 보였습니다. 이후 배포 전에 건수와 필드를 대조하는 검사를 9단계로 쌓았습니다.</p></div>
-      <div class="box rise" style="--i:2"><h3>무중단 배포</h3><p class="num big"><span data-count="30">30</span><small>초</small></p><p>새 버전이 30초 안에 응답하지 않으면 이전 버전으로 자동 복구합니다. 일부러 실패를 넣어 복구를 확인했습니다.</p></div>
+      <div class="box rise"><h3>방문당 요청 수</h3><p class="num big"><span data-count="700">700</span> → <span data-count="25" data-from="700">25</span></p><p>로고 캐시로 한도 93% 위기 해소</p></div>
+      <div class="box rise" style="--i:1"><h3>응답 크기</h3><p class="num big">-<span data-count="91">91</span><small>%</small></p><p>압축 없던 154KB 응답, p95 555ms</p></div>
+      <div class="box rise" style="--i:2"><h3>이벤트 기록 읽기</h3><p class="num big"><span data-count="1900">1,900</span> → <span data-count="16" data-from="1900">16</span><small>ms</small></p><p>전체 읽기에서 증분 읽기로</p></div>
+      <div class="box rise"><h3>백업 복원 시간</h3><p class="num big"><span data-count="17.64" data-dec="2">17.64</span><small>초</small></p><p>격리 환경 실제 복원, 지문 전부 일치</p></div>
+      <div class="box rise" style="--i:1"><h3>조용한 데이터 손실</h3><p class="num big"><span data-count="98">98</span> → <span data-count="21" data-from="98">21</span><small>건</small></p><p>6시간 52분 누락, 배포 전 검사 9단계 추가</p></div>
+      <div class="box rise" style="--i:2"><h3>무중단 배포</h3><p class="num big"><span data-count="30">30</span><small>초</small></p><p>응답 없으면 이전 버전으로 자동 복구</p></div>
     </div>
   </div>
 </section>
@@ -382,12 +407,12 @@
     <p class="eyebrow rise">과정</p>
     <h2 class="rise" style="--i:1">결정과 실패,<br /><em>기록으로 남기기</em></h2>
     <div class="grid nums">
-      <div class="box stat rise"><span class="num" data-count="3464">3,464</span><span class="lbl">커밋</span><p>서비스 저장소 1,877개, 수집기 저장소 1,587개입니다.</p></div>
-      <div class="box stat rise" style="--i:1"><span class="num" data-count="201">201</span><span class="lbl">병합한 변경 요청(PR)</span><p>기능 하나, 실험 하나 단위로 리뷰 뒤 병합했습니다.</p></div>
-      <div class="box stat rise" style="--i:2"><span class="num" data-count="57">57</span><span class="lbl">결정 기록(ADR)</span><p>고른 것, 버린 대안, 다시 볼 조건을 적었습니다.</p></div>
-      <div class="box stat rise" style="--i:3"><span class="num" data-count="97">97</span><span class="lbl">작업 카드</span><p>스프린트 9회 동안 칸반으로 나눴습니다.</p></div>
-      <div class="box stat rise" style="--i:4"><span class="num" data-count="49">49</span><span class="lbl">회의록</span><p>데모데이 3회, 코치 피드백, 감정 회고를 포함합니다.</p></div>
-      <div class="box stat rise" style="--i:5"><span class="num" data-count="6">6</span><span class="lbl">공개 장애 회고</span><p>원인, 대응, 같은 계열을 막은 장치를 적었습니다.</p></div>
+      <div class="box stat rise"><span class="num" data-count="3464">3,464</span><span class="lbl">커밋</span><p>서비스 1,877, 수집기 1,587</p></div>
+      <div class="box stat rise" style="--i:1"><span class="num" data-count="201">201</span><span class="lbl">병합한 변경 요청(PR)</span><p>기능, 실험 단위 리뷰</p></div>
+      <div class="box stat rise" style="--i:2"><span class="num" data-count="57">57</span><span class="lbl">결정 기록(ADR)</span><p>버린 대안까지 기록</p></div>
+      <div class="box stat rise" style="--i:3"><span class="num" data-count="97">97</span><span class="lbl">작업 카드</span><p>스프린트 9회</p></div>
+      <div class="box stat rise" style="--i:4"><span class="num" data-count="49">49</span><span class="lbl">회의록</span><p>데모데이, 코치, 회고</p></div>
+      <div class="box stat rise" style="--i:5"><span class="num" data-count="6">6</span><span class="lbl">공개 장애 회고</span><p>원인과 재발 방지 장치</p></div>
     </div>
     <p class="note rise">팀의 협업 과정과 회고는 <a href="/project">프로젝트 이야기</a>에 있습니다.</p>
   </div>
