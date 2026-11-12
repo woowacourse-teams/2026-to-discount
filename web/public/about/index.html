@@ -218,6 +218,20 @@
     .phone iframe.live.on { opacity: 1; }
     .phone .tap { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: rgba(221, 75, 2, .4); pointer-events: none; z-index: 2; animation: tap .6s ease-out forwards; }
     @keyframes tap { from { transform: scale(.4); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
+  
+    /* 모바일: 폰이 잘리지 않게 높이에 맞춰 줄이고, 장마다 제목만 둔다(첫 장은 한 줄 설명 유지) */
+    @media (max-width: 767px) {
+      .slide--shot { padding: 40px 16px 40px; }
+      .slide--shot .split { gap: 12px; }
+      .slide--shot h2 { font-size: 1.55rem; }
+      .slide--shot:not(#s1) .lead { display: none; }
+      .slide--shot .phone { width: min(calc(100vw - 32px), calc((100dvh - 200px) * .462 + 20px)); align-self: center; padding: 8px; border-radius: 38px; }
+      .slide--shot .phone__screen { border-radius: 30px; }
+      #s1 h1 { font-size: 1.8rem; }
+      #s1 { padding-top: 52px; }
+      #s1 .btn, #s2 .apps { display: none; }
+      #s1 .phone, #s2 .phone { width: min(calc(100vw - 32px), calc((100dvh - 235px) * .462 + 20px)); }
+    }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -454,6 +468,8 @@
     const byText = (d, t, last) => { const l = [...d.querySelectorAll('button,a,[role=tab]')].filter((x) => (x.getAttribute('aria-label') || x.innerText || '').trim().startsWith(t)); return last ? l[l.length - 1] : l[0] }
     const card = (d, brand) => [...d.querySelectorAll('article.v2-card')].find((x) => x.dataset.brand === brand)
     const nap = (ms) => new Promise((r) => setTimeout(r, ms))
+    // 조건이 참이 될 때까지 0.1초마다 본다(최대 ms). 고정 대기보다 빠르다
+    const until = async (fn, ms = 4000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { try { const v = fn(); if (v) return v } catch {} await nap(100) } }
     // 연출: 카드의 금액, 채널, 멤버십, 이동 앱을 바꿔 맨 위로 올린다(실제 값이 아니다)
     const stage = (d, brand, amount, channel, member, app, bg) => {
       const c = card(d, brand); if (!c) return
@@ -471,51 +487,52 @@
     const SCENES = {
       // 1장: 치킨, 푸라닭과 BBQ를 8,000원으로 연출
       hero: [
-        { tap: '치킨' }, { wait: 1200 },
-        { run: async (d, w) => { for (let i = 0; i < 6; i++) { w.scrollTo(0, d.documentElement.scrollHeight); await nap(350) } } }, // BBQ가 목록 아래라 끝까지 내려 불러온다
+        { tap: '치킨' }, { wait: 500 },
+        { run: (d, w) => until(() => { w.scrollTo(0, d.documentElement.scrollHeight); return card(d, 'BBQ') && card(d, '푸라닭') }, 5000) }, // BBQ가 목록 아래라 끝까지 내려 불러온다
         { run: (d, w) => { stage(d, 'BBQ', '8,000', '배달', '쿠팡와우', '쿠팡이츠', '#4a2410'); stage(d, '푸라닭', '8,000', '배달', '배민클럽', '배달의민족', '#2ac1bc'); w.scrollTo(0, 0) } },
-        { reveal: true }, { wait: 900 },
+        { reveal: true }, { wait: 500 },
         { scroll: 900, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1600 },
       ],
       // 2장: 피자에서 청년피자 자세히 시트를 띄우고 앱별 할인을 내려 본다
       sheet: [
-        { tap: '피자' }, { wait: 1200 },
-        { run: (d) => { const c = card(d, '청년피자'); c.scrollIntoView({ block: 'center' }); c.querySelector('.v2-card__body').click() } }, { wait: 900 },
-        { reveal: true }, { wait: 900 },
+        { tap: '피자' },
+        { run: async (d) => { const c = await until(() => card(d, '청년피자')); c.scrollIntoView({ block: 'center' }); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
+        { reveal: true }, { wait: 500 },
         { scroll: 9999, ms: 2600, el: '.v2-sheet__offers' }, { wait: 500 }, { scroll: 0, ms: 1600, el: '.v2-sheet__offers' },
       ],
       // 3장: 인기 브랜드(HOT)를 펼치고 아래 목록을 내려 본다
       hot: [
-        { tap: '인기 브랜드 펼치기' }, { wait: 900 },
-        { reveal: true }, { wait: 900 },
+        { tap: '인기 브랜드 펼치기' }, { wait: 600 },
+        { reveal: true }, { wait: 500 },
         { scroll: 700, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1400 },
       ],
       // 4장: 피자 카테고리를 내려 본다
       category: [
-        { tap: '피자' }, { wait: 1200 },
-        { reveal: true }, { wait: 900 },
+        { tap: '피자' }, { wait: 700 },
+        { reveal: true }, { wait: 500 },
         { scroll: 1000, ms: 2600 }, { wait: 500 }, { scroll: 0, ms: 1600 },
       ],
       // 5장: 필터에서 피자를 골라 적용하고 결과를 내려 본다
       filter: [
-        { tap: '필터 열기' }, { wait: 900 },
-        { reveal: true }, { wait: 1000 },
-        { tap: (d) => [...d.querySelectorAll('button')].find((x) => x.innerText.trim() === '피자' && x.getBoundingClientRect().top > 400) }, // 필터 창의 칩(위쪽 탭 줄의 '피자'와 구분), { wait: 700 },
-        { tap: '적용' }, { wait: 1100 },
+        { tap: '필터 열기' }, { wait: 600 },
+        { reveal: true }, { wait: 700 },
+        { tap: (d) => [...d.querySelectorAll('button')].find((x) => x.innerText.trim() === '피자' && x.getBoundingClientRect().top > 400) }, // 필터 창의 칩(위쪽 탭 줄의 '피자'와 구분), { wait: 500 },
+        { tap: '적용' }, { wait: 800 },
         { scroll: 700, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1400 },
       ],
       // 6장: 자세히를 열어 할인을 보고 할인 기록 탭으로 넘긴다
       detail: [
-        { tap: (d) => [...d.querySelectorAll('*')].filter((x) => x.children.length < 3 && (x.innerText || '').trim().startsWith('자세히'))[0] }, { wait: 1000 },
-        { reveal: true }, { wait: 1000 },
+        { tap: (d) => [...d.querySelectorAll('*')].filter((x) => x.children.length < 3 && (x.innerText || '').trim().startsWith('자세히'))[0] }, { wait: 700 },
+        { reveal: true }, { wait: 700 },
         { scroll: 600, ms: 1600, el: '.v2-sheet__offers' }, { wait: 400 }, { scroll: 0, ms: 1000, el: '.v2-sheet__offers' }, { wait: 300 },
         { tap: '할인 기록' }, { wait: 3000 },
       ],
     }
     const ease = (t) => t * t * (3 - 2 * t)
     const live = new Map() // 화면 요소 -> 재생 번호
+    const gates = new Map() // 화면 요소 -> 그 장에 들어오면 풀리는 문
     const fit = (scr, fr) => { fr.style.transform = `scale(${scr.clientWidth / 390})` }
-    const stop = (scr) => { live.delete(scr); scr.querySelector('iframe')?.remove(); scr.querySelectorAll('.tap').forEach((x) => x.remove()) }
+    const stop = (scr) => { live.delete(scr); gates.delete(scr); scr.querySelector('iframe')?.remove(); scr.querySelectorAll('.tap').forEach((x) => x.remove()) }
     async function play(scr) {
       const id = Symbol(); live.set(scr, id)
       const ok = () => live.get(scr) === id
@@ -528,15 +545,15 @@
       const st = d.createElement('style')
       st.textContent = '.dev-badge,.night-notice,.report-tip,.push-setting-preview-backdrop{display:none!important}html{scroll-behavior:auto!important}::-webkit-scrollbar{display:none}'
       d.head.appendChild(st)
-      await nap(1600)
+      await until(() => d.querySelector('article.v2-card')); await nap(500) // 카드가 뜬 뒤 앱이 이벤트를 붙일 틈
       let shown = false
       for (const s of SCENES[scr.dataset.scene]) {
         if (!ok()) return
         if (s.wait) await nap(s.wait)
         else if (s.run) await s.run(d, w)
-        else if (s.reveal) { fr.classList.add('on'); shown = true }
+        else if (s.reveal) { await entered(scr); if (!ok()) return; fr.classList.add('on'); shown = true }
         else if (s.tap) {
-          const el = typeof s.tap === 'function' ? s.tap(d) : byText(d, s.tap)
+          const el = await until(() => (typeof s.tap === 'function' ? s.tap(d) : byText(d, s.tap)), 3000)
           if (!el) { console.warn('탭할 요소 없음', s.tap); continue }
           if (shown) { // 누르는 곳에 원 표시
             const r = el.getBoundingClientRect(), k = scr.clientWidth / 390, dot = document.createElement('i')
@@ -561,11 +578,15 @@
       }
     }
     const screens = slides.map((s) => s.querySelector('[data-scene]'))
+    const entered = (scr) => (screens[cur] === scr ? Promise.resolve() : new Promise((r) => gates.set(scr, r)))
     const showLive = (i) => {
       if (reduce) return
       const scr = screens[i]
       if (scr && !live.has(scr)) play(scr)
-      setTimeout(() => screens.forEach((x, k) => { if (x && k !== cur) stop(x) }), 700)
+      gates.get(scr)?.(); gates.delete(scr)
+      // 다음 장은 미리 띄워 준비만 해 두고(공개는 들어올 때), 그래야 넘기자마자 움직인다
+      setTimeout(() => { const n = screens[i + 1]; if (cur === i && n && !live.has(n)) play(n) }, 2500)
+      setTimeout(() => screens.forEach((x, k) => { if (x && k !== cur && k !== cur + 1) stop(x) }), 700)
     }
     addEventListener('resize', () => screens.forEach((x) => { const f = x?.querySelector('iframe'); if (f) fit(x, f) }))
     showLive(0)
