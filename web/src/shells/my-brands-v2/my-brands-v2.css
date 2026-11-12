@@ -57,7 +57,8 @@
 .sheet .v2-sheet__body { flex: 1 1 auto; min-height: 0; padding: 0; overflow: hidden; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
 .v2-panel { grid-area: 1 / 1; min-width: 0; min-height: 0; }
 .v2-panel--off { visibility: hidden; pointer-events: none; }
-.sheet .v2-panel--offers { overflow-y: auto; padding: 1.5rem 1.5rem 2.5rem; align-content: start; }
+.sheet .v2-panel--offers { overflow-y: auto; padding: 1.5rem 1.5rem 2.5rem; align-content: start; scrollbar-width: none; -ms-overflow-style: none; }
+.sheet .v2-panel--offers::-webkit-scrollbar { display: none; }
 /* 할인 기록 칸: 그래프는 칸 너비를 채우고 높이는 최대 14rem까지(PriceChart.jsx가 칸 크기대로 그린다). */
 .v2-panel--history { position: relative; min-height: 16rem; padding: 0.5rem 0 1.5rem; display: flex; flex-direction: column; }
 .v2-hist { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; flex: 1; min-height: 0; display: flex; flex-direction: column; }
