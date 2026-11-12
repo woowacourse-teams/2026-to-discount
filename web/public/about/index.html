@@ -20,7 +20,7 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="icon" href="/favicon-48.png" />
-  <link rel="stylesheet" href="/fonts/pretendard-optional.css" />
+  <link rel="stylesheet" href="/fonts/pretendard-block.css" />
   <!-- 앱 번들 없이 읽히는 정적 소개 페이지(설계 47). 한 화면씩 넘어가는 풀페이지 스크롤(스크립트로 한 장씩 넘김). -->
   <style>
     :root {
@@ -232,6 +232,11 @@
       #s1 .btn, #s2 .apps { display: none; }
       #s1 .phone, #s2 .phone { width: min(calc(100vw - 32px), calc((100dvh - 235px) * .462 + 20px)); }
     }
+  
+    /* 글꼴이 오기 전 글자가 바뀌는 깜빡임 방지: 준비되면(.ready) 한 번에 보인다. 스크립트가 실패해도 4초 뒤 보인다 */
+    .js:not(.ready) body { opacity: 0; animation: reveal .01s 4s forwards; }
+    .js body { transition: opacity .3s; }
+    @keyframes reveal { to { opacity: 1; } }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -401,6 +406,14 @@
    </div>
   </main>
   <script>
+    // 쓰는 글자의 글꼴 조각을 미리 받고(최대 3초) 나서 보인다
+    (function () {
+      var done = function () { document.documentElement.classList.add('ready') }
+      var t = document.body.textContent
+      Promise.race([Promise.all(['400', '800'].map(function (w) { return document.fonts.load(w + ' 1em "Pretendard Variable"', t) })), new Promise(function (r) { setTimeout(r, 3000) })]).then(done, done)
+    })()
+  </script>
+  <script>
     // 화면에 들어온 슬라이드의 요소를 떠오르게 한다
     const slides = [...document.querySelectorAll('.slide')]
     slides[0].classList.add('in')
@@ -465,7 +478,11 @@
     //   { run: async (d, w) => {} }     화면을 직접 만진다(연출용 값 바꾸기 등)
     //   { reveal: true }                여기까지는 가려진 채 준비하고, 이 단계에서 실제 화면을 보여 준다
     const APP = '/?home=b&dev=1'
+    const SLOW = 2 // 움직임 시간 배수. 2면 스크롤이 절반 속도, 1이면 원래 속도
     const byText = (d, t, last) => { const l = [...d.querySelectorAll('button,a,[role=tab]')].filter((x) => (x.getAttribute('aria-label') || x.innerText || '').trim().startsWith(t)); return last ? l[l.length - 1] : l[0] }
+    // 카테고리 탭 줄의 글자(필터 창 안의 같은 글자와 구분)
+    const tab = (n) => (d) => [...d.querySelectorAll('button,[role=tab]')].find((x) => x.innerText.trim() === n && !x.closest('.sheet') && x.getBoundingClientRect().top > 40 && x.getBoundingClientRect().top < 300)
+    const chip = (t) => (d) => [...d.querySelectorAll('.sheet .sheet__chip')].find((x) => x.innerText.trim().startsWith(t))
     const card = (d, brand) => [...d.querySelectorAll('article.v2-card')].find((x) => x.dataset.brand === brand)
     const nap = (ms) => new Promise((r) => setTimeout(r, ms))
     // 조건이 참이 될 때까지 0.1초마다 본다(최대 ms). 고정 대기보다 빠르다
@@ -506,19 +523,25 @@
         { reveal: true }, { wait: 500 },
         { scroll: 700, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1400 },
       ],
-      // 4장: 피자 카테고리를 내려 본다
+      // 4장: 카테고리 탭을 한정, 랜덤, 치킨, 피자로 바꿔 가며 조금씩 내려 본다
       category: [
-        { tap: '피자' }, { wait: 700 },
+        { tap: tab('한정') }, { wait: 600 },
         { reveal: true }, { wait: 500 },
-        { scroll: 1000, ms: 2600 }, { wait: 500 }, { scroll: 0, ms: 1600 },
+        { scroll: 450, ms: 1200 }, { scroll: 0, ms: 900 },
+        { tap: tab('랜덤') }, { wait: 600 }, { scroll: 450, ms: 1200 }, { scroll: 0, ms: 900 },
+        { tap: tab('치킨') }, { wait: 600 }, { scroll: 450, ms: 1200 }, { scroll: 0, ms: 900 },
+        { tap: tab('피자') }, { wait: 600 }, { scroll: 600, ms: 1400 }, { scroll: 0, ms: 1000 },
       ],
-      // 5장: 필터에서 피자를 골라 적용하고 결과를 내려 본다
+      // 5장: 필터에서 앱, 카테고리, 정렬, 멤버십을 여러 개 고르고 적용한 뒤 결과를 내려 본다
       filter: [
         { tap: '필터 열기' }, { wait: 600 },
-        { reveal: true }, { wait: 700 },
-        { tap: (d) => [...d.querySelectorAll('button')].find((x) => x.innerText.trim() === '피자' && x.getBoundingClientRect().top > 400) }, // 필터 창의 칩(위쪽 탭 줄의 '피자'와 구분), { wait: 500 },
-        { tap: '적용' }, { wait: 800 },
-        { scroll: 700, ms: 2200 }, { wait: 500 }, { scroll: 0, ms: 1400 },
+        { reveal: true }, { wait: 800 },
+        { tap: (d) => [...d.querySelectorAll('.sheet__apps button')].pop() }, { wait: 500 },   // 땡겨요 끄기
+        { tap: chip('피자') }, { wait: 500 },                                                  // 카테고리: 피자
+        { tap: chip('최소주문금액 낮은순') }, { wait: 500 },                                  // 정렬
+        { tap: chip('배민클럽') }, { wait: 600 },                                              // 멤버십 끄기
+        { tap: '적용' }, { wait: 900 },
+        { scroll: 700, ms: 1800 }, { wait: 400 }, { scroll: 0, ms: 1200 },
       ],
       // 6장: 자세히를 열어 할인을 보고 할인 기록 탭으로 넘긴다
       detail: [
@@ -545,13 +568,14 @@
       const st = d.createElement('style')
       st.textContent = '.dev-badge,.night-notice,.report-tip,.push-setting-preview-backdrop{display:none!important}html{scroll-behavior:auto!important}::-webkit-scrollbar{display:none}'
       d.head.appendChild(st)
+      const lk = d.createElement('link'); lk.rel = 'stylesheet'; lk.href = '/fonts/pretendard-block.css'; d.head.appendChild(lk) // 앱의 optional 글꼴을 block으로 덮는다
       await until(() => d.querySelector('article.v2-card')); await nap(500) // 카드가 뜬 뒤 앱이 이벤트를 붙일 틈
       let shown = false
       for (const s of SCENES[scr.dataset.scene]) {
         if (!ok()) return
         if (s.wait) await nap(s.wait)
         else if (s.run) await s.run(d, w)
-        else if (s.reveal) { await entered(scr); if (!ok()) return; fr.classList.add('on'); shown = true }
+        else if (s.reveal) { await d.fonts.load('400 1em "Pretendard Variable"', d.body.innerText).catch(() => {}); await d.fonts.ready; await entered(scr); if (!ok()) return; fr.classList.add('on'); shown = true }
         else if (s.tap) {
           const el = await until(() => (typeof s.tap === 'function' ? s.tap(d) : byText(d, s.tap)), 3000)
           if (!el) { console.warn('탭할 요소 없음', s.tap); continue }
@@ -568,7 +592,7 @@
           const t0 = performance.now()
           await new Promise((res) => {
             const tick = (now) => {
-              const p = Math.min(1, (now - t0) / s.ms), y = from + (to - from) * ease(p)
+              const p = Math.min(1, (now - t0) / (s.ms * SLOW)), y = from + (to - from) * ease(p)
               if (t) t.scrollTop = y; else w.scrollTo(0, y)
               if (p < 1 && ok()) requestAnimationFrame(tick); else res()
             }
