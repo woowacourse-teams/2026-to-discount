@@ -88,7 +88,7 @@
     .js .in .snaps img.rise:nth-child(1) { transform: rotate(-3deg); }
     .js .in .snaps img.rise:nth-child(2) { transform: rotate(3deg); }
     .phone img.fit-w { height: auto; object-fit: initial; }
-    #s4 .phone__screen { background: #f1f2f4; }
+    #s5 .phone__screen { background: #f1f2f4; }
     @media (max-width: 767px) { .snaps { width: min(100%, 340px); margin-top: 18px; } }
 
     /* 모바일: 폰을 크게 두고 아래는 화면 밖으로 흘린다 */
@@ -239,6 +239,34 @@
     .js body { transition: opacity .3s; }
     @keyframes reveal { to { opacity: 1; } }
   
+  
+    /* 3장: 쿠팡이츠 두 캡처 사이 화살표, 청년피자 시트 폰 */
+    .grid4 .row--between { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+    .grid4 .row--between .row__app { grid-column: 1 / -1; }
+    .between { display: grid; place-items: center; gap: 4px; align-self: center; color: var(--sale); text-align: center; font-size: .72rem; font-weight: 700; line-height: 1.25; }
+    .between svg { width: 38px; height: 14px; }
+    .between span { color: var(--muted); }
+    @media (min-width: 768px) {
+      #s3 .diff { grid-template-columns: 250px minmax(0, 1fr) min(300px, calc((100dvh - 130px) * .462 + 20px)); gap: 36px; }
+      #s3 .grid4 { max-width: 460px; }
+      #s3 .phone { width: 100%; }
+    }
+    @media (max-width: 767px) {
+      #s3 { padding: 36px 22px 28px 16px; }
+      #s3 .diff { gap: 10px; }
+      #s3 .diff > div:first-child { display: flex; align-items: center; gap: 12px; }
+      #s3 h2 { flex: 0 0 42%; font-size: 1.2rem; line-height: 1.25; }
+      #s3 .lead { flex: 1; margin: 0; font-size: .78rem; line-height: 1.45; }
+      #s3 .lead br { display: none; }
+      #s3 .grid4 .row + .row { display: none; }
+      #s3 .grid4 img.shot { max-height: 96px; }
+      #s3 .grid4 figcaption { font-size: .8rem; margin-top: 4px; }
+      #s3 .phone { width: min(100%, calc((100dvh - 320px) * .462 + 16px)); justify-self: center; padding: 8px; border-radius: 34px; }
+      #s3 .phone__screen { border-radius: 27px; }
+    }
+    /* 마무리: 가운데 구분선(제목과 바로가기 사이) */
+    .final .cta { border-left: 1px solid var(--border); padding-left: 48px; align-self: stretch; justify-content: center; }
+    @media (max-width: 767px) { .final .cta { border-left: 0; padding-left: 0; border-top: 1px solid var(--border); padding-top: 18px; align-items: center; text-align: center; } }
   </style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -281,13 +309,14 @@
     <section class="slide slide--diff" id="s3">
       <div class="slide__in diff">
         <div>
-          <h2 class="rise"><em>할인 조건</em><br />명시하기</h2>
-          <p class="lead rise" style="--i:1">최소주문, 멤버십, 한정 조건을 <br />보여드려요.</p>
+          <h2 class="rise"><em>할인 조건</em><br />명확하게 확인하기</h2>
+          <p class="lead rise" style="--i:1">숨겨진 조건, 최소주문, 멤버십, <br />한정 조건을 먼저 확인해서 <br />보여드려요.</p>
         </div>
         <div class="grid4 rise" style="--i:2">
-          <div class="row">
+          <div class="row row--between">
             <p class="row__app"><img src="/platform-icons/coupangeats.png" alt="" />쿠팡이츠</p>
             <figure class="is-member"><img class="shot" src="/about/diff-wow.jpg" width="900" height="828" alt="쿠팡이츠 멤버십(와우) 화면. 치킨 브랜드 할인 맨 위에 기영이숯불치킨 5,000원 할인이 있다." /><figcaption>멤버십 화면</figcaption></figure>
+            <div class="between" aria-label="멤버십 전용 쿠폰"><svg viewBox="0 0 48 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h42M3 8l6-5M3 8l6 5M45 8l-6-5M45 8l-6 5" /></svg><span><em>멤버십</em> 전용 쿠폰</span></div>
             <figure><img class="shot" src="/about/diff-nonwow.jpg" width="900" height="828" alt="쿠팡이츠 비회원 화면. 같은 목록에 기영이숯불치킨이 없고 훌라라치킨이 맨 위다." /><figcaption>비회원 화면</figcaption></figure>
           </div>
           <div class="row">
@@ -296,25 +325,11 @@
             <figure><img class="shot" src="/about/diff-nonclub.jpg" width="900" height="807" alt="배민 비회원 화면. 60계치킨 3,000원 할인만 있고 가게 배달팁 2,700원, 3,400원." /><figcaption>비회원 화면</figcaption></figure>
           </div>
         </div>
+        <div class="phone rise" style="--i:3"><div class="phone__screen" data-scene="sheet"><img src="/about/sheet.jpg" width="480" height="1038" alt="청년피자 자세히 보기 시트. 배달앱별 할인과 최소주문금액 조건이 구간별로 나뉘어 스크롤된다." /></div></div>
       </div>
       <a class="next" href="#s4" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
     </section>
     <section class="slide slide--shot" id="s4">
-      
-      <div class="slide__in split">
-        <div>
-          
-          <h2 class="rise" style="--i:1">실시간<br /><em>인기 브랜드</em></h2>
-          <p class="lead rise" style="--i:2">사용자들의 실시간 <br />인기 순위를 보여드려요.</p>
-          
-        </div>
-        <div class="phone rise" style="--i:2">
-          <div class="phone__screen" data-scene="hot"><img src="/about/hot.jpg" width="480" height="1038" alt="인기 브랜드 순위 화면. 1위부터 5위까지 브랜드와 할인금액이 목록으로 보인다." /></div>
-        </div>
-      </div>
-      <a class="next" href="#s5" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
-    </section>
-    <section class="slide slide--shot" id="s5">
       
       <div class="slide__in split">
         <div>
@@ -325,6 +340,21 @@
         </div>
         <div class="phone rise" style="--i:2">
           <div class="phone__screen" data-scene="filter"><img src="/about/filter.jpg" width="480" height="1038" alt="필터 화면. 배달앱, 카테고리, 정렬, 멤버십을 고를 수 있다." /></div>
+        </div>
+      </div>
+      <a class="next" href="#s5" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
+    </section>
+    <section class="slide slide--shot" id="s5">
+      
+      <div class="slide__in split">
+        <div>
+          
+          <h2 class="rise" style="--i:1">실시간<br /><em>인기 브랜드</em></h2>
+          <p class="lead rise" style="--i:2">사용자들의 실시간 <br />인기 순위를 보여드려요.</p>
+          
+        </div>
+        <div class="phone rise" style="--i:2">
+          <div class="phone__screen" data-scene="hot"><img src="/about/hot.jpg" width="480" height="1038" alt="인기 브랜드 순위 화면. 1위부터 5위까지 브랜드와 할인금액이 목록으로 보인다." /></div>
         </div>
       </div>
       <a class="next" href="#s6" aria-label="다음"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 8l5 5 5-5" /></svg></a>
@@ -414,7 +444,7 @@
     // 폰 안에 실제 서비스(B 홈)를 띄우고 아래 대본대로 누르고 스크롤한다. 슬라이드에 들어올 때 한 번 재생한다.
     // 대본(SCENES)만 고치면 된다. 단계 종류:
     //   { tap: '글자' | (d) => 요소 }   그 요소를 누른다(주황 원이 번쩍)
-    //   { scroll: 900, ms: 1800 }       창을 그 위치까지 부드럽게. el: '선택자'를 주면 그 요소 안을 민다
+    //   { scroll: 900, ms: 1800 }       창을 그 위치까지 부드럽게. el: '선택자'를 주면 그 요소 안을 민다. 위치 자리에 (요소) => 숫자 함수도 가능
     //   { wait: 800 }                   쉰다
     //   { run: async (d, w) => {} }     화면을 직접 만진다(연출용 값 바꾸기 등)
     //   { reveal: true }                여기까지는 가려진 채 준비하고, 이 단계에서 실제 화면을 보여 준다
@@ -426,6 +456,7 @@
     // 카테고리 탭 줄의 글자(필터 창 안의 같은 글자와 구분)
     const tab = (n) => (d) => [...d.querySelectorAll('button,[role=tab]')].find((x) => x.innerText.trim() === n && !x.closest('.sheet') && x.getBoundingClientRect().top > 40 && x.getBoundingClientRect().top < 300)
     const chip = (t) => (d) => [...d.querySelectorAll('.sheet .sheet__chip')].find((x) => x.innerText.trim().startsWith(t))
+    const sec = (k) => (t) => (t.children[k]?.offsetTop ?? 0) - 4 // 시트 안 k번째 배달앱 구간의 위치
     const hot = (rank) => (d) => d.querySelectorAll('.pop-dock__row')[rank - 1] // HOT 목록의 n위 줄
     const card = (d, brand) => [...d.querySelectorAll('article.v2-card')].find((x) => x.dataset.brand === brand)
     const nap = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -465,36 +496,50 @@
         { tap: hot(1) }, { wait: 2200 },
         { tap: '인기 브랜드 펼치기' }, { wait: 900 },
       ],
-      // 4장: 카테고리 탭을 한정, 랜덤, 치킨, 피자로 바꿔 가며, 내려 보다가 다음 카테고리로 넘어간다
+      // 2장: 전체, 한정, 랜덤, 치킨, 피자 순으로 돈다. 각 카테고리는 두 번 튕겨 내려 보고, 끝나자마자 다음 카테고리로 넘어간다
       category: [
-        { tap: tab('한정') }, { wait: 600 },
-        { reveal: true }, { wait: 500 },
+        { tap: tab('전체') }, { wait: 400 },
+        { reveal: true }, { wait: 400 },
         { loop: true },
-        { scroll: 300, ms: 800 }, { wait: 400 }, { scroll: 520, ms: 900 }, { wait: 500 },
-        { tap: tab('랜덤') }, { wait: 600 }, { scroll: 300, ms: 800 }, { wait: 400 }, { scroll: 520, ms: 900 }, { wait: 500 },
-        { tap: tab('치킨') }, { wait: 600 }, { scroll: 300, ms: 800 }, { wait: 400 }, { scroll: 520, ms: 900 }, { wait: 500 },
-        { tap: tab('피자') }, { wait: 600 }, { scroll: 300, ms: 800 }, { wait: 400 }, { scroll: 640, ms: 1000 }, { wait: 700 },
-        { scroll: 0, ms: 700 }, { tap: tab('한정') }, { wait: 700 },
+        { scroll: 300, ms: 800 }, { scroll: 520, ms: 900 },
+        { tap: tab('한정') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 }, { scroll: 300, ms: 800 }, { scroll: 520, ms: 900 },
+        { tap: tab('랜덤') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 }, { scroll: 300, ms: 800 }, { scroll: 520, ms: 900 },
+        { tap: tab('치킨') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 }, { scroll: 300, ms: 800 }, { scroll: 520, ms: 900 },
+        { tap: tab('피자') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 }, { scroll: 300, ms: 800 }, { scroll: 640, ms: 1000 },
+        { tap: tab('전체') }, { run: (d, w) => w.scrollTo(0, 0) }, { wait: 250 },
       ],
-      // 5장: 필터에서 앱, 카테고리, 정렬, 멤버십을 여러 개 고르고 적용한 뒤 결과를 내려 보고, 초기화해서 되풀이
-      filter: [
-        { tap: '필터 열기' }, { wait: 600 },
-        { reveal: true }, { wait: 800 },
+      // 3장: 청년피자 시트를 띄우고 배달앱별 할인 조건이 구간마다 멈춰서 보이게 내려 본다
+      sheet: [
+        { tap: tab('피자') },
+        { run: async (d) => { const c = await until(() => card(d, '청년피자')); c.scrollIntoView({ block: 'center' }); c.querySelector('.v2-card__body').click(); await until(() => d.querySelector('.v2-sheet__offers')); await nap(400) } },
+        { reveal: true }, { wait: 900 },
         { loop: true },
-        { tap: (d) => [...d.querySelectorAll('.sheet__apps button')].pop() }, { wait: 500 },   // 땡겨요 끄기
-        { tap: chip('피자') }, { wait: 500 },                                                  // 카테고리: 피자
-        { tap: chip('최소주문금액 낮은순') }, { wait: 500 },                                  // 정렬
-        { tap: chip('배민클럽') }, { wait: 600 },                                              // 멤버십 끄기
-        { tap: '적용' }, { wait: 900 },
-        { scroll: 300, ms: 800 }, { wait: 500 }, { scroll: 700, ms: 1000 }, { wait: 800 }, { scroll: 0, ms: 800 }, { wait: 300 },
-        { tap: '필터 열기' }, { wait: 800 },
-        { tap: (d) => d.querySelector('.sheet__reset') }, { wait: 900 },                      // 초기화하고 처음부터
+        { scroll: sec(1), ms: 900, el: '.v2-sheet__offers' }, { wait: 1500 },
+        { scroll: sec(2), ms: 900, el: '.v2-sheet__offers' }, { wait: 1500 },
+        { scroll: sec(3), ms: 900, el: '.v2-sheet__offers' }, { wait: 1800 },
+        { scroll: 0, ms: 800, el: '.v2-sheet__offers' }, { wait: 900 },
+      ],
+      // 4장: 필터 시트를 연 채 옵션을 넣었다 뺐다만 보여 준다(적용, 초기화는 누르지 않는다)
+      filter: [
+        { tap: '필터 열기' }, { wait: 700 },
+        { reveal: true }, { wait: 900 },
+        { loop: true },
+        { tap: (d) => [...d.querySelectorAll('.sheet__apps button')].pop() }, { wait: 650 },   // 땡겨요 빼기
+        { tap: chip('피자') }, { wait: 650 },                                                  // 카테고리 넣기
+        { tap: chip('랜덤쿠폰') }, { wait: 650 },                                              // 필터링 넣기
+        { tap: chip('최소주문금액 낮은순') }, { wait: 650 },                                  // 정렬 바꾸기
+        { tap: chip('배민클럽') }, { wait: 1000 },                                             // 멤버십 빼기
+        { tap: chip('배민클럽') }, { wait: 650 },                                              // 되돌리기
+        { tap: chip('최소주문금액 낮은순') }, { wait: 650 },
+        { tap: chip('랜덤쿠폰') }, { wait: 650 },
+        { tap: chip('피자') }, { wait: 650 },
+        { tap: (d) => [...d.querySelectorAll('.sheet__apps button')].pop() }, { wait: 1000 },
       ],
     }
     const EASE = { out: (t) => 1 - (1 - t) ** 3, inout: (t) => t * t * (3 - 2 * t) } // out: 튕기듯 시작이 빠르고 끝이 느림
     const live = new Map() // 화면 요소 -> 재생 번호
     const gates = new Map() // 화면 요소 -> 그 장에 들어오면 풀리는 문
-    const fit = (scr, fr) => { fr.style.transform = `scale(${scr.clientWidth / 390})` }
+    const fit = (scr, fr) => { const k = scr.clientWidth / 390; fr.style.transform = `scale(${k})`; fr.style.height = (scr.clientHeight - 38) / k + 'px' } // 높이: 노치 아래에서 폰 화면 끝까지
     const stop = (scr) => { live.delete(scr); gates.delete(scr); scr.querySelector('iframe')?.remove(); scr.querySelectorAll('.tap').forEach((x) => x.remove()) }
     async function play(scr) {
       const id = Symbol(); live.set(scr, id)
@@ -530,7 +575,8 @@
         } else if (s.scroll !== undefined) {
           const t = s.el ? d.querySelector(s.el) : null
           const from = t ? t.scrollTop : w.scrollY
-          const to = Math.min(s.scroll, t ? t.scrollHeight - t.clientHeight : d.documentElement.scrollHeight - w.innerHeight)
+          const goal = typeof s.scroll === 'function' ? s.scroll(t) : s.scroll
+          const to = Math.max(0, Math.min(goal, t ? t.scrollHeight - t.clientHeight : d.documentElement.scrollHeight - w.innerHeight))
           const t0 = performance.now(), dur = s.ms * SLOW, ez = EASE[s.ease || 'out']
           if (shown && Math.abs(to - from) > 40) { // 손가락처럼 보이는 점이 밀어 올리거나 내리는 방향으로 움직인다
             const f = document.createElement('i'), dir = to > from ? -1 : 1
@@ -562,7 +608,7 @@
       if (scr && !live.has(scr)) play(scr)
       gates.get(scr)?.(); gates.delete(scr)
       // 다음 장은 미리 띄워 준비만 해 두고(공개는 들어올 때), 그래야 넘기자마자 움직인다
-      setTimeout(() => { const n = screens[nextScene(i)]; if (cur === i && n && !live.has(n)) play(n) }, 3500)
+      setTimeout(() => { const n = screens[nextScene(i)]; if (cur === i && n && !live.has(n)) play(n) }, 2000)
       setTimeout(() => { const nx = nextScene(cur); screens.forEach((x, k) => { if (x && k !== cur && k !== nx) stop(x) }) }, 700)
     }
     addEventListener('resize', () => screens.forEach((x) => { const f = x?.querySelector('iframe'); if (f) fit(x, f) }))
