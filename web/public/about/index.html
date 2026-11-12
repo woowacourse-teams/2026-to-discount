@@ -290,6 +290,19 @@
       .final .cta { align-items: flex-start; text-align: left; }
       .final .cta .btn { align-self: center; }
     }
+    /* ?s= 임베드 모바일: 설명은 숨기고 제목을 한 줄로, 위아래 여백을 줄여 폰을 크게(높이가 낮은 임베드에서도 작아지지 않게) */
+    @media (max-width: 767px) {
+      .solo .slide--shot, .solo #s3 { padding: 14px 16px 10px 16px; }
+      .solo .slide--shot .lead, .solo #s3 .lead { display: none; }
+      .solo .slide--shot .split > div:first-child, .solo #s3 .diff > div:first-child { justify-content: flex-start; padding: 0 6px; }
+      .solo .slide--shot h1, .solo .slide--shot h2, .solo #s3 h2 { flex: 0 1 auto; max-width: 100%; padding: 0; border: 0; font-size: 1.3rem; }
+      .solo .slide--shot h1 br, .solo .slide--shot h2 br, .solo #s3 h2 br { display: none; }
+      .solo .slide--shot h1 br + em, .solo .slide--shot h2 br + em, .solo #s3 h2 br + em { margin-left: .28em; }
+      .solo .slide--shot .split { gap: 10px; }
+      .solo .phone { margin-top: 0; }
+      .solo .slide--shot .phone { width: min(100%, calc((100dvh - 90px) * .5 + 16px)); }
+      .solo #s3 .phone { width: min(100%, calc((100dvh - 250px) * .5 + 16px)); }
+    }
   </style>
   <script>document.documentElement.classList.add('js');/[?&]s=[1-6](&|$)/.test(location.search)&&document.documentElement.classList.add('solo')</script>
 </head>
