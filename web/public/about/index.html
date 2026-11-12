@@ -290,22 +290,21 @@
       .final .cta { align-items: flex-start; text-align: left; }
       .final .cta .btn { align-self: center; }
     }
-    /* ?s= 임베드 모바일: 설명은 숨기고 제목을 한 줄로, 위아래 여백을 줄여 폰을 크게(높이가 낮은 임베드에서도 작아지지 않게) */
+    /* ?s= 임베드 모바일: 폰과 캡처는 숨기고 글(제목, 설명)만 보인다. &m=hide면 모바일에서는 아무것도 보이지 않는다.
+       모바일은 정적 소스(폭 기준 배치)를 쓰고, 이 주소는 데스크톱 폭에서만 시연을 보여 주려는 쓰임이다 */
     @media (max-width: 767px) {
-      .solo .slide--shot, .solo #s3 { padding: 14px 16px 10px 16px; }
-      .solo .slide--shot .lead, .solo #s3 .lead { display: none; }
-      .solo .slide--shot .split > div:first-child, .solo #s3 .diff > div:first-child { justify-content: flex-start; padding: 0 6px; }
-      .solo .slide--shot h1, .solo .slide--shot h2, .solo #s3 h2 { flex: 0 1 auto; max-width: 100%; padding: 0; border: 0; font-size: 1.3rem; }
-      .solo .slide--shot h1 br, .solo .slide--shot h2 br, .solo #s3 h2 br { display: none; }
-      .solo .slide--shot h1 br + em, .solo .slide--shot h2 br + em, .solo #s3 h2 br + em { margin-left: .28em; }
-      .solo #s3 h2 em { margin-right: .28em; }
-      .solo .slide--shot .split { gap: 10px; }
-      .solo .phone { margin-top: 0; }
-      .solo .slide--shot .phone { width: min(100%, calc((100dvh - 90px) * .5 + 16px)); }
-      .solo #s3 .phone { width: min(100%, calc((100dvh - 250px) * .5 + 16px)); }
+      .solo .phone, .solo #s3 .grid4 { display: none; }
+      .solo .slide--shot, .solo #s3 { padding: 24px 20px; }
+      .solo .slide--shot .split, .solo #s3 .diff { display: block; }
+      .solo .slide--shot .split > div:first-child, .solo #s3 .diff > div:first-child { display: block; padding: 0; }
+      .solo .slide--shot h1, .solo .slide--shot h2, .solo #s3 h2 { max-width: none; padding: 0; border: 0; font-size: 1.6rem; line-height: 1.3; }
+      .solo .slide--shot .lead, .solo #s3 .lead { display: block; max-width: none; margin: 14px 0 0; padding: 14px 0 0; border-top: 1px solid var(--border); font-size: .95rem; }
+      .solo .slide--shot .lead br, .solo #s3 .lead br { display: none; }
+      .solo #s3 h2 em { margin-right: 0; }
+      .solo-hide body { display: none; }
     }
   </style>
-  <script>document.documentElement.classList.add('js');/[?&]s=[1-6](&|$)/.test(location.search)&&document.documentElement.classList.add('solo')</script>
+  <script>document.documentElement.classList.add('js');/[?&]s=[1-6](&|$)/.test(location.search)&&document.documentElement.classList.add('solo');/[?&]m=hide(&|$)/.test(location.search)&&document.documentElement.classList.add('solo-hide')</script>
 </head>
 <body>
   <main>
