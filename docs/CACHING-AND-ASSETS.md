@@ -1,6 +1,6 @@
 # 캐시 헤더와 자산 전달 방식
 
-배거스 웹(`mono/web`)이 브라우저에 자산을 어떻게 전달하고, 각 자산에 어떤 캐시 수명을 주는지 정리한다. 2026-09-21 기준 배포 상태를 그대로 옮겼다. 이 문서 하나만 읽고도 다음 세 가지를 판단할 수 있게 쓴다. 새 자산을 어느 칸에 넣을지, 왜 로고는 파일이고 플랫폼 아이콘은 번들인지, 어떤 상황에서 지금 방식을 쓰면 안 되는지.
+배거스 웹(`mono/web`)이 브라우저에 자산을 어떻게 전달하고, 각 자산에 어떤 캐시 수명을 주는지 정리한다. 2026-09-21 기준 배포 상태를 옮겼고, 2026-11-12에 현재 값으로 다시 맞췄다. 이 문서 하나만 읽고도 다음 세 가지를 판단할 수 있게 쓴다. 새 자산을 어느 칸에 넣을지, 왜 로고는 파일이고 플랫폼 아이콘은 번들인지, 어떤 상황에서 지금 방식을 쓰면 안 되는지.
 
 ## 배경
 
@@ -14,8 +14,9 @@
 
 | 경로 | Cache-Control | 수명 |
 |---|---|---|
-| `/`, `/brand/(.*)` | `public, max-age=600, must-revalidate` | 10분 |
-| `/logos/(.*)` | `public, max-age=2592000, immutable` | 30일 |
+| `/` | 브라우저 `public, max-age=0, must-revalidate`(ETag로 재검증), CDN `s-maxage=300, stale-while-revalidate=300`(`api/ssr.js`가 `CDN-Cache-Control`로 지정) | 브라우저 0초, CDN 최대 약 10분 |
+| `/brand/(.*)` | `public, max-age=600, must-revalidate` | 10분 |
+| `/logos/(.*)` | `public, max-age=31536000, immutable` | 1년 |
 | `/platform-icons/(.*)` | `public, max-age=2592000, immutable` | 30일 |
 | `/assets/(.*)` | `public, max-age=31536000, immutable` | 1년 |
 
@@ -123,7 +124,7 @@ HTML은 반대다. 주소가 `/`로 고정인데 내용은 배포마다 바뀐�
 
 API 서버(`bebeggars.duckdns.org`)의 `/api/brands` 응답은 2026-09-21 실측으로 81,137바이트였고 압축이 없었다(`Accept-Encoding: gzip`을 보내도 `Content-Encoding` 없이 같은 크기). 브랜드 목록은 방문자마다 매번 내려가는 가장 큰 단일 응답이다.
 
-2026-09-29에 nginx(API 앞단의 웹 서버)에서 gzip을 켰다. 같은 날 실측으로 `/api/brands`가 91.7KB에서 12.7KB로 줄었다(그사이 원본이 늘었다). `ETag`(내용이 그대로면 304로 본문 전송을 건너뛰는 지문)는 붙이지 않았다. 부품을 늘리지 않고 압축만으로 충분하다고 봤다. 캐시 헤더도 여전히 없다.
+2026-09-29에 nginx(API 앞단의 웹 서버)에서 gzip을 켰다. 같은 날 실측으로 `/api/brands`가 91.7KB에서 12.7KB로 줄었다(그사이 원본이 늘었다). 그 뒤 API가 `ETag`(내용이 그대로면 304로 본문 전송을 건너뛰는 지문)와 `Cache-Control: public, max-age=60, stale-while-revalidate=300`을 붙인다. 2026-11-12 실측으로 `/api/brands`는 원본 190,910바이트, gzip 23,718바이트다.
 
 ## 정리된 규칙
 

@@ -88,11 +88,12 @@ Java 17 + Spring Boot 4.1, **DB 없음**(브랜드 137건 규모, 파일로 충�
 
 | 무엇 | 어디 |
 |---|---|
-| 엔드포인트 | `/api/brands`, `/api/banners`, `/api/reload`. 3개뿐 |
+| 엔드포인트 | `/api/brands`, `/api/banners`, `/api/reload`(서버 안 직접 호출만), `/api/events`, `/api/survey`, `/api/share-links`, `/api/reports`, `/api/push/**`. 목록은 [api/README.md](../api/README.md) |
 | 도메인이 규칙을 든다 | `OfferRecord.status()/isExpired()/liveTiers()`, `Offer.preferredOver()`, `Banner.resolvedFor()` |
 | 브랜드 지식 단일 출처 | `brands.yml`. 고치고 `/api/reload`만 부르면 반영 |
 | 예외 처리 | `GlobalExceptionHandler`. 내부 경로 은닉(`{"error":"internal_error"}`), 정상 404는 500으로 안 바꾼다 |
-| 이벤트 수집 | 공개 쓰기 엔드포인트 + **이름 화이트리스트**(19종) |
+| 이벤트 수집 | 공개 쓰기 엔드포인트 + **이름 화이트리스트**(`EventController.ALLOWED_EVENTS`, 55종) |
+| 공개 쓰기 제한 | IP 해시별 분당 제한: 이벤트 120건, 푸시 구독 10건(구독 총 20,000건 상한), 공유 링크 만들기 30건. IP는 `X-Real-IP` 기반(`hashForLimit`) |
 | 개인정보 경계 | 검색어 원문은 안 남긴다(props 화이트리스트, 테스트로 고정). `ipHash`는 날짜별 솔트 |
 
 ## 4. 프론트 (web)
@@ -106,10 +107,15 @@ React 18 + Vite 5, 정적 `dist/`. 라우터는 안 쓴다. **홈(`/`)만 Vercel
 | 계측 | 이벤트 하나를 만들어 서버 큐와 PostHog로 동시에 부친다 |
 | SEO 프리렌더 | 빌드 후 `prerender.mjs`가 크롤러용 본문 주입 + `robots.txt` + `sitemap.xml`(111 URL) + `/brand/*.html` 110장 |
 | 소유 확인 | 구글, 네이버 verification 메타 태그 배포됨 |
+| 보안 헤더 | `vercel.json`: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `X-Frame-Options: SAMEORIGIN`(`/about`은 임베드를 위해 제외) |
+| 하이드레이션 시각 고정 | `web/src/pageNow.js`. 서버가 `renderedAt`을 `window.__SSR__`에 싣고, 하이드레이션이 끝날 때까지 '오픈 전' 판정 시각을 그 시각에 고정한다(CDN이 든 HTML과 어긋나는 오류 방지) |
+| 지연 로딩 재시도 | `web/src/lazyRetry.js`의 `importRetry`가 `React.lazy` import를 한 번 더 시도한다 |
+| 소개 페이지 | `/about`(`web/public/about/index.html`, 6장). `?s=1..6`은 한 장만 보이는 임베드 모드(Google Sites 등) |
+| 링크 미리보기 | `og:image`는 `/og-image.png`(1200x630) |
 
 ## 5. 관측과 분석
 
-**원장(`events.jsonl`)이 제품 이벤트 19종의 권위 있는 기록이고, PostHog은 탐색용이다.**
+**원장(`events.jsonl`)이 제품 이벤트의 권위 있는 기록이고, PostHog은 탐색용이다.**
 겹치는 범위에서 숫자가 갈리면 원장이 이긴다. 원본이 변형 없이 남아
 재계산이 되기 때문이다.
 
@@ -188,7 +194,7 @@ visitorId를 콤마로 넣으면 그 id만 접속일과 전환수 조건을 건�
 | 없는 것 | 왜 |
 |---|---|
 | 인증, 인가 | 로그인 자체가 없는 서비스 |
-| API 스펙 문서(Swagger) | 엔드포인트 3개, 소비자는 우리 프론트 하나 |
+| API 스펙 문서(Swagger) | 소비자는 우리 프론트 하나 |
 | 무중단 배포 | 단일 인스턴스. 인프라를 새로 들여야 값어치가 생긴다 |
 | 캐시 | 하루 1회 갱신 소량 데이터라 이미 빠르다 |
 | 부하 테스트 | 하루 방문 수백 명대, 부하가 안 생긴다 |

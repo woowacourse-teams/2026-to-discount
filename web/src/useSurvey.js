@@ -81,9 +81,10 @@ export function useSurvey() {
         }
         setVisible(eligible)
         // 첫 page_view가 원장에 도착하기 전의 조회를 최종 탈락으로 보지 않는다.
-        if (status.enabled && status.state === 'available' && !status.eligible && ++attempts < 6) timer = setTimeout(check, 5000)
+        // 5, 10, 20, 40초로 늦춘다. 같은 공유기 뒤 여러 기기가 5초 주기로 몰려 nginx 분당 한도(IP당 60건)에 429가 났다(2026-11-12 17시대 440건).
+        if (status.enabled && status.state === 'available' && !status.eligible && ++attempts < 5) timer = setTimeout(check, 5000 * 2 ** (attempts - 1))
       } catch {
-        if (alive && ++attempts < 6) timer = setTimeout(check, 5000)
+        if (alive && ++attempts < 5) timer = setTimeout(check, 5000 * 2 ** (attempts - 1)) // 429도 여기로 온다. 같은 주기로 다시 두드리지 않는다
       }
     }
     function onVisible() { if (document.visibilityState === 'visible' && !inFlight.current) { clearTimeout(timer); attempts = 0; check() } }

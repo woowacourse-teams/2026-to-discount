@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>개인정보처리방침 - SaveEats</title>
-  <meta name="description" content="SaveEats가 쓰는 방문 통계, 검색어 기록, 쿠키와 거부 방법을 안내합니다." />
+  <meta name="description" content="SaveEats가 쓰는 방문 통계, 웹 푸시 알림, 브라우저 저장소, 외부 서비스와 거부 방법을 안내합니다." />
   <link rel="canonical" href="https://beggars-five.vercel.app/privacy" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="SaveEats" />
   <meta property="og:title" content="개인정보처리방침 - SaveEats" />
-  <meta property="og:description" content="SaveEats가 쓰는 방문 통계, 검색어 기록, 쿠키와 거부 방법을 안내합니다." />
+  <meta property="og:description" content="SaveEats가 쓰는 방문 통계, 웹 푸시 알림, 브라우저 저장소, 외부 서비스와 거부 방법을 안내합니다." />
   <meta property="og:url" content="https://beggars-five.vercel.app/privacy" />
   <meta property="og:locale" content="ko_KR" />
   <meta property="og:image" content="https://beggars-five.vercel.app/og-image.png?v=3" />
@@ -26,7 +26,7 @@
   <main class="legal">
     <a class="legal__home" href="/">← 할인 목록으로</a>
     <h1>개인정보처리방침</h1>
-    <p class="legal__meta">시행일 2026-10-13</p>
+    <p class="legal__meta">시행일 2026-11-12</p>
 
     <h2>1. 처리하는 정보와 목적</h2>
     <p>
@@ -42,24 +42,103 @@
       이 통계들은 광고 목적으로 쓰지 않습니다.
     </p>
 
-    <h2>2. 쿠키</h2>
+    <h3>방문 통계에 담기는 항목</h3>
+    <ul>
+      <li>방문자 ID(이 브라우저가 만든 난수), 세션 ID, 방문 횟수</li>
+      <li>본 화면 경로, 체류 시간, 누른 항목, 선택한 필터, 검색어와 결과</li>
+      <li>기기 구분(데스크톱/모바일)과 화면 크기, 홈 화면에 설치해 열었는지, 카카오톡 인앱 브라우저인지(참/거짓만)</li>
+      <li>유입 구분(직접/사이트 내부/외부). 유입 주소 원본은 받지 않습니다.</li>
+      <li><strong>실사용 성능</strong>(Web Vitals: LCP, INP, CLS, TTFB)과 <strong>오류 보고</strong>(오류 종류, 메시지 120자 이내, 발생한 컴포넌트 이름). 페이지당 오류는 5건까지 보냅니다.</li>
+    </ul>
+    <p>
+      User-Agent 원문은 자체 서버에 저장하지 않습니다. 다만 요청이 스스로 밝힌 크롤러(검색 로봇)는
+      이름만 가려 표시합니다. 검색어 속 긴 숫자열(전화번호, 카드번호 등)은 <code>#</code>으로 가립니다.
+      PostHog에는 SDK 기본 기기·브라우저 속성(Android 기기 모델 포함)과 Web Vitals도 함께 갑니다.
+      세션 녹화, 자동 클릭 수집, 설문, 예외 자동 수집은 켜지 않았습니다.
+    </p>
+
+    <h3>IP 주소</h3>
+    <p>
+      자체 서버는 <strong>IP 원본을 저장하지 않습니다.</strong> 같은 날 중복·과다 요청을 가리려고
+      IP를 <strong>서버를 켤 때마다 새로 만드는 난수 솔트와 날짜</strong>로 SHA-256 해시해 앞 8바이트만 이벤트 기록에 남깁니다.
+      솔트는 디스크에 저장하지 않아 날짜가 바뀌거나 서버를 다시 켜면 이어지지 않고, 해시에서 IP를 되살릴 수 없습니다.
+      요청 횟수 제한에 쓰는 카운터는 서버 메모리에만 있습니다.
+      PostHog와 GA4는 각 서비스가 요청을 받으면서 IP를 처리합니다(GA4는 IP 익명화를 켰습니다).
+      <!-- [확인 필요] PostHog 프로젝트의 IP 수집 해제(discard IP) 설정 여부는 코드에서 확인되지 않음. -->
+    </p>
+
+    <h3>잘못된 정보 제보</h3>
+    <p>
+      "잘못된 정보 제보"로 보낸 <strong>제보 내용(최대 500자), 유형, 앱, 브랜드, 화면 주소, 필터, 방문자 ID</strong>를
+      자체 서버 파일에 저장하고 운영 슬랙으로 전달합니다. 요청 제한용 IP 해시도 함께 남습니다.
+      이름·연락처는 받지 않으니 제보 내용에 쓰지 마세요.
+      <!-- [확인 필요] 제보 파일(reports.jsonl)과 슬랙 메시지의 보관·삭제 기간은 코드·설정에서 확인되지 않음. -->
+    </p>
+
+    <h2>2. 웹 푸시 알림</h2>
+    <p>
+      알림을 켠 경우에만 처리합니다. 알림은 브라우저가 허용을 물은 뒤 켜집니다.
+    </p>
+    <ul>
+      <li>
+        <strong>서버에 저장하는 값</strong>: 브라우저가 발급한 구독 주소(endpoint)와 암호화 키(p256dh, auth),
+        방문자 ID, 방문 통계 허용 여부(analyticsEnabled), 등록·갱신 시각, 활성 여부.
+        구독 주소는 알림을 보내는 데 필요합니다.
+      </li>
+      <li>
+        <strong>알림 표시·클릭 추적</strong>: 알림마다 추적 토큰을 발급해(유효 30일) 알림이 표시되고 눌렸는지를 한 번씩 기록합니다.
+        구독 시 방문 통계를 허용한 경우에만 방문자 ID와 함께 방문 통계에 남깁니다.
+        브라우저에서 추적 안 함(DNT/GPC)이 켜진 채 구독하면 이 기록은 남기지 않습니다.
+      </li>
+      <li>
+        <strong>해지</strong>: 설정에서 알림을 끄면 브라우저 구독을 해지하면서 서버에 저장한 구독 정보(구독 주소, 키, 방문자 ID)를 삭제합니다.
+        브라우저에서 알림 권한을 직접 끌 수도 있습니다. 보내려다 허용되지 않는 구독 주소로 확인된 구독은 비활성으로 바뀝니다.
+        <!-- [확인 필요] 비활성(deactivate)된 구독과 만료된 추적 토큰을 서버가 지우는 코드는 확인되지 않음(상태 파일에 남음). -->
+      </li>
+    </ul>
+
+    <h2>3. 쿠키와 브라우저 저장소</h2>
+    <p>
+      자체 통계와 PostHog는 쿠키 대신 <strong>브라우저 저장소(localStorage, sessionStorage)</strong>를 씁니다.
+      이 값은 내 브라우저에만 있고 사이트 데이터를 지우면 사라지며, 지우면 방문자 ID가 끊깁니다.
+    </p>
+    <ul>
+      <li><strong>식별·통계</strong>: 방문자 ID, 방문 횟수, 개발 트래픽 표시, 이번 세션 ID(탭을 닫으면 사라짐), 주소 <code>?from=</code> 유입 값, 공유 링크 유입 기록, PostHog SDK 상태</li>
+      <li><strong>설정·편의</strong>: 최소 금액 필터, 숨긴 브랜드, 브랜드 좋아요/싫어요, 홈 화면 시안 배정, 첫 방문 안내와 배너·말풍선을 봤거나 닫았는지, 쿠팡이츠 안내를 본 적 있는지, 알림 사용 여부와 알림 안내 노출 기록, 설문 참여·닫음 기록</li>
+      <li><strong>세션 임시값</strong>: 배달앱으로 나간 시각(돌아왔는지 보려고), 브랜드 노출 기록, 화면 새로고침 시각, 설문 시험 정보</li>
+    </ul>
     <p>
       재방문 여부를 더 정확히 보려고 <strong>Google Analytics(GA4)를 임시로</strong> 함께
-      사용합니다. 위 두 통계와 달리 <strong>쿠키를 사용하며 데이터가 Google로 전달</strong>됩니다.
-      저희 쪽에서 광고 개인화·Google Signals는 껐습니다. 트래픽 정확도 확보를 위한 임시 조치이며
+      사용합니다. 위 통계와 달리 <strong>쿠키(_ga)를 사용하며 데이터가 Google로 전달</strong>됩니다.
+      저희 쪽에서 광고 개인화·Google Signals는 껐고 IP 익명화를 켰습니다. 트래픽 정확도 확보를 위한 임시 조치이며
       목적을 달성하면 제거할 예정입니다.
     </p>
 
-    <h2>3. 보관 기간</h2>
-    <p>방문 통계와 검색어 기록은 <strong>3개월</strong> 보관한 뒤 지웁니다.</p>
-
-    <h2>4. 거부하는 방법</h2>
+    <h2>4. 이용하는 외부 서비스</h2>
+    <ul>
+      <li><strong>PostHog</strong>: 화면 행동 분석. 브라우저와 서버가 같은 이벤트를 보냅니다(방문자 ID로 묶음).</li>
+      <li><strong>Google Analytics(GA4)</strong>: 재방문 측정(임시). 쿠키 사용.</li>
+      <li><strong>Vercel Analytics</strong>: 쿠키 없는 페이지뷰 집계. 이 사이트의 호스팅도 Vercel입니다.</li>
+      <li><strong>Slack</strong>: 잘못된 정보 제보를 운영자에게 알리는 데만 씁니다.</li>
+      <li><strong>브라우저 푸시 서비스</strong>: 알림을 켜면 Google, Apple, Mozilla 등 브라우저 제공자의 푸시 서버로 알림이 전달됩니다.</li>
+    </ul>
     <p>
-      브라우저의 <strong>추적 안 함(DNT/GPC)</strong> 설정이 켜져 있으면 위 통계와 GA4를 모두 보내지 않습니다.
-      브라우저 설정에서 쿠키를 차단해도 됩니다. 거부해도 할인 목록은 그대로 쓸 수 있습니다.
+      이 서비스들을 광고 목적으로 쓰지 않습니다.
+      <!-- [확인 필요] PostHog 서버 위치는 서버 기본값이 미국(us.i.posthog.com)이며, 국외 이전 고지 문구와 서비스별 보관 기간은 확인되지 않음. -->
     </p>
 
-    <h2>5. 문의</h2>
+    <h2>5. 보관 기간</h2>
+    <p>방문 통계와 검색어 기록은 <strong>3개월</strong> 보관한 뒤 지웁니다.</p>
+    <!-- [확인 필요] 3개월 파기 절차: api 코드·설정(이벤트 원장 events.jsonl 회전·삭제 없음, ADR-011)에서 확인되지 않음. PostHog 보관 기간도 별도 확인 필요. -->
+
+    <h2>6. 거부하는 방법</h2>
+    <p>
+      브라우저의 <strong>추적 안 함(DNT/GPC)</strong> 설정이 켜져 있으면 위 통계와 GA4를 모두 보내지 않습니다.
+      브라우저 설정에서 쿠키를 차단하거나 사이트 데이터를 지워도 됩니다.
+      알림은 설정에서 끄면 서버에 저장한 구독 정보가 삭제됩니다. 거부해도 할인 목록은 그대로 쓸 수 있습니다.
+    </p>
+
+    <h2>7. 문의</h2>
     <ul>
       <li><a href="https://github.com/woowacourse-teams/2026-to-discount/issues">저장소 이슈</a></li>
       <li><a href="mailto:jkllhgb@gmail.com">jkllhgb@gmail.com</a></li>

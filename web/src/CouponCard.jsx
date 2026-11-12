@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './cardId.js'
+import { usePageMinute } from './pageNow.js'
 import { amountText, beforeOpen, chipsOf, onCard, onDetail, headOrder, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
@@ -292,6 +293,7 @@ const OPEN_MS = 280
 const LEAVE_MS = 220
 function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, onReact, reaction = 'none', leaving = false, photo = false, compact = false, sharedKey, onShareTargetVisible }) {
   const { best, rest, hasBest, bundles } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
+  usePageMinute() // 오픈 전 표시가 시각에 따라 바뀐다. 하이드레이션 중엔 서버 시각, 이후 분마다 다시 그린다(pageNow.js)
   const [phase, setPhase] = useState(false)
   const [cur, setCur] = useState(0) // 캐러셀에서 보이는 쿠폰. 브랜드명 옆 배지가 이걸 따른다
   const [settled, setSettled] = useState(false) // 다 열린 뒤에는 overflow를 풀어 쿠폰 그림자가 잘리지 않게 한다

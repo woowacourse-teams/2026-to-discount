@@ -1,8 +1,11 @@
 package com.discounttracker.web;
 
+import com.discounttracker.analytics.ClientFingerprint;
+import com.discounttracker.analytics.EventRateLimiter;
 import com.discounttracker.push.PushProperties;
 import com.discounttracker.push.PushEndpointPolicy;
 import com.discounttracker.push.PushStateStore;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,10 +21,14 @@ import java.util.Map;
 public class PushSubscriptionController {
     private final PushProperties properties;
     private final PushStateStore store;
+    private final ClientFingerprint fingerprint;
+    /** 공개 등록 경로가 파일을 무한히 키우지 못하게 IP별로 분당 10건만 받는다. */
+    private final EventRateLimiter limiter = new EventRateLimiter();
 
-    public PushSubscriptionController(PushProperties properties, PushStateStore store) {
+    public PushSubscriptionController(PushProperties properties, PushStateStore store, ClientFingerprint fingerprint) {
         this.properties = properties;
         this.store = store;
+        this.fingerprint = fingerprint;
     }
 
     @GetMapping("/public-key")
@@ -31,8 +38,9 @@ public class PushSubscriptionController {
     }
 
     @PostMapping("/subscriptions")
-    public ResponseEntity<?> subscribe(@RequestBody SubscriptionRequest request) {
+    public ResponseEntity<?> subscribe(@RequestBody SubscriptionRequest request, HttpServletRequest http) {
         if (!properties.configured()) return ResponseEntity.status(503).body(Map.of("enabled", false));
+        if (!limiter.tryConsume(fingerprint.hashForLimit(http), 12)) return ResponseEntity.status(429).body(Map.of("error", "rate_limited"));
         if (request == null || request.keys() == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "invalid_subscription"));
         }

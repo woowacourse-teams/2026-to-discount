@@ -1,6 +1,7 @@
 import { isBundle, isUpdated } from './filters.js'
 import { track } from './analytics.js'
 import { badgesOf, beforeOpen } from './couponModel.js'
+import { usePageMinute } from './pageNow.js'
 import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
 import { PlatformBadge } from './logos.jsx'
 
@@ -29,6 +30,7 @@ const NATURE_KINDS = new Set(['qualifier-plain', 'qualifier-random', 'rate'])
 // 없다. 상세를 여는 버튼 경로는 남겨두되 지금은 안 쓰인다(링크가 있는
 // 칩은 링크가 우선이라 카드 헤더로 펼친다).
 export default function OfferChip({ offer, brandLinks, brandName, detailId, open, onToggle, best, hero, include = null, position = null }) {
+  usePageMinute() // beforeOpen이 시각을 쓴다(pageNow.js)
   const held = offer.status === 'held'
   // "최대"는 최소주문금액을 채워야 나오는 상한액이고 "특정메뉴"는 메뉴 하나에만 쓰는
   // 값이다 — 둘 다 최고 할인·정렬에서 빠지는 값이라(filters.INCOMPARABLE) 액면대로 읽히지

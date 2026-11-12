@@ -30,6 +30,17 @@ class PushStateStoreTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
+    void rejectsNewSubscriptionsOverCapacityButStillUpdatesExisting() {
+        PushStateStore store = new PushStateStore(properties(), mapper, clock);
+        store.maxSubscriptions = 2;
+        store.upsert("https://fcm.googleapis.com/0", "k", "a", "v", true);
+        store.upsert("https://fcm.googleapis.com/1", "k", "a", "v", true);
+        assertThatThrownBy(() -> store.upsert("https://fcm.googleapis.com/2", "k", "a", "v", true))
+                .isInstanceOf(IllegalArgumentException.class);
+        store.upsert("https://fcm.googleapis.com/0", "k", "a", "v2", true);
+    }
+
+    @Test
     void updatesVisitorAndRestoresStateWithoutCreatingDuplicateActivation() {
         PushProperties properties = properties();
         PushStateStore store = new PushStateStore(properties, mapper, clock);

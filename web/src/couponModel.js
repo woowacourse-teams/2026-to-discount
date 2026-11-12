@@ -2,6 +2,7 @@
 // 명세: tracker docs/superpowers/specs/2026-10-03-home-a-display-model.md
 import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated, isBundle } from './filters.js'
 export { isUpdated }
+import { pageNow } from './pageNow.js'
 
 const byMinOrder = (a, b) => (a.minOrderAmount ?? Infinity) - (b.minOrderAmount ?? Infinity)
 const QUALIFIER_BADGE = {
@@ -75,7 +76,7 @@ export function badgesOf(offer, { showBestFit = true, shortTime = true } = {}) {
  * 선착순이 아직 안 열렸나. 배지 "오전 10시 오픈"의 시각이 지금보다 뒤면 참. 오픈 전은 품절과 같은 모양으로 그린다(2026-11-04 사용자).
  * ponytail: 시각만 본다(날짜 무시). 수집이 그날 아침 오퍼를 다시 쓰니 충분하다. 요일 행사가 남으면 날짜를 더한다.
  */
-export function beforeOpen(offer, now = new Date()) {
+export function beforeOpen(offer, now = pageNow()) {
   const m = (offer.badge ?? '').match(/^(오전|오후)\s*(\d+)시(?:\s*(\d+)분)?\s*오픈/)
   if (!m) return false
   const h = (Number(m[2]) % 12) + (m[1] === '오후' ? 12 : 0) // 오후 12시 = 12, 오전 12시 = 0

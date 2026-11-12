@@ -1,6 +1,7 @@
 package com.discounttracker.web;
 
 import com.discounttracker.analytics.AnalyticsEventService;
+import com.discounttracker.analytics.ClientFingerprint;
 import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.comparison.BrandComparisonService;
 import com.discounttracker.push.BannerNotificationService;
@@ -12,6 +13,7 @@ import com.discounttracker.push.WebPushSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.mock.web.MockHttpServletRequest;
 import tools.jackson.databind.ObjectMapper;
 
 import java.nio.file.Files;
@@ -50,7 +52,7 @@ class PushStateWriteEntryPointTest {
         var token = store.createToken("n", subscription.id(), List.of("b"), "digest");
 
         Files.delete(file);
-        new PushSubscriptionController(disabled, store)
+        new PushSubscriptionController(disabled, store, new ClientFingerprint())
                 .unsubscribe(new PushSubscriptionController.UnsubscribeRequest("https://fcm.googleapis.com/x"));
         assertThat(file).exists();
 
@@ -69,12 +71,31 @@ class PushStateWriteEntryPointTest {
     void subscribeAndSchedulerDoNotWriteWhenDisabled() {
         var request = new PushSubscriptionController.SubscriptionRequest(
                 "https://fcm.googleapis.com/x", new PushSubscriptionController.Keys("k", "a"), "v", true);
-        var response = new PushSubscriptionController(disabled, store).subscribe(request);
+        var response = new PushSubscriptionController(disabled, store, new ClientFingerprint())
+                .subscribe(request, new MockHttpServletRequest());
         assertThat(response.getStatusCode().value()).isEqualTo(503);
 
         new NewOfferNotificationService(disabled, store, mock(WebPushSender.class),
                 mock(PushMessageFactory.class), mock(BrandComparisonService.class), clock).sendDueOffer();
 
         assertThat(file).doesNotExist();
+    }
+
+    @Test
+    void subscribeIsRateLimitedPerClient() {
+        var enabled = new PushProperties(true, "public", "private", "mailto:t@example.com", file,
+                "https://front.example/", "https://api.example");
+        var controller = new PushSubscriptionController(enabled, store, new ClientFingerprint());
+        var request = new PushSubscriptionController.SubscriptionRequest(
+                "https://fcm.googleapis.com/x", new PushSubscriptionController.Keys("k", "a"), "v", true);
+        var http = new MockHttpServletRequest();
+        http.addHeader("X-Real-IP", "203.0.113.9");
+        int last = 0;
+        for (int i = 0; i < 11; i++) last = controller.subscribe(request, http).getStatusCode().value();
+        assertThat(last).isEqualTo(429);
+
+        var other = new MockHttpServletRequest();
+        other.addHeader("X-Real-IP", "203.0.113.10");
+        assertThat(controller.subscribe(request, other).getStatusCode().value()).isEqualTo(200);
     }
 }

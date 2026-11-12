@@ -20,6 +20,7 @@ import { initializeShareAttribution } from './shareAttribution.js'
 import './App.css'
 import { exitGuard, homeUnderDirectLanding } from './backClose.js'
 import { showNotice } from './offerLink.js'
+import { goLive } from './pageNow.js'
 
 // 홈 카드 A/B(#291): 이번 방문의 안을 첫 이벤트 전에 정한다. 이벤트마다 props.home(+ 강제면 home_forced)로 실린다.
 const { arm: homeArm, forced: homeForced, save: homeSave } = currentHomeArm({
@@ -117,6 +118,7 @@ const makeTree = (home) => (
     {!optedOut() && !quiet && <Analytics />}
   </React.StrictMode>
 )
+if (!ssr || homeArm === 'v2') goLive() // 하이드레이션하지 않는 경로는 처음부터 실시간. 하이드레이션은 App이 마운트된 뒤에 푼다
 const tree = makeTree(<App initial={ssr} />)
 const rootEl = document.getElementById('root')
 // ?home=a면 쿠폰 카드 조각을 하이드레이션 전에 미리 받는다(받는 동안 운영 카드가 보였다가 바뀌는 깜박임과 최대 콘텐츠 표시 시간 손해를 줄인다).
