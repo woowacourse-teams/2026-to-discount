@@ -85,7 +85,7 @@ runner가 배포 도구 자체를 교체할 수 있도록 권한을 추가하지
 실행 ID, 커밋, 저장소, 브랜치와 SHA-256을 검증한 뒤 JAR를 배치한다.
 서비스 재시작 후 내부와 외부 brands API의 JSON 응답을 확인한다.
 실패 시 이전 JAR를 복원한다. 첫 배포 실패는 서비스를 중단한다.
-재적재 API `/api/reload`는 외부 Nginx에서 차단한다.
+재적재 API `/api/reload`는 외부 Nginx에서 차단한다. 앱도 `X-Forwarded-For`가 있거나 루프백이 아닌 요청에 403을 준다.
 
 성공 버전은 애플리케이션 루트의 `deployment.json`과 `deployments.jsonl`에 기록한다.
 버전 JAR는 `releases` 아래에 남는다. 설치 변경 복구 시에는 비공개 백업을 사용하고

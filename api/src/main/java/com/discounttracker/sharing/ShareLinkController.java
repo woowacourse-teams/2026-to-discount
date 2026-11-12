@@ -20,7 +20,7 @@ public class ShareLinkController {
     @PostMapping
     public ResponseEntity<?> create(@RequestBody(required = false) ShareLinkStore.Target target, HttpServletRequest request) throws IOException {
         if (target == null || !target.valid()) return ResponseEntity.badRequest().build();
-        if (!limiter.tryConsume(fingerprint.hash(request), 4)) return ResponseEntity.status(429).build();
+        if (!limiter.tryConsume(fingerprint.hashForLimit(request), 4)) return ResponseEntity.status(429).build();
         return ResponseEntity.ok().header("Cache-Control", "no-store").body(Map.of("code", store.create(target)));
     }
     @GetMapping("/{code}")

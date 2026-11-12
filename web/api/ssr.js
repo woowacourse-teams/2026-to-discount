@@ -41,7 +41,9 @@ export default async function handler(_req, res) {
   let body = withCouponCss(template)
   try {
     const data = await loadData()
-    body = withCouponCss(inject(template, await render(data), data))
+    // 서버가 HTML을 그린 시각. 브라우저가 하이드레이션 동안 같은 시각으로 "n시 오픈"을 판정한다(src/pageNow.js).
+    const renderedAt = Date.now()
+    body = withCouponCss(inject(template, await render(data), { ...data, renderedAt }))
     res.setHeader('x-ssr', '1')
     // CDN이 5분 들고, 그 뒤 5분까지는 낡은 걸 주면서 뒤에서 새로 그린다.
     // 하루 세 번 바뀌는 금액이 최대 약 10분 늦는다(2026-10-14, 요청 수 줄이기). 실패한 응답은 CDN에 안 둔다.

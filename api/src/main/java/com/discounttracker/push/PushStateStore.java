@@ -64,6 +64,11 @@ public class PushStateStore {
         this.signature = signatureOf();
     }
 
+    /** 인증 없는 등록 경로가 저장 파일을 무한히 키우지 못하게 하는 상한. */
+    static final int MAX_SUBSCRIPTIONS = 20_000;
+    /** 시험에서만 줄인다. */
+    int maxSubscriptions = MAX_SUBSCRIPTIONS;
+
     public synchronized PushSubscription upsert(String endpoint, String p256dh, String auth,
                                                 String visitorId, boolean analyticsEnabled) {
         require(endpoint, "endpoint");
@@ -74,6 +79,8 @@ public class PushStateStore {
         return mutate(s -> {
             Instant now = clock.instant();
             PushSubscription old = s.subscriptions.get(id);
+            if (old == null && s.subscriptions.size() >= maxSubscriptions)
+                throw new IllegalArgumentException("subscription capacity reached");
             PushSubscription saved = new PushSubscription(id, endpoint, p256dh, auth, visitorId,
                     analyticsEnabled, old == null ? now : old.createdAt(), now, true);
             s.subscriptions.put(id, saved);

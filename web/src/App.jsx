@@ -1,6 +1,8 @@
 import { afterHistorySettles, useBackClose } from './backClose.js'
 import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
+import { goLive } from './pageNow.js'
+import { importRetry } from './lazyRetry.js'
 import { fetchBanners, fetchBrands } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
@@ -8,12 +10,12 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
 import TopBarB from './TopBarB.jsx'
 import PopularDock from './PopularDock.jsx'
-const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
-const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
+const FilterSheet = lazy(() => importRetry(() => import('./FilterSheet.jsx')))
+const FirstVisitGuide = lazy(() => importRetry(() => import('./FirstVisitGuide.jsx')))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, revealFilters, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
-const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
-const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
+const HiddenBrandsSheet = lazy(() => importRetry(() => import('./HiddenBrandsSheet.jsx')))
+const HideBrandAsk = lazy(() => importRetry(() => import('./HideBrandAsk.jsx')))
 // 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
 // 서버 화면을 버리고 다시 그렸다(React #421 x 카드 수, TBT 2.3초, 2026-10-14). 15KB.
 import CouponCard from './CouponCard.jsx'
@@ -27,9 +29,9 @@ import { captureRects, playShift, readCards } from './cardShift.js'
 const LEAVE_MS = 100
 const SHIFT_PAUSE_MS = 400
 // 설문 카드는 누른 뒤에만 열린다 — 첫 화면 묶음에서 뺀다(2026-10-06 성능).
-const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
-const InlineSurveyCard = lazy(() => import('./SurveyCard.jsx').then(module => ({ default: module.InlineSurveyCard })))
-const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
+const SurveyCard = lazy(() => importRetry(() => import('./SurveyCard.jsx')))
+const InlineSurveyCard = lazy(() => importRetry(() => import('./SurveyCard.jsx').then(module => ({ default: module.InlineSurveyCard }))))
+const SurveyDock = lazy(() => importRetry(() => import('./SurveyDock.jsx')))
 import { useSurvey } from './useSurvey.js'
 import { canPreviewSurvey } from './pmfSurvey.js'
 import { useScrollMore } from './MenuBar.jsx'
@@ -183,7 +185,7 @@ export default function App({ initial = null, Card = CouponCard, mainClassName }
   // 개발 서버(vite)에서만 여기서 처음 받는다.
   useEffect(() => { import('./styles/coupon-card.css') }, [])
   const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => { setMounted(true); goLive() }, []) // 하이드레이션이 끝났으니 오픈 시각 판정을 실시간으로(pageNow.js)
   // 첫 방문 안내(firstVisitGuide.js). 2026-10-14부터 ?guide=1로만 뜬다. 카드가 그려진 뒤에 띄운다.
   const [guideOn, setGuideOn] = useState(false)
   const guideChecked = useRef(false)
