@@ -337,8 +337,46 @@ export function includesFrom(f) {
 // 인기·최신은 방향 버튼이 없다. 항상 높은 순(많이 눌린 순, 최근 순).
 const FIXED_DIR = { popularity: 'desc', recent: 'desc' }
 
+/** 쿠폰 금액 옆 채널 칩("포장", "배달"). 금액이 같은 구간의 채널, 없으면 badge 글자에서. 모르면 null(있을 때만 그린다). */
+export function channelOf(offer) {
+  const tier = (offer.tiers ?? []).find((t) => t.channel && t.amount === offer.amount)
+  if (tier) return tier.channel
+  const m = /포장|배달/.exec(offer.badge ?? '')
+  return m ? m[0] : null
+}
+
+// #351. 동점 가르기. 앞 키가 같을 때만 다음 키(최소주문 → 채널 → 멤버십 → 플랫폼).
+// 플랫폼 순서는 PLATFORMS(필터 칩 순서: 땡겨요가 요기요 앞)와 다르다. 따로 둔다.
+const TIE_PLATFORM_ORDER = ['baemin', 'coupangeats', 'yogiyo', 'ddangyo']
+const TIE_CHANNEL_RANK = { 배달: 1, 포장: 2 } // null, '배달/포장'은 0, 그 밖은 3
+const rankOf = (order, v) => { const i = order.indexOf(v); return i < 0 ? order.length : i }
+const channelRank = (o) => { const c = channelOf(o); return c == null || c === '배달/포장' ? 0 : (TIE_CHANNEL_RANK[c] ?? 3) }
+const hasMembership = (o) => (o.membership && o.membership !== 'none' ? 1 : 0)
+// 둘 다 모르면 0. (null ?? Infinity) 끼리 빼면 NaN이 나온다.
+const byMin = (a, b) => (a == null && b == null ? 0 : (a ?? Infinity) - (b ?? Infinity))
+
+export function compareOfferTie(a, b) {
+  return byMin(a.minOrderAmount, b.minOrderAmount)
+    || channelRank(a) - channelRank(b)
+    || hasMembership(a) - hasMembership(b)
+    || rankOf(TIE_PLATFORM_ORDER, a.platform) - rankOf(TIE_PLATFORM_ORDER, b.platform)
+}
+export function compareOffers(a, b) {
+  return (b.amount ?? -1) - (a.amount ?? -1) || compareOfferTie(a, b)
+}
+
+/** 브랜드 목록의 동점 가르기에 쓰는 대표 오퍼. 카드 대표(splitOffers의 best)와 같은 집합에서 compareOfferTie로 가장 앞선 것. 없으면 null. */
+export function tieRepresentative(offers, include) {
+  // 묶음 행사는 comparable이 거짓이라 따로 거르지 않아도 빠진다.
+  const top = displayBestAmount(offers, include)
+  if (top == null) return null
+  const cands = offers.filter((o) => comparable(o, include) && !o.soldOut && o.amount === top)
+  return cands.sort(compareOfferTie)[0] ?? null
+}
+
 export function sortBrands(brands, { sorts, includeRandom = false, include = null }) {
   const inc = include ?? includeRandom
+  const reps = new Map(brands.map((b) => [b, tieRepresentative(b.offers, inc)]))
   // 인기순·최신순은 "무엇으로 줄 세우나"라 고르면 맨 앞이다. 할인금액이 기본으로 켜져 있어
   // 뒤에 두면 인기순이 동점 처리에만 쓰여 눌러도 화면이 안 바뀐다(2026-09-19 실측).
   const PRECEDENCE = ['popularity', 'recent', 'amount', 'minOrder']
@@ -366,6 +404,10 @@ export function sortBrands(brands, { sorts, includeRandom = false, include = nul
         return (typeof av === 'string' ? av.localeCompare(bv) : av - bv) * d
       }
     }
+    // 대표 오퍼 키(최소주문 → 채널 → 멤버십 → 플랫폼). 대표 없는 쪽이 뒤: 이름으로 바로 넘기면 순환이 생긴다.
+    const ar = reps.get(a)
+    const br = reps.get(b)
+    if (ar && br) { const t = compareOfferTie(ar, br); if (t) return t } else if (ar || br) return ar ? -1 : 1
     // 값이 같으면 이름으로 고정한다 — 안 그러면 같은 입력에 순서가 흔들린다.
     return a.name.localeCompare(b.name, 'ko')
   })
