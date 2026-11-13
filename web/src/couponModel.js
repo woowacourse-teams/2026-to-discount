@@ -1,10 +1,9 @@
 // 쿠폰 브랜드 카드(메인 화면 A안 16차)의 계산. 화면 없이 테스트한다.
 // 명세: tracker docs/superpowers/specs/2026-10-03-home-a-display-model.md
-import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated, isBundle } from './filters.js'
-export { isUpdated }
+import { MEMBERSHIP_LABEL, comparable, displayBestAmount, isUpdated, isBundle, channelOf, compareOffers, compareOfferTie } from './filters.js'
+export { isUpdated, channelOf }
 import { pageNow } from './pageNow.js'
 
-const byMinOrder = (a, b) => (a.minOrderAmount ?? Infinity) - (b.minOrderAmount ?? Infinity)
 const QUALIFIER_BADGE = {
   최대: { kind: 'qualifier-plain', text: '불확정' },
   랜덤: { kind: 'qualifier-random', text: '랜덤' },
@@ -27,10 +26,10 @@ export function splitOffers(all, include) {
   const sorted = [...offers].sort((a, b) => {
     const am = a.qualifier === '최대' ? 1 : 0
     const bm = b.qualifier === '최대' ? 1 : 0
-    return am - bm || (b.amount ?? -1) - (a.amount ?? -1)
+    return am - bm || compareOffers(a, b)
   })
-  // 동점 최고 중 신규를 캐러셀 첫 장으로(2026-10-15 사용자). 신규끼리, 나머지끼리는 최소주문 순서 그대로.
-  const best = sorted.filter(isBest).sort((a, b) => isUpdated(b) - isUpdated(a) || byMinOrder(a, b))
+  // 동점 최고 중 신규를 캐러셀 첫 장으로(2026-10-15 사용자). 신규끼리, 나머지끼리는 최소주문, 채널, 멤버십, 플랫폼 순(#351).
+  const best = sorted.filter(isBest).sort((a, b) => isUpdated(b) - isUpdated(a) || compareOfferTie(a, b))
   if (best.length > 0) return { best, rest: sorted.filter((x) => !isBest(x)), hasBest: true, bundles }
   return { best: sorted.slice(0, 1), rest: sorted.slice(1), hasBest: false, bundles }
 }
@@ -225,14 +224,6 @@ export function shortBrandName(brand, limit = 10) {
 export function nameCutPx(name) {
   const len = [...name].length
   return Math.round(Math.max(0, len - 8) * 0.7 * 10) / 10
-}
-
-/** 쿠폰 금액 옆 채널 칩("포장", "배달"). 금액이 같은 구간의 채널, 없으면 badge 글자에서. 모르면 null(있을 때만 그린다). */
-export function channelOf(offer) {
-  const tier = (offer.tiers ?? []).find((t) => t.channel && t.amount === offer.amount)
-  if (tier) return tier.channel
-  const m = /포장|배달/.exec(offer.badge ?? '')
-  return m ? m[0] : null
 }
 
 export function amountText(offer) {
