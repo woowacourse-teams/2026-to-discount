@@ -1,6 +1,7 @@
-# 정본: 병합된 PR 본문의 "### 후속 조치"를 이슈로 만든다. mono와 tracker가 같이 부른다.
+# 정본: 병합된 PR 본문의 "### 후속 조치"를 이슈 버퍼 계획으로 쌓는다(2026-11-13: 이슈를 바로 만들지 않는다). mono와 tracker가 같이 부른다.
+# 버퍼는 PR의 마커 댓글(`<!-- issue-buffer:v1 -->`)이다. 한 번에 올리는 절차는 tracker docs/public/WORKFLOW.md 7-5와 scripts/issue_buffer.py.
 # 규칙의 정본은 mono .claude/skills/pr-body-ko/SKILL.md "후속 조치" 절이다.
-# 세션은 계획 파일(JSON)만 쓴다. 이슈 생성은 아래 단계가 저장소마다 App 토큰을 골라 한다. 세션에 두 저장소 쓰기 토큰을 주지 않기 위함이다.
+# 세션은 계획 파일(JSON)만 쓴다. 댓글은 아래 단계가 단다. 세션에 쓰기 토큰을 주지 않기 위함이다.
 name: wf-followups
 on:
   workflow_call:
@@ -64,7 +65,9 @@ jobs:
             echo
             gh api "repos/$GH_REPO/pulls/$PR" -q '.body // ""'
             echo
-            echo "# 이미 만든 후속 이슈 표식"
+            echo "# 이미 쌓았거나 만든 후속 항목 표식"
+            gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '.[].body' |
+              grep -o "followup:$GH_REPO#$PR:[0-9]*" || true
             for r in "$GH_REPO" "$OTHER_OWNER/$OTHER_NAME"; do
               t=$GH_TOKEN; [ "$r" = "$GH_REPO" ] || t=$OTHER_TOKEN
               GH_TOKEN=$t gh issue list -R "$r" --state all --search "followup:$GH_REPO#$PR" --json body \
@@ -115,48 +118,42 @@ jobs:
           claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           allowed_bots: "2026-to-discount"
           prompt: |
-            병합된 PR ${{ github.repository }}#${{ github.event.pull_request.number }} 의 후속 조치를 이슈 계획으로 만드는 세션이다.
+            병합된 PR ${{ github.repository }}#${{ github.event.pull_request.number }} 의 후속 조치를 이슈 버퍼 계획으로 쓰는 세션이다. 이슈를 바로 만들지 않고 계획만 쓴다.
             ${{ env.skill }} 의 "후속 조치" 절과 "0. 문장" 절을 먼저 읽고 따른다.
             입력은 ${{ runner.temp }}/followup-input.md 하나다. 저장소 파일은 고칠 자리를 확인할 때만 읽는다.
             할 일:
             - 후속 조치 항목을 읽는다. 같은 일인 항목은 한 이슈로 묶는다. 이미 표식이 있는 항목 번호는 뺀다.
             - 고칠 곳에 따라 저장소를 고른다. 수집, 원장, 내보내기는 nn98/delivery-discount-tracker(영역 라벨 export 또는 collect). 웹은 woowacourse-teams/2026-to-discount 의 web, 서버는 api.
               워크플로나 하네스처럼 영역이 없으면 라벨을 비운다.
-            - 이슈 본문은 PR을 열지 않고도 일할 수 있게 쓴다. 절: 개요, 배경(출처 PR의 배경 요약), 할 일, 끝 조건, 참고(출처 PR 번호).
+            - 계획의 body는 나중에 이슈 본문이 된다. PR을 열지 않고도 일할 수 있게 쓴다. 절: 개요, 배경(출처 PR의 배경 요약), 할 일, 끝 조건, 참고(출처 PR 번호).
               woowacourse-teams/2026-to-discount 는 공개 저장소다. 서버 경로, 비공개 파일 이름, 비밀값을 쓰지 않는다.
             결과는 Write로 ${{ runner.temp }}/followups.json 하나에 쓴다. 형식:
             [{"repo": "<owner/name>", "title": "<제목>", "labels": ["export"], "items": [1, 2], "body": "<본문 마크다운>"}]
-            만들 것이 없으면 [] 를 쓴다. 이슈를 직접 만들거나 댓글을 달지 않는다.
+            만들 것이 없으면 [] 를 쓴다. 이슈를 만들거나 댓글을 달지 않는다. 이슈는 사람이 버퍼를 플러시할 때 올라간다.
           claude_args: --max-turns 15 --allowedTools "Read,Grep,Glob,Write"
-      # 계획대로 이슈를 만든다. 저장소는 이 저장소와 짝 저장소만 받는다. 항목 표식으로 다시 돌아도 같은 이슈를 안 만든다.
-      - name: 이슈 만들기
+      # 계획을 이슈로 만들지 않고 PR에 마커 댓글로 쌓는다. 항목 표식으로 다시 돌아도 같은 항목을 또 쌓지 않는다(입력 준비 단계가 표식을 뺀다).
+      # 저장소는 이 저장소와 짝 저장소만 받는다. 플러시는 tracker scripts/issue_buffer.py가 한다.
+      - name: 버퍼 댓글 쓰기
         env:
-          # 이 저장소 이슈는 기본 토큰으로 만든다. tracker App 설치에 이슈 권한이 없어 createIssue가 거부됐다(2026-10-22 tracker #33).
           SELF_TOKEN: ${{ github.token }}
-          OTHER_TOKEN: ${{ steps.other.outputs.token }}
         run: |
           f="$RUNNER_TEMP/followups.json"
           [ -s "$f" ] || { echo "계획 파일 없음"; exit 1; }
           jq -e 'type == "array"' "$f" > /dev/null
-          : > "$RUNNER_TEMP/made.md"
-          for i in $(jq -r 'keys[]' "$f"); do
-            repo=$(jq -r ".[$i].repo" "$f")
-            case "$repo" in
-              "$GH_REPO") t=$SELF_TOKEN ;;
-              "$OTHER_OWNER/$OTHER_NAME") t=$OTHER_TOKEN ;;
-              *) echo "모르는 저장소 건너뜀: $repo"; continue ;;
-            esac
-            marks=$(jq -r ".[$i].items | map(\"<!-- followup:$GH_REPO#$PR:\(.) -->\") | join(\"\n\")" "$f")
-            { jq -r ".[$i].body" "$f"; echo; echo "출처: https://github.com/$GH_REPO/pull/$PR 의 후속 조치."; echo; echo "$marks"; } > "$RUNNER_TEMP/b.md"
-            args=()
-            for lb in $(jq -r ".[$i].labels[]?" "$f"); do args+=(--label "$lb"); done
-            url=$(GH_TOKEN=$t gh issue create -R "$repo" --title "$(jq -r ".[$i].title" "$f")" "${args[@]}" --body-file "$RUNNER_TEMP/b.md")
-            echo "- $(jq -r ".[$i].title" "$f"): $url" >> "$RUNNER_TEMP/made.md"
-          done
-          if [ -s "$RUNNER_TEMP/made.md" ]; then
-            { echo "후속 조치 이슈:"; cat "$RUNNER_TEMP/made.md"; } > "$RUNNER_TEMP/c.md"
-            GH_TOKEN=$SELF_TOKEN gh pr comment "$PR" -R "$GH_REPO" --body-file "$RUNNER_TEMP/c.md"
-          fi
+          jq -c --arg o "$OTHER_OWNER/$OTHER_NAME" --arg s "$GH_REPO" '[.[] | select(.repo == $o or .repo == $s)]' "$f" > "$RUNNER_TEMP/ok.json"
+          [ "$(jq length "$RUNNER_TEMP/ok.json")" -gt 0 ] || { echo "쌓을 항목 없음"; exit 0; }
+          {
+            echo "<!-- issue-buffer:v1 -->"
+            echo "이슈 버퍼에 쌓은 후속 항목이다. 아직 이슈가 아니다. 사람이 버퍼를 플러시할 때 중복, 충돌을 정리해 올린다."
+            for i in $(jq -r 'keys[]' "$RUNNER_TEMP/ok.json"); do
+              echo
+              jq -r --argjson i "$i" --arg k "$GH_REPO#$PR" '.[$i].items[] | "<!-- followup:\($k):\(.) -->"' "$RUNNER_TEMP/ok.json"
+              echo '```json'
+              jq ".[$i] + {source: \"$GH_REPO#$PR\"}" "$RUNNER_TEMP/ok.json"
+              echo '```'
+            done
+          } > "$RUNNER_TEMP/c.md"
+          GH_TOKEN=$SELF_TOKEN gh pr comment "$PR" -R "$GH_REPO" --body-file "$RUNNER_TEMP/c.md"
       - name: 거부된 도구와 턴 수
         if: always() && steps.claude.outputs.execution_file != ''
         env:
