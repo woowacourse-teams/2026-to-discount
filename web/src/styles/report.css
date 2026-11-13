@@ -95,3 +95,11 @@
 .report-tip { transition: opacity .4s ease; }
 .report-tip--out { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .report-tip { transition: none; } }
+
+/* 내 제보 목록(설계 311). 360px에서 한 줄: 왼쪽은 말줄임, 상태는 줄이지 않는다 */
+.my-reports { margin-top: .6rem; }
+.my-reports__title { margin: 0 0 .3rem; font-size: .85rem; font-weight: 700; }
+.my-reports__list { list-style: none; margin: 0; padding: 0; }
+.my-reports__row { display: flex; justify-content: space-between; gap: .6rem; padding: .4rem 0; border-top: 1px solid var(--border, rgba(0,0,0,.08)); font-size: .82rem; }
+.my-reports__what { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.my-reports__status { flex: none; font-weight: 600; }
