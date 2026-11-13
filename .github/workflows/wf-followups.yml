@@ -66,7 +66,8 @@ jobs:
             gh api "repos/$GH_REPO/pulls/$PR" -q '.body // ""'
             echo
             echo "# 이미 쌓았거나 만든 후속 항목 표식"
-            gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '.[].body' \n              | grep -o "followup:$GH_REPO#$PR:[0-9]*" || true
+            gh api "repos/$GH_REPO/issues/$PR/comments" --paginate -q '.[].body' |
+              grep -o "followup:$GH_REPO#$PR:[0-9]*" || true
             for r in "$GH_REPO" "$OTHER_OWNER/$OTHER_NAME"; do
               t=$GH_TOKEN; [ "$r" = "$GH_REPO" ] || t=$OTHER_TOKEN
               GH_TOKEN=$t gh issue list -R "$r" --state all --search "followup:$GH_REPO#$PR" --json body \
