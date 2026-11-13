@@ -1,4 +1,5 @@
 import { resolveApiBase } from './apiBase.js'
+import { settleYogiyoCaps } from './filters.js'
 
 // 브라우저와 SSR은 같은 빌드 설정을 사용한다. 상대경로나 /api 프록시로 대체하지 않는다.
 export const API_BASE = resolveApiBase(import.meta.env?.VITE_API_BASE_URL, import.meta.env?.VITE_APP_ENV)
@@ -6,7 +7,7 @@ export const API_BASE = resolveApiBase(import.meta.env?.VITE_API_BASE_URL, impor
 export async function fetchBrands() {
   const res = await fetch(`${API_BASE}/api/brands`)
   if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json()
+  return settleYogiyoCaps(await res.json())
 }
 
 // 오늘 띄울 배너만 내려온다 — 기간 판정은 서버(Asia/Seoul)가 하고 정렬도

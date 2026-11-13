@@ -65,6 +65,16 @@ export const MEMBERSHIP_OPTIONS = [
 // 업데이트: 이 오퍼(앱, 브랜드, 금액)를 오늘(한국 시각) 처음 봤다 = 어제와 다르다(새로 생겼거나 금액이 바뀌었다).
 // 방문자별 판정은 하지 않는다(2026-10-04 사용자). firstSeenAt은 tracker export_data.first_seen이 채운다.
 const kstDay = (t) => new Date(t + 9 * 3600e3).toISOString().slice(0, 10)
+// 요기요는 % 할인 쿠폰을 없애고 정가 쿠폰만 남겼다(2026-11-08 사용자). 원장에 "즉시 최대 N원"으로 적혀 최대(상한)로 내려온
+// 요기요 오퍼의 금액은 그 주문금액에서 받는 확정 금액이다. 불확정으로 그리거나 정렬 맨 아래로 두지 않도록 받자마자 확정으로 읽는다.
+// 서버가 내려주는 qualifier, certainty는 그대로 두고 웹이 읽는 값만 바꾼다. 서버 쪽 정리는 원장이 바뀔 때까지의 다리다.
+const yogiyoCapped = (o) => o.platform === 'yogiyo' && o.qualifier === '최대'
+export function settleYogiyoCaps(brands) {
+  return brands.map((b) => (b.offers?.some(yogiyoCapped)
+    ? { ...b, offers: b.offers.map((o) => (yogiyoCapped(o) ? { ...o, qualifier: null, certainty: 'exact' } : o)) }
+    : b))
+}
+
 /** 최고 확정 할인액을 내는 오퍼 중 신규가 있나. 신규 탭과 그 개수가 쓴다. */
 export function hasNewBest(offers, include = false) {
   const best = bestConfirmedAmount(offers, include)
@@ -74,9 +84,10 @@ export function hasNewBest(offers, include = false) {
 // 서버가 이력으로 판정한 값(isNew)이 있으면 그것을 따른다(설계 2026-10-09). null = 이력 없음, 신규로 안 친다.
 // 칸이 아예 없는 옛 응답만 firstSeenAt 오늘 규칙을 쓴다.
 export function isUpdated(offer, now = Date.now()) {
-  if (offer && 'isNew' in offer) return offer.isNew === true
   const t = offer?.firstSeenAt ? Date.parse(offer.firstSeenAt) : NaN
-  return Number.isFinite(t) && kstDay(t) === kstDay(now)
+  const today = Number.isFinite(t) && kstDay(t) === kstDay(now)
+  if (offer && 'isNew' in offer) return offer.isNew === true
+  return today
 }
 
 export const MEMBERSHIP_FILTERABLE = { baeminClub: 'baemin', coupangEats: 'coupangeats' }

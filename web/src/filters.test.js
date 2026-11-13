@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { apiFile } from '../scripts/api-repo.mjs'
 import {
-  isUpdated,
+  isUpdated, settleYogiyoCaps,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
   hasNewBest, includesFrom, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES, SPECIAL_CATEGORIES,
@@ -449,4 +449,13 @@ test('한정, 랜덤 탭에서는 불확정(랜덤) 오퍼를 비교에 넣는�
   assert.equal(includesFrom(defaultFilters()).random, false)
   const got = applyFilters(special(), withCats('random'))
   assert.equal(displayBestAmount(got[0].offers, includesFrom(withCats('random'))), 7000)   // 불확정 7,000이 그 탭의 최고액이다
+})
+
+test('요기요의 최대는 확정 금액으로 읽어 불확정 표시와 정렬 꼴찌에서 벗어난다(2026-11-08)', () => {
+  const capped = { platform: 'yogiyo', amount: 11000, qualifier: '최대', certainty: 'capped', kind: 'discount', firstCome: true }
+  const other = { platform: 'baemin', amount: 9000, qualifier: '최대', certainty: 'capped', kind: 'discount' }
+  const [a, b] = settleYogiyoCaps([{ name: 'A', offers: [capped] }, { name: 'B', offers: [other] }])
+  assert.deepEqual([a.offers[0].qualifier, a.offers[0].certainty], [null, 'exact'])
+  assert.equal(comparable(a.offers[0]), true)
+  assert.equal(b.offers[0].qualifier, '최대') // 다른 앱은 그대로
 })
