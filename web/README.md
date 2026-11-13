@@ -1,4 +1,4 @@
-# 배달앱 브랜드 할인 비교 웹
+# 배달앱 브랜드 할인 비교 웹 (SaveEats)
 
 배달앱별 브랜드 할인을 한 화면에서 비교하는 MVP의 프론트엔드(React + Vite).
 백엔드는 같은 저장소의 [api/](../api)다. 원본 캡처와 데이터는
@@ -59,6 +59,13 @@ ADR-015.
   [ADR-002](docs/decisions/ADR-002-temporary-ga4-for-revisit-accuracy.md)
 - `src/main.jsx`: `@vercel/analytics/react`의 `<Analytics />`도 여기서
   마운트(Vercel 대시보드용, 자체 `analytics.js`와는 별개)
+- `src/pageNow.js`: 화면이 "지금"으로 치는 시각. 서버가 `renderedAt`을 `window.__SSR__`에 싣고,
+  하이드레이션이 끝날 때까지 '오픈 전' 판정 시각을 그 시각에 고정한다(`goLive()`로 풀린다)
+- `src/lazyRetry.js`: `React.lazy`용 `importRetry`. import가 실패하거나 `default` 없이 끝나면 한 번 더 시도한다
+- `public/about/index.html`: 서비스 소개 페이지(`/about`, 6장). `?s=1`~`?s=6`은 한 장만 보이는 임베드 모드(Google Sites 등)다.
+  `vercel.json`은 이 경로에만 `X-Frame-Options`를 빼서 임베드를 허용한다. 나머지 경로는 `SAMEORIGIN`
+- `public/og-image.png`: 링크 미리보기(`og:image`, `twitter:image`) 이미지, 1200x630
+- `vercel.json`: 보안 헤더(`X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`), 캐시 헤더, 리라이트
 - `public/logos/`: 브랜드 로고 (파일명 = API가 내려주는 대표명, 규칙은 `public/logos/README.md` 참고)
 - `public/platform-icons/`: 배민/쿠팡이츠/땡겨요/요기요 아이콘
 - `public/links/`: 각 앱에서 공유 기능으로 받은 브랜드 바로가기 원본 메모

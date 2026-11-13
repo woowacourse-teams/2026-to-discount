@@ -25,14 +25,26 @@ public class SurveyController {
 
     private final SurveyService survey;
     private final ClientFingerprint fingerprint;
+    private final PmfSurveyService pmf;
 
-    public SurveyController(SurveyService survey, ClientFingerprint fingerprint) {
+    public SurveyController(SurveyService survey, ClientFingerprint fingerprint, PmfSurveyService pmf) {
         this.survey = survey;
         this.fingerprint = fingerprint;
+        this.pmf = pmf;
     }
 
     @GetMapping
-    public Map<String, Object> status(@RequestParam(required = false) String visitorId) {
+    public Map<String, Object> status(@RequestParam(required = false) String visitorId,
+                                      @RequestParam(required = false) String surveyId,
+                                      @RequestParam(required = false) String sessionId, jakarta.servlet.http.HttpServletResponse response) {
+        if (surveyId != null) {
+            response.setHeader("Cache-Control", "no-store");
+            if (!PmfSurveyService.ID.equals(surveyId) || !PmfSurveyService.validId(visitorId) || !PmfSurveyService.validId(sessionId)) {
+                throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST);
+            }
+            var state = pmf.status(visitorId, sessionId);
+            return Map.of("surveyId", state.surveyId(), "enabled", state.enabled(), "eligible", state.eligible(), "state", state.state());
+        }
         return Map.of("eligible", survey.eligible(visitorId), "open", survey.isOpen());
     }
 
@@ -53,6 +65,7 @@ public class SurveyController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> answer(@RequestBody Submission body,
                                                       HttpServletRequest request) {
+        if (body != null && body.surveyId() != null) return finishPmf(body, request, false, false);
         if (body == null || body.choice() == null
                 || !SurveyService.CHOICES.contains(body.choice())) {
             return ResponseEntity.badRequest().build();
@@ -69,6 +82,29 @@ public class SurveyController {
         return ResponseEntity.ok(out);
     }
 
+    @PostMapping("/dismiss")
+    public ResponseEntity<Map<String, Object>> dismiss(@RequestBody Submission body, HttpServletRequest request) {
+        return finishPmf(body, request, true, false);
+    }
+
+    @PostMapping("/follow-up")
+    public ResponseEntity<Map<String, Object>> followUp(@RequestBody Submission body, HttpServletRequest request) {
+        return finishPmf(body, request, false, true);
+    }
+
+    private ResponseEntity<Map<String, Object>> finishPmf(Submission body, HttpServletRequest request,
+                                                         boolean dismiss, boolean followUp) {
+        if (body == null || !PmfSurveyService.validId(body.visitorId()) || !PmfSurveyService.validId(body.sessionId())) {
+            return ResponseEntity.badRequest().build();
+        }
+        String ipHash = fingerprint.hash(request);
+        String result = followUp
+                ? pmf.followUp(body.visitorId(), body.sessionId(), body.surveyId(), body.choice(), body.answers(), ipHash)
+                : pmf.finish(body.visitorId(), body.sessionId(), body.surveyId(), dismiss, body.choice(), body.answers(), ipHash);
+        int status = "ok".equals(result) ? 200 : "invalid_answer".equals(result) || "unknown_survey".equals(result) ? 400 : 409;
+        return ResponseEntity.status(status).body(Map.of("ok", "ok".equals(result), "state", result));
+    }
+
     /**
      * 프론트가 보내는 모양.
      *
@@ -76,6 +112,6 @@ public class SurveyController {
      * 늘어도 서버를 안 고치게 자유 맵으로 받는다 — 대신 값은 서버가 거른다.
      */
     public record Submission(String visitorId, String choice, String text,
-                             Map<String, String> answers) {
+                             Map<String, String> answers, String surveyId, String sessionId) {
     }
 }

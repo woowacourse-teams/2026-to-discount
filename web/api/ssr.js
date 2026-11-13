@@ -7,6 +7,7 @@
 // 실패하면(API 장애, 렌더 오류) 사전 렌더링 HTML을 그대로 보낸다 — 예전 CSR과 같다.
 import { loadData, render } from '../dist-server/entry-server.js'
 import template, { couponCss } from '../dist-server/template.js'
+import { ssrJson } from '../src/ssrJson.js'
 
 const ROOT_OPEN = '<div id="root">'
 
@@ -19,8 +20,8 @@ const RELAYOUT = "(function(){if(!/iP(hone|ad|od)/.test(navigator.userAgent)&&!(
 export function inject(html, appHtml, data) {
   const start = html.indexOf(ROOT_OPEN)
   const end = html.lastIndexOf('</div>', html.indexOf('</body>'))
-  // null 칸은 싣지 않는다. 화면은 null과 없는 칸을 같게 다룬다(!= null, ??). 실린 데이터가 약 20% 준다(2026-10-06).
-  const json = JSON.stringify(data, (_k, v) => (v === null ? undefined : v)).replace(/</g, '\\u003c')
+  // null 칸은 싣지 않는다(isNew 제외). 이유와 예외는 src/ssrJson.js.
+  const json = ssrJson(data)
   const out = html.slice(0, start)
     + `${ROOT_OPEN}${appHtml}</div>\n    <script>${RELAYOUT}</script><script>window.__SSR__=${json}</script>`
     + html.slice(end + '</div>'.length)
@@ -40,7 +41,9 @@ export default async function handler(_req, res) {
   let body = withCouponCss(template)
   try {
     const data = await loadData()
-    body = withCouponCss(inject(template, await render(data), data))
+    // 서버가 HTML을 그린 시각. 브라우저가 하이드레이션 동안 같은 시각으로 "n시 오픈"을 판정한다(src/pageNow.js).
+    const renderedAt = Date.now()
+    body = withCouponCss(inject(template, await render(data), { ...data, renderedAt }))
     res.setHeader('x-ssr', '1')
     // CDN이 5분 들고, 그 뒤 5분까지는 낡은 걸 주면서 뒤에서 새로 그린다.
     // 하루 세 번 바뀌는 금액이 최대 약 10분 늦는다(2026-10-14, 요청 수 줄이기). 실패한 응답은 CDN에 안 둔다.

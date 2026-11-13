@@ -47,6 +47,8 @@ api/src/main/java/com/discounttracker/analytics/EventLog.java
 api/src/main/java/com/discounttracker/analytics/EventLogSnapshot.java
 api/src/main/java/com/discounttracker/analytics/EventRateLimiter.java
 api/src/main/java/com/discounttracker/analytics/GifticonStore.java
+api/src/main/java/com/discounttracker/analytics/PmfSurveyDemoController.java
+api/src/main/java/com/discounttracker/analytics/PmfSurveyService.java
 api/src/main/java/com/discounttracker/analytics/PopularityIndex.java
 api/src/main/java/com/discounttracker/analytics/PostHogClient.java
 api/src/main/java/com/discounttracker/analytics/PostHogConfiguration.java
@@ -130,6 +132,8 @@ api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogSnapshotTest.java
 api/src/test/java/com/discounttracker/analytics/EventLogTest.java
 api/src/test/java/com/discounttracker/analytics/GifticonStoreTest.java
+api/src/test/java/com/discounttracker/analytics/PmfSurveyControllerTest.java
+api/src/test/java/com/discounttracker/analytics/PmfSurveyServiceTest.java
 api/src/test/java/com/discounttracker/analytics/PopularityIndexTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogClientTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java
@@ -255,8 +259,10 @@ web/src/PushNotificationSetting.jsx
 web/src/ReportButton.jsx
 web/src/SiteFooter.jsx
 web/src/SurveyCard.jsx
+web/src/SurveyCard.test.js
 web/src/SurveyDock.jsx
 web/src/TopBarB.jsx
+web/src/aboutPage.test.js
 web/src/analytics-context.js
 web/src/analytics-context.test.js
 web/src/analytics.js
@@ -279,6 +285,8 @@ web/src/brandAutocomplete.test.js
 web/src/brandColor.js
 web/src/brandImpression.js
 web/src/brandImpression.test.js
+web/src/brandReactions.js
+web/src/brandReactions.test.js
 web/src/cardId.js
 web/src/cardShift.js
 web/src/cardShift.test.js
@@ -297,7 +305,12 @@ web/src/hiddenBrands.js
 web/src/hiddenBrands.test.js
 web/src/historyChart.js
 web/src/historyChart.test.js
+web/src/homeExperiment.js
+web/src/homeExperiment.test.js
 web/src/homeRollout.test.js
+web/src/lazyRetry.js
+web/src/lazyRetry.test.js
+web/src/linkPreviewMeta.test.js
 web/src/linkReturn.js
 web/src/linkReturn.test.js
 web/src/logoManifest.js
@@ -312,10 +325,14 @@ web/src/offerLink.js
 web/src/offerLink.test.js
 web/src/offerSharing.js
 web/src/offerSharing.test.js
+web/src/pageNow.js
+web/src/pageNow.test.js
 web/src/platformBadge.test.js
 web/src/platformIcons.js
 web/src/platforms.js
 web/src/platformsContract.test.js
+web/src/pmfSurvey.js
+web/src/pmfSurvey.test.js
 web/src/popularStrip.js
 web/src/popularStrip.test.js
 web/src/posthog.js
@@ -334,9 +351,24 @@ web/src/report.test.js
 web/src/shareAttribution.js
 web/src/shareAttribution.test.js
 web/src/sheetParts.jsx
+web/src/shells/my-brands-v2/DetailSheet.jsx
+web/src/shells/my-brands-v2/MyBrandsV2Shell.jsx
+web/src/shells/my-brands-v2/PriceChart.jsx
+web/src/shells/my-brands-v2/V2Card.jsx
+web/src/shells/my-brands-v2/data.js
+web/src/shells/my-brands-v2/data.test.js
+web/src/shells/my-brands-v2/my-brands-v2.css
+web/src/shells/my-brands-v2/parts.jsx
+web/src/shells/my-brands-v2/platform-logos/baemin.png
+web/src/shells/my-brands-v2/platform-logos/coupangeats.svg
+web/src/shells/my-brands-v2/platform-logos/ddangyo.png
+web/src/shells/my-brands-v2/platform-logos/yogiyo.svg
+web/src/shells/my-brands-v2/share.png
 web/src/shortShareLink.js
 web/src/shortShareLink.test.js
 web/src/shortShareRedirect.js
+web/src/ssrJson.js
+web/src/ssrJson.test.js
 web/src/styles/banner.css
 web/src/styles/base.css
 web/src/styles/brand-card.css
@@ -369,6 +401,7 @@ web/src/useShareTargetFocus.js
 web/src/useSharedOffer.js
 web/src/useSurvey.js
 web/src/variant.js
+web/src/vercelHeaders.test.js
 web/vercel.json
 web/vite.config.js
 -->
@@ -418,8 +451,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 192 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 178 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 196 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 207 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -431,7 +464,7 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 24 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 26 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 6 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
@@ -461,6 +494,9 @@ HTTP 경계:
 - `POST /api/reports`
 - `POST /api/share-links`
 - `POST /api/survey`
+- `POST /api/survey/demo`
+- `POST /api/survey/dismiss`
+- `POST /api/survey/follow-up`
 - `PUT /api/push/admin/next`
 
 ### Web
@@ -488,8 +524,10 @@ HTTP 경계:
 | `ReportButton.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SiteFooter.jsx` | 서비스 안내 푸터 |
 | `SurveyCard.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `SurveyCard.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `SurveyDock.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `TopBarB.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `aboutPage.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics-context.js` | 익명 ID와 방문 회차 |
 | `analytics-context.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `analytics.js` | 자체 행동 이벤트 |
@@ -512,6 +550,8 @@ HTTP 경계:
 | `brandColor.js` | 배너 색 파생 |
 | `brandImpression.js` | 브랜드 헤더 노출 판정과 세션 중복 방지 |
 | `brandImpression.test.js` | 브랜드 헤더 노출 판정 검증 |
+| `brandReactions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `brandReactions.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardId.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `cardShift.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -530,7 +570,12 @@ HTTP 경계:
 | `hiddenBrands.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `historyChart.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `historyChart.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `homeExperiment.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `homeExperiment.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeRollout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `lazyRetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `lazyRetry.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `linkPreviewMeta.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkReturn.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `logoManifest.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -545,10 +590,14 @@ HTTP 경계:
 | `offerLink.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `offerSharing.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `offerSharing.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pageNow.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pageNow.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformBadge.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformIcons.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platforms.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `platformsContract.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pmfSurvey.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `pmfSurvey.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `popularStrip.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `popularStrip.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `posthog.js` | PostHog SDK 어댑터 |
@@ -570,6 +619,8 @@ HTTP 경계:
 | `shortShareLink.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `shortShareLink.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `shortShareRedirect.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `ssrJson.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `ssrJson.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyDismiss.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
@@ -579,6 +630,7 @@ HTTP 경계:
 | `useSharedOffer.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useSurvey.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `variant.js` | 화면 안 상수(a 고정, A/B 종료 2026-09-15) |
+| `vercelHeaders.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 
 `public/`은 런타임 자산이지만 대형 로고 목록은 구조 문서에서 제외한다.
 

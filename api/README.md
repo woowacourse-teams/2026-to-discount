@@ -32,6 +32,8 @@
 파일만 바꿨다면 재기동 대신 `POST /api/reload`가 오퍼, 이력, 배너, 인기를 다시 읽는다. 응답의
 `bannersOk`가 `false`면 배너 파일에 문제가 있다(`unknownBrands`, `dropped`, `duplicateIds`를 본다).
 운영에서는 nginx가 이 경로에 Basic Auth(아이디와 비밀번호를 묻는 가장 단순한 웹 인증)를 건다.
+앱도 한 겹 더 막는다. 접속 주소가 루프백(127.0.0.1, ::1)이 아니거나 `X-Forwarded-For` 헤더가 있으면
+(nginx를 거친 요청) 403을 돌려준다. 같은 서버에서 직접 부르는 수집과 배포 스크립트만 통과한다.
 
 ## 배포 (bebeggars.duckdns.org)
 
@@ -75,10 +77,12 @@
 | `GET /api/brands` | 브랜드 카드 목록(정렬됨). 60초 캐시 헤더와 ETag(본문 해시) |
 | `GET /api/brands/{brand}/history?range=1m` | 그 브랜드의 할인 이력 |
 | `GET /api/banners` | 오늘 띄울 배너 |
-| `POST /api/reload` | 파일 다시 읽기. 운영은 Basic Auth |
+| `POST /api/reload` | 파일 다시 읽기. 서버 안에서 직접 부른 요청만 허용(`X-Forwarded-For`가 있거나 루프백이 아니면 403). 운영은 nginx Basic Auth도 건다 |
+| `POST /api/share-links`, `GET /api/share-links/{code}` | 공유 링크 만들기와 조회. 만들기는 IP별 분당 30건(`X-Real-IP` 기반 `hashForLimit`), 넘기면 429 |
+| `POST /api/reports` | 잘못된 정보 제보 |
 | `POST /api/events` | 방문 이벤트 받기(아래 "방문 측정") |
 | `GET /api/survey`, `GET /api/survey/code`, `POST /api/survey` | 설문 대상 판정, 받은 코드 다시 보기, 응답 |
-| `/api/push/**` | 푸시 공개 키, 구독, 표시와 클릭 추적, 다음 알림 관리 |
+| `/api/push/**` | 푸시 공개 키, 구독, 표시와 클릭 추적, 다음 알림 관리. `POST /api/push/subscriptions`는 IP별 분당 10건(넘기면 429)에 구독 20,000건 상한 |
 
 ### 응답 스키마는 계약이다
 

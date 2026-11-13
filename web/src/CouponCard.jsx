@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom'
 import { track } from './analytics.js'
 import { brandImpressionProps, observeBrandImpression } from './brandImpression.js'
 import { brandCardId } from './cardId.js'
+import { usePageMinute } from './pageNow.js'
 import { amountText, beforeOpen, chipsOf, onCard, onDetail, headOrder, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
@@ -73,7 +74,7 @@ const LinkIcon = () => (
 
 // 쿠폰(메인, 캐러셀, 펼친 쿠폰 모두 같은 꼴과 크기, 17차 시안): 왼쪽 앱 로고, 금액과 최소주문, 오른쪽 앱 색 이동 꼭지(링크 아이콘).
 // 배지는 쿠폰 안에 두지 않는다(브랜드명 옆, 캐러셀이면 보이는 쿠폰 것).
-const stateLabel = (o) => (o.soldOut ? '품절' : beforeOpen(o) ? '오픈 전' : o.qualifier === '랜덤' ? '랜덤' : null)
+const stateLabel = (o) => (o.soldOut ? '품절' : beforeOpen(o) ? '오픈 전' : o.qualifier === '랜덤' ? '랜덤' : o.qualifier === '최대' ? '불확정' : null)
 
 function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags = null, ...rest }) {
   return (
@@ -103,15 +104,22 @@ function Coupon({ o, brand, position, best, where = 'main', slot, expanded, tags
 }
 
 // 배지 묶음(채널 + 배지). 운영 탭 마크업, 쿠폰 배지 규격 하나(coupon-card.css .cc-tags)
-export function Tags({ o, detail = false }) {
+export function Tags({ o, detail = false, brandName }) {
   // 카드와 상세 오퍼 머리가 같은 목록(chipsOf)에서 뽑는다(#151). 복합은 늘 맨 오른쪽(사용자 2026-10-06)
-  const all = headOrder(chipsOf(o).filter(detail ? (c) => c.scope === 'offer' && onDetail(c) : onCard))
-  const ch = all.find((b) => b.kind === 'channel')?.text
-  const tags = all.filter((b) => b.kind !== 'channel')
-  if (!ch && tags.length === 0) return null
+  const all = headOrder(chipsOf(o, brandName).filter(detail ? (c) => c.scope === 'offer' && onDetail(c) : onCard))
+  const ch0 = all.find((b) => b.kind === 'channel')?.text
+  const ch = ch0 === '배달' || ch0 === '포장' ? ch0 : null // 배달/포장처럼 둘 다면 숨긴다
+  // 오픈 전 상태는 배지 줄에서 빼고 쿠폰 로고 위에만 둔다 — 시트에서 두 번 떴다(2026-11-05 사용자). 한정 배지(n시 오픈, 당일 한정)는 줄에 그대로 둔다(2026-11-07 사용자, #336)
+  const st0 = stateLabel(o)
+  const st = st0 === '오픈 전' ? null : st0
+  // 상태(랜덤·품절·오픈 전·불확정)는 쿠폰 위 배지와 같은 모양으로 채널 자리에 한 묶음(2026-11-05 사용자)
+  const tags = all.filter((b) => b.kind !== 'channel' /* 한정 배지(당일 한정, n시 오픈)는 다시 보인다 — 11-05에 뺀 것을 되돌렸다(2026-11-07 사용자) */ && !(st && (b.text === '랜덤' || b.text === '불확정')))
+  if (!ch && !st && tags.length === 0) return null
   return (
     <span className="cc-tags"><span className="chip-tags">
-      {ch && <span className="offer__range-badge offer__range-badge--plain">{ch}</span>}
+      {st && <em className="cc-soldout">{st}</em>}
+      {/* 채널은 배달, 포장으로 정해진 것만. 둘 다 되면 숨긴다(2026-11-05 사용자) */}
+      {ch && <span className="cc-ch">{ch}</span>}
       {tags.map((b) => (b.kind === 'best-fit'
         ? <ComboInfo key={`${b.kind}:${b.text}`} o={o} text={b.text} />
         : <OpBadge key={`${b.kind}:${b.text}`} b={b} platform={o.platform} />))}
@@ -269,12 +277,23 @@ function Ticket({ brand, best, hasBest, position, idx, setIdx }) {
   return <Carousel brand={brand} best={best} position={position} idx={idx} setIdx={setIdx} />
 }
 
+// 엄지 아이콘. 눌린 상태의 채움은 CSS(aria-pressed)가 한다. 싫어요는 위아래를 뒤집는다.
+function ThumbIcon({ down = false }) {
+  return (
+    // 뒤집기는 svg 안 g에 둔다. svg에 두면 눌림 애니메이션(transform)이 뒤집기를 덮어 싫어요가 잠깐 좋아요로 보였다(2026-11-05 사용자)
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <g transform={down ? 'matrix(1 0 0 -1 0 24)' : undefined}><path d="M7 10v11H3V10h4zm0 0l4-8c1.5 0 2.5 1.2 2.2 2.7L12.5 8H19a2 2 0 0 1 2 2.3l-1.3 8A2 2 0 0 1 17.7 20H7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" /></g>
+    </svg>
+  )
+}
+
 // 펼침/접힘(CSS grid 0fr 1fr 기법, M3 확장 250ms 안팎, emphasized easing). 폭·높이를 재지 않는다.
 // phase: false(접힘, DOM에 없음) → 'enter'(내용을 0fr로 먼저 DOM에 넣음) → 'open'(두 프레임 뒤 1fr) → 'leave'(0fr로 닫는 중) → false.
 const OPEN_MS = 280
 const LEAVE_MS = 220
-function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, leaving = false, photo = false, compact = false, sharedKey, onShareTargetVisible }) {
+function CouponCard({ brand, position, highlighted, onInteract, include = null, onHide, onReact, reaction = 'none', leaving = false, photo = false, compact = false, sharedKey, onShareTargetVisible }) {
   const { best, rest, hasBest, bundles } = useMemo(() => splitOffers(brand.offers, include), [brand.offers, include?.random, include?.menu])
+  usePageMinute() // 오픈 전 표시가 시각에 따라 바뀐다. 하이드레이션 중엔 서버 시각, 이후 분마다 다시 그린다(pageNow.js)
   const [phase, setPhase] = useState(false)
   const [cur, setCur] = useState(0) // 캐러셀에서 보이는 쿠폰. 브랜드명 옆 배지가 이걸 따른다
   const [settled, setSettled] = useState(false) // 다 열린 뒤에는 overflow를 풀어 쿠폰 그림자가 잘리지 않게 한다
@@ -341,7 +360,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   const onSheetMove = (e) => { if (e.pointerType === 'mouse' && dragMove(e.clientY)) e.currentTarget.setPointerCapture?.(e.pointerId) }
   const onSheetUp = (e) => { if (e.pointerType === 'mouse') dragEnd() }
   const onCardClick = (e) => {
-    if (e.target.closest('a, .cc-hide, .cc-carousel.cc-dragging, .cc-combo__btn')) return
+    if (e.target.closest('a, .cc-hide, .cc-react, .cc-carousel.cc-dragging, .cc-combo__btn')) return
     // 바로가기(인기 브랜드, #brand-이름)로 카드 안에서 펼쳐진 상태면 시트 대신 접는다(2026-10-16 사용자: 못 접는다)
     if (phase === 'open' || phase === 'enter') { toggle(); return }
     if (!canExpand) return
@@ -408,7 +427,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   // 상세 표가 쿠폰에 이미 보이는 것(금액, 최소주문, 채널·멤버십 배지)만 되풀이하면 펼칠 것이 없다:
   // 구간이 둘 이상이거나 조건 문장이 있어야 더 볼 것이 있다(2026-10-05 사용자: 노모어피자처럼 다 보이면 자세히 보기를 없앤다).
   const hasMore = (o) => { const t = conditionTable(o); return t.rows.length > 1 || !!t.note }
-  const canExpand = rest.length > 0 || stack || best.some(hasMore)
+  const canExpand = true // 모든 카드에 자세히 보기. 하위 오퍼는 시트에서만 본다(2026-11-05 사용자)
   const top = stack ? [best[cur] ?? best[0]] : best
   const bestTables = shown ? top.map((o) => ({ o, t: conditionTable(o) })).filter(({ t }) => t.rows.length || t.note) : []
   const listed = stack ? [...best.filter((o) => o !== top[0]), ...rest] : rest
@@ -427,7 +446,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           </button>
         </div>
         {/* 2줄: 배지(예전 계산식 자리). 계산식은 복합 배지의 (i) 설명으로 옮겼다(2026-10-06 사용자) */}
-        {best[cur] && <div className="cc-fx cc-badges"><Tags o={best[cur]} /></div>}
+        {best[cur] && <div className="cc-fx cc-badges"><Tags o={best[cur]} brandName={brand.name} /></div>}
       </div>
       {/* 1+1 묶음 행사는 대표 쿠폰 위 한 줄(2026-10-11 사용자: 오퍼 최상단). 금액 비교 밖이라 대표를 뺏지 않는다. */}
       {/* 감싸는 div는 묶음이 있을 때만. 모든 카드에 두면 쿠폰이 사라진다(2026-10-11 회귀). */}
@@ -450,18 +469,17 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
           ))}
         </div></div>
       )}
-      {/* 접힌 하위 라벨(쿠폰 아래 한 줄, 최대 3개). 펼칠 때 먼저 사라지고(같은 grid 기법), 접으면 다시 나타난다. */}
-      {rest.length > 0 && (
-        <div className="cc-alts"><div className="cc-alts-in">
-          {rest.slice(0, 3).map((o) => (
-            <span key={offerKey(o)} className={`cc-alt${stateLabel(o) ? ' cc-alt--sold' : ''}`}><PlatformBadge platformKey={o.platform} brand={brand.name} />{amountText(o)}{stateLabel(o) && <em className="cc-soldout cc-alt__tag">{stateLabel(o)}</em>}</span>
-          ))}
-        </div></div>
-      )}
       {canExpand && <button type="button" className="cc-hint" aria-haspopup="dialog" aria-expanded={sheet}>
         자세히 보기
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>}
+      {/* 왼쪽 아래 좋아요/싫어요(#309). 숨기기와 따로다. 누른 상태는 모양(채움)과 aria-pressed로 보인다 */}
+      {onReact && (
+        <div className="cc-react" role="group" aria-label={`${brand.name} 반응`}>
+          <button type="button" aria-label="좋아요" aria-pressed={reaction === 'like'} onClick={() => onReact(brand, 'like', position)}><ThumbIcon /></button>
+          <button type="button" aria-label="싫어요" aria-pressed={reaction === 'dislike'} onClick={() => onReact(brand, 'dislike', position)}><ThumbIcon down /></button>
+        </div>
+      )}
       {/* 오른쪽 위는 공유(2026-11-04 사용자). 숨기기는 자세히 보기 시트 맨 아래로 옮겼다 */}
       {/* 특정메뉴 등 비교 밖 쿠폰만 있어도 카드 대표 쿠폰을 공유한다(스텔라떡볶이, 2026-11-04) */}
       {best[0] && <OfferShareButton offer={best[0]} brandName={brand.name} position={position} where="card" className="cc-hide cc-share" />}
@@ -477,7 +495,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
               <Fragment key={offerKey(o)}>
                 <div className="cc-deal cc-deal--more" style={anim}>
                   <div className="cc-deal-col">
-                    <Tags o={o} detail />
+                    <Tags o={o} detail brandName={brand.name} />
                     <Coupon o={o} brand={brand} position={position} best={stack && i < best.length - 1} where="expanded" slot={i + 1} expanded />
                   </div>
                 </div>
@@ -513,7 +531,7 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
                 return (
                   <div key={offerKey(o)} className={`cc-sheet__item${sharedKey === sharedOfferKey(o) ? ' shared-offer-target' : ''}`}
                     tabIndex={-1} data-offer-key={sharedOfferKey(o)}>
-                    <Coupon o={o} brand={brand} position={position} best={best.includes(o)} where="sheet" slot={i + 1} expanded tags={<Tags o={o} detail />} />
+                    <Coupon o={o} brand={brand} position={position} best={best.includes(o)} where="sheet" slot={i + 1} expanded tags={<Tags o={o} detail brandName={brand.name} />} />
 
                     {hasTbl && <DetailTable t={tb} i={0} />}
                   </div>

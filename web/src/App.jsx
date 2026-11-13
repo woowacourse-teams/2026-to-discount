@@ -1,6 +1,8 @@
-import { useBackClose } from './backClose.js'
+import { afterHistorySettles, useBackClose } from './backClose.js'
 import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
+import { goLive } from './pageNow.js'
+import { importRetry } from './lazyRetry.js'
 import { fetchBanners, fetchBrands } from './api.js'
 import { setFilterContext, track } from './analytics.js'
 import EventBanner from './EventBanner.jsx'
@@ -8,16 +10,16 @@ import BrandSuggestions from './BrandSuggestions.jsx'
 import { PLATFORMS } from './logos.jsx'
 import TopBarB from './TopBarB.jsx'
 import PopularDock from './PopularDock.jsx'
-const FilterSheet = lazy(() => import('./FilterSheet.jsx'))
-const FirstVisitGuide = lazy(() => import('./FirstVisitGuide.jsx'))
+const FilterSheet = lazy(() => importRetry(() => import('./FilterSheet.jsx')))
+const FirstVisitGuide = lazy(() => importRetry(() => import('./FirstVisitGuide.jsx')))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { CATEGORIES, applyFilters, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, revealFilters, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
-const SurveyDock = lazy(() => import('./SurveyDock.jsx'))
-const HiddenBrandsSheet = lazy(() => import('./HiddenBrandsSheet.jsx'))
-const HideBrandAsk = lazy(() => import('./HideBrandAsk.jsx'))
+const HiddenBrandsSheet = lazy(() => importRetry(() => import('./HiddenBrandsSheet.jsx')))
+const HideBrandAsk = lazy(() => importRetry(() => import('./HideBrandAsk.jsx')))
 // 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
 // 서버 화면을 버리고 다시 그렸다(React #421 x 카드 수, TBT 2.3초, 2026-10-14). 15KB.
 import CouponCard from './CouponCard.jsx'
+import { nextReaction, reactionOf, readReactions, setReaction } from './brandReactions.js'
 import { applyHidden, hideBrand, readHidden, revivedNames, setRule, showBrand } from './hiddenBrands.js'
 import { captureRects, playShift, readCards } from './cardShift.js'
 
@@ -27,8 +29,11 @@ import { captureRects, playShift, readCards } from './cardShift.js'
 const LEAVE_MS = 100
 const SHIFT_PAUSE_MS = 400
 // 설문 카드는 누른 뒤에만 열린다 — 첫 화면 묶음에서 뺀다(2026-10-06 성능).
-const SurveyCard = lazy(() => import('./SurveyCard.jsx'))
+const SurveyCard = lazy(() => importRetry(() => import('./SurveyCard.jsx')))
+const InlineSurveyCard = lazy(() => importRetry(() => import('./SurveyCard.jsx').then(module => ({ default: module.InlineSurveyCard }))))
+const SurveyDock = lazy(() => importRetry(() => import('./SurveyDock.jsx')))
 import { useSurvey } from './useSurvey.js'
+import { canPreviewSurvey } from './pmfSurvey.js'
 import { useScrollMore } from './MenuBar.jsx'
 import { getAnalyticsContext } from './analytics-context.js'
 import { shouldShowGuide } from './firstVisitGuide.js'
@@ -97,7 +102,9 @@ function routeFilters() {
 // initial은 서버 렌더(SSR, api/ssr.js)가 요청 시점에 받은 데이터다. 있으면 첫 화면을 그걸로
 // 그리고 같은 값을 다시 부르지 않는다. 첫 렌더는 서버와 같아야 하므로 브라우저에만 있는 값
 // (localStorage, 시각, 화면 폭)은 전부 effect에서 읽는다.
-export default function App({ initial = null }) {
+// Card: 카드 한 장을 그리는 컴포넌트. 기본은 운영 쿠폰 카드이고, 홈 시안(shells/)이 자기 카드를 끼워 넣을 때만 바꾼다.
+// mainClassName: 본문 <main>에 더하는 클래스(시안의 스타일 걸이). 둘 다 기본값이면 운영 동작은 그대로다.
+export default function App({ initial = null, Card = CouponCard, mainClassName }) {
   const [pushToggleSlot, setPushToggleSlot] = useState(null)
   // 알림 토글 자리는 ref가 붙을 때 받는다. 급한 업데이트로 받으면 하이드레이션 중인 쿠폰 카드(Suspense)가
   // 업데이트를 받아 통째로 다시 그려져, a홈이 서버 화면 -> 운영 카드 -> 쿠폰 카드로 바뀌어 보였다(React #421,
@@ -178,7 +185,7 @@ export default function App({ initial = null }) {
   // 개발 서버(vite)에서만 여기서 처음 받는다.
   useEffect(() => { import('./styles/coupon-card.css') }, [])
   const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => { setMounted(true); goLive() }, []) // 하이드레이션이 끝났으니 오픈 시각 판정을 실시간으로(pageNow.js)
   // 첫 방문 안내(firstVisitGuide.js). 2026-10-14부터 ?guide=1로만 뜬다. 카드가 그려진 뒤에 띄운다.
   const [guideOn, setGuideOn] = useState(false)
   const guideChecked = useRef(false)
@@ -319,7 +326,9 @@ export default function App({ initial = null }) {
     // 실시간 순위에서 브랜드로 가면 분류는 늘 푼다(2026-11-04 사용자: 분류가 걸려 있으면 순위에서 바로 못 넘어간다)
     setFilters({ ...target.filters, categories: new Set() })
     setLinkedBrand(null)
-    requestAnimationFrame(() => setLinkedBrand(brandCardId(name)))
+    // 순위판과 분류가 닫히며 쌓았던 기록 칸을 되돌리는 이동(popstate, 스크롤 복원)이 끝난 뒤 카드로 간다.
+    // 바로 가면 그 이동이 카드 스크롤을 덮어 화면이 오갔다 멈췄다(2026-11-05 모바일 Firefox).
+    requestAnimationFrame(() => afterHistorySettles(() => setLinkedBrand(brandCardId(name))))
   }
   const submitSearch = (raw, submitMethod) => {
     const query = raw.trim()
@@ -391,6 +400,17 @@ export default function App({ initial = null }) {
   // startTransition: 하이드레이션이 덜 끝난 Suspense(필터 시트 등)에 급한 갱신이 닿으면
   // React가 그 경계를 버리고 다시 그린다(#421). 브라우저 값 반영은 급하지 않다.
   useEffect(() => { startTransition(() => setHidden(readHidden())) }, [])
+  // 좋아요/싫어요(brandReactions.js). 첫 렌더는 빈 값(서버 렌더와 같게), 마운트 뒤 채운다.
+  const [reactions, setReactions] = useState({})
+  const reactionsRef = useRef(reactions)
+  reactionsRef.current = reactions
+  useEffect(() => { startTransition(() => setReactions(readReactions())) }, [])
+  const onReact = useCallback((brand, pressed, position) => {
+    const prev = reactionOf(reactionsRef.current, brand)
+    const reaction = nextReaction(prev, pressed)
+    setReactions(setReaction(reactionsRef.current, brand, reaction))
+    track('brand_reaction', { brand: brand.name, reaction, prev, position: String(position) })
+  }, [])
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const hiddenToggleRef = useRef(null)
   const primarySortRef = useRef(null)
@@ -530,6 +550,11 @@ export default function App({ initial = null }) {
   // 두 안이 완전히 같다 — 카드도 배너도 계측도 하나의 코드를 쓴다. 갈라진
   // 브랜치로 두면 공통 부분을 고칠 때마다 두 번 하고, 한쪽을 빠뜨린다.
 
+  const surveyPosition = Math.min((survey.beforeCard ?? 2) - 1, shown, visibleBrands?.length ?? 0)
+  const inlineSurvey = survey.arm === 'inline' && (survey.isVisible || survey.complete) && (
+    <Suspense key="inline-pmf" fallback={null}><InlineSurveyCard survey={survey} displayedAfterCard={surveyPosition} /></Suspense>
+  )
+
   return (
     <>
       {/* ?dev=1이 이 브라우저에 박혀 있으면 화면 귀퉁이에 표시한다 —
@@ -588,7 +613,13 @@ export default function App({ initial = null }) {
       {/* 2026-10-05 사용자: 운영 카드 쪽도 하단 도크로 */}
       {/* 2026-10-15 사용자: 하단 도크는 배너 대신 오늘 인기. 배너(한정 오퍼)는 목록 3번째 카드 뒤에 선다 */}
       <PushNotificationSetting toggleSlot={pushToggleSlot} />
-    <main>
+      {canPreviewSurvey(import.meta.env) && !survey.isVisible && !survey.complete && (
+        <div className="pmf-preview-controls">
+          <button type="button" className="pmf-preview-toggle" onClick={() => survey.previewSurvey('inline')}>인라인 설문 표시</button>
+          <button type="button" className="pmf-preview-toggle" onClick={() => survey.previewSurvey('dock')}>하단 설문 안내 표시</button>
+        </div>
+      )}
+    <main className={mainClassName}>
       {/* 빠른 필터. 시트를 열지 않고 자주 쓰는 정렬 둘만 배너와 카드 사이에 둔다: 할인금액
           높은순, 최소주문 낮은순. 랜덤쿠폰 토글은 2026-09-21에 여기서 뺐다(사용자) — 뽑기
           값은 사람마다 달라 자주 켤 것이 아니다. 시트에는 그대로 있다. 시트의 같은 값과 한
@@ -749,27 +780,16 @@ export default function App({ initial = null }) {
         // fade-in 애니메이션이 다시 걸려 "갈아치웠다"가 아니라 "다음
         // 목록이 떠올랐다"로 읽힌다.
         <div className={gridKey === stillKey ? 'brand-grid brand-grid--still' : 'brand-grid'} key={gridKey} ref={gridRef}>
-          {/* 설문 카드는 기존 목록 첫 칸에 둔다. 발급 코드는 목록 밖 Hook이 보관한다. */}
-          {survey.isVisible && survey.isCardOpen && (
-            <Suspense fallback={null}><SurveyCard
-              visitorId={getAnalyticsContext().visitorId}
-              code={survey.code}
-              onCode={survey.receiveCode}
-              onClose={survey.closeCard}
-            /></Suspense>
-          )}
           {visibleBrands.slice(0, shown).map((b, index) => {
-            const props = { leaving: leaving === b.name, onHide, include, brand: b, position: index + 1,
+            const props = { leaving: leaving === b.name, onHide, onReact, reaction: reactionOf(reactions, b), include, brand: b, position: index + 1,
               highlighted: linkedBrand === brandCardId(b.name) || shared?.brand.name === b.name, onInteract: clearLinked,
               sharedKey: shared?.brand.name === b.name ? shared.key : null, onShareTargetVisible }
-            const card = <CouponCard key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
-            // 한정 오퍼(배너)는 3번째 카드 뒤 한 칸(2026-10-15 사용자). 첫 자리는 신규·최고 할인 몫이다.
-            // 배너를 받기 전(null)에는 그 자리를 잡아 둔다. 늦게 끼어들면 아래 카드가 밀린다(CodeRabbit #88, 2026-09-30 CLS 0.9와 같은 꼴)
-            if (index === 2 && banners == null) return [card, <div key="inline-banners" className="inline-banners banner-slot banner-slot--pending" aria-hidden="true" />]
-            return index === 2 && banners?.length
-              ? [card, <div key="inline-banners" className="inline-banners"><EventBanner banners={banners} inline /></div>]
-              : card
-
+            const card = <Card key={b.name} {...props} photo={homePhoto} compact={homeCompact} />
+            // 한정 오퍼는 세 번째 카드 뒤에 유지한다.
+            const banner = index === 2 && (banners == null
+              ? <div key="inline-banners" className="inline-banners banner-slot banner-slot--pending" aria-hidden="true" />
+              : banners.length > 0 && <div key="inline-banners" className="inline-banners"><EventBanner banners={banners} inline /></div>)
+            return [card, banner, index + 1 === surveyPosition && inlineSurvey]
           })}
         </div>
       )}
@@ -786,13 +806,18 @@ export default function App({ initial = null }) {
         </button>
       )}
 
-      {survey.isVisible && (
-        <Suspense fallback={null}>
-        <SurveyDock open={survey.isCardOpen} answered={Boolean(survey.code)}
-                    onOpen={survey.openCard}
-                    onDismiss={survey.dismissDock} />
-        </Suspense>
-      )}
+      {surveyPosition === 0 && inlineSurvey}
+
+      {survey.isVisible && survey.arm === 'dock' && <Suspense fallback={null}>
+        <SurveyDock open={survey.isCardOpen || survey.confirmClose || survey.busy} onOpen={survey.openCard}
+          onDismiss={() => survey.requestClose('dock')} preview={survey.isPreview} />
+      </Suspense>}
+      {survey.complete && survey.arm === 'dock' && <div className="pmf-toast" role="status">
+        <button type="button" onClick={survey.hideComplete}>소중한 의견 감사합니다!</button>
+      </div>}
+      {(survey.isCardOpen || survey.confirmClose) && <Suspense fallback={null}>
+        <SurveyCard survey={survey} />
+      </Suspense>}
 
       <SiteFooter />
 

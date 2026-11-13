@@ -106,6 +106,7 @@ python scripts/experiments.py --help                      # 나머지 명령
 | `category_change` | 분류 선택 | `category`, `from`(`bar`/`sheet`) |
 | `platform_filter_toggle` | 배달앱 켜고 끔 | `platform`, `from`(`bar`/`sheet`) |
 | `filter_sheet_open` | 바의 필터 버튼으로 시트 열기(옛 B안 시트, 2026-09-16 A 바에 병합) | 없음 |
+| `card_detail_open` | 카드 자세히 보기 바텀시트 열기. 받으러 가기와 공유 버튼 밖을 누르면 열린다(홈 시안 my-brands-v2, 2026-11-09) | `brand`, `platform`, `position`, `where` |
 | `quick_filter` | 배너 아래 빠른 필터 줄(09-19~), 오늘 인기 띠(10-14~ `popular_strip`), 상단 HOT 순위(10-16~) | `key`(`minOrder`/`random`/`popular_strip`/`popular_dock`/`popular_dock_toggle`), `dir`, `on`. `popular_dock`: 순위 줄을 눌러 그 카드로 감, `brand`, `position`, `change`, `where`(`rolling` 접힌 한 줄 / `list` 펼친 목록). `popular_dock_toggle`: 펼침과 접힘, `on`, `via`(`button` 오른쪽 단추 / `outside` 바깥 누름, 10-17~) |
 | `popular_dock_impression` | 상단 HOT 순위가 보임. 페이지마다 한 번(10-17~) | `brand`(그때 1위), `count`(줄 수). 지금 거른 목록 기준 |
 | `report_open` | 상단 바 제보 버튼을 눌러 제보 창을 엶(10-19~, 알림 종 자리) | 없음 |

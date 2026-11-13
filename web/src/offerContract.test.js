@@ -6,6 +6,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { KNOWN_QUALIFIERS } from './couponModel.js'
 import { apiFile } from '../scripts/api-repo.mjs'
 
 const contract = JSON.parse(readFileSync(
@@ -33,4 +34,8 @@ test('계약 응답 예시에 웹이 읽는 칸이 전부 있다', () => {
   for (const c of contract.cases) {
     assert.deepEqual(Object.keys(c.offer).sort(), [...contract.offerKeys].sort(), c.name)
   }
+})
+
+test('웹의 qualifiers 어휘는 계약 어휘와 같다', () => {
+  assert.deepEqual([...KNOWN_QUALIFIERS].sort(), [...contract.qualifierVocabulary].sort())
 })

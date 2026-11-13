@@ -105,7 +105,7 @@ export default function TopBarB({ barRef, pushToggleRef, filters, setFilters, se
   return (
     <div className="title-bar title-bar--b" ref={barRef}>
       <div className="title-bar__top">
-        <h1 className="sr-only">오늘의할인: 배달앱 브랜드 할인 비교</h1>
+        <h1 className="sr-only">SaveEats: 한 눈에 보는 배달앱 할인</h1>
         <SearchControl
           value={search}
           onChange={setSearch}

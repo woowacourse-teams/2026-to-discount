@@ -3,10 +3,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { apiFile } from '../scripts/api-repo.mjs'
 import {
-  isUpdated,
+  isUpdated, settleYogiyoCaps,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
-  hasNewBest, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES,
+  hasNewBest, includesFrom, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES, SPECIAL_CATEGORIES,
 } from './filters.js'
 import { applyHidden } from './hiddenBrands.js'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
@@ -192,8 +192,10 @@ test('5천원 이상만은 기본으로 켜져 있고, 검색 중에는 금액�
     { name: '디디치킨', category: 'chicken', offers: [{ platform: 'baemin', amount: 2000, certainty: 'exact', kind: 'discount' }] },
     { name: '청년피자', category: 'pizza', offers: [{ platform: 'baemin', amount: 7500, certainty: 'exact', kind: 'discount' }] },
   ]
-  const f = defaultFilters()
-  assert.equal(f.minAmount5k, true)
+  // 기본은 꺼져 있다(2026-11-10 사용자). 켜면 5천원 미만을 거른다.
+  assert.equal(defaultFilters().minAmount5k, false)
+  const f = { ...defaultFilters(), minAmount5k: true }
+  assert.deepEqual(applyFilters(brands, defaultFilters()).map((b) => b.name), ['청년피자', '디디치킨'])
   assert.deepEqual(applyFilters(brands, f).map((b) => b.name), ['청년피자'])
   // 이름으로 찾았는데 금액 때문에 안 보이면 없는 줄 안다.
   assert.deepEqual(applyFilters(brands, { ...f, search: '디디' }).map((b) => b.name), ['디디치킨'])
@@ -201,8 +203,8 @@ test('5천원 이상만은 기본으로 켜져 있고, 검색 중에는 금액�
 
 test('기준 금액은 시트에서 고른 값을 따르고 저장소에 남는다(2026-10-13)', () => {
   const brands = [{ name: '청년피자', category: 'pizza', offers: [{ platform: 'baemin', amount: 7500, certainty: 'exact', kind: 'discount' }] }]
-  assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount: 10000 }).length, 0)
-  assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount: 7000 }).length, 1)
+  assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount5k: true, minAmount: 10000 }).length, 0)
+  assert.equal(applyFilters(brands, { ...defaultFilters(), minAmount5k: true, minAmount: 7000 }).length, 1)
   assert.equal(isDefaultFilters({ ...defaultFilters(), minAmount: 7000 }), false)
   assert.deepEqual([3000, 5000, 10000].map(minAmountLabel), ['3,000원', '5,000원', '10,000원'])
   const m = new Map()
@@ -397,7 +399,7 @@ test('revealFilters: 숨긴 브랜드처럼 어떻게 해도 안 서면 null이�
 test('revealFilters: 검색을 풀어 5천원 거르기가 다시 걸려도 순위의 브랜드는 선다(#219)', () => {
   // 검색 중에는 금액으로 안 거른다. 3천원 오퍼는 검색을 풀면 빠지지만 순위에 든 브랜드는 5천원 이상 오퍼가 있다.
   const brands = [...hot147(), brand('작은집', [o(3000)], { category: 'korean' }), brand('섞인집', [o(3000), o(6000)], { category: 'korean' })]
-  const searched = { ...defaultFilters(), search: '작은집' }
+  const searched = { ...defaultFilters(), minAmount5k: true, search: '작은집' }
   const rank = rankList147(brands, searched).map((b) => b.name)
   assert.equal(rank.includes('작은집'), false) // 5천원 미만뿐이라 순위에도 없다
   assert.ok(rank.includes('섞인집'))
@@ -405,4 +407,55 @@ test('revealFilters: 검색을 풀어 5천원 거르기가 다시 걸려도 순�
   assert.deepEqual(got.cleared, ['search'])
   const card = applyFilters(brands, got.filters).find((b) => b.name === '섞인집')
   assert.deepEqual(card.offers.map((x) => x.amount), [6000])
+})
+
+// 한정(선착순), 랜덤 칩(2026-11-07): 분류 칩 앞에 따로 서고, 켜면 그 오퍼가 있는 브랜드만 그 오퍼로 보인다.
+const special = () => [
+  { name: '교촌', category: 'chicken', offers: [
+    { platform: 'baemin', amount: 5000 },
+    { platform: 'coupangeats', amount: 7000, certainty: 'random' },
+    { platform: 'yogiyo', amount: 6000, firstCome: true }] },
+  { name: '도미노', category: 'pizza', offers: [{ platform: 'baemin', amount: 5000 }] },
+  { name: '맘스터치', category: 'fastfood', offers: [{ platform: 'yogiyo', amount: 6000, firstCome: true }] },
+]
+const withCats = (...keys) => ({ ...defaultFilters(), categories: new Set(keys) })
+
+test('랜덤 칩: 랜덤 오퍼가 있는 브랜드만, 그 오퍼만 남긴다', () => {
+  const got = applyFilters(special(), withCats('random'))
+  assert.deepEqual(got.map((b) => b.name), ['교촌'])
+  assert.deepEqual(got[0].offers.map((o) => o.platform), ['coupangeats'])
+})
+
+test('한정 칩 + 분류 칩: 분류 칩이 켜진 브랜드는 오퍼를 그대로 두고 나머지는 한정 오퍼만 남긴다', () => {
+  const got = applyFilters(special(), withCats('firstCome', 'chicken'))
+  assert.deepEqual(got.map((b) => b.name).sort(), ['교촌', '맘스터치'])
+  assert.equal(got.find((b) => b.name === '교촌').offers.length, 3)
+  assert.equal(got.find((b) => b.name === '맘스터치').offers.length, 1)
+})
+
+test('visibleCategories: 한정, 랜덤 칩이 분류 칩 앞에 서고, 맞는 오퍼가 있을 때만 보인다', () => {
+  const keys = (brands, sel) => visibleCategories(brands, sel).map((c) => c.key)
+  const many = (category) => ({ category, offers: Array.from({ length: 6 }, () => ({})) })
+  assert.deepEqual(keys([...special(), many('chicken')], new Set()), ['firstCome', 'random', 'chicken'])
+  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤'])
+  assert.deepEqual(keys([many('chicken')], new Set()), ['chicken'])
+  assert.deepEqual(keys([special()[1], many('chicken')], new Set(['random'])), ['random', 'chicken'])   // 고른 칩은 오퍼가 줄어도 남는다
+})
+
+test('한정, 랜덤 탭에서는 불확정(랜덤) 오퍼를 비교에 넣는다 — 다른 탭은 그대로', () => {
+  assert.equal(includesFrom(withCats('random')).random, true)
+  assert.equal(includesFrom(withCats('firstCome')).random, true)
+  assert.equal(includesFrom(withCats('chicken')).random, false)
+  assert.equal(includesFrom(defaultFilters()).random, false)
+  const got = applyFilters(special(), withCats('random'))
+  assert.equal(displayBestAmount(got[0].offers, includesFrom(withCats('random'))), 7000)   // 불확정 7,000이 그 탭의 최고액이다
+})
+
+test('요기요의 최대는 확정 금액으로 읽어 불확정 표시와 정렬 꼴찌에서 벗어난다(2026-11-08)', () => {
+  const capped = { platform: 'yogiyo', amount: 11000, qualifier: '최대', certainty: 'capped', kind: 'discount', firstCome: true }
+  const other = { platform: 'baemin', amount: 9000, qualifier: '최대', certainty: 'capped', kind: 'discount' }
+  const [a, b] = settleYogiyoCaps([{ name: 'A', offers: [capped] }, { name: 'B', offers: [other] }])
+  assert.deepEqual([a.offers[0].qualifier, a.offers[0].certainty], [null, 'exact'])
+  assert.equal(comparable(a.offers[0]), true)
+  assert.equal(b.offers[0].qualifier, '최대') // 다른 앱은 그대로
 })

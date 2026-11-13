@@ -53,7 +53,7 @@ function render() {
 
 test('운영 칩 HTML 스냅숏', (t) => {
   // 선착순 '오픈 전'이 시각에 따라 바뀌니 밤 11시로 고정한다(모두 열린 뒤).
-  t.mock.timers.enable({ apis: ['Date'], now: new Date(2026, 10, 4, 23, 0).getTime() })
+  t.mock.timers.enable({ apis: ['Date'], now: Date.UTC(2026, 10, 4, 23 - 9, 0) })
   const got = render()
   if (process.env.UPDATE_SNAPSHOT === '1') { writeFileSync(SNAP, JSON.stringify(got, null, 2) + '\n', { encoding: 'utf8' }); return }
   assert.deepEqual(got, JSON.parse(readFileSync(SNAP, 'utf8')))

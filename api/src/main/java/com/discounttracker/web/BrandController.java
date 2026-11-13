@@ -8,6 +8,8 @@ import com.discounttracker.offer.OfferRepository;
 import com.discounttracker.push.BannerNotificationService;
 import com.discounttracker.history.HistoryRepository;
 import com.discounttracker.history.HistoryResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -71,7 +74,13 @@ public class BrandController {
      * 의심하면 된다.
      */
     @PostMapping("/reload")
-    public Map<String, Object> reload() {
+    public Map<String, Object> reload(HttpServletRequest request) {
+        // Nginx 차단 한 겹에만 기대지 않는다. Nginx를 거친 요청은 X-Forwarded-For가 붙으므로,
+        // 같은 서버에서 직접 부른 것(수집, 배포 스크립트)만 통과시킨다.
+        String peer = request.getRemoteAddr();
+        boolean local = "127.0.0.1".equals(peer) || "::1".equals(peer) || "0:0:0:0:0:0:0:1".equals(peer);
+        if (!local || request.getHeader("X-Forwarded-For") != null)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "서버 내부에서만 호출할 수 있습니다.");
         offers.reload();
         boolean historyOk = history.reload();
         popularity.reload();

@@ -64,6 +64,11 @@ public class PushStateStore {
         this.signature = signatureOf();
     }
 
+    /** 인증 없는 등록 경로가 저장 파일을 무한히 키우지 못하게 하는 상한. */
+    static final int MAX_SUBSCRIPTIONS = 20_000;
+    /** 시험에서만 줄인다. */
+    int maxSubscriptions = MAX_SUBSCRIPTIONS;
+
     public synchronized PushSubscription upsert(String endpoint, String p256dh, String auth,
                                                 String visitorId, boolean analyticsEnabled) {
         require(endpoint, "endpoint");
@@ -74,6 +79,8 @@ public class PushStateStore {
         return mutate(s -> {
             Instant now = clock.instant();
             PushSubscription old = s.subscriptions.get(id);
+            if (old == null && s.subscriptions.size() >= maxSubscriptions)
+                throw new IllegalArgumentException("subscription capacity reached");
             PushSubscription saved = new PushSubscription(id, endpoint, p256dh, auth, visitorId,
                     analyticsEnabled, old == null ? now : old.createdAt(), now, true);
             s.subscriptions.put(id, saved);
@@ -246,14 +253,15 @@ public class PushStateStore {
         Path path = properties.statePath();
         if (path == null) return change.apply(state);
         try {
-            return InterProcessFileLock.withLock(path.resolveSibling(path.getFileName() + ".lock"),
+            return InterProcessFileLock.withOperationsWrite(() ->
+                    InterProcessFileLock.withLock(path.resolveSibling(path.getFileName() + ".lock"),
                     lockTimeout, () -> {
                         state = load(state);
                         R result = change.apply(state);
                         save();
                         signature = signatureOf();
                         return result;
-                    });
+                    }));
         } catch (IOException e) {
             throw new UncheckedIOException("Push 상태 파일 저장 실패: " + path, e);
         }
@@ -308,7 +316,8 @@ public class PushStateStore {
         Path damaged = properties.statePath().resolveSibling(
                 properties.statePath().getFileName() + ".corrupt-" + clock.instant().toEpochMilli());
         try {
-            Files.move(properties.statePath(), damaged, StandardCopyOption.REPLACE_EXISTING);
+            InterProcessFileLock.withOperationsWrite(() ->
+                    Files.move(properties.statePath(), damaged, StandardCopyOption.REPLACE_EXISTING));
             log.error("손상된 Push 상태 파일을 격리하고 메모리 상태로 잇는다: backup={}", damaged, cause);
         } catch (IOException backupError) {
             log.error("Push 상태 파일을 읽거나 격리하지 못해 메모리 상태로 잇는다: path={}",

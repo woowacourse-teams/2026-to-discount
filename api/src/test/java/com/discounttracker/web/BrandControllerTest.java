@@ -64,6 +64,14 @@ class BrandControllerTest {
     }
 
     @Test
+    void reloadRejectsRequestsThatPassedThroughNginx() throws Exception {
+        mvc.perform(post("/api/reload").header("X-Forwarded-For", "203.0.113.9"))
+           .andExpect(status().isForbidden());
+        mvc.perform(post("/api/reload").with(r -> { r.setRemoteAddr("203.0.113.9"); return r; }))
+           .andExpect(status().isForbidden());
+    }
+
+    @Test
     void reloadReturnsCount() throws Exception {
         mvc.perform(post("/api/reload"))
            .andExpect(status().isOk())
