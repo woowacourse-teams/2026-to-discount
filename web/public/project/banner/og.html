@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SaveEats 미리보기 배너</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="/fonts/pretendard-block.css" />
+  <!-- 링크 미리보기(og-image.png, 1200x630) 원본. 1200x630 창에서 캡처해 web/public/og-image.png로 쓴다.
+       폰 화면은 캡처(480x1038)와 같은 비율로 잘림 없이 넣는다 -->
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    html, body { width: 1200px; height: 630px; overflow: hidden; }
+    body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; background: #f4f7fc; color: #191f28; }
+    .b { position: relative; width: 1200px; height: 630px; display: grid; grid-template-columns: 1fr 470px; }
+    .left { display: flex; flex-direction: column; justify-content: center; padding: 0 30px 0 72px; }
+    .logo { display: flex; align-items: center; gap: 14px; }
+    .logo img { width: 62px; height: 62px; transform: rotate(-12deg); }
+    .logo span { font-size: 56px; font-weight: 900; font-style: italic; letter-spacing: -.04em; color: #3182f6; line-height: 1; }
+    h1 { margin-top: 26px; font-size: 76px; font-weight: 900; line-height: 1.1; letter-spacing: -.05em; }
+    h1 em { font-style: normal; color: #3182f6; }
+    .rule { width: 72px; height: 6px; margin-top: 26px; border-radius: 3px; background: #3182f6; }
+    .sub { margin-top: 20px; font-size: 24px; font-weight: 700; color: #4e5968; letter-spacing: -.02em; }
+    .apps { display: grid; grid-template-columns: repeat(2, max-content); gap: 10px; margin-top: 28px; }
+    .app { display: flex; align-items: center; gap: 10px; height: 52px; padding: 0 16px 0 8px; border-radius: 14px; background: #fff; box-shadow: 0 8px 20px -14px rgba(25,31,40,.5); }
+    .app .ic { width: 38px; height: 38px; border-radius: 10px; }
+    .app .wm { height: 20px; width: auto; }
+    .app .wm.tall { height: 24px; }
+    .right { position: relative; background: linear-gradient(150deg, #4a93ff 0%, #3182f6 45%, #1b64da 100%); }
+    /* 화면 230x497 = 캡처 480x1038과 같은 비율, 테두리 9 */
+    .ph { position: absolute; width: 248px; height: 515px; border: 9px solid #15161a; border-radius: 38px; background: #fff; overflow: hidden; box-shadow: 0 26px 50px -20px rgba(0,0,0,.5); }
+    .ph img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+    .ph1 { left: 28px; top: 78px; transform: rotate(-6deg); }
+    .ph2 { right: 26px; top: 36px; transform: rotate(-3deg); }
+    .qr { position: absolute; left: 22px; bottom: 22px; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 10px; border-radius: 14px; background: #fff; box-shadow: 0 14px 30px -16px rgba(0,0,0,.45); }
+    .qr img { width: 62px; height: 62px; }
+    .qr b { display: block; font-size: 19px; font-weight: 800; letter-spacing: -.03em; }
+    .qr span { font-size: 13px; font-weight: 600; color: #6b7684; }
+  </style>
+</head>
+<body>
+  <div class="b">
+    <div class="left">
+      <p class="logo"><img src="/favicon-192.png" alt="" /><span>SaveEats</span></p>
+      <h1>배달앱 할인,<br /><em>한 눈에 보기</em></h1>
+      <div class="rule"></div>
+      <p class="sub">오늘의 할인을 한 화면에서 비교해요</p>
+      <div class="apps">
+        <span class="app"><img class="ic" src="/platform-icons/baemin.png" alt="" /><img class="wm" src="/project/banner/word-baemin.png" alt="배달의민족" /></span>
+        <span class="app"><img class="ic" src="/platform-icons/coupangeats.png" alt="" /><img class="wm" src="/project/banner/word-coupangeats.svg" alt="쿠팡이츠" /></span>
+        <span class="app"><img class="ic" src="/platform-icons/yogiyo.png" alt="" /><img class="wm tall" src="/project/banner/word-yogiyo.svg" alt="요기요" /></span>
+        <span class="app"><img class="ic" src="/platform-icons/ddangyo.png" alt="" /><img class="wm tall" src="/project/banner/word-ddangyo.png" alt="땡겨요" /></span>
+      </div>
+    </div>
+    <div class="right">
+      <div class="ph ph1"><img src="/about/sheet.jpg" alt="" /></div>
+      <div class="ph ph2"><img src="/about/hero.jpg" alt="" /></div>
+      <div class="qr"><img src="/project/qr.svg" alt="" /><div><b>지금 바로 확인</b><span>QR을 스캔하세요</span></div></div>
+    </div>
+  </div>
+</body>
+</html>
