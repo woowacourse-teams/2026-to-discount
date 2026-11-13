@@ -190,6 +190,22 @@
 - beggars-ops `web/`에 파일을 더하면 배포 목록 두 곳(`.github/workflows/deploy.yml`, `deploy/push.sh`)에 같이 넣는다. 빠지면 콘솔이 통째로 안 뜬다.
 - `/ops/` 아래 새 확장자는 nginx `types`에 넣는다. 없으면 `application/octet-stream`으로 나가고 모듈 스크립트는 MIME 검사에 걸려 안 돈다(2026-09-24).
 
+## 10. 설문 설정 (survey settings)
+
+| 자리 | 파일 |
+| --- | --- |
+| 정본 | 서버 `survey-settings.json` (`api/.../analytics/SurveySettings.java`가 읽고 쓴다). 파일이 없을 때의 기본값은 `application.yml`의 `discount.survey.*` |
+| 판정 | `SurveyService.qualifies`가 `settings.current()`를 요청마다 읽는다. `SurveyEligibility.qualifies`, `recentAndLong`, `audience`가 같은 문턱을 쓴다 |
+| 쓰는 길 | `SurveyAdminController` (`/api/admin/survey-settings`), 인증 `web/OpsAuth.java`, CORS `WebConfig` |
+| 응답 모양 계약 | `api/src/test/resources/contracts/survey-settings-response.json` ↔ beggars-ops 콘솔 "설문" 카드와 그 테스트 |
+| 경로와 헤더 | beggars-ops `deploy/nginx-delivery-discount-api.conf`가 `/api/admin/`에 `X-Ops-Authenticated`, `X-Ops-User`를 붙인다 |
+
+- **묶인 이유**: 칸 이름 다섯이 설정 파일, API 응답, 콘솔 화면 셋에 적힌다(이름의 커네선스).
+- **끊기면**: API만 칸을 바꾸면 콘솔 카드가 빈 칸을 보여 주거나 저장이 400이다. 콘솔이 먼저 나가면 카드가 404를 받는다. 테스트는 각자 저장소에서 초록이다.
+- **막는 것**: `SurveyAdminControllerTest.getResponseHasTheContractKeys`가 응답 키 집합을 계약 파일에 맞댄다. 콘솔 테스트가 같은 예시 응답을 읽는다.
+- **순서**: API 먼저(파일이 없으면 환경변수라 동작이 그대로다), 그다음 beggars-ops의 Nginx와 카드(8번).
+- **규칙**: 깨진 설정 파일은 닫힘이다. 환경변수로 메우지 않는다. 파일 하나만 정본이다.
+
 ## 묶음을 줄이는 법
 
 적어 두는 것은 임시방편이다. 줄이는 수단은 넷이고, 위로 갈수록 좋다.

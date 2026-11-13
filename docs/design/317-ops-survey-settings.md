@@ -236,3 +236,12 @@ API(`api/src/test/java/com/discounttracker/analytics/`):
 - 콘솔 카드에 최근 변경 기록 몇 줄을 같이 보여 줄까. 이번 범위에서는 뺐다.
 - 켜기와 끄기를 슬랙으로도 알릴까. 기프티콘이 나가기 시작하는 시점이라 알리는 편이 낫다고 보지만 사용자 결정이 필요하다.
 - `testVisitors`, `blockedVisitors`도 콘솔로 옮길까. 이번에는 뒷문이 쉽게 열리지 않도록 환경변수에 둔다.
+
+## 변경 이력
+
+- **2026-11-14 (구현):** 이슈 댓글은 `/approve-design` 둘뿐이라 댓글로 바뀐 설계는 없다. 구현하다 설계와 달라진 곳은 아래뿐이다.
+  - **#316 병합 반영.** 이 브랜치는 #316 병합 전이라, 구현 전에 `origin/main`을 병합했다. #316은 `recentDays`, `minSpanDays`를 **0이면 끔**으로 정했고 환경변수 기본값도 0이다(설계는 "#316이 다르게 정했으면 #316을 따른다"). 그래서 범위를 `recentDays` 1~365가 아니라 **0~365**로 한다. 1~365로 두면 환경변수 기본값 그대로 저장(배포 순서 4번)이 400이 된다. `minDays` 1~365, `minConversions` 0~1000, `minSpanDays` 0~365는 설계 그대로다.
+  - **`audience` 모양.** `SurveyEligibility.audience(minDays, minConversions, recentDays, minSpanDays, today, skip)`. `Thresholds` 타입은 만들지 않았다(네 정수뿐). `excluded`는 "문턱은 넘었지만 제외된 수"다. 개발 기기이면 `dev`, 아니고 이미 답했으면 `answered`로 센다(둘에 겹쳐 세지 않는다). `visitors`는 원장 집계에 든 방문자 수이고, 원장을 못 읽으면 `eligible`과 함께 `null`이다. 테스트 id(`testVisitors`)는 `skip`으로 뺀다.
+  - **오류 본문.** 400과 409는 `{"error": "<사유>"}`로 돌려준다(사유에 칸 이름이 든다). 403과 `X-Ops-User` 없음 400은 본문이 없다.
+  - **복구 길.** 깨진 파일의 `version`도 파일 수정 시각+크기라서, 콘솔이 `GET`으로 받은 `version`으로 `PUT`하면 깨진 파일을 덮어 복구한다. 기록의 `beforeSource`는 `broken`이다.
+  - **남은 것(구현 PR 밖).** beggars-ops의 Nginx 경로와 헤더, 콘솔 카드, 시험 계획 10~13(배포 뒤 운영 확인), `useSurvey.js:14` 주석.

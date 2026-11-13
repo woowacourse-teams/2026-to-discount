@@ -38,7 +38,10 @@ discount:
     # 같은 화면을 본다. 2026-09-02: 하루 만에 322회 전환한 visitorId를
     # 사람이 직접 판단해 여기 넣었다(자동 판정 아님).
     blocked-visitors: ${DISCOUNT_SURVEY_BLOCKED_VISITORS:}
-    # 설문 노출 스위치와 대상 문턱(2026-11-04). 켜려면 서버 환경변수 DISCOUNT_SURVEY_OPEN=true 뒤 재시작.
+    # 아래 다섯 칸은 survey-settings.json(운영 콘솔 "설문" 카드가 씀, 비우면 이벤트 원장 옆)이 없을 때의 기본값이다.
+    # 파일이 있으면 파일이 정본이고 재시작 없이 따라온다(설계 317).
+    settings-path: ${DISCOUNT_SURVEY_SETTINGS_PATH:}
+    # 설문 노출 스위치와 대상 문턱(2026-11-04). 기본은 닫힘.
     # 문턱: 서로 다른 접속 날짜 수와 앱 이동(쿠폰·배너 클릭) 수. 재고(gifticons-path)가 0이면 켜도 안 뜬다.
     open: ${DISCOUNT_SURVEY_OPEN:false}
     min-days: ${DISCOUNT_SURVEY_MIN_DAYS:7}

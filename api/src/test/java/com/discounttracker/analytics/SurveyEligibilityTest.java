@@ -12,6 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SurveyEligibilityTest {
@@ -165,5 +166,54 @@ class SurveyEligibilityTest {
         Files.write(log, List.of(line("2026-08-03T10:00:00+09:00", "page_view", "v_1")), StandardCharsets.UTF_8);
         assertEquals(0, e.count("v_1").conversions());
         assertEquals(1, e.count("v_1").days());
+    }
+
+    private static final java.time.LocalDate TODAY = java.time.LocalDate.parse("2026-11-04");
+
+    /** 일수만큼 날마다 전환 한 번. */
+    private void visitor(List<String> out, String id, String from, int days) {
+        java.time.LocalDate d = java.time.LocalDate.parse(from);
+        for (int i = 0; i < days; i++) out.add(line(d.plusDays(i) + "T10:00:00+09:00", "offer_link_click", id));
+    }
+
+    /** 미리보기(317): 응답자, 개발 기기, 문턱 미달, 테스트 id를 뺀다. 제외 수는 따로 센다. */
+    @Test
+    void audienceCountsOnlyThoseWhoWouldBeAskedAndSeparatesExclusions() throws Exception {
+        List<String> lines = new java.util.ArrayList<>();
+        visitor(lines, "v_ok", "2026-10-20", 8);            // 8일, 전환 8
+        visitor(lines, "v_short", "2026-10-30", 3);         // 접속일 미달
+        visitor(lines, "v_old", "2026-08-01", 8);           // 최근 14일 밖
+        visitor(lines, "v_answered", "2026-10-20", 8);
+        lines.add(line("2026-10-28T10:00:00+09:00", "survey_answer", "v_answered"));
+        visitor(lines, "v_test", "2026-10-20", 8);
+        visitor(lines, "v_dev", "2026-10-20", 8);
+        lines.add("{\"ts\":\"2026-10-29T10:00:00+09:00\",\"event\":\"page_view\",\"visitorId\":\"v_dev\",\"dev\":true}");
+        SurveyEligibility e = on(lines);
+
+        var a = e.audience(7, 5, 14, 0, TODAY, java.util.Set.of("v_test"));
+        assertTrue(a.ledgerOk());
+        assertEquals(1, a.eligible(), "v_ok 하나");
+        assertEquals(1, a.answered());
+        assertEquals(1, a.dev());
+        assertEquals(6, a.visitors(), "테스트 id도 원장에는 있으니 방문자 수에는 든다");
+
+        // 같은 문턱의 실제 판정과 같은 답이어야 한다.
+        assertTrue(SurveyEligibility.qualifies(e.count("v_ok"), 7, 5)
+                && SurveyEligibility.recentAndLong(e.count("v_ok"), 14, 0, TODAY));
+        assertEquals(2, e.audience(7, 5, 0, 0, TODAY, java.util.Set.of("v_test")).eligible(),
+                "최근 문턱을 끄면 v_old도 든다");
+    }
+
+    /** 원장을 못 읽으면 0이 아니라 null이다(셀 수 없음). */
+    @Test
+    void audienceIsNullNotZeroWhenLedgerUnreadable() throws Exception {
+        Path dir = tmp.resolve("디렉터리");
+        Files.createDirectories(dir);   // 파일 자리에 디렉터리가 있어 읽기가 IOException
+        SurveyEligibility e = new SurveyEligibility(new EventLog(dir.toString(), new ObjectMapper()));
+
+        var a = e.audience(7, 5, 0, 0, TODAY, java.util.Set.of());
+        assertFalse(a.ledgerOk());
+        assertNull(a.eligible());
+        assertNull(a.visitors());
     }
 }

@@ -83,6 +83,22 @@ public class GifticonStore {
         return (int) read().stream().filter(g -> g.get("issuedTo") == null).count();
     }
 
+    /** 재고 상태. {@code remaining()}은 없음, 깨짐, 소진을 모두 0으로 돌려줘 콘솔 경고에 못 쓴다(317). */
+    public record Stock(String state, int remaining, int total) {}
+
+    /** state: ok, missing(파일 없음), broken(못 읽음). remaining()의 동작은 바꾸지 않는다. */
+    public Stock stock() {
+        if (!Files.exists(path)) return new Stock("missing", 0, 0);
+        try {
+            List<Map<String, Object>> all = load();
+            int left = (int) all.stream().filter(g -> g.get("issuedTo") == null).count();
+            return new Stock("ok", left, all.size());
+        } catch (IOException | RuntimeException e) {
+            log.error("gifticons.yml을 읽지 못했다: {}", path, e);
+            return new Stock("broken", 0, 0);
+        }
+    }
+
     /**
      * 코드 하나를 꺼내 발급 표시를 하고 돌려준다.
      *
@@ -159,11 +175,20 @@ public class GifticonStore {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private List<Map<String, Object>> read() {
         // 파일이 없는 것은 오류가 아니다 — 아직 안 올렸거나 다 소진한 상태다.
         // 어느 쪽이든 "남은 코드 0"이고, 그러면 설문이 저절로 내려간다.
         if (!Files.exists(path)) return List.of();
+        try {
+            return load();
+        } catch (IOException | RuntimeException e) {
+            log.error("gifticons.yml을 읽지 못했다 — 남은 코드 0으로 본다: {}", path, e);
+            return List.of();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> load() throws IOException {
         try (InputStream in = Files.newInputStream(path)) {
             Object loaded = new Yaml().load(in);
             if (!(loaded instanceof Map<?, ?> root)) return List.of();
@@ -175,9 +200,6 @@ public class GifticonStore {
                 if (item instanceof Map<?, ?> m) out.add(new LinkedHashMap<>((Map<String, Object>) m));
             }
             return out;
-        } catch (IOException | RuntimeException e) {
-            log.error("gifticons.yml을 읽지 못했다 — 남은 코드 0으로 본다: {}", path, e);
-            return List.of();
         }
     }
 

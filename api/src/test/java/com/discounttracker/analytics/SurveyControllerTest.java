@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "discount.survey.open=true",
         "discount.event-log-path=build/tmp/survey-events.jsonl",
         "discount.gifticons-path=build/tmp/survey-gifticons.yml",
+        "discount.survey.settings-path=build/tmp/survey-settings-test.json",
         "discount.survey.test-visitors=v_tester, v_spare",
 })
 class SurveyControllerTest {
@@ -45,8 +46,55 @@ class SurveyControllerTest {
     /** 이 사람은 3일 접속·전환 1회 — 대상이 아니다. */
     private static final String SHORT = "v_short";
 
+    @Value("${discount.survey.settings-path}") String settingsPath;
+
+    private void writeSettings(boolean open) throws Exception {
+        Path f = Path.of(settingsPath);
+        Files.createDirectories(f.getParent());
+        Files.writeString(f, "{\"open\":" + open + ",\"minDays\":7,\"minConversions\":5,"
+                + "\"recentDays\":0,\"minSpanDays\":0}", StandardCharsets.UTF_8);
+        // 같은 크기로 바로 다시 쓰면 수정 시각이 같을 수 있다. 시각을 밀어 "바뀐 파일"로 만든다.
+        Files.setLastModifiedTime(f, java.nio.file.attribute.FileTime.fromMillis(
+                System.currentTimeMillis() + 10_000 * (++writes)));
+    }
+
+    private int writes;
+
+    /** 설정 파일로 열고 닫으면 재시작 없이 판정이 따라온다(317). 테스트 id는 닫혀도 통과한다. */
+    @Test
+    void settingsFileOpensAndClosesWithoutRestart() throws Exception {
+        writeSettings(false);
+        mvc.perform(get("/api/survey").param("visitorId", QUALIFIED))
+           .andExpect(jsonPath("$.open").value(false))
+           .andExpect(jsonPath("$.eligible").value(false));
+        mvc.perform(post("/api/survey").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"visitorId\":\"v_qualified\",\"choice\":\"compare\"}"))
+           .andExpect(jsonPath("$.ok").value(false))
+           .andExpect(jsonPath("$.reason").value("not_eligible"));
+        mvc.perform(get("/api/survey").param("visitorId", "v_tester"))
+           .andExpect(jsonPath("$.eligible").value(true));
+
+        writeSettings(true);
+        mvc.perform(get("/api/survey").param("visitorId", QUALIFIED))
+           .andExpect(jsonPath("$.open").value(true))
+           .andExpect(jsonPath("$.eligible").value(true));
+    }
+
+    /** 깨진 파일은 닫힘이다. 환경변수 open=true라도 못 연다. */
+    @Test
+    void brokenSettingsFileClosesTheSurvey() throws Exception {
+        Path f = Path.of(settingsPath);
+        Files.writeString(f, "{깨짐", StandardCharsets.UTF_8);
+        Files.setLastModifiedTime(f, java.nio.file.attribute.FileTime.fromMillis(
+                System.currentTimeMillis() + 10_000 * (++writes)));
+        mvc.perform(get("/api/survey").param("visitorId", QUALIFIED))
+           .andExpect(jsonPath("$.open").value(false))
+           .andExpect(jsonPath("$.eligible").value(false));
+    }
+
     @BeforeEach
     void seed() throws Exception {
+        Files.deleteIfExists(Path.of(settingsPath));   // 파일 없음 = 환경변수(open=true)
         List<String> lines = new ArrayList<>();
         for (int d = 1; d <= 8; d++) {
             String day = String.format("2026-08-%02d", d);

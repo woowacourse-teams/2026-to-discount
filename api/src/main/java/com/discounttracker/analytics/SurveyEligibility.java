@@ -132,9 +132,51 @@ public class SurveyEligibility {
         Tally t = tallies.get(visitorId);
         // 새로 띄운 서버에는 원장이 아직 없다. 없으면 "대상 아님"이지 오류가 아니다.
         if (t == null) return NONE;
+        return counts(t);
+    }
+
+    private static Counts counts(Tally t) {
         String first = t.days.stream().min(String::compareTo).orElse(null);
         String last = t.days.stream().max(String::compareTo).orElse(null);
         return new Counts(t.days.size(), t.conversions, t.answered, t.dev, first, last);
+    }
+
+    /**
+     * 대상 수 미리보기(317). eligible과 visitors는 원장을 못 읽었으면 null이다 — 0으로 돌려주면
+     * "대상 0명"과 "셀 수 없음"이 같아 보인다.
+     *
+     * @param answered 문턱은 넘었지만 이미 답한 방문자 수
+     * @param dev      문턱은 넘었지만 개발 기기인 방문자 수
+     */
+    public record Audience(boolean ledgerOk, Integer eligible, Integer visitors, int answered, int dev) {}
+
+    /**
+     * 이 문턱이면 지금 몇 명이 대상인가. 실제 판정({@link #qualifies(Counts, int, int)}과
+     * {@link #recentAndLong})과 같은 함수로 센다. {@code skip}은 사람이 아닌 테스트 id.
+     */
+    public synchronized Audience audience(int minDays, int minConversions, int recentDays, int minSpanDays,
+                                          java.time.LocalDate today, Set<String> skip) {
+        try {
+            catchUp();
+        } catch (IOException e) {
+            log.error("원장을 읽지 못해 설문 대상 수를 세지 못한다: {}", eventLog.path(), e);
+            tallies.clear();
+            offset = 0;
+            return new Audience(false, null, null, 0, 0);
+        }
+        int eligible = 0, answered = 0, dev = 0;
+        for (Map.Entry<String, Tally> e : tallies.entrySet()) {
+            if (skip.contains(e.getKey())) continue;
+            Counts c = counts(e.getValue());
+            // 답했나, 개발 기기인가를 뺀 문턱만 본다. 그래야 제외된 수를 따로 셀 수 있다.
+            Counts threshold = new Counts(c.days(), c.conversions(), false, false, c.firstDay(), c.lastDay());
+            if (!qualifies(threshold, minDays, minConversions)
+                    || !recentAndLong(threshold, recentDays, minSpanDays, today)) continue;
+            if (c.dev()) dev++;
+            else if (c.answered()) answered++;
+            else eligible++;
+        }
+        return new Audience(true, eligible, tallies.size(), answered, dev);
     }
 
     /** 서버가 뜨자마자 원장을 한 번 읽어 둔다. 안 하면 첫 판정을 부른 방문자가 그 값을 치른다. */

@@ -173,4 +173,29 @@ class GifticonStoreTest {
         assertEquals(3, issued.size(), "코드 세 개가 서로 다른 사람에게 하나씩");
         assertEquals(0, s.remaining());
     }
+
+    /** stock()은 없음, 깨짐, 정상을 가른다. remaining()은 셋을 0으로 섞는 지금 동작 그대로다(317). */
+    @Test
+    void stockTellsMissingBrokenAndOk() throws Exception {
+        var missing = new GifticonStore(tmp.resolve("없음.yml").toString());
+        assertEquals(new GifticonStore.Stock("missing", 0, 0), missing.stock());
+        assertEquals(0, missing.remaining());
+
+        var broken = store("gifticons: [ {code: \"A\"\n  - : :");
+        assertEquals("broken", broken.stock().state());
+        assertEquals(0, broken.remaining());
+
+        var ok = store("""
+            gifticons:
+              - code: "AAAA-1111"
+              - code: "BBBB-2222"
+            """);
+        assertEquals(new GifticonStore.Stock("ok", 2, 2), ok.stock());
+        ok.issue("v_1");
+        assertEquals(new GifticonStore.Stock("ok", 1, 2), ok.stock());
+        assertEquals(1, ok.remaining());
+
+        var empty = store("gifticons: []\n");
+        assertEquals(new GifticonStore.Stock("ok", 0, 0), empty.stock(), "다 나간 것은 ok이되 0이다");
+    }
 }

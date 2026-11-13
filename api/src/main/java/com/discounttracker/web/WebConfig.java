@@ -66,6 +66,12 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedMethods("GET", "PUT")
                 .exposedHeaders(RequestIdFilter.HEADER);
 
+        // 설문 설정 같은 관리 엔드포인트(317). 공개 /api/**에는 PUT을 열지 않는다.
+        registry.addMapping("/api/admin/**")
+                .allowedOrigins("https://bebeggars.duckdns.org")
+                .allowedMethods("GET", "PUT")
+                .exposedHeaders(RequestIdFilter.HEADER);
+
         // 기본 allowedMethods는 GET/HEAD/POST라 /api/events(POST)도 포함되지만,
         // 무엇을 허용하는지 눈에 보이게 적어 둔다.
         // 192.168.*, 10.* — `npm run dev -- --host`로 LAN에 연 dev 서버를
