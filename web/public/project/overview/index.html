@@ -214,6 +214,12 @@
     .sv .chart { margin-top: 12px; }
     .sv .metric { grid-template-columns: 8.5em 1fr; }
     .sv .metric > b { grid-row: auto; }
+
+    .hero__side { display: grid; gap: 12px; }
+    .hero__qr { display: flex; align-items: center; gap: 14px; padding: 12px 18px 12px 12px; border-radius: 14px; background: #fff; color: #1c1d1f; text-decoration: none; }
+    .hero__qr img { width: 76px; height: 76px; flex: none; }
+    .hero__qr span { color: #4e5968; font-size: .82rem; line-height: 1.4; }
+    .hero__qr b { display: block; color: #1c1d1f; font-size: 1rem; }
   </style>
   <script>(function () { var d = document.documentElement; d.classList.add('js'); var m = location.search.match(/[?&]s=(\d+)/); if (m) { d.classList.add('solo'); d.dataset.s = m[1] } })()</script>
 </head>
@@ -232,7 +238,10 @@
           <a href="https://github.com/woowacourse-teams/2026-to-discount">GitHub</a>
         </div>
       </div>
-      <div class="hero__stat"><span class="num"><span data-count="14486">14,486</span>명</span><span>누적 고유 방문자<br />2026-07-29 ~ 2026-11-11, 팀원과 개발 접속 제외</span></div>
+      <div class="hero__side">
+        <div class="hero__stat"><span class="num"><span data-count="14486">14,486</span>명</span><span>누적 고유 방문자<br />2026-07-29 ~ 2026-11-11, 팀원과 개발 접속 제외</span></div>
+        <a class="hero__qr" href="/project/overview/"><img src="/project/overview/qr.svg" alt="이 페이지 주소 QR" /><span><b>이 페이지 바로 보기</b>QR을 스캔하세요</span></a>
+      </div>
     </div>
     <div class="intro">
       <h1 class="rise">배달앱 네 곳의 할인,<br /><em>한 화면 비교</em></h1>
@@ -301,7 +310,7 @@
       </ul>
       <p class="note">막대 끝 50%, 점선 목표 34%</p>
     </div>
-    <h3 class="sv-title rise">설문 결과</h3>
+    <h3 class="sv-title rise">사용자가 우리 서비스에서 찾는 가치</h3>
     <p class="note rise">다시 찾아오는 사용자 29명. 7일 안 재방문 79%, 30일 안 97%.</p>
     <div class="sv">
       <div class="chart rise" style="--i:0"><h3>쓰는 목적</h3><p class="legend"><span>29명 응답</span></p>
