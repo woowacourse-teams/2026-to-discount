@@ -49,12 +49,15 @@ class BannerContractTest {
         }
     }
 
-    private static List<Banner> activeFor(JsonNode banners, String now) {
-        Object list = JSON.convertValue(banners, List.class);
+    /** 사례의 {@code groupFold: true}는 서버 묶기를 켠 응답이다. 없으면 기본(끔). */
+    private static List<Banner> activeFor(JsonNode c, String now) {
+        Object list = JSON.convertValue(c.get("banners"), List.class);
         String yml = new Yaml().dump(Map.of("banners", list));
         Clock clock = Clock.fixed(LocalDateTime.parse(now).atZone(SEOUL).toInstant(), SEOUL);
         BrandCatalog brands = new BrandCatalog(new ByteArrayResource(new byte[0]));
-        return new BannerCatalog(new ByteArrayResource(yml.getBytes(StandardCharsets.UTF_8)), clock, brands).active();
+        BannerCatalog catalog = new BannerCatalog(new ByteArrayResource(yml.getBytes(StandardCharsets.UTF_8)), clock, brands);
+        catalog.setGroupFold(c.path("groupFold").asBoolean(false));
+        return catalog.active();
     }
 
     @TestFactory
@@ -64,7 +67,7 @@ class BannerContractTest {
         List<DynamicTest> tests = new ArrayList<>();
         for (JsonNode c : doc.get("cases")) {
             tests.add(DynamicTest.dynamicTest(c.get("name").asString(), () -> {
-                JsonNode actual = JSON.valueToTree(activeFor(c.get("banners"), now));
+                JsonNode actual = JSON.valueToTree(activeFor(c, now));
                 assertEquals(c.get("response"), actual,
                         "응답이 계약과 다르다. 의도한 변경이면 계약을 고치고 웹 테스트를 같이 돌린다.\n실제: " + actual);
             }));
@@ -83,7 +86,7 @@ class BannerContractTest {
         doc.get("memberKeys").forEach(k -> memberKeys.add(k.asString()));
         int seen = 0;
         for (JsonNode c : doc.get("cases")) {
-            for (JsonNode item : JSON.valueToTree(activeFor(c.get("banners"), doc.get("now").asString()))) {
+            for (JsonNode item : JSON.valueToTree(activeFor(c, doc.get("now").asString()))) {
                 TreeSet<String> got = new TreeSet<>();
                 item.propertyNames().forEach(got::add);
                 assertEquals(keys, got, "응답 칸이 계약(responseKeys)과 다르다: " + c.get("name"));

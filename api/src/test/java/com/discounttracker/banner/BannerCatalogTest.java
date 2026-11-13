@@ -575,7 +575,8 @@ class BannerCatalogTest {
                     endsAt: '2026-09-18T23:59:59'
                 """;
         BannerCatalog catalog = catalogOn(yaml, "2026-09-18");
-        assertEquals(2, catalog.active().size(), "묶음 둘은 한 장으로 접힌다");
+        catalog.setGroupFold(true);
+        assertEquals(2, catalog.active().size(), "묶기를 켜면 묶음 둘은 한 장으로 접힌다");
         Banner open = catalog.active().stream()
                 .filter(b -> b.id().equals("coupangeats-open-버거킹-20260918")).findFirst().orElseThrow();
         // 구성원 금액이 다르면 묶음 한 장이 전부를 적는다(2026-09-24). 대표 것 하나만

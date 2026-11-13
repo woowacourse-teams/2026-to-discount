@@ -18,6 +18,9 @@ discount:
   export-path: ${DISCOUNT_EXPORT_PATH:classpath:data/export.json}
   history-path: ${DISCOUNT_HISTORY_PATH:classpath:data/history.json}
   banners-path: ${DISCOUNT_BANNERS_PATH:classpath:banners.yml}
+  # group이 같은 배너를 한 장으로 접을지(2026-11-14 사용자: 끈다). 끄면 구성원이 각자 한 장이고 members가 없다.
+  # 켜려면 DISCOUNT_BANNER_GROUP_FOLD=true 뒤 재시작. POST /api/reload로는 바뀌지 않는다.
+  banner-group-fold: ${DISCOUNT_BANNER_GROUP_FOLD:false}
   # 브랜드 목록. jar 안에 있어 바꾸려면 API를 다시 배포한다(reload로는 안 바뀐다).
   brands-path: ${DISCOUNT_BRANDS_PATH:classpath:brands.yml}
   # 방문 이벤트 원장(append). 설문 판정과 인기가 이 파일에서 새로 붙은 줄만 읽는다.
