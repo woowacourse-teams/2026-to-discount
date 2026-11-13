@@ -209,11 +209,11 @@ function metaTags(brands, today) {
     `    <meta property="og:description" content="${esc(desc)}" />`,
     `    <meta property="og:url" content="${SITE}/" />`,
     '    <meta property="og:locale" content="ko_KR" />',
-    `    <meta property="og:image" content="${SITE}/og-image.png?v=3" />`,
+    `    <meta property="og:image" content="${SITE}/og-image.png?v=4" />`,
     '    <meta property="og:image:width" content="1200" />',
     '    <meta property="og:image:height" content="630" />',
     '    <meta name="twitter:card" content="summary_large_image" />',
-    `    <meta name="twitter:image" content="${SITE}/og-image.png?v=3" />`,
+    `    <meta name="twitter:image" content="${SITE}/og-image.png?v=4" />`,
     '    <meta name="twitter:title" content="SaveEats - 한 눈에 보는 배달앱 할인" />',
     `    <meta name="twitter:description" content="${esc(desc)}" />`,
     // 사이트 이름을 검색엔진에 알린다(구조화 데이터, JSON-LD). 상품, 가격 마크업은 쓰지 않는다.
@@ -323,11 +323,11 @@ export function brandPage(b, siblings, today, appTags) {
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${url}" />
     <meta property="og:locale" content="ko_KR" />
-    <meta property="og:image" content="${SITE}/og-image.png?v=3" />
+    <meta property="og:image" content="${SITE}/og-image.png?v=4" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="${SITE}/og-image.png?v=3" />
+    <meta name="twitter:image" content="${SITE}/og-image.png?v=4" />
     <script type="application/ld+json">${JSON.stringify({
       '@context': 'https://schema.org', '@type': 'BreadcrumbList',
       itemListElement: [
