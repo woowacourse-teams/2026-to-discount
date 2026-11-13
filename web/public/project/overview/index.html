@@ -207,6 +207,13 @@
     .roles { display: grid; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); font-size: .9rem; color: var(--muted); }
     .roles li { padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); }
     .roles b { display: block; color: var(--text); font-size: 1rem; }
+
+    /* 설문 결과 */
+    .sv-title { margin-top: 40px; font-size: 1.3rem; }
+    .sv { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+    .sv .chart { margin-top: 12px; }
+    .sv .metric { grid-template-columns: 8.5em 1fr; }
+    .sv .metric > b { grid-row: auto; }
   </style>
   <script>(function () { var d = document.documentElement; d.classList.add('js'); var m = location.search.match(/[?&]s=(\d+)/); if (m) { d.classList.add('solo'); d.dataset.s = m[1] } })()</script>
 </head>
@@ -294,6 +301,28 @@
       </ul>
       <p class="note">막대 끝 50%, 점선 목표 34%</p>
     </div>
+    <h3 class="sv-title rise">설문 결과</h3>
+    <p class="note rise">다시 찾아오는 사용자 29명. 7일 안 재방문 79%, 30일 안 97%.</p>
+    <div class="sv">
+      <div class="chart rise" style="--i:0"><h3>쓰는 목적</h3><p class="legend"><span>29명 응답</span></p>
+        <div class="metric"><b>앱 비교</b><span class="bar new"><i style="--w:80%"></i>10명</span></div><div class="metric"><b>새 할인 정보</b><span class="bar"><i style="--w:72%"></i>9명</span></div><div class="metric"><b>돈 아끼기</b><span class="bar"><i style="--w:72%"></i>9명</span></div><div class="metric"><b>기능</b><span class="bar"><i style="--w:8%"></i>1명</span></div>
+      </div>
+      <div class="chart rise" style="--i:1"><h3>언제 여나</h3><p class="legend"><span>28명 응답</span></p>
+        <div class="metric"><b>가장 싼 곳 찾을 때</b><span class="bar new"><i style="--w:80%"></i>17명</span></div><div class="metric"><b>메뉴 못 정했을 때</b><span class="bar"><i style="--w:33%"></i>7명</span></div><div class="metric"><b>매주 습관처럼</b><span class="bar"><i style="--w:14%"></i>3명</span></div><div class="metric"><b>다른 데 찾을 때</b><span class="bar"><i style="--w:5%"></i>1명</span></div>
+      </div>
+      <div class="chart rise" style="--i:2"><h3>무엇을 먼저 보나</h3><p class="legend"><span>28명 응답</span></p>
+        <div class="metric"><b>할인 금액</b><span class="bar new"><i style="--w:80%"></i>16명</span></div><div class="metric"><b>조건</b><span class="bar"><i style="--w:25%"></i>5명</span></div><div class="metric"><b>한정 수량</b><span class="bar"><i style="--w:20%"></i>4명</span></div><div class="metric"><b>앱</b><span class="bar"><i style="--w:15%"></i>3명</span></div>
+      </div>
+      <div class="chart rise" style="--i:0"><h3>부족한 점</h3><p class="legend"><span>27명 응답</span></p>
+        <div class="metric"><b>찾기 어려움</b><span class="bar new"><i style="--w:80%"></i>11명</span></div><div class="metric"><b>정보 늦음</b><span class="bar"><i style="--w:51%"></i>7명</span></div><div class="metric"><b>브랜드 적음</b><span class="bar"><i style="--w:44%"></i>6명</span></div><div class="metric"><b>할인 별로</b><span class="bar"><i style="--w:15%"></i>2명</span></div><div class="metric"><b>기타</b><span class="bar"><i style="--w:7%"></i>1명</span></div>
+      </div>
+      <div class="chart rise" style="--i:1"><h3>바라는 기능</h3><p class="legend"><span>27명 응답</span></p>
+        <div class="metric"><b>멤버십 반영</b><span class="bar new"><i style="--w:80%"></i>8명</span></div><div class="metric"><b>지역 필터</b><span class="bar new"><i style="--w:80%"></i>8명</span></div><div class="metric"><b>할인 알림</b><span class="bar"><i style="--w:60%"></i>6명</span></div><div class="metric"><b>할인 기록</b><span class="bar"><i style="--w:50%"></i>5명</span></div>
+      </div>
+      <div class="chart rise" style="--i:2"><h3>못 쓰게 되면</h3><p class="legend"><span>8명 응답</span> <span>만족도 설문(PMF), 매우 실망 37.5%</span></p>
+        <div class="metric"><b>매우 실망</b><span class="bar new"><i style="--w:80%"></i>3명</span></div><div class="metric"><b>약간 실망</b><span class="bar new"><i style="--w:80%"></i>3명</span></div><div class="metric"><b>더 이상 안 씀</b><span class="bar"><i style="--w:53%"></i>2명</span></div><div class="metric"><b>실망 안 함</b><span class="bar"><i style="--w:0%"></i>0명</span></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -323,16 +352,7 @@
       <div class="box stat rise" style="--i:2"><span class="num" data-count="6">6</span><span class="lbl">기각</span></div>
       <div class="box stat rise" style="--i:3"><span class="num" data-count="29">29</span><span class="lbl">설문에 답한 사용자</span></div>
     </div>
-    <div class="two">
-    <div class="chart rise" role="img" aria-label="설문. 할인을 볼 때 무엇을 먼저 보나, 28명 응답. 할인 금액 16명, 조건 5명, 한정 수량 4명, 앱 3명.">
-      <h3>할인을 볼 때 무엇을 먼저 보나요</h3>
-      <p class="legend"><span>다시 찾아오는 사용자 설문, 28명 응답</span></p>
-      <div class="metric"><b>할인 금액</b><span class="bar new"><i style="--w:57%"></i>16명</span></div>
-      <div class="metric"><b>조건</b><span class="bar"><i style="--w:18%"></i>5명</span></div>
-      <div class="metric"><b>한정 수량</b><span class="bar"><i style="--w:14%"></i>4명</span></div>
-      <div class="metric"><b>앱</b><span class="bar"><i style="--w:11%"></i>3명</span></div>
-      <p class="note">쓰는 목적: 앱 비교 10, 새 할인 9, 돈 아끼기 9</p>
-    </div>
+    <div>
     <div class="chart rise" role="img" aria-label="화면 개편 실험. 기존 화면 623명, 쿠폰 카드 화면 661명. 링크 클릭 22.5%에서 27.2%, 전환 25.2%에서 29.5%, 무동작 방문 41.3%에서 36.3%, 검색 4.7%에서 11.0%.">
       <h3>화면 개편 실험: 가장 큰 할인을 앞세운 카드</h3>
       <p class="legend"><span><i style="background:var(--base)"></i>기존 화면 623명</span><span><i style="background:var(--sale)"></i>쿠폰 카드 화면 661명</span></p>
