@@ -12,7 +12,8 @@ import { getAnalyticsContext } from './analytics-context.js'
 import { API_BASE } from './api.js'
 import { useBackClose } from './backClose.js'
 import { showNotice } from './offerLink.js'
-import { needsPlatform, REPORT_TYPES, reportContext, TIP_SEEN_KEY } from './report.js'
+import MyReports from './MyReports.jsx'
+import { fetchMyReports, needsPlatform, REPORT_TYPES, reportContext, TIP_SEEN_KEY } from './report.js'
 import './styles/report.css'
 
 const MAX = 500
@@ -38,6 +39,7 @@ export default function ReportButton({ filters, hold, brands }) {
     return () => window.removeEventListener('discount-push-state', sync)
   }, [])
   const canPush = typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator
+  const [mine, setMine] = useState(null) // 읽기 실패와 빈 목록 모두 null로 두고 그리지 않는다
   const [type, setType] = useState('')
   const [platform, setPlatform] = useState('')
   const listboxId = useId()
@@ -60,7 +62,7 @@ export default function ReportButton({ filters, hold, brands }) {
     return () => { window.removeEventListener('discount-offer-prompt', hide); window.clearTimeout(fade); window.clearTimeout(gone) }
   }, [tip])
 
-  const close = () => { setOpen(false); if (state !== 'sending') setState('idle') }
+  const close = () => { setOpen(false); setMine(null); if (state !== 'sending') setState('idle') }
   useBackClose(open, close)
   const sheetRef = useRef(null)
   const bodyRef = useRef(null)
@@ -72,6 +74,7 @@ export default function ReportButton({ filters, hold, brands }) {
     if (state !== 'sending') setState('idle') // 닫힌 뒤 끝난 전송의 결과 문구를 다시 열 때 남기지 않는다
     setOpen(true)
     track('report_open')
+    fetchMyReports(getAnalyticsContext().visitorId, API_BASE).then((r) => { if (r.ok) setMine(r.reports) }) // 열 때마다 읽는다(상태가 바뀌었을 수 있음)
   }
 
   const send = async (e) => {
@@ -159,7 +162,7 @@ export default function ReportButton({ filters, hold, brands }) {
             <button type="submit" className="report-sheet__send" disabled={!type || !text.trim() || state === 'sending'}>
               {state === 'sending' ? '보내는 중' : '보내기'}
             </button>
-
+            <MyReports reports={mine} />
             </div>
           </form>
         </div>,
