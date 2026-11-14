@@ -71,42 +71,14 @@ public class SurveyService {
      */
     private final Set<String> blockedVisitors;
 
-    /** 설문을 열었나. 닫혀 있으면 아무도 대상이 아니다(테스트 id만 예외). 기본은 닫힘(2026-11-04). */
-    private final boolean open;
-    private final int minDays;
-    private final int minConversions;
-    private int recentDays;
-    private int minSpanDays;
-
-    /** 최근 방문(일)과 사용 기간(일) 문턱. 0이면 끈다(2026-11-04: 최근 2주 방문, 한 달 이상 사용한 단골). */
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    void setWindow(@Value("${discount.survey.recent-days:0}") int recentDays,
-                   @Value("${discount.survey.min-span-days:0}") int minSpanDays) {
-        this.recentDays = recentDays;
-        this.minSpanDays = minSpanDays;
-        log.info("설문 문턱: 최근 {}일 안 방문, 사용 기간 {}일 이상(0=끔)", recentDays, minSpanDays);
-    }
-
-    public SurveyService(SurveyEligibility eligibility, GifticonStore gifticons,
-                         AnalyticsEventService events,
-                         @Value("${discount.survey.test-visitors:}") String testVisitors,
-                         @Value("${discount.survey.blocked-visitors:}") String blockedVisitors) {
-        this(eligibility, gifticons, events, testVisitors, blockedVisitors,
-                true, SurveyEligibility.MIN_DAYS, SurveyEligibility.MIN_CONVERSIONS); // 시험용: 예전처럼 열린 채
-    }
+    private final SurveySettings settings;
 
     @org.springframework.beans.factory.annotation.Autowired
     public SurveyService(SurveyEligibility eligibility, GifticonStore gifticons,
-                         AnalyticsEventService events,
+                         AnalyticsEventService events, SurveySettings settings,
                          @Value("${discount.survey.test-visitors:}") String testVisitors,
-                         @Value("${discount.survey.blocked-visitors:}") String blockedVisitors,
-                         @Value("${discount.survey.open:false}") boolean open,
-                         @Value("${discount.survey.min-days:" + SurveyEligibility.MIN_DAYS + "}") int minDays,
-                         @Value("${discount.survey.min-conversions:" + SurveyEligibility.MIN_CONVERSIONS + "}") int minConversions) {
-        this.open = open;
-        this.minDays = minDays;
-        this.minConversions = minConversions;
-        log.info("설문 {} — 문턱 접속일 {}일, 전환 {}회", open ? "열림" : "닫힘", minDays, minConversions);
+                         @Value("${discount.survey.blocked-visitors:}") String blockedVisitors) {
+        this.settings = settings;
         this.eligibility = eligibility;
         this.gifticons = gifticons;
         this.events = events;
@@ -137,9 +109,18 @@ public class SurveyService {
     private boolean qualifies(String visitorId) {
         SurveyEligibility.Counts counts = eligibility.count(visitorId);
         if (testVisitors.contains(visitorId)) return !counts.answered();
-        return open && SurveyEligibility.qualifies(counts, minDays, minConversions)
-                && SurveyEligibility.recentAndLong(counts, recentDays, minSpanDays,
-                        java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul")));
+        SurveySettings.Values v = settings.current().values();   // 요청마다. 콘솔에서 바꾸면 재시작 없이 반영된다.
+        return v.open() && SurveyEligibility.qualifies(counts, v.minDays(), v.minConversions())
+                && SurveyEligibility.recentAndLong(counts, v.recentDays(), v.minSpanDays(), today());
+    }
+
+    private static java.time.LocalDate today() {
+        return java.time.LocalDate.now(java.time.ZoneId.of("Asia/Seoul"));
+    }
+
+    /** 이 문턱이면 지금 몇 명이 대상인가(콘솔 미리보기). 테스트 id는 사람이 아니라 뺀다. */
+    public SurveyEligibility.Audience audience(int minDays, int minConversions, int recentDays, int minSpanDays) {
+        return eligibility.audience(minDays, minConversions, recentDays, minSpanDays, today(), testVisitors);
     }
 
     /**
@@ -151,7 +132,7 @@ public class SurveyService {
      * rewarded=false인 응답은 answered로 안 쳐 다시 시도할 수 있다).
      */
     public boolean isOpen() {
-        return open;
+        return settings.current().values().open();
     }
 
     public boolean eligible(String visitorId) {

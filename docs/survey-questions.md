@@ -91,6 +91,19 @@ visitorId `v_dev1`이 그대로 브라우저에 남아 실제 방문처럼 잡�
 운영 서버(`bebeggars.duckdns.org`)로 넘기므로, `localhost:5173`에서
 누른 것도 진짜 원장에 그대로 쌓인다.
 
+## 설문 열고 닫기와 대상 문턱 (운영 콘솔 "설문" 카드, 설계 317)
+
+열고 닫기와 문턱 다섯 칸(`open`, `minDays`, `minConversions`, `recentDays`, `minSpanDays`)의
+정본은 서버의 `survey-settings.json`이다(이벤트 원장 옆). 운영 콘솔(`/ops/`)의 "설문" 카드에서
+바꾸고 저장하면 재시작 없이 바로 반영된다. 서버에 들어가 환경변수를 고치지 않는다.
+
+- 파일이 없으면 환경변수(`DISCOUNT_SURVEY_OPEN`, `_MIN_DAYS`, `_MIN_CONVERSIONS`, `_RECENT_DAYS`,
+  `_MIN_SPAN_DAYS`)가 기본값이다. 콘솔에서 한 번 저장하면 그 뒤로는 파일이 정본이다.
+- 파일이 깨지면 **닫힘**으로 본다(콘솔에 빨갛게 사유가 뜬다). 콘솔에서 다시 저장하면 복구된다.
+- 바꾼 기록은 같은 폴더의 `survey-settings.log.jsonl`에 누가, 언제, 이전 값, 이후 값으로 남는다.
+- 카드의 "지금 대상 N명"은 서버가 원장 집계로 센 값이다. 기프티콘이 0이면 켜도 코드가 안 나간다는 경고가 뜬다.
+- `DISCOUNT_SURVEY_TEST_VISITORS`, `DISCOUNT_SURVEY_BLOCKED_VISITORS`는 콘솔로 옮기지 않았다. 환경변수 그대로다.
+
 ## 문항 고치는 파일
 
 `web/src/surveyQuestions.js` 하나만 고치면 된다. 다른 파일은

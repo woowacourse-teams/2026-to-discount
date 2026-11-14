@@ -1,0 +1,16 @@
+{
+  "settings": {
+    "open": false,
+    "minDays": 7,
+    "minConversions": 5,
+    "recentDays": 14,
+    "minSpanDays": 30,
+    "updatedAt": null,
+    "updatedBy": null
+  },
+  "source": "env",
+  "problem": null,
+  "version": "env",
+  "stock": { "state": "ok", "remaining": 12, "total": 40 },
+  "audience": { "eligible": 97, "visitors": 5210, "ledger": "ok" }
+}
