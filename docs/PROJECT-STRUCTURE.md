@@ -58,7 +58,10 @@ api/src/main/java/com/discounttracker/analytics/PostHogEventMapper.java
 api/src/main/java/com/discounttracker/analytics/PostHogForwardingWorker.java
 api/src/main/java/com/discounttracker/analytics/PostHogOutbox.java
 api/src/main/java/com/discounttracker/analytics/PostHogProperties.java
+api/src/main/java/com/discounttracker/analytics/ReportAdminController.java
 api/src/main/java/com/discounttracker/analytics/ReportController.java
+api/src/main/java/com/discounttracker/analytics/ReportLedger.java
+api/src/main/java/com/discounttracker/analytics/ReportRateLimiter.java
 api/src/main/java/com/discounttracker/analytics/SlackReporter.java
 api/src/main/java/com/discounttracker/analytics/SurveyAdminController.java
 api/src/main/java/com/discounttracker/analytics/SurveyController.java
@@ -143,7 +146,10 @@ api/src/test/java/com/discounttracker/analytics/PostHogEventMapperTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogForwardingWorkerTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogOutboxTest.java
 api/src/test/java/com/discounttracker/analytics/PostHogPropertiesTest.java
+api/src/test/java/com/discounttracker/analytics/ReportAdminControllerTest.java
 api/src/test/java/com/discounttracker/analytics/ReportControllerTest.java
+api/src/test/java/com/discounttracker/analytics/ReportLedgerTest.java
+api/src/test/java/com/discounttracker/analytics/ReportMineTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyAdminControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyEligibilityTest.java
@@ -195,6 +201,7 @@ api/src/test/java/com/discounttracker/web/PushAdminControllerTest.java
 api/src/test/java/com/discounttracker/web/PushAdminCorsTest.java
 api/src/test/java/com/discounttracker/web/PushStateWriteEntryPointTest.java
 api/src/test/java/com/discounttracker/web/PushTrackingControllerTest.java
+api/src/test/java/com/discounttracker/web/ReportCorsTest.java
 api/src/test/java/com/discounttracker/web/RequestIdFilterTest.java
 api/src/test/java/com/discounttracker/web/RequestIdIntegrationTest.java
 api/src/test/java/com/discounttracker/web/SurveyAdminCorsTest.java
@@ -204,6 +211,7 @@ api/src/test/resources/contracts/certainty-cases.json
 api/src/test/resources/contracts/offer-cases.json
 api/src/test/resources/contracts/platforms.json
 api/src/test/resources/contracts/survey-settings-response.json
+api/src/test/resources/reports/legacy-reports.jsonl
 web/.env.example
 web/.env.production
 web/.gitignore
@@ -458,7 +466,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 203 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 211 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 207 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -471,7 +479,7 @@ flowchart TB
 
 | 패키지 | 책임 | Java 소스 수 |
 |---|---|---:|
-| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 28 |
+| `analytics/` | 행동 이벤트 수집과 트래픽 집계 | 31 |
 | `banner/` | 당일 행사 로드와 날짜 판정 | 6 |
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
@@ -485,6 +493,7 @@ flowchart TB
 HTTP 경계:
 
 - `DELETE /api/push/subscriptions`
+- `GET /api/admin/reports`
 - `GET /api/admin/survey-settings`
 - `GET /api/admin/survey-settings/preview`
 - `GET /api/banners`
@@ -493,6 +502,7 @@ HTTP 경계:
 - `GET /api/push/admin/next`
 - `GET /api/push/click/{token}`
 - `GET /api/push/public-key`
+- `GET /api/reports/mine`
 - `GET /api/share-links/{code}`
 - `GET /api/survey`
 - `GET /api/survey/code`
@@ -506,6 +516,7 @@ HTTP 경계:
 - `POST /api/survey/demo`
 - `POST /api/survey/dismiss`
 - `POST /api/survey/follow-up`
+- `PUT /api/admin/reports/{id}`
 - `PUT /api/admin/survey-settings`
 - `PUT /api/push/admin/next`
 
