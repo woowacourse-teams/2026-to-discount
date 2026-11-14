@@ -84,6 +84,15 @@ public class BannerCatalog {
      */
     private volatile List<String> duplicateIds = List.of();
 
+    /** group이 같은 배너를 한 장으로 접을지. 기본은 끔(2026-11-14, #386). */
+    private volatile boolean groupFold = false;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setGroupFold(@Value("${discount.banner-group-fold:false}") boolean groupFold) {
+        this.groupFold = groupFold;
+        log.info("배너 묶기(group 접기): {}", groupFold ? "켬" : "끔");
+    }
+
     public BannerCatalog(@Value("${discount.banners-path:classpath:banners.yml}") Resource source,
                          Clock clock, BrandCatalog brands) {
         this.source = source;
@@ -139,7 +148,7 @@ public class BannerCatalog {
     }
 
     /**
-     * 오늘 이 시각에 띄울 배너. 묶음은 한 장으로 접는다.
+     * 오늘 이 시각에 띄울 배너. 묶기를 켰을 때만 묶음을 한 장으로 접는다(기본 끔, #386).
      *
      * <p>대표(카드의 amount·url·minOrder·color를 대는 쪽, brands의 첫 자리)는 구성원 중
      * <b>원래</b> priority가 가장 작은 쪽이다. {@link #activeMembers()}는 카드 자신이
@@ -152,6 +161,7 @@ public class BannerCatalog {
      * 순서에 기대지 않는다.
      */
     public List<Banner> active() {
+        if (!groupFold) return activeMembers();
         List<Banner> members = activeMembers();
         java.util.Map<String, Integer> originalPriority = all.stream()
                 .collect(java.util.stream.Collectors.toMap(Banner::id, Banner::priority, (a, b) -> a));
@@ -280,13 +290,15 @@ public class BannerCatalog {
         java.time.LocalDateTime now = java.time.LocalDateTime.now(clock);
         java.util.Map<String, Integer> groupPriority = new java.util.HashMap<>();
         List<Banner> live = all.stream().filter(b -> b.activeAt(now)).toList();
-        for (Banner b : live) {
-            if (b.group() != null) {
-                groupPriority.merge(b.group(), b.priority(), Math::min);
+        if (groupFold) {
+            for (Banner b : live) {
+                if (b.group() != null) {
+                    groupPriority.merge(b.group(), b.priority(), Math::min);
+                }
             }
         }
         return live.stream()
-                .map(b -> b.group() == null ? b
+                .map(b -> !groupFold || b.group() == null ? b
                         : b.toBuilder().priority(groupPriority.get(b.group())).build())
                 .sorted(Comparator.comparingInt(Banner::priority).thenComparing(Banner::endsAt)
                         .thenComparing(BannerCatalog::opensAtKey).thenComparing(Banner::id))

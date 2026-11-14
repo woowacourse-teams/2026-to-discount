@@ -105,12 +105,14 @@
 
 ## 3. 묶음 배너 (group)
 
+2026-11-14부터 서버 묶기는 꺼져 있다(`discount.banner-group-fold`, #386). 끈 동안 `active()`와 `activeMembers()`가 같은 목록이라 이 묶음의 '접는 쪽'이 쉰다. 켜면 아래가 다시 산다.
+
 여러 브랜드를 한 장으로 그리되 브랜드마다 오퍼를 세운다.
 
 | 자리 | 파일 |
 | --- | --- |
 | 만드는 쪽 | tracker `banner_routine.propose_ce_ops` (브랜드마다 한 장, 같은 `group`) |
-| 접는 쪽 | `BannerCatalog.active()` (`groupAmount`가 구성원 금액을 합쳐 적는다) |
+| 접는 쪽 (스위치를 켰을 때) | `BannerCatalog.active()` (`groupAmount`가 구성원 금액을 합쳐 적는다) |
 | 안 접는 쪽 | `BannerCatalog.activeMembers()` (오퍼는 여기서 난다) |
 | 그리는 쪽 | `web/src/EventBanner.jsx`의 `brands`, `brandLabels` |
 

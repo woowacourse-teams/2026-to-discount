@@ -12,7 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** group으로 묶으면 화면에는 한 장, 오퍼로는 구성원마다 하나. */
+/** group으로 묶으면 화면에는 한 장, 오퍼로는 구성원마다 하나. 묶기를 켠 상태(#386 뒤 기본은 끔)를 지킨다. */
 class BannerGroupTest {
 
     private static final ZoneId SEOUL = ZoneId.of("Asia/Seoul");
@@ -20,6 +20,13 @@ class BannerGroupTest {
     // BrandCatalog는 no-arg 생성자가 없다(Resource 필수) — 다른 배너 테스트들과
     // 같은 패턴으로 빈 리소스를 물린다. 실제로 새 별칭이 필요 없는 테스트다.
     private static BannerCatalog catalog(String yml) {
+        BannerCatalog c = catalogOff(yml);
+        c.setGroupFold(true);
+        return c;
+    }
+
+    /** 스위치를 건드리지 않은 기본(끔) 카탈로그. */
+    private static BannerCatalog catalogOff(String yml) {
         Clock clock = Clock.fixed(Instant.parse("2026-09-22T12:00:00Z"), SEOUL);
         BrandCatalog brands = new BrandCatalog(new ByteArrayResource(new byte[0]));
         return new BannerCatalog(new ByteArrayResource(yml.getBytes(StandardCharsets.UTF_8)),
@@ -49,6 +56,63 @@ class BannerGroupTest {
                 endsAt: 2026-09-22T23:59
                 priority: 2
             """;
+
+    private static final String DAILY_OPEN = """
+                banners:
+                  - id: coupangeats-open-20260922-9시-뚜레쥬르
+                    group: coupangeats-open-20260922
+                    brand: 뚜레쥬르
+                    platform: coupangeats
+                    url: "https://example.test/hub"
+                    amount: {won: 6000}
+                    startsAt: 2026-09-22T00:00:00
+                    endsAt: 2026-09-22T23:59:59
+                    opensAt: "09:00"
+                    firstCome: issue
+                    priority: 6
+                  - id: coupangeats-open-20260922-17시-두찜
+                    group: coupangeats-open-20260922
+                    brand: 두찜
+                    platform: coupangeats
+                    url: "https://example.test/hub"
+                    amount: {won: 7000}
+                    startsAt: 2026-09-22T00:00:00
+                    endsAt: 2026-09-22T23:59:59
+                    opensAt: "17:00"
+                    firstCome: issue
+                    priority: 7
+                """;
+
+    @Test
+    void groupIsNotFoldedByDefault() {
+        List<Banner> active = catalogOff(TWO_IN_A_GROUP).active();
+        assertEquals(2, active.size(), "끈 상태에서는 구성원이 각자 한 장이다");
+        for (Banner b : active) {
+            assertNull(b.members());
+            assertNull(b.brands());
+            assertEquals("ddangyo-doubleday-0922", b.group());
+        }
+        assertEquals(List.of("8,000원", "7,000원"), active.stream().map(Banner::amount).toList());
+    }
+
+    @Test
+    void unfoldedMembersKeepTheirOwnPriority() {
+        assertEquals(List.of(2, 5), catalogOff(TWO_IN_A_GROUP).active().stream().map(Banner::priority).toList());
+        assertEquals(List.of("피자알볼로", "던킨"),
+                catalogOff(TWO_IN_A_GROUP).active().stream().map(Banner::brand).toList());
+        assertEquals(List.of(2, 2), catalog(TWO_IN_A_GROUP).activeMembers().stream().map(Banner::priority).toList(),
+                "켠 상태는 묶음 최솟값으로 덮는다");
+    }
+
+    @Test
+    void unfoldedDailyOpenGroupLinesUpByOpeningTime() {
+        String yml = DAILY_OPEN;
+        List<Banner> active = catalogOff(yml).active();
+        assertEquals(2, active.size());
+        assertEquals(List.of("뚜레쥬르", "두찜"), active.stream().map(Banner::brand).toList());
+        assertEquals(List.of("오전 9시 오픈", "오후 5시 오픈"), active.stream().map(Banner::period).toList());
+        assertEquals(List.of("09:00", "17:00"), active.stream().map(b -> b.spec().opensAt()).toList());
+    }
 
     @Test
     void groupDrawsAsOneCard() {
@@ -244,31 +308,7 @@ class BannerGroupTest {
         // 2026-09-30 사용자 결정: 쿠팡이츠 선착순 오픈은 하루치를 한 장으로 묶는다. 구성원마다
         // 여는 시각이 달라도 묶음이고, 시각은 구성원마다 members에 싣는다. 카드 기간 문구는
         // 대표 시각이 아니라 하루 문구다 - 대표 시각을 쓰면 다른 구성원에 대해 거짓말을 한다.
-        String yml = """
-                banners:
-                  - id: coupangeats-open-20260922-9시-뚜레쥬르
-                    group: coupangeats-open-20260922
-                    brand: 뚜레쥬르
-                    platform: coupangeats
-                    url: "https://example.test/hub"
-                    amount: {won: 6000}
-                    startsAt: 2026-09-22T00:00:00
-                    endsAt: 2026-09-22T23:59:59
-                    opensAt: "09:00"
-                    firstCome: issue
-                    priority: 6
-                  - id: coupangeats-open-20260922-17시-두찜
-                    group: coupangeats-open-20260922
-                    brand: 두찜
-                    platform: coupangeats
-                    url: "https://example.test/hub"
-                    amount: {won: 7000}
-                    startsAt: 2026-09-22T00:00:00
-                    endsAt: 2026-09-22T23:59:59
-                    opensAt: "17:00"
-                    firstCome: issue
-                    priority: 7
-                """;
+        String yml = DAILY_OPEN;
         List<Banner> active = catalog(yml).active();
         assertEquals(1, active.size(), "여는 시각이 달라도 한 장");
         Banner card = active.get(0);

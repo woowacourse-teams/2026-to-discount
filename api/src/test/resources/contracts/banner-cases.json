@@ -116,6 +116,7 @@
   },
   {
    "name": "ce-event-group",
+   "groupFold": true,
    "why": "수집기가 만드는 쿠팡이츠 행사 제안(브랜드마다 한 장, 같은 group). 구성원 하나만 소진",
    "banners": [
     {
@@ -231,6 +232,129 @@
    ]
   },
   {
+   "name": "ce-event-group-unfolded",
+   "why": "묶기를 끈 기본 상태(2026-11-14, #386). 같은 group 구성원이 각자 한 장으로 나가고 members가 없다",
+   "banners": [
+    {
+     "id": "coupangeats-weekly-20260929-청년피자",
+     "group": "coupangeats-weekly-20260929",
+     "platform": "coupangeats",
+     "brand": "청년피자",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": {
+      "won": [
+       null,
+       10000
+      ],
+      "random": true
+     },
+     "event": "위클리 슈퍼딜",
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "priority": 6
+    },
+    {
+     "id": "coupangeats-weekly-20260929-60계치킨",
+     "group": "coupangeats-weekly-20260929",
+     "platform": "coupangeats",
+     "brand": "60계치킨",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": {
+      "won": [
+       null,
+       8000
+      ],
+      "random": true
+     },
+     "event": "위클리 슈퍼딜",
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "priority": 7,
+     "soldOutOn": "2026-09-29"
+    }
+   ],
+   "response": [
+    {
+     "id": "coupangeats-weekly-20260929-청년피자",
+     "brand": "청년피자",
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": "최대 10,000원",
+     "period": "9월 29일 하루",
+     "extra": "위클리 슈퍼딜 / 랜덤쿠폰",
+     "minOrder": null,
+     "color": null,
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "soldOut": false,
+     "soldOutOn": null,
+     "priority": 6,
+     "brands": null,
+     "spec": {
+      "opensAt": null,
+      "channel": null,
+      "membership": null,
+      "event": "위클리 슈퍼딜",
+      "note": null
+     },
+     "brandLabels": null,
+     "group": "coupangeats-weekly-20260929",
+     "via": null,
+     "amountSpec": {
+      "wonMin": null,
+      "wonMax": 10000,
+      "percent": null,
+      "random": true,
+      "kind": "discount",
+      "range": true
+     },
+     "targeted": false,
+     "firstCome": null,
+     "untilSoldOut": null,
+     "members": null
+    },
+    {
+     "id": "coupangeats-weekly-20260929-60계치킨",
+     "brand": "60계치킨",
+     "platform": "coupangeats",
+     "url": "coupangeats://Web?url=https%3A%2F%2Feats-mobile-web.coupang.com%2Fpromotion%2Flanding-page-v5%3Fkey%3DV5_HUB_0928",
+     "amount": "최대 8,000원",
+     "period": "9월 29일 하루",
+     "extra": "위클리 슈퍼딜 / 랜덤쿠폰",
+     "minOrder": null,
+     "color": null,
+     "startsAt": "2026-09-29T00:00:00",
+     "endsAt": "2026-09-29T23:59:59",
+     "soldOut": true,
+     "soldOutOn": null,
+     "priority": 7,
+     "brands": null,
+     "spec": {
+      "opensAt": null,
+      "channel": null,
+      "membership": null,
+      "event": "위클리 슈퍼딜",
+      "note": null
+     },
+     "brandLabels": null,
+     "group": "coupangeats-weekly-20260929",
+     "via": null,
+     "amountSpec": {
+      "wonMin": null,
+      "wonMax": 8000,
+      "percent": null,
+      "random": true,
+      "kind": "discount",
+      "range": true
+     },
+     "targeted": false,
+     "firstCome": null,
+     "untilSoldOut": null,
+     "members": null
+    }
+   ]
+  },
+  {
    "name": "outside-window",
    "why": "어제 끝난 배너, 내일 시작하는 배너. 응답에 없다",
    "banners": [
@@ -335,6 +459,7 @@
   },
   {
    "name": "group-rule-broken",
+   "groupFold": true,
    "why": "묶음은 링크, 기간, 플랫폼이 같아야 한다(확정 규칙 4절). 어긴 묶음을 서버는 조용히 접지 않고 구성원을 각자 한 장으로 띄운다(로그에 경고)",
    "banners": [
     {

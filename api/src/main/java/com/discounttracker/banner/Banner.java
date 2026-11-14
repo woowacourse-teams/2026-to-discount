@@ -78,7 +78,7 @@ public record Banner(
         String firstCome,
         // 소진되면 끝인가.
         Boolean untilSoldOut,
-        // 묶음 카드의 구성원(2026-09-29). BannerCatalog.active()가 접은 카드에만 있다.
+        // 묶음 카드의 구성원(2026-09-29). 묶기를 켰을 때 BannerCatalog.active()가 접은 카드에만 있다. 기본은 끔이라 늘 null이다.
         // 묶음은 링크, 기간, 플랫폼이 같은 배너들이라(확정 규칙 4절) 그 셋은 카드의 것이고,
         // 구성원마다 다른 브랜드, 금액, 최소주문, 여는 시각, 소진만 여기 남긴다. 접지 않은 배너는 null이다.
         List<Member> members) {
