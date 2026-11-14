@@ -1,31 +1,26 @@
 package com.discounttracker.analytics;
 
-import com.discounttracker.storage.InterProcessFileLock;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import org.springframework.beans.factory.annotation.Value;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.LinkedHashMap;
-import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 /**
  * "잘못된 정보 제보" 접수. 받은 글은 슬랙으로 보내고, 슬랙이 없거나 실패해도
@@ -48,24 +43,76 @@ public class ReportController {
     static final int PER_MINUTE = 3;
     static final int PER_DAY = 20;
 
+    static final int READS_PER_MINUTE = 10;
+    static final int MINE_LIMIT = 50;
+    private static final Pattern VISITOR_ID = Pattern.compile("^v_[0-9a-f]{16}$");
+
     private final SlackReporter slack;
     private final ClientFingerprint fingerprint;
-    // ponytail: 메모리 카운터, EventRateLimiter와 같은 한계(재시작 초기화, 인스턴스 한 대).
-    private final Map<String, Deque<Instant>> recent = new ConcurrentHashMap<>();
-
+    private final ReportLedger ledger;
     private final ObjectMapper mapper;
-    private final Path reportPath;
+    private final ReportRateLimiter writes = new ReportRateLimiter(PER_MINUTE, PER_DAY);
+    private final ReportRateLimiter reads = new ReportRateLimiter(READS_PER_MINUTE, Integer.MAX_VALUE);
 
     public ReportController(SlackReporter slack, ClientFingerprint fingerprint, ObjectMapper mapper,
-                            @Value("${discount.report.path:}") String reportPath,
-                            @Value("${discount.event-log-path:data/events.jsonl}") String eventLogPath) {
+                            ReportLedger ledger) {
         this.slack = slack;
         this.fingerprint = fingerprint;
         this.mapper = mapper;
-        // 따로 안 정하면 이벤트 원장 옆에 둔다. 상대 경로 기본값은 운영 작업 폴더에 못 써 500이 났다(2026-10-19).
-        this.reportPath = reportPath.isBlank()
-                ? Path.of(eventLogPath).toAbsolutePath().resolveSibling("reports.jsonl")
-                : Path.of(reportPath);
+        this.ledger = ledger;
+    }
+
+    /** 이 브라우저의 제보 목록(본문 없음). 응답 키 집합은 이 함수에서만 정한다. */
+    @GetMapping("/mine")
+    public ResponseEntity<Map<String, Object>> mine(
+            @RequestHeader(value = "X-Visitor-Id", required = false) String visitorId, HttpServletRequest request) {
+        if (visitorId == null || !VISITOR_ID.matcher(visitorId).matches()) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false));
+        }
+        if (!reads.allow(fingerprint.hashForLimit(request), Instant.now())) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("ok", false));
+        }
+        try {
+            List<Map<String, Object>> rows = new ArrayList<>();
+            for (ReportLedger.Entry e : ledger.mine(visitorId, MINE_LIMIT)) rows.add(mineRow(e));
+            return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(Map.of("reports", rows));
+        } catch (IOException e) {
+            // 상태 파일을 못 읽었을 때 전부 received로 내지 않는다. 웹은 ok:false면 영역을 그리지 않는다.
+            log.error("reports unreadable", e);
+            return ResponseEntity.internalServerError().cacheControl(CacheControl.noStore()).body(Map.of("ok", false));
+        }
+    }
+
+    static Map<String, Object> mineRow(ReportLedger.Entry e) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", e.id());
+        m.put("at", e.rawAt());
+        m.put("type", type(e));
+        m.put("brand", dashToNull(e.text("brand")));
+        m.put("status", e.status());
+        return m;
+    }
+
+    /** 운영자용: 본문까지. visitorId, client, url, filters는 싣지 않는다. */
+    static Map<String, Object> adminRow(ReportLedger.Entry e) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("id", e.id());
+        m.put("at", e.rawAt());
+        m.put("type", type(e));
+        m.put("platform", dashToNull(e.text("platform")));
+        m.put("brand", dashToNull(e.text("brand")));
+        m.put("text", e.text("text"));
+        m.put("status", e.status());
+        return m;
+    }
+
+    private static String type(ReportLedger.Entry e) {
+        String t = e.text("type");
+        return t != null && TYPES.containsKey(t) ? t : null;
+    }
+
+    private static String dashToNull(String s) {
+        return s == null || s.equals("-") ? null : s;
     }
 
     @PostMapping
@@ -99,43 +146,21 @@ public class ReportController {
         row.put("filters", orDash(body.filters()));
         row.put("visitorId", orDash(body.visitorId()));
         row.put("client", who);
+        String id;
         try {
-            append(mapper.writeValueAsString(row));
+            id = ledger.append(mapper.writeValueAsString(row));
         } catch (IOException | RuntimeException e) {
             // 저장을 못 하면 성공이라 하지 않는다. 슬랙에는 그래도 띄워 잃지 않게 한다.
             log.error("report not saved: {} / {}", e.toString(), message.replace('\n', ' '));
             slack.send(message);
             return ResponseEntity.internalServerError().body(Map.of("ok", false));
         }
-        if (!slack.send(message)) log.warn("report saved but not delivered to slack");
+        if (!slack.send(message + "\n번호: " + id)) log.warn("report saved but not delivered to slack");
         return ResponseEntity.ok(Map.of("ok", true));
     }
 
-    private synchronized void append(String line) throws IOException {
-        InterProcessFileLock.withOperationsWrite(() -> {
-            Path parent = reportPath.toAbsolutePath().getParent();
-            if (parent != null) Files.createDirectories(parent);
-            Files.writeString(reportPath, line + "\n", StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-            return null;
-        });
-    }
-
-    synchronized boolean allow(String key, Instant now) {
-        // 다 지우면 모든 사람의 제한이 풀린다. 하루 지난 기록만 걷는다.
-        if (recent.size() > 10_000) {
-            Instant cutoff = now.minus(Duration.ofDays(1));
-            recent.values().forEach(q -> { while (!q.isEmpty() && q.peekFirst().isBefore(cutoff)) q.pollFirst(); });
-            recent.values().removeIf(Deque::isEmpty);
-        }
-        Deque<Instant> times = recent.computeIfAbsent(key, k -> new ArrayDeque<>());
-        while (!times.isEmpty() && times.peekFirst().isBefore(now.minus(Duration.ofDays(1)))) {
-            times.pollFirst();
-        }
-        long lastMinute = times.stream().filter(t -> t.isAfter(now.minus(Duration.ofMinutes(1)))).count();
-        if (times.size() >= PER_DAY || lastMinute >= PER_MINUTE) return false;
-        times.addLast(now);
-        return true;
+    boolean allow(String key, Instant now) {
+        return writes.allow(key, now);
     }
 
     private static boolean tooLong(String s, int max) {
