@@ -67,6 +67,8 @@ export function cardOf(brand, include) {
     minLabel: minText(offer.minOrderAmount),
     // 품절, 오픈 전은 카드 몸통에 내고 금액 채도를 뺀다(CouponCard.jsx stateLabel과 같은 말)
     state: offer.soldOut ? '품절' : beforeOpen(offer) ? '오픈 전' : null,
+    // 랜덤도 금액 채도를 뺀다(2026-11-15 사용자). 라벨은 이미 칩이 있어 state에는 넣지 않는다.
+    dim: !!(offer.soldOut || beforeOpen(offer) || offer.qualifier === '랜덤'),
     appLabel: appLabel(offer),
     href: offerLink(offer, brand.links, brand.name) ?? null,
   }
