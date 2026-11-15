@@ -484,8 +484,6 @@
   text-decoration-color: currentColor;
 }
 
-.offer__amount--dim { filter: saturate(.12); opacity: .55; } /* coupon-card.css .cc-amt s와 같은 값 */
-
 .offer__soldout-label {
   margin-left: .3em;
   font-size: .65rem;
