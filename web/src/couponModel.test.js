@@ -289,6 +289,8 @@ test('beforeOpen: 배지 시각 전이면 참, 지나면 거짓, 시각 없으�
   assert.equal(beforeOpen({ badge: '오후 5시 오픈' }, at(16)), true)
   assert.equal(beforeOpen({ badge: '오후 12시 30분 오픈' }, at(12, 29)), true)
   assert.equal(beforeOpen({ badge: '선착순' }, at(1)), false)
+  assert.equal(beforeOpen({ badge: '선착순', conditions: '오전 11시 오픈 선착순' }, at(10)), true) // 시각이 conditions에만 있는 오퍼
+  assert.equal(beforeOpen({ badge: '선착순', conditions: '오전 11시 오픈 선착순' }, at(11)), false)
 })
 
 test('빼빼로 한정할인 배지: 세븐일레븐과 CU의 10,000원 이상 1,900원 구간에만 붙고 금액과 순서는 그대로', () => {
