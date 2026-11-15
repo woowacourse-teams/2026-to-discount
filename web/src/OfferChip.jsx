@@ -78,12 +78,19 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
             ? <span key={x.kind} className="offer__status-badge">{x.text}</span>
             : <span key={x.kind} className={`offer__range-badge offer__range-badge--${x.kind === 'qualifier-plain' ? 'plain' : x.kind === 'qualifier-random' ? 'random' : 'rate'}`}>{x.text}</span>))}
         </span>
-        {offer.soldOut || beforeOpen(offer) ? (
+        {offer.soldOut ? (
           <>
             <s className="offer__amount--soldout">{offerAmountText(offer, hero)}</s>
-            <span className="offer__soldout-label">{offer.soldOut ? '품절' : '오픈 전'}</span>
+            <span className="offer__soldout-label">품절</span>
           </>
-        ) : offerAmountText(offer, hero)}
+        ) : beforeOpen(offer) ? (
+          // 오픈 전과 랜덤은 취소선 없이 채도만 뺀다(2026-11-15 사용자). 품절은 취소선 그대로.
+          <>
+            <span className="offer__amount--dim">{offerAmountText(offer, hero)}</span>
+            <span className="offer__soldout-label">오픈 전</span>
+          </>
+        ) : offer.qualifier === '랜덤' ? <span className="offer__amount--dim">{offerAmountText(offer, hero)}</span>
+          : offerAmountText(offer, hero)}
       </span>
       <span className="offer__icon-badge">
         <PlatformBadge platformKey={offer.platform} brand={brandName} />
