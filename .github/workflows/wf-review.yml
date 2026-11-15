@@ -5,6 +5,10 @@ name: wf-review
 on:
   workflow_call:
     inputs:
+      runner:
+        description: 실행기 라벨. 기본은 GitHub 호스트(ubuntu-latest). 비공개 tracker만 자체 실행기 라벨을 넘긴다(임시, 2026-11-30까지, GitHub Actions 결제 한도)
+        type: string
+        default: ubuntu-latest
       spec_prefix:
         description: 설계 문서 경로 앞부분(뒤에 <이슈번호>-*.md)
         type: string
@@ -28,7 +32,7 @@ jobs:
     concurrency:
       group: review-${{ github.event.pull_request.number }}
       cancel-in-progress: true
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     timeout-minutes: 30
     env:
       GH_REPO: ${{ github.repository }}

@@ -5,6 +5,10 @@ name: wf-summary
 on:
   workflow_call:
     inputs:
+      runner:
+        description: 실행기 라벨. 기본은 GitHub 호스트(ubuntu-latest). 비공개 tracker만 자체 실행기 라벨을 넘긴다(임시, 2026-11-30까지, GitHub Actions 결제 한도)
+        type: string
+        default: ubuntu-latest
       spec_prefix:
         type: string
         required: true
@@ -31,7 +35,7 @@ jobs:
     concurrency:
       group: issue-${{ github.event.pull_request.head.ref }}
       cancel-in-progress: false
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     timeout-minutes: 15
     env:
       GH_REPO: ${{ github.repository }}

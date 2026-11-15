@@ -5,6 +5,11 @@
 name: wf-followups
 on:
   workflow_call:
+    inputs:
+      runner:
+        description: 실행기 라벨. 기본은 GitHub 호스트(ubuntu-latest). 비공개 tracker만 자체 실행기 라벨을 넘긴다(임시, 2026-11-30까지, GitHub Actions 결제 한도)
+        type: string
+        default: ubuntu-latest
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN:
         required: true
@@ -23,7 +28,7 @@ jobs:
        contains(github.event.pull_request.body, fromJSON('"\n## 후속 조치"')) ||
        startsWith(github.event.pull_request.body, '### 후속 조치') ||
        startsWith(github.event.pull_request.body, '## 후속 조치'))
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     timeout-minutes: 15
     env:
       GH_REPO: ${{ github.repository }}
