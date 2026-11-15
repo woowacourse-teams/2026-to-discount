@@ -289,6 +289,8 @@ test('beforeOpen: 배지 시각 전이면 참, 지나면 거짓, 시각 없으�
   assert.equal(beforeOpen({ badge: '오후 5시 오픈' }, at(16)), true)
   assert.equal(beforeOpen({ badge: '오후 12시 30분 오픈' }, at(12, 29)), true)
   assert.equal(beforeOpen({ badge: '선착순' }, at(1)), false)
+  assert.equal(beforeOpen({ badge: '매일 오후 3시 오픈' }, at(12)), true) // 앞에 '매일'이 붙은 꼴
+  assert.equal(beforeOpen({ badge: '매일 오후 3시 오픈' }, at(15)), false)
   assert.equal(beforeOpen({ badge: '선착순', conditions: '오전 11시 오픈 선착순' }, at(10)), true) // 시각이 conditions에만 있는 오퍼
   assert.equal(beforeOpen({ badge: '선착순', conditions: '오전 11시 오픈 선착순' }, at(11)), false)
 })

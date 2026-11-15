@@ -75,7 +75,7 @@ export function badgesOf(offer, { showBestFit = true, shortTime = true } = {}) {
  * 선착순이 아직 안 열렸나. 배지 "오전 10시 오픈"의 시각이 지금보다 뒤면 참. 오픈 전은 품절과 같은 모양으로 그린다(2026-11-04 사용자).
  * ponytail: 시각만 본다(날짜 무시). 수집이 그날 아침 오퍼를 다시 쓰니 충분하다. 요일 행사가 남으면 날짜를 더한다.
  */
-const OPENS_AT = /^(오전|오후)\s*(\d+)시(?:\s*(\d+)분)?\s*오픈/
+const OPENS_AT = /^(?:매일\s*)?(오전|오후)\s*(\d+)시(?:\s*(\d+)분)?\s*오픈/
 export function beforeOpen(offer, now = pageNow()) {
   // 배지가 그냥 "선착순"이어도 conditions에 "오전 11시 오픈 선착순"이 있으면 같은 오퍼다(2026-11-15 배민 12개 중 9개가 놓쳤다).
   const m = (offer.badge ?? '').match(OPENS_AT) ?? (offer.conditions ?? '').match(OPENS_AT)
