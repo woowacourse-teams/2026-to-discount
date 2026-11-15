@@ -94,7 +94,7 @@ export default function DetailSheet({ card, position, include, closing, sharedKe
           </div>
           <ul ref={offersRef} role="tabpanel" id="v2panel-offers" aria-labelledby="v2tab-offers" className={`v2-panel v2-panel--offers v2-sheet__offers${tab === 'offers' ? '' : ' v2-panel--off'}`} aria-hidden={tab !== 'offers'} inert={tab !== 'offers' ? '' : undefined}>
             {offers.map((o, i) => (
-              <li key={`${o.platform}${i}`} className={`v2-sheet__offer${sharedKey === sharedOfferKey(o.offer) ? ' shared-offer-target' : ''}`} tabIndex={-1} data-offer-key={sharedOfferKey(o.offer)}>
+              <li key={`${o.platform}${i}`} className={`v2-sheet__offer${o.dim ? ' v2-sheet__offer--dim' : ''}${sharedKey === sharedOfferKey(o.offer) ? ' shared-offer-target' : ''}`} tabIndex={-1} data-offer-key={sharedOfferKey(o.offer)}>
                 <div className="v2-sheet__app">
                   <PlatformLogo platform={o.platform} label={o.appLabel} />
                   <OfferShareButton offer={o.offer} brandName={card.name} position={position} where="sheet" className="v2-share" />

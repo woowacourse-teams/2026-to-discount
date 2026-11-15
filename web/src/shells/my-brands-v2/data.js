@@ -88,6 +88,7 @@ export function detailOf(brand, include) {
       via: o.via ?? null,
       appLabel: appLabel(o),
       amountLabel: amountLabel(o),
+      dim: !!(o.soldOut || beforeOpen(o) || o.qualifier === '랜덤'), // 카드의 card.dim과 같은 조건
       minLabel: minText(o.minOrderAmount),
       chips: chipsOf(o, brand.name).filter((c) => c.scope === 'offer').map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? o.platform })),
       // 합산식(10,000+2,000)은 화면에 안 낸다. 결과 금액과 최소주문만 다른 쿠폰과 같게 보인다. 값과 속성(최적 등)은 그대로.
