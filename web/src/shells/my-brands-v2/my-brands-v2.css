@@ -34,6 +34,7 @@
 .v2-chip--qualifier-random { background: #111; color: #ff8a1f; } /* 랜덤: 검정 바탕 주황 글씨 */
 .v2-chip--new { background: var(--sale); color: #fff; } /* 신규: 다른 배지와 같은 칸, 강조색 바탕 흰 글씨 */
 .v2-card--dim .v2-num { color: #b0b8c1; }
+.v2-sheet__offer--dim .v2-sheet__amount .v2-num { color: #b0b8c1; } /* 시트 오퍼 줄도 카드와 같이 */
 .v2-chip--min { justify-self: start; background: #fff; border: 0; box-shadow: 0 1px 6px rgba(0, 0, 0, .15); }
 /* 공유 버튼은 자기 칸(머리 줄 오른쪽 끝)을 가진다. 카드 위 간격과 오른쪽 간격이 같다(14px). */
 /* 공유 버튼은 배경 없이 카드 위 오른쪽 모서리에 절대 위치로 얹는다(다른 내용의 자리를 안 차지한다). 40px 버튼 안의 아이콘이 9px 안쪽이라, 버튼은 5px에 두면 눈에 보이는 아이콘의 위와 오른쪽 간격이 14px(브랜드 로고 왼쪽 간격과 같다). */

@@ -56,7 +56,7 @@ function V2Card({ brand, position, highlighted, onInteract, include = null, onHi
   return (
     <article
       id={brandCardId(brand.name)} ref={cardRef} data-brand={brand.name}
-      className={`v2-card${highlighted ? ' v2-card--linked' : ''}${leaving ? ' v2-card--leaving' : ''}${card.state ? ' v2-card--dim' : ''}`}
+      className={`v2-card${highlighted ? ' v2-card--linked' : ''}${leaving ? ' v2-card--leaving' : ''}${card.dim ? ' v2-card--dim' : ''}`}
       onPointerDown={() => prefetchHistory(card.name)} onClick={onCardClick}
     >
       <div className="v2-detail" aria-hidden="true">자세히<svg viewBox="0 0 12 12"><path d="M2.5 4.5L6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg></div>
