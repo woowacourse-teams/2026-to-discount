@@ -3,6 +3,11 @@
 name: wf-approve
 on:
   workflow_call:
+    inputs:
+      runner:
+        description: 실행기 라벨. 기본은 GitHub 호스트(ubuntu-latest). 비공개 tracker만 자체 실행기 라벨을 넘긴다(임시, 2026-11-30까지, GitHub Actions 결제 한도)
+        type: string
+        default: ubuntu-latest
     secrets:
       WF_APP_ID:
         required: true
@@ -13,7 +18,7 @@ jobs:
   merge:
     # 첫 줄이 /approve 이면 승인(앞뒤 공백 무시, 아래 단계가 판정). 둘째 줄부터 의견을 적어도 된다.
     if: startsWith(github.event.comment.body, '/approve') && !startsWith(github.event.comment.body, '/approve-design')
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     timeout-minutes: 10
     steps:
       # App 토큰으로 병합해야 병합 이벤트가 summary-session을 깨운다(GITHUB_TOKEN 병합은 다른 워크플로를 안 깨운다).
