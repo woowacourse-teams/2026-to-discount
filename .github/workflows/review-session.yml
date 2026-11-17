@@ -2,10 +2,13 @@
 name: review-session
 on:
   pull_request:
-    types: [ready_for_review]
+    # ready_for_review: 첫 리뷰. labeled: 푸시 뒤 재리뷰(#210). `rereview` 라벨을 달면 그때의 head를 다시 리뷰하고 라벨은 wf-review가 뗀다.
+    # 라벨은 쓰기 권한자만 달 수 있어 외부 PR이 토큰을 쓰게 하지 못한다. 푸시마다 자동으로 돌리지 않는 것은 토큰 때문이다.
+    types: [ready_for_review, labeled]
 
 jobs:
   run:
+    if: github.event.action == 'ready_for_review' || github.event.label.name == 'rereview'
     permissions:
       contents: read
       pull-requests: write
