@@ -111,7 +111,8 @@
 
 | 자리 | 파일 |
 | --- | --- |
-| 만드는 쪽 | tracker `banner_routine.propose_ce_ops` (브랜드마다 한 장, 같은 `group`) |
+| 만드는 쪽 | tracker `banner_routine.propose_ce_ops`. 수집기 묶기는 꺼져 있다(`banner_ce.BANNER_GROUPING = False`, tracker #293): 선착순, 이어쓰기, 주간 행사 모두 브랜드마다 한 장이고 `group`을 달지 않는다. 스위치를 켜면 옛 동작(브랜드마다 한 장, 같은 `group`)으로 돌아간다 |
+| 다시 묶는 쪽 | beggars-ops `ops_auto.assign_repeating_groups`(자동 반영), `ops_apply.regroup_plan`이 같은 날·링크·기간의 쿠팡 오픈 배너에 `group`을 붙인다. 접기가 꺼진 동안 화면에는 영향이 없다(tracker #397) |
 | 접는 쪽 (스위치를 켰을 때) | `BannerCatalog.active()` (`groupAmount`가 구성원 금액을 합쳐 적는다) |
 | 안 접는 쪽 | `BannerCatalog.activeMembers()` (오퍼는 여기서 난다) |
 | 그리는 쪽 | `web/src/EventBanner.jsx`의 `brands`, `brandLabels` |
@@ -119,6 +120,7 @@
 - **묶인 이유**: 화면은 한 장, 오퍼는 여럿이라는 두 관점이 같은 자료에서 나온다.
 - **끊기면**: 구성원 금액이 다른데 대표 것 하나만 뜬다. 7,000원인 브랜드를 누른 사람이 8,000원인 줄 안다.
 - **순서 주의**: 묶음 안 순서는 구성원 `priority`가 정한다. 같은 값을 주면 id 알파벳순이 되어 금액 큰 순서가 뒤집힌다.
+- **읽는 쪽을 그대로 두는 이유**: `group` 없는 배너는 `active()`가 지금도 낱장으로 그린다. 수집기가 묶기를 꺼도 접는 쪽, 그리는 쪽은 고칠 것이 없다.
 
 ## 4. 최소주문 출처 (min order)
 
@@ -207,6 +209,21 @@
 - **막는 것**: `SurveyAdminControllerTest.getResponseHasTheContractKeys`가 응답 키 집합을 계약 파일에 맞댄다. 콘솔 테스트가 같은 예시 응답을 읽는다.
 - **순서**: API 먼저(파일이 없으면 환경변수라 동작이 그대로다), 그다음 beggars-ops의 Nginx와 카드(8번).
 - **규칙**: 깨진 설정 파일은 닫힘이다. 환경변수로 메우지 않는다. 파일 하나만 정본이다.
+
+## 11. 구조화 조건 어휘 (qualifiers)
+
+오퍼와 구간(`tiers[]`)에 붙는 조건 말("첫 주문", "월 1회", "선착순" 등)의 목록.
+
+| 자리 | 파일 |
+| --- | --- |
+| 계약 정본 | `api/src/test/resources/contracts/offer-cases.json` (`qualifierVocabulary`, `tierQualifierVocabulary`) |
+| tracker 사본 | tracker `contracts/offer-cases.json` (정본의 바이트 동일 사본. `schema.KNOWN_QUALIFIERS`, `KNOWN_TIER_QUALIFIERS`가 여기서 읽는다, tracker #317) |
+| 웹 어휘 | `web/src/` 오퍼 계약 어휘(`offerContract.test.js`가 정본과 맞댄다) |
+
+- **묶인 이유**: 수집기가 만드는 말과 웹이 그리는 말이 같은 목록이어야 한다. 정의는 정본 하나이고 tracker는 사본을 읽는다.
+- **끊기면**: 사본이 정본과 다르면 tracker 시험(`tests/test_contract_copy.py`, 바이트 비교)이 실패한다. 웹이 계약과 다르면 웹 `offerContract.test.js`가 실패한다. 정본만 고치고 사본 복사를 빠뜨리면 tracker CI에서야 알게 된다.
+- **막는 것**: 위 두 시험.
+- **순서**: 계약 정본 → tracker 사본 복사(`cp`, 바이트 그대로) → 웹. 플랫폼 키(`platforms.json`)도 같은 방식으로 tracker `contracts/platforms.json` 사본을 둔다(tracker #356).
 
 ## 묶음을 줄이는 법
 
