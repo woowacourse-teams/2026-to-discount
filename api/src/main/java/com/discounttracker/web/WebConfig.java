@@ -29,7 +29,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     /** 읽기 전용 목록 GET 경로. 웹 홈(api.js)이 부르는 것들. */
-    static final String[] CACHEABLE = {"/api/brands", "/api/brands/*/history", "/api/banners"};
+    static final String[] CACHEABLE = {"/api/brands", "/api/brands/*/history", "/api/banners", "/api/insight"};
 
     /**
      * 본문 해시 ETag. 재적재가 데이터를 바꾸면 해시가 바뀌므로 버전 관리가 필요 없다.
