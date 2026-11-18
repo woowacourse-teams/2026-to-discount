@@ -62,8 +62,8 @@ def build(people, rows, args=None):
             if ev == "offer_link_click":
                 brand_clickers[b].add(vid)
                 wk = sn.week_of(day).isoformat()
-                week_brand[wk]["all"][b] += 1
-                if p in plat:
+                if p in plat:  # 앱 합(all)과 앱별이 어긋나지 않게 네 앱의 클릭만 센다
+                    week_brand[wk]["all"][b] += 1
                     week_brand[wk][p][b] += 1
         if ev in CLICKS:
             seen["click"].add(vid)
