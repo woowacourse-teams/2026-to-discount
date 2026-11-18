@@ -1,6 +1,6 @@
 """/insight E 구역(사용자 반응)에 쓸 집계를 JSON 한 장으로 만든다.
 
-  scripts/insight_behavior.py --out behavior.json [--src 원장.jsonl]
+  python3 scripts/insight_behavior.py --out behavior.json [--src 원장.jsonl]
 
 방문자 거르기(개발, 봇, 합성)는 experiments.load()/keep() 그대로다. 숫자가 snapshot.py와
 갈라지지 않게 같은 걸 쓴다. 관리자 API(`GET /api/admin/insight/behavior`)가 이 파일을 읽는다.
@@ -51,14 +51,14 @@ def build(people, rows, args=None):
         if ev in ("page_view", "brand_impression"):
             seen[ev].add(vid)
         b = pr.get("brand")
-        if b:
+        if b and b != "none":  # 브랜드 없는 배너는 앱 합계에만 센다(bannerProps가 "none"을 채운다)
             key = {"brand_impression": "impressions", "brand_expand": "expands",
                    "offer_link_click": "clicks", "banner_click": "bannerClicks"}.get(ev)
             if ev == "cart_toggle" and pr.get("state") == "add":
                 key = "cartAdds"
             if key:
                 brand[b][key] += 1
-            if ev in CLICKS:
+            if ev == "offer_link_click":
                 brand_clickers[b].add(vid)
         if ev in CLICKS:
             seen["click"].add(vid)
@@ -107,9 +107,17 @@ def main(argv=None):
     ap.add_argument("--src", help="원장 파일. 없으면 서버에서 받는다")
     ap.add_argument("--out", required=True)
     a = ap.parse_args(argv)
+    if not a.src:
+        # ex.fetch는 캐시가 있으면 다시 안 받는다. 낡은 원장에 새 generatedAt을 붙여 내보내지 않는다.
+        stale = os.path.join(os.path.dirname(os.path.abspath(ex.__file__)), ".events.jsonl")
+        if os.path.exists(stale):
+            os.remove(stale)
     people, rows = ex.load(ex.fetch(a.src))
-    with open(a.out, "w", encoding="utf-8", newline="\n") as fh:
-        json.dump(build(people, rows), fh, ensure_ascii=False, indent=1)
+    report = build(people, rows)
+    tmp = a.out + ".tmp"  # API가 이 파일을 읽는다. 다 쓴 뒤 바꿔 끼워 반쪽 파일을 보이지 않는다.
+    with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
+        json.dump(report, fh, ensure_ascii=False, indent=1)
+    os.replace(tmp, a.out)
     print(a.out)
     return 0
 
@@ -138,6 +146,11 @@ def demo():
     rs2 += [("2026-11-02", "v1", "offer_link_click", pr(brand="bhc", platform="baemin"), "", "s", "/")] * 4
     top = build({"v1": P()}, rs2)["brands"][0]
     assert (top["brand"], top["clicks"], top["clickRate"]) == ("bhc", 4, 0.1)
+    rs3 = rs2 + [("2026-11-02", "v9", "banner_click", pr(brand="bhc", platform="baemin"), "", "s", "/"),
+                 ("2026-11-02", "v9", "banner_click", pr(brand="none", platform="baemin"), "", "s", "/")]
+    out3 = build({"v1": P(), "v9": P()}, rs3)
+    assert [b["brand"] for b in out3["brands"]] == ["bhc"]      # "none"은 순위에 없다
+    assert out3["brands"][0]["clickers"] == 1                    # 배너만 누른 사람은 안 센다
 
 
 if __name__ == "__main__":

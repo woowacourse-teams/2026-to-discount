@@ -41,9 +41,13 @@ public class InsightAdminController {
             if (!source.exists()) return Map.of("available", false);
             long mtime = source.lastModified();
             if (cached == null || mtime != loadedAt) {
+                JsonNode tree;
                 try (InputStream in = source.getInputStream()) {
-                    cached = mapper.readTree(in);
+                    tree = mapper.readTree(in);
                 }
+                // 빈 파일이면 readTree가 예외 없이 빈 노드를 준다. 객체가 아니면 캐시하지 않는다.
+                if (!tree.isObject()) return Map.of("available", false);
+                cached = tree;
                 loadedAt = mtime;
             }
             return cached;

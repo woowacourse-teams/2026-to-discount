@@ -44,6 +44,13 @@ class InsightAdminControllerTest {
     }
 
     @Test
+    void emptyFileIsUnavailable() throws Exception {
+        mvc(json("")).perform(get("/api/admin/insight/behavior").header("X-Ops-Authenticated", "1")
+                .with(r -> { r.setRemoteAddr("127.0.0.1"); return r; }))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.available").value(false));
+    }
+
+    @Test
     void missingFileIsUnavailableNotError() throws Exception {
         Resource none = new ByteArrayResource(new byte[0]) {
             @Override public boolean exists() { return false; }

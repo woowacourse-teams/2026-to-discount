@@ -4,7 +4,7 @@
 
 ## 만드는 법
 
-`scripts/insight_behavior.py --out behavior.json`. 원장(`events.jsonl`)을 `experiments.load/keep`으로 읽어 snapshot.py와 같은 방문자 거르기(개발, 봇, 합성)를 쓴다. API `GET /api/admin/insight/behavior`가 이 파일을 운영 콘솔 인증 뒤에서 그대로 내려준다(경로는 `DISCOUNT_BEHAVIOR_PATH`).
+`python3 scripts/insight_behavior.py --out behavior.json`. 원장(`events.jsonl`)을 `experiments.load/keep`으로 읽어 snapshot.py와 같은 방문자 거르기(개발, 봇, 합성)를 쓴다. API `GET /api/admin/insight/behavior`가 이 파일을 운영 콘솔 인증 뒤에서 그대로 내려준다(경로는 `DISCOUNT_BEHAVIOR_PATH`).
 
 ## 싣는 것
 
