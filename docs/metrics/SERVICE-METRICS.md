@@ -11,6 +11,7 @@
 | 계측 기반을 어떻게 세웠나 (가설 검증) | [ANALYTICS-CAPABILITY.md](../ANALYTICS-CAPABILITY.md) |
 | 날마다 다시 뽑는 지표 스냅샷 | [2026-09-09.md](2026-09-09.md) — `scripts/snapshot.py` |
 | PostHog 화면 정의 | `scripts/posthog_dashboards.py` |
+| /insight 사용자 반응(관리자용 집계) | [INSIGHT-BEHAVIOR.md](INSIGHT-BEHAVIOR.md) — `scripts/insight_behavior.py` |
 | 그래프의 변곡점 표시 | [ANNOTATIONS.md](ANNOTATIONS.md) |
 
 새로 만든 PostHog 대시보드: **서비스 지표 - 재사용, 실질 사용자, 성공 신호** (16개 타일).
