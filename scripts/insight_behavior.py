@@ -99,6 +99,10 @@ def build(people, rows, args=None):
         b, n = max(sorted(c.items()), key=lambda kv: kv[1])  # 같으면 이름순 앞
         return {"brand": b, "clicks": n}
 
+    total_brand = collections.defaultdict(collections.Counter)  # 앱|all -> 브랜드 -> 전체 기간 카드 칩 클릭
+    for per in week_brand.values():
+        for k, c in per.items():
+            total_brand[k].update(c)
     weeks = [{"week": w, "byPlatform": {p: c.get(p, 0) for p in PLATFORMS},
               "topBrands": {k: top1(week_brand[w][k]) for k in ("all",) + PLATFORMS}}
              for w, c in sorted(week_click.items())]
@@ -109,7 +113,9 @@ def build(people, rows, args=None):
         "generatedAt": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
         "range": {"from": min(days) if days else None, "to": max(days) if days else None},
         "minN": MIN_N, "platforms": list(PLATFORMS),
-        "weeklyClicks": weeks, "platformReaction": out_plat, "brands": brands, "funnel": funnel,
+        "weeklyClicks": weeks,
+        "topBrandsTotal": {k: top1(total_brand[k]) for k in ("all",) + PLATFORMS},
+        "platformReaction": out_plat, "brands": brands, "funnel": funnel,
     }
 
 
@@ -164,6 +170,7 @@ def demo():
     assert [b["brand"] for b in out3["brands"]] == ["bhc"]      # "none"은 순위에 없다
     assert out3["brands"][0]["clickers"] == 1                    # 배너만 누른 사람은 안 센다
     tb = out3["weeklyClicks"][0]["topBrands"]                     # 배너 클릭(v9)은 주간 1등 브랜드에 안 센다
+    assert out3["topBrandsTotal"]["all"] == {"brand": "bhc", "clicks": 4}   # 전체 기간 1등
     assert tb["all"] == {"brand": "bhc", "clicks": 4} and tb["baemin"] == tb["all"] and tb["yogiyo"] is None
 
 
