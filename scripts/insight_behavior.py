@@ -20,8 +20,10 @@ import experiments as ex  # noqa: E402
 import snapshot as sn  # noqa: E402
 
 MIN_N = 30
+TOP_BRANDS = 30
 PLATFORMS = ("baemin", "coupangeats", "yogiyo", "ddangyo")
 CLICKS = ("offer_link_click", "banner_click")  # 앱으로 나가는 길(experiments.GOAL)
+# 브랜드 clicks는 카드 칩(offer_link_click)만 센다. 분모가 카드 노출이라 배너 클릭을 섞으면 비율이 부푼다.
 
 
 def rate(num, den):
@@ -38,6 +40,8 @@ def build(people, rows, args=None):
     clickers = {p: set() for p in PLATFORMS}
     seen = collections.defaultdict(set)  # 깔때기: 단계 -> 방문자
     days = []
+    brand = collections.defaultdict(lambda: collections.defaultdict(int))
+    brand_clickers = collections.defaultdict(set)
     for day, vid, ev, props, _ts, _sid, _path in rows:
         if not ex.keep(people[vid], args):
             continue
@@ -46,6 +50,16 @@ def build(people, rows, args=None):
         p = pr.get("platform")
         if ev in ("page_view", "brand_impression"):
             seen[ev].add(vid)
+        b = pr.get("brand")
+        if b:
+            key = {"brand_impression": "impressions", "brand_expand": "expands",
+                   "offer_link_click": "clicks", "banner_click": "bannerClicks"}.get(ev)
+            if ev == "cart_toggle" and pr.get("state") == "add":
+                key = "cartAdds"
+            if key:
+                brand[b][key] += 1
+            if ev in CLICKS:
+                brand_clickers[b].add(vid)
         if ev in CLICKS:
             seen["click"].add(vid)
         if p not in plat:
@@ -55,12 +69,9 @@ def build(people, rows, args=None):
             clickers[p].add(vid)
             plat[p]["clicks"] += 1
         key = {"banner_impression": "bannerImpressions", "banner_click": "bannerClicks",
-               "banner_dismiss": "bannerDismisses", "app_return": "appReturns",
-               "app_open_result": "appOpenTries"}.get(ev)
+               "banner_dismiss": "bannerDismisses"}.get(ev)
         if key:
             plat[p][key] += 1
-        if ev == "app_open_result" and str(pr.get("opened")).lower() == "true":
-            plat[p]["appOpened"] += 1
 
     out_plat = {}
     for p in PLATFORMS:
@@ -71,10 +82,12 @@ def build(people, rows, args=None):
             "bannerDismisses": d["bannerDismisses"],
             "bannerClickRate": rate(d["bannerClicks"], d["bannerImpressions"]),
             "bannerDismissRate": rate(d["bannerDismisses"], d["bannerImpressions"]),
-            "appOpenTries": d["appOpenTries"],
-            "appOpenRate": rate(d["appOpened"], d["appOpenTries"]),
-            "appReturns": d["appReturns"],
         }
+    top = sorted(brand, key=lambda b: -brand[b]["clicks"])[:TOP_BRANDS]
+    brands = [{"brand": b, "clicks": brand[b]["clicks"], "clickers": len(brand_clickers[b]),
+               "impressions": brand[b]["impressions"], "expands": brand[b]["expands"],
+               "bannerClicks": brand[b]["bannerClicks"], "cartAdds": brand[b]["cartAdds"],
+               "clickRate": rate(brand[b]["clicks"], brand[b]["impressions"])} for b in top]
     weeks = [{"week": w, "byPlatform": {p: c.get(p, 0) for p in PLATFORMS}}
              for w, c in sorted(week_click.items())]
     funnel = [{"step": s, "visitors": len(seen[k])} for s, k in (
@@ -84,7 +97,7 @@ def build(people, rows, args=None):
         "generatedAt": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
         "range": {"from": min(days) if days else None, "to": max(days) if days else None},
         "minN": MIN_N, "platforms": list(PLATFORMS),
-        "weeklyClicks": weeks, "platformReaction": out_plat, "funnel": funnel,
+        "weeklyClicks": weeks, "platformReaction": out_plat, "brands": brands, "funnel": funnel,
     }
 
 
@@ -120,6 +133,11 @@ def demo():
     assert y["bannerClickRate"] is None   # 노출 0, 클릭이 더 많다 -> 안 그린다
     assert rate(5, 29) is None            # N 30 미만
     assert out["weeklyClicks"][0]["week"] == "2026-11-02"
+    assert "appOpenRate" not in b  # 앱 열림 성공률은 싣지 않는다(사용자 결정 11-18)
+    rs2 = [("2026-11-02", "v1", "brand_impression", pr(brand="bhc"), "", "s", "/")] * 40
+    rs2 += [("2026-11-02", "v1", "offer_link_click", pr(brand="bhc", platform="baemin"), "", "s", "/")] * 4
+    top = build({"v1": P()}, rs2)["brands"][0]
+    assert (top["brand"], top["clicks"], top["clickRate"]) == ("bhc", 4, 0.1)
 
 
 if __name__ == "__main__":
