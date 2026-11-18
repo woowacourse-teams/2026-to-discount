@@ -17,6 +17,8 @@ discount:
     development-origin: ${DISCOUNT_CORS_DEVELOPMENT_ORIGIN:}
   export-path: ${DISCOUNT_EXPORT_PATH:classpath:data/export.json}
   history-path: ${DISCOUNT_HISTORY_PATH:classpath:data/history.json}
+  # /insight E 구역(사용자 반응) 집계. scripts/insight_behavior.py가 만든 JSON. 없으면 available=false.
+  behavior-path: ${DISCOUNT_BEHAVIOR_PATH:classpath:data/behavior.json}
   banners-path: ${DISCOUNT_BANNERS_PATH:classpath:banners.yml}
   # group이 같은 배너를 한 장으로 접을지(2026-11-14 사용자: 끈다). 끄면 구성원이 각자 한 장이고 members가 없다.
   # 켜려면 DISCOUNT_BANNER_GROUP_FOLD=true 뒤 재시작. POST /api/reload로는 바뀌지 않는다.

@@ -118,6 +118,7 @@ api/src/main/java/com/discounttracker/storage/InterProcessFileLock.java
 api/src/main/java/com/discounttracker/web/BannerController.java
 api/src/main/java/com/discounttracker/web/BrandController.java
 api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
+api/src/main/java/com/discounttracker/web/InsightAdminController.java
 api/src/main/java/com/discounttracker/web/InsightController.java
 api/src/main/java/com/discounttracker/web/OpsAuth.java
 api/src/main/java/com/discounttracker/web/PushAdminController.java
@@ -198,6 +199,7 @@ api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/BrandHistoryEndpointTest.java
 api/src/test/java/com/discounttracker/web/DevelopmentCorsTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
+api/src/test/java/com/discounttracker/web/InsightAdminControllerTest.java
 api/src/test/java/com/discounttracker/web/InsightControllerTest.java
 api/src/test/java/com/discounttracker/web/JsonCompressionIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PerformanceMetricsIntegrationTest.java
@@ -479,7 +481,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 215 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 217 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 216 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
@@ -502,11 +504,12 @@ flowchart TB
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
 | `sharing/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 2 |
 | `storage/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 1 |
-| `web/` | HTTP 엔드포인트와 CORS | 10 |
+| `web/` | HTTP 엔드포인트와 CORS | 11 |
 
 HTTP 경계:
 
 - `DELETE /api/push/subscriptions`
+- `GET /api/admin/insight/behavior`
 - `GET /api/admin/reports`
 - `GET /api/admin/survey-settings`
 - `GET /api/admin/survey-settings/preview`
