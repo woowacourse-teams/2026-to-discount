@@ -115,14 +115,13 @@ export function membershipOf(offer, tier) {
   return says(offer.membership) ? offer.membership : (offer.badge?.endsWith('전용쿠폰') ? 'badge' : null)
 }
 
-// 칩으로 올리는 조건. conditions가 알려진 토큰과 정확히 같을 때만(부분 일치, 표기 차이는 문장으로 둔다).
-// ponytail: API는 qualifiers를 이미 보낸다(2026-11-06 운영 오퍼 186개 중 값 있음 1, [] 13, null 172). 그래도 웹은 아직 안 읽고(#166)
-// 이 정확 일치가 유일한 경로다. 값이 있는 것이 적어(원장이 쿠팡이츠 쿠폰함 한 경로에서만 채움) 읽기만 켜면 GS25처럼 conditions만 '첫 주문'인 오퍼를 놓친다. docs/OFFER-KINDS.md.
-// conditions가 '첫 주문 ' 같은 공백, 표기 차이로 오면 칩이 서지 않고 문장(note)으로 남는다.
+// 칩으로 올리는 조건은 구조값 qualifiers에서 읽는다(#332). conditions 글자 일치 대체 경로는 걷었다:
+// 2026-11-18 운영 응답에서 conditions가 '첫 주문'인 오퍼 3개가 모두 qualifiers ['첫 주문']을 가졌다(tracker #180 내보내기).
+// null(모름)과 [](없음)은 둘 다 칩을 세우지 않는다. 그때 conditions 문장은 상세 note로 남는다.
 // 목록은 API 계약 qualifierVocabulary와 같아야 한다(offerContract.test.js가 본다).
 export const KNOWN_QUALIFIERS = ['첫 주문']
 export function qualifiersOf(offer) {
-  return KNOWN_QUALIFIERS.includes(offer.conditions) ? [offer.conditions] : []
+  return (offer.qualifiers ?? []).filter((q) => KNOWN_QUALIFIERS.includes(q))
 }
 
 // 빼빼로 한정 추가 할인(2026-11-11 사용자): 세븐일레븐과 CU의 "10,000원 이상 1,900원" 추가 할인은 빼빼로 상품에만 쓴다.

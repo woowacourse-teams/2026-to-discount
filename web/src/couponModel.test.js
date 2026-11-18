@@ -231,7 +231,7 @@ test('#151 표시 위치 표: CHIP_PLACEMENT가 설계 문서 표와 같다', ()
 })
 
 test('#151 같은 목록: 카드 칩은 모두 상세에 있고, 모든 칩 kind가 표에 있다', () => {
-  for (const x of [...puradak, cuNew, cuOld]) {
+  for (const x of [...puradak, cuNew]) {
     const all = chipsOf(x)
     for (const c of all) assert.ok(CHIP_PLACEMENT[c.kind], c.kind)
     const detail = new Set(all.filter(onDetail).map(key))
@@ -239,14 +239,25 @@ test('#151 같은 목록: 카드 칩은 모두 상세에 있고, 모든 칩 kind
   }
 })
 
-test('#151 CU: 첫 주문은 칩 하나, 상세 문장에서 빠진다. 옛 응답도 같고 부분 일치는 문장으로 둔다', () => {
-  for (const x of [cuNew, cuOld]) {
-    assert.deepEqual(chipsOf(x).filter(onCard).map(key), ['condition:첫 주문'])
-    assert.equal(conditionTable(x).note, '')
-  }
+test('#151 CU: 첫 주문은 칩 하나, 상세 문장에서 빠진다. 부분 일치는 문장으로 둔다', () => {
+  assert.deepEqual(chipsOf(cuNew).filter(onCard).map(key), ['condition:첫 주문'])
+  assert.equal(conditionTable(cuNew).note, '')
   const only = o('coupangeats', 7000, { conditions: '첫 주문만 가능' })
   assert.deepEqual(qualifiersOf(only), [])
   assert.equal(conditionTable(only).note, '첫 주문만 가능')
+})
+
+test('#332 첫 주문은 qualifiers만 읽는다: conditions 글자 일치로 칩을 세우지 않고, null(모름)과 [](없음)은 같은 표시', () => {
+  // cuOld: qualifiers 키가 없는 옛 응답. 대체 경로를 걷었으니 칩 없이 문장으로 남는다.
+  assert.deepEqual(qualifiersOf(cuOld), [])
+  const unknown = o('coupangeats', 7000, { conditions: '첫 주문', qualifiers: null })
+  const none = o('coupangeats', 7000, { conditions: '첫 주문', qualifiers: [] })
+  for (const x of [cuOld, unknown, none]) {
+    assert.ok(!chipsOf(x).some((c) => c.kind === 'condition'))
+    assert.equal(conditionTable(x).note, '첫 주문')
+  }
+  // 어휘 밖 값은 칩으로 올리지 않는다
+  assert.deepEqual(qualifiersOf(o('coupangeats', 7000, { qualifiers: ['첫 주문', '모름값'] })), ['첫 주문'])
 })
 
 test('#151 푸라닭: 요기요 중복 할인은 상세 머리에만, 카드와 표 줄에는 안 뜬다', () => {

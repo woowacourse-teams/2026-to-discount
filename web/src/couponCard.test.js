@@ -75,7 +75,7 @@ test('Tags: 카드는 중복 할인이 안 뜨고 채널 칩이 뜬다, 상세�
 })
 
 test('Tags: 상세에 condition 칩(클래스)과 멤버십 칩이 뜬다', () => {
-  const cu = renderTags(o('coupangeats', 7000, { conditions: '첫 주문' }), true)
+  const cu = renderTags(o('coupangeats', 7000, { conditions: '첫 주문', qualifiers: ['첫 주문'] }), true)
   assert.match(cu, /offer__range-badge--condition[^>]*>첫 주문</)
   assert.match(renderTags(o('baemin', 3000, { membership: 'baeminClub' }), true), /배민클럽/)
 })
