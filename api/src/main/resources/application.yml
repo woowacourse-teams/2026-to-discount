@@ -18,8 +18,8 @@ discount:
   export-path: ${DISCOUNT_EXPORT_PATH:classpath:data/export.json}
   history-path: ${DISCOUNT_HISTORY_PATH:classpath:data/history.json}
   # /insight E 구역(사용자 반응) 집계. scripts/insight_behavior.py가 만든 JSON. 없으면 available=false.
-  # 기본은 event-log-path처럼 실행 폴더 기준 data/ 아래라 서버 환경변수 없이 파일만 두면 읽는다.
-  behavior-path: ${DISCOUNT_BEHAVIOR_PATH:file:data/behavior.json}
+  # 비우면 event-log-path와 같은 폴더의 behavior.json. 서버는 원장 경로를 절대경로로 주므로 파일만 그 옆에 두면 읽는다.
+  behavior-path: ${DISCOUNT_BEHAVIOR_PATH:}
   banners-path: ${DISCOUNT_BANNERS_PATH:classpath:banners.yml}
   # group이 같은 배너를 한 장으로 접을지(2026-11-14 사용자: 끈다). 끄면 구성원이 각자 한 장이고 members가 없다.
   # 켜려면 DISCOUNT_BANNER_GROUP_FOLD=true 뒤 재시작. POST /api/reload로는 바뀌지 않는다.
