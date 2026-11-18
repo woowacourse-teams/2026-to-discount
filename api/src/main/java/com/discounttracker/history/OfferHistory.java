@@ -20,9 +20,11 @@ public final class OfferHistory {
     private final Map<String, Map<LocalDate, BrandDay>> byPair = new HashMap<>();
     private final Map<String, NavigableMap<LocalDate, List<BrandDay>>> byBrand = new HashMap<>();
     private final NavigableMap<LocalDate, Set<String>> coverage;
+    private final List<BrandDay> days;
 
     public OfferHistory(List<BrandDay> days, Map<LocalDate, Set<String>> coverage) {
         this.coverage = new TreeMap<>(coverage);
+        this.days = List.copyOf(days);
         for (BrandDay d : days) {
             byPair.computeIfAbsent(d.platform() + "|" + d.brand(), k -> new HashMap<>()).put(d.date(), d);
             byBrand.computeIfAbsent(d.brand(), k -> new TreeMap<>())
@@ -33,6 +35,12 @@ public final class OfferHistory {
     public static OfferHistory empty() { return new OfferHistory(List.of(), Map.of()); }
 
     public boolean isEmpty() { return coverage.isEmpty(); }
+
+    /** 원장 행 전부(인사이트 집계용). */
+    public List<BrandDay> days() { return days; }
+
+    /** 날짜별 수집된 앱(인사이트 집계용). */
+    public NavigableMap<LocalDate, Set<String>> coverage() { return Collections.unmodifiableNavigableMap(coverage); }
 
     public Novelty novelty(String platform, String brand, int amount, LocalDate today) {
         Map<LocalDate, BrandDay> pair = byPair.getOrDefault(platform + "|" + brand, Map.of());

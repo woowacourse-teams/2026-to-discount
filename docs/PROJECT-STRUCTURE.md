@@ -87,6 +87,7 @@ api/src/main/java/com/discounttracker/history/HistoryRepository.java
 api/src/main/java/com/discounttracker/history/HistoryResponse.java
 api/src/main/java/com/discounttracker/history/OfferHistory.java
 api/src/main/java/com/discounttracker/history/WithheldReason.java
+api/src/main/java/com/discounttracker/insight/InsightService.java
 api/src/main/java/com/discounttracker/offer/AmountKind.java
 api/src/main/java/com/discounttracker/offer/Certainty.java
 api/src/main/java/com/discounttracker/offer/DiscountLadder.java
@@ -117,6 +118,7 @@ api/src/main/java/com/discounttracker/storage/InterProcessFileLock.java
 api/src/main/java/com/discounttracker/web/BannerController.java
 api/src/main/java/com/discounttracker/web/BrandController.java
 api/src/main/java/com/discounttracker/web/GlobalExceptionHandler.java
+api/src/main/java/com/discounttracker/web/InsightController.java
 api/src/main/java/com/discounttracker/web/OpsAuth.java
 api/src/main/java/com/discounttracker/web/PushAdminController.java
 api/src/main/java/com/discounttracker/web/PushSubscriptionController.java
@@ -170,6 +172,7 @@ api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java
 api/src/test/java/com/discounttracker/comparison/TargetedBannerTest.java
 api/src/test/java/com/discounttracker/history/HistoryRepositoryTest.java
 api/src/test/java/com/discounttracker/history/OfferHistoryTest.java
+api/src/test/java/com/discounttracker/insight/InsightServiceTest.java
 api/src/test/java/com/discounttracker/offer/CertaintyTest.java
 api/src/test/java/com/discounttracker/offer/DiscountLadderTest.java
 api/src/test/java/com/discounttracker/offer/FirstComeLinkFilterTest.java
@@ -195,6 +198,7 @@ api/src/test/java/com/discounttracker/web/BrandControllerTest.java
 api/src/test/java/com/discounttracker/web/BrandHistoryEndpointTest.java
 api/src/test/java/com/discounttracker/web/DevelopmentCorsTest.java
 api/src/test/java/com/discounttracker/web/GlobalExceptionHandlerTest.java
+api/src/test/java/com/discounttracker/web/InsightControllerTest.java
 api/src/test/java/com/discounttracker/web/JsonCompressionIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PerformanceMetricsIntegrationTest.java
 api/src/test/java/com/discounttracker/web/PushAdminControllerTest.java
@@ -219,6 +223,7 @@ web/README.md
 web/api/share.js
 web/api/ssr.js
 web/index.html
+web/insight/index.html
 web/middleware.js
 web/package-lock.json
 web/package.json
@@ -265,6 +270,7 @@ web/src/FilterSheet.jsx
 web/src/FirstVisitGuide.jsx
 web/src/HiddenBrandsSheet.jsx
 web/src/HideBrandAsk.jsx
+web/src/InsightPage.jsx
 web/src/MenuBar.jsx
 web/src/MyReports.jsx
 web/src/OfferChip.jsx
@@ -324,6 +330,8 @@ web/src/historyChart.test.js
 web/src/homeExperiment.js
 web/src/homeExperiment.test.js
 web/src/homeRollout.test.js
+web/src/insightModel.js
+web/src/insightModel.test.js
 web/src/lazyRetry.js
 web/src/lazyRetry.test.js
 web/src/linkPreviewMeta.test.js
@@ -399,6 +407,7 @@ web/src/styles/footer-push.css
 web/src/styles/hidden-brands.css
 web/src/styles/hide-ask.css
 web/src/styles/hist.css
+web/src/styles/insight.css
 web/src/styles/offer-sharing.css
 web/src/styles/offer-tabs.css
 web/src/styles/overflow.css
@@ -422,6 +431,7 @@ web/src/variant.js
 web/src/vercelHeaders.test.js
 web/vercel.json
 web/vite.config.js
+web/vite.insight.config.js
 -->
 
 이 문서는 추적된 구조 입력 경로를 기준으로 자동 생성된다. 설명 계약은
@@ -469,8 +479,8 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 211 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 210 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 215 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 216 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -487,11 +497,12 @@ flowchart TB
 | `brand/` | 대표명, 별칭, 카테고리, 플랫폼 링크 | 3 |
 | `comparison/` | 브랜드 단위 결합과 정렬 | 2 |
 | `history/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 6 |
+| `insight/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 1 |
 | `offer/` | 원장 스냅샷 적재, 만료 판정, 오퍼 선택 | 13 |
 | `push/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 11 |
 | `sharing/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 2 |
 | `storage/` | 새 도메인 패키지, 세부 책임은 코드 확인 | 1 |
-| `web/` | HTTP 엔드포인트와 CORS | 9 |
+| `web/` | HTTP 엔드포인트와 CORS | 10 |
 
 HTTP 경계:
 
@@ -502,6 +513,7 @@ HTTP 경계:
 - `GET /api/banners`
 - `GET /api/brands`
 - `GET /api/brands/{brand}/history`
+- `GET /api/insight`
 - `GET /api/push/admin/next`
 - `GET /api/push/click/{token}`
 - `GET /api/push/public-key`
@@ -539,6 +551,7 @@ HTTP 경계:
 | `FirstVisitGuide.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `HiddenBrandsSheet.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `HideBrandAsk.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `InsightPage.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `MenuBar.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `MyReports.jsx` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `OfferChip.jsx` | 앱별 할인 칩과 앱 링크 사다리 |
@@ -598,6 +611,8 @@ HTTP 경계:
 | `homeExperiment.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeExperiment.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `homeRollout.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `insightModel.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `insightModel.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `lazyRetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `lazyRetry.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `linkPreviewMeta.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
