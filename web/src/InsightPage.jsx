@@ -35,7 +35,7 @@ function Card({ title, wide, children, extra }) {
 function Today({ today, apps, all }) {
   const top = (today.top ?? []).filter((t) => apps.includes(t.platform)).slice(0, 3)
   return (
-    <Card title={`오늘 ${md(today.date)}`} wide>
+    <Card title={`오늘${today.date ? " " + md(today.date) : ""}`} wide>
       <div className="ins-tiles">
         {apps.map((a) => (
           <div key={a} className="ins-tile" style={{ '--c': COLOR[a] }}>
