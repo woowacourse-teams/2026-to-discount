@@ -36,6 +36,7 @@ def rate(num, den):
 def build(people, rows, args=None):
     args = args or sn.base_args()
     week_click = collections.defaultdict(collections.Counter)
+    week_brand = collections.defaultdict(lambda: collections.defaultdict(collections.Counter))  # 주 -> 앱|all -> 브랜드 -> 카드 칩 클릭
     plat = {p: collections.defaultdict(int) for p in PLATFORMS}
     clickers = {p: set() for p in PLATFORMS}
     seen = collections.defaultdict(set)  # 깔때기: 단계 -> 방문자
@@ -60,6 +61,10 @@ def build(people, rows, args=None):
                 brand[b][key] += 1
             if ev == "offer_link_click":
                 brand_clickers[b].add(vid)
+                wk = sn.week_of(day).isoformat()
+                if p in plat:  # 앱 합(all)과 앱별이 어긋나지 않게 네 앱의 클릭만 센다
+                    week_brand[wk]["all"][b] += 1
+                    week_brand[wk][p][b] += 1
         if ev in CLICKS:
             seen["click"].add(vid)
         if p not in plat:
@@ -88,7 +93,14 @@ def build(people, rows, args=None):
                "impressions": brand[b]["impressions"], "expands": brand[b]["expands"],
                "bannerClicks": brand[b]["bannerClicks"], "cartAdds": brand[b]["cartAdds"],
                "clickRate": rate(brand[b]["clicks"], brand[b]["impressions"])} for b in top]
-    weeks = [{"week": w, "byPlatform": {p: c.get(p, 0) for p in PLATFORMS}}
+    def top1(c):
+        if not c:
+            return None
+        b, n = max(sorted(c.items()), key=lambda kv: kv[1])  # 같으면 이름순 앞
+        return {"brand": b, "clicks": n}
+
+    weeks = [{"week": w, "byPlatform": {p: c.get(p, 0) for p in PLATFORMS},
+              "topBrands": {k: top1(week_brand[w][k]) for k in ("all",) + PLATFORMS}}
              for w, c in sorted(week_click.items())]
     funnel = [{"step": s, "visitors": len(seen[k])} for s, k in (
         ("방문", "page_view"), ("브랜드 노출", "brand_impression"),
@@ -151,6 +163,8 @@ def demo():
     out3 = build({"v1": P(), "v9": P()}, rs3)
     assert [b["brand"] for b in out3["brands"]] == ["bhc"]      # "none"은 순위에 없다
     assert out3["brands"][0]["clickers"] == 1                    # 배너만 누른 사람은 안 센다
+    tb = out3["weeklyClicks"][0]["topBrands"]                     # 배너 클릭(v9)은 주간 1등 브랜드에 안 센다
+    assert tb["all"] == {"brand": "bhc", "clicks": 4} and tb["baemin"] == tb["all"] and tb["yogiyo"] is None
 
 
 if __name__ == "__main__":
