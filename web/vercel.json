@@ -57,6 +57,11 @@
   ],
   "redirects": [
     {
+      "source": "/project/draft",
+      "destination": "/project/overview/draft",
+      "permanent": false
+    },
+    {
       "source": "/brand/:name.html",
       "destination": "/brand/:name",
       "permanent": true

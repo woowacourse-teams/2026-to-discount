@@ -68,7 +68,7 @@ ADR-015.
 - `vercel.json`: 보안 헤더(`X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`), 캐시 헤더, 리라이트
 - `public/logos/`: 브랜드 로고 (파일명 = API가 내려주는 대표명, 규칙은 `public/logos/README.md` 참고)
 - `public/platform-icons/`: 배민/쿠팡이츠/땡겨요/요기요 아이콘
-- `public/links/`: 각 앱에서 공유 기능으로 받은 브랜드 바로가기 원본 메모
+- `../docs/archive/web-pages/`: 2026-11-19 1차 정리로 공개 경로에서 뺀 페이지와 메모(프로젝트 이야기 `/project`, 배너 `/project/banner`, 배민 브랜드 바로가기 메모). 되살리려면 `public/`으로 되돌린다
 
 ## 당일 행사 배너
 
