@@ -62,6 +62,11 @@
       "permanent": false
     },
     {
+      "source": "/design/ui-kit.html",
+      "destination": "/design/ui-kit/",
+      "permanent": true
+    },
+    {
       "source": "/project/draft",
       "destination": "/overview/draft",
       "permanent": false
