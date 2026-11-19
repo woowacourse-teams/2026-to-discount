@@ -1,4 +1,4 @@
-"""운영 화면의 DOM·CSS(capture-dom.mjs가 $TMP/dom.json에 떠 놓은 것)로 public/design/ui-kit.html을 만든다.
+"""운영 화면의 DOM·CSS(capture-dom.mjs가 $TMP/dom.json에 떠 놓은 것)로 public/design/ui-kit/index.html을 만든다.
 
     npx vite preview --port 4179 &
     node scripts/dev/capture-dom.mjs && python scripts/dev/build-ui-kit.py
@@ -116,7 +116,7 @@ html = f"""<!doctype html>
 <div class="kit__row"><div class="kit__frame kit__frame--mobile"><p class="kit__cap">.sheet — 배달앱 / 멤버십(구현 예정) / 분류 / 정렬 / 초기화·적용</p>{sheet}</div></div>
 
 </div></body></html>"""
-out = WEB / "public" / "design" / "ui-kit.html"
+out = WEB / "public" / "design" / "ui-kit" / "index.html"
 out.parent.mkdir(parents=True, exist_ok=True)
 out.write_text(html, encoding="utf-8")
 print("written", len(html), out)

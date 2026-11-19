@@ -65,6 +65,9 @@ ADR-015.
 - `src/lazyRetry.js`: `React.lazy`용 `importRetry`. import가 실패하거나 `default` 없이 끝나면 한 번 더 시도한다
 - `public/about/index.html`: 서비스 소개 페이지(`/about`, 6장). `?s=1`~`?s=6`은 한 장만 보이는 임베드 모드(Google Sites 등)다.
   `vercel.json`은 이 경로에만 `X-Frame-Options`를 빼서 임베드를 허용한다. 나머지 경로는 `SAMEORIGIN`
+- `public/pages/index.html`: 페이지 모음(`/pages`). 서비스 화면 밖 정적 페이지(개요, 소개, 통계, 초안, 도구)의 목록. 페이지를 더하거나 옮기면 여기도 고친다
+- `public/overview/`: 프로젝트 개요(`/overview`, `?s=1`~`7` 절별 임베드), `draft/` 초안 메모, `source/` 절별 임베드 코드 만들기. 옛 `/project/overview`, `/project/draft`는 `vercel.json`에서 넘긴다
+- `public/design/ui-kit/index.html`: UI 키트(`/design/ui-kit`, 옛 `/design/ui-kit.html`은 넘긴다). `scripts/dev/build-ui-kit.py`가 만든다
 - `public/og-image.png`: 링크 미리보기(`og:image`, `twitter:image`) 이미지, 1200x630
 - `vercel.json`: 보안 헤더(`X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`), 캐시 헤더, 리라이트
 - `public/logos/`: 브랜드 로고 (파일명 = API가 내려주는 대표명, 규칙은 `public/logos/README.md` 참고)
