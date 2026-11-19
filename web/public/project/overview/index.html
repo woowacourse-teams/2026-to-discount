@@ -320,6 +320,47 @@
       <li class="node"><b>이틀 이상 다시 방문</b><span class="num"><span data-count="1496">1,496</span>명</span><span>할인을 누른 사람의 39.9%</span></li>
     </ol>
     <p class="note rise">이틀 이상 방문한 사람은 전체 방문자 중 2,555명(19.8%)입니다. 할인을 누른 사람의 재방문율이 2.0배입니다. 2026-07-29 ~ 2026-11-04, PostHog, 봇 제외.</p>
+    <h3 class="sv-title rise">앱을 많이 쓸수록 오래 남습니다</h3>
+    <div class="chart rise">
+      <h3>할인 링크를 누른 배달앱 수별 재방문</h3>
+      <p class="legend"><span>할인 링크를 한 번 이상 누른 4,215명. 2026-07-29 ~ 2026-11-19, PostHog, 봇 제외</span></p>
+      <div class="scroll"><table style="min-width:520px">
+        <thead><tr><th></th><th>모든 앱(4개)<br />178명</th><th>복수 앱(2~3개)<br />1,118명</th><th>단일 앱(1개)<br />2,919명</th></tr></thead>
+        <tbody>
+          <tr><td>이틀 이상 방문</td><td><b>93.8%</b></td><td>63.8%</td><td>28.7%</td></tr>
+          <tr><td>첫 방문 30일 뒤 이후 재방문</td><td><b>77.5%</b></td><td>34.3%</td><td>11.1%</td></tr>
+          <tr><td>첫 방문 60일 뒤 이후 재방문</td><td><b>63.6%</b></td><td>23.3%</td><td>6.7%</td></tr>
+          <tr><td>활동일 중앙값</td><td><b>12일</b></td><td>2일</td><td>1일</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">N일 뒤 재방문은 첫 방문 뒤 N일이 지난 사람 중 N일째 이후 다시 온 비율입니다. 여러 번 온 사람이 더 많은 앱을 눌렀을 수 있어 인과는 아닙니다.</p>
+    </div>
+    <h3 class="sv-title rise">앱별 반응</h3>
+    <div class="sv">
+      <div class="chart rise"><h3>할인 카드를 본 사람 중 누른 사람</h3><p class="legend"><span>2026-08-27 ~ 2026-11-17, PostHog</span></p>
+        <div class="metric"><b>쿠팡이츠<small>2,019명</small></b><span class="bar new"><i style="--w:79%;background:#894F24"></i>19.8%</span></div><div class="metric"><b>배민<small>1,306명</small></b><span class="bar new"><i style="--w:51%;background:#2AC1BC"></i>12.7%</span></div><div class="metric"><b>요기요<small>1,052명</small></b><span class="bar new"><i style="--w:42%;background:#FA0050"></i>10.5%</span></div><div class="metric"><b>땡겨요<small>448명</small></b><span class="bar new"><i style="--w:18%;background:#FB521C"></i>4.5%</span></div>
+        <p class="note">막대 끝 25%</p>
+      </div>
+      <div class="chart rise" style="--i:1"><h3>누른 할인의 평균 금액</h3><p class="legend"><span>2026-08-27 ~ 2026-11-17, PostHog</span></p>
+        <div class="metric"><b>요기요</b><span class="bar new"><i style="--w:81%;background:#FA0050"></i>8,149원</span></div><div class="metric"><b>쿠팡이츠</b><span class="bar new"><i style="--w:77%;background:#894F24"></i>7,666원</span></div><div class="metric"><b>배민</b><span class="bar new"><i style="--w:69%;background:#2AC1BC"></i>6,947원</span></div><div class="metric"><b>땡겨요</b><span class="bar new"><i style="--w:65%;background:#FB521C"></i>6,532원</span></div>
+        <p class="note">막대 끝 10,000원</p>
+      </div>
+    </div>
+    <h3 class="sv-title rise">커뮤니티 반응</h3>
+    <p class="note rise">아카라이브 핫딜 채널의 서비스 홍보글과 관련 글 24개, 댓글 676개(작성자 답글 제외), AI 분류.</p>
+    <div class="grid nums">
+      <div class="box stat rise"><span class="num">138 : 315</span><span class="lbl">긍정 : 부정 댓글</span></div>
+      <div class="box stat rise" style="--i:1"><span class="num">68.8<small>%</small></span><span class="lbl">앱을 언급한 댓글의 부정 비율</span></div>
+      <div class="box stat rise" style="--i:2"><span class="num">448<small>개</small></span><span class="lbl">할인 방식을 두고 말한 댓글</span><p>선착순, 타겟 쿠폰, 배달비 조건 등</p></div>
+      <div class="box stat rise" style="--i:3"><span class="num">48.7<small>%</small></span><span class="lbl">브랜드를 언급한 댓글의 부정 비율</span></div>
+      <div class="box stat rise" style="--i:4"><span class="num">18<small>시</small></span><span class="lbl">조회와 서비스 이동이 가장 많은 시간</span><p>댓글은 11시에 가장 많습니다</p></div>
+      <div class="box stat rise" style="--i:5"><span class="num">71.2<small>%</small></span><span class="lbl">외부 유입 5,721세션 중 더쿠</span><p>링크가 가장 많은 곳 dealbago.com 978개</p></div>
+    </div>
+    <div class="chart rise">
+      <h3>앱별 부정 비율</h3><p class="legend"><span>앱마다 언급 댓글이 17~35개로 적습니다</span></p>
+      <div class="metric"><b>쿠팡이츠</b><span class="bar new"><i style="--w:88.2%;background:#894F24"></i>88.2%</span></div><div class="metric"><b>요기요</b><span class="bar new"><i style="--w:88.2%;background:#FA0050"></i>88.2%</span></div><div class="metric"><b>배민</b><span class="bar new"><i style="--w:65.4%;background:#2AC1BC"></i>65.4%</span></div><div class="metric"><b>땡겨요</b><span class="bar new"><i style="--w:60%;background:#FB521C"></i>60%</span></div>
+      <p class="note">자세한 분석은 <a href="https://claude.ai/artifact/7p2D5wphetLQuVUmuXuJHB">댓글로 보는 사용자 반응</a>에 있습니다.</p>
+    </div>
     <h3 class="sv-title rise">사용자가 우리 서비스에서 찾는 가치</h3>
     <p class="note rise">다시 찾아오는 사용자 29명. 7일 안 재방문 79%, 30일 안 97%.</p>
     <div class="sv">
