@@ -60,7 +60,14 @@ public class HistoryRepository {
                 n.path("platforms").forEach(p -> ps.add(p.asString()));
                 coverage.put(LocalDate.parse(n.get("date").asString()), ps);
             }
-            current = new OfferHistory(days, coverage);
+            // 날짜별 앱별 한정(선착순) 오퍼 수(tracker daily_state.first_come_counts). 칸이 없는 날은 모름이다.
+            Map<LocalDate, Map<String, Integer>> firstCome = new TreeMap<>();
+            for (JsonNode n : root.path("firstCome")) {
+                Map<String, Integer> byApp = new HashMap<>();
+                n.path("platforms").properties().forEach(e -> byApp.put(e.getKey(), e.getValue().asInt()));
+                firstCome.put(LocalDate.parse(n.get("date").asString()), byApp);
+            }
+            current = new OfferHistory(days, coverage, firstCome);
             log.info("history.json 로드 — {}줄, {}일", days.size(), coverage.size());
             return true;
         } catch (Exception e) {

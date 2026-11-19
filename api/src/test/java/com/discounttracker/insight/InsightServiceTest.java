@@ -90,4 +90,17 @@ class InsightServiceTest {
         assertEquals(8000, ((Map<String, Object>) last.get("sum")).get("baemin"));
         assertNull(((Map<String, Object>) last.get("max")).get("yogiyo"));
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void trendDayCarriesFirstComeCountOrNullWhenUnknown() {
+        LocalDate s = d("2026-10-01");
+        var h = new OfferHistory(List.of(day(s, "baemin", "BBQ", DayState.PUBLISHED, 3000)), cov(s, 2),
+                Map.of(s.plusDays(1), Map.of("baemin", 4)));
+        var out = InsightService.compute(h, List.of(), s.plusDays(1).atStartOfDay(ZoneId.of("Asia/Seoul")));
+        var days = (List<Map<String, Object>>) ((Map<String, Object>) out.get("trend")).get("days");
+        assertNull(((Map<String, Object>) days.get(0).get("firstCome")).get("baemin"));
+        assertEquals(4, ((Map<String, Object>) days.get(1).get("firstCome")).get("baemin"));
+        assertEquals(0, ((Map<String, Object>) days.get(1).get("firstCome")).get("yogiyo"));
+    }
 }

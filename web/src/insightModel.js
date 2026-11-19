@@ -88,6 +88,7 @@ export const METRICS = [
   { key: 'median', label: '할인액 중앙값', unit: '원' },
   { key: 'max', label: '최대 할인', unit: '원' },
   { key: 'sum', label: '할인 합계', unit: '원' },
+  { key: 'firstCome', label: '한정할인 수', unit: '건' },
   { key: 'carriedShare', label: '이어 쓴 비율', unit: '%' },
 ]
 export const availableMetrics = (days) => METRICS.filter((m) => days.some((d) => d[m.key] != null))
