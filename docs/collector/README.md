@@ -9,6 +9,12 @@
 ## (최상위)
 
 - [AGENT-FAILURES.md](AGENT-FAILURES.md)
+- [GLOSSARY.md](GLOSSARY.md)
+- [HANDOFF-20260930-cache.md](HANDOFF-20260930-cache.md)
+- [HANDOFF-20261001-minorder.md](HANDOFF-20261001-minorder.md)
+- [HARNESS.md](HARNESS.md)
+- [ORCHESTRATION-CONTRACT.md](ORCHESTRATION-CONTRACT.md)
+- [REFACTOR-BACKLOG.md](REFACTOR-BACKLOG.md)
 
 ## decisions
 
@@ -63,23 +69,11 @@
 - [experiments/2026-11-15-wsl-migration/README.md](experiments/2026-11-15-wsl-migration/README.md)
 - [experiments/2026-11-15-wsl-migration/verification-sub-2026-11-15.md](experiments/2026-11-15-wsl-migration/verification-sub-2026-11-15.md)
 
-## (최상위)
-
-- [GLOSSARY.md](GLOSSARY.md)
-- [HANDOFF-20260930-cache.md](HANDOFF-20260930-cache.md)
-- [HANDOFF-20261001-minorder.md](HANDOFF-20261001-minorder.md)
-- [HARNESS.md](HARNESS.md)
-- [ORCHESTRATION-CONTRACT.md](ORCHESTRATION-CONTRACT.md)
-
 ## plans
 
 - [plans/2026-10-15-next.md](plans/2026-10-15-next.md)
 - [plans/2026-11-02-rules-change-proposals.md](plans/2026-11-02-rules-change-proposals.md)
 - [plans/2026-11-10-event-db.md](plans/2026-11-10-event-db.md)
-
-## (최상위)
-
-- [REFACTOR-BACKLOG.md](REFACTOR-BACKLOG.md)
 
 ## research
 
@@ -104,7 +98,6 @@
 - [setup/COLLECTION-INCIDENTS.md](setup/COLLECTION-INCIDENTS.md)
 - [setup/CROSS-CHECK-VERDICTS.md](setup/CROSS-CHECK-VERDICTS.md)
 - [setup/DEVICE-MATRIX.md](setup/DEVICE-MATRIX.md)
-- [setup/device-setup.md](setup/device-setup.md)
 - [setup/DUAL-DEVICE.md](setup/DUAL-DEVICE.md)
 - [setup/ENVIRONMENT.md](setup/ENVIRONMENT.md)
 - [setup/HUB-RELAY-HEADERS.md](setup/HUB-RELAY-HEADERS.md)
@@ -113,6 +106,7 @@
 - [setup/ROUTINE-TIMING.md](setup/ROUTINE-TIMING.md)
 - [setup/RULE-AUDIT-2026-10-08.md](setup/RULE-AUDIT-2026-10-08.md)
 - [setup/SLACK-SETUP.md](setup/SLACK-SETUP.md)
+- [setup/device-setup.md](setup/device-setup.md)
 
 ## specs
 
@@ -199,9 +193,9 @@
 - [workflow/CANDIDATES.md](workflow/CANDIDATES.md)
 - [workflow/FRICTION-LOG.md](workflow/FRICTION-LOG.md)
 - [workflow/HANDOFF.md](workflow/HANDOFF.md)
-- [workflow/issue-buffer/FLUSHED.md](workflow/issue-buffer/FLUSHED.md)
-- [workflow/issue-buffer/README.md](workflow/issue-buffer/README.md)
 - [workflow/LOCAL-RULES.md](workflow/LOCAL-RULES.md)
 - [workflow/PORT-FROM-MONO.md](workflow/PORT-FROM-MONO.md)
 - [workflow/PUSH-IDENTITY.md](workflow/PUSH-IDENTITY.md)
 - [workflow/TROUBLESHOOTING.md](workflow/TROUBLESHOOTING.md)
+- [workflow/issue-buffer/FLUSHED.md](workflow/issue-buffer/FLUSHED.md)
+- [workflow/issue-buffer/README.md](workflow/issue-buffer/README.md)
