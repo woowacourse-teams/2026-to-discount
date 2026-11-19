@@ -102,3 +102,28 @@
 .ins-skel { min-height: 180px; background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--text) 5%, var(--surface)), var(--surface)); background-size: 200% 100%; animation: ins-shine 1.4s infinite linear; }
 @keyframes ins-shine { to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .ins-skel { animation: none; } }
+
+/* 날짜별 지표(2026-11-19) */
+.ins-filter { display: flex; flex-wrap: wrap; gap: 8px; }
+.ins-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+@media (min-width: 760px) { .ins-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.ins-stat { padding: 8px 10px; border-radius: 10px; border-left: 3px solid var(--c); background: color-mix(in srgb, var(--c) 8%, var(--surface)); }
+.ins-stat span { display: block; font-size: .75rem; font-weight: 700; color: var(--text-muted); }
+.ins-stat b { font-size: 1.25rem; font-weight: 800; }
+.ins-stat small { display: block; font-size: .7rem; color: var(--text-muted); line-height: 1.4; }
+.ins-svg--touch { touch-action: pan-y; cursor: crosshair; }
+.ins-guide { stroke: var(--text-muted); stroke-dasharray: 2 3; }
+.ins-tip { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; font-size: .8rem; }
+.ins-tip span { display: inline-flex; align-items: center; gap: 4px; }
+.ins-tip span::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.ins-table { margin-top: 10px; font-size: .8rem; }
+.ins-table summary { cursor: pointer; color: var(--text-muted); font-weight: 700; }
+.ins-table__scroll { max-height: 320px; overflow: auto; margin-top: 6px; }
+.ins-table table { width: 100%; border-collapse: collapse; }
+.ins-table th, .ins-table td { padding: 4px 6px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.ins-table th:first-child, .ins-table td:first-child { text-align: left; }
+.ins-table thead th { position: sticky; top: 0; background: var(--surface); }
+.ins-card__head { flex-wrap: wrap; }
+.ins-card__head .ins-tabs { max-width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.ins-card__head .ins-tabs button { flex: none; }
+.ins-chart .ins-svg { max-width: 760px; }

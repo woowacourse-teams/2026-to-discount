@@ -1,10 +1,10 @@
 // /insight 할인 통계 페이지(이슈 #403 1단계: A 오늘, B 추이, C 브랜드×앱, D 방식·기간·변동, F 데이터 범위).
 // 홈 번들과 따로 도는 두 번째 입력(web/insight/index.html)이다. 홈의 실험, 분석, SSR을 싣지 않는다.
 // 데이터는 GET /api/insight 하나. 실패하면 스켈레톤 뒤 한 줄 안내로 끝난다.
-import { StrictMode, useEffect, useState } from 'react'
+import { StrictMode, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { resolveApiBase } from './apiBase.js'
-import { APPS, COLOR, HEAT_STEPS, SHORT, heatLevel, md, plotLines, shareRows, trendPoints, weekly } from './insightModel.js'
+import { APPS, COLOR, HEAT_STEPS, RANGES, SHORT, availableMetrics, heatLevel, md, metricPoints, plotLines, rangeStats, shareRows, sliceByRange, weekly } from './insightModel.js'
 import './styles/insight.css'
 
 const API_BASE = resolveApiBase(import.meta.env?.VITE_API_BASE_URL, import.meta.env?.VITE_APP_ENV)
@@ -57,50 +57,89 @@ function Today({ today, apps, all }) {
   )
 }
 
-function Trend({ trend, apps }) {
-  const [mode, setMode] = useState('won')
-  const days = trend.days ?? []
-  const W = 320
-  const H = 160
-  const m = days.length > 1 ? plotLines(apps.map((a) => ({ key: a, points: trendPoints(days, a, mode) })), { w: W, h: H }) : null
-  const mid = Math.floor((days.length - 1) / 2)
-  const maxActive = Math.max(1, ...days.flatMap((d) => apps.map((a) => d.active?.[a] ?? 0)))
-  const last = days[days.length - 1]
+// 날짜별 지표(2026-11-19 사용자). 기간은 머리의 버튼이 정하고, 지표는 카드 안 탭으로 고른다.
+// 그래프를 누르거나 끌면 그날 앱별 값을 보이고, 아래 표에 날짜×앱 값을 모두 적는다.
+const fmt = (metric, v) => (v == null ? '–' : metric.unit === '원' ? won(v) : `${num(v)}${metric.unit}`)
+const axis = (metric, v) => (metric.unit === '원' ? chun(v) : num(v))
+
+function Daily({ days, apps, range }) {
+  const metrics = availableMetrics(days)
+  const [key, setKey] = useState('active')
+  const [sel, setSel] = useState(null)
+  const svgRef = useRef(null)
+  const metric = metrics.find((m) => m.key === key) ?? metrics[0]
+  const shown = sliceByRange(days, range)
+  const appKey = apps.join()
+  useEffect(() => { setSel(null) }, [range, key, appKey])
+  if (!metric || shown.length < 2) return <Card title="날짜별 지표" wide><p className="ins-empty">표본 부족</p></Card>
+  const W = 360
+  const H = 200
+  const series = apps.map((a) => ({ key: a, points: metricPoints(shown, a, metric.key) }))
+  const m = plotLines(series, { w: W, h: H, left: 40, top: 14, bottom: 22, step: metric.unit === '원' ? null : 10 })
+  const pick = (e) => {
+    const r = svgRef.current?.getBoundingClientRect()
+    if (!r || !m) return
+    const x = ((e.clientX - r.left) / r.width) * W
+    let best = 0
+    shown.forEach((_, k) => { if (Math.abs(m.x(k) - x) < Math.abs(m.x(best) - x)) best = k })
+    setSel(best)
+  }
+  const mid = m ? Math.round((m.lo + m.hi) / 2) : 0
+  const yMid = m ? (m.yLo + m.yHi) / 2 : 0
+  const ticks = [0, Math.floor((shown.length - 1) / 2), shown.length - 1]
+  const i = sel ?? shown.length - 1
   return (
-    <Card title="앱별 할인 추이" extra={<Tabs label="단위" value={mode} onChange={setMode} options={[['won', '원'], ['index', '9/1=100']]} />}>
+    <Card title="날짜별 지표" wide extra={<Tabs label="지표" value={metric.key} onChange={setKey} options={metrics.map((x) => [x.key, x.label])} />}>
+      <div className="ins-stats">
+        {series.map(({ key: a, points }) => {
+          const s = rangeStats(points)
+          return (
+            <div key={a} className="ins-stat" style={{ '--c': COLOR[a] }}>
+              <span>{SHORT[a]}</span>
+              <b>{fmt(metric, s?.last)}</b>
+              {s && <small>평균 {fmt(metric, s.avg)} · 최고 {fmt(metric, s.max)}({md(s.maxDate)}) · {s.delta >= 0 ? '+' : ''}{axis(metric, s.delta)}</small>}
+            </div>
+          )
+        })}
+      </div>
       {m ? (
-        <svg viewBox={`0 0 ${W} ${H}`} className="ins-svg" role="img" aria-label="앱별 할인액 중앙값 추이">
-          <line x1={30} x2={W} y1={m.yHi} y2={m.yHi} className="ins-gridline" />
-          <line x1={30} x2={W} y1={m.yLo} y2={m.yLo} className="ins-gridline" />
-          <text x={26} y={m.yHi} className="ins-ytick">{mode === 'won' ? chun(m.hi) : m.hi}</text>
-          <text x={26} y={m.yLo} className="ins-ytick">{mode === 'won' ? chun(m.lo) : m.lo}</text>
-          {[[0, 'start'], [mid, 'middle'], [days.length - 1, 'end']].map(([i, anchor]) => (
-            <text key={anchor} x={m.x(i)} y={H - 4} textAnchor={anchor} className="ins-xtick">{md(days[i].date)}</text>
-          ))}
-          {m.lines.map((l) => (
-            <g key={l.key} stroke={COLOR[l.key]}>
-              {l.solid.map((d, i) => <path key={`s${i}`} d={d} className="ins-line" />)}
-              {l.carried.map((d, i) => <path key={`c${i}`} d={d} className="ins-line ins-line--carried" />)}
-            </g>
-          ))}
-        </svg>
-      ) : <p className="ins-empty">표본 부족</p>}
-      <ul className="ins-legend">
-        {apps.map((a) => <li key={a} style={{ '--c': COLOR[a] }}>{SHORT[a]}</li>)}
-        <li className="ins-legend__dash">빈 날 이어 그림</li>
-      </ul>
-      <h3 className="ins-sub">할인 중 브랜드 수</h3>
-      {apps.map((a) => (
-        <div key={a} className="ins-band">
-          <span>{SHORT[a]}</span>
-          <svg viewBox={`0 0 ${days.length} 20`} preserveAspectRatio="none" aria-hidden="true">
-            {days.map((d, i) => d.active?.[a] != null && (
-              <rect key={i} x={i} width={0.8} y={20 - (d.active[a] / maxActive) * 20} height={(d.active[a] / maxActive) * 20} fill={COLOR[a]} />
+        <div className="ins-chart">
+          <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="ins-svg ins-svg--touch" role="img" aria-label={`${metric.label} 앱별 추이`}
+            onPointerDown={pick} onPointerMove={(e) => { if (e.buttons || e.pointerType === 'mouse') pick(e) }}>
+            {[[m.yHi, m.hi], [yMid, mid], [m.yLo, m.lo]].map(([y, v]) => (
+              <g key={y}><line x1={40} x2={W} y1={y} y2={y} className="ins-gridline" /><text x={34} y={y} className="ins-ytick">{axis(metric, v)}</text></g>
+            ))}
+            {ticks.map((t, k) => (
+              <text key={k} x={m.x(t)} y={H - 6} textAnchor={['start', 'middle', 'end'][k]} className="ins-xtick">{md(shown[t].date)}</text>
+            ))}
+            <line x1={m.x(i)} x2={m.x(i)} y1={m.yHi} y2={m.yLo} className="ins-guide" />
+            {m.lines.map((l) => (
+              <g key={l.key} stroke={COLOR[l.key]}>
+                {l.solid.map((d, k) => <path key={`s${k}`} d={d} className="ins-line" />)}
+                {l.carried.map((d, k) => <path key={`c${k}`} d={d} className="ins-line ins-line--carried" />)}
+                {l.xy[i]?.y != null && <circle cx={l.xy[i].x} cy={l.xy[i].y} r={3.5} fill={COLOR[l.key]} stroke="var(--surface)" strokeWidth={1.5} />}
+              </g>
             ))}
           </svg>
-          <b>{last?.active?.[a] ?? ''}</b>
+          <div className="ins-tip" role="status">
+            <b>{md(shown[i].date)}</b>
+            {series.map(({ key: a, points }) => <span key={a} style={{ '--c': COLOR[a] }}>{SHORT[a]} {fmt(metric, points[i].amount)}</span>)}
+          </div>
         </div>
-      ))}
+      ) : <p className="ins-empty">표본 부족</p>}
+      <details className="ins-table">
+        <summary>날짜별 표 보기</summary>
+        <div className="ins-table__scroll">
+          <table>
+            <thead><tr><th>날짜</th>{apps.map((a) => <th key={a}>{SHORT[a]}</th>)}</tr></thead>
+            <tbody>
+              {[...shown].reverse().map((d) => (
+                <tr key={d.date}><td>{md(d.date)}</td>{apps.map((a) => <td key={a}>{fmt(metric, metricPoints([d], a, metric.key)[0].amount)}</td>)}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
     </Card>
   )
 }
@@ -218,10 +257,12 @@ function Offers({ offers, apps }) {
   )
 }
 
-function Changes({ changes, apps }) {
-  const weeks = changes?.weeks ?? []
+function Changes({ changes, apps, range }) {
+  const all = changes?.weeks ?? []
+  const from = all.length - sliceByRange(all, range).length
+  const weeks = all.slice(from)
   const rows = [['started', '새 할인'], ['ended', '끝난 할인'], ['amountChanged', '금액 바뀜']]
-    .map(([k, label]) => [label, weekly(changes?.[k], apps, weeks.length)])
+    .map(([k, label]) => [label, weekly(changes?.[k], apps, all.length).slice(from)])
   const max = Math.max(1, ...rows.flatMap(([, v]) => v))
   if (!weeks.length) return null
   return (
@@ -284,6 +325,7 @@ export default function InsightPage() {
   const [data, setData] = useState(null)
   const [failed, setFailed] = useState(false)
   const [app, setApp] = useState('all')
+  const [range, setRange] = useState('1m')
   useEffect(() => {
     fetch(`${API_BASE}/api/insight`, { signal: AbortSignal.timeout?.(10000) })
       .then((r) => { if (!r.ok) throw new Error(`API ${r.status}`); return r.json() })
@@ -303,13 +345,14 @@ export default function InsightPage() {
       </header>
       <nav className="ins-filter">
         <Tabs label="앱" value={app} onChange={setApp} options={[['all', '전체'], ...known.map((a) => [a, SHORT[a]])]} />
+        <Tabs label="조회 기간" value={range} onChange={setRange} options={RANGES.map(([k, label]) => [k, label])} />
       </nav>
       {failed ? <p className="ins-fail" role="status">할인 통계를 못 불러옴</p>
         : !data ? <Skeleton /> : (
           <>
             <div className="ins-grid">
               <Today today={data.today} apps={apps} all={!one} />
-              <Trend trend={data.trend} apps={apps} />
+              <Daily days={data.trend.days ?? []} apps={apps} range={range} />
               <Compare compare={data.compare} one={one} />
               <Movers movers={data.heatmap?.movers} apps={apps} />
               <Heatmap heatmap={data.heatmap ?? {}} apps={apps} one={one} />
@@ -318,7 +361,7 @@ export default function InsightPage() {
               <summary>분석 보기</summary>
               <div className="ins-grid">
                 <Offers offers={data.offers} apps={apps} />
-                <Changes changes={data.changes} apps={apps} />
+                <Changes changes={data.changes} apps={apps} range={range} />
                 <Coverage coverage={data.coverage} apps={apps} />
               </div>
             </details>
