@@ -8,61 +8,101 @@
   <meta name="robots" content="noindex" />
   <link rel="icon" href="/favicon-48.png" />
   <link rel="stylesheet" href="/fonts/pretendard-block.css" />
-  <!-- 서비스 화면 밖의 정적 페이지 목록. 페이지를 더하거나 옮기면 여기도 고친다(web/README.md "정적 페이지") -->
+  <!-- 서비스 화면 밖의 정적 페이지 목록. 페이지를 더하거나 옮기면 여기도 고친다(web/README.md). 날짜는 처음 만든 날(git 첫 커밋, 부록은 자료 기준일) -->
   <style>
-    :root { --bg: #f2f4f6; --surface: #fff; --border: #e5e8eb; --text: #1c1d1f; --muted: #4e5968; --sale: #245bc5; --sale-weak: #e8eff9; color-scheme: light; }
+    :root {
+      --bg: #f2f4f6; --surface: #fff; --border: #e5e8eb; --text: #1c1d1f; --muted: #4e5968; --faint: #8b95a1;
+      --navy: #152746; --sale: #245bc5; --sale-weak: #e8eff9; color-scheme: light;
+    }
     @media (prefers-color-scheme: dark) {
-      :root { --bg: #121211; --surface: #1c1c1a; --border: #2c2c29; --text: #f1f0ee; --muted: #a8a7a2; --sale: #5b9dff; --sale-weak: #16233a; color-scheme: dark; }
+      :root { --bg: #121211; --surface: #1c1c1a; --border: #2c2c29; --text: #f1f0ee; --muted: #a8a7a2; --faint: #7d7c78; --navy: #0f1d36; --sale: #5b9dff; --sale-weak: #16233a; color-scheme: dark; }
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; word-break: keep-all; -webkit-font-smoothing: antialiased; }
-    main { max-width: 880px; margin: 0 auto; padding: 48px 16px 64px; }
-    h1 { margin: 0; font-size: clamp(1.7rem, 4.5vw, 2.3rem); letter-spacing: -.03em; }
-    .lead { margin: 8px 0 0; color: var(--muted); }
-    h2 { margin: 40px 0 12px; font-size: .85rem; font-weight: 800; letter-spacing: .04em; color: var(--sale); }
-    ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
-    a.card { display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 16px 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: inherit; text-decoration: none; transition: border-color .15s, transform .15s; }
-    a.card:hover, a.card:focus-visible { border-color: var(--sale); transform: translateY(-2px); outline: none; }
-    .card b { font-size: 1.02rem; letter-spacing: -.015em; }
-    .card span { color: var(--muted); font-size: .9rem; }
-    .card code { align-self: flex-start; margin-top: 6px; padding: 1px 7px; border-radius: 6px; background: var(--sale-weak); color: var(--sale); font: 600 .78rem/1.6 ui-monospace, Consolas, monospace; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 'Pretendard Variable', Pretendard, -apple-system, 'Segoe UI', sans-serif; text-align: left; word-break: keep-all; overflow-wrap: break-word; -webkit-font-smoothing: antialiased; }
+    main { max-width: 960px; margin: 0 auto; padding: 24px 16px 72px; }
+    .hero { padding: 36px 28px; border-radius: 22px; background: var(--navy); color: #fdfdfc; }
+    .hero p { margin: 0; }
+    .kicker { color: #9fc0f5; font-size: .85rem; font-weight: 700; }
+    h1 { margin: 6px 0 8px; font-size: clamp(1.8rem, 5vw, 2.5rem); line-height: 1.2; letter-spacing: -.03em; }
+    .hero .lead { color: rgba(253,253,252,.78); }
+    section { margin-top: 40px; }
+    .sec-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .sec-icon { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; background: var(--sale-weak); color: var(--sale); }
+    .sec-icon svg { width: 22px; height: 22px; }
+    h2 { margin: 0; font-size: 1.2rem; letter-spacing: -.02em; }
+    .sec-head p { margin: 0; color: var(--muted); font-size: .9rem; }
+    ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    a.card { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; height: 100%; padding: 18px 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); color: inherit; text-decoration: none; text-align: left; transition: border-color .15s, transform .15s, box-shadow .15s; }
+    a.card:hover, a.card:focus-visible { border-color: var(--sale); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(21,39,70,.08); outline: none; }
+    .card b { font-size: 1.05rem; letter-spacing: -.015em; }
+    .card .desc { color: var(--muted); font-size: .92rem; }
+    .meta { margin-top: auto; padding-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: .8rem; color: var(--faint); }
+    .meta code { padding: 1px 8px; border-radius: 6px; background: var(--sale-weak); color: var(--sale); font: 600 .78rem/1.6 ui-monospace, Consolas, monospace; }
     @media (prefers-reduced-motion: reduce) { a.card { transition: none; } a.card:hover { transform: none; } }
   </style>
 </head>
 <body>
 <main>
-  <h1>페이지 모음</h1>
-  <p class="lead">서비스 화면 밖에서 보는 개요, 소개, 통계, 분석 페이지입니다.</p>
+  <header class="hero">
+    <p class="kicker">SaveEats · 오늘의 할인</p>
+    <h1>페이지 모음</h1>
+    <p class="lead">서비스 화면 밖에서 보는 개요, 소개, 통계, 분석 페이지입니다.</p>
+  </header>
 
-  <h2>프로젝트 소개와 성과</h2>
-  <ul>
-    <li><a class="card" href="/overview/"><b>프로젝트 개요</b><span>성과, 기능, 실험, 기술을 한 장에. 누적 사용자, 리텐션, 핵심 단골</span><code>/overview</code></a></li>
-    <li><a class="card" href="/about"><b>서비스 소개</b><span>여섯 장 슬라이드. 주소에 ?s=1~6을 붙이면 한 장씩 임베드</span><code>/about</code></a></li>
-  </ul>
+  <section>
+    <div class="sec-head">
+      <span class="sec-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>
+      <div><h2>프로젝트 소개와 성과</h2><p>무엇을 만들었고 얼마나 쓰였나</p></div>
+    </div>
+    <ul>
+      <li><a class="card" href="/overview/"><b>프로젝트 개요</b><span class="desc">성과, 기능, 실험, 기술을 한 장에. 누적 사용자, 리텐션, 핵심 단골</span><span class="meta"><code>/overview</code><span>2026-11-13 만듦</span></span></a></li>
+      <li><a class="card" href="/about"><b>서비스 소개</b><span class="desc">여섯 장 슬라이드. 주소에 ?s=1~6을 붙이면 한 장씩 임베드</span><span class="meta"><code>/about</code><span>2026-10-13 만듦</span></span></a></li>
+    </ul>
+  </section>
 
-  <h2>지표와 인사이트</h2>
-  <ul>
-    <li><a class="card" href="/insight"><b>할인 통계</b><span>네 배달앱의 브랜드 할인을 날짜와 앱별로 모은 공개 통계</span><code>/insight</code></a></li>
-    <li><a class="card" href="/overview/draft/"><b>초안 메모</b><span>글별 유입과 클릭, 댓글 반응, 앱별 금액. 개요에 더 넣을 후보</span><code>/overview/draft</code></a></li>
-  </ul>
+  <section>
+    <div class="sec-head">
+      <span class="sec-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>
+      <div><h2>지표와 인사이트</h2><p>할인과 사용자 반응을 숫자로</p></div>
+    </div>
+    <ul>
+      <li><a class="card" href="/insight"><b>할인 통계</b><span class="desc">네 배달앱의 브랜드 할인을 날짜와 앱별로 모은 공개 통계</span><span class="meta"><code>/insight</code><span>2026-11-18 만듦</span></span></a></li>
+      <li><a class="card" href="/overview/draft/"><b>초안 메모</b><span class="desc">글별 유입과 클릭, 댓글 반응, 앱별 금액. 개요에 더 넣을 후보</span><span class="meta"><code>/overview/draft</code><span>2026-11-19 만듦</span></span></a></li>
+    </ul>
+  </section>
 
-  <h2>작업 도구</h2>
-  <ul>
-    <li><a class="card" href="/overview/source/"><b>개요 소스 복사</b><span>개요를 절마다 혼자 도는 HTML로 만든다. Google Sites 코드 삽입용</span><code>/overview/source</code></a></li>
-    <li><a class="card" href="/design/ui-kit/"><b>UI 키트</b><span>운영 화면의 토큰, 카드, 오퍼 칩을 떠낸 정적 페이지(피그마 가져오기용)</span><code>/design/ui-kit</code></a></li>
-  </ul>
+  <section>
+    <div class="sec-head">
+      <span class="sec-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4 2.6-2.6Z"/></svg></span>
+      <div><h2>작업 도구</h2><p>페이지를 옮기고 디자인을 맞출 때</p></div>
+    </div>
+    <ul>
+      <li><a class="card" href="/overview/source/"><b>개요 소스 복사</b><span class="desc">개요를 절마다 혼자 도는 HTML로 만든다. Google Sites 코드 삽입용</span><span class="meta"><code>/overview/source</code><span>2026-11-13 만듦</span></span></a></li>
+      <li><a class="card" href="/design/ui-kit/"><b>UI 키트</b><span class="desc">운영 화면의 토큰, 카드, 오퍼 칩을 떠낸 정적 페이지(피그마 가져오기용)</span><span class="meta"><code>/design/ui-kit</code><span>2026-09-16 만듦</span></span></a></li>
+    </ul>
+  </section>
 
-  <h2>부록: 분석 자료</h2>
-  <ul>
-    <li><a class="card" href="https://claude.ai/artifact/7p2D5wphetLQuVUmuXuJHB"><b>댓글로 보는 사용자 반응</b><span>커뮤니티 할인 글 댓글 분석</span><code>claude.ai</code></a></li>
-    <li><a class="card" href="https://claude.ai/artifact/2f9L1WSvwf9KgvTmGDqeKM"><b>설문 응답자 리텐션</b><span>설문에 답한 사용자의 재방문</span><code>claude.ai</code></a></li>
-  </ul>
+  <section>
+    <div class="sec-head">
+      <span class="sec-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h5M8 8h4"/></svg></span>
+      <div><h2>부록: 분석 자료</h2><p>개요 숫자의 근거가 된 분석</p></div>
+    </div>
+    <ul>
+      <li><a class="card" href="https://claude.ai/artifact/7p2D5wphetLQuVUmuXuJHB"><b>댓글로 보는 사용자 반응</b><span class="desc">커뮤니티 할인 글 댓글을 주제, 앱, 금액, 시간대별로 나눈 분석</span><span class="meta"><code>claude.ai</code><span>2026-11-18 기준</span></span></a></li>
+      <li><a class="card" href="https://claude.ai/artifact/2f9L1WSvwf9KgvTmGDqeKM"><b>설문 응답자 리텐션</b><span class="desc">설문에 답한 29명의 재방문과 바라는 기능</span><span class="meta"><code>claude.ai</code><span>2026-11-04 기준</span></span></a></li>
+    </ul>
+  </section>
 
-  <h2>그 밖에</h2>
-  <ul>
-    <li><a class="card" href="/"><b>서비스</b><span>오늘의 할인 홈</span><code>/</code></a></li>
-    <li><a class="card" href="/privacy"><b>개인정보처리방침</b><span>수집하는 정보와 쓰임</span><code>/privacy</code></a></li>
-  </ul>
+  <section>
+    <div class="sec-head">
+      <span class="sec-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
+      <div><h2>그 밖에</h2><p>서비스와 정책</p></div>
+    </div>
+    <ul>
+      <li><a class="card" href="/"><b>서비스</b><span class="desc">오늘의 할인 홈</span><span class="meta"><code>/</code><span>2026-07-27 만듦</span></span></a></li>
+      <li><a class="card" href="/privacy"><b>개인정보처리방침</b><span class="desc">수집하는 정보와 쓰임</span><span class="meta"><code>/privacy</code><span>2026-10-13 만듦</span></span></a></li>
+    </ul>
+  </section>
 </main>
 </body>
 </html>
