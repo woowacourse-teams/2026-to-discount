@@ -30,7 +30,10 @@ async function measure(url, port) {
       try { targets = await (await fetch(`http://127.0.0.1:${port}/json`)).json() } catch { /* 아직 안 떴다 */ }
       await sleep(300)
     }
-    const ws = new WebSocket(targets.find(t => t.type === 'page').webSocketDebuggerUrl)
+    // CI 러너에서 about:blank 탭이 15초 안에 안 뜬 적이 있다(2026-11-19 run 44575352287). 없으면 새로 연다.
+    let page = targets.find(t => t.type === 'page')
+    if (!page) page = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })).json()
+    const ws = new WebSocket(page.webSocketDebuggerUrl)
     await new Promise(r => { ws.onopen = r })
     let id = 0; let errors = 0; const pending = new Map()
     ws.onmessage = (e) => {
