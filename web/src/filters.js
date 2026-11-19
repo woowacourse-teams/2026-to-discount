@@ -1,9 +1,9 @@
-import { findBrandSuggestions } from './brandAutocomplete.js'
+import { findBrandSuggestions, toDubeolsikHangul } from './brandAutocomplete.js'
 // 필터·정렬 규칙. 상단 바(TopBarA)와 목록(App)이 같은
 // 규칙을 봐야 해서 한곳에 모은다 — 각자 판단하면 "바에서 고른 것"과
 // "화면에 뜬 것"이 어긋난다. (B안 시트·메뉴바는 2026-09-15에 지웠다.)
 
-import { PLATFORMS, OWN } from './platforms.js'
+import { PLATFORMS, OWN, platformsMatching } from './platforms.js'
 
 // 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
 // (실제 브랜드별 분류는 API 쪽 brands.yml이 단일 출처다).
@@ -421,6 +421,9 @@ export function sortBrands(brands, { sorts, includeRandom = false, include = nul
 export function applyFilters(brands, filters) {
   const q = filters.search.trim()
   const special = [...filters.categories].filter(isSpecialCategory)
+  // 검색어가 앱 이름이면(배민, 쿠팡, 요기요, 한영 전환 포함) 그 앱의 오퍼가 있는 브랜드를 찾고 카드엔 그 앱 오퍼만 남긴다.
+  // 브랜드 이름으로도 맞는 브랜드는 그대로 둔다(이름이 이긴다).
+  const platformHits = q === '' ? new Set() : new Set([...platformsMatching(q), ...platformsMatching(toDubeolsikHangul(q))])
   const visible = brands
     .map((b) => {
       const offers = b.offers.filter((o) => (o.platform === OWN || filters.platforms.has(o.platform))
@@ -429,6 +432,12 @@ export function applyFilters(brands, filters) {
         && (!filters.minAmount5k || q !== '' || isBundle(o) || (o.amount ?? 0) >= (filters.minAmount ?? 5000))
         // 없는 멤버십의 전용 오퍼는 뺀다(MEMBERSHIP_FILTERABLE).
         && !(MEMBERSHIP_FILTERABLE[o.membership] && filters.memberships && !filters.memberships.has(MEMBERSHIP_FILTERABLE[o.membership])))
+      return offers.length === b.offers.length ? b : { ...b, offers }
+    })
+    .map((b) => {
+      // 이름, 별칭으로 맞을 때만 오퍼를 그대로 둔다. 메뉴명이 맞은 것은 이름이 맞은 것이 아니다(#417 리뷰).
+      if (platformHits.size === 0 || findBrandSuggestions([{ ...b, menus: [] }], q, 1).length > 0) return b
+      const offers = b.offers.filter((o) => platformHits.has(o.platform))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
     // 한정, 랜덤 칩만으로 들어온 브랜드(자기 분류 칩이 안 켜진 브랜드)는 그 오퍼만 남긴다. 카드에 상시 오퍼까지 섞이면
@@ -445,7 +454,8 @@ export function applyFilters(brands, filters) {
       if (filters.updatedOnly && !hasNewBest(b.offers, includesFrom(filters))) return false
       // 목록 검색도 자동완성과 같은 규칙으로 찾는다: 별칭, 메뉴명, 초성, 한영 전환(2026-10-08).
       // 전에는 대표명 포함만 봐서 "비비큐", "뿌링클", 소문자 "bhc"가 0건이었다.
-      if (q !== '' && findBrandSuggestions([b], q, 1).length === 0) return false
+      // 앱 이름 검색이면 위에서 그 앱 오퍼가 없는 브랜드는 오퍼가 비어 이미 빠졌다.
+      if (q !== '' && platformHits.size === 0 && findBrandSuggestions([b], q, 1).length === 0) return false
       // 아무 분류도 안 고르면 전체다.
       if (filters.categories.size === 0) return true
       // 한정, 랜덤 칩이 켜져 있으면 위에서 오퍼를 이미 가렸다 — 남은 브랜드는 그 칩의 대상이다.

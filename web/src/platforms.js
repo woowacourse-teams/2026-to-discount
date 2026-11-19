@@ -7,6 +7,18 @@ export const PLATFORMS = [
 ]
 export const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 
+// 검색용 별칭. PLATFORMS는 다른 저장소와 공유하는 계약(platformsContract.test.js)이라 칸을 더하지 않고 따로 둔다.
+const SEARCH_ALIASES = { baemin: ['배민'], coupangeats: ['쿠팡', 'coupang'] }
+/**
+ * 검색어가 앱 이름(라벨, 별칭, 키)에 들어가는 플랫폼 키 집합(2026-11-19 사용자: 플랫폼도 오퍼 속성이라 검색되게).
+ * 한 글자("요", "배")는 흔한 글자라 앱으로 읽지 않는다.
+ */
+export function platformsMatching(query) {
+  const q = String(query ?? '').trim().toLowerCase()
+  if (q.length < 2) return new Set()
+  return new Set(PLATFORMS.filter((p) => [p.label, p.key, ...(SEARCH_ALIASES[p.key] ?? [])].some((t) => t.toLowerCase().includes(q))).map((p) => p.key))
+}
+
 // 브랜드 자체 앱이나 사이트의 행사. 배달앱이 아니라 필터에 안 들어간다.
 export const OWN = 'own'
 // 화면에 내보내는 자사 채널 이름. COPY-STYLE 명사구 규칙 - "own"을 그대로
