@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { fetchHistory } from '../../api.js'
 import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H, TOP } from '../../historyChart.js'
 import { won } from '../../OfferChip.jsx'
+import HistoryPlatformChips from '../../HistoryPlatformChips.jsx'
 import { track } from '../../analytics.js'
 import { polyPaths } from './data.js'
 import '../../styles/hist.css'
@@ -28,6 +29,7 @@ export function prefetchHistory(brand, range = '1m') {
 // 기간을 바꾸는 동안은 앞 그래프를 그대로 둔다(깜빡임 없음).
 export default function PriceChart({ brand }) {
   const [range, setRange] = useState('1m')
+  const [platform, setPlatform] = useState(null) // null = 전체
   const [data, setData] = useState(null)
   const [sel, setSel] = useState(null)
   const svgRef = useRef(null)
@@ -75,7 +77,9 @@ export default function PriceChart({ brand }) {
     el.addEventListener('touchcancel', te)
     return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
   }, [data])
-  const all = data?.best ?? []
+  // 앱별 곡선은 응답에 같이 온다. byPlatform 칸이 없으면 앱 구분을 모르는 옛 API라 칩을 숨기고 전체만 보인다.
+  const byPlatform = data?.byPlatform
+  const all = (platform ? byPlatform?.[platform] : data?.best) ?? []
   const pts = range === '2w' && all.length ? all.filter((p) => Date.parse(p.date) >= Date.parse(all[all.length - 1].date) - TWO_WEEKS_MS) : all
   const { w: cw, h: ch } = size
   const chart = chartModel(pts, cw, ch)
@@ -88,7 +92,11 @@ export default function PriceChart({ brand }) {
       ))}
     </div>
   )
-  if (!chart) return range === '1m' ? null : <figure className="hist v2-hist">{ranges}</figure>
+  const plats = !byPlatform ? null : <HistoryPlatformChips value={platform} onChange={(k) => { setSel(null); setPlatform(k) }} className="v2-hist__ranges v2-hist__plats" chipClassName="v2-hist__range" />
+  if (!chart) {
+    if (platform) return <figure className="hist v2-hist">{plats}{data && <p className="hist__empty">이 앱의 할인 기록이 아직 없어요</p>}{ranges}</figure>
+    return range === '1m' ? null : <figure className="hist v2-hist">{ranges}</figure>
+  }
   const m = { ...chart, ...polyPaths(chart.xy, ch - BOTTOM) } // 곡선 대신 직선으로 이은 뾰족한 꺾은선
   const sum = summary(pts)
   const xs = m.xy.map((p) => p.x)
@@ -134,6 +142,7 @@ export default function PriceChart({ brand }) {
       <div className="hist__head">
         <figcaption className="hist__title">할인 기록</figcaption>
       </div>
+      {plats}
       <div className="hist__wrap" ref={wrapRef}>
         <svg ref={svgRef} viewBox={`0 0 ${cw} ${ch}`} className="hist__svg" aria-hidden="true"
           onPointerDown={(e) => { track('history_point_select', { brand, range, pointer: e.pointerType || 'none' }); drag.current = { pointer: e.pointerType || 'none', seen: new Set() }; pick(e) }} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}

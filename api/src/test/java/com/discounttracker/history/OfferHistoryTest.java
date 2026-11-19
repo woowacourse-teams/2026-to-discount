@@ -123,4 +123,21 @@ class OfferHistoryTest {
         var sum = h.summary("청년피자", d("2026-10-09"));
         assertEquals(new OfferHistory.Summary(10000, d("2026-09-23"), 10000, 16), sum);
     }
+
+    @Test
+    void bestSeriesForOnePlatformIgnoresOthersAndBreaksOnItsOwnCoverage() {
+        var h = new OfferHistory(List.of(
+                day("2026-10-05", "baemin", "BBQ", DayState.PUBLISHED, null, 3000),
+                day("2026-10-05", "yogiyo", "BBQ", DayState.PUBLISHED, null, 5000),
+                day("2026-10-06", "yogiyo", "BBQ", DayState.PUBLISHED, null, 5000)),
+                cov("2026-10-05=baemin,yogiyo", "2026-10-06=baemin,yogiyo", "2026-10-07=yogiyo"));
+        // 배민: 10-06 수집됐는데 없음 -> 끊김, 10-07은 배민을 안 봤으니 점이 없다.
+        assertEquals(List.of(
+                new OfferHistory.Point(d("2026-10-05"), 3000, "solid", null),
+                new OfferHistory.Point(d("2026-10-06"), null, "break", null)),
+                h.bestSeries("BBQ", "baemin", d("2026-10-01"), d("2026-10-07")));
+        assertEquals(3000, h.summary("BBQ", "baemin", d("2026-10-07")).maxEver());
+        assertEquals(5000, h.summary("BBQ", d("2026-10-07")).maxEver());
+        assertTrue(h.bestSeries("BBQ", "ddangyo", d("2026-10-01"), d("2026-10-07")).isEmpty());
+    }
 }

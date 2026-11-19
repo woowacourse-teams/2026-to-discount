@@ -25,3 +25,11 @@
 .hist__tab { font-size: 12.5px; padding: 3px 10px; }
 .hist__tip { height: 34px; font-size: 11.5px; }
 .hist__tip b { font-size: 13.5px; }
+
+/* 앱별 보기 칩(운영 그래프). 좁은 화면에서는 가로로 민다. */
+.hist__plats { display: flex; align-items: center; gap: 6px; margin: 0 0 8px 6px; overflow-x: auto; scrollbar-width: none; }
+.hist__plats::-webkit-scrollbar { display: none; }
+.hist__plat { flex: none; font: inherit; font-size: 12.5px; padding: 3px 10px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--text) 7%, var(--surface)); color: var(--text-muted); cursor: pointer; }
+.hist__plat[aria-pressed="true"] { background: var(--sale); color: #fff; font-weight: 700; }
+.hist__empty { margin: 12px 6px 4px; font-size: 13px; color: var(--text-muted); }
+.v2-hist__plats { margin: 0 0 0.5rem; align-items: center; }

@@ -54,14 +54,18 @@ public final class OfferHistory {
         return Novelty.UNKNOWN;
     }
 
-    public List<Point> bestSeries(String brand, LocalDate from, LocalDate to) {
+    public List<Point> bestSeries(String brand, LocalDate from, LocalDate to) { return bestSeries(brand, null, from, to); }
+
+    /** platform이 null이면 모든 앱 중 최고, 아니면 그 앱 하나만 본다. 못 본 날 판정도 그 앱이 수집된 날 기준이다. */
+    public List<Point> bestSeries(String brand, String platform, LocalDate from, LocalDate to) {
         if (coverage.isEmpty() || to.isBefore(coverage.firstKey())) return List.of();
         NavigableMap<LocalDate, List<BrandDay>> mine = byBrand.getOrDefault(brand, new TreeMap<>());
         List<Point> out = new ArrayList<>();
         Integer lastSolid = null;
         for (var e : coverage.subMap(coverage.firstKey(), true, to, true).entrySet()) {
             LocalDate date = e.getKey();
-            List<BrandDay> that = mine.getOrDefault(date, List.of());
+            List<BrandDay> that = mine.getOrDefault(date, List.of()).stream()
+                    .filter(d -> platform == null || platform.equals(d.platform())).toList();
             Integer best = that.stream().map(BrandDay::trustedAmount).filter(Objects::nonNull).max(Integer::compare).orElse(null);
             Point p = null;
             if (best != null) {
@@ -73,7 +77,7 @@ public final class OfferHistory {
                             .map(d -> d.reason().key()).findFirst().orElse(null);
                     p = new Point(date, lastSolid, "carried", reason);
                 }
-            } else if (lastSolid != null && !e.getValue().isEmpty()) {
+            } else if (lastSolid != null && (platform == null ? !e.getValue().isEmpty() : e.getValue().contains(platform))) {
                 p = new Point(date, null, "break", null);
             }
             if (p != null && !date.isBefore(from)) out.add(p);
@@ -81,9 +85,11 @@ public final class OfferHistory {
         return out;
     }
 
-    public Summary summary(String brand, LocalDate today) {
+    public Summary summary(String brand, LocalDate today) { return summary(brand, null, today); }
+
+    public Summary summary(String brand, String platform, LocalDate today) {
         LocalDate first = coverage.isEmpty() ? today : coverage.firstKey();
-        List<Point> all = bestSeries(brand, first, today);
+        List<Point> all = bestSeries(brand, platform, first, today);
         Integer maxEver = null;
         LocalDate maxOn = null;
         for (Point p : all) {

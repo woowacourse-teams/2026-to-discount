@@ -35,6 +35,12 @@ class BrandHistoryEndpointTest {
     }
 
     @Test
+    void responseCarriesOneSeriesPerPlatform() {
+        var r = call("청년피자", "1m");
+        assertEquals(List.of("baemin", "coupangeats", "yogiyo", "ddangyo"), List.copyOf(r.byPlatform().keySet()));
+    }
+
+    @Test
     void unknownRangeIsRejected() {
         assertThrows(IllegalArgumentException.class, () -> call("청년피자", "7y"));
     }
