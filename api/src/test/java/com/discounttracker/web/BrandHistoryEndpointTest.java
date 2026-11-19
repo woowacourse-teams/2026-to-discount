@@ -35,10 +35,9 @@ class BrandHistoryEndpointTest {
     }
 
     @Test
-    void unknownPlatformIsRejected() {
-        var h = OfferHistory.empty();
-        assertThrows(IllegalArgumentException.class, () -> HistoryResponse.of(h, "청년피자", "nope", "1m", LocalDate.now(CLOCK)));
-        assertTrue(HistoryResponse.of(h, "청년피자", "baemin", "1m", LocalDate.now(CLOCK)).best().isEmpty());
+    void responseCarriesOneSeriesPerPlatform() {
+        var r = call("청년피자", "1m");
+        assertEquals(List.of("baemin", "coupangeats", "yogiyo", "ddangyo"), List.copyOf(r.byPlatform().keySet()));
     }
 
     @Test

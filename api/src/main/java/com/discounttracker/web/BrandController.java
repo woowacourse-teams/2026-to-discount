@@ -56,10 +56,9 @@ public class BrandController {
 
     @GetMapping("/brands/{brand}/history")
     public ResponseEntity<HistoryResponse> history(@PathVariable String brand,
-                                                   @RequestParam(defaultValue = "1m") String range,
-                                                   @RequestParam(required = false) String platform) {
+                                                   @RequestParam(defaultValue = "1m") String range) {
         try {
-            return ResponseEntity.ok(HistoryResponse.of(history.current(), brand, platform, range, LocalDate.now(clock)));
+            return ResponseEntity.ok(HistoryResponse.of(history.current(), brand, range, LocalDate.now(clock)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }

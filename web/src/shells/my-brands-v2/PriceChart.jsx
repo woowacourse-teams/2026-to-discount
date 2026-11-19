@@ -16,11 +16,11 @@ const num = (n) => n.toLocaleString('ko-KR')
 // 받은 이력은 이 브라우저 탭 안에서 브랜드별로 들고 있다. 카드를 누르는 순간(또는 팝업이 뜨는 순간) 미리 받아 두면 탭을 열 때 바로 그린다.
 // 실패(null)는 들고 있지 않아 다음에 다시 받는다.
 const historyCache = new Map()
-export function prefetchHistory(brand, range = '1m', platform = null) {
+export function prefetchHistory(brand, range = '1m') {
   const api = range === '2w' ? '1m' : range
-  const key = `${brand}|${api}|${platform ?? ''}`
+  const key = `${brand}|${api}`
   if (!historyCache.has(key)) {
-    historyCache.set(key, fetchHistory(brand, api, platform).then((d) => { if (d == null) historyCache.delete(key); return d }))
+    historyCache.set(key, fetchHistory(brand, api).then((d) => { if (d == null) historyCache.delete(key); return d }))
   }
   return historyCache.get(key)
 }
@@ -40,9 +40,9 @@ export default function PriceChart({ brand }) {
   const drag = useRef(null) // 누른 채 끄는 중이면 { pointer, seen: 지나간 점 번호 }
   useEffect(() => {
     let live = true
-    prefetchHistory(brand, range, platform).then((d) => { if (live) { setData(d); setSel(null) } })
+    prefetchHistory(brand, range).then((d) => { if (live) { setData(d); setSel(null) } })
     return () => { live = false }
-  }, [brand, range, platform])
+  }, [brand, range])
   useEffect(() => () => clearTimeout(timer.current), [])
   const hasChart = data != null
   useLayoutEffect(() => {
@@ -77,8 +77,9 @@ export default function PriceChart({ brand }) {
     el.addEventListener('touchcancel', te)
     return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
   }, [data])
-  // 앱을 골랐는데 응답에 그 앱 표시가 없으면 앱 구분을 모르는 옛 API다. 전체 곡선을 그 앱 것으로 보이지 않게 비운다.
-  const all = (platform && data?.platform !== platform ? null : data?.best) ?? []
+  // 앱별 곡선은 응답에 같이 온다. byPlatform 칸이 없으면 앱 구분을 모르는 옛 API라 칩을 숨기고 전체만 보인다.
+  const byPlatform = data?.byPlatform
+  const all = (platform ? byPlatform?.[platform] : data?.best) ?? []
   const pts = range === '2w' && all.length ? all.filter((p) => Date.parse(p.date) >= Date.parse(all[all.length - 1].date) - TWO_WEEKS_MS) : all
   const { w: cw, h: ch } = size
   const chart = chartModel(pts, cw, ch)
@@ -91,7 +92,7 @@ export default function PriceChart({ brand }) {
       ))}
     </div>
   )
-  const plats = <HistoryPlatformChips value={platform} onChange={(k) => { setSel(null); setPlatform(k) }} className="v2-hist__ranges v2-hist__plats" chipClassName="v2-hist__range" />
+  const plats = !byPlatform ? null : <HistoryPlatformChips value={platform} onChange={(k) => { setSel(null); setPlatform(k) }} className="v2-hist__ranges v2-hist__plats" chipClassName="v2-hist__range" />
   if (!chart) {
     if (platform) return <figure className="hist v2-hist">{plats}{data && <p className="hist__empty">이 앱의 할인 기록이 아직 없어요</p>}{ranges}</figure>
     return range === '1m' ? null : <figure className="hist v2-hist">{ranges}</figure>
