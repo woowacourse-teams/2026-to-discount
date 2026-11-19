@@ -93,8 +93,9 @@ tracker(비공개)  →  서버(직접 배포)  →  api  →  /api/brands  → 
 | [수집 데이터 명세](docs/ANALYTICS.md) | 무엇을 모으고 어떻게 가르나. **분석 전에 읽는다** |
 | [컨벤션](docs/CONVENTIONS.md) | 커밋, 주석, 문서, 데이터 규칙 |
 | [의사결정기록](docs/decisions/) | 되돌리기 어려운 판단과 근거 |
+| [수집기 문서](docs/collector/README.md) | 비공개 수집기의 설계, ADR, 실험, 조사, 설치, 작업 방식(민감 정보는 가림) |
 
-앱별 ADR: [저장소 공통](docs/decisions/) 2건, [api](api/docs/decisions/) 13건, [web](web/docs/decisions/) 4건 (2026-11-19 기준). 장애와 개선 회고는 [docs/incidents/](docs/incidents/), 실험 판정은 [docs/metrics/](docs/metrics/)에 있다.
+앱별 ADR: [저장소 공통](docs/decisions/) 2건, [수집기](docs/collector/decisions/) 40건, [api](api/docs/decisions/) 13건, [web](web/docs/decisions/) 4건 (2026-11-19 기준). 장애와 개선 회고는 [docs/incidents/](docs/incidents/), 실험 판정은 [docs/metrics/](docs/metrics/)에 있다.
 
 이력은 `git filter-repo`로 세 저장소를 합쳤다. 커밋 223개가 그대로 살아 있고 `git log --follow -- web/src/App.jsx`도 동작한다.
 

@@ -1,0 +1,30 @@
+<!-- 원본: tracker docs/workflow/issue-buffer/FLUSHED.md — 여기서 고치지 않는다 -->
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/353, 합친 항목: 2026-11-14-session-clone-scripts-guard.md
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/354, 합친 항목: 2026-11-14-session-hotdeal-gap.md
+- 2026-11-17, https://github.com/woowacourse-teams/2026-to-discount/issues/401, 합친 항목: 2026-11-14-session-missing-logos-stale.md
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/355, 합친 항목: nn98/delivery-discount-tracker#317:1
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/356, 합친 항목: nn98/delivery-discount-tracker#317:2
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/357, 합친 항목: nn98/delivery-discount-tracker#294:1 nn98/delivery-discount-tracker#294:6
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/358, 합친 항목: nn98/delivery-discount-tracker#294:2 nn98/delivery-discount-tracker#294:5
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/359, 합친 항목: nn98/delivery-discount-tracker#294:3
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/360, 합친 항목: nn98/delivery-discount-tracker#294:4
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/361, 합친 항목: nn98/delivery-discount-tracker#291:1
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/362, 합친 항목: nn98/delivery-discount-tracker#291:2
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/363, 합친 항목: nn98/delivery-discount-tracker#291:3
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/364, 합친 항목: nn98/delivery-discount-tracker#290:2
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/365, 합친 항목: nn98/delivery-discount-tracker#289:1 nn98/delivery-discount-tracker#289:5
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/366, 합친 항목: nn98/delivery-discount-tracker#289:3 nn98/delivery-discount-tracker#289:4
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/367, 합친 항목: nn98/delivery-discount-tracker#289:2
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/368, 합친 항목: nn98/delivery-discount-tracker#286:1
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/369, 합친 항목: nn98/delivery-discount-tracker#286:2
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/370, 합친 항목: nn98/delivery-discount-tracker#285:1
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/371, 합친 항목: nn98/delivery-discount-tracker#285:2
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/372, 합친 항목: nn98/delivery-discount-tracker#285:3
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/373, 합친 항목: nn98/delivery-discount-tracker#276:1
+- 2026-11-17, https://github.com/nn98/delivery-discount-tracker/issues/374, 합친 항목: nn98/delivery-discount-tracker#276:2
+- 2026-11-17, https://github.com/woowacourse-teams/2026-to-discount/issues/402, 합친 항목: woowacourse-teams/2026-to-discount#387:1
+- 2026-11-17, 버림(#345로 고침, 11-17 5단계 성공), 합친 항목: 2026-11-14-session-couponbox-baemin-mytab.md
+- 2026-11-17, 버림(#350(3c)로 처리), 합친 항목: nn98/delivery-discount-tracker#290:1 nn98/delivery-discount-tracker#290:5
+- 2026-11-17, 버림(11-16~17 여러 회차로 검증), 합친 항목: nn98/delivery-discount-tracker#290:3 nn98/delivery-discount-tracker#290:4
+- 2026-11-17, 버림(3단계는 노트20 담당, V50 무관), 합친 항목: nn98/delivery-discount-tracker#286:3
+- 2026-11-17, 버림(이후 예약 회차가 매번 돎), 합친 항목: nn98/delivery-discount-tracker#285:4
