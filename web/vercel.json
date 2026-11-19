@@ -11,7 +11,7 @@
       ]
     },
     {
-      "source": "/((?!(?:about|project)(?:/|$)).*)",
+      "source": "/((?!(?:about|overview)(?:/|$)).*)",
       "headers": [
         { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
       ]
@@ -56,6 +56,16 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/project/overview/:path*",
+      "destination": "/overview/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/project/draft",
+      "destination": "/overview/draft",
+      "permanent": false
+    },
     {
       "source": "/brand/:name.html",
       "destination": "/brand/:name",

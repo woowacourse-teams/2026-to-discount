@@ -141,7 +141,7 @@
 .cc--leaving { pointer-events: none; transform-origin: 100% 0; animation: brand-card-leave .1s cubic-bezier(.55, 0, 1, .45) both; }
 @media (prefers-reduced-motion: reduce) { .cc--leaving { animation: none; opacity: 0; } }
 /* ?photo=1 시안: 정보 칸 오른쪽 빈 여백(금액 오른쪽, 이동 영역 왼쪽)에 음식 사진이 들어가고 왼쪽으로 흰색에 녹는다. 사진은 표본 하나(모든 쿠폰 같음, 브랜드별 실제 사진은 나중) */
-.cc--photo .cc-ticket::before { content: ""; position: absolute; top: 0; bottom: 7px; right: var(--stub); width: 34%; background: url("/sample/menu-sample.jpg") center / cover; -webkit-mask-image: linear-gradient(to right, transparent, #000 55%); mask-image: linear-gradient(to right, transparent, #000 55%); pointer-events: none; }
+.cc--photo .cc-ticket::before { content: ""; position: absolute; top: 0; bottom: 7px; right: var(--stub); width: 34%; background: url("/img/menu-sample.jpg") center / cover; -webkit-mask-image: linear-gradient(to right, transparent, #000 55%); mask-image: linear-gradient(to right, transparent, #000 55%); pointer-events: none; }
 .cc--photo .cc-info { position: relative; z-index: 1; }
 
 /* 펼침/접힘: grid 0fr 1fr 기법(CSS-Tricks, animationpatterns grid-row-accordion). 닫힌 상태(0fr)로 DOM에 먼저 들어가고 두 프레임 뒤 1fr로 바뀐다.
