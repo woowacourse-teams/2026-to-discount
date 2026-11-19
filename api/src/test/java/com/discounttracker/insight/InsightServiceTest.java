@@ -74,4 +74,20 @@ class InsightServiceTest {
             else assertEquals(1.0, share.get("coupangeats"));
         }
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void trendDayCarriesMaxAndSumOfBrandsOnDiscount() {
+        LocalDate s = d("2026-10-01");
+        var h = new OfferHistory(List.of(
+                day(s, "baemin", "BBQ", DayState.PUBLISHED, 3000),
+                day(s, "baemin", "bhc", DayState.PUBLISHED, 5000),
+                day(s, "yogiyo", "BBQ", DayState.ABSENT, null)), cov(s, 1));
+        var out = InsightService.compute(h, List.of(), s.atStartOfDay(ZoneId.of("Asia/Seoul")));
+        var days = (List<Map<String, Object>>) ((Map<String, Object>) out.get("trend")).get("days");
+        var last = days.get(days.size() - 1);
+        assertEquals(5000, ((Map<String, Object>) last.get("max")).get("baemin"));
+        assertEquals(8000, ((Map<String, Object>) last.get("sum")).get("baemin"));
+        assertNull(((Map<String, Object>) last.get("max")).get("yogiyo"));
+    }
 }

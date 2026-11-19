@@ -195,13 +195,19 @@ public class InsightService {
             Map<String, Object> median = new LinkedHashMap<>();
             Map<String, Object> active = new LinkedHashMap<>();
             Map<String, Object> carried = new LinkedHashMap<>();
+            Map<String, Object> max = new LinkedHashMap<>();
+            Map<String, Object> sum = new LinkedHashMap<>();
             for (String p : PLATFORMS) {
                 median.put(p, median(cohort.stream().filter(s -> s.platform.equals(p) && s.on(d)).map(s -> s.v[d]).toList()));
                 List<Series> on = all.stream().filter(s -> s.platform.equals(p) && s.on(d)).toList();
                 active.put(p, on.size());
                 carried.put(p, on.isEmpty() ? null : round(on.stream().filter(s -> !s.obs[d]).count() / (double) on.size()));
+                // 날짜별 지표(2026-11-19 사용자): 그날 할인 중 브랜드의 최고 금액, 브랜드별 최고 금액의 합. 할인 중 브랜드가 없으면 null.
+                max.put(p, on.isEmpty() ? null : on.stream().mapToInt(s -> s.v[d]).max().getAsInt());
+                sum.put(p, on.isEmpty() ? null : on.stream().mapToInt(s -> s.v[d]).sum());
             }
-            days.add(row("date", dates.get(i).toString(), "median", median, "active", active, "carriedShare", carried));
+            days.add(row("date", dates.get(i).toString(), "median", median, "active", active, "carriedShare", carried,
+                    "max", max, "sum", sum));
         }
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("cohortSize", size);
