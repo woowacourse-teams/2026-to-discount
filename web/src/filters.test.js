@@ -272,6 +272,8 @@ test('검색어가 앱 이름이면 그 앱 오퍼가 있는 브랜드만, 그 �
   assert.deepEqual(f('qoals').map((b) => b.name).sort(), ['BBQ', 'bhc']) // 한영 전환 "배민"
   assert.equal(f('요').length, 0) // 한 글자는 앱으로 읽지 않는다
   assert.equal(f('bhc')[0].offers.length, 2) // 브랜드 이름이 맞으면 오퍼를 줄이지 않는다
+  const menu = [{ name: '테스트치킨', menus: ['배민세트'], offers: [{ platform: 'baemin', amount: 3000 }, { platform: 'yogiyo', amount: 4000 }] }]
+  assert.deepEqual(applyFilters(menu, { ...defaultFilters(), search: '배민' })[0].offers.map((o) => o.platform), ['baemin']) // 메뉴명만 맞으면 앱 오퍼로 줄인다
 })
 
 test('isUpdated prefers server isNew over firstSeenAt', () => {

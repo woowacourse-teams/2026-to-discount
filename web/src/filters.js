@@ -435,7 +435,8 @@ export function applyFilters(brands, filters) {
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
     .map((b) => {
-      if (platformHits.size === 0 || findBrandSuggestions([b], q, 1).length > 0) return b
+      // 이름, 별칭으로 맞을 때만 오퍼를 그대로 둔다. 메뉴명이 맞은 것은 이름이 맞은 것이 아니다(#417 리뷰).
+      if (platformHits.size === 0 || findBrandSuggestions([{ ...b, menus: [] }], q, 1).length > 0) return b
       const offers = b.offers.filter((o) => platformHits.has(o.platform))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
