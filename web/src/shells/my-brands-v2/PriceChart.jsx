@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { fetchHistory } from '../../api.js'
 import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H, TOP } from '../../historyChart.js'
 import { won } from '../../OfferChip.jsx'
+import HistoryPlatformChips from '../../HistoryPlatformChips.jsx'
 import { track } from '../../analytics.js'
 import { polyPaths } from './data.js'
 import '../../styles/hist.css'
@@ -15,11 +16,11 @@ const num = (n) => n.toLocaleString('ko-KR')
 // 받은 이력은 이 브라우저 탭 안에서 브랜드별로 들고 있다. 카드를 누르는 순간(또는 팝업이 뜨는 순간) 미리 받아 두면 탭을 열 때 바로 그린다.
 // 실패(null)는 들고 있지 않아 다음에 다시 받는다.
 const historyCache = new Map()
-export function prefetchHistory(brand, range = '1m') {
+export function prefetchHistory(brand, range = '1m', platform = null) {
   const api = range === '2w' ? '1m' : range
-  const key = `${brand}|${api}`
+  const key = `${brand}|${api}|${platform ?? ''}`
   if (!historyCache.has(key)) {
-    historyCache.set(key, fetchHistory(brand, api).then((d) => { if (d == null) historyCache.delete(key); return d }))
+    historyCache.set(key, fetchHistory(brand, api, platform).then((d) => { if (d == null) historyCache.delete(key); return d }))
   }
   return historyCache.get(key)
 }
@@ -28,6 +29,7 @@ export function prefetchHistory(brand, range = '1m') {
 // 기간을 바꾸는 동안은 앞 그래프를 그대로 둔다(깜빡임 없음).
 export default function PriceChart({ brand }) {
   const [range, setRange] = useState('1m')
+  const [platform, setPlatform] = useState(null) // null = 전체
   const [data, setData] = useState(null)
   const [sel, setSel] = useState(null)
   const svgRef = useRef(null)
@@ -38,9 +40,9 @@ export default function PriceChart({ brand }) {
   const drag = useRef(null) // 누른 채 끄는 중이면 { pointer, seen: 지나간 점 번호 }
   useEffect(() => {
     let live = true
-    prefetchHistory(brand, range).then((d) => { if (live) { setData(d); setSel(null) } })
+    prefetchHistory(brand, range, platform).then((d) => { if (live) { setData(d); setSel(null) } })
     return () => { live = false }
-  }, [brand, range])
+  }, [brand, range, platform])
   useEffect(() => () => clearTimeout(timer.current), [])
   const hasChart = data != null
   useLayoutEffect(() => {
@@ -75,7 +77,8 @@ export default function PriceChart({ brand }) {
     el.addEventListener('touchcancel', te)
     return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
   }, [data])
-  const all = data?.best ?? []
+  // 앱을 골랐는데 응답에 그 앱 표시가 없으면 앱 구분을 모르는 옛 API다. 전체 곡선을 그 앱 것으로 보이지 않게 비운다.
+  const all = (platform && data?.platform !== platform ? null : data?.best) ?? []
   const pts = range === '2w' && all.length ? all.filter((p) => Date.parse(p.date) >= Date.parse(all[all.length - 1].date) - TWO_WEEKS_MS) : all
   const { w: cw, h: ch } = size
   const chart = chartModel(pts, cw, ch)
@@ -88,7 +91,11 @@ export default function PriceChart({ brand }) {
       ))}
     </div>
   )
-  if (!chart) return range === '1m' ? null : <figure className="hist v2-hist">{ranges}</figure>
+  const plats = <HistoryPlatformChips value={platform} onChange={(k) => { setSel(null); setPlatform(k) }} className="v2-hist__ranges v2-hist__plats" chipClassName="v2-hist__range" />
+  if (!chart) {
+    if (platform) return <figure className="hist v2-hist">{plats}{data && <p className="hist__empty">이 앱의 할인 기록이 아직 없어요</p>}{ranges}</figure>
+    return range === '1m' ? null : <figure className="hist v2-hist">{ranges}</figure>
+  }
   const m = { ...chart, ...polyPaths(chart.xy, ch - BOTTOM) } // 곡선 대신 직선으로 이은 뾰족한 꺾은선
   const sum = summary(pts)
   const xs = m.xy.map((p) => p.x)
@@ -134,6 +141,7 @@ export default function PriceChart({ brand }) {
       <div className="hist__head">
         <figcaption className="hist__title">할인 기록</figcaption>
       </div>
+      {plats}
       <div className="hist__wrap" ref={wrapRef}>
         <svg ref={svgRef} viewBox={`0 0 ${cw} ${ch}`} className="hist__svg" aria-hidden="true"
           onPointerDown={(e) => { track('history_point_select', { brand, range, pointer: e.pointerType || 'none' }); drag.current = { pointer: e.pointerType || 'none', seen: new Set() }; pick(e) }} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}

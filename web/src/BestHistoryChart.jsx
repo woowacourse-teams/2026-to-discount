@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { fetchHistory } from './api.js'
 import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H, TOP } from './historyChart.js'
 import { won } from './OfferChip.jsx'
+import HistoryPlatformChips from './HistoryPlatformChips.jsx'
 import { track } from './analytics.js'
 import './styles/hist.css'
 
@@ -15,6 +16,7 @@ const num = (n) => n.toLocaleString('ko-KR')
 // 기간을 바꾸는 동안은 앞 그래프를 그대로 둔다(깜빡임 없음).
 export default function BestHistoryChart({ brand }) {
   const [range, setRange] = useState('1m')
+  const [platform, setPlatform] = useState(null) // null = 전체
   const [data, setData] = useState(null)
   const [sel, setSel] = useState(null)
   const svgRef = useRef(null)
@@ -22,9 +24,9 @@ export default function BestHistoryChart({ brand }) {
   const drag = useRef(null) // 누른 채 끄는 중이면 { pointer, seen: 지나간 점 번호 }
   useEffect(() => {
     let live = true
-    fetchHistory(brand, range === '2w' ? '1m' : range).then((d) => { if (live) { setData(d); setSel(null) } })
+    fetchHistory(brand, range === '2w' ? '1m' : range, platform).then((d) => { if (live) { setData(d); setSel(null) } })
     return () => { live = false }
-  }, [brand, range])
+  }, [brand, range, platform])
   useEffect(() => () => clearTimeout(timer.current), [])
   // 손가락 끌기: 처음 움직임이 위아래면 그대로 시트 스크롤·끌어 닫기에 맡긴다.
   // 좌우로 먼저 끌기 시작한 뒤에만 그 손짓이 끝날 때까지 시트로 올라가지 않게 막는다.
@@ -48,10 +50,13 @@ export default function BestHistoryChart({ brand }) {
     el.addEventListener('touchcancel', te)
     return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
   }, [data])
-  const all = data?.best ?? []
+  // 앱을 골랐는데 응답에 그 앱 표시가 없으면 앱 구분을 모르는 옛 API다. 전체 곡선을 그 앱 것으로 보이지 않게 비운다.
+  const all = (platform && data?.platform !== platform ? null : data?.best) ?? []
   const pts = range === '2w' && all.length ? all.filter((p) => Date.parse(p.date) >= Date.parse(all[all.length - 1].date) - TWO_WEEKS_MS) : all
   const m = chartModel(pts)
-  if (!m) return null
+  // 앱을 골랐는데 점이 모자라면 칩은 남겨 다른 앱으로 돌아갈 수 있게 한다. 전체일 때는 예전처럼 아무것도 안 그린다.
+  const plats = <HistoryPlatformChips value={platform} onChange={(k) => { setSel(null); setPlatform(k) }} className="hist__plats" chipClassName="hist__plat" />
+  if (!m) return platform ? <figure className="hist"><div className="hist__head"><figcaption className="hist__title">할인 기록</figcaption></div>{plats}{data && <p className="hist__empty">이 앱의 할인 기록이 아직 없어요</p>}</figure> : null
   const sum = summary(pts)
   const xs = m.xy.map((p) => p.x)
   const pills = callouts(pts, m.xy)
@@ -102,6 +107,7 @@ export default function BestHistoryChart({ brand }) {
           ))}
         </div>
       </div>
+      {plats}
       <div className="hist__wrap">
         <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="hist__svg" aria-hidden="true"
           onPointerDown={(e) => { track('history_point_select', { brand, range, pointer: e.pointerType || 'none' }); drag.current = { pointer: e.pointerType || 'none', seen: new Set() }; pick(e) }} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}
