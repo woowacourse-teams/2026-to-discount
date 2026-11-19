@@ -5,7 +5,7 @@
 올린다. 웹은 같은 저장소의 [web/](../web)이다. 저장소와 배포 경로 전체는
 [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md)에 있다.
 
-- 갱신: 2026-10-14(저장소 통합 뒤 낡은 실행, 배포, 배너 절을 고쳤다)
+- 갱신: 2026-11-19(엔드포인트 표에 할인 통계와 앱별 이력 추가)
 
 ## 실행
 
@@ -75,7 +75,8 @@
 | 메서드와 경로 | 하는 일 |
 | --- | --- |
 | `GET /api/brands` | 브랜드 카드 목록(정렬됨). 60초 캐시 헤더와 ETag(본문 해시) |
-| `GET /api/brands/{brand}/history?range=1m` | 그 브랜드의 할인 이력 |
+| `GET /api/brands/{brand}/history?range=1m` | 그 브랜드의 할인 이력. `byPlatform`에 앱별 시리즈가 같이 나간다 |
+| `GET /api/insight` | 할인 통계(공개). 날짜별 앱별 할인 수, 중앙값, 최대, 합계, 한정 할인 수 |
 | `GET /api/banners` | 오늘 띄울 배너 |
 | `POST /api/reload` | 파일 다시 읽기. 서버 안에서 직접 부른 요청만 허용(`X-Forwarded-For`가 있거나 루프백이 아니면 403). 운영은 nginx Basic Auth도 건다 |
 | `POST /api/share-links`, `GET /api/share-links/{code}` | 공유 링크 만들기와 조회. 만들기는 IP별 분당 30건(`X-Real-IP` 기반 `hashForLimit`), 넘기면 429 |

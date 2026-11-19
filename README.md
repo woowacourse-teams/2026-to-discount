@@ -8,9 +8,16 @@
 
 ## 서비스 소개
 
-오늘의 할인은 브랜드별 할인 정보를 한 화면에서 비교하는 서비스다. 같은 브랜드라도 배달앱마다 할인 금액과 조건이 다르다. 여러 배달앱을 번갈아 확인하는 번거로움을 줄이려고 만들었다.
+SaveEats는 브랜드별 할인 정보를 한 화면에서 비교하는 서비스다. 같은 브랜드라도 배달앱마다 할인 금액과 조건이 다르고, "최대 N원"이 실제로 받는 금액과 다를 때가 많다. 여러 배달앱을 번갈아 확인하는 번거로움을 줄이려고 만들었다.
 
-현재 배달의민족, 쿠팡이츠, 땡겨요, 요기요의 공개 할인 정보를 수작업으로 수집하고 정리해 제공한다. 비영리 정보 제공 목적이며, 특정 배달 플랫폼과 제휴 관계가 없다.
+배달의민족, 쿠팡이츠, 땡겨요, 요기요에서 로그인 없이 누구나 보는 할인 화면을 하루 여러 번 확인해 정리한다. 비영리 정보 제공 목적이며, 특정 배달 플랫폼과 제휴 관계가 없다.
+
+| 지표 (2026-11-19) | 값 |
+|---|---|
+| 다루는 브랜드 | 116개 |
+| 지금 보이는 오퍼 | 192건 (배민 70, 쿠팡이츠 44, 요기요 40, 땡겨요 38) |
+| 방문자 (2026-08-03 ~ 11-19, 봇 제외) | 약 1.36만 명 |
+| 할인을 골라 배달앱으로 이동한 방문자 | 약 29% |
 
 ## 핵심 기능
 
@@ -19,25 +26,35 @@
 - **할인 상태 구분**: 확정된 할인 금액과 확인이 더 필요한 정보를 구분해 표시한다.
 - **할인 상세 정보**: 브랜드 카드를 열어 앱별 할인 금액, 최소 주문 금액, 조건, 확인일을 확인한다.
 - **배달앱 바로가기**: 지원되는 브랜드는 해당 배달앱의 브랜드 페이지나 쿠폰 페이지로 바로 이동한다.
+- **정렬과 필터**: 할인금액 높은순, 최소주문 낮은순, 멤버십(배민클럽, 쿠팡와우, 요기패스), 선착순과 랜덤 할인 칩.
+- **검색**: 브랜드 이름, 메뉴, 앱 이름(예: "쿠팡")으로 찾는다. 앱 이름이면 그 앱 할인이 있는 브랜드만 남긴다.
+- **할인 기록**: 브랜드마다 날짜별 최고 할인 그래프를 앱별로 나눠 본다.
+- **할인 통계** ([/insight](https://beggars-five.vercel.app/insight)): 조회 기간을 골라 날짜별, 앱별 할인 수, 최대 할인, 할인 합계, 한정 할인 수를 본다.
+- **실시간 인기, 공유, 제보**: 많이 누른 브랜드 순위, 개별 혜택 짧은 링크 공유, 잘못된 정보 제보와 처리 상태 확인.
 
 ## 대표 화면
 
-서비스 대표 화면을 여기에 넣는다.
+| 모바일 | PC |
+|:---:|:---:|
+| <img src="docs/screen-history/img/18-20261016-a-mobile.png" width="260"> | <img src="docs/screen-history/img/18-20261016-a-pc.png" width="520"> |
+
+화면이 바뀌어 온 과정은 [화면 변천](docs/screen-history/README.md)에 있다.
 
 ## 팀원
 
-| 팀원 1 | 팀원 2 | 팀원 3 |
-|:-------:|:------:|:--------:|
-| 이미지 삽입 | 이미지 삽입 | 이미지 삽입 |
-| @{github-nickname} | @{github-nickname} | @{github-nickname} |
+| <img src="https://github.com/nn98.png" width="96"> | <img src="https://github.com/everypine.png" width="96"> | <img src="https://github.com/miniminjae92.png" width="96"> |
+|:---:|:---:|:---:|
+| [nn98](https://github.com/nn98) | [everypine](https://github.com/everypine) | [miniminjae92](https://github.com/miniminjae92) |
 
 ## 기술 스택
 
 | 구분 | 개발 환경 |
 |---|---|
 | Frontend | React 18, Vite, Node.js, npm |
-| Backend | Java 17, Spring Boot, Gradle |
-| Data Tracker | Python, PyYAML, pytest, ADB CLI |
+| Backend | Java 17, Spring Boot 4.1 (Jackson 3), Gradle, DB 없이 파일 원장(JSON, JSONL) |
+| Data Tracker | Python, PyYAML, pytest, ADB CLI (비공개 저장소) |
+| Infra | GitHub Actions, 서버 1대(nginx, systemd, 무중단 교대 배포), Vercel |
+| 분석 | 자체 이벤트 원장, PostHog, GA4(임시) |
 
 ---
 
@@ -53,8 +70,6 @@ tracker(비공개)  →  서버(직접 배포)  →  api  →  /api/brands  → 
 | `tracker/` | 수집기는 비공개 저장소에 있다. 여기 `tracker/`에는 README만 있다 ([ADR-002](docs/decisions/ADR-002-mono-is-the-public-source.md)) |
 | [`api/`](api/) | 별칭 정규화, 확정/보류 판정, 만료 제외, 정렬 |
 | [`web/`](web/) | 브랜드 카드 교차 비교 화면 |
-
-원장 226건, 오퍼 137건(땡겨요 44, 쿠팡이츠 33, 배민 33, 요기요 27), 브랜드 사전 109개.
 
 **이 저장소는 수집기를 싣지 않는다.** 판독 계약, 데이터 모델, 원장은 tracker 저장소(비공개)에만 있다. 근거는 [ADR-002](docs/decisions/ADR-002-mono-is-the-public-source.md)에 있다.
 
@@ -79,7 +94,7 @@ tracker(비공개)  →  서버(직접 배포)  →  api  →  /api/brands  → 
 | [컨벤션](docs/CONVENTIONS.md) | 커밋, 주석, 문서, 데이터 규칙 |
 | [의사결정기록](docs/decisions/) | 되돌리기 어려운 판단과 근거 |
 
-앱별 ADR: tracker 저장소(비공개) 26건, [api](api/docs/) 10건, [web](web/docs/) 2건 (2026-09-17 기준).
+앱별 ADR: [저장소 공통](docs/decisions/) 2건, [api](api/docs/decisions/) 13건, [web](web/docs/decisions/) 4건 (2026-11-19 기준). 장애와 개선 회고는 [docs/incidents/](docs/incidents/), 실험 판정은 [docs/metrics/](docs/metrics/)에 있다.
 
 이력은 `git filter-repo`로 세 저장소를 합쳤다. 커밋 223개가 그대로 살아 있고 `git log --follow -- web/src/App.jsx`도 동작한다.
 
