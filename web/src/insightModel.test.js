@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { plotLines, shareRows, toPoint, trendPoints } from './insightModel.js'
+import { availableMetrics, metricPoints, plotLines, rangeStats, shareRows, sliceByRange, toPoint, trendPoints } from './insightModel.js'
 
 const D = (date, baemin, carriedShare = 0) => ({ date, median: { baemin }, carriedShare: { baemin: carriedShare } })
 
@@ -36,4 +36,18 @@ test('비율은 분모 30 미만이거나 null이면 그리지 않는다', () =>
   assert.equal(shareRows({ n: 100, share: { baemin: null, yogiyo: null } }), null)
   assert.deepEqual(shareRows({ n: 30, share: { baemin: 0.3, coupangeats: 0.4, yogiyo: null } }),
     [{ app: 'coupangeats', share: 0.4 }, { app: 'baemin', share: 0.3 }])
+})
+
+test('조회 기간은 마지막 날부터 거꾸로 센다', () => {
+  const days = ['2026-11-01', '2026-11-10', '2026-11-19'].map((date) => ({ date }))
+  assert.deepEqual(sliceByRange(days, '2w').map((d) => d.date), ['2026-11-10', '2026-11-19'])
+  assert.equal(sliceByRange(days, 'all').length, 3)
+})
+
+test('지표는 응답에 있는 칸만 고르고, 기간 요약은 최고와 변화를 낸다', () => {
+  const days = [{ date: 'a', active: { baemin: 3 } }, { date: 'b', active: { baemin: 9 } }, { date: 'c', active: { baemin: 5 } }]
+  assert.deepEqual(availableMetrics(days).map((m) => m.key), ['active'])
+  const s = rangeStats(metricPoints(days, 'baemin', 'active'))
+  assert.deepEqual(s, { last: 5, lastDate: 'c', avg: 6, max: 9, maxDate: 'b', delta: 2 })
+  assert.equal(rangeStats(metricPoints(days, 'yogiyo', 'active')), null)
 })

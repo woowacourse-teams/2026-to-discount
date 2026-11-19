@@ -138,7 +138,7 @@ public class InsightService {
         out.put("range", range);
         out.put("platforms", PLATFORMS);
         out.put("today", today(all, dates, last, live, today));
-        out.put("trend", trend(all, dates, ci));
+        out.put("trend", trend(h, all, dates, ci));
         out.put("heatmap", heatmap(all, dates, ci, weeks, weekOf));
         out.put("compare", compare(all, ci, dates.size()));
         out.put("offers", offers(live, today));
@@ -180,7 +180,7 @@ public class InsightService {
         return out;
     }
 
-    private static Map<String, Object> trend(List<Series> all, List<LocalDate> dates, int ci) {
+    private static Map<String, Object> trend(OfferHistory h, List<Series> all, List<LocalDate> dates, int ci) {
         // 고정 묶음: 09-14 이후 값(이어 쓴 값, 0 포함)이 있는 날이 90% 이상인 브랜드.
         List<Integer> cd = new ArrayList<>();
         for (int i = 0; i < dates.size(); i++) if (!dates.get(i).isBefore(COHORT_FROM)) cd.add(i);
@@ -195,13 +195,21 @@ public class InsightService {
             Map<String, Object> median = new LinkedHashMap<>();
             Map<String, Object> active = new LinkedHashMap<>();
             Map<String, Object> carried = new LinkedHashMap<>();
+            Map<String, Object> max = new LinkedHashMap<>();
+            Map<String, Object> sum = new LinkedHashMap<>();
+            Map<String, Object> firstCome = new LinkedHashMap<>();
             for (String p : PLATFORMS) {
+                firstCome.put(p, h.firstCome(dates.get(d), p));
                 median.put(p, median(cohort.stream().filter(s -> s.platform.equals(p) && s.on(d)).map(s -> s.v[d]).toList()));
                 List<Series> on = all.stream().filter(s -> s.platform.equals(p) && s.on(d)).toList();
                 active.put(p, on.size());
                 carried.put(p, on.isEmpty() ? null : round(on.stream().filter(s -> !s.obs[d]).count() / (double) on.size()));
+                // 날짜별 지표(2026-11-19 사용자): 그날 할인 중 브랜드의 최고 금액, 브랜드별 최고 금액의 합. 할인 중 브랜드가 없으면 null.
+                max.put(p, on.isEmpty() ? null : on.stream().mapToInt(s -> s.v[d]).max().getAsInt());
+                sum.put(p, on.isEmpty() ? null : on.stream().mapToInt(s -> s.v[d]).sum());
             }
-            days.add(row("date", dates.get(i).toString(), "median", median, "active", active, "carriedShare", carried));
+            days.add(row("date", dates.get(i).toString(), "median", median, "active", active, "carriedShare", carried,
+                    "max", max, "sum", sum, "firstCome", firstCome));
         }
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("cohortSize", size);

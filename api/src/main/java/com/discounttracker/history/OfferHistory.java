@@ -21,8 +21,16 @@ public final class OfferHistory {
     private final Map<String, NavigableMap<LocalDate, List<BrandDay>>> byBrand = new HashMap<>();
     private final NavigableMap<LocalDate, Set<String>> coverage;
     private final List<BrandDay> days;
+    private final Map<LocalDate, Map<String, Integer>> firstCome;
 
     public OfferHistory(List<BrandDay> days, Map<LocalDate, Set<String>> coverage) {
+        this(days, coverage, Map.of());
+    }
+
+    /** firstCome: 날짜별 앱별 한정(선착순) 오퍼 수. 날짜가 없으면 그날은 모름이다. */
+    public OfferHistory(List<BrandDay> days, Map<LocalDate, Set<String>> coverage,
+                        Map<LocalDate, Map<String, Integer>> firstCome) {
+        this.firstCome = Map.copyOf(firstCome);
         this.coverage = new TreeMap<>(coverage);
         this.days = List.copyOf(days);
         for (BrandDay d : days) {
@@ -38,6 +46,12 @@ public final class OfferHistory {
 
     /** 원장 행 전부(인사이트 집계용). */
     public List<BrandDay> days() { return days; }
+
+    /** 그날 앱별 한정 오퍼 수. 그날 기록이 없으면 null(모름), 있는데 그 앱이 없으면 0. */
+    public Integer firstCome(LocalDate date, String platform) {
+        Map<String, Integer> day = firstCome.get(date);
+        return day == null ? null : day.getOrDefault(platform, 0);
+    }
 
     /** 날짜별 수집된 앱(인사이트 집계용). */
     public NavigableMap<LocalDate, Set<String>> coverage() { return Collections.unmodifiableNavigableMap(coverage); }
