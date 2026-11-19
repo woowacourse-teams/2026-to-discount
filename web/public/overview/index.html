@@ -236,10 +236,11 @@
         <div class="links">
           <a href="/">서비스 체험하기</a>
           <a href="https://github.com/woowacourse-teams/2026-to-discount">GitHub</a>
+          <a href="/pages/">페이지 모음</a>
         </div>
       </div>
       <div class="hero__side">
-        <div class="hero__stat"><span class="num"><span data-count="14486">14,486</span>명</span><span>누적 고유 방문자<br />2026-07-29 ~ 2026-11-11, 팀원과 개발 접속 제외</span></div>
+        <div class="hero__stat"><span class="num"><span data-count="14280">14,280</span>명</span><span>누적 고유 방문자<br />2026-07-29 ~ 2026-11-19, PostHog, 봇 제외</span></div>
         <a class="hero__qr" href="/overview/"><img src="/overview/qr.svg" alt="이 페이지 주소 QR" /><span><b>이 페이지 바로 보기</b>QR을 스캔하세요</span></a>
       </div>
     </div>
@@ -276,7 +277,7 @@
     <h2 class="rise" style="--i:1">늘어난 방문,<br /><em>다시 찾아오는 사용자</em></h2>
     <p class="lead rise" style="--i:2">커뮤니티 공유와 검색으로 들어온 사용자입니다.</p>
     <div class="grid nums">
-      <div class="box stat point rise"><span class="num"><span data-count="14486">14,486</span><small>명</small></span><span class="lbl">누적 방문자</span><p>09-12 5천 돌파, 10-06 1만 돌파</p></div>
+      <div class="box stat point rise"><span class="num"><span data-count="14280">14,280</span><small>명</small></span><span class="lbl">누적 방문자</span><p>09-12 5천 돌파, 10-12 1만 돌파</p></div>
       <div class="box stat rise" style="--i:1"><span class="num"><span data-count="11661">11,661</span><small>명</small></span><span class="lbl">누적 활성 사용자</span><p>GA4, 07-29 ~ 11-19</p></div>
       <div class="box stat rise" style="--i:2"><span class="num"><span data-count="7.9" data-dec="1">7.9</span><small>%</small></span><span class="lbl">W+2 유효 리텐션</span><p>첫 주에 행동한 6,753명 중 2주 뒤 다시 행동, 일반 6.7%</p></div>
       <div class="box stat rise" style="--i:3"><span class="num"><span data-count="947">947</span><small>명</small></span><span class="lbl">최대 DAU</span><p>09-11 카페 공유일, GA4 (PostHog 1,090)</p></div>
@@ -291,9 +292,9 @@
       <figure class="chart rise" style="--i:1"><img src="/overview/img/ga-realtime-2026-10-03.png" loading="lazy" alt="GA 실시간 개요. 지난 30분 활성 사용자 127명, 지난 5분 24명. 수도권, 강원, 충청, 대구, 부산, 광주에서 접속. 페이지 조회 144회." /><figcaption><b>토요일 오후, 30분 동안 127명</b>2026-10-03 17:10, 전국 접속</figcaption></figure>
     </div>
     <div class="two">
-      <div class="chart rise" data-chart="cum" role="img" aria-label="누적 고유 방문자. 7월 후반 808명, 8월 전반 1,694명, 8월 후반 3,255명, 9월 전반 5,998명, 9월 후반 7,834명, 10월 전반 10,874명, 10월 후반 13,503명, 11월 전반 잠정 14,486명.">
+      <div class="chart rise" data-chart="cum" role="img" aria-label="누적 고유 방문자. 7월 후반 811명, 8월 전반 1,700명, 8월 후반 3,279명, 9월 전반 6,027명, 9월 후반 7,737명, 10월 전반 10,364명, 10월 후반 12,722명, 11월 전반 14,119명, 11월 후반 잠정 14,280명. PostHog, 봇 제외.">
         <h3>누적 고유 방문자</h3>
-        <p class="legend"><span>반달 단위, 11월 전반은 2026-11-11까지 잠정</span></p>
+        <p class="legend"><span>반달 단위, PostHog, 봇 제외. 11월 후반은 2026-11-19까지 잠정</span></p>
         <svg viewBox="0 0 480 230" aria-hidden="true"></svg>
       </div>
       <div class="chart rise" data-chart="weekly" role="img" aria-label="주별 방문자와 활성 사용자. 2026-08-03 주부터 2026-11-09 주까지 15주, PostHog. 방문자 최다 2,212명(09-28 주), 활성 사용자 최다 718명(09-21 주).">
@@ -544,18 +545,18 @@
     var cum = document.querySelector('[data-chart="cum"]')
     if (cum) {
       var svg = cum.querySelector('svg'), tip = tipOf(cum)
-      var P = [['7월 후반', 808], ['8월 전반', 1694], ['8월 후반', 3255], ['9월 전반', 5998], ['9월 후반', 7834], ['10월 전반', 10874], ['10월 후반', 13503], ['11월 전반*', 14486]]
+      var P = [['7월 후반', 811], ['8월 전반', 1700], ['8월 후반', 3279], ['9월 전반', 6027], ['9월 후반', 7737], ['10월 전반', 10364], ['10월 후반', 12722], ['11월 전반', 14119], ['11월 후반*', 14280]]
       var L = 44, R = 466, T = 26, B = 196, MAX = 16000
       var X = function (i) { return L + (R - L) * i / (P.length - 1) }, Y = function (v) { return B - (B - T) * v / MAX }
       ;[0, 5000, 10000, 15000].forEach(function (v) { svg.appendChild(mk('line', { class: 'grid-line', x1: L, x2: R, y1: Y(v), y2: Y(v) })); svg.appendChild(mk('text', { x: L - 8, y: Y(v) + 4, 'text-anchor': 'end' }, v ? num(v) : '0')) })
-      ;[[5000, '5,000명 돌파 09-12', 2.64], [10000, '10,000명 돌파 10-06', 4.71]].forEach(function (m) { svg.appendChild(mk('line', { class: 'mile', x1: X(m[2]), x2: X(m[2]), y1: Y(m[0]), y2: B })); svg.appendChild(mk('text', { x: X(m[2]) + 4, y: B - 6 }, m[1])) })
+      ;[[5000, '5,000명 돌파 09-12', 2.63], [10000, '10,000명 돌파 10-12', 4.86]].forEach(function (m) { svg.appendChild(mk('line', { class: 'mile', x1: X(m[2]), x2: X(m[2]), y1: Y(m[0]), y2: B })); svg.appendChild(mk('text', { x: X(m[2]) + 4, y: B - 6 }, m[1])) })
       var d = P.map(function (p, i) { return (i ? 'L' : 'M') + X(i) + ' ' + Y(p[1]) }).join(' ')
       svg.appendChild(mk('path', { class: 'area', d: d + ' L' + R + ' ' + B + ' L' + L + ' ' + B + ' Z' }))
       var line = mk('path', { class: 'line', d: d }); svg.appendChild(line)
       line.style.setProperty('--len', Math.ceil(line.getTotalLength ? line.getTotalLength() : 900))
       P.forEach(function (p, i) {
         svg.appendChild(mk('circle', { class: 'dot', cx: X(i), cy: Y(p[1]), r: 4 }))
-        if (i % 2 === 1 || i === P.length - 1) svg.appendChild(mk('text', { class: 'val', x: X(i), y: Y(p[1]) - 10, 'text-anchor': 'middle' }, num(p[1])))
+        if (i % 2 === 0 || i === P.length - 1) svg.appendChild(mk('text', { class: 'val', x: X(i), y: Y(p[1]) - 10, 'text-anchor': 'middle' }, num(p[1])))
         if (i % 2 === 0) svg.appendChild(mk('text', { x: X(i), y: B + 18, 'text-anchor': 'middle' }, p[0]))
         var hit = mk('rect', { class: 'hit', x: X(i) - 26, y: T - 10, width: 52, height: B - T + 30 }); svg.appendChild(hit)
         hit.addEventListener('pointermove', function (e) { show(tip, cum, e, '<b>' + p[0] + '</b><br />누적 ' + num(p[1]) + '명') })
