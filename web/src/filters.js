@@ -4,6 +4,7 @@ import { findBrandSuggestions, toDubeolsikHangul } from './brandAutocomplete.js'
 // "화면에 뜬 것"이 어긋난다. (B안 시트·메뉴바는 2026-09-15에 지웠다.)
 
 import { PLATFORMS, OWN, platformsMatching } from './platforms.js'
+import { beforeOpen, pageNow } from './pageNow.js'
 
 // 필터 탭 목록. key는 API가 내려주는 brand.category 값과 맞춰야 한다
 // (실제 브랜드별 분류는 API 쪽 brands.yml이 단일 출처다).
@@ -414,13 +415,22 @@ export function sortBrands(brands, { sorts, includeRandom = false, include = nul
 }
 
 /**
+ * 요기요 선착순은 소진이면 어디서도 안 보이고, 오픈 전이면 한정 칩에서만 보인다(2026-11-20 사용자, #432).
+ * 열리기 전 쿠폰이 전체 화면에 상시 할인과 같은 줄로 서면 받을 수 있는 할인으로 읽힌다. 배민 선착순은 오픈 전에도 쿠폰이
+ * 미리 보이는 허브로 보내는 설계(API FirstComeLinkFilter)가 있어 건드리지 않는다.
+ */
+const hiddenYogiyoFirstCome = (o, firstComeChip, now) =>
+  o.platform === 'yogiyo' && o.firstCome === true && (o.soldOut === true || (!firstComeChip && beforeOpen(o, now)))
+
+/**
  * 필터를 적용한 목록. 플랫폼 토글은 카드를 거르는 게 아니라 그 앱의
  * 오퍼를 켜고 끈다 — 끈 앱 금액이 카드에 남아 있으면 토글이 무슨 일을
  * 했는지 알 수 없고 "최고 할인"도 끈 앱 값으로 잡힌다.
  */
-export function applyFilters(brands, filters) {
+export function applyFilters(brands, filters, now = pageNow()) {
   const q = filters.search.trim()
   const special = [...filters.categories].filter(isSpecialCategory)
+  const firstComeChip = special.includes('firstCome')
   // 검색어가 앱 이름이면(배민, 쿠팡, 요기요, 한영 전환 포함) 그 앱의 오퍼가 있는 브랜드를 찾고 카드엔 그 앱 오퍼만 남긴다.
   // 브랜드 이름으로도 맞는 브랜드는 그대로 둔다(이름이 이긴다).
   const platformHits = q === '' ? new Set() : new Set([...platformsMatching(q), ...platformsMatching(toDubeolsikHangul(q))])
@@ -431,7 +441,8 @@ export function applyFilters(brands, filters) {
         // 1+1 묶음 행사는 금액이 없어도 5천원 거르기에 안 걸린다(2026-10-11 KFC 1+1이 안 떴다).
         && (!filters.minAmount5k || q !== '' || isBundle(o) || (o.amount ?? 0) >= (filters.minAmount ?? 5000))
         // 없는 멤버십의 전용 오퍼는 뺀다(MEMBERSHIP_FILTERABLE).
-        && !(MEMBERSHIP_FILTERABLE[o.membership] && filters.memberships && !filters.memberships.has(MEMBERSHIP_FILTERABLE[o.membership])))
+        && !(MEMBERSHIP_FILTERABLE[o.membership] && filters.memberships && !filters.memberships.has(MEMBERSHIP_FILTERABLE[o.membership]))
+        && !hiddenYogiyoFirstCome(o, firstComeChip, now))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
     .map((b) => {

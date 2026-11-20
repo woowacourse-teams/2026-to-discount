@@ -475,3 +475,22 @@ test('요기요의 최대는 확정 금액으로 읽어 불확정 표시와 정�
   assert.equal(comparable(a.offers[0]), true)
   assert.equal(b.offers[0].qualifier, '최대') // 다른 앱은 그대로
 })
+
+// 요기요 선착순(2026-11-20, #432): 오픈 전엔 한정 칩에서만, 오픈 뒤엔 한정과 전체 둘 다, 소진이면 어디서도 안 보인다. 배민은 그대로.
+test('요기요 선착순: 오픈 전엔 한정 칩에서만, 오픈 뒤엔 둘 다, 소진이면 안 보인다', () => {
+  const hot = (extra = {}) => ({ platform: 'yogiyo', amount: 4000, firstCome: true, badge: '오후 3시 오픈', ...extra })
+  const kst = (h, m) => new Date(Date.UTC(2026, 10, 20, h - 9, m)) // 서울 h시 m분
+  const shown = (offer, filters, at) => applyFilters(
+    [{ name: 'bhc', category: 'chicken', offers: [{ platform: 'baemin', amount: 3000 }, offer] }], filters, at)
+    .flatMap((b) => b.offers).filter((o) => o.firstCome).length
+  const before = kst(14, 59)
+  const after = kst(15, 0)
+  assert.equal(shown(hot(), defaultFilters(), before), 0)
+  assert.equal(shown(hot(), withCats('firstCome'), before), 1)
+  assert.equal(shown(hot(), defaultFilters(), after), 1)
+  assert.equal(shown(hot(), withCats('firstCome'), after), 1)
+  for (const at of [before, after]) {
+    for (const f of [defaultFilters(), withCats('firstCome')]) assert.equal(shown(hot({ soldOut: true }), f, at), 0)
+  }
+  assert.equal(shown(hot({ platform: 'baemin' }), defaultFilters(), before), 1) // 배민 선착순은 오픈 전에도 보인다
+})
