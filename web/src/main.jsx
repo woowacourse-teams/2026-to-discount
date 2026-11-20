@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { flushSync } from 'react-dom'
 import { Analytics } from '@vercel/analytics/react'
 import App from './App.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
@@ -125,10 +126,12 @@ if (homeArm !== 'v2') releaseHomeWait()
 if (homeArm === 'v2') {
   // 시안 카드(B, #291): 서버가 그려 보낸 HTML은 운영 카드라 하이드레이션하지 않고 통째로 새로 그린다. 서버 데이터(initial)는 그대로 넘겨
   // 다시 받지 않는다. 시안 코드와 CSS는 이 갈래에서만 받는다(A에는 시안 CSS가 실리지 않는다). 못 받으면 운영 카드로 그린다.
-  // 받는 동안은 숨겨 둔 서버 HTML을 비우고 푼다(운영 카드가 보였다 시안으로 바뀌는 깜박임 방지).
+  // 받는 동안은 서버 HTML을 숨겨 두고, 새 화면이 실제로 그려진 뒤에 푼다(운영 카드가 보였다 시안으로 바뀌는 깜박임 방지).
+  // 비우고 풀고 render만 부르면 첫 커밋이 다음 프레임이라 빈 화면이 한 번 보이고 바닥글이 오르내려 CLS 2가 났다(2026-11-20 web-perf).
+  const drawB = (node) => { rootEl.replaceChildren(); const root = ReactDOM.createRoot(rootEl); flushSync(() => root.render(node)); releaseHomeWait() }
   import('./shells/my-brands-v2/MyBrandsV2Shell.jsx')
-    .then(({ default: MyBrandsV2Shell }) => { rootEl.replaceChildren(); releaseHomeWait(); ReactDOM.createRoot(rootEl).render(makeTree(<MyBrandsV2Shell initial={ssr} />)) })
-    .catch(() => { rootEl.replaceChildren(); releaseHomeWait(); ReactDOM.createRoot(rootEl).render(tree) })
+    .then(({ default: MyBrandsV2Shell }) => drawB(makeTree(<MyBrandsV2Shell initial={ssr} />)))
+    .catch(() => drawB(tree))
 } else if (ssr) {
   ReactDOM.hydrateRoot(rootEl, tree, { onRecoverableError })
   // iOS WebKit(사파리, 카카오톡 인앱)은 서버가 그린 쿠폰의 컨테이너 단위(cqw) 글자를 처음 한 번 잘못 배치한다.
