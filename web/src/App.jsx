@@ -1,7 +1,7 @@
 import { afterHistorySettles, useBackClose } from './backClose.js'
 import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { goLive } from './pageNow.js'
+import { goLive, usePageMinute } from './pageNow.js'
 import { importRetry } from './lazyRetry.js'
 import { fetchBanners, fetchBrands } from './api.js'
 import { setFilterContext, track } from './analytics.js'
@@ -13,7 +13,8 @@ import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => importRetry(() => import('./FilterSheet.jsx')))
 const FirstVisitGuide = lazy(() => importRetry(() => import('./FirstVisitGuide.jsx')))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, applyFilters, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, revealFilters, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
+import { sharedOfferKey } from './offerSharing.js'
+import { CATEGORIES, applyFilters, hideUnopenedYogiyoExcept, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, revealFilters, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 const HiddenBrandsSheet = lazy(() => importRetry(() => import('./HiddenBrandsSheet.jsx')))
 const HideBrandAsk = lazy(() => importRetry(() => import('./HideBrandAsk.jsx')))
 // 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
@@ -434,6 +435,8 @@ export default function App({ initial = null, Card = CouponCard, mainClassName }
   const onHide = useCallback((name, amount) => setAsking({ name, amount }), [])
   // 카드 memo가 먹게 참조를 고정한다. 렌더마다 새 객체나 함수를 넘기면 memo가 소용없다.
   const include = useMemo(() => includesFrom(filters), [filters])
+  // 요기요 선착순은 오픈 시각 전에 전체 화면에서 빠진다(applyFilters). 열어 둔 채 시각을 넘기면 목록이 바뀌어야 해서 분마다 다시 계산한다.
+  const minute = usePageMinute()
   const clearLinked = useCallback(() => { setLinkedBrand(null); dismissShared() }, [dismissShared])
   // 카드가 쪼그라들어 사라진 뒤에 목록에서 뺀다. 바로 빼면 아래 카드들이
   // 순간이동해서 무엇이 사라졌는지 눈이 못 따라간다.
@@ -467,7 +470,7 @@ export default function App({ initial = null, Card = CouponCard, mainClassName }
   // 여기서 떼는 조건과 pickPopular(revealFilters)가 푸는 조건이 같아야 순위의 브랜드가 늘 카드로 선다(#219).
   const rankBrands = useMemo(
     () => (brands ? applyHidden(applyFilters(brands, { ...filters, categories: new Set(), search: '' }), hidden, bestOf) : brands),
-    [brands, filters, hidden, bestOf],
+    [brands, filters, hidden, bestOf, minute],
 
   )
   // 맨 위로 올라온 이유(신규 앞)를 브랜드에 `pin`으로 붙인다. 카드가 노출과 클릭 이벤트에 싣는다(2026-10-27).
@@ -476,8 +479,10 @@ export default function App({ initial = null, Card = CouponCard, mainClassName }
     const ordered = applyHidden(applyFilters(brands, filters), hidden, bestOf)
     const kinds = pinKinds(ordered, filters)
     const visible = ordered.map((b) => ({ ...b, pin: kinds.get(b.name) ?? 'none' }))
-    return shared ? [shared.brand, ...visible.filter((b) => b.name !== shared.brand.name)] : visible
-  }, [brands, filters, hidden, bestOf, shared?.brand])
+    // 공유 링크의 브랜드는 걸러지지 않은 원본이다. 공유 대상 오퍼만 남기고 나머지 요기요 선착순은 목록과 같은 규칙으로 거른다(#433).
+    const sharedBrand = shared && hideUnopenedYogiyoExcept(shared.brand, (o) => sharedOfferKey(o) === shared.key, filters.categories.has('firstCome'))
+    return shared ? [sharedBrand, ...visible.filter((b) => b.name !== shared.brand.name)] : visible
+  }, [brands, filters, hidden, bestOf, shared?.brand, shared?.key, minute])
 
   // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
   const revived = useMemo(
