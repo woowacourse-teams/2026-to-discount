@@ -259,7 +259,13 @@ public record Offer(String platform, Integer amount, String qualifier,
         if (loser.tiers != null) {
             // 진 쪽이 이미 택일 사다리면 그 단을 다 살린다. 하나만 남기면
             // 원래 문제(진 쪽이 사라진다)가 그대로다.
-            ladder.addAll(loser.tiers);
+            // 단, 이긴 쪽 구간과 같은 쿠폰(금액이 같고 최소주문이 같거나 모르고 채널·조건 문장이 없다)은 한 번만
+            // 남긴다. 배너 3,000원(18,000원↑)과 원장 사다리의 3,000원(18,000원↑)이 두 구간으로 나갔다(2026-11-20 요기요 bhc).
+            loser.tiers.stream()
+                    .filter(t -> !(java.util.Objects.equals(t.amount(), amount)
+                            && (t.minOrder() == null || java.util.Objects.equals(t.minOrder(), minOrderAmount))
+                            && t.channel() == null && t.note() == null && t.membership() == null))
+                    .forEach(ladder::add);
         } else {
             ladder.add(new DiscountTier(loser.minOrderAmount, loser.amount,
                     null, null, null, null, null));
