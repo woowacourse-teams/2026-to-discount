@@ -13,7 +13,8 @@ import PopularDock from './PopularDock.jsx'
 const FilterSheet = lazy(() => importRetry(() => import('./FilterSheet.jsx')))
 const FirstVisitGuide = lazy(() => importRetry(() => import('./FirstVisitGuide.jsx')))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
-import { CATEGORIES, applyFilters, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, revealFilters, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
+import { sharedOfferKey } from './offerSharing.js'
+import { CATEGORIES, applyFilters, hideUnopenedYogiyoExcept, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, revealFilters, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 const HiddenBrandsSheet = lazy(() => importRetry(() => import('./HiddenBrandsSheet.jsx')))
 const HideBrandAsk = lazy(() => importRetry(() => import('./HideBrandAsk.jsx')))
 // 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
@@ -478,8 +479,10 @@ export default function App({ initial = null, Card = CouponCard, mainClassName }
     const ordered = applyHidden(applyFilters(brands, filters), hidden, bestOf)
     const kinds = pinKinds(ordered, filters)
     const visible = ordered.map((b) => ({ ...b, pin: kinds.get(b.name) ?? 'none' }))
-    return shared ? [shared.brand, ...visible.filter((b) => b.name !== shared.brand.name)] : visible
-  }, [brands, filters, hidden, bestOf, shared?.brand, minute])
+    // 공유 링크의 브랜드는 걸러지지 않은 원본이다. 공유 대상 오퍼만 남기고 나머지 요기요 선착순은 목록과 같은 규칙으로 거른다(#433).
+    const sharedBrand = shared && hideUnopenedYogiyoExcept(shared.brand, (o) => sharedOfferKey(o) === shared.key, filters.categories.has('firstCome'))
+    return shared ? [sharedBrand, ...visible.filter((b) => b.name !== shared.brand.name)] : visible
+  }, [brands, filters, hidden, bestOf, shared?.brand, shared?.key, minute])
 
   // 숨겼는데 할인이 그때보다 커져서 다시 보이게 된 브랜드. 화면이 그 사실을 알린다.
   const revived = useMemo(

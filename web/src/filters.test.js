@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { apiFile } from '../scripts/api-repo.mjs'
 import {
-  isUpdated, settleYogiyoCaps,
+  isUpdated, settleYogiyoCaps, hideUnopenedYogiyoExcept,
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
   hasNewBest, includesFrom, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES, SPECIAL_CATEGORIES,
@@ -493,4 +493,15 @@ test('요기요 선착순: 오픈 전엔 한정 칩에서만, 오픈 뒤엔 둘 
     for (const f of [defaultFilters(), withCats('firstCome')]) assert.equal(shown(hot({ soldOut: true }), f, at), 0)
   }
   assert.equal(shown(hot({ platform: 'baemin' }), defaultFilters(), before), 1) // 배민 선착순은 오픈 전에도 보인다
+})
+
+test('공유 링크 브랜드: 공유 대상 오퍼는 오픈 전이어도 남기고, 나머지 요기요 선착순은 목록처럼 거른다', () => {
+  const hot = (extra) => ({ platform: 'yogiyo', amount: 4000, firstCome: true, badge: '오후 3시 오픈', ...extra })
+  const standing = { platform: 'baemin', amount: 5000 }
+  const target = hot({ amount: 3000 })
+  const other = hot()
+  const at = new Date(Date.UTC(2026, 10, 20, 5, 0)) // 서울 14:00
+  const brand = { name: 'bhc', offers: [standing, target, other] }
+  assert.deepEqual(hideUnopenedYogiyoExcept(brand, (o) => o === target, false, at).offers, [standing, target])
+  assert.equal(hideUnopenedYogiyoExcept({ name: 'x', offers: [standing] }, () => false, false, at).offers.length, 1)
 })

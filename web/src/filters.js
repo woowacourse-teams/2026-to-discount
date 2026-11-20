@@ -423,6 +423,15 @@ const hiddenYogiyoFirstCome = (o, firstComeChip, now) =>
   o.platform === 'yogiyo' && o.firstCome === true && (o.soldOut === true || (!firstComeChip && beforeOpen(o, now)))
 
 /**
+ * 공유 링크로 연 브랜드(걸러지지 않은 원본)에서 공유 대상 오퍼는 그대로 두고, 나머지는 목록과 같은 규칙으로 거른다(#433 리뷰).
+ * 받은 사람은 링크가 가리키는 오퍼를 오픈 전이나 소진이어도 봐야 한다. 같은 브랜드의 다른 요기요 선착순까지 전체 화면에 끼면 안 된다.
+ */
+export function hideUnopenedYogiyoExcept(brand, isShared, firstComeChip, now = pageNow()) {
+  const offers = brand.offers.filter((o) => isShared(o) || !hiddenYogiyoFirstCome(o, firstComeChip, now))
+  return offers.length === brand.offers.length ? brand : { ...brand, offers }
+}
+
+/**
  * 필터를 적용한 목록. 플랫폼 토글은 카드를 거르는 게 아니라 그 앱의
  * 오퍼를 켜고 끈다 — 끈 앱 금액이 카드에 남아 있으면 토글이 무슨 일을
  * 했는지 알 수 없고 "최고 할인"도 끈 앱 값으로 잡힌다.
