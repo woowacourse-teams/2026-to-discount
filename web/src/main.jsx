@@ -14,20 +14,17 @@ import {
 import { startGa4 } from './ga4.js'
 import { optedOut } from './privacy.js'
 import { markVariantOnRoot } from './variant.js'
-import { getAnalyticsContext, isProdHost } from './analytics-context.js'
-import { currentHomeArm, saveHomeArm, savedHomeArm } from './homeExperiment.js'
+import { getAnalyticsContext } from './analytics-context.js'
+import { currentHomeArm } from './homeExperiment.js'
 import { initializeShareAttribution } from './shareAttribution.js'
 import './App.css'
 import { exitGuard, homeUnderDirectLanding } from './backClose.js'
 import { showNotice } from './offerLink.js'
 import { goLive } from './pageNow.js'
 
-// 홈 카드 A/B(#291): 이번 방문의 안을 첫 이벤트 전에 정한다. 이벤트마다 props.home(+ 강제면 home_forced)로 실린다.
-const { arm: homeArm, forced: homeForced, save: homeSave } = currentHomeArm({
-  visitorId: getAnalyticsContext().visitorId, prodHost: isProdHost(), search: window.location.search, saved: savedHomeArm(),
-})
-if (homeSave) saveHomeArm(homeSave)
-// index.html 머리가 B로 저장된 방문의 서버 HTML(운영 카드)을 숨겨 뒀다. 그릴 준비가 되면 푼다.
+// 홈 카드(#291): 모두 B(?home=a 강제만 A). 이벤트마다 props.home(+ 강제면 home_forced)로 실린다.
+const { arm: homeArm, forced: homeForced } = currentHomeArm({ search: window.location.search })
+// index.html 머리가 서버 HTML(운영 카드)을 숨겨 뒀다. 그릴 준비가 되면 푼다.
 const releaseHomeWait = () => document.documentElement.removeAttribute('data-home-wait')
 setHomeContext(homeArm, homeForced)
 document.documentElement.dataset.home = homeArm
