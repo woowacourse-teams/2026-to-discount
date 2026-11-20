@@ -43,6 +43,7 @@ def build(people, rows, args=None):
     days = []
     brand = collections.defaultdict(lambda: collections.defaultdict(int))
     brand_clickers = collections.defaultdict(set)
+    brand_plat = collections.defaultdict(collections.Counter)  # 브랜드 -> 앱 -> 카드 칩 클릭(할인 유형별 반응을 앱별로 나눈다)
     for day, vid, ev, props, _ts, _sid, _path in rows:
         if not ex.keep(people[vid], args):
             continue
@@ -63,6 +64,7 @@ def build(people, rows, args=None):
                 brand_clickers[b].add(vid)
                 wk = sn.week_of(day).isoformat()
                 if p in plat:  # 앱 합(all)과 앱별이 어긋나지 않게 네 앱의 클릭만 센다
+                    brand_plat[b][p] += 1
                     week_brand[wk]["all"][b] += 1
                     week_brand[wk][p][b] += 1
         if ev in CLICKS:
@@ -92,7 +94,8 @@ def build(people, rows, args=None):
     brands = [{"brand": b, "clicks": brand[b]["clicks"], "clickers": len(brand_clickers[b]),
                "impressions": brand[b]["impressions"], "expands": brand[b]["expands"],
                "bannerClicks": brand[b]["bannerClicks"], "cartAdds": brand[b]["cartAdds"],
-               "clickRate": rate(brand[b]["clicks"], brand[b]["impressions"])} for b in top]
+               "clickRate": rate(brand[b]["clicks"], brand[b]["impressions"]),
+               "byPlatform": {p: brand_plat[b][p] for p in PLATFORMS}} for b in top]
     def top1(c):
         if not c:
             return None
@@ -164,6 +167,7 @@ def demo():
     rs2 += [("2026-11-02", "v1", "offer_link_click", pr(brand="bhc", platform="baemin"), "", "s", "/")] * 4
     top = build({"v1": P()}, rs2)["brands"][0]
     assert (top["brand"], top["clicks"], top["clickRate"]) == ("bhc", 4, 0.1)
+    assert top["byPlatform"] == {"baemin": 4, "coupangeats": 0, "yogiyo": 0, "ddangyo": 0}
     rs3 = rs2 + [("2026-11-02", "v9", "banner_click", pr(brand="bhc", platform="baemin"), "", "s", "/"),
                  ("2026-11-02", "v9", "banner_click", pr(brand="none", platform="baemin"), "", "s", "/")]
     out3 = build({"v1": P(), "v9": P()}, rs3)
