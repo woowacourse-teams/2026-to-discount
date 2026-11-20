@@ -145,6 +145,25 @@ class OfferConvergenceTest {
     }
 
     @Test
+    void aLedgerRungThatIsTheSameCouponAsTheBannerIsKeptOnce() {
+        // 2026-11-20 요기요 bhc: 배너 3,000원(18,000원↑)과 원장 사다리의 3,000원(18,000원↑)이 두 구간으로 나갔다.
+        // 대표 금액은 배너 그대로(위 규칙)이고, 같은 쿠폰인 원장 구간만 걸러진다. 채널이 다른 구간은 남는다.
+        Offer fromBanner = Offer.from(banner(3000, 18000, "2026-11-20T00:00:00+09:00"), TODAY);
+        Offer fromLedger = Offer.from(ledgerWithTiers("exclusive", List.of(
+                new DiscountTier(18000, 3000, null, null, null, null, null),
+                new DiscountTier(20000, 4000, null, null, "배달", null, null),
+                new DiscountTier(30000, 5000, null, null, "배달", null, null),
+                new DiscountTier(20000, 6000, null, null, "포장", null, null))), TODAY);
+
+        Offer merged = fromBanner.preferredOver(fromLedger);
+
+        assertEquals(3000, merged.amount(), "대표 금액은 이긴 쪽(배너) 그대로다");
+        assertEquals(List.of(3000, 4000, 5000, 6000),
+                merged.tiers().stream().map(DiscountTier::amount).toList(),
+                "같은 쿠폰의 3,000원 구간이 두 번 나가면 안 된다");
+    }
+
+    @Test
     void anExclusiveLadderKeepsAllItsRungs() {
         // 진 쪽이 이미 택일 사다리면 그 단을 다 살린다 - 하나만 남기면
         // 원래 문제(진 쪽이 사라진다)가 그대로다.
