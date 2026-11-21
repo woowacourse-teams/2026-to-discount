@@ -45,7 +45,7 @@ brands:
     aliases: [BBQ, BBQ치킨, 비비큐, 비비큐치킨, bbq chicken]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=31
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?FGdtCFW
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?LLXJmFD
       baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=7&brandName=BBQ%EC%B9%98%ED%82%A8
   bhc:
     searchAliases: [비에이치씨, 비에이치씨치킨, bhc chicken, bhc치킨, BHC치킨]
@@ -54,7 +54,7 @@ brands:
     aliases: [bhc, bhc치킨, BHC, BHC치킨, 비에이치씨, 비에이치씨치킨, bhc chicken]
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=37
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?9AFaGiq
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?8kMFQ3B
       baemin: https://s.baemin.com/Rw000Lpq6OXca
   감탄계숯불치킨:
     searchAliases: [감탄계, 감탄계 치킨, gamtangye, gamtangye chicken]
@@ -91,7 +91,7 @@ brands:
     aliases: [꾸브라꼬숯불치킨, 꾸브라꼬 숯불치킨, 꾸브라꼬치킨, 꾸브라꼬, 꾸브라코, kkuburakko, kkuburakko chicken, 꾸브라꼬숯불두마리치킨]
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?m3w4jWC
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?C4fhvhx
       baemin: https://s.baemin.com/I6000Lps6Xkd2
       yogiyo: yogiyolink://push.page/franchise?fr_id=1692
   냠냠숯불두마리치킨:
@@ -138,7 +138,7 @@ brands:
     category: chicken
     links:
       baemin: https://s.baemin.com/kT000LpLbpevS
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?Tkboxci
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?F9c5ygf
   또래오래:
     searchAliases: [또래오래 치킨, 또래치킨, toreore, toreore chicken]
     menus: [갈반핫반, 뿌레카]
@@ -224,7 +224,7 @@ brands:
     aliases: [자담, jadam, jadam chicken]
     category: chicken
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?oDuoo47
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?2bmbub9
       baemin: https://s.baemin.com/cj000Lpq8RPiH
       yogiyo: yogiyolink://push.page/franchise?fr_id=418
   처갓집양념치킨:
@@ -270,7 +270,7 @@ brands:
     links:
       baemin: https://s.baemin.com/nd000LpuQezLy
       yogiyo: yogiyolink://push.page/franchise?fr_id=357
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?y9tOUYt
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?tOPeBDB
   해두리치킨:
     searchAliases: [해두리, 해두리 치킨, haeduri, haeduri chicken]
     aliases: [해두리, haeduri, haeduri chicken]
@@ -318,7 +318,7 @@ brands:
     category: chicken
     aliases: [교촌치킨, 교촌, kyochon, kyochon chicken]
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway1.html?EES33bt
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?Yq4jaei
       baemin: https://baemin.com/bridge/brand-lounge/detail?brandId=121
   깐부치킨:
     searchAliases: [깐부, 깐부 치킨, kkanbu, kkanbu chicken]
@@ -366,7 +366,7 @@ brands:
     aliases: [보스, boss pizza, boseu pizza]
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?Vbdm6Ki
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?3GTREp1
       yogiyo: yogiyolink://push.page/franchise?fr_id=20101
   빽보이피자:
     searchAliases: [빽보이, 빽보이 피자, 백피자, 빽피자]
@@ -391,7 +391,7 @@ brands:
     aliases: [아메리칸, american pizza, americane pizza]
     category: pizza
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway1.html?BFSG6sq
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?U4PLuGx
   오구쌀피자:
     searchAliases: [오구 피자, 오구쌀 피자, 59 pizza, ogu rice pizza]
     menus: [반미터]
@@ -426,7 +426,7 @@ brands:
     category: pizza
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=36
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?HQWhHAq
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?Pm42g9D
   프레드피자:
     searchAliases: [프레드 피자, 프레드, fred pizza, peuredeu pizza]
     aliases: [프레드, fred pizza, peuredeu pizza]
@@ -508,6 +508,7 @@ brands:
     aliases: [서브웨이, 섭웨, subway, subway korea]
     category: fastfood
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?bcMT0o3
       yogiyo: yogiyolink://push.page/franchise?fr_id=653
       baemin: https://s.baemin.com/CW000Ltj5CaN6
   KFC:
@@ -545,14 +546,20 @@ brands:
     searchAliases: [이디야, 이디야 커피, ediya coffee, ediya]
     aliases: [이디야, ediya coffee, ediya]
     category: cafe
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?bWZ6JGP
   파리크라상:
     searchAliases: [파리 크라상, 파크, paris croissant, pariscroissant]
     aliases: [파크]
     category: cafe
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?toy0Vo9
   텐퍼센트커피 픽업:
     searchAliases: [텐퍼센트커피, 텐퍼센트 커피, ten percent coffee, 10 percent coffee]
     aliases: [ten percent coffee, 10 percent coffee]
     category: cafe
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?nEk4j9c
   카페인중독:
     searchAliases: [카페인 중독, 카중, caffeine addiction, caffeine jungdok]
     menus: [햅쌀와플]
@@ -586,7 +593,7 @@ brands:
     category: cafe
     links:
       baemin: https://s.baemin.com/0N000LpqdgOM4
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?Amxzu1U
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?5bgRyen
   폴바셋:
     searchAliases: [폴 바셋, 폴바셋커피, 풀바셋, paul bassett, paulbassett]
     aliases: [폴바셋커피, 풀바셋]
@@ -635,7 +642,7 @@ brands:
     category: cafe
     links:
       baemin: https://s.baemin.com/1M000LtNQqES8
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?YJXCwG1
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?pU0mpQL
   잠바주스:
     searchAliases: [잠바 주스, 잠바, jamba juice, jambajuice]
     menus: [망고고고]
@@ -664,6 +671,8 @@ brands:
     category: cafe
     aliases: [메가MGC커피, 메가커피, 메가 엠지씨 커피, 메가, mega mgc coffee, mega coffee]
 
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?mSkWbVa
   # 브랜드 딥링크는 아직 모른다. 배짱할인 행사 페이지를 여기 적으면
   # 브랜드 카드가 행사 페이지로 나가므로 비워 둔다(ADR-016 취지).
   빽다방:
@@ -715,6 +724,7 @@ brands:
     aliases: [밥풀, bapflix, babflix]
     category: korean
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?CWVCQdH
       baemin: https://s.baemin.com/io000LpqL4sGl
   숙성고기 육칠이:
     searchAliases: [육칠이, 숙성고기육칠이, yukchili, 672 meat]
@@ -741,6 +751,8 @@ brands:
     searchAliases: [마왕 족발, 마왕, mawang jokbal, mawang]
     aliases: [마왕, mawang jokbal, mawang]
     category: korean
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?NO3A9BY
   유가네닭갈비:
     searchAliases: [유가네, 유가네 닭갈비, yoogane, yoogane dakgalbi]
     # 쿠폰이 앱마다 갈릴 때도 있는 같은 브랜드.
@@ -809,12 +821,15 @@ brands:
     category: chinese
 
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?X3XEQSh
       baemin: https://s.baemin.com/kZ000LtPRvP8G
   # --- 미분류 (전체에서만 노출) ---
   요아잇:
     searchAliases: [요아 잇, 요거트아이스크림, yoait, yo a it]
     aliases: [요거트아이스크림]
     category: snack
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?0rnsKFz
   떡참:
     searchAliases: [떡볶이참잘하는집, 떡참잘, 떡참 떡볶이, tteokcham, tteokbokki cham]
     menus: [대창떡볶이]
@@ -836,7 +851,7 @@ brands:
     aliases: [본도락, bon dosirak, bon lunchbox]
     category: korean
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?0CsyFVR
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?ZCtP8eT
   아웃백스테이크하우스:
     searchAliases: [아웃백, 아웃백 스테이크, outback steakhouse, outback]
     aliases: [아웃백스테이크하우스, 아웃백, 아웃백스테이크, outback steakhouse, outback]
@@ -865,6 +880,8 @@ brands:
     searchAliases: [육회 바른연어, 바른연어, 육회바른, yukhoe bareun yeoneo]
     aliases: [바른연어, 육회바른, yukhoe bareun yeoneo]
     category: korean
+    links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?0mrAzgc
   전통숙성황실김치찜&찌개:
     searchAliases: [황실김치찜, 전통숙성 김치찜, royal kimchi jjim, hwangsil kimchi]
     aliases: [황실김치찜, 전통숙성 김치찜, royal kimchi jjim, hwangsil kimchi]
@@ -991,6 +1008,7 @@ brands:
     aliases: [밥도둑, sin bapdoduk, rice thief]
     category: korean
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?dO9zww4
       baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=673&brandName=%EC%8B%A0%EB%B0%A5%EB%8F%84%EB%91%91
   쌀통닭:
     searchAliases: [쌀 통닭, 쌀치킨, ssal tongdak, rice chicken]
@@ -1086,7 +1104,7 @@ brands:
     category: pizza
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=26
-      ddangyo: https://fdofd.ddangyo.com/gateway1.html?vapB7uk
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?n9ogocg
       baemin: https://baemin.com/bridge/brand-lounge/detail?brandHomeId=133&brandName=%ED%94%BC%EB%82%98%EC%B9%98%EA%B3%B5
   피자에땅:
     searchAliases: [피자 에땅, 에땅피자, pizza etang, pizza ettang]
@@ -1198,6 +1216,7 @@ brands:
     category: pizza
     menus: [씬크러스트]
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?ViSOsqn
       yogiyo: yogiyolink://push.page/franchise?fr_id=20097
       baemin: https://s.baemin.com/DN000LpRIMwjE
   한식요리주점 막이오름:
@@ -1327,7 +1346,7 @@ brands:
     searchAliases: [곱분이곱창, 곱분이]
     category: korean
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway1.html?PUUYzDS
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?FMBef0A
   땅스즉석떡볶이:
     searchAliases: [땅스즉석떡볶이, 땅스 떡볶이]
     category: snack
@@ -1344,7 +1363,7 @@ brands:
     category: korean
     # 행사 수집이 찾은 브랜드. 분류와 로고는 사람이 채운다
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway4.html?SR8xXin
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?0iyC4pd
 
   # --- 브랜드관에서 추가(2026-10-25, scripts/baemin_lounge_sweep.py) ---
   강릉엄지네꼬막집:
@@ -1356,6 +1375,7 @@ brands:
     searchAliases: [긴자료코]
     category: japanese
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?01DAG7F
       baemin: https://s.baemin.com/Zy000M11FLcX9
   김가네:
     searchAliases: [김가네]
@@ -1557,12 +1577,13 @@ brands:
     aliases: [지코바치킨, 지코바 숯불치킨, 지코바숯불치킨]
     category: chicken
     links:
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?hGv9qsM
       yogiyo: yogiyolink://push.page/franchise?fr_id=727
   샐러디:
     searchAliases: [샐러디, 샐러드, salady]
     category: western
     links:
-      ddangyo: https://fdofd.ddangyo.com/gateway1.html?dcj8P6Q
+      ddangyo: https://fdofd.ddangyo.com/gateway1.html?j2B7ZP1
   가장맛있는족발:
     searchAliases: [가장맛있는족발, 가장 맛있는 족발]
     category: korean
