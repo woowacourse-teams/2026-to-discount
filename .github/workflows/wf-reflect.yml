@@ -45,6 +45,10 @@ jobs:
       PR: ${{ github.event.issue.number }}
       AREAS: ${{ inputs.areas }}
     steps:
+      # 자체 실행기(wsl-tracker)는 사용자 ~/.claude 설정(apiKeyHelper)을 물려받아 넘긴 토큰 대신 그 키로 붙다 실패한다(2026-11-22 실행 45012793862).
+      # 작업마다 빈 HOME을 쓴다. 호스트 실행기에서는 차이 없음.
+      - name: 빈 HOME
+        run: mkdir -p "$RUNNER_TEMP/home" && echo "HOME=$RUNNER_TEMP/home" >> "$GITHUB_ENV"
       - name: 댓글 작성자 권한 확인
         id: perm
         env:
