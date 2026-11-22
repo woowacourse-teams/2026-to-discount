@@ -107,10 +107,11 @@ jobs:
         if: steps.perm.outputs.ok == 'true'
         run: |
           for i in 1 2 3 4 5; do
-            npm install -g @anthropic-ai/claude-code > /dev/null 2>&1 && break
+            npm install --prefix "$RUNNER_TEMP/cc" @anthropic-ai/claude-code@latest > /dev/null 2>&1 && break
             echo "설치 실패 $i회, $((i * 20))초 뒤 다시"; sleep $((i * 20))
           done
-          p=$(command -v claude) || { echo "Claude Code 설치 실패"; exit 1; }
+          # 자체 실행기의 사용자 설치(WSL nvm)를 빌려 쓰지 않는다. 낡은 2.1.197이 잡혀 Opus 5.5가 400으로 막혔다(2026-11-22 tracker 실행 45019079666).
+          p="$RUNNER_TEMP/cc/node_modules/.bin/claude"; [ -x "$p" ] || { echo "Claude Code 설치 실패"; exit 1; }; "$p" --version
           echo "path=$p" >> "$GITHUB_OUTPUT"
       # 우선 토큰 사용률이 90% 넘으면 다른 토큰(CLAUDE_CODE_OAUTH_TOKEN_2)으로 넘긴다. 두 번째가 없으면 첫 토큰 그대로.
       - name: 토큰 고르기
