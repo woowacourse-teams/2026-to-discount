@@ -127,6 +127,8 @@ jobs:
           # 사용률 기준 전환(2026-11-03): 우선 토큰(SLOT, 비면 1)의 5시간/주간 사용률을 한 번 물어 90% 미만이면 쓴다.
           # 90% 이상이거나 한도 오류면 다른 토큰도 물어 사용률이 낮은 쪽을 쓴다. 사용률은 stream-json의 rate_limit_info.utilization.
           # SLOT=1only/2only면 시험 없이 그 토큰만 쓴다.
+          # 이 PC 실행기에 둔 토큰(실행기 .env의 RUNNER_CLAUDE_TOKEN_FILE)이 있으면 그것을 먼저 쓴다(사용자 2026-11-22). 값은 가리고 출력하지 않는다.
+          if [ -n "$RUNNER_CLAUDE_TOKEN_FILE" ] && [ -s "$RUNNER_CLAUDE_TOKEN_FILE" ]; then t=$(tr -d '[:space:]' < "$RUNNER_CLAUDE_TOKEN_FILE"); echo "::add-mask::$t"; echo "LOCAL_CLAUDE_TOKEN=$t" >> "$GITHUB_ENV"; echo "which=local" >> "$GITHUB_OUTPUT"; echo "실행기 토큰"; exit 0; fi
           case "$SLOT" in 1only) echo "which=1" >> "$GITHUB_OUTPUT"; echo "고정: 첫 토큰"; exit 0;; 2only) echo "which=2" >> "$GITHUB_OUTPUT"; echo "고정: 두 번째 토큰"; exit 0;; esac
           pref=1; [ "$SLOT" = 2 ] && [ -n "$T2" ] && pref=2
           use() { [ "$1" = 1 ] && echo "$T1" || echo "$T2"; }
@@ -144,7 +146,7 @@ jobs:
         uses: anthropics/claude-code-action@a5a423f75c251dcbff8a74e99f83b2cb03c72bfa # v1
         with:
           path_to_claude_code_executable: ${{ steps.cc.outputs.path }}
-          claude_code_oauth_token: ${{ steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_code_oauth_token: ${{ env.LOCAL_CLAUDE_TOKEN || (steps.tok.outputs.which == '2' && secrets.CLAUDE_CODE_OAUTH_TOKEN_2 || secrets.CLAUDE_CODE_OAUTH_TOKEN) }}
           prompt: |
             ${{ github.repository }} 이슈 #${{ env.ISSUE }} 의 설계자 세션이다. PR 본문 링크는 이 저장소 이름(https://github.com/${{ github.repository }}/…)으로 쓴다.
             .claude/agents/designer.md 를 먼저 읽고 그 순서와 규칙대로 설계 문서를 쓴다.
