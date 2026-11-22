@@ -163,7 +163,7 @@ jobs:
         env:
           EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
         run: |
-          jq -c '.[] | select(.type == "result") | {num_turns, subtype, denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true
+          jq -c '.[] | select(.type == "result") | {num_turns, subtype, api_error_status, error: (if .is_error then (.result // "" | .[0:300]) else null end), denied: [.permission_denials[]? | {tool_name, input: (.tool_input.command // .tool_input.file_path // "")}]}' "$EXEC_FILE" || true
       - name: 실패하면 blocked 라벨과 원인 댓글
         if: (failure() || cancelled()) && steps.issue.outputs.num != ''
         env:
