@@ -150,7 +150,30 @@ public record Offer(String platform, Integer amount, String qualifier,
         }
         Offer winner = thisWins ? this : other;
         Offer loser = thisWins ? other : this;
+        // 배너가 이겨도 원장 금액이 더 크면 원장이 대표가 되고 배너는 한 구간으로 붙는다(#436). 배너가 대표면 카드
+        // 대표 금액이 구간 최대보다 낮게 섰다(2026-11-20 요기요 bhc: 배너 3,000원, 원장 6,000원). 배너는 구간으로
+        // 카드에 남으므로 2026-09-03 사고(배너가 카드에 안 뜸)는 되살아나지 않는다. 겹쳐 쓰는 사다리는 섞지 않는다.
+        if (winner.fromBanner && !loser.fromBanner && winner.amount != null && loser.amount != null
+                && loser.amount > winner.amount && !CUMULATIVE_TIER_MODE.equals(loser.tierMode)) {
+            return loser.tiers == null ? loser.convergedWith(winner) : loser.withBannerRung(winner);
+        }
         return winner.withDetailFrom(loser).convergedWith(loser);
+    }
+
+    /** 원장 택일 사다리에 배너 쿠폰을 한 구간으로 붙인다. 같은 쿠폰인 구간이 이미 있으면 그대로 둔다(#434). */
+    private Offer withBannerRung(Offer banner) {
+        if (tiers.stream().anyMatch(t -> sameCouponRung(t, banner.amount, banner.minOrderAmount))) return this;
+        List<DiscountTier> ladder = new java.util.ArrayList<>(tiers);
+        ladder.add(new DiscountTier(banner.minOrderAmount, banner.amount, null, null, null, null, null));
+        return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
+                minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
+                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew, qualifiers, linkSource, capturedOn);
+    }
+
+    private static boolean sameCouponRung(DiscountTier t, Integer amount, Integer minOrder) {
+        return java.util.Objects.equals(t.amount(), amount)
+                && (t.minOrder() == null || java.util.Objects.equals(t.minOrder(), minOrder))
+                && t.channel() == null && t.note() == null && t.membership() == null;
     }
 
     /**
@@ -262,9 +285,7 @@ public record Offer(String platform, Integer amount, String qualifier,
             // 단, 이긴 쪽 구간과 같은 쿠폰(금액이 같고 최소주문이 같거나 모르고 채널·조건 문장이 없다)은 한 번만
             // 남긴다. 배너 3,000원(18,000원↑)과 원장 사다리의 3,000원(18,000원↑)이 두 구간으로 나갔다(2026-11-20 요기요 bhc).
             loser.tiers.stream()
-                    .filter(t -> !(java.util.Objects.equals(t.amount(), amount)
-                            && (t.minOrder() == null || java.util.Objects.equals(t.minOrder(), minOrderAmount))
-                            && t.channel() == null && t.note() == null && t.membership() == null))
+                    .filter(t -> !sameCouponRung(t, amount, minOrderAmount))
                     .forEach(ladder::add);
         } else {
             ladder.add(new DiscountTier(loser.minOrderAmount, loser.amount,

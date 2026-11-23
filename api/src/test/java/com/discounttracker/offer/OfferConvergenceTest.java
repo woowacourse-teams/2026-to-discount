@@ -53,7 +53,7 @@ class OfferConvergenceTest {
         for (String ledgerAt : List.of("2026-09-12T10:00:00+09:00", "2026-09-11T10:00:00+09:00",
                 "2026-09-13T10:00:00+09:00")) {
             Offer b = Offer.from(bannerRec, TODAY);
-            Offer l = Offer.from(ledger(7000, null, ledgerAt), TODAY);
+            Offer l = Offer.from(ledger(2000, null, ledgerAt), TODAY);
             assertTrue(b.preferredOver(l).fromBanner(), ledgerAt);
             assertTrue(l.preferredOver(b).fromBanner(), ledgerAt);
         }
@@ -70,7 +70,7 @@ class OfferConvergenceTest {
             OfferRecord bannerRec = OfferRecord.builder("baemin", "빽다방").amount(3000).qualifier("행사")
                     .offerType(Offer.BANNER_OFFER_TYPE).rawText("3000원").capturedOn("2026-09-12")
                     .minOrderAmount(bannerMinOrder).soldOut(false).build();
-            for (int ledgerAmount : new int[] {3000, 7000}) {
+            for (int ledgerAmount : new int[] {3000, 2000}) {
                 Offer b = Offer.from(bannerRec, TODAY);
                 Offer l = Offer.from(ledger(ledgerAmount, 15000, "2026-09-12T10:00:00+09:00"), TODAY);
                 for (Offer merged : List.of(b.preferredOver(l), l.preferredOver(b))) {
@@ -147,7 +147,7 @@ class OfferConvergenceTest {
     @Test
     void aLedgerRungThatIsTheSameCouponAsTheBannerIsKeptOnce() {
         // 2026-11-20 요기요 bhc: 배너 3,000원(18,000원↑)과 원장 사다리의 3,000원(18,000원↑)이 두 구간으로 나갔다.
-        // 대표 금액은 배너 그대로(위 규칙)이고, 같은 쿠폰인 원장 구간만 걸러진다. 채널이 다른 구간은 남는다.
+        // 대표 금액은 원장 대표 금액이고(#436), 배너는 같은 쿠폰인 원장 구간으로 한 번만 남는다.
         Offer fromBanner = Offer.from(banner(3000, 18000, "2026-11-20T00:00:00+09:00"), TODAY);
         Offer fromLedger = Offer.from(ledgerWithTiers("exclusive", List.of(
                 new DiscountTier(18000, 3000, null, null, null, null, null),
@@ -157,15 +157,25 @@ class OfferConvergenceTest {
 
         Offer merged = fromBanner.preferredOver(fromLedger);
 
-        assertEquals(3000, merged.amount(), "대표 금액은 이긴 쪽(배너) 그대로다");
+        assertEquals(5000, merged.amount(), "배너가 원장보다 작으면 대표 금액은 원장 대표 금액이다(#436)");
         assertEquals(List.of(3000, 4000, 5000, 6000),
                 merged.tiers().stream().map(DiscountTier::amount).toList(),
                 "같은 쿠폰의 3,000원 구간이 두 번 나가면 안 된다");
     }
 
     @Test
-    void anExclusiveLadderKeepsAllItsRungs() {
-        // 진 쪽이 이미 택일 사다리면 그 단을 다 살린다 - 하나만 남기면
+    void aSmallerBannerBecomesARungOfTheLargerLedger() {
+        // #436: 배너가 원장보다 작으면 원장이 대표가 되고, 배너는 사라지지 않고 구간으로 남는다(2026-09-03 사고 방지).
+        Offer b = Offer.from(banner(3000, 18000, "2026-11-20T00:00:00+09:00"), TODAY);
+        Offer l = Offer.from(ledger(7000, 20000, "2026-11-19T00:00:00+09:00"), TODAY);
+        for (Offer merged : List.of(b.preferredOver(l), l.preferredOver(b))) {
+            assertEquals(7000, merged.amount());
+            assertEquals(List.of(7000, 3000), merged.tiers().stream().map(DiscountTier::amount).toList());
+        }
+    }
+
+    @Test
+    void anExclusiveLadderKeepsAllItsRungs() {        // 진 쪽이 이미 택일 사다리면 그 단을 다 살린다 - 하나만 남기면
         // 원래 문제(진 쪽이 사라진다)가 그대로다.
         Offer fromBanner = Offer.from(banner(7000, 15000, "2026-09-12T00:00:00+09:00"), TODAY);
         Offer fromLedger = Offer.from(ledgerWithTiers("exclusive", List.of(
