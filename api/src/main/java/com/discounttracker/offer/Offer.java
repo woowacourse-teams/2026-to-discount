@@ -154,7 +154,11 @@ public record Offer(String platform, Integer amount, String qualifier,
         // 대표 금액이 구간 최대보다 낮게 섰다(2026-11-20 요기요 bhc: 배너 3,000원, 원장 6,000원). 배너는 구간으로
         // 카드에 남으므로 2026-09-03 사고(배너가 카드에 안 뜸)는 되살아나지 않는다. 겹쳐 쓰는 사다리는 섞지 않는다.
         if (winner.fromBanner && !loser.fromBanner && winner.amount != null && loser.amount != null
-                && loser.amount > winner.amount && !CUMULATIVE_TIER_MODE.equals(loser.tierMode)) {
+                && loser.amount > winner.amount && !CUMULATIVE_TIER_MODE.equals(loser.tierMode)
+                // 원장이 대표가 되면 상태, 품절, 멤버십도 원장 것이다. 이 셋이 배너와 다르면 배너 표시가 틀어지므로
+                // 예전 규칙(배너 대표)대로 둔다(PR #441 리뷰).
+                && winner.status.isConfirmed() == loser.status.isConfirmed() && !loser.soldOut
+                && winner.soldOut == loser.soldOut && (winner.membership == loser.membership || winner.membership == Membership.UNKNOWN)) {
             return loser.tiers == null ? loser.convergedWith(winner) : loser.withBannerRung(winner);
         }
         return winner.withDetailFrom(loser).convergedWith(loser);
@@ -162,7 +166,8 @@ public record Offer(String platform, Integer amount, String qualifier,
 
     /** 원장 택일 사다리에 배너 쿠폰을 한 구간으로 붙인다. 같은 쿠폰인 구간이 이미 있으면 그대로 둔다(#434). */
     private Offer withBannerRung(Offer banner) {
-        if (tiers.stream().anyMatch(t -> sameCouponRung(t, banner.amount, banner.minOrderAmount))) return this;
+        if (tiers.stream().anyMatch(t -> sameCouponRung(t, banner.amount, banner.minOrderAmount)
+                && !Boolean.TRUE.equals(t.soldOut()))) return this;
         List<DiscountTier> ladder = new java.util.ArrayList<>(tiers);
         ladder.add(new DiscountTier(banner.minOrderAmount, banner.amount, null, null, null, null, null));
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
