@@ -8,7 +8,8 @@
 
 [![서비스](https://img.shields.io/badge/서비스-바로가기-ff6b00?style=flat)](https://beggars-five.vercel.app)
 [![소개](https://img.shields.io/badge/서비스_소개-about-555?style=flat)](https://beggars-five.vercel.app/about)
-[![개요](https://img.shields.io/badge/프로젝트_개요-overview-555?style=flat)](https://beggars-five.vercel.app/overview)
+[![개요](https://img.shields.io/badge/프로젝트_개요-overview-555?style=flat)](https://beggars-five.vercel.app/overview/)
+[![개인정보](https://img.shields.io/badge/개인정보처리방침-privacy-555?style=flat)](https://beggars-five.vercel.app/privacy)
 
 | 누적 고유 방문자 | 수집하는 실제 폰 | 할인 갱신 | 개발과 운영 |
 |:---:|:---:|:---:|:---:|
@@ -18,13 +19,11 @@
 
 ## 기능
 
-가장 큰 할인과 조건을 보고, 누르면 그 배달앱 화면으로 바로 넘어간다.
-
 | 브랜드별 최대 할인 | 멤버십별 차이 | 조건 비교 | 필터 | 실시간 인기 |
 |:---:|:---:|:---:|:---:|:---:|
 | <img src="web/public/about/hero.jpg" width="150" alt="브랜드 카드"> | <img src="web/public/about/diff-wow.jpg" width="150" alt="쿠팡이츠 멤버십 화면"> | <img src="web/public/about/sheet.jpg" width="150" alt="브랜드 상세 시트"> | <img src="web/public/about/filter.jpg" width="150" alt="필터 화면"> | <img src="web/public/about/hot.jpg" width="150" alt="인기 브랜드 순위"> |
 
-자세히 보기: [서비스 소개](https://beggars-five.vercel.app/about), [화면 변천](docs/screen-history/README.md)
+자세히 보기: [화면 변천](docs/screen-history/README.md)
 
 ## 성과
 
@@ -35,7 +34,7 @@
 |:---:|:---:|
 | <img src="web/public/overview/img/ga-realtime-2026-09-11.png" width="300" alt="30분 동안 252명"> | <img src="web/public/overview/img/ga-realtime-2026-10-03.png" width="300" alt="30분 동안 127명"> |
 
-자세히 보기: [개요 페이지 성과](https://beggars-five.vercel.app/overview?s=2)
+자세히 보기: [개요 페이지 성과](https://beggars-five.vercel.app/overview/?s=2)
 
 ## 아키텍처
 
@@ -53,7 +52,7 @@ flowchart LR
 - 서버 값이 줄어드는 반영은 소실 검사가 막는다. 사람이 승인해야 통과한다.
 - 배포 중 30초 동안 응답이 없으면 이전 버전으로 자동 복구한다.
 
-자세히 보기: [개요 페이지 기술 구조](https://beggars-five.vercel.app/overview?s=5), [ARCHITECTURE](docs/ARCHITECTURE.md)
+자세히 보기: [개요 페이지 기술 구조](https://beggars-five.vercel.app/overview/?s=5), [ARCHITECTURE](docs/ARCHITECTURE.md)
 
 ## 기술 과제
 
@@ -62,7 +61,7 @@ flowchart LR
 | **700 → 25** | **-91%** | **1,900 → 16ms** | **98 → 21건** |
 | 로고 캐시 | 응답 압축 | 증분 읽기 | 배포 전 검사 9단계 |
 
-자세히 보기: [개요 페이지 기술 과제](https://beggars-five.vercel.app/overview?s=6), [장애 회고](docs/incidents/)
+자세히 보기: [개요 페이지 기술 과제](https://beggars-five.vercel.app/overview/?s=6), [장애 회고](docs/incidents/)
 
 ## 실험
 
@@ -71,7 +70,7 @@ flowchart LR
 - 가장 큰 할인을 앞세운 카드 화면이 이겼다. 링크 클릭이 21%, 검색 사용이 137% 늘었다.
 - 진 쪽 화면의 코드 732줄을 지웠다.
 
-자세히 보기: [개요 페이지 실험과 검증](https://beggars-five.vercel.app/overview?s=4), [실험 판정](docs/metrics/)
+자세히 보기: [개요 페이지 실험과 검증](https://beggars-five.vercel.app/overview/?s=4), [실험 판정](docs/metrics/)
 
 ## 개발 방식
 
@@ -82,7 +81,7 @@ flowchart LR
 - 이슈에 `ready` 라벨을 달면 AI 세션이 설계, 구현, 리뷰, 병합 뒤 요약까지 이어 간다. 사람은 설계와 병합 두 곳에서 승인한다.
 - 웹 화면은 `preview/<이름>` 브랜치의 미리보기로 확인한 뒤 병합한다.
 
-자세히 보기: [개요 페이지 과정](https://beggars-five.vercel.app/overview?s=7), [작업 가이드](docs/WORKFLOW.md), [결정 기록](docs/decisions/)
+자세히 보기: [개요 페이지 과정](https://beggars-five.vercel.app/overview/?s=7), [작업 가이드](docs/WORKFLOW.md), [결정 기록](docs/decisions/)
 
 ## 기술 스택
 
@@ -105,20 +104,3 @@ Python과 ADB(폰 연결 도구)로 수집하고, Spring Boot, React, Vercel, Po
 | [nn98](https://github.com/nn98) | [everypine](https://github.com/everypine) | [miniminjae92](https://github.com/miniminjae92) |
 
 우아한테크코스 8기 팀 오늘의 할인.
-
-## 유의사항
-
-- 할인 정보는 수집 시점에 따라 달라질 수 있다.
-- 일부 할인 정보는 확인이 진행 중이라 화면에서 미확인 또는 보류 상태로 표시될 수 있다.
-- 비영리 정보 제공 서비스이며, 배달 플랫폼과 제휴하거나 수수료를 받지 않는다.
-- 로그인 없이 누구나 보는 화면만 수집한다. 자동 접근을 거부하는 곳은 우회하지 않는다 (tracker 저장소(비공개) ADR-015).
-
-### 개인정보
-
-방문 통계를 자체 서버에 수집한다. 제3자에게 넘기지 않는다.
-
-- **IP는 원본을 저장하지 않는다.** 날짜별 솔트로 해시해 재식별할 수 없게 한다.
-- **User-Agent 문자열을 수집하지 않는다.** 모바일/데스크톱 구분만 남긴다.
-- **DNT와 GPC를 존중한다.** 브라우저에서 켜져 있으면 수집 자체를 하지 않는다.
-
-근거: [api ADR-005](api/docs/decisions/ADR-005-first-party-analytics.md).
