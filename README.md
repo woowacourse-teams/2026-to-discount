@@ -4,6 +4,8 @@
 
 ### SaveEats, 배달앱 네 곳의 할인을 한 화면에서 비교
 
+공개 API가 없어 실제 폰 7대로 앱 화면을 읽어 모은다.
+
 <img src="web/public/platform-icons/baemin.png" width="28" alt="배달의민족"> <img src="web/public/platform-icons/coupangeats.png" width="28" alt="쿠팡이츠"> <img src="web/public/platform-icons/yogiyo.png" width="28" alt="요기요"> <img src="web/public/platform-icons/ddangyo.png" width="28" alt="땡겨요">
 
 [![서비스](https://img.shields.io/badge/서비스-바로가기-ff6b00?style=flat)](https://beggars-five.vercel.app)
@@ -27,7 +29,7 @@
 
 ## 성과
 
-- 방문자 14,280명, 방문자 중 할인 클릭 36.4%(스프린트 1), 7일 안 재방문 79%(설문 29명)
+- 누적 고유 방문자 14,280명
 - 네이버 카페 공유 직후(2026-09-11 18:42) 30분 동안 252명 접속
 
 | 2026-09-11 카페 공유일 | 2026-10-03 토요일 오후 |
@@ -38,7 +40,7 @@
 
 ## 아키텍처
 
-배달앱에는 공개 API가 없다. 그래서 실제 폰으로 로그인 없이 누구나 보는 화면만 읽는다.
+로그인 없이 누구나 보는 화면만 읽는다.
 
 ```mermaid
 flowchart LR
@@ -49,14 +51,14 @@ flowchart LR
 ```
 
 - 원장(할인 기록을 덧붙이기만 하는 파일)은 28,630줄이다.
-- 서버 값이 줄어드는 반영은 소실 검사가 막는다. 사람이 승인해야 통과한다.
+- 할인 수가 줄어드는 반영은 소실 검사가 막는다. 사람이 승인해야 통과한다.
 - 배포 중 30초 동안 응답이 없으면 이전 버전으로 자동 복구한다.
 
 자세히 보기: [개요 페이지 기술 구조](https://beggars-five.vercel.app/overview/?s=5), [ARCHITECTURE](docs/ARCHITECTURE.md)
 
 ## 기술 과제
 
-| 방문당 요청 수 | 응답 크기 | 이벤트 기록 읽기 | 조용한 데이터 손실 |
+| 방문당 요청 수 | 응답 크기 | 이벤트 기록 읽기 | 모르고 지나간 할인 누락 |
 |:---:|:---:|:---:|:---:|
 | **700 → 25** | **-91%** | **1,900 → 16ms** | **98 → 21건** |
 | 로고 캐시 | 응답 압축 | 증분 읽기 | 배포 전 검사 9단계 |
