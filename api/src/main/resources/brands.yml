@@ -61,9 +61,9 @@ brands:
     aliases: [감탄계, 감탄계 치킨, gamtangye, gamtangye chicken]
     category: chicken
   계근상:
-    searchAliases: [계근상 치킨, 계근상닭, gyegunsang, gyegunsang chicken]
+    searchAliases: [계근상 치킨, 계근상닭, 계근상닭도리탕, gyegunsang, gyegunsang chicken]
     menus: [트간찜]
-    aliases: [계근상 치킨, 계근상닭, gyegunsang, gyegunsang chicken]
+    aliases: [계근상 치킨, 계근상닭, 계근상닭도리탕, gyegunsang, gyegunsang chicken]
     category: chicken
     links:
       yogiyo: yogiyolink://push.page/franchise?fr_id=4723
