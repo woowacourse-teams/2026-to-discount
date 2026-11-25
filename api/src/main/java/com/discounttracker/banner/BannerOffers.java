@@ -92,6 +92,8 @@ public final class BannerOffers {
         return OfferRecord.builder(banner.platform(), brand)
                 .section(banner.id())
                 .capturedOn(today)
+                .via(banner.via())
+                .channel(banner.spec() == null ? null : banner.spec().channel())
                 .expiresAt(banner.endsOn().toString())
                 .badge(banner.period())
                 .link(banner.url())

@@ -58,7 +58,10 @@ public record OfferRecord(
         // API는 해석하지 않고 넘긴다(ADR-003).
         List<String> qualifiers,
         // 날짜만 아는 관측일(yyyy-MM-dd). capturedAt이 없을 때만 있다(#285). 키가 없는 옛 export.json은 null.
-        String capturedOn
+        String capturedOn,
+        // 배너에서만 채운다. 원장 export.json에는 없는 키라 null이다. 혜택 칩(네이버페이, 포장)이 고른다.
+        String via,
+        String channel
 ) {
     /**
      * 이름으로 채우는 빌더. 칸이 22개이고 그중 문자열이 16칸이라, 위치로 넘기면 두 칸이 자리를 바꿔도
@@ -92,6 +95,8 @@ public record OfferRecord(
         private String firstSeenAt;
         private List<String> qualifiers;
         private String capturedOn;
+        private String via;
+        private String channel;
 
         private Builder(String platform, String brand) {
             this.platform = platform;
@@ -119,11 +124,13 @@ public record OfferRecord(
         public Builder firstSeenAt(String v) { this.firstSeenAt = v; return this; }
         public Builder qualifiers(List<String> v) { this.qualifiers = v; return this; }
         public Builder capturedOn(String v) { this.capturedOn = v; return this; }
+        public Builder via(String v) { this.via = v; return this; }
+        public Builder channel(String v) { this.channel = v; return this; }
 
         public OfferRecord build() {
             return new OfferRecord(platform, brand, amount, qualifier, needsReview, offerType, section,
                     rawText, capturedAt, screenshotPath, minOrderAmount, tierMode, tiers, conditions, expiresAt,
-                    badge, link, membership, soldOut, kind, firstSeenAt, qualifiers, capturedOn);
+                    badge, link, membership, soldOut, kind, firstSeenAt, qualifiers, capturedOn, via, channel);
         }
     }
 
