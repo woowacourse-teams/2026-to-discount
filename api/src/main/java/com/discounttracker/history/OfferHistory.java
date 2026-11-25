@@ -56,16 +56,20 @@ public final class OfferHistory {
     /** 날짜별 수집된 앱(인사이트 집계용). */
     public NavigableMap<LocalDate, Set<String>> coverage() { return Collections.unmodifiableNavigableMap(coverage); }
 
+    static final int GAP_LOOKBACK_DAYS = 14;
+
     public Novelty novelty(String platform, String brand, int amount, LocalDate today) {
+        // 끊겼다가(줄 없음, ABSENT) 같은 금액으로 돌아온 것은 신규가 아니다. 마지막으로 본 금액보다 커야 신규다(사용자 2026-11-25).
         Map<LocalDate, BrandDay> pair = byPair.getOrDefault(platform + "|" + brand, Map.of());
-        for (var e : coverage.headMap(today, false).descendingMap().entrySet()) {
+        boolean gap = false;
+        for (var e : coverage.subMap(today.minusDays(GAP_LOOKBACK_DAYS), true, today, false).descendingMap().entrySet()) {
             if (!e.getValue().contains(platform)) continue;
             BrandDay day = pair.get(e.getKey());
-            if (day == null || day.state() == DayState.ABSENT) return Novelty.NEW;
+            if (day == null || day.state() == DayState.ABSENT) { gap = true; continue; }
             Integer max = day.trustedAmount();
             if (day.collected() && max != null) return amount > max ? Novelty.NEW : Novelty.NOT_NEW;
         }
-        return Novelty.UNKNOWN;
+        return gap ? Novelty.NEW : Novelty.UNKNOWN;
     }
 
     public List<Point> bestSeries(String brand, LocalDate from, LocalDate to) { return bestSeries(brand, null, from, to); }

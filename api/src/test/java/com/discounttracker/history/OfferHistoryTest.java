@@ -49,12 +49,27 @@ class OfferHistoryTest {
     }
 
     @Test
-    void absentOnPreviousCollectedDayMakesNextAppearanceNew() {
+    void gapThenSameAmountIsNotNewButHigherOrStaleIsNew() {
+        // 끊겼다 같은 값으로 돌아오면 신규 아님, 더 크면 신규, 14일 넘게 못 봤으면 신규.
         var h = new OfferHistory(List.of(
                 day("2026-10-07", "baemin", "KFC", DayState.PUBLISHED, null, 5000),
                 day("2026-10-08", "baemin", "KFC", DayState.ABSENT, null, null)),
                 cov("2026-10-07=baemin", "2026-10-08=baemin"));
-        assertEquals(OfferHistory.Novelty.NEW, h.novelty("baemin", "KFC", 5000, d("2026-10-09")));
+        assertEquals(OfferHistory.Novelty.NOT_NEW, h.novelty("baemin", "KFC", 5000, d("2026-10-09")));
+        assertEquals(OfferHistory.Novelty.NEW, h.novelty("baemin", "KFC", 6000, d("2026-10-09")));
+        var stale = new OfferHistory(List.of(
+                day("2026-10-01", "baemin", "KFC", DayState.PUBLISHED, null, 5000)),
+                cov("2026-10-01=baemin", "2026-10-20=baemin"));
+        assertEquals(OfferHistory.Novelty.NEW, stale.novelty("baemin", "KFC", 5000, d("2026-10-21")));
+    }
+
+    @Test
+    void continuousDropThenRiseIsNew() {
+        var h = new OfferHistory(List.of(
+                day("2026-10-07", "ddangyo", "청년피자", DayState.PUBLISHED, null, 9000),
+                day("2026-10-08", "ddangyo", "청년피자", DayState.PUBLISHED, null, 5000)),
+                cov("2026-10-07=ddangyo", "2026-10-08=ddangyo"));
+        assertEquals(OfferHistory.Novelty.NEW, h.novelty("ddangyo", "청년피자", 9000, d("2026-10-09")));
     }
 
     @Test
