@@ -194,13 +194,16 @@ export default function App({ initial = null, Card = CouponCard, mainClassName }
   const categoryUrlReady = useRef(false)
   useEffect(() => {
     if (!categoryUrlReady.current) { categoryUrlReady.current = true; return }
-    try {
-      const [only] = filters.categories
-      const key = filters.categories.size === 1 && isSpecialCategory(only) ? only : null
-      const { pathname, search, hash } = window.location
-      const next = searchWithCategory(search, key)
-      if (next !== search) history.replaceState(history.state, '', `${pathname}${next}${hash}`)
-    } catch { /* 주소를 못 고치면 그대로 */ }
+    const [only] = filters.categories
+    const key = filters.categories.size === 1 && isSpecialCategory(only) ? only : null
+    // 칩을 풀면 분류 칸이 history.go(-1)로 닫힌다. 그 이동이 끝난 칸에 써야 주소에 ?c=가 남지 않는다.
+    afterHistorySettles(() => {
+      try {
+        const { pathname, search, hash } = window.location
+        const next = searchWithCategory(search, key)
+        if (next !== search) history.replaceState(history.state, '', `${pathname}${next}${hash}`)
+      } catch { /* 주소를 못 고치면 그대로 */ }
+    })
   }, [filters.categories])
   // 쿠폰 카드 CSS. 서버 렌더와 그 실패 때 보내는 사전 렌더링 HTML 모두 <head>에 링크가 있어(api/ssr.js) 캐시로 끝난다.
   // 개발 서버(vite)에서만 여기서 처음 받는다.

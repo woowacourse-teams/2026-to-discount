@@ -529,8 +529,9 @@ test('혜택 칩 키는 분류 키와 겹치지 않는다', () => {
   const yml = readFileSync(apiFile('src', 'main', 'resources', 'brands.yml'), 'utf8')
   for (const c of SPECIAL_CATEGORIES) {
     assert.ok(!cats.has(c.key), c.key)
-    assert.ok(!new RegExp(`category:\s*${c.key}\b`).test(yml), c.key)
+    assert.ok(!new RegExp(String.raw`category:\s*${c.key}\b`).test(yml), c.key)
   }
+  assert.ok(new RegExp(String.raw`category:\s*chicken\b`).test(yml))   // 패턴이 실제 분류를 잡는지
   assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤', '네이버페이', '포장', '적립', '자사 행사'])
 })
 

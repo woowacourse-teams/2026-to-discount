@@ -346,7 +346,8 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(platform, lead.amount, qualifier, status, lead.rawText, screenshotPath, capturedAt,
                 lead.minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, lead.badge,
                 soldOut && first.soldOut, lead.link, merged, fromBanner, firstLeads, certainty, kind,
-                earlier(firstSeenAt, first.firstSeenAt), isNew, qualifiers, lead.linkSource, capturedOn, via, channel);
+                earlier(firstSeenAt, first.firstSeenAt), isNew, qualifiers, lead.linkSource, capturedOn,
+                lead.via, lead.channel);
     }
 
     /** 구간에 적을 멤버십 키. 모르면 null(구간 칸이 비면 "모름"이다). */

@@ -397,6 +397,13 @@ class OfferRecordTest {
         Offer firstLeads = withOwn.withFirstComeTier(withLink(5000, null, "discount").withFilterLink("https://hub"));
         assertEquals("https://hub", firstLeads.link());
         assertEquals(LinkSource.ADDED, firstLeads.linkSource());
+        // 혜택 칩 칸(via, channel)도 대표 쪽에서 온다. 배너 선착순이 이끌면 원장의 null로 덮이면 안 된다.
+        Offer npay = Offer.from(OfferRecord.builder("baemin", "bhc").amount(5000).offerType(Offer.BANNER_FIRST_COME_OFFER_TYPE)
+                .via("naverpay").channel("포장").build(), LocalDate.of(2026, 8, 13));
+        Offer npayLeads = withOwn.withFirstComeTier(npay);
+        assertEquals("naverpay", npayLeads.via());
+        assertEquals("포장", npayLeads.channel());
+        assertNull(withOwn.withFirstComeTier(withLink(1000, null, "discount")).via());
         Offer regularLeads = withOwn.withFirstComeTier(withLink(1000, "https://first", "discount"));
         assertEquals("https://own", regularLeads.link());
         assertEquals(LinkSource.RECORD, regularLeads.linkSource());
