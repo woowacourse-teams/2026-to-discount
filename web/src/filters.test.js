@@ -453,7 +453,6 @@ test('visibleCategories: 한정, 랜덤 칩이 분류 칩 앞에 서고, 맞는 
   const keys = (brands, sel) => visibleCategories(brands, sel).map((c) => c.key)
   const many = (category) => ({ category, offers: Array.from({ length: 6 }, () => ({})) })
   assert.deepEqual(keys([...special(), many('chicken')], new Set()), ['firstCome', 'random', 'chicken'])
-  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤'])
   assert.deepEqual(keys([many('chicken')], new Set()), ['chicken'])
   assert.deepEqual(keys([special()[1], many('chicken')], new Set(['random'])), ['random', 'chicken'])   // 고른 칩은 오퍼가 줄어도 남는다
 })
@@ -504,4 +503,32 @@ test('공유 링크 브랜드: 공유 대상 오퍼는 오픈 전이어도 남�
   const brand = { name: 'bhc', offers: [standing, target, other] }
   assert.deepEqual(hideUnopenedYogiyoExcept(brand, (o) => o === target, false, at).offers, [standing, target])
   assert.equal(hideUnopenedYogiyoExcept({ name: 'x', offers: [standing] }, () => false, false, at).offers.length, 1)
+})
+
+test('혜택 칩은 맞는 오퍼만 남긴다', () => {
+  const o = (x) => ({ platform: 'baemin', amount: 6000, ...x })
+  const brands = [
+    { name: 'A', category: 'cafe', offers: [o({ platform: 'own', via: 'naverpay', kind: 'points', percent: 50 })] },
+    { name: 'B', category: 'pizza', offers: [o({ tiers: [{ amount: 6000, channel: '포장' }] })] },
+    { name: 'C', category: 'chicken', offers: [o({ kind: 'cashback', platform: 'own' })] },
+    { name: 'D', category: 'chicken', offers: [o({})] },
+    { name: 'E', category: 'chicken', offers: [o({ channel: '포장' })] },
+  ]
+  const pick = (key) => applyFilters(brands, { ...defaultFilters(), categories: new Set([key]) }).map((b) => b.name).sort()
+  assert.deepEqual(pick('naverpay'), ['A'])
+  assert.deepEqual(pick('pickup'), ['B', 'E'])
+  assert.deepEqual(pick('reward'), ['A', 'C'])
+  assert.deepEqual(pick('own'), ['A', 'C'])
+  assert.deepEqual(visibleCategories(brands.slice(3, 4)).some((c) => c.key === 'naverpay'), false)
+  assert.deepEqual(visibleCategories(brands).some((c) => c.key === 'naverpay'), true)
+})
+
+test('혜택 칩 키는 분류 키와 겹치지 않는다', () => {
+  const cats = new Set(CATEGORIES.map((c) => c.key))
+  const yml = readFileSync(apiFile('src', 'main', 'resources', 'brands.yml'), 'utf8')
+  for (const c of SPECIAL_CATEGORIES) {
+    assert.ok(!cats.has(c.key), c.key)
+    assert.ok(!new RegExp(`category:\s*${c.key}\b`).test(yml), c.key)
+  }
+  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤', '네이버페이', '포장', '적립', '자사 행사'])
 })
