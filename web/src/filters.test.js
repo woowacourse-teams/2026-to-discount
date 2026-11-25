@@ -7,6 +7,7 @@ import {
   applyFilters, bestConfirmedAmount, certaintyOf, comparable, defaultFilters, isBestCandidate, isDefaultFilters,
   displayBestAmount, offerKey, sortBrands, sortingAmount,
   hasNewBest, includesFrom, minAmountLabel, readMinAmount, saveMinAmount, pinKinds, revealFilters, visibleCategories, CATEGORIES, SPECIAL_CATEGORIES,
+  categoryFromSearch, searchWithCategory,
 } from './filters.js'
 import { applyHidden } from './hiddenBrands.js'
 import { STRIP_MIN, popularToday } from './popularStrip.js'
@@ -531,4 +532,17 @@ test('혜택 칩 키는 분류 키와 겹치지 않는다', () => {
     assert.ok(!new RegExp(`category:\s*${c.key}\b`).test(yml), c.key)
   }
   assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤', '네이버페이', '포장', '적립', '자사 행사'])
+})
+
+test('?c=는 아는 특수 칩만 받는다', () => {
+  assert.equal(categoryFromSearch('?c=naverpay'), 'naverpay')
+  assert.equal(categoryFromSearch('?c=chicken'), null)
+  assert.equal(categoryFromSearch('?c=%3Cscript%3E'), null)
+  assert.equal(categoryFromSearch(''), null)
+})
+
+test('칩 주소는 다른 검색 값을 남긴다', () => {
+  assert.equal(searchWithCategory('?from=share', 'pickup'), '?from=share&c=pickup')
+  assert.equal(searchWithCategory('?from=share&c=pickup', null), '?from=share')
+  assert.equal(searchWithCategory('?c=own', null), '')
 })

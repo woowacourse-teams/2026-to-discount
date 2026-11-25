@@ -48,6 +48,21 @@ const SPECIAL_MATCH = {
 }
 export const isSpecialCategory = (key) => Object.hasOwn(SPECIAL_MATCH, key)
 
+/** 주소 ?c=로 특수 칩 하나를 미리 고른다. 분류 칩(치킨 등)과 모르는 값은 버린다. 공유 주소용. */
+export function categoryFromSearch(search) {
+  const key = new URLSearchParams(search).get('c')
+  return key && isSpecialCategory(key) ? key : null
+}
+
+/** 주소의 다른 검색 값은 두고 c만 맞춘다. key가 null이면 c를 지운다. */
+export function searchWithCategory(search, key) {
+  const q = new URLSearchParams(search)
+  if (key) q.set('c', key)
+  else q.delete('c')
+  const s = q.toString()
+  return s ? `?${s}` : ''
+}
+
 /**
  * 맞는 오퍼가 하나라도 있는 특수 칩(한정, 랜덤, 네이버페이 등)을 앞에 세우고, 오퍼가 충분한 분류를 뒤에 붙인다. 브랜드를 아직 못 받았으면 분류만 보인다.
  * 지금 골라 둔 칩은 오퍼가 줄어도 남긴다(탭이 사라져 선택을 못 푸는 일을 막는다).
