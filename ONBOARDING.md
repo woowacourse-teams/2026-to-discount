@@ -33,7 +33,7 @@ tracker  →  export.json  →  api  →  /api/brands  →  web
 
 ```bash
 cd api
-DISCOUNT_EXPORT_PATH=file:../tracker/data/export.json ./gradlew bootRun
+DISCOUNT_EXPORT_PATH=file:../../data/export.json ./gradlew bootRun
 ```
 
 http://localhost:8080/api/brands 에서 브랜드 83개가 나온다. 로컬 포트 8080은 `api/src/main/resources/application.yml`의 기본값이다. 운영 서버는 8088 포트로 띄우고 nginx가 앞에서 프록시한다.
