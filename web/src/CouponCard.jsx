@@ -11,7 +11,7 @@ import { usePageMinute } from './pageNow.js'
 import { amountText, beforeOpen, chipsOf, onCard, onDetail, headOrder, isUpdated, conditionTable, shortBrandName, formulaOf, minLabel, nameCutPx, splitOffers } from './couponModel.js'
 import { isBundle, offerKey } from './filters.js'
 import { BrandLogo, PlatformBadge } from './logos.jsx'
-import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
+import { COUPANGEATS_HINT, offerClickProps, offerLink, opensWeb, openWithNotice } from './offerLink.js'
 import BestHistoryChart from './BestHistoryChart.jsx'
 import OfferShareButton from './OfferShareButton.jsx'
 import { sharedOfferKey } from './offerSharing.js'
@@ -62,7 +62,7 @@ function OfferLinkA({ offer, brand, position, best, where, slot, expanded, class
        // 커스텀 스킴(coupangeats://, ddangyo://, baemin://)은 같은 탭에서 열어야 앱으로 간다(운영 칩과 같다).
        target={web ? '_blank' : undefined} rel={web ? 'noreferrer' : undefined}
        aria-label={`${brand.name} ${amountText(offer)}, 앱으로 이동`}
-       onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, pin: brand.pin, best, where, slot, expanded })); openWithNotice(e, href, { offerPrompt: true }) }}>
+       onClick={(e) => { track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, pin: brand.pin, best, where, slot, expanded })); openWithNotice(e, href, { offerPrompt: true, web: opensWeb(offer) }) }}>
       {children}
     </a>
   )
