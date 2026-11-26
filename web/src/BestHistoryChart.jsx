@@ -3,6 +3,7 @@ import { fetchHistory } from './api.js'
 import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H, TOP } from './historyChart.js'
 import { won } from './OfferChip.jsx'
 import HistoryPlatformChips from './HistoryPlatformChips.jsx'
+import { useChartScrub } from './useChartScrub.js'
 import { track } from './analytics.js'
 import './styles/hist.css'
 
@@ -18,38 +19,13 @@ export default function BestHistoryChart({ brand }) {
   const [range, setRange] = useState('1m')
   const [platform, setPlatform] = useState(null) // null = 전체
   const [data, setData] = useState(null)
-  const [sel, setSel] = useState(null)
   const svgRef = useRef(null)
-  const timer = useRef(null)
-  const drag = useRef(null) // 누른 채 끄는 중이면 { pointer, seen: 지나간 점 번호 }
+  const { sel, setSel, bind } = useChartScrub(svgRef, data, brand, range)
   useEffect(() => {
     let live = true
     fetchHistory(brand, range === '2w' ? '1m' : range).then((d) => { if (live) { setData(d); setSel(null) } })
     return () => { live = false }
   }, [brand, range])
-  useEffect(() => () => clearTimeout(timer.current), [])
-  // 손가락 끌기: 처음 움직임이 위아래면 그대로 시트 스크롤·끌어 닫기에 맡긴다.
-  // 좌우로 먼저 끌기 시작한 뒤에만 그 손짓이 끝날 때까지 시트로 올라가지 않게 막는다.
-  useEffect(() => {
-    const el = svgRef.current
-    if (!el) return
-    let g = null
-    const ts = (e) => { const t = e.touches[0]; g = { x: t.clientX, y: t.clientY, dir: null } }
-    const tm = (e) => {
-      if (!g) return
-      const t = e.touches[0]
-      const dx = Math.abs(t.clientX - g.x)
-      const dy = Math.abs(t.clientY - g.y)
-      if (!g.dir && dx + dy > 4) g.dir = dx > dy ? 'x' : 'y'
-      if (g.dir === 'x') { e.stopPropagation(); if (e.cancelable) e.preventDefault() }
-    }
-    const te = () => { g = null }
-    el.addEventListener('touchstart', ts, { passive: true })
-    el.addEventListener('touchmove', tm, { passive: false })
-    el.addEventListener('touchend', te)
-    el.addEventListener('touchcancel', te)
-    return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
-  }, [data])
   // 앱별 곡선은 응답에 같이 온다. byPlatform 칸이 없으면 앱 구분을 모르는 옛 API라 칩을 숨기고 전체만 보인다.
   const byPlatform = data?.byPlatform
   const all = (platform ? byPlatform?.[platform] : data?.best) ?? []
@@ -65,33 +41,8 @@ export default function BestHistoryChart({ brand }) {
   while (pts[cur].amount == null) cur--
   const midI = nearestIndex((xs[0] + xs[xs.length - 1]) / 2, xs)
   const xTicks = [[0, 'start'], [midI, 'middle'], [pts.length - 1, 'end']]
+  const { svgProps, onKey } = bind(pts, xs, W)
 
-  const pick = (e) => {
-    e.stopPropagation()
-    clearTimeout(timer.current)
-    const r = svgRef.current.getBoundingClientRect()
-    const i = nearestIndex(((e.clientX - r.left) / r.width) * W, xs)
-    if (drag.current) drag.current.seen.add(i)
-    setSel(i)
-  }
-  // 터치는 손을 떼도 잠깐 남겨 읽을 시간을 준다. 마우스는 올려둔 동안만.
-  const onUp = (e) => {
-    e.stopPropagation()
-    // 누른 채 끌어 두 날짜 이상 지나갔으면 손을 뗄 때 한 번만 남긴다(2026-10-12 사용자). 움직일 때마다 보내면 폭증한다.
-    const d = drag.current
-    drag.current = null
-    if (d && d.seen.size > 1) {
-      track('history_drag', { brand, range, pointer: d.pointer, points: d.seen.size, last: pts[[...d.seen].pop()]?.date ?? null })
-    }
-    if (e.pointerType === 'mouse') return
-    timer.current = setTimeout(() => setSel(null), 1500)
-  }
-  const onKey = (e) => {
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
-    e.preventDefault()
-    const d = e.key === 'ArrowLeft' ? -1 : 1
-    setSel((s) => Math.min(pts.length - 1, Math.max(0, (s ?? (d < 0 ? pts.length : -1)) + d)))
-  }
   const sp = sel != null ? pts[sel] : null
   // 말풍선 대신 판 없는 값 표시(2026-10-14 사용자). 최고, 현재, 누른 점 모두 같은 모양과 자리 규칙이다.
   const at = (c) => ({ left: `${(c.cx / W) * 100}%`, top: `${(c.top / H) * 100}%` })
@@ -110,9 +61,7 @@ export default function BestHistoryChart({ brand }) {
       </div>
       {plats}
       <div className="hist__wrap">
-        <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="hist__svg" aria-hidden="true"
-          onPointerDown={(e) => { track('history_point_select', { brand, range, pointer: e.pointerType || 'none' }); drag.current = { pointer: e.pointerType || 'none', seen: new Set() }; pick(e) }} onPointerMove={pick} onPointerUp={onUp} onPointerCancel={onUp}
-          onPointerLeave={(e) => { if (e.pointerType === 'mouse') setSel(null) }}>
+        <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="hist__svg" aria-hidden="true" {...svgProps}>
           <line x1={GUTTER} y1={m.yHi} x2={W} y2={m.yHi} className="hist__grid" />
           <line x1={GUTTER} y1={m.yLo} x2={W} y2={m.yLo} className="hist__grid" />
           <text x={GUTTER - 6} y={m.yHi} className="hist__ytick">{num(m.hi)}</text>

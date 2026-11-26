@@ -4,7 +4,7 @@ import { track } from './analytics.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
 import { hasSeenOfferPrompt, recordOfferPromptSeen } from './pushPrompt.js'
-import { useEscape, useScrollLock } from './useOverlay.js'
+import { useEscape, useFocusTrap, useScrollLock } from './useOverlay.js'
 import {
   disablePush,
   deletePushSubscription,
@@ -109,41 +109,9 @@ export default function PushNotificationSetting({ toggleSlot }) {
 
   useEscape(promptOpen && !showIosGuide, () => closePrompt('escape'))
 
-  useEffect(() => {
-    if (!dialogOpen) return
+  useFocusTrap(dialogOpen, showIosGuide ? iosGuideDialogRef : promptDialogRef, '.push-setting__cta:not(:disabled), .ios-push-guide__confirm', () => {
     if (!previousDialogFocusRef.current) previousDialogFocusRef.current = document.activeElement
-    const dialog = showIosGuide ? iosGuideDialogRef.current : promptDialogRef.current
-    if (!dialog) return
-    const focusable = () => [...dialog.querySelectorAll(
-      'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
-    )].filter((element) => element.getClientRects().length > 0)
-    const focusFirst = () => {
-      const primary = dialog.querySelector('.push-setting__cta:not(:disabled), .ios-push-guide__confirm')
-      ;(primary || focusable()[0] || dialog).focus({ preventScroll: true })
-    }
-    focusFirst()
-    const containFocus = (event) => {
-      if (!dialog.contains(event.target)) focusFirst()
-    }
-    const trapTab = (event) => {
-      if (event.key !== 'Tab') return
-      const elements = focusable()
-      const current = elements.indexOf(document.activeElement)
-      if (!elements.length) {
-        event.preventDefault()
-        dialog.focus({ preventScroll: true })
-      } else if (current < 0 || (event.shiftKey && current === 0) || (!event.shiftKey && current === elements.length - 1)) {
-        event.preventDefault()
-        elements[event.shiftKey ? elements.length - 1 : 0].focus({ preventScroll: true })
-      }
-    }
-    document.addEventListener('focusin', containFocus)
-    document.addEventListener('keydown', trapTab)
-    return () => {
-      document.removeEventListener('focusin', containFocus)
-      document.removeEventListener('keydown', trapTab)
-    }
-  }, [dialogOpen, showIosGuide])
+  })
 
   useEffect(() => {
     if (!dialogOpen) return

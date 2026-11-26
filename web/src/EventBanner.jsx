@@ -10,7 +10,7 @@ import { bannerHref, openWithNotice } from './offerLink.js'
 import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
-import { settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
+import { useBannerSlider } from './useBannerSlider.js'
 import { bannerTag } from './bannerTag.js'
 import { bannerProps } from './bannerAnalytics.js'
 import { bannerMemberLabels, memberMinOrderText, memberText } from './bannerMembers.js'
@@ -18,10 +18,6 @@ import { OWN } from './platforms.js'
 
 // 넘어가는 간격. 4.3초에서 1초 늘렸다(사용자 결정 2026-09-16). 2026-10-15 사용자: 눈에 덜 거슬리게 8초로.
 const ROTATE_MS = 8000
-// 한 칸 미끄러지는 시간. 브라우저 smooth 스크롤(~300ms)보다 0.5초 느리게.
-const SLIDE_MS = 800
-// 장 사이 간격(App.css .banner-track gap과 같은 값).
-const SLIDE_GAP = 12
 const DISMISS_KEY = 'dk_banner_hidden'
 
 
@@ -343,7 +339,6 @@ function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, 
 export default function EventBanner({ banners: raw, dockOnly = false, inline = false }) {
   // 열 주소가 없는(문자열 아님, 모르는 스킴) 배너는 건너뛴다. 하나 때문에 배너 영역이 통째로 죽었다.
   const banners = useMemo(() => raw?.filter((b) => bannerHref(b)), [raw])
-  const [index, setIndex] = useState(0)
   const [hovered, setHovered] = useState(false)
   // 사용자가 멈춤 버튼으로 세운 상태. 손을 올린 것과 달리 다시 누를 때까지 간다.
   const [held, setHeld] = useState(false)
@@ -388,6 +383,7 @@ export default function EventBanner({ banners: raw, dockOnly = false, inline = f
   }, [])
 
   const count = banners?.length ?? 0
+  const { slides, index, step, advance, dragX, dragProps, trackStyle } = useBannerSlider(banners, count, reduceMotion)
   const current = count > 0 ? banners[index % count] : null
 
   // 막대와 점은 카드 밖 층이라 카드가 들고 있는 --banner-* 를 못 받는다.
@@ -396,83 +392,6 @@ export default function EventBanner({ banners: raw, dockOnly = false, inline = f
   const currentSeed = useSeed(current ?? { platform: 'baemin' })
   const currentPalette = useMemo(() => bannerPalette(currentSeed), [currentSeed])
 
-  // ── 슬라이더 ────────────────────────────────────────────────────────
-  // 컴포넌트를 스크롤로 넘기지 않는다. 장 전체(앞뒤 사본 포함)를 한 줄로
-  // 그려 놓고 **자리(slot) 하나만 상태로** 들고, 그 값을 transform으로
-  // 옮긴다(사용자 결정 2026-09-16). 스크롤 컨테이너 방식은 scrollend·스냅
-  // 재정렬·상단/도크 동기화가 브라우저마다 달라 이음새가 났다. 이 방식은
-  // 상단과 도크가 같은 slot을 같은 transition으로 보므로 둘이 어긋날 길이
-  // 없고, 사본 칸에 도착한 뒤 transition을 끈 채 실제 칸으로 옮기는 것도
-  // 우리가 정한 시점에 정확히 한다.
-  //
-  //   slot: 0 = 마지막 장 사본, 1..count = 실제 장, count+1 = 첫 장 사본
-  //   anim: transition을 켤지 — 사본→실제 칸 되감기는 끄고 옮긴다
-  const slides = useMemo(() => withSentinels(banners ?? []), [banners])
-  const [slot, setSlot] = useState(count > 1 ? 1 : 0)
-  const [anim, setAnim] = useState(true)
-  const busy = useRef(false)
-  useEffect(() => { setSlot(count > 1 ? 1 : 0) }, [count])
-  useEffect(() => { setIndex(slotToIndex(slot, count)) }, [slot, count])
-
-  // 옆 칸으로. 사본에 도착하면 transition이 끝난 뒤 실제 칸으로 소리 없이.
-  // 넘김 타이머는 언마운트와 장 수 변경 때 버린다. 남으면 사라진 컴포넌트나 범위 밖 장에 setSlot한다.
-  const stepTimer = useRef()
-  useEffect(() => () => { clearTimeout(stepTimer.current); busy.current = false }, [count])
-  function step(dir) {
-    if (count < 2 || busy.current) return
-    const next = slot + dir
-    if (next < 0 || next > count + 1) return
-    busy.current = true
-    setAnim(!reduceMotion)
-    setSlot(next)
-    const real = settleSlot(next, count)
-    const dur = reduceMotion ? 0 : SLIDE_MS
-    stepTimer.current = setTimeout(() => {
-      if (real !== null) {
-        setAnim(false)
-        setSlot(real)
-        // 한 프레임 뒤 transition을 다시 켠다 — 같이 켜면 되감기도 미끄러진다.
-        requestAnimationFrame(() => requestAnimationFrame(() => setAnim(true)))
-      }
-      busy.current = false
-    }, dur + 20)
-  }
-  function advance() { step(1) }
-
-  // 손가락·마우스로 끌기. 끄는 동안은 transition 없이 따라오고, 놓으면
-  // 40px 넘게 밀었을 때만 한 칸 넘긴다. 세로 스크롤이 더 크면 넘기지 않는다.
-  const drag = useRef(null)
-  const [dragX, setDragX] = useState(0)
-  function onPointerDown(e) {
-    if (count < 2 || e.pointerType === 'mouse' && e.button !== 0) return
-    drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, moved: false }
-  }
-  function onPointerMove(e) {
-    const d = drag.current
-    if (!d || d.id !== e.pointerId) return
-    const dx = e.clientX - d.x, dy = e.clientY - d.y
-    if (!d.moved && Math.abs(dx) < 6) return
-    if (!d.moved && Math.abs(dy) > Math.abs(dx)) { drag.current = null; return }
-    d.moved = true
-    setDragX(dx)
-  }
-  function onPointerUp(e) {
-    const d = drag.current
-    if (!d || d.id !== e.pointerId) return
-    drag.current = null
-    const dx = e.clientX - d.x
-    setDragX(0)
-    if (d.moved && Math.abs(dx) > 40) step(dx < 0 ? 1 : -1)
-  }
-  // 끌던 중 링크 클릭이 나가지 않게 — 놓는 순간 click이 한 번 더 온다.
-  function onClickCapture(e) { if (Math.abs(dragX) > 6) { e.preventDefault(); e.stopPropagation() } }
-  const dragProps = {
-    onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp, onClickCapture,
-  }
-  const trackStyle = {
-    transform: `translateX(calc(${-slot} * (100% + ${SLIDE_GAP}px) + ${dragX}px))`,
-    transition: anim && dragX === 0 && !reduceMotion ? `transform ${SLIDE_MS}ms cubic-bezier(.22, .8, .3, 1)` : 'none',
-  }
 
   // 자동 전환. 한 건이면 돌릴 것이 없고, 손이 올라가 있거나 포커스가 안에
   // 있거나 탭이 숨겨져 있으면 멈춘다. prefers-reduced-motion이면 아예 안 돈다

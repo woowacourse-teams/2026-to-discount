@@ -30,3 +30,19 @@ test('마지막 칸의 다음 칸은 첫 장 사본이다', () => {
   const lastSlot = indexToSlot(2, count)
   assert.equal(slotToIndex(lastSlot + 1, count), 0)
 })
+
+// 특성 테스트(#456): EventBanner에서 뺀 끌어 넘기기와 트랙 위치 규칙을 못박는다.
+test('끌어 넘기기: 끌기로 인정되고 40px을 넘겨야 한 칸, 왼쪽으로 밀면 다음 장', async () => {
+  const { swipeStep } = await import('./useBannerSlider.js')
+  assert.equal(swipeStep(true, -41), 1)
+  assert.equal(swipeStep(true, 41), -1)
+  assert.equal(swipeStep(true, -40), 0)
+  assert.equal(swipeStep(false, -100), 0)
+})
+test('트랙 위치: 칸마다 100%+12px, 끄는 중이거나 애니메이션을 끄면 transition 없음', async () => {
+  const { sliderTrackStyle } = await import('./useBannerSlider.js')
+  assert.deepEqual(sliderTrackStyle(2, 0, true, false), { transform: 'translateX(calc(-2 * (100% + 12px) + 0px))', transition: 'transform 800ms cubic-bezier(.22, .8, .3, 1)' })
+  assert.equal(sliderTrackStyle(1, -30, true, false).transition, 'none')
+  assert.equal(sliderTrackStyle(1, 0, false, false).transition, 'none')
+  assert.equal(sliderTrackStyle(1, 0, true, true).transition, 'none')
+})
