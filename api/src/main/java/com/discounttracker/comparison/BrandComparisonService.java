@@ -19,10 +19,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +137,53 @@ public class BrandComparisonService {
     }
 
 
+    private static String firstComeKey(String brand, String platform, int amount) {
+        return brand + "|" + platform + "|" + amount;
+    }
+
+    /**
+     * 오늘 관측된 원장 선착순 중 <b>가장 늦은 관측이 소진</b>인 (브랜드, 앱, 금액)의 키 집합.
+     *
+     * <p>배너는 사람이 그날 적는 행사라 소진일(soldOutOn)이 늦게 달린다. 수집이 이미 같은 쿠폰의 소진을 읽었으면
+     * 그것을 배너에 잇는다. 어긋나지 않게 세 가지를 지킨다: 오늘 관측만 본다(어제 소진이 오늘 배너에 옮겨 붙지 않는다),
+     * 금액이 같을 때만 같은 쿠폰이다({@link Offer#withDetailFrom}이 소진을 안 합치는 이유와 같다), 같은 쿠폰의
+     * 관측이 여럿이면 가장 늦은 것이 이긴다(소진 뒤 다시 열렸으면 열림). 원장 안에서의 판정과 같은 규칙이다.
+     */
+    private Set<String> ledgerFirstComeSoldOutToday(List<OfferRecord> records, LocalDate today) {
+        Map<String, Instant> latestAt = new HashMap<>();
+        Map<String, Boolean> latestSoldOut = new HashMap<>();
+        for (OfferRecord record : records) {
+            if (record.isExpired(today)) continue;
+            Offer o = Offer.from(record, today);
+            Instant at = o.fromBanner() || !o.firstCome() || o.amount() == null ? null : capturedInstant(o.capturedAt());
+            // 오늘인지는 글자 앞머리가 아니라 서울 날짜로 본다(오프셋이 Z인 값도 있다).
+            if (at == null || !at.atZone(clock.getZone()).toLocalDate().equals(today)) continue;
+            String key = firstComeKey(brands.canonical(record.brand()), record.platform(), o.amount());
+            Instant seen = latestAt.get(key);
+            if (seen == null || !at.isBefore(seen)) {
+                latestAt.put(key, at);
+                latestSoldOut.put(key, o.soldOut());
+            }
+        }
+        Set<String> soldOut = new HashSet<>();
+        latestSoldOut.forEach((key, so) -> { if (so) soldOut.add(key); });
+        return soldOut;
+    }
+
+    /** 관측 시각을 순간으로 읽는다. 오프셋이 없으면 서울 시각으로 본다. 못 읽으면 null(그 관측은 건너뛴다). */
+    private Instant capturedInstant(String text) {
+        if (text == null) return null;
+        try {
+            return OffsetDateTime.parse(text).toInstant();
+        } catch (DateTimeParseException e) {
+            try {
+                return LocalDateTime.parse(text).atZone(clock.getZone()).toInstant();
+            } catch (DateTimeParseException e2) {
+                return null;
+            }
+        }
+    }
+
     /** 넘겨받은 레코드로 비교한다. 운영 경로는 원장 레코드로 {@link #compare()}가 부른다. */
     List<BrandComparison> compare(List<OfferRecord> records) {
         // 원장은 tracker가 push할 때만 바뀌지만 오늘 날짜는 계속 바뀐다.
@@ -144,6 +197,7 @@ public class BrandComparisonService {
         // 확실성 어긋남 경고에 배너 id를 실으려고 슬롯마다 마지막으로 본 배너 id를
         // 따로 든다. Offer는 출처(fromBanner)만 알고 자기가 어느 배너였는지는 모른다.
         Map<String, Map<String, String>> bannerIdBySlot = new LinkedHashMap<>();
+        Set<String> ledgerSoldOutToday = ledgerFirstComeSoldOutToday(records, today);
 
         for (OfferRecord record : records) {
             // 묶기·중복정리·대표금액 계산 어디에도 넣지 않는다. 정리한 뒤에
@@ -161,6 +215,14 @@ public class BrandComparisonService {
                 continue;
             }
             Offer offer = Offer.from(record, today);
+            // 같은 쿠폰의 원장 관측이 오늘 소진이면 선착순 배너도 소진이다(2026-11-26 60계치킨: 수집이 소진을 읽었는데
+            // 배너에 소진일이 없어 카드엔 열림으로 남았다). 순위 계산(아래 forSorting)보다 앞에서 바꿔야 소진 오퍼가
+            // 최고 할인 후보에 안 든다.
+            // 배너만이 아니다: 가장 늦은 관측이 소진이면 그보다 이른 열림 관측(원장)도 낡은 것이라 순위에 안 들게 같이 바꾼다.
+            if (offer.firstCome() && !offer.soldOut() && offer.amount() != null
+                    && ledgerSoldOutToday.contains(firstComeKey(name, record.platform(), offer.amount()))) {
+                offer = offer.asSoldOut();
+            }
 
             // 앱마다 오퍼 하나가 대표다. 다만 뽑기 오퍼(랜덤)는 확정 오퍼와 **다른 자리**에 둔다 —
             // 같은 자리에 두면 확정액이 이겨 상한이 사라진다(2026-09-20 노모어·푸라닭). 원장

@@ -1092,6 +1092,100 @@ class BrandComparisonServiceTest {
                 .offers().get(0);
     }
 
+    // ── 수집이 읽은 소진은 같은 쿠폰의 선착순 배너에도 선다(2026-11-26 60계치킨) ──
+
+    private static final String GOOBNE_BRANDS = """
+            brands:
+              굽네치킨:
+                category: chicken
+                aliases: [goobne]
+            """;
+
+    private static final String GOOBNE_BANNER = """
+            banners:
+              - id: goobne-8000
+                brand: goobne
+                platform: baemin
+                url: https://example.test/a
+                amount: {won: 8000}
+                firstCome: issue
+                startsAt: '2026-08-20T00:00:00'
+                endsAt: '2026-08-20T23:59:59'
+            """;
+
+    private static OfferRecord ledgerFirstCome(int amount, boolean soldOut, String capturedAt) {
+        return OfferRecord.builder("baemin", "굽네치킨")
+                .amount(amount).offerType("discount").section("배짱할인 주말핫딜 선착순")
+                .rawText(amount + "원").capturedAt(capturedAt).screenshotPath("x.jpg")
+                .minOrderAmount(19000).soldOut(soldOut).build();
+    }
+
+    private Offer firstComeOffer(List<OfferRecord> ledger) {
+        return serviceWith(ledger, GOOBNE_BRANDS, on("2026-08-20"), GOOBNE_BANNER)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow()
+                .offers().get(0);
+    }
+
+    @Test
+    void bannerInheritsTodaysSoldOutOfTheSameCouponFromTheLedger() {
+        Offer offer = firstComeOffer(List.of(ledgerFirstCome(8000, true, "2026-08-20T10:00:00+09:00")));
+        assertEquals(8000, offer.amount());
+        assertTrue(offer.fromBanner(), "배너가 대표로 선다");
+        assertTrue(offer.soldOut(), "원장이 오늘 소진을 읽었으면 배너도 소진이다");
+    }
+
+    @Test
+    void yesterdaysLedgerSoldOutDoesNotReachTodaysBanner() {
+        Offer offer = firstComeOffer(List.of(ledgerFirstCome(8000, true, "2026-08-19T20:00:00+09:00")));
+        assertFalse(offer.soldOut(), "선착순은 매일 다시 풀린다");
+    }
+
+    @Test
+    void aDifferentAmountIsADifferentCoupon() {
+        Offer offer = firstComeOffer(List.of(ledgerFirstCome(7000, true, "2026-08-20T10:00:00+09:00")));
+        assertFalse(offer.soldOut(), "금액이 다르면 관계없는 쿠폰이다");
+    }
+
+    @Test
+    void aLaterOpenObservationBeatsAnEarlierSoldOut() {
+        Offer offer = firstComeOffer(List.of(
+                ledgerFirstCome(8000, true, "2026-08-20T10:00:00+09:00"),
+                ledgerFirstCome(8000, false, "2026-08-20T11:30:00+09:00")));
+        assertFalse(offer.soldOut(), "소진 뒤 다시 열렸으면 열림이다");
+    }
+
+    @Test
+    void latestObservationIsJudgedByInstantNotByText() {
+        // 서울 11:00(= 02:00Z)의 소진이 서울 10:30(= 01:30Z)의 열림보다 늦다. 글자로 견주면 "10:30"이 "02:00"보다 커서 틀린다.
+        Offer offer = firstComeOffer(List.of(
+                ledgerFirstCome(8000, false, "2026-08-20T10:30:00+09:00"),
+                ledgerFirstCome(8000, true, "2026-08-20T02:00:00Z")));
+        assertTrue(offer.soldOut());
+    }
+
+    @Test
+    void todayIsTheSeoulDateEvenWhenTheOffsetIsZ() {
+        // 2026-08-19T16:00Z = 서울 2026-08-20 01:00. 글자 앞머리는 08-19지만 오늘 관측이다.
+        Offer offer = firstComeOffer(List.of(ledgerFirstCome(8000, true, "2026-08-19T16:00:00Z")));
+        assertTrue(offer.soldOut());
+    }
+
+    @Test
+    void anEarlierOpenObservationDoesNotKeepASoldOutCouponInTheRanking() {
+        // 열림 10:00 뒤 소진 11:00: 열림 관측이 최고 할인에 남으면 카드는 소진인데 순위만 8,000원으로 선다.
+        BrandComparison card = serviceWith(List.of(
+                        ledgerFirstCome(8000, false, "2026-08-20T10:00:00+09:00"),
+                        ledgerFirstCome(8000, true, "2026-08-20T11:00:00+09:00")),
+                GOOBNE_BRANDS, on("2026-08-20"), GOOBNE_BANNER)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow();
+        assertNull(card.maxConfirmedAmount(), "소진된 쿠폰은 순위 금액이 아니다");
+        assertTrue(card.offers().get(0).soldOut());
+    }
+
     @Test
     void dropsBannersThatCannotStandAsAnOffer() {
         // 정률·랜덤 배너는 이제 카드에도 선다(certainty가 EXACT가 아닐 뿐) - 그래서

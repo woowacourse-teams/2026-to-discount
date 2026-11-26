@@ -369,6 +369,18 @@ public record Offer(String platform, Integer amount, String qualifier,
                 certainty, kind, firstSeenAt, isNew, qualifiers, LinkSource.ADDED, capturedOn, via, channel);
     }
 
+    /**
+     * 소진으로 바꾼 복사본. 같은 쿠폰의 원장 관측이 오늘 소진이면 배너 오퍼도 소진이다
+     * ({@code BrandComparisonService}의 선착순 소진 상속). {@link #withDetailFrom}은 소진을 병합하지 않는다 -
+     * 금액이 다른 확정 레코드가 잘못 품절로 보이기 때문이다. 상속은 같은 금액일 때만 부르는 쪽이 지킨다.
+     */
+    public Offer asSoldOut() {
+        if (soldOut) return this;
+        return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,
+                tierMode, tiers, conditions, expiresAt, badge, true, link, membership, fromBanner, firstCome,
+                certainty, kind, firstSeenAt, isNew, qualifiers, linkSource, capturedOn, via, channel);
+    }
+
     /** 이력이 판정한 신규 여부를 단다. null = 모름. */
     public Offer withIsNew(Boolean v) {
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,
