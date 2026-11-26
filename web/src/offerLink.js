@@ -126,17 +126,10 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   e.preventDefault()
   // 공유 링크도 같은 탭으로 넘긴다. 새 탭에 넣으면 그 탭엔 누른 기록이 없어 앱 열기(intent://)가 막혀 빈 탭에 멈췄다
   // (2026-10-12 사용자: 안 넘어간다).
-  document.querySelector('.ce-dim')?.remove()
   // 안내 중 다시 누르면 앞 타이머를 버린다. 남겨 두면 이동과 watchAppOpen이 두 번 돈다.
   clearTimeout(noticeTimer)
   // 바텀시트처럼 화면을 어둡게 깔고 그 위에 안내를 띄운다(2026-10-06 사용자)
-  const dim = document.createElement('div')
-  dim.className = 'ce-dim'
-  const el = document.createElement('div')
-  el.className = 'ce-toast'
-  el.setAttribute('role', 'status')
-  el.textContent = COUPANGEATS_NOTICE
-  dim.appendChild(el)
+  const dim = makeDim(COUPANGEATS_NOTICE)
   document.body.appendChild(dim)
   noticeTimer = setTimeout(() => {
     dim.remove()
@@ -152,14 +145,7 @@ export const INSTALL_HINT = '설치된 배달앱이 실행돼요.\n설치되지 
 const HINT_MS = 5000
 function afterOpen(opened, props) {
   if (opened || typeof document === 'undefined' || document.visibilityState !== 'visible') return
-  document.querySelector('.ce-dim')?.remove()
-  const dim = document.createElement('div')
-  dim.className = 'ce-dim'
-  const el = document.createElement('div')
-  el.className = 'ce-toast'
-  el.setAttribute('role', 'status')
-  el.textContent = INSTALL_HINT
-  dim.appendChild(el)
+  const dim = makeDim(INSTALL_HINT)
   const shownAt = Date.now()
   const base = { platform: props?.platform, scheme: props?.scheme }
   dim.addEventListener('click', () => { track('install_hint_ack', { ...base, ms: Date.now() - shownAt }); dim.remove() })
@@ -189,6 +175,14 @@ function afterOpen(opened, props) {
 /** 쿠팡이츠 안내와 같은 모양(어두운 바탕 위 가운데 글)으로 잠깐 띄운다. 제보 결과도 쓴다(2026-10-19 사용자). */
 export function showNotice(text, ms = 2200) {
   if (typeof document === 'undefined') return
+  const dim = makeDim(text)
+  dim.addEventListener('click', () => dim.remove())
+  document.body.appendChild(dim)
+  setTimeout(() => dim.remove(), ms)
+}
+
+// 어두운 바탕 위 가운데 안내. 앞의 안내는 지운다. 붙이기는 부르는 쪽이 한다(클릭 처리를 먼저 다는 곳이 있다).
+function makeDim(text) {
   document.querySelector('.ce-dim')?.remove()
   const dim = document.createElement('div')
   dim.className = 'ce-dim'
@@ -197,9 +191,7 @@ export function showNotice(text, ms = 2200) {
   el.setAttribute('role', 'status')
   el.textContent = text
   dim.appendChild(el)
-  dim.addEventListener('click', () => dim.remove())
-  document.body.appendChild(dim)
-  setTimeout(() => dim.remove(), ms)
+  return dim
 }
 
 export function setHubLinks(banners) {
