@@ -1598,3 +1598,8 @@ brands:
     # 행사 수집이 찾은 브랜드. 분류와 로고는 사람이 채운다
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?S8uZSRK
+
+  # --- 2026-11-26 수집이 찾은 미등록 브랜드(8단계 [suspect], 사용자 등록 지시) ---
+  에그드랍:
+    searchAliases: [에그드랍, 에그 드랍, eggdrop, egg drop]
+    category: fastfood
