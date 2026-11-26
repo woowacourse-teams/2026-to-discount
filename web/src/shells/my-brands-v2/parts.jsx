@@ -1,6 +1,6 @@
 import { track } from '../../analytics.js'
 import { amountText } from '../../couponModel.js'
-import { offerClickProps, offerLink, openWithNotice } from '../../offerLink.js'
+import { offerClickProps, offerLink, opensWeb, openWithNotice } from '../../offerLink.js'
 import { splitAmount, splitMin } from './data.js'
 import { APP_COLOR } from '../../platforms.js'
 import baemin from './platform-logos/baemin.png'
@@ -77,7 +77,7 @@ export function offerLinkProps({ offer, brand, position, best, where, slot, expa
     'aria-label': `${brand.name} ${amountText(offer)}, 앱으로 이동`,
     onClick: (e) => {
       track('offer_link_click', offerClickProps({ offer, brandName: brand.name, position, pin: brand.pin, best, where, slot, expanded }))
-      openWithNotice(e, href, { offerPrompt: true })
+      openWithNotice(e, href, { offerPrompt: true, web: opensWeb(offer) })
     },
   }
 }

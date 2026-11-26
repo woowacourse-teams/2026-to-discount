@@ -1,6 +1,7 @@
 import { isUpdated } from './filters.js'
 import { track } from './analytics.js'
 import { watchAppOpen } from './telemetry.js'
+import { OWN } from './platforms.js'
 import { offerShareSelection } from './shareAttribution.js'
 // brands.yml에 브랜드별 링크가 없는 앱은 여기 링크로 앱만 연다.
 // 전부 실기 ADB로 착지 화면까지 확인한 값이다(2026-08-05).
@@ -114,7 +115,11 @@ function noticeMs() {
  * 웹 주소(https)는 새 탭으로 연다 — 현재 페이지를 떠나지 않게(2026-10-09 사용자). 앱 링크(coupangeats://)는
  * 새 탭에서 열면 브라우저가 about:blank만 띄우고 앱을 안 연다(OfferChip 주석) — 같은 탭에서 부르고, 앱이
  * 열려도 이 페이지는 그대로 남는다. */
-export function openWithNotice(e, href, { offerPrompt = false } = {}) {
+// 앱이 아니라 웹 페이지(네이버페이 블로그, 자사 홈페이지)로 가는 오퍼. 버튼 이름이 "네이버페이에서 확인", "홈페이지에서 확인"인 것들이다.
+export const opensWeb = (offer) => offer?.via === 'naverpay' || offer?.platform === OWN
+
+// web: 웹 페이지로 가는 링크는 앱 열림을 재지 않는다. 페이지가 안 가려지는 게 정상인데 "설치된 배달앱이 실행돼요" 안내가 뜬다(2026-11-26 사용자).
+export function openWithNotice(e, href, { offerPrompt = false, web = false } = {}) {
   if (offerPrompt && typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('discount-offer-prompt', { detail: { href } }))
   }
@@ -122,7 +127,7 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   const share = typeof href === 'string' && href.startsWith(CE_SHARE_PREFIX)
   if (typeof document === 'undefined') return
   // 앱 열림 결과(telemetry.js). 쿠팡이츠는 안내 뒤 실제로 이동할 때부터 잰다.
-  if (!share && !tab) { watchAppOpen(href, 2500, afterOpen); return }
+  if (!share && !tab) { if (!web) watchAppOpen(href, 2500, afterOpen); return }
   e.preventDefault()
   // 공유 링크도 같은 탭으로 넘긴다. 새 탭에 넣으면 그 탭엔 누른 기록이 없어 앱 열기(intent://)가 막혀 빈 탭에 멈췄다
   // (2026-10-12 사용자: 안 넘어간다).
