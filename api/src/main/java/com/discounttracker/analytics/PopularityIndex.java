@@ -44,6 +44,8 @@ public class PopularityIndex {
     static final Duration WEEK = Duration.ofDays(7);
     private static final Duration REFRESH = Duration.ofMinutes(10);
     private static final Set<String> EVENTS = Set.of("offer_link_click", "banner_click");
+    /** 덱 상한. 평소 주 800건 남짓이라 닿지 않는다. 공개 /api/events로 부풀려도 메모리가 이 이상 늘지 않는다. */
+    static final int MAX_CLICKS = 50_000;
 
     private final EventLog eventLog;
     private final ObjectMapper mapper;
@@ -67,7 +69,7 @@ public class PopularityIndex {
         this.eventLog = eventLog;
         this.mapper = mapper;
         this.clock = clock;
-        this.snapshot = snapshotEnabled ? new EventLogSnapshot(eventLog.path(), "popularity", 1) : null;
+        this.snapshot = snapshotEnabled ? new EventLogSnapshot(eventLog.path(), "popularity", 2) : null;  // 2: 사람 키를 ipHash로(2026-11-26)
     }
 
     /** 브랜드 대표명 → 이번 주(7일) 누른 사람 수. 없으면 0. */
@@ -102,7 +104,7 @@ public class PopularityIndex {
         return scores;
     }
 
-    /** 누름 한 건. 7일이 지나면 버린다. */
+    /** 누름 한 건. 7일이 지나면 버린다. visitor는 사람 키(ipHash, 없으면 visitorId)다. */
     private record Click(Instant at, String brand, String visitor) {
     }
 
@@ -202,9 +204,14 @@ public class PopularityIndex {
         if (brand == null || brand.isBlank() || "none".equals(brand)) return;
         String visitor = n.path("visitorId").asString(null);
         if (visitor == null || visitor.isBlank()) return;
+        // visitorId는 클라이언트가 지어 보낸다. 한 IP가 id만 바꿔 순위를 부풀리지 못하게 서버가 매긴 ipHash로 센다.
+        // ponytail: 같은 공유기 뒤 여러 사람은 한 명으로 센다. 순위가 덜 민감해질 뿐이다.
+        String ip = n.path("ipHash").asString(null);
+        String person = ip == null || ip.isBlank() ? visitor : "ip:" + ip;
         Instant at = parse(n.path("ts").asString(null));
         if (at == null || at.isBefore(clock.instant().minus(WEEK))) return;
-        clicks.add(new Click(at, brand, visitor));
+        if (clicks.size() >= MAX_CLICKS) clicks.pollFirst();
+        clicks.add(new Click(at, brand, person));
     }
 
     private boolean stale() {

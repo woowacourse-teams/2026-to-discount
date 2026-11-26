@@ -324,7 +324,6 @@ class EventControllerTest {
            .andExpect(status().isOk())
            .andExpect(jsonPath("$.accepted").value(0));
     }
-    @org.junit.jupiter.api.Disabled("audit: 01-api-a.md EventController 본문을 크기 제한 없이 통째로 읽는다")
     @Test
     void rejectsOversizedBody() throws Exception {
         mvc.perform(post("/api/events").contentType(MediaType.APPLICATION_JSON)

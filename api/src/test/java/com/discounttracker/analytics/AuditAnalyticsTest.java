@@ -1,7 +1,6 @@
 package com.discounttracker.analytics;
 
 import tools.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -32,14 +31,19 @@ class AuditAnalyticsTest {
 
     @Test
     void hashForLimitPrefersRealIpThenLastForwardedThenRemote() {
-        assertEquals(fp.hashForLimit(req("9.9.9.9", "1.1.1.1", "6.6.6.6, 2.2.2.2")),
-                fp.hashForLimit(req("8.8.8.8", "1.1.1.1", null)));
-        assertEquals(fp.hashForLimit(req("9.9.9.9", null, "6.6.6.6, 2.2.2.2")),
-                fp.hashForLimit(req("8.8.8.8", " ", "7.7.7.7,2.2.2.2")));
+        assertEquals(fp.hashForLimit(req("127.0.0.1", "1.1.1.1", "6.6.6.6, 2.2.2.2")),
+                fp.hashForLimit(req("10.0.0.2", "1.1.1.1", null)));
+        assertEquals(fp.hashForLimit(req("127.0.0.1", null, "6.6.6.6, 2.2.2.2")),
+                fp.hashForLimit(req("10.0.0.2", " ", "7.7.7.7,2.2.2.2")));
         assertEquals(fp.hashForLimit(req("3.3.3.3", null, null)),
                 fp.hashForLimit(req("3.3.3.3", "", " ")));
         assertNotEquals(fp.hashForLimit(req("3.3.3.3", null, null)),
                 fp.hashForLimit(req("4.4.4.4", null, null)));
+    }
+
+    @Test
+    void headersFromUntrustedPeerAreIgnored() {
+        assertEquals(fp.hash(req("9.9.9.9", "1.1.1.1", "2.2.2.2")), fp.hash(req("9.9.9.9", null, null)));
     }
 
     @Test
@@ -48,7 +52,6 @@ class AuditAnalyticsTest {
         assertNotEquals(fp.hash(req("3.3.3.3", null, null)), fp.hash(req("4.4.4.4", null, null)));
     }
 
-    @Disabled("audit: 01-api-a.md ClientFingerprint.hash가 위조 가능한 XFF 첫 값을 IP로 쓴다")
     @Test
     void hashIgnoresClientWrittenFirstForwardedValue() {
         assertEquals(fp.hash(req("10.0.0.1", "1.1.1.1", "6.6.6.6, 1.1.1.1")),
@@ -65,7 +68,6 @@ class AuditAnalyticsTest {
         assertFalse(limiter.tryConsume("c", 121));
     }
 
-    @Disabled("audit: 01-api-a.md EventRateLimiter 키 1만 개 초과 시 clear()로 모든 제한이 풀린다")
     @Test
     void floodingKeysDoesNotResetOthersLimit() {
         var limiter = new EventRateLimiter();
@@ -74,7 +76,6 @@ class AuditAnalyticsTest {
         assertFalse(limiter.tryConsume("victim", 1));
     }
 
-    @Disabled("audit: 01-api-a.md PopularityIndex 한 ipHash가 visitorId만 바꿔 HOT 순위를 부풀린다")
     @Test
     void oneIpHashCannotInflatePopularity(@TempDir Path dir) throws Exception {
         List<String> lines = new ArrayList<>();

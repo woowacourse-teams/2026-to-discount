@@ -82,7 +82,7 @@
 | `POST /api/share-links`, `GET /api/share-links/{code}` | 공유 링크 만들기와 조회. 만들기는 IP별 분당 30건(`X-Real-IP` 기반 `hashForLimit`), 넘기면 429 |
 | `POST /api/reports` | 잘못된 정보 제보 |
 | `POST /api/events` | 방문 이벤트 받기(아래 "방문 측정") |
-| `GET /api/survey`, `GET /api/survey/code`, `POST /api/survey` | 설문 대상 판정, 받은 코드 다시 보기, 응답 |
+| `GET /api/survey`, `POST /api/survey` | 설문 대상 판정, 응답 |
 | `/api/push/**` | 푸시 공개 키, 구독, 표시와 클릭 추적, 다음 알림 관리. `POST /api/push/subscriptions`는 IP별 분당 10건(넘기면 429)에 구독 20,000건 상한 |
 
 ### 응답 스키마는 계약이다

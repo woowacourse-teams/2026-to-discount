@@ -146,10 +146,6 @@ public class SurveyService {
      * 길이 없다(연락처를 안 받는다). 서버가 정본을 들고 화면이 그것을
      * 따르게 한다.
      */
-    public Optional<String> issuedCode(String visitorId) {
-        return gifticons.issuedTo(visitorId);
-    }
-
     /** 응답 결과. {@code code}는 성공했을 때만 채워진다. */
     public record Answer(boolean ok, String reason, String code) {
         static Answer fail(String reason) {
