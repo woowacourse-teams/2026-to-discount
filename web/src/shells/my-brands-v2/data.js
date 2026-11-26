@@ -44,13 +44,13 @@ export function capText(offer) {
 }
 
 export function appLabel(offer) {
-  if (offer.via === 'naverpay') return '네이버페이' // 현장결제는 결제 수단이 채널이다(2026-11-26 사용자)
+  if (offer.via === 'naverpay') return 'N페이' // 현장결제는 결제 수단이 채널이다(2026-11-26 사용자)
   if (offer.platform === OWN) return OWN_LABEL
   return PLATFORM_BY_KEY[offer.platform]?.label ?? NONE
 }
 
 /** 네이버페이 현장결제 채널 배지 */
-const viaChip = (o) => (o.via === 'naverpay' ? [{ kind: 'via', text: '네이버페이', platform: 'naverpay' }] : [])
+const viaChip = (o) => (o.via === 'naverpay' ? [{ kind: 'via', text: 'N페이', platform: 'naverpay' }] : [])
 
 /** 카드 한 장. 대표 오퍼는 splitOffers가 정한 best[0]. */
 export function cardOf(brand, include) {

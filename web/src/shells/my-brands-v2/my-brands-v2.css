@@ -138,4 +138,4 @@
 html:has(.v2), html:has(.v2) body { scrollbar-width: none; -ms-overflow-style: none; }
 html:has(.v2)::-webkit-scrollbar, html:has(.v2) body::-webkit-scrollbar, html:has(.v2) .sheet__body::-webkit-scrollbar { display: none; }
 html:has(.v2) .sheet__body { scrollbar-width: none; }
-.v2-chip--via { background: #e6f9ee; color: #03a84e; }
+.v2-chip--via { background: #03c75a; color: #000; }
