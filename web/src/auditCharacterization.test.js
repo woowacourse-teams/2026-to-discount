@@ -197,6 +197,7 @@ test('telemetry: 감시 중 두 번째 watchAppOpen은 무시된다(onDone 한 �
     innerHeight: 800,
   })
   setGlobal('document', { visibilityState: 'visible' })
+  if (typeof navigator === 'undefined') setGlobal('navigator', { userAgent: 'node' })
   const { watchAppOpen } = await import('./telemetry.js')
   const done = []
   watchAppOpen('baemin://x', 10, (opened, props) => done.push([opened, props.platform]))
