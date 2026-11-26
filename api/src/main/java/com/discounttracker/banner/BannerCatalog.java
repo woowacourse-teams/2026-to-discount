@@ -349,8 +349,11 @@ public class BannerCatalog {
         try (InputStream in = source.getInputStream()) {
             Map<String, Object> root = new Yaml().load(in);
             if (root == null) return List.of();
+            // 키 오타나 리스트가 아닌 값을 빈 목록으로 받으면 배너가 다 사라졌는데 reload가 성공한다. 실패로 돌려 이전 목록을 지킨다.
+            if (!root.containsKey("banners")) throw new IllegalStateException("banners.yml에 최상위 banners 키가 없다: " + root.keySet());
             Object raw = root.get("banners");
-            if (!(raw instanceof List<?> list)) return List.of();
+            if (raw == null) return List.of();                     // "banners:"만 있으면 비운 것이다
+            if (!(raw instanceof List<?> list)) throw new IllegalStateException("banners가 리스트가 아니다: " + raw.getClass().getSimpleName());
 
             List<Banner> parsed = new ArrayList<>();
             List<String> skipped = new ArrayList<>();

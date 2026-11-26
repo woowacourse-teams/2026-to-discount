@@ -50,6 +50,14 @@ public final class InterProcessFileLock {
         if (key.getParent() != null) Files.createDirectories(key.getParent());
         long deadline = System.nanoTime() + timeout.toNanos();
 
+        // 공유 모드는 READ로만 연다(백업 쪽 파일에 쓰기 권한이 없어도 되게). 그래서 파일이 아직 없으면 먼저 만든다.
+        if (shared && Files.notExists(key)) {
+            try {
+                Files.createFile(key);
+            } catch (java.nio.file.FileAlreadyExistsException ignored) {
+                // 다른 프로세스가 먼저 만들었다
+            }
+        }
         ReentrantLock jvmLock = JVM_LOCKS.computeIfAbsent(key, k -> new ReentrantLock());
         if (!tryJvm(jvmLock, timeout)) throw timedOut(key, timeout);
         try (FileChannel channel = shared
