@@ -1157,6 +1157,36 @@ class BrandComparisonServiceTest {
     }
 
     @Test
+    void latestObservationIsJudgedByInstantNotByText() {
+        // 서울 11:00(= 02:00Z)의 소진이 서울 10:30(= 01:30Z)의 열림보다 늦다. 글자로 견주면 "10:30"이 "02:00"보다 커서 틀린다.
+        Offer offer = firstComeOffer(List.of(
+                ledgerFirstCome(8000, false, "2026-08-20T10:30:00+09:00"),
+                ledgerFirstCome(8000, true, "2026-08-20T02:00:00Z")));
+        assertTrue(offer.soldOut());
+    }
+
+    @Test
+    void todayIsTheSeoulDateEvenWhenTheOffsetIsZ() {
+        // 2026-08-19T16:00Z = 서울 2026-08-20 01:00. 글자 앞머리는 08-19지만 오늘 관측이다.
+        Offer offer = firstComeOffer(List.of(ledgerFirstCome(8000, true, "2026-08-19T16:00:00Z")));
+        assertTrue(offer.soldOut());
+    }
+
+    @Test
+    void anEarlierOpenObservationDoesNotKeepASoldOutCouponInTheRanking() {
+        // 열림 10:00 뒤 소진 11:00: 열림 관측이 최고 할인에 남으면 카드는 소진인데 순위만 8,000원으로 선다.
+        BrandComparison card = serviceWith(List.of(
+                        ledgerFirstCome(8000, false, "2026-08-20T10:00:00+09:00"),
+                        ledgerFirstCome(8000, true, "2026-08-20T11:00:00+09:00")),
+                GOOBNE_BRANDS, on("2026-08-20"), GOOBNE_BANNER)
+                .compare().stream()
+                .filter(c -> c.brand().name().equals("굽네치킨"))
+                .findFirst().orElseThrow();
+        assertNull(card.maxConfirmedAmount(), "소진된 쿠폰은 순위 금액이 아니다");
+        assertTrue(card.offers().get(0).soldOut());
+    }
+
+    @Test
     void dropsBannersThatCannotStandAsAnOffer() {
         // 정률·랜덤 배너는 이제 카드에도 선다(certainty가 EXACT가 아닐 뿐) - 그래서
         // "certainty == EXACT" 필터로는 이 테스트의 이름을 더는 못 지킨다. 진짜로 오퍼가

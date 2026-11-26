@@ -19,10 +19,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -145,19 +150,38 @@ public class BrandComparisonService {
      * 관측이 여럿이면 가장 늦은 것이 이긴다(소진 뒤 다시 열렸으면 열림). 원장 안에서의 판정과 같은 규칙이다.
      */
     private Set<String> ledgerFirstComeSoldOutToday(List<OfferRecord> records, LocalDate today) {
-        Map<String, Offer> latest = new LinkedHashMap<>();
-        String todayText = today.toString();
+        Map<String, Instant> latestAt = new HashMap<>();
+        Map<String, Boolean> latestSoldOut = new HashMap<>();
         for (OfferRecord record : records) {
             if (record.isExpired(today)) continue;
             Offer o = Offer.from(record, today);
-            if (o.fromBanner() || !o.firstCome() || o.amount() == null
-                    || o.capturedAt() == null || !o.capturedAt().startsWith(todayText)) continue;
-            latest.merge(firstComeKey(brands.canonical(record.brand()), record.platform(), o.amount()), o,
-                    (x, y) -> x.capturedAt().compareTo(y.capturedAt()) >= 0 ? x : y);
+            Instant at = o.fromBanner() || !o.firstCome() || o.amount() == null ? null : capturedInstant(o.capturedAt());
+            // 오늘인지는 글자 앞머리가 아니라 서울 날짜로 본다(오프셋이 Z인 값도 있다).
+            if (at == null || !at.atZone(clock.getZone()).toLocalDate().equals(today)) continue;
+            String key = firstComeKey(brands.canonical(record.brand()), record.platform(), o.amount());
+            Instant seen = latestAt.get(key);
+            if (seen == null || !at.isBefore(seen)) {
+                latestAt.put(key, at);
+                latestSoldOut.put(key, o.soldOut());
+            }
         }
         Set<String> soldOut = new HashSet<>();
-        latest.forEach((key, o) -> { if (o.soldOut()) soldOut.add(key); });
+        latestSoldOut.forEach((key, so) -> { if (so) soldOut.add(key); });
         return soldOut;
+    }
+
+    /** 관측 시각을 순간으로 읽는다. 오프셋이 없으면 서울 시각으로 본다. 못 읽으면 null(그 관측은 건너뛴다). */
+    private Instant capturedInstant(String text) {
+        if (text == null) return null;
+        try {
+            return OffsetDateTime.parse(text).toInstant();
+        } catch (DateTimeParseException e) {
+            try {
+                return LocalDateTime.parse(text).atZone(clock.getZone()).toInstant();
+            } catch (DateTimeParseException e2) {
+                return null;
+            }
+        }
     }
 
     /** 넘겨받은 레코드로 비교한다. 운영 경로는 원장 레코드로 {@link #compare()}가 부른다. */
@@ -194,7 +218,8 @@ public class BrandComparisonService {
             // 같은 쿠폰의 원장 관측이 오늘 소진이면 선착순 배너도 소진이다(2026-11-26 60계치킨: 수집이 소진을 읽었는데
             // 배너에 소진일이 없어 카드엔 열림으로 남았다). 순위 계산(아래 forSorting)보다 앞에서 바꿔야 소진 오퍼가
             // 최고 할인 후보에 안 든다.
-            if (offer.fromBanner() && offer.firstCome() && !offer.soldOut() && offer.amount() != null
+            // 배너만이 아니다: 가장 늦은 관측이 소진이면 그보다 이른 열림 관측(원장)도 낡은 것이라 순위에 안 들게 같이 바꾼다.
+            if (offer.firstCome() && !offer.soldOut() && offer.amount() != null
                     && ledgerSoldOutToday.contains(firstComeKey(name, record.platform(), offer.amount()))) {
                 offer = offer.asSoldOut();
             }
