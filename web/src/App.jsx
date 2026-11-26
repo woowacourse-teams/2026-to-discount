@@ -493,8 +493,8 @@ export default function App({ initial = null, Card = CouponCard, mainClassName }
   // 여기서 떼는 조건과 pickPopular(revealFilters)가 푸는 조건이 같아야 순위의 브랜드가 늘 카드로 선다(#219).
   const rankBrands = useMemo(
     () => (brands ? applyHidden(applyFilters(brands, { ...filters, categories: new Set(), search: '' }), hidden, bestOf) : brands),
+    // minute: 계산 안에서 읽지 않는다. applyFilters가 pageNow()로 '오픈 전'을 가르므로 분이 바뀌면 다시 거른다.
     [brands, filters, hidden, bestOf, minute],
-
   )
   // 맨 위로 올라온 이유(신규 앞)를 브랜드에 `pin`으로 붙인다. 카드가 노출과 클릭 이벤트에 싣는다(2026-10-27).
   const visibleBrands = useMemo(() => {

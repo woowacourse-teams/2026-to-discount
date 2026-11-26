@@ -1,19 +1,14 @@
 // 빌드 결과에 크롤러가 읽을 본문을 심는다.
 //
-// 왜 필요한가 — 이 앱은 CSR SPA라 배포된 index.html이 1.1KB짜리
+// 왜 필요한가 — Vite가 내는 index.html은 1.1KB짜리
 // `<div id="root"></div>` 하나다. 크롤러가 받는 HTML에 브랜드 이름이
 // 한 글자도 없어서, 검색으로는 서비스 이름("오늘의할인")을 이미 아는
 // 사람만 찾아온다. 정작 유입이 될 말("교촌치킨 할인")에는 걸릴 근거가
 // 없다.
 //
-// 왜 SSR이 아닌가 — Vite에는 프리렌더 API가 없고, 공식 안내는
-// entry-server를 만들어 client/server를 따로 빌드하는 것이다. 그런데
-// 이 앱은 서버에서 안 돈다: variant.js가 모듈 로드 시점에 localStorage를
-// 읽고 analytics.js가 window.matchMedia를 부른다. 그걸 다 걷어내는 값보다
-// 여기서 HTML을 직접 찍는 값이 싸다.
-//
-// 사용자에게는 안 보인다 — React가 createRoot().render()로 #root를
-// 통째로 갈아끼운다. 심어둔 HTML은 크롤러와 첫 페인트까지만 산다.
+// 홈("/")은 요청 때 api/ssr.js가 서버 렌더하고 브라우저가 hydrateRoot로 잇는다. 여기서 심는 홈 본문은
+// 그 서버 렌더가 실패할 때 대신 나가는 사전 렌더링 HTML이다(ssr.js가 이 파일을 template.js로 쓴다).
+// 브랜드 페이지(/brand/이름)는 이 파일이 찍은 정적 HTML이 그대로 나가고, 앱 번들이 붙어 화면을 다시 그린다.
 // 내용이 같으므로 클로킹이 아니다.
 //
 // API가 죽어 있으면 심지 않고 그냥 넘어간다. 배포를 막을 일이 아니다.
@@ -203,19 +198,7 @@ function metaTags(brands, today) {
   return [
     `    <link rel="canonical" href="${SITE}/" />`,
     `    <meta name="keywords" content="${esc(keywords)}" />`,
-    '    <meta property="og:type" content="website" />',
-    '    <meta property="og:site_name" content="SaveEats" />',
-    '    <meta property="og:title" content="SaveEats - 한 눈에 보는 배달앱 할인" />',
-    `    <meta property="og:description" content="${esc(desc)}" />`,
-    `    <meta property="og:url" content="${SITE}/" />`,
-    '    <meta property="og:locale" content="ko_KR" />',
-    `    <meta property="og:image" content="${SITE}/og-image.png?v=4" />`,
-    '    <meta property="og:image:width" content="1200" />',
-    '    <meta property="og:image:height" content="630" />',
-    '    <meta name="twitter:card" content="summary_large_image" />',
-    `    <meta name="twitter:image" content="${SITE}/og-image.png?v=4" />`,
-    '    <meta name="twitter:title" content="SaveEats - 한 눈에 보는 배달앱 할인" />',
-    `    <meta name="twitter:description" content="${esc(desc)}" />`,
+    socialMeta('website', 'SaveEats - 한 눈에 보는 배달앱 할인', desc, `${SITE}/`),
     // 사이트 이름을 검색엔진에 알린다(구조화 데이터, JSON-LD). 상품, 가격 마크업은 쓰지 않는다.
     // 거래가 일어나는 페이지가 아니다(SEO-ACTIONS.md, ADR-015 고지).
     `    <script type="application/ld+json">${JSON.stringify({
@@ -315,6 +298,26 @@ function appAssetTags(indexHtml) {
   return tags.map((t) => `    ${t}`).join(String.fromCharCode(10))
 }
 
+// 링크 미리보기(og, twitter) 메타. 홈과 브랜드 페이지가 같이 쓴다. 이미지 주소와 크기는 linkPreviewMeta.test.js가 지킨다.
+function socialMeta(type, title, desc, url) {
+  const image = `${SITE}/og-image.png?v=4`
+  return [
+    `    <meta property="og:type" content="${type}" />`,
+    '    <meta property="og:site_name" content="SaveEats" />',
+    `    <meta property="og:title" content="${esc(title)}" />`,
+    `    <meta property="og:description" content="${esc(desc)}" />`,
+    `    <meta property="og:url" content="${url}" />`,
+    '    <meta property="og:locale" content="ko_KR" />',
+    `    <meta property="og:image" content="${image}" />`,
+    '    <meta property="og:image:width" content="1200" />',
+    '    <meta property="og:image:height" content="630" />',
+    '    <meta name="twitter:card" content="summary_large_image" />',
+    `    <meta name="twitter:image" content="${image}" />`,
+    `    <meta name="twitter:title" content="${esc(title)}" />`,
+    `    <meta name="twitter:description" content="${esc(desc)}" />`,
+  ].join(String.fromCharCode(10))
+}
+
 export function brandPage(b, siblings, today, appTags) {
   const offers = (b.offers ?? []).filter((o) => o.amount != null)
   const cat = CATEGORY_LABEL[b.category]
@@ -339,17 +342,7 @@ export function brandPage(b, siblings, today, appTags) {
     <title>${esc(title)}</title>
     <meta name="description" content="${esc(desc)}" />
     <link rel="canonical" href="${url}" />
-    <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="SaveEats" />
-    <meta property="og:title" content="${esc(title)}" />
-    <meta property="og:description" content="${esc(desc)}" />
-    <meta property="og:url" content="${url}" />
-    <meta property="og:locale" content="ko_KR" />
-    <meta property="og:image" content="${SITE}/og-image.png?v=4" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="${SITE}/og-image.png?v=4" />
+${socialMeta('article', title, desc, url)}
     <script type="application/ld+json">${JSON.stringify({
       '@context': 'https://schema.org', '@type': 'BreadcrumbList',
       itemListElement: [
