@@ -3,7 +3,7 @@ import json
 import tempfile
 from pathlib import Path
 from unittest.mock import patch, Mock
-from run import Guard, point_timestamp, run_stage
+from run import Guard, point_timestamp, read_new_points, run_stage
 
 class GuardTest(unittest.TestCase):
     def test_failed_preflight_never_starts_a_load_process(self):
@@ -18,7 +18,7 @@ class GuardTest(unittest.TestCase):
             with self.assertRaises(RuntimeError):run_stage(Path(tmp),'probe',2,'30s',initial)
             proc.terminate.assert_called_once()
             result=json.loads((Path(tmp)/'runs.ndjson').read_text())
-            self.assertEqual(result['stopped'],'monitoring failed: RuntimeError')
+            self.assertEqual(result['stopped'],'monitoring failed: RuntimeError: unreachable')
             self.assertEqual(result['exit_code'],-15)
     def test_k6_fractional_timestamp_precision_and_offsets(self):
         expected=point_timestamp('2026-10-14T09:01:43.093390Z')
@@ -52,5 +52,17 @@ class GuardTest(unittest.TestCase):
         g.points.append((45,'client_elapsed',100))
         self.assertIsNone(g.assess(45,.5,.3))
         self.assertEqual(g.slow,0)
+
+    def test_partial_ndjson_line_waits_for_the_rest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raw=Path(tmp)/'k6.ndjson'
+            point='{"type":"Point","metric":"client_elapsed","data":{"value":5,"time":"2026-10-14T09:01:43Z"}}'
+            raw.write_text(point+chr(10)+point[:20])
+            g=Guard();state={'offset':0,'carry':''}
+            self.assertIsNone(read_new_points(raw,state,g))
+            self.assertEqual(len(g.points),1)
+            with raw.open('a') as f:f.write(point[20:]+chr(10)+'{"type":"Point","metric":"dropped_iterations","data":{"value":1,"time":"2026-10-14T09:01:44Z"}}'+chr(10))
+            self.assertEqual(read_new_points(raw,state,g),'dropped_iterations')
+            self.assertEqual(len(g.points),2)
 
 if __name__=='__main__':unittest.main()
