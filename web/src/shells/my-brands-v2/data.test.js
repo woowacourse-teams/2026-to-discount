@@ -95,8 +95,8 @@ test('배너 cap은 "최대 N원", 없으면 null', () => {
   assert.equal(capText(offer({})), null)
 })
 
-test('N페이 현장결제: 네이버 링크면 N페이, 자사 링크면 홈페이지', async () => {
+test('N페이 현장결제: 네이버 링크면 네이버페이, 자사 링크면 홈페이지', async () => {
   const { appLabel } = await import('./data.js')
-  assert.equal(appLabel({ via: 'naverpay', platform: 'own', link: 'https://pay.naver.com/benefit/payment/detail/1' }), 'N페이')
+  assert.equal(appLabel({ via: 'naverpay', platform: 'own', link: 'https://pay.naver.com/benefit/payment/detail/1' }), '네이버페이')
   assert.equal(appLabel({ via: 'naverpay', platform: 'own', link: 'https://theventi.co.kr/x' }), '홈페이지')
 })

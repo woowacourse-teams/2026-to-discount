@@ -44,7 +44,7 @@ export function capText(offer) {
 }
 
 export function appLabel(offer) {
-  if (offer.via === 'naverpay') return naverLinked(offer) ? 'N페이' : '홈페이지' // 현장결제는 결제 수단이 채널이다(2026-11-26 사용자)
+  if (offer.via === 'naverpay') return naverLinked(offer) ? '네이버페이' : '홈페이지' // 현장결제는 결제 수단이 채널이다(2026-11-26 사용자)
   if (offer.platform === OWN) return OWN_LABEL
   return PLATFORM_BY_KEY[offer.platform]?.label ?? NONE
 }
