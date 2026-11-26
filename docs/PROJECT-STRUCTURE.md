@@ -432,6 +432,8 @@ web/src/styles/topbar-overrides.css
 web/src/surveyQuestions.js
 web/src/telemetry.js
 web/src/useBrandAutocomplete.js
+web/src/useOverlay.js
+web/src/useOverlay.test.js
 web/src/useShareTargetFocus.js
 web/src/useSharedOffer.js
 web/src/useSurvey.js
@@ -488,7 +490,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 223 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 216 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 218 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -676,6 +678,8 @@ HTTP 경계:
 | `surveyQuestions.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `telemetry.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useBrandAutocomplete.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `useOverlay.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `useOverlay.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useShareTargetFocus.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useSharedOffer.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `useSurvey.js` | 런타임 모듈, 세부 책임은 코드 확인 |
