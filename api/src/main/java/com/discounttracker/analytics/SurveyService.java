@@ -82,22 +82,23 @@ public class SurveyService {
         this.eligibility = eligibility;
         this.gifticons = gifticons;
         this.events = events;
-        this.testVisitors = Arrays.stream(testVisitors.split(","))
-                .map(String::trim)
-                .filter(v -> !v.isEmpty())
-                .collect(Collectors.toUnmodifiableSet());
+        this.testVisitors = commaSet(testVisitors);
         if (!this.testVisitors.isEmpty()) {
             log.warn("설문 테스트 visitorId {}개가 열려 있다 — 확인이 끝나면 비운다",
                     this.testVisitors.size());
         }
-        this.blockedVisitors = Arrays.stream(blockedVisitors.split(","))
-                .map(String::trim)
-                .filter(v -> !v.isEmpty())
-                .collect(Collectors.toUnmodifiableSet());
+        this.blockedVisitors = commaSet(blockedVisitors);
         if (!this.blockedVisitors.isEmpty()) {
             log.warn("설문 코드 발급을 막은 visitorId {}개 — {}",
                     this.blockedVisitors.size(), this.blockedVisitors);
         }
+    }
+
+    private static Set<String> commaSet(String values) {
+        return Arrays.stream(values.split(","))
+                .map(String::trim)
+                .filter(v -> !v.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**

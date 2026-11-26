@@ -57,11 +57,12 @@ public class PushTrackingController {
                     : Map.of("notificationId", tracked.notificationId(), "deliveryType", tracked.deliveryType(),
                             "bannerCount", String.valueOf(tracked.bannerIds().size()),
                             "bannerIds", String.join(",", tracked.bannerIds()));
+            String now = OffsetDateTime.now(clock).toString();
             analytics.append(List.of(new VisitEvent(
-                    OffsetDateTime.now(clock).toString(), eventName, context.visitorId(), null,
+                    now, eventName, context.visitorId(), null,
                     null, "/", "internal", null, null, null,
                     details,
-                    OffsetDateTime.now(clock).toString(), null, false, null, eventId, null)));
+                    now, null, false, null, eventId, null)));
         });
     }
 }

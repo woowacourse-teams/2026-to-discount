@@ -1,5 +1,7 @@
 package com.discounttracker.comparison;
 
+import com.discounttracker.history.OfferHistory;
+import com.discounttracker.history.HistoryRepository;
 import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.brand.Category;
@@ -56,7 +58,7 @@ class BrandComparisonServiceTest {
         BrandCatalog brands = catalogWith(yaml);
         BannerCatalog banners = new BannerCatalog(
                 new ByteArrayResource(bannerYaml.getBytes(StandardCharsets.UTF_8)), clock, brands);
-        return new BrandComparisonService(repositoryWith(records), brands, banners, clock);
+        return new BrandComparisonService(repositoryWith(records), brands, banners, clock, null, "", HistoryRepository.of(OfferHistory.empty()));
     }
 
     private BrandComparisonService serviceWithHistory(List<OfferRecord> records, String yaml, Clock clock,
@@ -64,8 +66,7 @@ class BrandComparisonServiceTest {
         BrandCatalog brands = catalogWith(yaml);
         BannerCatalog banners = new BannerCatalog(
                 new ByteArrayResource("banners: []".getBytes(StandardCharsets.UTF_8)), clock, brands);
-        return new BrandComparisonService(repositoryWith(records), brands, banners, clock,
-                com.discounttracker.history.HistoryRepository.of(history));
+        return new BrandComparisonService(repositoryWith(records), brands, banners, clock, null, "", com.discounttracker.history.HistoryRepository.of(history));
     }
 
     @Test
@@ -870,7 +871,7 @@ class BrandComparisonServiceTest {
         BrandCatalog catalog = new BrandCatalog(new ByteArrayResource(brands.getBytes(StandardCharsets.UTF_8)));
         BannerCatalog none = new BannerCatalog(new ByteArrayResource("banners: []".getBytes(StandardCharsets.UTF_8)),
                 Clock.systemDefaultZone(), catalog);
-        var svc = new BrandComparisonService(repositoryWith(records), catalog, none, Clock.systemDefaultZone(), "yogiyo");
+        var svc = new BrandComparisonService(repositoryWith(records), catalog, none, Clock.systemDefaultZone(), null, "yogiyo", HistoryRepository.of(OfferHistory.empty()));
         List<String> names = svc.compare().stream().map(c -> c.brand().name()).toList();
         assertEquals(List.of("푸라닭"), names);
     }

@@ -16,6 +16,7 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * GET /api/insight 집계(mono #403 1단계, A~D와 F). 계약은 이슈 #403 "집계 규칙"과 응답 계약을 따른다.
@@ -189,6 +190,9 @@ public class InsightService {
         Map<String, Integer> size = perPlatform(0);
         cohort.forEach(s -> size.merge(s.platform, 1, Integer::sum));
 
+        // 플랫폼별로 한 번만 나눠 둔다. 날짜마다 전체를 다시 훑지 않는다.
+        Map<String, List<Series>> allBy = all.stream().collect(Collectors.groupingBy(s -> s.platform));
+        Map<String, List<Series>> cohortBy = cohort.stream().collect(Collectors.groupingBy(s -> s.platform));
         List<Map<String, Object>> days = new ArrayList<>();
         for (int i = ci; i < dates.size(); i++) {
             final int d = i;
@@ -200,8 +204,8 @@ public class InsightService {
             Map<String, Object> firstCome = new LinkedHashMap<>();
             for (String p : PLATFORMS) {
                 firstCome.put(p, h.firstCome(dates.get(d), p));
-                median.put(p, median(cohort.stream().filter(s -> s.platform.equals(p) && s.on(d)).map(s -> s.v[d]).toList()));
-                List<Series> on = all.stream().filter(s -> s.platform.equals(p) && s.on(d)).toList();
+                median.put(p, median(cohortBy.getOrDefault(p, List.of()).stream().filter(s -> s.on(d)).map(s -> s.v[d]).toList()));
+                List<Series> on = allBy.getOrDefault(p, List.of()).stream().filter(s -> s.on(d)).toList();
                 active.put(p, on.size());
                 carried.put(p, on.isEmpty() ? null : round(on.stream().filter(s -> !s.obs[d]).count() / (double) on.size()));
                 // 날짜별 지표(2026-11-19 사용자): 그날 할인 중 브랜드의 최고 금액, 브랜드별 최고 금액의 합. 할인 중 브랜드가 없으면 null.

@@ -1,6 +1,5 @@
 package com.discounttracker.brand;
 
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +39,6 @@ public class BrandCatalog {
         load();
     }
 
-    @PostConstruct
     @SuppressWarnings("unchecked")
     void load() {
         aliasToCanonical.clear();

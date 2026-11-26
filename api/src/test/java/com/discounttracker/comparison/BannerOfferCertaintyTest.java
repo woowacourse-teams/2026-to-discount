@@ -1,5 +1,7 @@
 package com.discounttracker.comparison;
 
+import com.discounttracker.history.OfferHistory;
+import com.discounttracker.history.HistoryRepository;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -40,7 +42,7 @@ class BannerOfferCertaintyTest {
     private static BrandComparisonService service(String yml) {
         BannerCatalog banners = new BannerCatalog(
                 new ByteArrayResource(yml.getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
-        return new BrandComparisonService(new OfferRepository(null), emptyBrands(), banners, CLOCK, "");
+        return new BrandComparisonService(new OfferRepository(null), emptyBrands(), banners, CLOCK, null, "", HistoryRepository.of(OfferHistory.empty()));
     }
 
     private static Offer only(BrandComparisonService s) {
@@ -270,7 +272,7 @@ class BannerOfferCertaintyTest {
         BannerCatalog banners = new BannerCatalog(
                 new ByteArrayResource(yaml.getBytes(StandardCharsets.UTF_8)), CLOCK, emptyBrands());
         BrandComparisonService svc =
-                new BrandComparisonService(new OfferRepository(null), emptyBrands(), banners, CLOCK, "");
+                new BrandComparisonService(new OfferRepository(null), emptyBrands(), banners, CLOCK, null, "", HistoryRepository.of(OfferHistory.empty()));
 
         assertEquals(List.of(), svc.compare());
         assertEquals(1, banners.active().size(), "레일에는 여전히 뜬다");
@@ -298,7 +300,7 @@ class BannerOfferCertaintyTest {
             @Override public void reload() { }
             @Override public List<OfferRecord> findAll() { return List.of(ledgerBhc(null)); }
         };
-        var cards = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare();
+        var cards = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, null, "", HistoryRepository.of(OfferHistory.empty())).compare();
         List<Offer> offers = cards.get(0).offers();
         assertEquals(2, offers.size(), offers.toString());
         Offer first = offers.stream().filter(Offer::firstCome).findFirst().orElseThrow();
@@ -329,7 +331,7 @@ class BannerOfferCertaintyTest {
             @Override public void reload() { }
             @Override public List<OfferRecord> findAll() { return List.of(ledgerBhc(null)); }
         };
-        var offers = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers();
+        var offers = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, null, "", HistoryRepository.of(OfferHistory.empty())).compare().get(0).offers();
         assertEquals(1, offers.size(), offers.toString());
         assertEquals(5000, offers.get(0).amount());
     }
@@ -369,7 +371,7 @@ class BannerOfferCertaintyTest {
             @Override public List<OfferRecord> findAll() { return ledgerRecords; }
         };
         BrandComparisonService service =
-                new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "");
+                new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, null, "", HistoryRepository.of(OfferHistory.empty()));
 
         Logger logger = (Logger) LoggerFactory.getLogger(BrandComparisonService.class);
         ListAppender<ILoggingEvent> appender = new ListAppender<>();
@@ -460,7 +462,7 @@ class BannerOfferCertaintyTest {
             @Override public void reload() { }
             @Override public List<OfferRecord> findAll() { return List.of(ledgerBhc(null)); }
         };
-        return new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers();
+        return new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, null, "", HistoryRepository.of(OfferHistory.empty())).compare().get(0).offers();
     }
 
     @Test
@@ -519,7 +521,7 @@ class BannerOfferCertaintyTest {
             @Override public void reload() { }
             @Override public List<OfferRecord> findAll() { return List.of(first, box); }
         };
-        List<Offer> offers = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers();
+        List<Offer> offers = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, null, "", HistoryRepository.of(OfferHistory.empty())).compare().get(0).offers();
         assertEquals(1, offers.size(), offers.toString());
         Offer o = offers.get(0);
         assertEquals(8000, o.amount());
@@ -544,7 +546,7 @@ class BannerOfferCertaintyTest {
             @Override public void reload() { }
             @Override public List<OfferRecord> findAll() { return List.of(first, club); }
         };
-        Offer o = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers().get(0);
+        Offer o = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, null, "", HistoryRepository.of(OfferHistory.empty())).compare().get(0).offers().get(0);
         assertEquals(3000, o.amount());
         assertEquals("baeminClub", o.membershipKey(), "소진된 선착순은 빼고 견준다 - 배민클럽 전용으로 남는다");
         assertNull(o.tiers().get(0).membership(), "선착순 구간은 멤버십을 모른다");
@@ -567,7 +569,7 @@ class BannerOfferCertaintyTest {
             @Override public void reload() { }
             @Override public List<OfferRecord> findAll() { return List.of(first, standing); }
         };
-        Offer o = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, "").compare().get(0).offers().get(0);
+        Offer o = new BrandComparisonService(repo, emptyBrands(), banners, CLOCK, null, "", HistoryRepository.of(OfferHistory.empty())).compare().get(0).offers().get(0);
         assertFalse(o.soldOut());
         assertEquals(3000, o.amount());
         assertTrue(o.firstCome());
