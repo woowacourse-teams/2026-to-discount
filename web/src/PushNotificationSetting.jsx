@@ -4,6 +4,7 @@ import { track } from './analytics.js'
 import { getAnalyticsContext } from './analytics-context.js'
 import { optedOut } from './privacy.js'
 import { hasSeenOfferPrompt, recordOfferPromptSeen } from './pushPrompt.js'
+import { useEscape, useScrollLock } from './useOverlay.js'
 import {
   disablePush,
   deletePushSubscription,
@@ -106,12 +107,7 @@ export default function PushNotificationSetting({ toggleSlot }) {
     }
   }, [promptOpen, promptSource])
 
-  useEffect(() => {
-    if (!promptOpen || showIosGuide) return
-    const closeOnEscape = (event) => { if (event.key === 'Escape') closePrompt('escape') }
-    document.addEventListener('keydown', closeOnEscape)
-    return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [promptOpen, showIosGuide, closePrompt])
+  useEscape(promptOpen && !showIosGuide, () => closePrompt('escape'))
 
   useEffect(() => {
     if (!dialogOpen) return
@@ -160,12 +156,7 @@ export default function PushNotificationSetting({ toggleSlot }) {
     }
   }, [dialogOpen])
 
-  useEffect(() => {
-    if (!promptOpen && !showIosGuide) return
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = previousOverflow }
-  }, [promptOpen, showIosGuide])
+  useScrollLock(promptOpen || showIosGuide)
 
   const closeIosGuide = useCallback(() => {
     if (iosGuideClosing) return
@@ -183,14 +174,7 @@ export default function PushNotificationSetting({ toggleSlot }) {
     return () => window.clearTimeout(id)
   }, [feedback, changing, promptOpen])
 
-  useEffect(() => {
-    if (!showIosGuide) return
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape') closeIosGuide()
-    }
-    document.addEventListener('keydown', closeOnEscape)
-    return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [closeIosGuide, showIosGuide])
+  useEscape(showIosGuide, closeIosGuide)
 
   useEffect(() => () => {
     if (iosGuideCloseTimerRef.current) window.clearTimeout(iosGuideCloseTimerRef.current)

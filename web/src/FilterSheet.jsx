@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { track } from './analytics.js'
 import { PlatformBadge, PLATFORMS } from './logos.jsx'
 import { Track, useDragClose } from './sheetParts.jsx'
+import { useEscape, useScrollLock } from './useOverlay.js'
 import { visibleCategories, isSpecialCategory, MEMBERSHIP_FILTERABLE, MEMBERSHIP_OPTIONS, SORT_KEYS, MIN_AMOUNT_OPTIONS, defaultFilters, isDefaultFilters, minAmountLabel } from './filters.js'
 
 /**
@@ -30,25 +31,12 @@ export default function FilterSheet({ open, filters, brands, onApply, onClose })
   // 2026-09-18에는 스크롤바가 사라지며 폭이 흔들려 잠그지 않았다. 사라진 스크롤바 폭만큼 오른쪽 여백을 채워 막는다.
   const sheetRef = useRef(null)
   const bodyRef = useRef(null)
-  useEffect(() => {
-    if (!open) return undefined
-    const s = document.body.style
-    const prev = { overflow: s.overflow, paddingRight: s.paddingRight }
-    const bar = window.innerWidth - document.documentElement.clientWidth
-    s.overflow = 'hidden'
-    if (bar > 0) s.paddingRight = `${bar}px`
-    return () => { s.overflow = prev.overflow; s.paddingRight = prev.paddingRight }
-  }, [open])
+  useScrollLock(open)
 
   useDragClose(sheetRef, bodyRef, open, onClose)
 
   // ESC로 닫는다. 키보드만 쓰는 사용자에게 닫을 길이 배경 클릭뿐이면 안 된다.
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') onClose() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  useEscape(open, onClose)
 
   if (!open) return null
 

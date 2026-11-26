@@ -16,6 +16,7 @@ import BestHistoryChart from './BestHistoryChart.jsx'
 import OfferShareButton from './OfferShareButton.jsx'
 import { sharedOfferKey } from './offerSharing.js'
 import { useShareTargetFocus } from './useShareTargetFocus.js'
+import { useEscape, useIsoLayoutEffect, useScrollLock } from './useOverlay.js'
 // coupon-card.css는 여기서 싣지 않는다. :root 배경 같은 전역 규칙이 있어 운영 카드 쪽에 섞이면 안 된다.
 // 쿠폰 쪽일 때만 App이 따로 받고, 서버 렌더는 <head>에 링크를 단다(api/ssr.js).
 
@@ -168,8 +169,6 @@ function ComboInfo({ o, text }) {
   )
 }
 
-// 서버 렌더에서는 layout effect가 돌지 않고 경고만 남긴다(App.jsx와 같은 꼴).
-const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 // 동점 최고: 오퍼마다 단독 쿠폰과 같은 쿠폰 하나, 가로 캐러셀(CSS 스크롤 스냅)에 나란히. 배지는 그 쿠폰 오른쪽 위 포스트잇.
 // 현재 위치 점은 IntersectionObserver로만 갱신한다(스크롤 이벤트, 폭 재기 없음). 서버 렌더와 마운트 전에는 첫 점이 켜져 있다.
@@ -180,7 +179,7 @@ function Carousel({ brand, best, position, idx, setIdx }) {
   const onDown = (e) => { if (e.pointerType === 'mouse' && e.button === 0) drag.current = { x: e.clientX, left: ref.current.scrollLeft, moved: false } }
   const onMove = (e) => {
     const d = drag.current
-    if (!d) return
+    if (!d || d.up) return
     const dx = e.clientX - d.x
     if (!d.moved && Math.abs(dx) > 5) { d.moved = true; ref.current.setPointerCapture(e.pointerId); ref.current.classList.add('cc-dragging') }
     if (d.moved) ref.current.scrollLeft = d.left - dx
@@ -189,10 +188,11 @@ function Carousel({ brand, best, position, idx, setIdx }) {
     const d = drag.current
     if (!d) return
     ref.current.classList.remove('cc-dragging')
-    if (d.moved) setTimeout(() => { drag.current = null }, 0)
+    // 끌었으면 비우지 않고 둔다. 이어지는 클릭을 onClickCapture가 막고 그 자리에서 비운다.
+    if (d.moved) d.up = true
     else drag.current = null
   }
-  const onClickCapture = (e) => { if (drag.current?.moved) { e.preventDefault(); e.stopPropagation() } }
+  const onClickCapture = (e) => { if (drag.current?.moved) { e.preventDefault(); e.stopPropagation(); drag.current = null } }
   // 캐러셀을 넘겼다(사람이 넘긴 것만: 지금 쿠폰이 바뀐 때). 첫 그리기는 세지 않는다.
   const shownIdx = useRef(idx)
   useEffect(() => {
@@ -381,14 +381,8 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
     el.addEventListener('touchcancel', te)
     return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
   }, [sheet])
-  useEffect(() => {
-    if (!sheet) return undefined
-    const esc = (e) => { if (e.key === 'Escape') setSheet(false) }
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    document.addEventListener('keydown', esc)
-    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', esc) }
-  }, [sheet])
+  useScrollLock(sheet)
+  useEscape(sheet, () => setSheet(false))
   // 딥링크(#brand-이름)로 들어오면 펼친 채로 그 카드로 스크롤한다(운영 카드와 같다).
   useEffect(() => {
     if (highlighted) {

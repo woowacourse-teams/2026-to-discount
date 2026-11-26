@@ -1,5 +1,5 @@
 import { afterHistorySettles, useBackClose } from './backClose.js'
-import { Suspense, lazy, startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { goLive, usePageMinute } from './pageNow.js'
 import { importRetry } from './lazyRetry.js'
@@ -44,9 +44,9 @@ import BrandGridSkeleton from './BrandGridSkeleton.jsx'
 import { useSharedOffer } from './useSharedOffer.js'
 import { setHubLinks } from './offerLink.js'
 import SiteFooter from './SiteFooter.jsx'
+import { useIsoLayoutEffect } from './useOverlay.js'
 
 // 서버 렌더에서는 layout effect가 돌지 않고 경고만 남긴다. 서버에선 그냥 effect로 둔다.
-const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 // 한 번에 그리는 브랜드 카드 수. 화면에 두 줄쯤 들어간다.
 const BRAND_PAGE = 12
