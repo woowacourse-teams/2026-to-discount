@@ -44,16 +44,20 @@ export function capText(offer) {
 }
 
 export function appLabel(offer) {
+  if (offer.via === 'naverpay') return '네이버페이' // 현장결제는 결제 수단이 채널이다(2026-11-26 사용자)
   if (offer.platform === OWN) return OWN_LABEL
   return PLATFORM_BY_KEY[offer.platform]?.label ?? NONE
 }
+
+/** 네이버페이 현장결제 채널 배지 */
+const viaChip = (o) => (o.via === 'naverpay' ? [{ kind: 'via', text: '네이버페이', platform: 'naverpay' }] : [])
 
 /** 카드 한 장. 대표 오퍼는 splitOffers가 정한 best[0]. */
 export function cardOf(brand, include) {
   const { best, hasBest, bundles } = splitOffers(brand.offers, include)
   const offer = best[0]
   if (!offer) return null
-  const chips = headOrder(chipsOf(offer, brand.name).filter(onCard)).map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? offer.platform }))
+  const chips = [...viaChip(offer), ...headOrder(chipsOf(offer, brand.name).filter(onCard)).map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? offer.platform }))]
   return {
     name: brand.name,
     displayName: shortBrandName(brand),
@@ -98,7 +102,7 @@ export function detailOf(brand, include) {
       amountLabel: amountLabel(o),
       dim: !!(o.soldOut || beforeOpen(o) || o.qualifier === '랜덤'), // 카드의 card.dim과 같은 조건
       minLabel: minText(o.minOrderAmount),
-      chips: chipsOf(o, brand.name).filter((c) => c.scope === 'offer').map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? o.platform })),
+      chips: [...viaChip(o), ...chipsOf(o, brand.name).filter((c) => c.scope === 'offer').map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? o.platform }))],
       // 합산식(10,000+2,000)은 화면에 안 낸다. 결과 금액과 최소주문만 다른 쿠폰과 같게 보인다. 값과 속성(최적 등)은 그대로.
       rows: rows.map((r) => ({ ...r, extra: /^[\d,]+\+[\d,]+$/.test(r.extra) ? '' : r.extra, min: r.min.replace('원↑', '원 이상 주문시') })),
       note,

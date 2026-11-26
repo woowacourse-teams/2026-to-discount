@@ -96,7 +96,7 @@ export default function DetailSheet({ card, position, include, closing, sharedKe
             {offers.map((o, i) => (
               <li key={`${o.platform}${i}`} className={`v2-sheet__offer${o.dim ? ' v2-sheet__offer--dim' : ''}${sharedKey === sharedOfferKey(o.offer) ? ' shared-offer-target' : ''}`} tabIndex={-1} data-offer-key={sharedOfferKey(o.offer)}>
                 <div className="v2-sheet__app">
-                  <PlatformLogo platform={o.platform} label={o.appLabel} />
+                  <PlatformLogo platform={o.via ?? o.platform} label={o.appLabel} />
                   <OfferShareButton offer={o.offer} brandName={card.name} position={position} where="sheet" className="v2-share" />
                 </div>
                 <p className="v2-sheet__amount"><Amount label={o.amountLabel} /></p>
@@ -123,7 +123,7 @@ export default function DetailSheet({ card, position, include, closing, sharedKe
                 {o.note && <p className="v2-sheet__note">{o.note}</p>}
                 <GoButton
                   link={offerLinkProps({ offer: o.offer, brand: card.brand, position, best: o.best, where: 'sheet', slot: o.slotBase + i + 1, expanded: true })}
-                  platform={o.platform}
+                  platform={o.via ?? o.platform}
                   appLabel={o.appLabel}
                 />
               </li>
