@@ -216,6 +216,7 @@ test('audit: EventBanner/OfferChip — API 주소를 허용 스킴 확인 없이
   assert.equal(offerLinkMod.safeHref(' JavaScript:x'), null)
   assert.equal(offerLinkMod.safeHref('https://a'), 'https://a')
   assert.equal(offerLinkMod.safeHref('yogiyolink://search'), 'yogiyolink://search')
+  assert.equal(offerLinkMod.offerLink({ platform: 'baemin', link: 'javascript:x' }), offerLinkMod.offerLink({ platform: 'baemin' }), '오퍼 칩·쿠폰 카드는 다음 단계 주소로')
 })
 test('audit: useSurvey — 화면이 다시 보일 때마다 attempts=0으로 되돌려 지수 대기가 무력화된다(useSurvey.js:90)', async () => {
   const { readFile } = await import('node:fs/promises')

@@ -226,11 +226,14 @@ export function offerLink(offer, brandLinks, brandName) {
   // 쿠팡이츠: 수집이 그 쿠폰이 있는 허브 탭 링크(coupangeats://…anchorTabNo=N)를 실었으면 그 탭으로, 아니면 공유 링크(2026-10-07)
   // 2026-10-16 사용자: 탭까지 붙여. 앱이 안 열리면 openWithNotice가 4초 뒤 공유 링크로 넘긴다.
   if (offer.platform === 'coupangeats') return coupangeatsLink(offer)
-  return offer.link
-    ?? brandLinks?.[offer.platform]
-    ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
-    ?? hubLinks[offer.platform]
-    ?? PLATFORM_APP_LINKS[offer.platform]
+  // 앞 단계 주소가 안전하지 않으면(javascript: 등) 다음 단계로 넘어간다. 모든 칩·카드가 이 함수를 거친다.
+  return [
+    offer.link,
+    brandLinks?.[offer.platform],
+    PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName),
+    hubLinks[offer.platform],
+    PLATFORM_APP_LINKS[offer.platform],
+  ].map(safeHref).find(Boolean)
 }
 
 /** offer_link_click 속성. 운영 카드와 쿠폰 카드가 같은 키로 남긴다(PostHog 대시보드가 이 키로 가른다). */
