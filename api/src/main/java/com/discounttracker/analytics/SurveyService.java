@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -227,9 +226,7 @@ public class SurveyService {
                     .limit(MAX_ANSWERS)
                     .forEach(e -> props.put("q_" + e.getKey(), SurveyText.clean(e.getValue())));
         }
-        events.append(List.of(new VisitEvent(
-                OffsetDateTime.now().toString(), "survey_answer", visitorId,
-                null, null, null, null, null, null, null, props, null,
-                ipHash, null, null, UUID.randomUUID().toString(), null)));
+        events.append(List.of(VisitEvent.server(
+                OffsetDateTime.now().toString(), "survey_answer", visitorId, null, props, ipHash, null)));
     }
 }

@@ -45,4 +45,10 @@ public record VisitEvent(
         String eventId,
         String bot
 ) {
+    /** 서버가 직접 남기는 이벤트(설문 응답, 데모 시드). 클라이언트 칸은 비우고 eventId만 새로 발급한다. */
+    public static VisitEvent server(String ts, String event, String visitorId, String sessionId,
+                                    Map<String, String> props, String ipHash, Boolean dev) {
+        return new VisitEvent(ts, event, visitorId, sessionId, null, null, null, null, null, null,
+                props, null, ipHash, dev, null, java.util.UUID.randomUUID().toString(), null);
+    }
 }

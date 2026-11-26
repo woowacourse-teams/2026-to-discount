@@ -124,9 +124,8 @@ public class PmfSurveyService {
                 }
                 // 완료는 원장 기록 성공 뒤에만 표시한다. 보상 없는 설문에는 쿠폰 예외 처리가 필요 없다.
                 String event = followUp ? "survey_followup_answer" : dismiss ? "survey_closed" : "survey_answer";
-                events.append(List.of(new VisitEvent(clock.instant().toString(), event,
-                        visitor, session, null, null, null, null, null, null, props, null, ipHash,
-                        local && visitor.startsWith("pmf_demo_") ? true : null, null, UUID.randomUUID().toString(), null)));
+                events.append(List.of(VisitEvent.server(clock.instant().toString(), event,
+                        visitor, session, props, ipHash, local && visitor.startsWith("pmf_demo_") ? true : null)));
                 catchUp();
                 return "ok";
             }

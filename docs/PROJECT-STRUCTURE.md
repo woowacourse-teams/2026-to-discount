@@ -159,6 +159,7 @@ api/src/test/java/com/discounttracker/analytics/SurveyControllerTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyEligibilityTest.java
 api/src/test/java/com/discounttracker/analytics/SurveySettingsTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyTextTest.java
+api/src/test/java/com/discounttracker/analytics/VisitEventTest.java
 api/src/test/java/com/discounttracker/banner/BannerAmountTest.java
 api/src/test/java/com/discounttracker/banner/BannerBuilderTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogAuditTest.java
@@ -490,7 +491,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 223 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 224 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 219 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
