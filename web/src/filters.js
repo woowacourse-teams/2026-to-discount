@@ -33,7 +33,7 @@ export const MIN_CATEGORY_OFFERS = 5
 export const SPECIAL_CATEGORIES = [
   { key: 'firstCome', label: '한정' },
   { key: 'random', label: '랜덤' },
-  { key: 'naverpay', label: '네이버페이' },
+  { key: 'naverpay', label: '현장결제' }, // 네이버페이 현장결제 혜택 전체(2026-11-26 사용자)
   { key: 'self', label: '자체 할인' }, // 적립과 자사 행사를 하나로(2026-11-26 사용자). 포장은 칩에서 뺐다
 ]
 const SPECIAL_MATCH = {

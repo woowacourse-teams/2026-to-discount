@@ -530,7 +530,7 @@ test('혜택 칩 키는 분류 키와 겹치지 않는다', () => {
     assert.ok(!new RegExp(String.raw`category:\s*${c.key}\b`).test(yml), c.key)
   }
   assert.ok(new RegExp(String.raw`category:\s*chicken\b`).test(yml))   // 패턴이 실제 분류를 잡는지
-  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤', '네이버페이', '자체 할인'])
+  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤', '현장결제', '자체 할인'])
 })
 
 test('?c=는 아는 특수 칩만 받는다', () => {
