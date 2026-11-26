@@ -222,6 +222,7 @@ api/src/test/resources/reports/legacy-reports.jsonl
 web/.env.example
 web/.env.production
 web/.gitignore
+web/NUL
 web/README.md
 web/api/share.js
 web/api/ssr.js
@@ -295,6 +296,7 @@ web/src/analytics.js
 web/src/api.js
 web/src/apiBase.js
 web/src/apiBase.test.js
+web/src/auditCharacterization.test.js
 web/src/backClose.js
 web/src/backClose.test.js
 web/src/bannerAnalytics.js
@@ -484,7 +486,7 @@ flowchart TB
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
 | `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 218 |
-| `web/` | 브랜드 비교 UI와 행동 이벤트 | 217 |
+| `web/` | 브랜드 비교 UI와 행동 이벤트 | 219 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
 경계는 [`ADR-002`](decisions/ADR-002-mono-is-the-public-source.md)에
@@ -578,6 +580,7 @@ HTTP 경계:
 | `api.js` | 브랜드와 배너 API 호출 |
 | `apiBase.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `apiBase.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
+| `auditCharacterization.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `backClose.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `backClose.test.js` | 런타임 모듈, 세부 책임은 코드 확인 |
 | `bannerAnalytics.js` | 런타임 모듈, 세부 책임은 코드 확인 |
