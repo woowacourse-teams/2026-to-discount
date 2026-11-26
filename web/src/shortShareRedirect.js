@@ -1,5 +1,8 @@
+// 짧은 공유 코드 모양. 만드는 쪽(shortShareLink.js)과 여는 쪽이 같이 쓴다.
+export const SHORT_CODE = /^[A-Za-z0-9_-]{16}$/
+
 export async function shortShareRedirect(code, apiBase, request = fetch) {
-  if (typeof code !== 'string' || !/^[A-Za-z0-9_-]{16}$/.test(code)) return { location: '/#share=invalid' }
+  if (typeof code !== 'string' || !SHORT_CODE.test(code)) return { location: '/#share=invalid' }
   try {
     const response = await request(`${apiBase}/api/share-links/${code}`, { signal: AbortSignal.timeout(4000) })
     if (response.status === 404) return { location: '/#share=invalid' }

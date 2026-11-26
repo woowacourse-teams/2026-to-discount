@@ -6,7 +6,7 @@ export function useShareTargetFocus(root, key, ready, onVisible) {
     if (!key) { focused.current = null; return undefined }
     if (!ready || (focused.current?.key === key && focused.current.onVisible === onVisible)) return undefined
     const frame = requestAnimationFrame(() => {
-      const element = root.current?.querySelector(`[data-offer-key="${key}"]`)
+      const element = root.current?.querySelector(`[data-offer-key="${CSS.escape(key)}"]`)
       if (!element) return
       element.scrollIntoView({ block: 'center' })
       element.focus({ preventScroll: true })
