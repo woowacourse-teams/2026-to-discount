@@ -228,8 +228,30 @@ function metaTags(brands, today) {
 // 브랜드 하나짜리 페이지의 주소. 한글을 그대로 둔다 — 주소창에 브랜드
 // 이름이 보이는 편이 검색 결과에서도 읽힌다. 파일 이름에 못 쓰는 글자만
 // 하이픈으로 바꾼다("아구듬뿍&알곤마니" 같은 이름이 실제로 있다).
-function slugOf(name) {
+export function slugOf(name) {
   return name.replace(/[^가-힣a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '') || 'brand'
+}
+
+// 빌드일은 한국 날짜다. toISOString(UTC)이면 KST 00~09시 빌드가 어제를 찍는다.
+export function kstDate(d = new Date()) {
+  return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+}
+
+// 두 이름이 같은 slug가 되면 뒤 브랜드가 앞 페이지를 덮고 sitemap에 같은 주소가 둘 선다. 빌드를 멈춘다.
+export function assertUniqueSlugs(names) {
+  const seen = new Map()
+  for (const n of names) {
+    const slug = slugOf(n)
+    if (seen.has(slug)) throw new Error(`slug 충돌: "${seen.get(slug)}"와 "${n}"가 /brand/${slug}`)
+    seen.set(slug, n)
+  }
+}
+
+// 치환 대상이 없으면 조용히 넘어가지 않는다(템플릿이 바뀌면 본문 없이 성공 로그만 남았다).
+export function replaceOrThrow(html, pattern, value) {
+  const out = html.replace(pattern, value)
+  if (out === html) throw new Error(`치환 대상 없음: ${pattern}`)
+  return out
 }
 
 // 구간이 있으면 줄로 편다. 얇은 페이지 100여 개를 만들면 저품질로
@@ -348,7 +370,7 @@ ${BOOT_STYLE}
              링크였다. 이제 이 주소가 곧 그 브랜드 페이지라 자기 자신을
              가리키는 셈이 됐다. 하이드레이션 뒤 앱이 같은 자리에 띄우는
              "← 전체 브랜드 보기"와 같은 곳으로 보낸다. -->
-        <p><a href="${SITE}/">← 전체 브랜드 보기</a></p>
+        <p><a href="/">← 전체 브랜드 보기</a></p>
       </header>
       <main class="seo">
         <h2>앱별 할인</h2>
@@ -357,12 +379,12 @@ ${offers.map(offerSection).join('\n')}
         <p>같은 브랜드라도 앱마다 할인 금액과 최소 주문 금액이 다릅니다. 표시된 금액은 확인일 기준이며, 선착순 쿠폰은 시간대에 따라 소진될 수 있습니다. 주문 전에 각 앱에서 실제 금액을 다시 확인하세요.</p>
         <h2>같은 분류의 다른 브랜드</h2>
         <ul>
-${siblings.map((n) => `          <li><a href="${SITE}/brand/${encodeURIComponent(slugOf(n))}">${esc(n)} 할인</a></li>`).join('\n')}
+${siblings.map((n) => `          <li><a href="/brand/${encodeURIComponent(slugOf(n))}">${esc(n)} 할인</a></li>`).join('\n')}
         </ul>
       </main>
       <footer class="seo footer">
         <p>${today} 기준. 개인이 만든 비영리 정보 제공 페이지입니다. 배달의민족·쿠팡이츠·요기요·땡겨요의 공식 서비스가 아니며 제휴 관계가 없습니다.</p>
-        <p><a href="${SITE}/">SaveEats 홈</a></p>
+        <p><a href="/">SaveEats 홈</a></p>
       </footer>
     </div>
   </body>
@@ -393,15 +415,16 @@ async function main() {
   // 무엇이 오는지가 클릭을 가른다.
   brands.sort((a, b) => (b.maxConfirmedAmount ?? 0) - (a.maxConfirmedAmount ?? 0))
 
-  const today = new Date().toISOString().slice(0, 10)
-  const indexPath = new URL('index.html', `file://${DIST}`)
+  const today = kstDate()
+  const indexPath = new URL('index.html', pathToFileURL(DIST))
   let html = await readFile(indexPath, 'utf8')
 
   const body = bodyHtml(brands, today)
-  html = html.replace('<div id="root"></div>', `<div id="root">\n${body}\n    </div>\n${brandNav(brands)}`)
-  html = html.replace('  </head>', `${metaTags(brands, today)}${BOOT_STYLE}\n  </head>`)
+  html = replaceOrThrow(html, '<div id="root"></div>', `<div id="root">\n${body}\n    </div>\n${brandNav(brands)}`)
+  html = replaceOrThrow(html, '  </head>', `${metaTags(brands, today)}${BOOT_STYLE}\n  </head>`)
   // 예전 정적 설명은 브랜드가 안 들어간 문장이라 갈아 끼운다.
-  html = html.replace(
+  html = replaceOrThrow(
+    html,
     /<meta name="description" content="[^"]*" \/>/,
     `<meta name="description" content="${esc(description(brands))}" />`,
   )
@@ -419,7 +442,7 @@ async function main() {
   const CRAWL_DELAY_BOTS = ['bingbot', 'Yeti', 'Daumoa']
   const BLOCKED_BOTS = ['GPTBot', 'ClaudeBot', 'CCBot', 'Bytespider',
     'AhrefsBot', 'SemrushBot', 'MJ12bot', 'DotBot']
-  await writeFile(new URL('robots.txt', `file://${DIST}`), [
+  await writeFile(new URL('robots.txt', pathToFileURL(DIST)), [
     'User-agent: *',
     'Allow: /',
     '# 자산은 색인 대상이 아닌데 요청 수의 대부분이다.',
@@ -441,6 +464,7 @@ async function main() {
   // 홈을 다 고친 뒤에 읽는다 — 자산 태그는 Vite가 넣은 그대로다.
   const appTags = appAssetTags(html)
   const listed = brands.filter((b) => (b.offers ?? []).some((o) => o.amount != null))
+  assertUniqueSlugs(listed.map((b) => b.name))
   const byCategory = new Map()
   for (const b of listed) {
     const k = b.category ?? '기타'
@@ -452,11 +476,11 @@ async function main() {
   // 주소는 앱에 없는 크롤러 전용 쌍둥이라 검색으로 들어온 사람이 JavaScript
   // 없는 막다른 페이지에 떨어졌다(브랜드마다 URL이 둘이었다). 앱이 같은
   // 주소를 받게 하려면 확장자가 없어야 한다.
-  await mkdir(new URL('brand/', `file://${DIST}`), { recursive: true })
+  await mkdir(new URL('brand/', pathToFileURL(DIST)), { recursive: true })
   for (const b of listed) {
     const siblings = (byCategory.get(b.category ?? '기타') ?? [])
       .filter((n) => n !== b.name).slice(0, 12)
-    const dir = new URL(`brand/${slugOf(b.name)}/`, `file://${DIST}`)
+    const dir = new URL(`brand/${slugOf(b.name)}/`, pathToFileURL(DIST))
     await mkdir(dir, { recursive: true })
     await writeFile(new URL('index.html', dir), brandPage(b, siblings, today, appTags))
   }
@@ -489,7 +513,7 @@ async function main() {
       `/brand/${encodeURIComponent(slugOf(b.name))}`, '0.7', 'weekly', brandLastmod(b),
     ]),
   ]
-  await writeFile(new URL('sitemap.xml', `file://${DIST}`), [
+  await writeFile(new URL('sitemap.xml', pathToFileURL(DIST)), [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls.flatMap(([loc, pri, freq, mod]) => [

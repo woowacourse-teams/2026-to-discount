@@ -2,7 +2,7 @@ import { isBundle, isUpdated } from './filters.js'
 import { track } from './analytics.js'
 import { badgesOf, beforeOpen } from './couponModel.js'
 import { usePageMinute } from './pageNow.js'
-import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice } from './offerLink.js'
+import { COUPANGEATS_HINT, offerClickProps, offerLink, openWithNotice, safeHref } from './offerLink.js'
 import { PlatformBadge } from './logos.jsx'
 
 export function won(value) {
@@ -44,7 +44,7 @@ export default function OfferChip({ offer, brandLinks, brandName, detailId, open
   // 오퍼 자신의 링크가 먼저다. 배너에서 세운 오퍼만 이걸 갖는다 —
   // 배너의 행사 딜링크가 브랜드 일반 링크에 먹힐서는 안 된다. 반대로
   // 배너와 무관한 칩은 offer.link가 없어 예전대로 브랜드 링크로 간다.
-  const link = offerLink(offer, brandLinks, brandName)
+  const link = safeHref(offerLink(offer, brandLinks, brandName))
 
   const content = (
     <>

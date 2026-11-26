@@ -87,7 +87,7 @@ export function useSurvey() {
         if (alive && ++attempts < 5) timer = setTimeout(check, 5000 * 2 ** (attempts - 1)) // 429도 여기로 온다. 같은 주기로 다시 두드리지 않는다
       }
     }
-    function onVisible() { if (document.visibilityState === 'visible' && !inFlight.current) { clearTimeout(timer); attempts = 0; check() } }
+    function onVisible() { if (document.visibilityState === 'visible' && !inFlight.current) { clearTimeout(timer); check() } } // attempts는 그대로 둔다. 복귀마다 0으로 돌리면 지수 대기가 풀려 429가 다시 났다
     check()
     document.addEventListener('visibilitychange', onVisible)
     return () => { alive = false; clearTimeout(timer); document.removeEventListener('visibilitychange', onVisible) }
