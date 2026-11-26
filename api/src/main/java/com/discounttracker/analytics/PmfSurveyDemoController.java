@@ -25,7 +25,6 @@ public class PmfSurveyDemoController {
         return Map.of("visitorId", id, "sessionId", session);
     }
     private VisitEvent event(String visitor, String session, String event, String ts) {
-        return new VisitEvent(ts, event, visitor, session, null, null, null, null, null, null,
-                Map.of(), null, null, true, null, UUID.randomUUID().toString(), null);
+        return VisitEvent.server(ts, event, visitor, session, Map.of(), null, true);
     }
 }
