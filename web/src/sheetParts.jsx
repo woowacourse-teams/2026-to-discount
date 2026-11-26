@@ -1,6 +1,7 @@
 // 바텀시트 공용 조각: 한 줄 칩 트랙과 끌어내려 닫기. 필터 시트(FilterSheet.jsx)와 제보 시트(ReportButton.jsx)가 같이 쓴다.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useScrollMore } from './MenuBar.jsx'
+import { addTouch } from './useOverlay.js'
 
 // 한 줄 캐러셀 트랙(2026-10-14 사용자: 여러 줄 칩이 눈 아프다, turbom /map 패턴).
 // 넘치면 옆으로 밀고, 더 갈 쪽 끝만 흐린다. thumb면 고른 칸 아래 흰 판이 미끄러진다(하나 고르기용).
@@ -57,10 +58,7 @@ export function useDragClose(sheetRef, bodyRef, open, onClose) {
       d = null
       if (close) timer = setTimeout(() => closeRef.current(), 160)
     }
-    el.addEventListener('touchstart', start, { passive: true })
-    el.addEventListener('touchmove', move, { passive: false })
-    el.addEventListener('touchend', end)
-    el.addEventListener('touchcancel', end)
-    return () => { clearTimeout(timer); el.removeEventListener('touchstart', start); el.removeEventListener('touchmove', move); el.removeEventListener('touchend', end); el.removeEventListener('touchcancel', end) }
+    const off = addTouch(el, { start, move, end })
+    return () => { clearTimeout(timer); off() }
   }, [sheetRef, bodyRef, open])
 }

@@ -88,3 +88,12 @@ test('깨진 값은 빈 목록으로 읽는다', () => {
   assert.deepEqual(readHidden(fakeStorage('[1,2]')), {}, '배열은 우리 모양이 아니다')
   assert.deepEqual(readHidden(fakeStorage(null)), {})
 })
+
+// 특성 테스트(#456): App.jsx에서 뺀 해시 딥링크 판정을 못박는다.
+test('해시 딥링크: #brand-만 카드 id로 보고 깨진 인코딩은 없는 것으로 친다', async () => {
+  const { linkedFromHash } = await import('./useHomeList.js')
+  assert.equal(linkedFromHash('#brand-%EB%B9%84%EB%B9%84%ED%81%90'), 'brand-비비큐')
+  assert.equal(linkedFromHash('#top'), null)
+  assert.equal(linkedFromHash(''), null)
+  assert.equal(linkedFromHash('#brand-%E0%A4%A'), null)
+})

@@ -16,7 +16,7 @@ import BestHistoryChart from './BestHistoryChart.jsx'
 import OfferShareButton from './OfferShareButton.jsx'
 import { sharedOfferKey } from './offerSharing.js'
 import { useShareTargetFocus } from './useShareTargetFocus.js'
-import { useEscape, useIsoLayoutEffect, useScrollLock } from './useOverlay.js'
+import { addTouch, useEscape, useIsoLayoutEffect, useScrollLock } from './useOverlay.js'
 // coupon-card.css는 여기서 싣지 않는다. :root 배경 같은 전역 규칙이 있어 운영 카드 쪽에 섞이면 안 된다.
 // 쿠폰 쪽일 때만 App이 따로 받고, 서버 렌더는 <head>에 링크를 단다(api/ssr.js).
 
@@ -372,14 +372,11 @@ function CouponCard({ brand, position, highlighted, onInteract, include = null, 
   useEffect(() => {
     const el = sheetRef.current
     if (!sheet || !el) return undefined
-    const ts = (e) => dragStart(e.touches[0].clientY, e.target)
-    const tm = (e) => { if (dragMove(e.touches[0].clientY)) e.preventDefault() }
-    const te = () => dragEnd()
-    el.addEventListener('touchstart', ts, { passive: true })
-    el.addEventListener('touchmove', tm, { passive: false })
-    el.addEventListener('touchend', te)
-    el.addEventListener('touchcancel', te)
-    return () => { el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); el.removeEventListener('touchend', te); el.removeEventListener('touchcancel', te) }
+    return addTouch(el, {
+      start: (e) => dragStart(e.touches[0].clientY, e.target),
+      move: (e) => { if (dragMove(e.touches[0].clientY)) e.preventDefault() },
+      end: () => dragEnd(),
+    })
   }, [sheet])
   useScrollLock(sheet)
   useEscape(sheet, () => setSheet(false))
