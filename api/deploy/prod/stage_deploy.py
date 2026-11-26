@@ -118,7 +118,9 @@ def wait_out_push_window(cfg: Config, ops: Ops, log) -> None:
     now = ops.now()
     start = now.replace(hour=cfg.window_start.hour, minute=cfg.window_start.minute, second=0, microsecond=0)
     end = now.replace(hour=cfg.window_end.hour, minute=cfg.window_end.minute, second=0, microsecond=0)
-    if not (start <= now < end):
+    # 시작 시각만 보면 10:59 시작이 11:00 창과 겹친다. 가장 오래 걸릴 때의 끝 시각으로 판정한다.
+    finish = now + timedelta(seconds=cfg.stage_ready_s + cfg.primary_ready_s + cfg.failback_wait_s)
+    if not (now < end and start < finish):
         return
     wait = (end - now).total_seconds()
     log(f"푸시 요약 시간대(11:00~11:30 KST)라 {int(wait)}초 기다린다. 두 인스턴스가 겹치면 푸시가 두 번 나갈 수 있다")
@@ -149,7 +151,7 @@ def prune(cfg: Config, log) -> None:
 
 
 def deploy(cfg: Config, ops: Ops, jar: Path, log=emit) -> int:
-    jar = Path(jar)
+    jar = Path(jar).resolve()  # 상대 경로로 링크를 걸면 링크 폴더 기준으로 풀려 엉뚱한 곳을 가리킨다
     if not jar.is_file():
         log(f"jar가 없다: {jar}")
         return STAGE_FAILED

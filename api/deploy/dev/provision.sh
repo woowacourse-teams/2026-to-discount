@@ -87,6 +87,10 @@ def main():
                 for target in node.targets:
                     if isinstance(target, ast.Name) and target.id in names:
                         contracts[target.id] = Path(ast.literal_eval(node.value.args[0]))
+    missing = {'ROOT', 'ARTIFACT_ROOT', 'DATA', 'RUNNER'} - contracts.keys()
+    if missing:
+        # A reshaped constant must stop provisioning loudly instead of comparing against None.
+        fail('Cannot read deployment tool contract: ' + ', '.join(sorted(missing)))
     expected = {'APP_DIR': contracts.get('ROOT'), 'RUNNER_DIR': contracts.get('RUNNER'),
                 'DATA_DIR': contracts['DATA'].parent if 'DATA' in contracts else None}
     if contracts.get('ARTIFACT_ROOT') != expected['RUNNER_DIR']:

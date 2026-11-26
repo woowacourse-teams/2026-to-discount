@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import unittest.mock
 from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('deploy', Path(__file__).with_name('deploy.py'))
@@ -31,6 +32,7 @@ class DeploymentTest(unittest.TestCase):
         patch.object(deploy, 'ARTIFACT_ROOT', self.source.parent).start()
         patch.object(deploy.sys, 'argv', ['deploy', str(self.source), self.sha, '1', '1']).start()
         self.run = patch.object(deploy.subprocess, 'run').start()
+        self.urlopen = patch.object(deploy.urllib.request, 'urlopen', side_effect=OSError('offline')).start()
 
     def test_success_publishes_version_after_readiness(self):
         with patch.object(deploy, 'wait_ready', return_value=True):
@@ -68,6 +70,45 @@ class DeploymentTest(unittest.TestCase):
                 deploy.main()
         self.assertFalse((self.root / 'current.jar').exists())
         self.run.assert_called_with(['systemctl', 'stop', deploy.SERVICE], check=True)
+
+    def test_failed_copy_leaves_no_half_filled_release(self):
+        real = deploy.shutil.copyfile
+        calls = []
+
+        def flaky(src, dst):
+            calls.append(dst)
+            if len(calls) == 4:  # first copy after the three staging copies
+                raise OSError('disk full')
+            return real(src, dst)
+        with patch.object(deploy.shutil, 'copyfile', side_effect=flaky):
+            with self.assertRaises(OSError):
+                deploy.main()
+        self.assertEqual(list((self.root / 'releases').iterdir()), [])
+
+    def test_rollback_restart_failure_is_reported_as_both_failed(self):
+        old = self.root / 'releases' / 'old.jar'
+        old.write_bytes(b'old')
+        (self.root / 'current.jar').symlink_to(old)
+        self.run.side_effect = [None, deploy.subprocess.CalledProcessError(1, 'systemctl')]
+        with patch.object(deploy, 'wait_ready', return_value=False):
+            with self.assertRaisesRegex(RuntimeError, 'both failed'):
+                deploy.main()
+
+    def test_readiness_ignores_the_public_address(self):
+        self.run.return_value.returncode = 0
+        seen = []
+
+        def local_only(url, timeout):
+            seen.append(url)
+            if 'duckdns' in url:
+                raise OSError('dns')
+            response = unittest.mock.MagicMock(status=200)
+            response.__enter__.return_value = response
+            response.read.return_value = b'[]'
+            return response
+        self.urlopen.side_effect = local_only
+        self.assertTrue(deploy.healthy())
+        self.assertTrue(all('127.0.0.1' in url for url in seen))
 
 
 if __name__ == '__main__':
