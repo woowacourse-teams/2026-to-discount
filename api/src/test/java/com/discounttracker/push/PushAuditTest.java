@@ -5,7 +5,6 @@ import com.discounttracker.comparison.BrandComparisonService;
 import com.discounttracker.offer.AmountKind;
 import com.discounttracker.offer.Certainty;
 import com.discounttracker.offer.Offer;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import tools.jackson.databind.ObjectMapper;
@@ -93,7 +92,6 @@ class PushAuditTest {
         assertThat(restored.dailyOffer("2026-10-08", 999)).isEqualTo(planned);
     }
 
-    @Disabled("audit: 02-api-b.md PushStateStore 만료 토큰을 지우는 코드가 없어 파일이 끝없이 커진다")
     @Test
     void expiredTokensArePrunedOnWrite() throws Exception {
         var store = store();
@@ -103,7 +101,6 @@ class PushAuditTest {
         assertThat(Files.readString(properties().statePath())).doesNotContain(token.token());
     }
 
-    @Disabled("audit: 02-api-b.md PushStateStore 모르는 eventType도 trackable이라 공개 경로에서 쓰기를 일으킨다")
     @Test
     void unknownEventTypeIsIgnored() {
         var store = store();
@@ -111,7 +108,6 @@ class PushAuditTest {
         assertThat(store.track(token.token(), "anything_else")).isEmpty();
     }
 
-    @Disabled("audit: 02-api-b.md PushStateStore 등록 경로가 PushEndpointPolicy를 검사하지 않는다")
     @Test
     void upsertRejectsDisallowedEndpoint() {
         assertThatThrownBy(() -> store().upsert("http://evil.example/x", "k", "a", "v", true))
@@ -128,7 +124,6 @@ class PushAuditTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Disabled("audit: 02-api-b.md WebPushSender 보낼 때마다 PushService를 새로 만든다(제한 시간 없음)")
     @Test
     void senderReusesPushService() {
         AtomicInteger created = new AtomicInteger();
@@ -146,14 +141,14 @@ class PushAuditTest {
         assertThat(created.get()).isLessThanOrEqualTo(1);
     }
 
-    @Disabled("audit: 02-api-b.md NewOfferNotificationService 발송 중 synchronized가 관리 API next()를 막는다")
     @Test
     void managementViewIsNotBlockedBySending() throws Exception {
         var store = store();
         store.dailyOffer("2026-10-08", clock.instant().getEpochSecond());
         store.upsert("https://fcm.googleapis.com/fcm/send/one", "key", "auth", "one", true);
         var comparisons = mock(BrandComparisonService.class);
-        when(comparisons.compare()).thenReturn(List.of(brand("BHC", offer(8000))));
+        var brands8000 = List.of(brand("BHC", offer(8000)));
+        when(comparisons.compare()).thenReturn(brands8000);
         var sender = mock(WebPushSender.class);
         var entered = new CountDownLatch(1);
         var release = new CountDownLatch(1);
@@ -174,7 +169,6 @@ class PushAuditTest {
         }
     }
 
-    @Disabled("audit: 02-api-b.md NewOfferNotificationService 정해 둔 대상이 후보에서 빠지면 그날 알림을 소리 없이 완료로 바꾼다")
     @Test
     void changedTargetIsReselectedInsteadOfSilentlyCompleted() {
         var store = store();
@@ -183,10 +177,12 @@ class PushAuditTest {
         var comparisons = mock(BrandComparisonService.class);
         var sender = mock(WebPushSender.class);
         when(sender.send(any(), any())).thenReturn(500);
-        when(comparisons.compare()).thenReturn(List.of(brand("BHC", offer(8000))));
+        var brands8000 = List.of(brand("BHC", offer(8000)));
+        when(comparisons.compare()).thenReturn(brands8000);
         service(store, sender, comparisons).sendDueOffer();
         clock.now = clock.now.plus(Duration.ofMinutes(2));
-        when(comparisons.compare()).thenReturn(List.of(brand("BHC", offer(9000))));
+        var brands9000 = List.of(brand("BHC", offer(9000)));
+        when(comparisons.compare()).thenReturn(brands9000);
         when(sender.send(any(), any())).thenReturn(201);
         service(store, sender, comparisons).sendDueOffer();
         verify(sender, times(2)).send(any(), any());
@@ -210,6 +206,7 @@ class PushAuditTest {
         when(offer.certainty()).thenReturn(Certainty.EXACT);
         when(offer.kind()).thenReturn(AmountKind.DISCOUNT);
         when(offer.firstSeenAt()).thenReturn("2026-10-08T01:00:00Z");
+        when(offer.isNew()).thenReturn(true);
         return offer;
     }
 }

@@ -62,8 +62,7 @@ class PushStateWriteEntryPointTest {
         assertThat(file).exists();
 
         Files.delete(file);
-        new BannerNotificationService(disabled, store, mock(WebPushSender.class),
-                mock(PushMessageFactory.class), mock(BannerCatalog.class), clock).onReload(List.of());
+        new BannerNotificationService(store).onReload(List.of());
         assertThat(file).exists();
     }
 

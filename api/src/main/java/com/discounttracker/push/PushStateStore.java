@@ -75,11 +75,15 @@ public class PushStateStore {
         require(p256dh, "p256dh");
         require(auth, "auth");
         require(visitorId, "visitorId");
+        // 인증 없는 경로다. 보내지도 못할 주소와 큰 값으로 상한을 채우지 못하게 받을 때 거른다.
+        if (!PushEndpointPolicy.isAllowed(endpoint)) throw new IllegalArgumentException("허용되지 않은 Push endpoint");
+        if (endpoint.length() > 2048 || p256dh.length() > 256 || auth.length() > 256 || visitorId.length() > 128)
+            throw new IllegalArgumentException("구독 값이 너무 길다");
         String id = sha256(endpoint);
         return mutate(s -> {
             Instant now = clock.instant();
             PushSubscription old = s.subscriptions.get(id);
-            if (old == null && s.subscriptions.size() >= maxSubscriptions)
+            if (old == null && s.subscriptions.values().stream().filter(PushSubscription::active).count() >= maxSubscriptions)
                 throw new IllegalArgumentException("subscription capacity reached");
             PushSubscription saved = new PushSubscription(id, endpoint, p256dh, auth, visitorId,
                     analyticsEnabled, old == null ? now : old.createdAt(), now, true);
@@ -167,18 +171,6 @@ public class PushStateStore {
                 .toList();
     }
 
-    public synchronized void markDispatched(List<String> activationIds, String type) {
-        mutate(s -> {
-            Instant now = clock.instant();
-            s.banners.replaceAll((id, old) -> activationIds.contains(old.activationId())
-                    ? new BannerNotificationState(old.bannerId(), old.lastNotify(), old.activationId(),
-                    old.activatedAt(), old.immediateRequested(),
-                    "immediate".equals(type) ? now : old.immediateDispatchedAt(),
-                    "digest".equals(type) ? now : old.digestDispatchedAt()) : old);
-            return null;
-        });
-    }
-
     public synchronized PushTrackingToken createToken(String notificationId, String subscriptionId,
                                                        List<String> bannerIds, String deliveryType) {
         String token = UUID.randomUUID().toString().replace("-", "");
@@ -239,7 +231,11 @@ public class PushStateStore {
         });
     }
 
+    private static final Set<String> TRACK_EVENTS = Set.of("push_notification_displayed", "push_notification_clicked");
+
     private boolean trackable(PushTrackingToken value, String eventType) {
+        // 모르는 이름이면 바뀌는 것이 없는데도 락과 파일 쓰기를 한다. 공개 경로라 막는다.
+        if (!TRACK_EVENTS.contains(eventType)) return false;
         if (value == null || value.expiresAt().isBefore(clock.instant())) return false;
         if ("push_notification_displayed".equals(eventType) && value.displayed()) return false;
         return !("push_notification_clicked".equals(eventType) && value.clicked());
@@ -258,6 +254,7 @@ public class PushStateStore {
                     lockTimeout, () -> {
                         state = load(state);
                         R result = change.apply(state);
+                        prune(state);
                         save();
                         signature = signatureOf();
                         return result;
@@ -265,6 +262,25 @@ public class PushStateStore {
         } catch (IOException e) {
             throw new UncheckedIOException("Push 상태 파일 저장 실패: " + path, e);
         }
+    }
+
+    /** 기록을 남겨 둘 기간. 토큰 만료(30일)와 같다. */
+    static final Duration RETENTION = Duration.ofDays(30);
+
+    /**
+     * 쓸 때마다 지난 기록을 걷는다. 걷지 않으면 발송 한 번마다 구독 수만큼 토큰이 쌓이고, 모든 쓰기가 파일 전체를
+     * 다시 읽고 쓰므로 파일과 처리 시간이 끝없이 커진다. 날짜 키(delivered "new_offer:날짜:구독", dailyOffers "날짜")는
+     * 30일이 지나면 지운다. 그 밖의 delivered 키(옛 배너 발송 기록)는 더 늘지 않아 그대로 둔다.
+     */
+    private void prune(State s) {
+        Instant now = clock.instant();
+        String cutoff = now.minus(RETENTION).atZone(java.time.ZoneId.of("Asia/Seoul")).toLocalDate().toString();
+        s.tokens.values().removeIf(t -> t.expiresAt().isBefore(now));
+        if (s.delivered != null) s.delivered.removeIf(k -> {
+            String[] parts = k.split(":", 3);
+            return parts.length == 3 && "new_offer".equals(parts[0]) && parts[1].compareTo(cutoff) < 0;
+        });
+        if (s.dailyOffers != null) s.dailyOffers.keySet().removeIf(d -> d.compareTo(cutoff) < 0);
     }
 
     /** 파일이 지난번과 같으면(수정 시각, 크기, fileKey) 다시 읽지 않는다. 신규 오퍼 스케줄러가 1초마다 부른다. */
