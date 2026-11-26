@@ -1,6 +1,5 @@
 package com.discounttracker.storage;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -27,7 +26,6 @@ class InterProcessFileLockAuditTest {
         assertThat(InterProcessFileLock.withOperationsWrite(() -> 7)).isEqualTo(7);
     }
 
-    @Disabled("audit: 01-api-a.md InterProcessFileLock 공유 모드가 없는 잠금 파일을 READ로 열어 NoSuchFileException")
     @Test
     void sharedLockWorksWhenFileIsMissing() throws Exception {
         Method m = InterProcessFileLock.class.getDeclaredMethod("withLock", Path.class, Duration.class,

@@ -1,7 +1,6 @@
 package com.discounttracker.banner;
 
 import com.discounttracker.brand.BrandCatalog;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ByteArrayResource;
 
@@ -37,14 +36,12 @@ class BannerCatalogAuditTest {
         assertEquals(1, c.active().size());
     }
 
-    @Disabled("audit: 02-api-b.md BannerCatalog 최상위 banners 키 오타면 빈 목록인데 reload()가 true")
     @Test
     void typoInTopLevelKeyFailsReload() {
         var c = catalog(ONE.formatted("banner"));
         assertFalse(c.reload());
     }
 
-    @Disabled("audit: 02-api-b.md BannerCatalog banners가 리스트가 아니면 빈 목록인데 reload()가 true")
     @Test
     void nonListBannersFailsReload() {
         assertFalse(catalog("banners: 3").reload());

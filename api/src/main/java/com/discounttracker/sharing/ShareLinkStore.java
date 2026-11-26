@@ -3,6 +3,9 @@ package com.discounttracker.sharing;
 import com.discounttracker.storage.InterProcessFileLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -27,6 +30,7 @@ public class ShareLinkStore {
     }
     public record Entry(String code, Target target) {}
     private final Path path;
+    private static final Logger log = LoggerFactory.getLogger(ShareLinkStore.class);
     private final ObjectMapper mapper;
     private final SecureRandom random = new SecureRandom();
     private final Map<String, Target> entries = new HashMap<>();
@@ -39,7 +43,14 @@ public class ShareLinkStore {
         if (Files.exists(path)) {
             try (var lines = Files.lines(path)) {
                 lines.filter(s -> !s.isBlank()).forEach(line -> {
-                    Entry entry = mapper.readValue(line, Entry.class);
+                    Entry entry;
+                    try {
+                        entry = mapper.readValue(line, Entry.class);
+                    } catch (JacksonException e) {
+                        // 쓰다 죽어 반쪽 남은 줄 하나로 앱 전체가 안 뜨면 안 된다. 그 줄만 건너뛴다(ReportLedger와 같다).
+                        log.warn("공유 링크 원장의 깨진 줄을 건너뛴다: {}", e.getOriginalMessage());
+                        return;
+                    }
                     if (entry.code() == null || !entry.code().matches("[A-Za-z0-9_-]{16}") || entry.target() == null || !entry.target().valid()) {
                         throw new IllegalStateException("Invalid share link record");
                     }

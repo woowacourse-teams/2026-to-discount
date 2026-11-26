@@ -1,6 +1,5 @@
 package com.discounttracker.sharing;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import tools.jackson.databind.ObjectMapper;
@@ -35,7 +34,6 @@ class ShareLinkStoreAuditTest {
         assertThrows(IllegalStateException.class, () -> new ShareLinkStore(new ObjectMapper(), path.toString(), "unused"));
     }
 
-    @Disabled("audit: 01-api-a.md ShareLinkStore 깨진 줄 하나로 생성자가 던져 앱이 안 뜬다")
     @Test
     void halfWrittenLastLineIsSkipped() throws Exception {
         Path path = dir.resolve("links.jsonl");
