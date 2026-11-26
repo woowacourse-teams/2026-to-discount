@@ -1595,7 +1595,8 @@ brands:
       yogiyo: yogiyolink://push.page/franchise?fr_id=306
   새마을옛날통닭:
     searchAliases: [새마을옛날통닭]
-    # 행사 수집이 찾은 브랜드. 분류와 로고는 사람이 채운다
+    # 행사 수집이 찾은 브랜드. 로고는 사람이 채운다
+    category: chicken
     links:
       ddangyo: https://fdofd.ddangyo.com/gateway4.html?S8uZSRK
 
