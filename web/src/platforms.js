@@ -5,6 +5,9 @@ export const PLATFORMS = [
   { key: 'ddangyo', label: '땡겨요', initial: '땡' },
   { key: 'yogiyo', label: '요기요', initial: '요' },
 ]
+// 짧은 이름과 앱 고유색(배민은 앱 민트). /insight 차트와 my-brands 버튼이 같이 쓴다.
+export const SHORT_LABEL = { baemin: '배민', coupangeats: '쿠팡이츠', yogiyo: '요기요', ddangyo: '땡겨요' }
+export const APP_COLOR = { baemin: '#2ac1bc', coupangeats: '#4d2610', yogiyo: '#fa0050', ddangyo: '#fb521c' }
 export const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]))
 
 // 검색용 별칭. PLATFORMS는 다른 저장소와 공유하는 계약(platformsContract.test.js)이라 칸을 더하지 않고 따로 둔다.

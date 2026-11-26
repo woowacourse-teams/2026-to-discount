@@ -70,11 +70,9 @@ export default function FirstVisitGuide({ onClose }) {
     return () => { clearInterval(id); window.removeEventListener('resize', measure); window.removeEventListener('scroll', measure) }
   }, [step])
 
-  const finish = (action) => {
-    onClose()
-  }
+  const finish = () => onClose()
   // 폰의 뒤로 버튼은 페이지를 떠나지 않고 안내만 닫는다(건너뛰기와 따로 센다)
-  useBackClose(Boolean(steps), () => finish('back'))
+  useBackClose(Boolean(steps), finish)
 
   if (!step || !rect) return null
   const last = i === steps.length - 1
@@ -105,12 +103,12 @@ export default function FirstVisitGuide({ onClose }) {
         </p>
         <div className="fvg-tip__row">
           <span className="fvg-tip__count">{i + 1} / {steps.length}</span>
-          {!last && <button type="button" className="fvg-tip__skip" onClick={() => finish('skip')}>건너뛰기</button>}
+          {!last && <button type="button" className="fvg-tip__skip" onClick={finish}>건너뛰기</button>}
           {/* 이전/다음: 가운데 구분선을 둔 한 덩어리 타원(세그먼트 컨트롤) */}
           <div className="fvg-seg" role="group" aria-label="안내 넘기기">
             <button type="button" disabled={i === 0} onClick={() => go(i - 1, 'prev')}>이전</button>
             <button type="button" className="fvg-seg__next"
-                    onClick={() => (last ? finish('done') : go(i + 1, 'next'))}>
+                    onClick={() => (last ? finish() : go(i + 1, 'next'))}>
               {last ? '시작하기' : '다음'}
             </button>
           </div>

@@ -1,12 +1,12 @@
 // /insight 화면의 계산(순수 함수). 그리기는 InsightPage.jsx, 곡선 잇기는 historyChart.js의 linePaths를 그대로 쓴다.
 // 규칙(이슈 #403): 이어 쓴 값은 점선, 값 없음(null)은 끊김, 실제 0은 0으로 그린다. 비율은 분모 30 미만이면 그리지 않는다.
 import { linePaths, niceDomain } from './historyChart.js'
+import { APP_COLOR, SHORT_LABEL } from './platforms.js'
 
 export const MIN_N = 30
 export const APPS = ['baemin', 'coupangeats', 'yogiyo', 'ddangyo']
-export const SHORT = { baemin: '배민', coupangeats: '쿠팡이츠', yogiyo: '요기요', ddangyo: '땡겨요' }
-// 앱 고유색(shells/my-brands-v2/parts.jsx BTN_BG와 같은 값, 배민만 앱 민트).
-export const COLOR = { baemin: '#2ac1bc', coupangeats: '#4d2610', yogiyo: '#fa0050', ddangyo: '#fb521c' }
+export const SHORT = SHORT_LABEL
+export const COLOR = APP_COLOR
 export const INDEX_BASE = '2026-09-01' // 지수 100인 날(설계 §요소 평가표)
 
 export const md = (iso) => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}`
