@@ -33,14 +33,13 @@ export const MIN_CATEGORY_OFFERS = 5
 export const SPECIAL_CATEGORIES = [
   { key: 'firstCome', label: '한정' },
   { key: 'random', label: '랜덤' },
-  { key: 'naverpay', label: '현장결제' }, // 네이버페이 현장결제 혜택 전체(2026-11-26 사용자)
-  { key: 'self', label: '자체 할인' }, // 적립과 자사 행사를 하나로(2026-11-26 사용자). 포장은 칩에서 뺐다
+  // 현장결제 하나로 네이버페이, 적립, 자사 행사를 다 묶는다(2026-11-26 사용자). 포장은 칩에서 뺐다
+  { key: 'naverpay', label: '현장결제' },
 ]
 const SPECIAL_MATCH = {
   random: (o) => certaintyOf(o) === 'random',
   firstCome: (o) => o.firstCome === true,
-  naverpay: (o) => o.via === 'naverpay',
-  self: (o) => o.platform === OWN || kindOf(o) === 'cashback' || kindOf(o) === 'points',
+  naverpay: (o) => o.via === 'naverpay' || o.platform === OWN || kindOf(o) === 'cashback' || kindOf(o) === 'points',
 }
 export const isSpecialCategory = (key) => Object.hasOwn(SPECIAL_MATCH, key)
 
