@@ -2,7 +2,7 @@
 #
 # "우리 통계가 실제 방문의 몇 %를 보고 있나"를 하루 한 줄로 남긴다.
 #
-# 화면을 그리려면 /api/brands를 반드시 부른다 — 여기에는 DNT 게이트가 없다.
+# 화면을 그리려면 /api/banners를 부른다(브랜드 목록은 2026-11부터 서버 렌더링이 받는다) — 여기에는 DNT 게이트가 없다.
 # 반면 /api/events는 DNT·GPC가 켜져 있으면 아예 안 나간다(광고 차단기도
 # 막는다). 그래서 두 요청의 차이가 곧 "왔지만 우리 통계에 안 남은 사람"이다.
 #
@@ -19,7 +19,7 @@
 #
 #   같은 와이파이의 여러 사람   IP 하나로 뭉친다
 #   모바일 통신망               한 사람이 IP 여러 개
-#   브랜드 응답 캐시            재방문 때 /api/brands를 안 부른다
+#   브랜드 응답 캐시            재방문 때 /api/banners를 안 부를 수 있다
 #   봇·크롤러                   화면만 긁고 JS를 안 돌려 누락으로 잡힌다
 #
 # 사용:
@@ -28,18 +28,20 @@
 set -euo pipefail
 
 LOG_DIR="${COVERAGE_LOG_DIR:-/var/log/nginx}"
+# API 서버 블록은 discount.access.log에 쓴다. 기본 access.log에는 스캐너 444만 남아 10-13부터 매일 "기록 없음"이었다(2026-11-27)
+LOG_NAME="${COVERAGE_LOG_NAME:-discount.access.log}"
 # 기본값을 두지 않는다. 자리표시자 경로가 남아 현재 폴더에 원장을 만든 적이 있다(추정).
 LEDGER="${COVERAGE_LEDGER:?COVERAGE_LEDGER에 원장 경로(예: .../delivery-discount-api/data/coverage.jsonl)를 준다}"
 
-[ -r "$LOG_DIR/access.log" ] || { echo "access.log를 읽지 못한다: $LOG_DIR" >&2; exit 1; }
+[ -r "$LOG_DIR/$LOG_NAME" ] || { echo "$LOG_NAME를 읽지 못한다: $LOG_DIR" >&2; exit 1; }
 mkdir -p "$(dirname "$LEDGER")"
 
 # 로테이션된 것까지 한 번에 읽는다. 압축본은 zcat, 나머지는 cat.
 read_logs() {
   # 현재 로그를 못 읽으면 멈춘다. 적게 센 수치가 원장에 영구히 남는다. 회전본은 없을 수 있어 관대하게 본다.
-  cat "$LOG_DIR"/access.log
-  [ -e "$LOG_DIR"/access.log.1 ] && cat "$LOG_DIR"/access.log.1
-  for f in "$LOG_DIR"/access.log.*.gz; do
+  cat "$LOG_DIR"/"$LOG_NAME"
+  [ -e "$LOG_DIR"/"$LOG_NAME".1 ] && cat "$LOG_DIR"/"$LOG_NAME".1
+  for f in "$LOG_DIR"/"$LOG_NAME".*.gz; do
     [ -e "$f" ] || continue
     zcat "$f" 2>/dev/null || true
   done
@@ -49,9 +51,13 @@ read_logs() {
 # nginx 기본 포맷 기준: $1=IP, $4=[날짜:시각, $7=경로.
 summarize() {
   awk '
-    { day = substr($4, 2, 11); ip = $1; path = $7 }
-    path == "/api/brands" { brands[day " " ip] = 1 }
-    path == "/api/events" { events[day " " ip] = 1 }
+    # 서버 내부 호출(127.0.0.1 curl, SSR node)과 봇은 사람이 아니다. 2026-11 기준 /api/brands의 98%가 이것이었다
+    $1 == "127.0.0.1" || index($0, "Mozilla/") == 0 || $0 ~ /[Bb]ot|Uptime|HeadlessChrome/ { next }
+    { day = substr($4, 2, 11); ip = $1; path = $7; sub(/\?.*/, "", path) }
+    # 방문 신호는 /api/banners다. 브랜드 목록은 서버 렌더링이 받아 브라우저가 부르지 않는다(2026-11-27).
+    # 이벤트는 자체 수집(/api/events)과 PostHog 중계(/ph/batch/) 둘 다 센다.
+    path == "/api/banners" { brands[day " " ip] = 1 }
+    path == "/api/events" || path == "/ph/batch/" { events[day " " ip] = 1 }
     END {
       for (k in brands) {
         split(k, p, " ")
@@ -84,7 +90,7 @@ append_day() {
 
   printf '{"date":"%s","brandsIps":%d,"noEventIps":%d,"missingPct":%s,"recordedAt":"%s"}\n' \
     "$iso" "$total" "$missing" "$pct" "$(date -Iseconds)" >> "$LEDGER"
-  echo "기록 $iso  브랜드IP $total  이벤트없음 $missing  ($pct%)"
+  echo "기록 $iso  방문IP $total  이벤트없음 $missing  ($pct%)"
 }
 
 if [ "${1:-}" = "--backfill" ]; then
