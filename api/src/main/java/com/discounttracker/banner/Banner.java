@@ -49,6 +49,8 @@ public record Banner(
         String period,
         String extra,
         Integer minOrder,
+        // 1인 혜택 상한(원). 최소주문처럼 조건 칸이다(2026-11-26 사용자). 오퍼에는 구간 하나의 cap으로 실린다. 배너 응답에는 안 싣는다(배너 계약 그대로).
+        @JsonIgnore Integer cap,
         String color,
         java.time.LocalDateTime startsAt,
         java.time.LocalDateTime endsAt,
@@ -117,7 +119,7 @@ public record Banner(
     /** 이 배너에서 한 칸만 바꾼 사본. */
     public Builder toBuilder() {
         return new Builder(id, url).brand(brand).platform(platform).amount(amount)
-                .period(period).extra(extra).minOrder(minOrder).color(color)
+                .period(period).extra(extra).minOrder(minOrder).cap(cap).color(color)
                 .startsAt(startsAt).endsAt(endsAt).soldOut(soldOut).soldOutOn(soldOutOn)
                 .priority(priority).brands(brands).spec(spec)
                 .notify(notifyFlag).notifyImmediately(notifyImmediately).brandLabels(brandLabels)
@@ -135,6 +137,7 @@ public record Banner(
         private String period;
         private String extra;
         private Integer minOrder;
+        private Integer cap;
         private String color;
         private java.time.LocalDateTime startsAt;
         private java.time.LocalDateTime endsAt;
@@ -165,6 +168,7 @@ public record Banner(
         public Builder period(String v) { this.period = v; return this; }
         public Builder extra(String v) { this.extra = v; return this; }
         public Builder minOrder(Integer v) { this.minOrder = v; return this; }
+        public Builder cap(Integer v) { this.cap = v; return this; }
         public Builder color(String v) { this.color = v; return this; }
         public Builder startsAt(java.time.LocalDateTime v) { this.startsAt = v; return this; }
         public Builder endsAt(java.time.LocalDateTime v) { this.endsAt = v; return this; }
@@ -208,7 +212,7 @@ public record Banner(
                 throw new IllegalArgumentException("배너 " + id + ": endsAt(" + endsAt
                         + ")이 startsAt(" + startsAt + ")보다 앞이다");
             }
-            return new Banner(id, brand, platform, url, amount, period, extra, minOrder, color,
+            return new Banner(id, brand, platform, url, amount, period, extra, minOrder, cap, color,
                     startsAt, endsAt, soldOut, soldOutOn, priority, brands, spec,
                     notify, notifyImmediately, brandLabels,
                     group, via, amountSpec, targeted, firstCome, untilSoldOut, members);

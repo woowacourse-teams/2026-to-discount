@@ -443,6 +443,11 @@ public class BannerCatalog {
         }
         if (brand == null && many != null) brand = many.get(0);
         Integer minOrder = number(attrs.get("minOrder"));
+        Integer cap = number(attrs.get("cap"));
+        if (attrs.get("cap") != null && (cap == null || cap <= 0)) {
+            why.accept("cap은 양의 원 단위 숫자다: " + attrs.get("cap"));
+            return null;
+        }
         // 끝이 시작보다 앞이면 build()가 던진다. 그 한 장만 건너뛴다(dropped).
         if (endsAt.isBefore(startsAt)) {
             why.accept("endsAt(" + endsAt + ")이 startsAt(" + startsAt + ")보다 앞이다");
@@ -452,6 +457,7 @@ public class BannerCatalog {
                 .brand(brand == null ? null : brands.canonical(brand))
                 .platform(platform)
                 .minOrder(minOrder)
+                .cap(cap)
                 .color(text(attrs.get("color")))
                 .startsAt(startsAt)
                 .endsAt(endsAt)

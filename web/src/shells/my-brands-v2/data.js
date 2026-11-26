@@ -7,7 +7,7 @@ import { amountText, beforeOpen, chipsOf, conditionTable, headOrder, minLabel, o
 import { offerLink } from '../../offerLink.js'
 import { OWN, OWN_LABEL, PLATFORM_BY_KEY } from '../../platforms.js'
 
-export const MIN_UNKNOWN = '최소주문 미확인' // couponModel.conditionTable이 내는 정식 라벨과 같다
+const MIN_NONE = '최소주문 없음'
 const NONE = '-' // 값이 없을 때 새 문구를 만들지 않는다
 
 /** "n원 할인". 묶음 행사나 금액이 없는 오퍼는 원문 그대로(할인을 붙이지 않는다). 원문도 없으면 '-'. */
@@ -19,7 +19,8 @@ export function amountLabel(offer) {
 
 /** "12,000원 할인"을 숫자와 나머지로 가른다. 이 꼴이 아니면(묶음 행사 원문 등) null. */
 export function splitAmount(label) {
-  const m = /^([\d,.]+)((?:원|%) 할인)$/.exec(label)
+  // "50%"까지 강조색, 뒤의 할인/적립/환급은 작게(2026-11-26 사용자)
+  const m = /^([\d,.]+(?:원|%))\s*(할인|적립|환급)$/.exec(label)
   return m ? { num: m[1], rest: m[2] } : null
 }
 
@@ -29,11 +30,17 @@ export function splitMin(label) {
   return m ? { amt: m[1], rest: m[2] } : null
 }
 
-/** 최소주문 칸. 숫자는 'N원 이상 주문시', 0은 '최소주문 없음', 모르면(null) '최소주문 미확인'. 비우지 않는다. */
+/** 최소주문 칸. 숫자는 'N원 이상 주문시', 0과 null은 '최소주문 없음'. 비우지 않는다. */
 export function minText(minOrderAmount) {
   const label = minLabel(minOrderAmount)
-  if (label == null) return MIN_UNKNOWN
+  if (label == null) return MIN_NONE // 최소주문 칸이 없는 오퍼는 "없음"으로 띄운다(2026-11-26 사용자)
   return minOrderAmount === 0 ? label : `${label}원 이상 주문시`
+}
+
+/** 1인 혜택 상한 "최대 N원". 배너 cap은 구간 하나의 cap으로 온다(api BannerOffers). 구간이 하나가 아니면 null. */
+export function capText(offer) {
+  const cap = offer.tiers?.length === 1 ? offer.tiers[0].cap : null
+  return cap == null ? null : `최대 ${minLabel(cap)}원`
 }
 
 export function appLabel(offer) {
@@ -65,6 +72,7 @@ export function cardOf(brand, include) {
     // 신규 오퍼가 하나라도 있는 브랜드(운영 카드 왼쪽 위 NEW! 리본과 같은 조건: CouponCard.jsx brand.offers.some(isUpdated))
     isNew: brand.offers.some((o) => isUpdated(o)),
     minLabel: minText(offer.minOrderAmount),
+    capLabel: capText(offer),
     // 품절, 오픈 전은 카드 몸통에 내고 금액 채도를 뺀다(CouponCard.jsx stateLabel과 같은 말)
     state: offer.soldOut ? '품절' : beforeOpen(offer) ? '오픈 전' : null,
     // 랜덤도 금액 채도를 뺀다(2026-11-15 사용자). 라벨은 이미 칩이 있어 state에는 넣지 않는다.

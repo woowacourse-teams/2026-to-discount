@@ -46,7 +46,9 @@ public record Offer(String platform, Integer amount, String qualifier,
                     // link가 어디서 왔나(#203). link와 항상 짝이다: link가 null이면 NONE.
                     LinkSource linkSource,
                     // 날짜만 아는 관측일(yyyy-MM-dd). capturedAt이 없을 때만 있다(#285). 배너 오퍼가 오늘 날짜를 싣는다.
-                    String capturedOn) {
+                    String capturedOn,
+                    // 배너의 via(예: naverpay)와 spec.channel(배달, 포장). 원장 오퍼는 null. 표시와 거르기 전용이다.
+                    String via, String channel) {
 
     /** 배너에서 세운 오퍼의 offerType. BrandComparisonService가 적는 값과 같다. */
     public static final String BANNER_OFFER_TYPE = "banner";
@@ -80,7 +82,7 @@ public record Offer(String platform, Integer amount, String qualifier,
                 Certainty.fromQualifier(r.qualifier()), AmountKind.from(r.kind()), r.firstSeenAt(), null,
                 r.qualifiers(),
                 r.link() == null ? LinkSource.NONE : (fromBanner ? LinkSource.BANNER : LinkSource.RECORD),
-                r.capturedOn());
+                r.capturedOn(), r.via(), r.channel());
     }
 
     @JsonProperty("status")
@@ -172,7 +174,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         ladder.add(new DiscountTier(banner.minOrderAmount, banner.amount, null, null, null, null, null));
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
-                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew, qualifiers, linkSource, capturedOn);
+                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew, qualifiers, linkSource, capturedOn, via, channel);
     }
 
     private static boolean sameCouponRung(DiscountTier t, Integer amount, Integer minOrder) {
@@ -237,7 +239,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 mergedMinOrder, tierMode, mergedTiers, mergedConditions, expiresAt, mergedBadge, soldOut,
                 link, mergedMembership, fromBanner, firstCome, certainty, kind, earlier(firstSeenAt, other.firstSeenAt), isNew,
-                mergedQualifiers, linkSource, capturedOn);
+                mergedQualifiers, linkSource, capturedOn, via, channel);
     }
 
     /**
@@ -298,7 +300,7 @@ public record Offer(String platform, Integer amount, String qualifier,
         }
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt,
                 minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, badge,
-                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew, qualifiers, linkSource, capturedOn);
+                soldOut, link, membership, fromBanner, firstCome, certainty, kind, firstSeenAt, isNew, qualifiers, linkSource, capturedOn, via, channel);
     }
 
     /**
@@ -344,7 +346,8 @@ public record Offer(String platform, Integer amount, String qualifier,
         return new Offer(platform, lead.amount, qualifier, status, lead.rawText, screenshotPath, capturedAt,
                 lead.minOrderAmount, "exclusive", List.copyOf(ladder), conditions, expiresAt, lead.badge,
                 soldOut && first.soldOut, lead.link, merged, fromBanner, firstLeads, certainty, kind,
-                earlier(firstSeenAt, first.firstSeenAt), isNew, qualifiers, lead.linkSource, capturedOn);
+                earlier(firstSeenAt, first.firstSeenAt), isNew, qualifiers, lead.linkSource, capturedOn,
+                lead.via, lead.channel);
     }
 
     /** 구간에 적을 멤버십 키. 모르면 null(구간 칸이 비면 "모름"이다). */
@@ -363,14 +366,14 @@ public record Offer(String platform, Integer amount, String qualifier,
     public Offer withFilterLink(String v) {
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,
                 tierMode, tiers, conditions, expiresAt, badge, soldOut, v, membership, fromBanner, firstCome,
-                certainty, kind, firstSeenAt, isNew, qualifiers, LinkSource.ADDED, capturedOn);
+                certainty, kind, firstSeenAt, isNew, qualifiers, LinkSource.ADDED, capturedOn, via, channel);
     }
 
     /** 이력이 판정한 신규 여부를 단다. null = 모름. */
     public Offer withIsNew(Boolean v) {
         return new Offer(platform, amount, qualifier, status, rawText, screenshotPath, capturedAt, minOrderAmount,
                 tierMode, tiers, conditions, expiresAt, badge, soldOut, link, membership, fromBanner, firstCome,
-                certainty, kind, firstSeenAt, v, qualifiers, linkSource, capturedOn);
+                certainty, kind, firstSeenAt, v, qualifiers, linkSource, capturedOn, via, channel);
     }
 
     /** 둘 중 이른 시각. 같은 쿠폰을 두 출처에서 합칠 때 처음 본 시각은 더 이른 쪽이다. 하나가 없으면 다른 쪽. */

@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { applyFilters, defaultFilters } from '../../filters.js'
 import {
-  amountLabel, buildCards, cardOf, minText, splitAmount, splitMin, detailOf, polyPaths,
+  amountLabel, buildCards, capText, cardOf, minText, splitAmount, splitMin, detailOf, polyPaths,
 } from './data.js'
 
 const offer = (o) => ({ platform: 'baemin', amount: 10000, minOrderAmount: 15000, ...o })
@@ -15,11 +15,11 @@ test('금액 문구: 일반 오퍼는 "n원 할인", 묶음 행사는 원문 그
   assert.equal(amountLabel(offer({ amount: null, rawText: undefined })), '-')
 })
 
-test('최소주문: 숫자, 0, null이 각각 N원 이상 주문시, 최소주문 없음, 최소주문 미확인', () => {
+test('최소주문: 숫자는 N원 이상 주문시, 0과 null은 최소주문 없음', () => {
   assert.equal(minText(15000), '15,000원 이상 주문시')
   assert.equal(minText(0), '최소주문 없음')
-  assert.equal(minText(null), '최소주문 미확인')
-  assert.equal(minText(undefined), '최소주문 미확인')
+  assert.equal(minText(null), '최소주문 없음')
+  assert.equal(minText(undefined), '최소주문 없음')
 })
 
 test('카드 순서는 applyFilters 결과와 같다', () => {
@@ -38,15 +38,17 @@ test('카드: 앱 이름, 최소주문 모름, 분류 필터', () => {
   const b = brand('가', [offer({ platform: 'coupangeats', minOrderAmount: null })])
   const card = cardOf(b, { random: false, menu: false })
   assert.equal(card.appLabel, '쿠팡이츠')
-  assert.equal(card.minLabel, '최소주문 미확인')
+  assert.equal(card.minLabel, '최소주문 없음')
   assert.equal(card.amountLabel, '10,000원 할인')
   assert.equal(buildCards([b], ['pizza']).length, 0)
   assert.equal(buildCards([b], ['chicken']).length, 1)
 })
 
 test('금액 가르기: "n원 할인"은 숫자와 나머지로, 그 밖의 원문은 그대로(null)', () => {
-  assert.deepEqual(splitAmount('12,000원 할인'), { num: '12,000', rest: '원 할인' })
-  assert.deepEqual(splitAmount('20% 할인'), { num: '20', rest: '% 할인' })
+  assert.deepEqual(splitAmount('12,000원 할인'), { num: '12,000원', rest: '할인' })
+  assert.deepEqual(splitAmount('20% 할인'), { num: '20%', rest: '할인' })
+  assert.deepEqual(splitAmount('50% 적립'), { num: '50%', rest: '적립' })
+  assert.deepEqual(splitAmount('3,000원 환급'), { num: '3,000원', rest: '환급' })
   assert.equal(splitAmount('1+1'), null)
   assert.equal(splitAmount('-'), null)
 })
@@ -86,4 +88,9 @@ test('카드: 1+1 묶음 행사는 대표와 따로 bundles에 담기고, 묶음
   assert.equal(only.bundles.length, 0)
   assert.equal(only.amountLabel, '징거버거 1+1')
   assert.equal(only.hasBest, false)
+})
+
+test('배너 cap은 "최대 N원", 없으면 null', () => {
+  assert.equal(capText(offer({ tiers: [{ minOrder: null, amount: null, percent: 50, cap: 30000 }] })), '최대 30,000원')
+  assert.equal(capText(offer({})), null)
 })

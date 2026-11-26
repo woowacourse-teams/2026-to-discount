@@ -84,6 +84,7 @@ function V2Card({ brand, position, highlighted, onInteract, include = null, onHi
         <Amount label={card.amountLabel} className="v2-card__amount" />
         <span className="v2-card__conds">
           <MinOrder label={card.minLabel} />
+          {card.capLabel && <span className="v2-chip v2-chip--min">{card.capLabel}</span>}
           {card.state && <span className="v2-chip v2-chip--state">{card.state}</span>}
         </span>
       </button>

@@ -14,7 +14,7 @@ const FilterSheet = lazy(() => importRetry(() => import('./FilterSheet.jsx')))
 const FirstVisitGuide = lazy(() => importRetry(() => import('./FirstVisitGuide.jsx')))
 import { useBrandAutocomplete } from './useBrandAutocomplete.js'
 import { sharedOfferKey } from './offerSharing.js'
-import { CATEGORIES, applyFilters, hideUnopenedYogiyoExcept, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, revealFilters, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
+import { CATEGORIES, applyFilters, categoryFromSearch, isSpecialCategory, searchWithCategory, hideUnopenedYogiyoExcept, pinKinds, defaultFilters, includesFrom, isDefaultFilters, primarySort, revealFilters, sortSignature, displayBestAmount, minAmountLabel, readMinAmount, saveMinAmount } from './filters.js'
 const HiddenBrandsSheet = lazy(() => importRetry(() => import('./HiddenBrandsSheet.jsx')))
 const HideBrandAsk = lazy(() => importRetry(() => import('./HideBrandAsk.jsx')))
 // 정적으로 싣는다. lazy면 카드마다 하이드레이션 경계가 생겨, 조각을 받는 동안 급한 갱신이 닿으면 React가
@@ -182,6 +182,29 @@ export default function App({ initial = null, Card = CouponCard, mainClassName }
       }
     } catch { /* 주소를 못 읽으면 기본 안 */ }
   }, [])
+  // ?c=naverpay처럼 특수 칩 하나를 고른 채 연다(혜택 칩 공유 주소, 2026-11-26). 서버 렌더는 기본 필터라 effect에서 읽는다.
+  useEffect(() => {
+    try {
+      const key = categoryFromSearch(window.location.search)
+      if (key) startTransition(() => setFilters((f) => ({ ...f, categories: new Set([key]) })))
+    } catch { /* 주소를 못 읽으면 기본 화면 */ }
+  }, [])
+  // 고른 칩을 주소 ?c=에 맞춘다. 분류를 바꾸는 길(칩, 뒤로 가기, 초기화, 검색, 시트)을 여기 한 곳에서 받는다.
+  // 첫 실행은 건너뛴다: 위 effect가 ?c=를 칩으로 옮기기 전에 지우면 안 된다.
+  const categoryUrlReady = useRef(false)
+  useEffect(() => {
+    if (!categoryUrlReady.current) { categoryUrlReady.current = true; return }
+    const [only] = filters.categories
+    const key = filters.categories.size === 1 && isSpecialCategory(only) ? only : null
+    // 칩을 풀면 분류 칸이 history.go(-1)로 닫힌다. 그 이동이 끝난 칸에 써야 주소에 ?c=가 남지 않는다.
+    afterHistorySettles(() => {
+      try {
+        const { pathname, search, hash } = window.location
+        const next = searchWithCategory(search, key)
+        if (next !== search) history.replaceState(history.state, '', `${pathname}${next}${hash}`)
+      } catch { /* 주소를 못 고치면 그대로 */ }
+    })
+  }, [filters.categories])
   // 쿠폰 카드 CSS. 서버 렌더와 그 실패 때 보내는 사전 렌더링 HTML 모두 <head>에 링크가 있어(api/ssr.js) 캐시로 끝난다.
   // 개발 서버(vite)에서만 여기서 처음 받는다.
   useEffect(() => { import('./styles/coupon-card.css') }, [])

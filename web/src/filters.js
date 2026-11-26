@@ -27,24 +27,44 @@ export const CATEGORIES = [
 export const MIN_CATEGORY_OFFERS = 5
 
 // 한정(선착순), 랜덤 오퍼는 치킨, 피자 같은 분류와 결이 다른 묶음이라 분류 칩 앞에 따로 둔다(2026-11-07 사용자: 전체, 한정, 랜덤, 치킨 …).
+// 네이버페이, 자체 할인(적립, 자사 행사)도 같은 특수 칩이다(2026-11-26). via는 배너 오퍼에만 있다.
 // 같은 categories 집합에 담기므로 키가 brand.category 값과 겹치면 안 된다. 브랜드가 아니라 오퍼로 가른다.
 // 키 firstCome은 API 칸 이름이고 화면 이름만 한정이다.
 export const SPECIAL_CATEGORIES = [
   { key: 'firstCome', label: '한정' },
   { key: 'random', label: '랜덤' },
+  { key: 'naverpay', label: '현장결제' }, // 네이버페이 현장결제 혜택 전체(2026-11-26 사용자)
+  { key: 'self', label: '자체 할인' }, // 적립과 자사 행사를 하나로(2026-11-26 사용자). 포장은 칩에서 뺐다
 ]
 const SPECIAL_MATCH = {
   random: (o) => certaintyOf(o) === 'random',
   firstCome: (o) => o.firstCome === true,
+  naverpay: (o) => o.via === 'naverpay',
+  self: (o) => o.platform === OWN || kindOf(o) === 'cashback' || kindOf(o) === 'points',
 }
 export const isSpecialCategory = (key) => Object.hasOwn(SPECIAL_MATCH, key)
 
+/** 주소 ?c=로 특수 칩 하나를 미리 고른다. 분류 칩(치킨 등)과 모르는 값은 버린다. 공유 주소용. */
+export function categoryFromSearch(search) {
+  const key = new URLSearchParams(search).get('c')
+  return key && isSpecialCategory(key) ? key : null
+}
+
+/** 주소의 다른 검색 값은 두고 c만 맞춘다. key가 null이면 c를 지운다. */
+export function searchWithCategory(search, key) {
+  const q = new URLSearchParams(search)
+  if (key) q.set('c', key)
+  else q.delete('c')
+  const s = q.toString()
+  return s ? `?${s}` : ''
+}
+
 /**
- * 맞는 오퍼가 하나라도 있는 한정, 랜덤 칩을 앞에 세우고, 오퍼가 충분한 분류를 뒤에 붙인다. 브랜드를 아직 못 받았으면 분류만 보인다.
+ * 맞는 오퍼가 하나라도 있는 특수 칩(한정, 랜덤, 네이버페이 등)을 앞에 세우고, 오퍼가 충분한 분류를 뒤에 붙인다. 브랜드를 아직 못 받았으면 분류만 보인다.
  * 지금 골라 둔 칩은 오퍼가 줄어도 남긴다(탭이 사라져 선택을 못 푸는 일을 막는다).
  */
 export function visibleCategories(brands, selected = new Set()) {
-  if (!brands) return CATEGORIES            // 오퍼를 받기 전에는 한정, 랜덤 칩을 세울 근거가 없다
+  if (!brands) return CATEGORIES            // 오퍼를 받기 전에는 특수 칩을 세울 근거가 없다
   const count = new Map()
   for (const b of brands) count.set(b.category, (count.get(b.category) ?? 0) + (b.offers?.length ?? 0))
   const special = SPECIAL_CATEGORIES.filter((c) => selected.has(c.key)
@@ -460,7 +480,7 @@ export function applyFilters(brands, filters, now = pageNow()) {
       const offers = b.offers.filter((o) => platformHits.has(o.platform))
       return offers.length === b.offers.length ? b : { ...b, offers }
     })
-    // 한정, 랜덤 칩만으로 들어온 브랜드(자기 분류 칩이 안 켜진 브랜드)는 그 오퍼만 남긴다. 카드에 상시 오퍼까지 섞이면
+    // 특수 칩(한정, 랜덤, 네이버페이 등)만으로 들어온 브랜드(자기 분류 칩이 안 켜진 브랜드)는 그 오퍼만 남긴다. 카드에 상시 오퍼까지 섞이면
     // 칩을 켠 이유가 안 보인다. 분류 칩이 같이 켜진 브랜드는 그대로 둔다.
     .map((b) => {
       if (special.length === 0 || filters.categories.has(b.category)) return b
@@ -478,7 +498,7 @@ export function applyFilters(brands, filters, now = pageNow()) {
       if (q !== '' && platformHits.size === 0 && findBrandSuggestions([b], q, 1).length === 0) return false
       // 아무 분류도 안 고르면 전체다.
       if (filters.categories.size === 0) return true
-      // 한정, 랜덤 칩이 켜져 있으면 위에서 오퍼를 이미 가렸다 — 남은 브랜드는 그 칩의 대상이다.
+      // 특수 칩이 켜져 있으면 위에서 오퍼를 이미 가렸다 — 남은 브랜드는 그 칩의 대상이다.
       return filters.categories.has(b.category) || special.length > 0
     })
   const include = includesFrom(filters)
