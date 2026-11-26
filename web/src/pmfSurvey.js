@@ -69,3 +69,8 @@ export function canAdvanceQuestion(question, draft) {
   return question.options.some(([key]) => key === value)
     && (value !== 'other' || ((draft[`${question.id}_text`] || '').length <= 200))
 }
+// 첫 page_view가 원장에 도착하기 전의 조회를 최종 탈락으로 보지 않는다.
+// 5, 10, 20, 40초로 늦춘다. 같은 공유기 뒤 여러 기기가 5초 주기로 몰려 nginx 분당 한도(IP당 60건)에 429가 났다(2026-11-12 17시대 440건).
+export const retryMs = attempts => 5000 * 2 ** (attempts - 1)
+export const isEligible = status => Boolean(status.surveyId === SURVEY_ID && status.enabled && status.eligible)
+export const awaitingPageView = status => Boolean(status.enabled && status.state === 'available' && !status.eligible)

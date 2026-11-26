@@ -48,3 +48,18 @@ test('모든 문항은 선택 전 다음 비활성, 선택 후 활성이다', ()
   assert.equal(canAdvanceQuestion(q, { benefit: 'other' }), true)
   assert.equal(canAdvanceQuestion(q, { benefit: 'other', benefit_text: '직접 작성한 답변' }), true)
 })
+
+// 특성 테스트(#457): useSurvey 자격 조회의 판정과 재시도 간격을 못박는다.
+test('설문 자격 조회: 재시도 간격은 5, 10, 20, 40초', async () => {
+  const { retryMs } = await import('./pmfSurvey.js')
+  assert.deepEqual([1, 2, 3, 4].map(retryMs), [5000, 10000, 20000, 40000])
+})
+test('설문 자격 조회: 같은 설문이고 켜져 있고 자격이 있을 때만 보인다, 자격 전 available은 다시 본다', async () => {
+  const { isEligible, awaitingPageView, SURVEY_ID } = await import('./pmfSurvey.js')
+  assert.equal(isEligible({ surveyId: SURVEY_ID, enabled: true, eligible: true }), true)
+  assert.equal(isEligible({ surveyId: 'other', enabled: true, eligible: true }), false)
+  assert.equal(isEligible({ surveyId: SURVEY_ID, enabled: false, eligible: true }), false)
+  assert.equal(awaitingPageView({ enabled: true, state: 'available', eligible: false }), true)
+  assert.equal(awaitingPageView({ enabled: true, state: 'answered', eligible: false }), false)
+  assert.equal(awaitingPageView({ enabled: true, state: 'available', eligible: true }), false)
+})
