@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'jacoco'
     id 'org.springframework.boot' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -35,4 +36,10 @@ tasks.named('test') {
     // 넘어가고, 파일이 있을 때의 변경 추적은 그대로다. 표를 강제하는 자리는
     // mono 저장소의 check-api.yml이고 거기엔 이 파일이 늘 있다.
     inputs.files("$rootDir/../docs/contracts/certainty-cases.json")
+}
+
+// 커버리지 측정: ./gradlew test jacocoTestReport (build/reports/jacoco/test/)
+tasks.named('jacocoTestReport') {
+    dependsOn tasks.named('test')
+    reports { xml.required = true; html.required = true }
 }

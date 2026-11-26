@@ -135,6 +135,7 @@ api/src/test/http/reload.http
 api/src/test/http/reloadRemoteServer.http
 api/src/test/java/com/discounttracker/DiscountApiApplicationTests.java
 api/src/test/java/com/discounttracker/analytics/AnalyticsEventServiceTest.java
+api/src/test/java/com/discounttracker/analytics/AuditAnalyticsTest.java
 api/src/test/java/com/discounttracker/analytics/ClientFingerprintTest.java
 api/src/test/java/com/discounttracker/analytics/CrawlerNameTest.java
 api/src/test/java/com/discounttracker/analytics/EventControllerTest.java
@@ -160,6 +161,7 @@ api/src/test/java/com/discounttracker/analytics/SurveySettingsTest.java
 api/src/test/java/com/discounttracker/analytics/SurveyTextTest.java
 api/src/test/java/com/discounttracker/banner/BannerAmountTest.java
 api/src/test/java/com/discounttracker/banner/BannerBuilderTest.java
+api/src/test/java/com/discounttracker/banner/BannerCatalogAuditTest.java
 api/src/test/java/com/discounttracker/banner/BannerCatalogTest.java
 api/src/test/java/com/discounttracker/banner/BannerContractTest.java
 api/src/test/java/com/discounttracker/banner/BannerFieldsTest.java
@@ -172,6 +174,7 @@ api/src/test/java/com/discounttracker/brand/BrandCatalogTest.java
 api/src/test/java/com/discounttracker/comparison/BannerOfferCertaintyTest.java
 api/src/test/java/com/discounttracker/comparison/BrandComparisonServiceTest.java
 api/src/test/java/com/discounttracker/comparison/TargetedBannerTest.java
+api/src/test/java/com/discounttracker/history/HistoryRepositoryAuditTest.java
 api/src/test/java/com/discounttracker/history/HistoryRepositoryTest.java
 api/src/test/java/com/discounttracker/history/OfferHistoryTest.java
 api/src/test/java/com/discounttracker/insight/InsightServiceTest.java
@@ -186,12 +189,15 @@ api/src/test/java/com/discounttracker/offer/OfferRecordTest.java
 api/src/test/java/com/discounttracker/offer/OfferRepositoryTest.java
 api/src/test/java/com/discounttracker/push/BannerNotificationServiceTest.java
 api/src/test/java/com/discounttracker/push/NewOfferNotificationServiceTest.java
+api/src/test/java/com/discounttracker/push/PushAuditTest.java
 api/src/test/java/com/discounttracker/push/PushEndpointPolicyTest.java
 api/src/test/java/com/discounttracker/push/PushMessageFactoryTest.java
 api/src/test/java/com/discounttracker/push/PushStateStoreTest.java
 api/src/test/java/com/discounttracker/sharing/ShareLinkControllerTest.java
+api/src/test/java/com/discounttracker/sharing/ShareLinkStoreAuditTest.java
 api/src/test/java/com/discounttracker/sharing/ShareLinkStoreTest.java
 api/src/test/java/com/discounttracker/storage/GifticonStoreMultiProcessTest.java
+api/src/test/java/com/discounttracker/storage/InterProcessFileLockAuditTest.java
 api/src/test/java/com/discounttracker/storage/InterProcessFileLockTest.java
 api/src/test/java/com/discounttracker/storage/MultiProcess.java
 api/src/test/java/com/discounttracker/storage/PushStateStoreMultiProcessTest.java
@@ -484,7 +490,7 @@ flowchart TB
 
 | 실행 단위 | 책임 | 자동 집계한 구조 입력 파일 수 |
 |---|---|---:|
-| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 218 |
+| `api/` | 별칭 정규화, 만료 판정, 비교, 배너, 분석 | 224 |
 | `web/` | 브랜드 비교 UI와 행동 이벤트 | 218 |
 
 공개 모노레포에는 수집기(tracker)가 없다 - `tracker/`에는 README만 있다. 이
