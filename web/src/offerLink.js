@@ -226,6 +226,7 @@ export function offerClickProps({ offer, brandName, position, pin, best, where, 
     ...offerShareSelection(offer, brandName),
     brand: brandName,
     platform: offer.platform,
+    via: offer.via ?? 'none', // 결제 수단 채널(네이버페이 현장결제, 2026-11-26)
     // 카드 순번(1부터). 정렬을 바꾼 뒤 몇 번째 카드가 눌리는지 — 정렬 효과의 근거(2026-09-20).
     position,
     // 맨 위로 올라온 이유: hot(HOT 1~5위 고정) | new(신규 앞) | none(2026-10-27). 서버가 속성을 앞에서부터
