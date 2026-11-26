@@ -1,5 +1,7 @@
 package com.discounttracker.comparison;
 
+import com.discounttracker.history.OfferHistory;
+import com.discounttracker.history.HistoryRepository;
 import com.discounttracker.banner.BannerCatalog;
 import com.discounttracker.brand.BrandCatalog;
 import com.discounttracker.offer.Offer;
@@ -50,7 +52,7 @@ class TargetedBannerTest {
             @Override public void reload() { }
             @Override public List<OfferRecord> findAll() { return List.of(); }
         };
-        return new BrandComparisonService(repo, brands, banners, TODAY)
+        return new BrandComparisonService(repo, brands, banners, TODAY, null, "", HistoryRepository.of(OfferHistory.empty()))
                 .compare().get(0).offers().get(0);
     }
 

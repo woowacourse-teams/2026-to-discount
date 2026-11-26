@@ -20,7 +20,7 @@ public class PushAdminController {
     public NewOfferNotificationService.ManagementView next(
             HttpServletRequest request,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        authorize(request);
+        OpsAuth.require(request);
         return notifications.next(date);
     }
 
@@ -28,12 +28,8 @@ public class PushAdminController {
     public NewOfferNotificationService.ManagementView update(
             HttpServletRequest request,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestBody Selection selection) {
-        authorize(request);
-        return notifications.update(date, selection.mode(), selection.offerId());
-    }
-
-    private void authorize(HttpServletRequest request) {
         OpsAuth.require(request);
+        return notifications.update(date, selection.mode(), selection.offerId());
     }
 
     public record Selection(String mode, String offerId) {}

@@ -61,24 +61,8 @@ public class BrandComparisonService {
     /** 인기 점수(2026-09-19). 테스트처럼 없으면 전부 0. */
     private final PopularityIndex popularity;
     /** 브랜드 링크 없이는 그 브랜드에 못 가는 앱 — 링크 없는 오퍼는 숨긴다(application.yml
-     * discount.hide-unlinked-platforms, 기본 yogiyo). 테스트의 4인자 생성자는 비어 있다. */
+     * discount.hide-unlinked-platforms, 기본 yogiyo). */
     private final Set<String> unlinkedHidden;
-
-    public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
-                                  BannerCatalog banners, Clock clock) {
-        this(offers, brands, banners, clock, null, "", HistoryRepository.of(OfferHistory.empty()));
-    }
-
-    /** 테스트용: 이력을 넣는다. */
-    public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
-                                  BannerCatalog banners, Clock clock, HistoryRepository history) {
-        this(offers, brands, banners, clock, null, "", history);
-    }
-
-    public BrandComparisonService(OfferRepository offers, BrandCatalog brands,
-                                  BannerCatalog banners, Clock clock, String hideUnlinkedPlatforms) {
-        this(offers, brands, banners, clock, null, hideUnlinkedPlatforms, HistoryRepository.of(OfferHistory.empty()));
-    }
 
     @Autowired
     public BrandComparisonService(OfferRepository offers, BrandCatalog brands,

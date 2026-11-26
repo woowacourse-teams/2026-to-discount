@@ -17,10 +17,14 @@ public final class OpsAuth {
 
     /** 통과하지 못하면 403. */
     public static void require(HttpServletRequest request) {
-        String peer = request.getRemoteAddr();
-        boolean internal = "127.0.0.1".equals(peer) || "::1".equals(peer) || "0:0:0:0:0:0:0:1".equals(peer);
-        if (!internal || !"1".equals(request.getHeader("X-Ops-Authenticated")))
+        if (!isLoopback(request) || !"1".equals(request.getHeader("X-Ops-Authenticated")))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "운영 콘솔 인증 경로로 접근해야 합니다.");
+    }
+
+    /** 같은 서버에서 온 요청인가. 루프백 판정은 여기 한 곳이다. */
+    public static boolean isLoopback(HttpServletRequest request) {
+        String peer = request.getRemoteAddr();
+        return "127.0.0.1".equals(peer) || "::1".equals(peer) || "0:0:0:0:0:0:0:1".equals(peer);
     }
 
     /** Nginx가 붙이는 Basic Auth 사용자 이름. 없으면 400 — 누가 바꿨는지 모르는 변경은 받지 않는다. */

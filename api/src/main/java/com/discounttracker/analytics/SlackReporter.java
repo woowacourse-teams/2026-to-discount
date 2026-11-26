@@ -48,9 +48,10 @@ public class SlackReporter {
                     .POST(HttpRequest.BodyPublishers.ofByteArray(body))
                     .build();
             HttpResponse<String> res = http.send(request, HttpResponse.BodyHandlers.ofString());
-            boolean ok = mapper.readTree(res.body()).path("ok").asBoolean(false);
+            var reply = mapper.readTree(res.body());
+            boolean ok = reply.path("ok").asBoolean(false);
             if (!ok) log.warn("slack report failed: status={} error={}", res.statusCode(),
-                    mapper.readTree(res.body()).path("error").asString(""));
+                    reply.path("error").asString(""));
             return ok;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
