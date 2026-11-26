@@ -145,7 +145,7 @@ curl -s https://bebeggars.duckdns.org/api/banners | head -c 300
 | 웹 화면 | 브랜치 → mono `preview/<이름>` push → 360px로 직접 보기 → 프리뷰 주소를 주고 승인 → 병합. 올리기 전에 찍어 본다 | 사용자 승인 |
 | 웹 회귀(내 변경으로 잘못된 정보가 운영에 나간 상태) | 수정 → 빌드 → main 병합 → 보고. 프리뷰 승인을 기다리지 않는다 | 사후 보고 |
 | 문서만 | 직접 push. PR로 묶지 않는다 | 없음 |
-| tracker 수집 코드 | 브랜치 → PR. 수집을 바꿨으면 예약을 끄고 실제 수집으로 시험한다(`scripts/collect_trial.ps1`) | 병합 전 사람 확인 |
+| tracker 수집 코드 | 브랜치 → PR. 수집을 바꿨으면 예약을 끄고 실제 수집으로 시험한다(`scripts/collect_trial.ps1`). **탭, 도착 판정, 화면 구조 판정을 바꾸는 PR은 병합 전에 운영 폰으로 그 단계를 실기 한 번 돌리고 결과(폰, 시각, 종료 코드)를 PR 본문에 적는다**(사용자 2026-11-26, #534가 실기 없이 병합돼 15:55 2단계가 실패했다) | 병합 전 사람 확인 |
 | tracker 설정성 데이터(`data/devices.json`, `data/targeted_skip.json`) | 운영 main에 바로 넣는다. 개발 브랜치에만 넣지 않는다(ADR-035, ADR-037 6항). 새 설정성 파일은 `scripts/check_pr_state_files.py`의 목록에 사람이 더한다 | 없음 |
 | 원장, export, 서버 파일 | 사람이 고치지 않는다. 예약 실행 8단계가 쓴다. 정정은 새 관측 행으로 덧붙인다 | 4절 |
 
