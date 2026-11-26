@@ -80,6 +80,11 @@ discount:
 spring:
   jackson:
     use-jackson2-defaults: true
+  # 예약 작업 클래스가 둘 이상이다. 기본 스레드 1개면 푸시 발송이 길어질 때 다른 예약 작업도 같이 멈춘다.
+  task:
+    scheduling:
+      pool:
+        size: 2
 server:
   port: 8080
   # 개발 부하 실험에서 brands JSON 154KB가 압축 없이 전송됐다.

@@ -30,7 +30,7 @@ class PushTrackingControllerTest {
                 "https://front.example/", "https://api.example");
         ObjectMapper mapper = new ObjectMapper();
         PushStateStore store = new PushStateStore(properties, mapper, clock);
-        var subscription = store.upsert("https://push.example/sub", "key", "auth", "v_123", true);
+        var subscription = store.upsert("https://fcm.googleapis.com/fcm/send/sub", "key", "auth", "v_123", true);
         var token = store.createToken("notification", subscription.id(), List.of("banner"), "digest");
         AnalyticsEventService analytics = mock(AnalyticsEventService.class);
         PushTrackingController controller = new PushTrackingController(store, analytics, properties, clock);

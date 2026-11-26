@@ -37,7 +37,7 @@ class NewOfferNotificationServiceTest {
         var targets = NewOfferNotificationService.candidates(List.of(
                 brand("낮은신규", old, lowerNew), brand("BHC", lowerNew),
                 brand("최고", offer(10000, "2026-10-07T15:00:00Z")),
-                brand("제외", soldOut, random)), LocalDate.parse("2026-10-08"));
+                brand("제외", soldOut, random)));
         assertThat(targets).extracting(DailyOfferNotification.Target::brand).containsExactly("최고", "BHC");
     }
 
@@ -47,7 +47,7 @@ class NewOfferNotificationServiceTest {
         Offer old = offer("coupangeats", 9000, false);
         Offer unknown = offer("baemin", 12000, null);
         var targets = NewOfferNotificationService.candidates(
-                List.of(brand("청년피자", newOne, old), brand("BBQ", unknown)), LocalDate.parse("2026-10-09"));
+                List.of(brand("청년피자", newOne, old), brand("BBQ", unknown)));
         assertThat(targets).extracting(DailyOfferNotification.Target::brand).containsExactly("청년피자");
     }
 

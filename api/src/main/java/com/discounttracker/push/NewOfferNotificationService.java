@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
@@ -45,44 +46,75 @@ public class NewOfferNotificationService {
         this.clock = clock;
     }
 
+    /** 발송 구간. 11:00~11:30(KST) 안의 무작위 초에 보낸다. */
+    static final LocalTime WINDOW_START = LocalTime.of(11, 0);
+    static final LocalTime WINDOW_END = LocalTime.of(11, 30);
+
+    /** 발송 루프만 잡는다. 관리 API(next, update)가 잡는 this와 나눠 발송 중에도 콘솔이 답한다. */
+    private final Object sending = new Object();
+
+    private record Batch(String date, DailyOfferNotification state, List<PushSubscription> subscriptions) {}
+
     // 무작위 초 단위 예약을 확인한다. 예약과 발송 상태는 재시작 후에도 유지한다.
     @Scheduled(fixedDelay = 1000)
-    public synchronized void sendDueOffer() {
-        if (!properties.configured()) return;
+    public void sendDueOffer() {
+        synchronized (sending) {
+            Batch batch;
+            synchronized (this) {
+                batch = prepare();
+            }
+            if (batch != null) deliver(batch);
+        }
+    }
+
+    /** 보낼지 정하고 시작 표시(started)까지 적는다. 시작 표시가 있으면 관리 API가 대상을 바꾸지 못한다. */
+    private Batch prepare() {
+        if (!properties.configured()) return null;
         var now = clock.instant().atZone(KST);
         LocalDate day = now.toLocalDate();
-        var start = day.atTime(11, 0).atZone(KST);
-        var end = day.atTime(11, 30).atZone(KST);
-        if (!now.isBefore(end) || clock.instant().isBefore(nextRetryAt)) return;
+        if (!now.isBefore(day.atTime(WINDOW_END).atZone(KST)) || clock.instant().isBefore(nextRetryAt)) return null;
         // 재시작 시 기존 예약을 사용한다. 11시 이후 처음 켜진 서버는 남은 구간에서 예약한다.
         String date = day.toString();
         DailyOfferNotification state = plan(day);
-        if (state.complete() || state.excluded() || now.toEpochSecond() < state.scheduledEpochSecond()) return;
+        if (state.complete() || state.excluded() || now.toEpochSecond() < state.scheduledEpochSecond()) return null;
         List<BrandComparison> current = comparisons.compare();
         if (state.target() == null) {
-            var target = candidates(current, day).stream().findFirst().orElse(null);
+            var target = candidates(current).stream().findFirst().orElse(null);
             state = new DailyOfferNotification(state.scheduledEpochSecond(), target, target == null);
             store.saveDailyOffer(date, state);
         }
-        if (state.complete()) return;
-        if (!replacementCandidates(current, day).contains(state.target())) {
-            store.saveDailyOffer(date, state.completed());
-            return;
+        if (state.complete()) return null;
+        if (!replacementCandidates(current).contains(state.target())) {
+            // 이력 reload로 신규가 아니게 됐거나 금액이 바뀌었다. 자동 선택이면 다시 고르고, 사람이 고른 것이면 멈춘다.
+            var again = state.overridden() ? null : candidates(current).stream().findFirst().orElse(null);
+            log.warn("신규 오퍼 Push 대상이 후보에서 빠졌다: date={} target={} replacement={}", date, state.target(), again);
+            if (again == null) {
+                store.saveDailyOffer(date, state.completed());
+                return null;
+            }
+            state = new DailyOfferNotification(state.scheduledEpochSecond(), again, false, false, false, state.started());
+            store.saveDailyOffer(date, state);
         }
         List<PushSubscription> subscriptions = store.activeSubscriptions();
         if (subscriptions.isEmpty()) {
             store.saveDailyOffer(date, state.completed());
-            return;
+            return null;
         }
-        String notificationId = UUID.nameUUIDFromBytes(("new_offer:" + date).getBytes(StandardCharsets.UTF_8)).toString();
         state = state.begin();
         store.saveDailyOffer(date, state);
+        return new Batch(date, state, subscriptions);
+    }
+
+    private void deliver(Batch batch) {
+        String date = batch.date();
+        DailyOfferNotification state = batch.state();
+        String notificationId = UUID.nameUUIDFromBytes(("new_offer:" + date).getBytes(StandardCharsets.UTF_8)).toString();
+        String base = properties.apiRoot().replaceAll("/$", "");
         boolean complete = true;
-        for (PushSubscription subscription : subscriptions) {
+        for (PushSubscription subscription : batch.subscriptions()) {
             String deliveryKey = "new_offer:" + date + ":" + subscription.id();
             if (store.wasDelivered(deliveryKey)) continue;
             var token = store.createToken(notificationId, subscription.id(), List.of(), "new_offer");
-            String base = properties.apiRoot().replaceAll("/$", "");
             try {
                 int status = sender.send(subscription, messages.offerPayload(state.target(),
                         base + "/api/push/displayed/" + token.token(),
@@ -101,13 +133,13 @@ public class NewOfferNotificationService {
         if (complete) {
             store.saveDailyOffer(date, state.completed());
             log.info("신규 오퍼 Push 발송 완료: date={} brand={} platform={} amount={} subscriptions={}",
-                    date, state.target().brand(), state.target().platform(), state.target().amount(), subscriptions.size());
+                    date, state.target().brand(), state.target().platform(), state.target().amount(), batch.subscriptions().size());
         } else nextRetryAt = clock.instant().plusSeconds(60);
     }
 
     private DailyOfferNotification plan(LocalDate day) {
-        long start = day.atTime(11, 0).atZone(KST).toEpochSecond();
-        long end = day.atTime(11, 30).atZone(KST).toEpochSecond();
+        long start = day.atTime(WINDOW_START).atZone(KST).toEpochSecond();
+        long end = day.atTime(WINDOW_END).atZone(KST).toEpochSecond();
         long earliest = Math.min(end - 1, Math.max(start, clock.instant().getEpochSecond()));
         return store.dailyOffer(day.toString(), ThreadLocalRandom.current().nextLong(earliest, end));
     }
@@ -123,7 +155,7 @@ public class NewOfferNotificationService {
         if (!editable(day, state)) throw new ResponseStatusException(HttpStatus.CONFLICT, "발송이 시작되었거나 발송 시간이 종료되었습니다.");
         DailyOfferNotification next;
         if ("replace".equals(mode)) {
-            var target = replacementCandidates(comparisons.compare(), day).stream()
+            var target = replacementCandidates(comparisons.compare()).stream()
                     .filter(value -> offerId(value).equals(offerId)).findFirst()
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효한 신규 할인 후보가 아닙니다."));
             next = new DailyOfferNotification(state.scheduledEpochSecond(), target, false, true, false, false);
@@ -140,7 +172,7 @@ public class NewOfferNotificationService {
         if (properties.statePath() == null) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Push 상태 저장 경로가 설정되지 않았습니다.");
         LocalDate today = clock.instant().atZone(KST).toLocalDate();
         if (requested == null) {
-            if (!clock.instant().isBefore(today.atTime(11, 30).atZone(KST).toInstant()) || plan(today).complete()) return today.plusDays(1);
+            if (!clock.instant().isBefore(today.atTime(WINDOW_END).atZone(KST).toInstant()) || plan(today).complete()) return today.plusDays(1);
             return today;
         }
         if (requested.isBefore(today) || requested.isAfter(today.plusDays(1)))
@@ -150,14 +182,14 @@ public class NewOfferNotificationService {
 
     private boolean editable(LocalDate day, DailyOfferNotification state) {
         return !state.complete() && !state.started()
-                && clock.instant().isBefore(day.atTime(11, 30).atZone(KST).toInstant());
+                && clock.instant().isBefore(day.atTime(WINDOW_END).atZone(KST).toInstant());
     }
 
     private ManagementView view(LocalDate day, DailyOfferNotification state) {
         List<BrandComparison> current = comparisons.compare();
-        var automatic = candidates(current, day).stream().findFirst().orElse(null);
+        var automatic = candidates(current).stream().findFirst().orElse(null);
         var selected = state.excluded() ? null : state.target() == null ? automatic : state.target();
-        var choices = replacementCandidates(current, day).stream().map(value -> new Candidate(offerId(value), value)).toList();
+        var choices = replacementCandidates(current).stream().map(value -> new Candidate(offerId(value), value)).toList();
         return new ManagementView(day.toString(), Instant.ofEpochSecond(state.scheduledEpochSecond()).atZone(KST).toString(),
                 state.excluded() ? "exclude" : state.overridden() ? "replace" : "auto",
                 selected == null ? null : new Candidate(offerId(selected), selected),
@@ -178,7 +210,7 @@ public class NewOfferNotificationService {
         } catch (java.security.NoSuchAlgorithmException e) { throw new IllegalStateException(e); }
     }
 
-    static List<DailyOfferNotification.Target> replacementCandidates(List<BrandComparison> brands, LocalDate day) {
+    static List<DailyOfferNotification.Target> replacementCandidates(List<BrandComparison> brands) {
         return brands.stream().flatMap(brand -> brand.offers().stream()
                 .filter(NewOfferNotificationService::eligible).filter(offer -> Boolean.TRUE.equals(offer.isNew()))
                 .map(offer -> new DailyOfferNotification.Target(brand.name(), offer.platform(), offer.amount(), offer.firstCome(), offer.firstSeenAt())))
@@ -186,7 +218,7 @@ public class NewOfferNotificationService {
                         .thenComparing(DailyOfferNotification.Target::brand).thenComparing(DailyOfferNotification.Target::platform)).toList();
     }
 
-    static List<DailyOfferNotification.Target> candidates(List<BrandComparison> brands, LocalDate day) {
+    static List<DailyOfferNotification.Target> candidates(List<BrandComparison> brands) {
         return brands.stream().flatMap(brand -> {
             Integer best = brand.offers().stream().filter(NewOfferNotificationService::eligible)
                     .map(Offer::amount).max(Integer::compareTo).orElse(null);
