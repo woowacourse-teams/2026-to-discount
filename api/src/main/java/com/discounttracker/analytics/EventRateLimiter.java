@@ -26,13 +26,18 @@ public class EventRateLimiter {
     private record Bucket(Instant windowStart, int count) {}
 
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private volatile Instant lastSweep = Instant.EPOCH;
 
     /** 허용되면 true. 창을 넘긴 만큼은 거절한다. */
     public boolean tryConsume(String key, int events) {
         Instant now = Instant.now();
         if (buckets.size() > MAX_TRACKED) {
             // 다 지우면 모든 사람의 제한이 한꺼번에 풀린다(키를 돌려 쓰면 일부러 비울 수 있다). 창이 지난 것만 걷는다.
-            buckets.values().removeIf(b -> Duration.between(b.windowStart(), now).compareTo(WINDOW) > 0);
+            // 걷기는 창마다 한 번만. 넘친 동안 요청마다 맵 전체를 훑지 않는다(CodeRabbit).
+            if (Duration.between(lastSweep, now).compareTo(WINDOW) > 0) {
+                lastSweep = now;
+                buckets.values().removeIf(b -> Duration.between(b.windowStart(), now).compareTo(WINDOW) > 0);
+            }
             // 걷고도 넘치면 새 키는 받지 않는다. 이미 세던 키는 그대로 센다.
             if (buckets.size() > MAX_TRACKED && !buckets.containsKey(key)) return false;
         }
