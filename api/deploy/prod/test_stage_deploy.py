@@ -150,6 +150,21 @@ class DeployTest(unittest.TestCase):
             self.run_deploy(ops)
             self.assertFalse([e for e in ops.events if isinstance(e, tuple) and e[1] > 100], (now, guard))
 
+    def test_waits_when_the_deploy_would_run_into_the_push_window(self):
+        # 3+3+15초가 걸릴 수 있어 10:59:50 시작은 11:00 창에 닿는다
+        ops = FakeOps(health=lambda o, p: True, now=datetime(2026, 10, 27, 10, 59, 50, tzinfo=KST), prev="/d/old.jar")
+        self.run_deploy(ops)
+        self.assertEqual(ops.events[0], ("sleep", 35 * 60 + 10))
+
+    def test_relative_jar_path_is_linked_absolutely(self):
+        ops = FakeOps(health=lambda o, p: True, prev="/d/old.jar")
+        cwd = os.getcwd()
+        os.chdir(self.jar.parent)
+        self.addCleanup(os.chdir, cwd)
+        sd.deploy(self.cfg, ops, Path(self.jar.name), log=self.logs.append)
+        self.assertTrue(ops.links["stage"].is_absolute())
+        self.assertEqual(ops.links["current"], self.jar.resolve())
+
     def test_leftover_stage_is_stopped_first(self):
         ops = FakeOps(health=lambda o, p: True, active={STAGE}, prev="/d/old.jar")
         self.assertEqual(self.run_deploy(ops), sd.OK)

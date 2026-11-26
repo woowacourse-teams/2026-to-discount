@@ -17,20 +17,33 @@ import urllib.request
 ROOT = Path('/opt/todiscount-be-dev')
 SERVICE = 'todiscount-be-dev'
 ARTIFACT_ROOT = Path('/var/lib/todiscount-runner')
+FILES = ('app.jar', 'manifest.json', 'app.jar.sha256')
+LOCAL_URL = 'http://127.0.0.1:8080/api/brands'
+PUBLIC_URL = 'https://dev-api-todiscount.duckdns.org/api/brands'
+
+
+def brands_ok(url):
+    """Same readiness rule as prod/stage_deploy.py: HTTP 200 with a JSON list."""
+    try:
+        with urllib.request.urlopen(url, timeout=5) as response:
+            return response.status == 200 and isinstance(json.load(response), list)
+    except Exception:
+        return False
+
+
+def sha256_file(path):
+    digest = hashlib.sha256()
+    with open(path, 'rb') as stream:
+        for chunk in iter(lambda: stream.read(1 << 20), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def healthy():
+    # Only the local port decides readiness; DNS or certificate trouble must not roll back a good release.
     if subprocess.run(['systemctl', 'is-active', '--quiet', SERVICE]).returncode:
         return False
-    try:
-        for url in ['http://127.0.0.1:8080/api/brands',
-                    'https://dev-api-todiscount.duckdns.org/api/brands']:
-            with urllib.request.urlopen(url, timeout=5) as response:
-                if not isinstance(json.load(response), list):
-                    return False
-        return True
-    except Exception:
-        return False
+    return brands_ok(LOCAL_URL)
 
 
 def wait_ready():
@@ -62,7 +75,7 @@ def main():
         # Copy into a root-owned directory before validation and service changes.
         with tempfile.TemporaryDirectory(dir=ROOT) as staging:
             staged = Path(staging)
-            for name in ['app.jar', 'manifest.json', 'app.jar.sha256']:
+            for name in FILES:
                 path = source / name
                 if path.is_symlink() or not path.is_file():
                     raise SystemExit(f'Invalid artifact file: {name}')
@@ -73,18 +86,22 @@ def main():
                         'repository': 'woowacourse-teams/2026-to-discount'}
             if any(manifest.get(k) != v for k, v in expected.items()):
                 raise SystemExit('Artifact provenance does not match the requested dev build')
-            digest = hashlib.sha256((staged / 'app.jar').read_bytes()).hexdigest()
+            digest = sha256_file(staged / 'app.jar')
             if digest != manifest.get('sha256') or (staged / 'app.jar.sha256').read_text().split() != [digest, 'app.jar']:
                 raise SystemExit('Artifact checksum mismatch')
             release = ROOT / 'releases' / f'{sha}-{run}-{attempt}'
             if release.exists():
-                if hashlib.sha256((release / 'app.jar').read_bytes()).hexdigest() != digest:
+                if sha256_file(release / 'app.jar') != digest:
                     raise SystemExit('Existing release has different contents')
             else:
-                release.mkdir(mode=0o755)
-                for name in ['app.jar', 'manifest.json', 'app.jar.sha256']:
-                    shutil.copyfile(staged / name, release / name)
-                    (release / name).chmod(0o644)
+                # Fill a sibling directory first so a failed copy never leaves a half-filled release behind.
+                filling = staged / 'release'
+                filling.mkdir()
+                for name in FILES:
+                    shutil.copyfile(staged / name, filling / name)
+                    (filling / name).chmod(0o644)
+                filling.chmod(0o755)
+                os.rename(filling, release)
         current = ROOT / 'current.jar'
         previous = current.resolve() if current.is_symlink() else None
         if previous and not previous.is_relative_to(ROOT / 'releases'):
@@ -98,8 +115,12 @@ def main():
             if not success:
                 if previous and previous.is_file():
                     point_to(previous)
-                    subprocess.run(['systemctl', 'restart', SERVICE], check=True)
-                    if not wait_ready():
+                    try:
+                        subprocess.run(['systemctl', 'restart', SERVICE], check=True)
+                        restored = wait_ready()
+                    except subprocess.CalledProcessError as error:
+                        raise RuntimeError('Deployment and rollback restart both failed') from error
+                    if not restored:
                         raise RuntimeError('Deployment and rollback readiness checks both failed')
                 else:
                     subprocess.run(['systemctl', 'stop', SERVICE], check=True)
@@ -114,6 +135,8 @@ def main():
         temp.replace(ROOT / 'deployment.json')
         with (ROOT / 'deployments.jsonl').open('a') as history:
             history.write(json.dumps(status) + '\n')
+        if not brands_ok(PUBLIC_URL):
+            print(f'Warning: public address is not answering: {PUBLIC_URL}', file=sys.stderr)
         print(f'Deployed {sha} ({run}/{attempt})')
 
 
