@@ -516,10 +516,9 @@ test('혜택 칩은 맞는 오퍼만 남긴다', () => {
     { name: 'E', category: 'chicken', offers: [o({ channel: '포장' })] },
   ]
   const pick = (key) => applyFilters(brands, { ...defaultFilters(), categories: new Set([key]) }).map((b) => b.name).sort()
-  assert.deepEqual(pick('naverpay'), ['A'])
-  assert.deepEqual(pick('self'), ['A', 'C'])
-  assert.deepEqual(visibleCategories(brands.slice(3, 4)).some((c) => c.key === 'naverpay'), false)
-  assert.deepEqual(visibleCategories(brands).some((c) => c.key === 'naverpay'), true)
+  assert.deepEqual(pick('instore'), ['A', 'C'])
+  assert.deepEqual(visibleCategories(brands.slice(3, 4)).some((c) => c.key === 'instore'), false)
+  assert.deepEqual(visibleCategories(brands).some((c) => c.key === 'instore'), true)
 })
 
 test('혜택 칩 키는 분류 키와 겹치지 않는다', () => {
@@ -530,18 +529,19 @@ test('혜택 칩 키는 분류 키와 겹치지 않는다', () => {
     assert.ok(!new RegExp(String.raw`category:\s*${c.key}\b`).test(yml), c.key)
   }
   assert.ok(new RegExp(String.raw`category:\s*chicken\b`).test(yml))   // 패턴이 실제 분류를 잡는지
-  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤', '현장결제', '자체 할인'])
+  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤', '현장결제'])
 })
 
 test('?c=는 아는 특수 칩만 받는다', () => {
-  assert.equal(categoryFromSearch('?c=naverpay'), 'naverpay')
+  assert.equal(categoryFromSearch('?c=instore'), 'instore')
+  assert.equal(categoryFromSearch('?c=naverpay'), 'instore')
   assert.equal(categoryFromSearch('?c=chicken'), null)
   assert.equal(categoryFromSearch('?c=%3Cscript%3E'), null)
   assert.equal(categoryFromSearch(''), null)
 })
 
 test('칩 주소는 다른 검색 값을 남긴다', () => {
-  assert.equal(searchWithCategory('?from=share', 'self'), '?from=share&c=self')
-  assert.equal(searchWithCategory('?from=share&c=self', null), '?from=share')
-  assert.equal(searchWithCategory('?c=self', null), '')
+  assert.equal(searchWithCategory('?from=share', 'instore'), '?from=share&c=instore')
+  assert.equal(searchWithCategory('?from=share&c=instore', null), '?from=share')
+  assert.equal(searchWithCategory('?c=instore', null), '')
 })
