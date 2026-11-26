@@ -74,10 +74,11 @@ test('analytics-context: 저장소가 막혀도 던지지 않는다', async () =
   assert.equal(c.visitCount, 1)
 })
 
-test.skip('audit: analytics-context — location이 없으면(SSR) typeof 검사 전에 URLSearchParams(location.search)에서 죽는다', async () => {
+test('audit: analytics-context — location이 없으면(SSR) typeof 검사 전에 URLSearchParams(location.search)에서 죽는다', async () => {
   const mod = await loadContext()
+  const saved = globalThis.location
   delete globalThis.location
-  assert.doesNotThrow(() => mod.getAnalyticsContext())
+  try { assert.doesNotThrow(() => mod.getAnalyticsContext()) } finally { setGlobal('location', saved) } // 뒤 시험(track)이 location을 쓴다
 })
 
 // ---- offerLink ----
@@ -103,7 +104,7 @@ test('offerLink: setHubLinks는 url 없는 배너, null 목록을 건너뛴다',
   assert.doesNotThrow(() => offerLinkMod.setHubLinks([null, { platform: 'coupangeats' }]))
 })
 
-test.skip('audit: offerLink — setHubLinks가 문자열 아닌 url(숫자 등)에서 includes로 죽는다', () => {
+test('audit: offerLink — setHubLinks가 문자열 아닌 url(숫자 등)에서 includes로 죽는다', () => {
   assert.doesNotThrow(() => offerLinkMod.setHubLinks([{ platform: 'coupangeats', url: 1 }]))
 })
 
@@ -122,11 +123,6 @@ test('offerLink: offerClickProps 기본값', () => {
   assert.equal(offerLinkMod.offerClickProps({ offer: { platform: 'baemin', link: 'x', linkSource: 'record' }, brandName: 'B' }).fromBanner, false)
 })
 
-test.skip('audit: offerLink — 쿠팡이츠 안내 중 두 번 누르면 앞 타이머가 살아 이동과 watchAppOpen이 두 번 돈다', () => {
-  // DOM 흉내가 필요하다. 고칠 때 첫 dim이 지워지면 앞 타이머의 이동이 일어나지 않음을 확인한다.
-  assert.fail('재현 미작성: offerLink.js:118-133 setTimeout을 clearTimeout하지 않는다')
-})
-
 // ---- cardId ----
 const { brandCardId } = await import('./cardId.js')
 
@@ -134,7 +130,7 @@ test('cardId: 앞뒤 공백을 자르고 안쪽 공백은 _로', () => {
   assert.equal(brandCardId('  BBQ  치킨 '), 'brand-BBQ_치킨')
 })
 
-test.skip('audit: cardId — name이 없으면 trim에서 TypeError', () => {
+test('audit: cardId — name이 없으면 trim에서 TypeError', () => {
   assert.doesNotThrow(() => brandCardId(undefined))
 })
 
@@ -155,7 +151,7 @@ test('api: fetchHistory는 브랜드 이름을 인코딩한다', async () => {
   assert.match(url, /\/api\/brands\/A%26B%20%EC%B9%98%ED%82%A8\/history\?range=1m$/)
 })
 
-test.skip('audit: api — fetchHistory가 range를 인코딩하지 않는다', async () => {
+test('audit: api — fetchHistory가 range를 인코딩하지 않는다', async () => {
   let url
   setGlobal('fetch', async (u) => { url = u; return { ok: true, json: async () => [] } })
   await api.fetchHistory('BBQ', '1m&x=1')
@@ -209,13 +205,53 @@ test('telemetry: 감시 중 두 번째 watchAppOpen은 무시된다(onDone 한 �
 })
 
 // ---- DOM/JSX 쪽 지적(node:test로 못 돌린다). 고칠 때 순수 함수로 꺼내 skip을 푼다 ----
-test.skip('audit: EventBanner — banner.url이 문자열이 아니면 url.startsWith로 배너 영역이 죽는다(EventBanner.jsx:128)', () => {})
-test.skip('audit: EventBanner/OfferChip — API 주소를 허용 스킴 확인 없이 href에 넣는다(javascript: 통과)', () => {})
-test.skip('audit: useSurvey — 화면이 다시 보일 때마다 attempts=0으로 되돌려 지수 대기가 무력화된다(useSurvey.js:90)', () => {})
-test.skip('audit: prerender — today를 toISOString(UTC)로 잡아 KST 00~09시 빌드가 어제 날짜를 찍는다(prerender.mjs:396)', () => {
-  // 고칠 때 날짜 함수를 꺼내 2026-11-26T20:00:00Z → '2026-11-27'을 확인한다.
-  const d = new Date('2026-11-26T20:00:00Z')
-  assert.equal(d.toISOString().slice(0, 10), '2026-11-27')
+test('audit: EventBanner — banner.url이 문자열이 아니면 url.startsWith로 배너 영역이 죽는다(EventBanner.jsx:128)', () => {
+  assert.equal(offerLinkMod.bannerHref({ url: 5 }), null)
+  assert.equal(offerLinkMod.bannerHref({}), null)
+  assert.equal(offerLinkMod.bannerHref({ platform: 'coupangeats' }), offerLinkMod.COUPANGEATS_LINK)
+  assert.equal(offerLinkMod.bannerHref({ url: 'baemin://x' }), 'baemin://x')
 })
-test.skip('audit: prerender — slugOf가 다른 이름을 같은 slug로 만들면 앞 페이지를 덮는다(prerender.mjs:459)', () => {})
-test.skip('audit: prerender — 치환 대상이 없으면 조용히 성공 로그를 낸다(prerender.mjs:401-404)', () => {})
+test('audit: EventBanner/OfferChip — API 주소를 허용 스킴 확인 없이 href에 넣는다(javascript: 통과)', () => {
+  assert.equal(offerLinkMod.safeHref('javascript:alert(1)'), null)
+  assert.equal(offerLinkMod.safeHref(' JavaScript:x'), null)
+  assert.equal(offerLinkMod.safeHref('https://a'), 'https://a')
+  assert.equal(offerLinkMod.safeHref('yogiyolink://search'), 'yogiyolink://search')
+  assert.equal(offerLinkMod.offerLink({ platform: 'baemin', link: 'javascript:x' }), offerLinkMod.offerLink({ platform: 'baemin' }), '오퍼 칩·쿠폰 카드는 다음 단계 주소로')
+})
+test('audit: useSurvey — 화면이 다시 보일 때마다 attempts=0으로 되돌려 지수 대기가 무력화된다(useSurvey.js:90)', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const src = await readFile(new URL('./useSurvey.js', import.meta.url), 'utf8')
+  const onVisible = src.split('\n').find((l) => l.includes('function onVisible'))
+  assert.ok(onVisible && !/attempts\s*=\s*0/.test(onVisible))
+})
+// 맨 위에서 부르면 vite 로드가 telemetry 시험의 전역을 흔든다. 시험 안에서 부른다.
+const prerenderMod = () => import('../scripts/prerender.mjs')
+test('audit: prerender — today를 toISOString(UTC)로 잡아 KST 00~09시 빌드가 어제 날짜를 찍는다(prerender.mjs:396)', async () => {
+  assert.equal((await prerenderMod()).kstDate(new Date('2026-11-26T20:00:00Z')), '2026-11-27')
+})
+test('audit: prerender — slugOf가 다른 이름을 같은 slug로 만들면 앞 페이지를 덮는다(prerender.mjs:459)', async () => {
+  const prerender = await prerenderMod()
+  assert.throws(() => prerender.assertUniqueSlugs(['A&B', 'A B']), /slug 충돌/)
+  assert.doesNotThrow(() => prerender.assertUniqueSlugs(['A', 'B']))
+})
+test('audit: prerender — 치환 대상이 없으면 조용히 성공 로그를 낸다(prerender.mjs:401-404)', async () => {
+  const prerender = await prerenderMod()
+  assert.throws(() => prerender.replaceOrThrow('<p></p>', '<div id="root"></div>', 'x'), /치환 대상 없음/)
+  assert.equal(prerender.replaceOrThrow('a<b>', '<b>', 'c'), 'ac')
+})
+
+// 이 시험은 watchAppOpen 감시를 남기므로 맨 끝에 둔다.
+test('audit: offerLink — 쿠팡이츠 안내 중 두 번 누르면 앞 타이머가 살아 이동과 watchAppOpen이 두 번 돈다', (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+  const el = () => ({ remove() {}, appendChild() {}, setAttribute() {}, addEventListener() {} })
+  setGlobal('document', { querySelector: () => null, createElement: el, body: el(), visibilityState: 'hidden', addEventListener() {}, removeEventListener() {} })
+  const moves = []
+  setGlobal('window', { location: { set href(v) { moves.push(v) } }, addEventListener() {}, removeEventListener() {}, matchMedia: () => ({ matches: false }) })
+  const ev = { preventDefault() {} }
+  offerLinkMod.openWithNotice(ev, offerLinkMod.COUPANGEATS_LINK)
+  offerLinkMod.openWithNotice(ev, offerLinkMod.COUPANGEATS_LINK)
+  t.mock.timers.tick(10000)
+  assert.equal(moves.length, 1)
+  delete globalThis.window
+  delete globalThis.document
+})

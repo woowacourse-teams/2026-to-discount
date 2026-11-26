@@ -91,6 +91,17 @@ export const COUPANGEATS_HINT = '앱에서 "브랜드 할인 버튼"을 눌러�
 const NOTICE_FIRST_MS = 3500
 const NOTICE_MS = 1000
 const NOTICE_SEEN_KEY = 'dk_ce_notice_seen'
+// 배너·오퍼 주소는 API에서 온다. href에 그대로 넣으면 javascript: 같은 주소도 그려진다. 아는 스킴만 남긴다.
+const SAFE_SCHEME = /^(https?|baemin|coupangeats|yogiyolink|ddangyo|intent):/i
+export function safeHref(url) {
+  return typeof url === 'string' && SAFE_SCHEME.test(url) ? url : null
+}
+// 배너가 여는 주소. 쿠팡이츠는 고정 링크, 그 밖은 안전한 문자열 주소가 아니면 null(배너를 건너뛴다).
+export function bannerHref(banner) {
+  return banner?.platform === 'coupangeats' ? COUPANGEATS_LINK : safeHref(banner?.url)
+}
+
+let noticeTimer
 function noticeMs() {
   try {
     if (localStorage.getItem(NOTICE_SEEN_KEY)) return NOTICE_MS
@@ -116,6 +127,8 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   // 공유 링크도 같은 탭으로 넘긴다. 새 탭에 넣으면 그 탭엔 누른 기록이 없어 앱 열기(intent://)가 막혀 빈 탭에 멈췄다
   // (2026-10-12 사용자: 안 넘어간다).
   document.querySelector('.ce-dim')?.remove()
+  // 안내 중 다시 누르면 앞 타이머를 버린다. 남겨 두면 이동과 watchAppOpen이 두 번 돈다.
+  clearTimeout(noticeTimer)
   // 바텀시트처럼 화면을 어둡게 깔고 그 위에 안내를 띄운다(2026-10-06 사용자)
   const dim = document.createElement('div')
   dim.className = 'ce-dim'
@@ -125,7 +138,7 @@ export function openWithNotice(e, href, { offerPrompt = false } = {}) {
   el.textContent = COUPANGEATS_NOTICE
   dim.appendChild(el)
   document.body.appendChild(dim)
-  setTimeout(() => {
+  noticeTimer = setTimeout(() => {
     dim.remove()
     // 2026-11-04 사용자: 앱이 안 열리면 허브 웹으로 넘기던 1차 폴백을 지우고, 다른 앱과 같이 설치 안내를 띄운다.
     watchAppOpen(href, 2500, afterOpen)
@@ -193,7 +206,7 @@ export function setHubLinks(banners) {
   const next = {}
   for (const banner of banners ?? []) {
     const marker = HUB_LINK_MARKERS[banner?.platform]
-    if (!marker || !banner.url || next[banner.platform]) continue
+    if (!marker || typeof banner.url !== 'string' || next[banner.platform]) continue
     if (banner.url.includes(marker)) next[banner.platform] = banner.url
   }
   hubLinks = next
@@ -213,11 +226,14 @@ export function offerLink(offer, brandLinks, brandName) {
   // 쿠팡이츠: 수집이 그 쿠폰이 있는 허브 탭 링크(coupangeats://…anchorTabNo=N)를 실었으면 그 탭으로, 아니면 공유 링크(2026-10-07)
   // 2026-10-16 사용자: 탭까지 붙여. 앱이 안 열리면 openWithNotice가 4초 뒤 공유 링크로 넘긴다.
   if (offer.platform === 'coupangeats') return coupangeatsLink(offer)
-  return offer.link
-    ?? brandLinks?.[offer.platform]
-    ?? PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName)
-    ?? hubLinks[offer.platform]
-    ?? PLATFORM_APP_LINKS[offer.platform]
+  // 앞 단계 주소가 안전하지 않으면(javascript: 등) 다음 단계로 넘어간다. 모든 칩·카드가 이 함수를 거친다.
+  return [
+    offer.link,
+    brandLinks?.[offer.platform],
+    PLATFORM_BRAND_SEARCH_LINKS[offer.platform]?.(brandName),
+    hubLinks[offer.platform],
+    PLATFORM_APP_LINKS[offer.platform],
+  ].map(safeHref).find(Boolean)
 }
 
 /** offer_link_click 속성. 운영 카드와 쿠폰 카드가 같은 키로 남긴다(PostHog 대시보드가 이 키로 가른다). */

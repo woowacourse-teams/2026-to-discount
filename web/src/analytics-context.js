@@ -35,7 +35,7 @@ function createContext() {
     safeStore(localStorage, VISITS_KEY, String(visitCount))
   }
 
-  const params = new URLSearchParams(location.search)
+  const params = new URLSearchParams(typeof location === 'undefined' ? '' : location.search)
   let dev
   if (params.has('dev')) {
     dev = params.get('dev') === '1'

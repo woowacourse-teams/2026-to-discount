@@ -19,6 +19,8 @@ const RELAYOUT = "(function(){if(!/iP(hone|ad|od)/.test(navigator.userAgent)&&!(
 
 export function inject(html, appHtml, data) {
   const start = html.indexOf(ROOT_OPEN)
+  // 못 찾으면 깨진 HTML이 200으로 CDN에 캐시된다. 던져서 사전 렌더링 HTML로 떨어진다.
+  if (start === -1) throw new Error('template에 #root가 없다')
   const end = html.lastIndexOf('</div>', html.indexOf('</body>'))
   // null 칸은 싣지 않는다(isNew 제외). 이유와 예외는 src/ssrJson.js.
   const json = ssrJson(data)

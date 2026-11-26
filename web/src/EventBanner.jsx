@@ -6,11 +6,11 @@
 // 다시 배포할 필요가 없다 — api의 banners.yml만 고치면 된다.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { COUPANGEATS_LINK, openWithNotice } from './offerLink.js'
+import { bannerHref, openWithNotice } from './offerLink.js'
 import { BrandLogo, platformIconSrc, PLATFORM_BY_KEY } from './logos.jsx'
 import { bannerPalette, brandSeed, platformSeed } from './brandColor.js'
 import { track } from './analytics.js'
-import { indexToSlot, settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
+import { settleSlot, slotToIndex, withSentinels } from './bannerScroll.js'
 import { bannerTag } from './bannerTag.js'
 import { bannerProps } from './bannerAnalytics.js'
 import { bannerMemberLabels, memberMinOrderText, memberText } from './bannerMembers.js'
@@ -123,7 +123,7 @@ function BannerCard({ banner, position, slot, onClose, onSeen }) {
   }, [])
   // 커스텀 스킴(baemin://, ddangyo:// ...)은 새 탭에서 열면 브라우저가
   // about:blank만 띄우고 인텐트를 넘기지 않는다 — 오퍼 칩과 같은 규칙이다.
-  const url = banner.platform === 'coupangeats' ? COUPANGEATS_LINK : banner.url
+  const url = bannerHref(banner)
   const external = url.startsWith('http')
 
   return (
@@ -340,7 +340,9 @@ function Controls({ count, index, onPrev, onNext, rotating, held, onToggleHold, 
 
 // 배너 로고 오른쪽 위 스티키 탭. 구조 필드(limit)가 있으면 그것, 없으면 기간·조건 문구에서 짐작.
 // dockOnly: 위 캐러셀 없이 처음부터 하단 도크로만(메인 화면 A/B 쿠폰 카드 쪽, 2026-10-05). 노출은 position 'bottom'으로 센다.
-export default function EventBanner({ banners, dockOnly = false, inline = false }) {
+export default function EventBanner({ banners: raw, dockOnly = false, inline = false }) {
+  // 열 주소가 없는(문자열 아님, 모르는 스킴) 배너는 건너뛴다. 하나 때문에 배너 영역이 통째로 죽었다.
+  const banners = useMemo(() => raw?.filter((b) => bannerHref(b)), [raw])
   const [index, setIndex] = useState(0)
   const [hovered, setHovered] = useState(false)
   // 사용자가 멈춤 버튼으로 세운 상태. 손을 올린 것과 달리 다시 누를 때까지 간다.
@@ -413,6 +415,9 @@ export default function EventBanner({ banners, dockOnly = false, inline = false 
   useEffect(() => { setIndex(slotToIndex(slot, count)) }, [slot, count])
 
   // 옆 칸으로. 사본에 도착하면 transition이 끝난 뒤 실제 칸으로 소리 없이.
+  // 넘김 타이머는 언마운트와 장 수 변경 때 버린다. 남으면 사라진 컴포넌트나 범위 밖 장에 setSlot한다.
+  const stepTimer = useRef()
+  useEffect(() => () => { clearTimeout(stepTimer.current); busy.current = false }, [count])
   function step(dir) {
     if (count < 2 || busy.current) return
     const next = slot + dir
@@ -422,7 +427,7 @@ export default function EventBanner({ banners, dockOnly = false, inline = false 
     setSlot(next)
     const real = settleSlot(next, count)
     const dur = reduceMotion ? 0 : SLIDE_MS
-    setTimeout(() => {
+    stepTimer.current = setTimeout(() => {
       if (real !== null) {
         setAnim(false)
         setSlot(real)
@@ -432,8 +437,6 @@ export default function EventBanner({ banners, dockOnly = false, inline = false 
       busy.current = false
     }, dur + 20)
   }
-  // 특정 장으로(현재 안 쓰는 점 이동 경로 — 카운터에서 쓰일 수 있다).
-  const scrollTo = (i) => step(indexToSlot(i, count) - slot)
   function advance() { step(1) }
 
   // 손가락·마우스로 끌기. 끄는 동안은 transition 없이 따라오고, 놓으면
