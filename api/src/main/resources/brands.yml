@@ -1608,6 +1608,7 @@ brands:
   # --- 2026-11-26 네이버페이 현장결제 혜택 목록의 음식·카페 브랜드(사용자 등록 지시) ---
   밀로티:
     searchAliases: [밀로티, 밀로 티, milo tea, milotea]
+    category: cafe
   다우닝:
     searchAliases: [다우닝, 다우닝커피, 다우닝 커피, downing, downing coffee]
     category: cafe
