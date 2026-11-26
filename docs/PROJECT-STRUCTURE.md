@@ -532,7 +532,6 @@ HTTP 경계:
 - `GET /api/reports/mine`
 - `GET /api/share-links/{code}`
 - `GET /api/survey`
-- `GET /api/survey/code`
 - `POST /api/events`
 - `POST /api/push/displayed/{token}`
 - `POST /api/push/subscriptions`
