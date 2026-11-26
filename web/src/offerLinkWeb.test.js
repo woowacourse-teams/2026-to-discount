@@ -14,6 +14,7 @@ function fakeBrowser() {
   const store = { getItem: () => null, setItem() {}, removeItem() {} }
   setGlobal('localStorage', store)
   setGlobal('sessionStorage', store)
+  setGlobal('navigator', { doNotTrack: '1', globalPrivacyControl: true }) // track()이 privacy.js에서 읽는다. CI의 Node에는 전역이 없다
   setGlobal('location', { search: '', hostname: 'example.test', pathname: '/' })
   const el = () => ({ remove() {}, appendChild() {}, setAttribute() {}, addEventListener() {} })
   const body = { ...el(), appendChild: (x) => shown.push(x) }
@@ -39,5 +40,5 @@ test('웹으로 가는 링크는 2.5초 뒤 설치 안내를 안 띄우고, 앱 
   openWithNotice(ev, 'https://baemin.me/x')
   t.mock.timers.tick(3000)
   assert.equal(shown.length, 1)
-  for (const k of ['window', 'document', 'localStorage', 'sessionStorage', 'location']) delete globalThis[k]
+  for (const k of ['window', 'document', 'localStorage', 'sessionStorage', 'location', 'navigator']) delete globalThis[k]
 })
