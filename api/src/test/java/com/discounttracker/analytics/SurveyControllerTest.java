@@ -271,4 +271,12 @@ class SurveyControllerTest {
            .andExpect(jsonPath("$.ok").value(true))
            .andExpect(jsonPath("$.reason").value("no_stock"));
     }
+    @org.junit.jupiter.api.Disabled("audit: 01-api-a.md SurveyController GET /code가 visitorId만으로 기프티콘 코드를 돌려준다")
+    @Test
+    void codeLookupNeedsMoreThanVisitorId() throws Exception {
+        mvc.perform(post("/api/survey").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"visitorId\":\"v_tester\",\"choice\":\"compare\"}"));
+        mvc.perform(get("/api/survey/code").param("visitorId", "v_tester"))
+           .andExpect(jsonPath("$.code").doesNotExist());
+    }
 }
