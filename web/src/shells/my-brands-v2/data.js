@@ -50,7 +50,7 @@ export function appLabel(offer) {
 }
 
 /** 링크가 네이버페이 페이지인가. 버튼 이름과 색은 실제 가는 곳을 따른다(배지는 늘 N페이, 2026-11-26 사용자) */
-export const naverLinked = (o) => /(^|\.)naver\.com$/.test((() => { try { return new URL(o.url).hostname } catch { return '' } })())
+export const naverLinked = (o) => /(^|\.)naver\.com$/.test((() => { try { return new URL(o.link ?? o.url).hostname } catch { return '' } })())
 /** 버튼 색 키: 네이버페이 링크면 naverpay, 아니면 앱 */
 const btnKey = (o) => (o.via === 'naverpay' && naverLinked(o) ? 'naverpay' : o.platform)
 
