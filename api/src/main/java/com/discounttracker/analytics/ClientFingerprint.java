@@ -3,6 +3,8 @@ package com.discounttracker.analytics;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -38,6 +40,11 @@ public class ClientFingerprint {
         return hash(clientIp(request), LocalDate.now().toString());
     }
 
+    /** 요청 제한용. {@link #hash(HttpServletRequest)}와 같은 IP 규칙이다(예전에는 둘이 달라 원장 쪽이 위조됐다). */
+    public String hashForLimit(HttpServletRequest request) {
+        return hash(request);
+    }
+
     String hash(String ip, String day) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -52,10 +59,14 @@ public class ClientFingerprint {
     }
 
     /**
-     * 요청 제한용 해시. X-Forwarded-For 첫 항목은 클라이언트가 지어 보낼 수 있어 제한을 우회한다.
-     * nginx가 넣는 X-Real-IP, 없으면 nginx가 덧붙인 X-Forwarded-For 마지막 항목을 쓴다.
+     * 클라이언트 IP. 바로 앞 연결이 같은 기계나 내부망의 프록시(nginx)일 때만 헤더를 믿는다.
+     * X-Forwarded-For 첫 항목은 클라이언트가 지어 보낼 수 있으니 쓰지 않는다. nginx가 넣는 X-Real-IP,
+     * 없으면 nginx가 덧붙인 X-Forwarded-For 마지막 항목이다. 프록시를 거치지 않은 연결은 헤더를 무시한다.
      */
-    public String hashForLimit(HttpServletRequest request) {
+    static String clientIp(HttpServletRequest request) {
+        String remote = request.getRemoteAddr();
+        if (remote == null || remote.isBlank()) return "unknown";
+        if (!trustedProxy(remote)) return remote;
         String ip = request.getHeader("X-Real-IP");
         if (ip == null || ip.isBlank()) {
             String forwarded = request.getHeader("X-Forwarded-For");
@@ -64,17 +75,16 @@ public class ClientFingerprint {
                 ip = parts[parts.length - 1];
             }
         }
-        if (ip == null || ip.isBlank()) ip = request.getRemoteAddr();
-        return hash(ip == null ? "unknown" : ip.trim(), LocalDate.now().toString());
+        return ip == null || ip.isBlank() ? remote : ip.trim();
     }
 
-    /** nginx 뒤에 있으므로 X-Forwarded-For의 첫 항목이 실제 클라이언트다. */
-    private static String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+    private static boolean trustedProxy(String remote) {
+        try {
+            // getRemoteAddr는 숫자 주소라 DNS 조회가 일어나지 않는다.
+            InetAddress a = InetAddress.getByName(remote);
+            return a.isLoopbackAddress() || a.isSiteLocalAddress();
+        } catch (UnknownHostException e) {
+            return false;
         }
-        String remote = request.getRemoteAddr();
-        return remote == null ? "unknown" : remote;
     }
 }

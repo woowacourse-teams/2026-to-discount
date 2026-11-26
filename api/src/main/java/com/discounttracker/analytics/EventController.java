@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import java.io.IOException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -89,12 +88,11 @@ public class EventController {
             "entryFrom");
 
     private static final int MAX_BATCH = 20;
+    /** 20건 x 속성 44개 x 120자여도 이 안이다. */
+    static final int MAX_BODY_BYTES = 256 * 1024;
     private static final int MAX_TEXT = 120;
     private static final Pattern VARIANT_TOKEN = Pattern.compile("[a-z0-9_-]{1,16}");
-    // 이벤트 고유 값과 필터 맥락 6종을 함께 보존한다. 순서는 프론트가
-    // 이벤트 값을 앞에 두므로, 그래도 넘치면 맥락이 먼저 떨어진다.
-    // 2026-09-17: offer_link_click이 어느 오퍼인지(금액·구간·멤버십·최고·보류…)
-    // 12개를 싣게 되어 10이면 맥락이 통째로 떨어졌다 — 18로.
+    // 순서는 프론트가 이벤트 값을 앞에 두므로, 넘치면 맥락이 먼저 떨어진다.
     private static final int MAX_PROPS = 44; // 공유 맥락과 기존 혜택 및 필터 속성을 함께 보존한다.
 
     private final AnalyticsEventService events;
@@ -129,10 +127,11 @@ public class EventController {
      * 같은 엔드포인트가 json과 text/plain을 모두 받아야 한다.
      */
     @PostMapping("/events")
-    public ResponseEntity<Map<String, Integer>> collect(
-            @RequestBody(required = false) String body, HttpServletRequest request) {
-
-        List<IncomingEvent> batch = parse(body);
+    public ResponseEntity<Map<String, Integer>> collect(HttpServletRequest request) throws IOException {
+        // 본문을 통째로 읽은 뒤 20건으로 자르면 큰 본문이 그대로 메모리에 올라온다. 상한까지만 읽는다.
+        byte[] raw = request.getInputStream().readNBytes(MAX_BODY_BYTES + 1);
+        if (raw.length > MAX_BODY_BYTES) return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE).build();
+        List<IncomingEvent> batch = parse(new String(raw, java.nio.charset.StandardCharsets.UTF_8));
         if (batch.isEmpty()) {
             return ResponseEntity.ok(Map.of("accepted", 0));
         }
