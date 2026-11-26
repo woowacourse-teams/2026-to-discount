@@ -46,7 +46,7 @@ export function Reactions({ name, reaction, onReact }) {
 }
 
 // 앱 고유색. 이동 버튼 바탕과 시트 앱 줄 글자(로고가 없을 때)에 쓴다. 배민은 앱 민트(#2ac1bc)보다 조금 밝게(2026-11-10 사용자). 모르는 앱은 회색.
-const BTN_BG = { baemin: '#36d3ce', coupangeats: '#4d2610', ddangyo: '#fb521c', yogiyo: '#fa0050' }
+const BTN_BG = { baemin: '#36d3ce', coupangeats: '#4d2610', ddangyo: '#fb521c', yogiyo: '#fa0050', naverpay: '#03c75a' }
 const appColor = (key) => BTN_BG[key] ?? '#4e5968'
 
 // 배지. 멤버십은 기존 앱처럼 앱마다 색이 다르다(CSS가 data-platform으로 입힌다).
@@ -92,5 +92,5 @@ export function ExternalIcon() {
 
 // 이동 버튼. 시트와 카드가 같은 것을 쓴다. 글자는 "○○에서 확인" 뒤에 링크 이동 아이콘.
 export function GoButton({ link, platform, appLabel }) {
-  return <a className="v2-go" style={{ background: appColor(platform) }} {...link}>{appLabel}에서 확인<ExternalIcon /></a>
+  return <a className="v2-go" style={{ background: appColor(platform), color: platform === 'naverpay' ? '#000' : undefined }} {...link}>{appLabel}에서 확인<ExternalIcon /></a>
 }
