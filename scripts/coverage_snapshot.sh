@@ -28,13 +28,17 @@
 set -euo pipefail
 
 LOG_DIR="${COVERAGE_LOG_DIR:-/var/log/nginx}"
-LEDGER="${COVERAGE_LEDGER:-<서버>/delivery-discount-api/data/coverage.jsonl}"
+# 기본값을 두지 않는다. 자리표시자 경로가 남아 현재 폴더에 원장을 만든 적이 있다(추정).
+LEDGER="${COVERAGE_LEDGER:?COVERAGE_LEDGER에 원장 경로(예: .../delivery-discount-api/data/coverage.jsonl)를 준다}"
 
+[ -r "$LOG_DIR/access.log" ] || { echo "access.log를 읽지 못한다: $LOG_DIR" >&2; exit 1; }
 mkdir -p "$(dirname "$LEDGER")"
 
 # 로테이션된 것까지 한 번에 읽는다. 압축본은 zcat, 나머지는 cat.
 read_logs() {
-  cat "$LOG_DIR"/access.log "$LOG_DIR"/access.log.1 2>/dev/null || true
+  # 현재 로그를 못 읽으면 멈춘다. 적게 센 수치가 원장에 영구히 남는다. 회전본은 없을 수 있어 관대하게 본다.
+  cat "$LOG_DIR"/access.log
+  [ -e "$LOG_DIR"/access.log.1 ] && cat "$LOG_DIR"/access.log.1
   for f in "$LOG_DIR"/access.log.*.gz; do
     [ -e "$f" ] || continue
     zcat "$f" 2>/dev/null || true
