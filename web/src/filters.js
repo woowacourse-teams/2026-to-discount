@@ -34,18 +34,19 @@ export const SPECIAL_CATEGORIES = [
   { key: 'firstCome', label: '한정' },
   { key: 'random', label: '랜덤' },
   // 현장결제 하나로 네이버페이, 적립, 자사 행사를 다 묶는다(2026-11-26 사용자). 포장은 칩에서 뺐다
-  { key: 'naverpay', label: '현장결제' },
+  { key: 'instore', label: '현장결제' },
 ]
 const SPECIAL_MATCH = {
   random: (o) => certaintyOf(o) === 'random',
   firstCome: (o) => o.firstCome === true,
-  naverpay: (o) => o.via === 'naverpay' || o.platform === OWN || kindOf(o) === 'cashback' || kindOf(o) === 'points',
+  instore: (o) => o.via === 'naverpay' || o.platform === OWN || kindOf(o) === 'cashback' || kindOf(o) === 'points',
 }
 export const isSpecialCategory = (key) => Object.hasOwn(SPECIAL_MATCH, key)
 
 /** 주소 ?c=로 특수 칩 하나를 미리 고른다. 분류 칩(치킨 등)과 모르는 값은 버린다. 공유 주소용. */
 export function categoryFromSearch(search) {
-  const key = new URLSearchParams(search).get('c')
+  const raw = new URLSearchParams(search).get('c')
+  const key = raw === 'naverpay' ? 'instore' : raw // 이미 퍼진 옛 주소(2026-11-26 하루)
   return key && isSpecialCategory(key) ? key : null
 }
 
