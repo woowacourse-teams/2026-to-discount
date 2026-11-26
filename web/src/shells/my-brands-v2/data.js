@@ -44,10 +44,15 @@ export function capText(offer) {
 }
 
 export function appLabel(offer) {
-  if (offer.via === 'naverpay') return 'N페이' // 현장결제는 결제 수단이 채널이다(2026-11-26 사용자)
+  if (offer.via === 'naverpay') return naverLinked(offer) ? 'N페이' : '홈페이지' // 현장결제는 결제 수단이 채널이다(2026-11-26 사용자)
   if (offer.platform === OWN) return OWN_LABEL
   return PLATFORM_BY_KEY[offer.platform]?.label ?? NONE
 }
+
+/** 링크가 네이버페이 페이지인가. 버튼 이름과 색은 실제 가는 곳을 따른다(배지는 늘 N페이, 2026-11-26 사용자) */
+export const naverLinked = (o) => /(^|\.)naver\.com$/.test((() => { try { return new URL(o.url).hostname } catch { return '' } })())
+/** 버튼 색 키: 네이버페이 링크면 naverpay, 아니면 앱 */
+const btnKey = (o) => (o.via === 'naverpay' && naverLinked(o) ? 'naverpay' : o.platform)
 
 /** 네이버페이 현장결제 채널 배지 */
 const viaChip = (o) => (o.via === 'naverpay' ? [{ kind: 'via', text: 'N페이', platform: 'naverpay' }] : [])
@@ -70,6 +75,7 @@ export function cardOf(brand, include) {
     bundles: bundles.map((o) => ({ offer: o, label: o.rawText })),
     platform: offer.platform,
     via: offer.via ?? null,
+    btnKey: btnKey(offer),
     amount: offer.amount ?? null,
     amountLabel: amountLabel(offer),
     chips,
@@ -98,6 +104,7 @@ export function detailOf(brand, include) {
       slotBase: bundles.length,
       platform: o.platform,
       via: o.via ?? null,
+      btnKey: btnKey(o),
       appLabel: appLabel(o),
       amountLabel: amountLabel(o),
       dim: !!(o.soldOut || beforeOpen(o) || o.qualifier === '랜덤'), // 카드의 card.dim과 같은 조건
