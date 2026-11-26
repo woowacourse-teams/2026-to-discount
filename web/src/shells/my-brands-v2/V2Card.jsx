@@ -89,7 +89,7 @@ function V2Card({ brand, position, highlighted, onInteract, include = null, onHi
         </span>
       </button>
       <div className="v2-card__foot">
-        <GoButton link={link} platform={card.via ?? card.platform} appLabel={card.appLabel} />
+        <GoButton link={link} platform={card.btnKey} appLabel={card.appLabel} />
         <div className="v2-card__side">
           <Reactions name={card.name} reaction={reaction} onReact={(pressed) => onReact?.(brand, pressed, position)} />
           <OfferShareButton offer={card.offer} brandName={card.name} position={position} where="card" className="v2-share" />
