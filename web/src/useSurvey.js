@@ -10,6 +10,8 @@ async function json(url, options) {
   if (!res.ok) throw Object.assign(new Error('설문 요청 실패'), { state: body.state })
   return body
 }
+// 로컬 데모 판정 한 곳(개발 빌드 + ?pmfDemo=1).
+const pmfDemo = () => import.meta.env.DEV && new URLSearchParams(location.search).get('pmfDemo') === '1'
 const post = body => ({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 
 export function useSurvey() {
@@ -46,7 +48,7 @@ export function useSurvey() {
   useEffect(() => {
     let alive = true, timer, attempts = 0
     const params = new URLSearchParams(location.search)
-    const demo = import.meta.env.DEV && params.get('pmfDemo') === '1'
+    const demo = pmfDemo()
     if (demo && params.get('pmfReset') === '1') {
       try { sessionStorage.removeItem('dk_pmf_demo') } catch { /* 새 컨텍스트로 진행 */ }
       params.delete('pmfReset')
@@ -114,7 +116,7 @@ export function useSurvey() {
       setVisible(false); setConfirm(false); setModalStart(null); setComplete(!dismiss)
       return
     }
-    const demo = import.meta.env.DEV && new URLSearchParams(location.search).get('pmfDemo') === '1'
+    const demo = pmfDemo()
     if (dismiss) {
       finished.current = true
       if (!demo) rememberTerminal('dismissed')

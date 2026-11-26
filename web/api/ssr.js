@@ -8,6 +8,7 @@
 import { loadData, render } from '../dist-server/entry-server.js'
 import template, { couponCss } from '../dist-server/template.js'
 import { ssrJson } from '../src/ssrJson.js'
+import { uiVariant } from '../src/variant.js'
 
 const ROOT_OPEN = '<div id="root">'
 
@@ -31,7 +32,7 @@ export function inject(html, appHtml, data) {
     // 배너는 이미 실려 있다. 먼저 보내던 fetch는 필요 없다.
     .replace(/<script>[^<]*__bannersEarly[^<]*<\/script>/, '')
     // main.jsx의 markVariantOnRoot와 같은 값. JS 전 첫 페인트도 같은 바 스타일로 그린다.
-    .replace('<html lang="ko">', '<html lang="ko" data-variant="a">')
+    .replace('<html lang="ko">', `<html lang="ko" data-variant="${uiVariant}">`)
 }
 
 // 쿠폰 카드 CSS를 첫 페인트 전에 받는다. 지연 로드 조각이 나중에 같은 주소를 보면 다시 받지 않는다.

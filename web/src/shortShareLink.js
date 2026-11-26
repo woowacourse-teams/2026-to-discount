@@ -1,5 +1,6 @@
 import { API_BASE } from './api.js'
 import { sharedOfferKey } from './offerSharing.js'
+import { SHORT_CODE } from './shortShareRedirect.js'
 
 export async function createShortShareLink(origin, brand, offer, shareId, request = fetch) {
   const response = await request(`${API_BASE}/api/share-links`, {
@@ -9,6 +10,6 @@ export async function createShortShareLink(origin, brand, offer, shareId, reques
   })
   if (!response.ok) throw new Error('Short share link unavailable')
   const { code } = await response.json()
-  if (!/^[A-Za-z0-9_-]{16}$/.test(code ?? '')) throw new Error('Invalid short code')
+  if (!SHORT_CODE.test(code ?? '')) throw new Error('Invalid short code')
   return new URL(`/s/${code}`, origin).href
 }
