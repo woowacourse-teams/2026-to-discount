@@ -27,24 +27,20 @@ export const CATEGORIES = [
 export const MIN_CATEGORY_OFFERS = 5
 
 // 한정(선착순), 랜덤 오퍼는 치킨, 피자 같은 분류와 결이 다른 묶음이라 분류 칩 앞에 따로 둔다(2026-11-07 사용자: 전체, 한정, 랜덤, 치킨 …).
-// 네이버페이, 포장, 적립, 자사 행사도 같은 특수 칩이다(2026-11-26). via, channel은 배너 오퍼에만 있다.
+// 네이버페이, 자체 할인(적립, 자사 행사)도 같은 특수 칩이다(2026-11-26). via는 배너 오퍼에만 있다.
 // 같은 categories 집합에 담기므로 키가 brand.category 값과 겹치면 안 된다. 브랜드가 아니라 오퍼로 가른다.
 // 키 firstCome은 API 칸 이름이고 화면 이름만 한정이다.
 export const SPECIAL_CATEGORIES = [
   { key: 'firstCome', label: '한정' },
   { key: 'random', label: '랜덤' },
   { key: 'naverpay', label: '네이버페이' },
-  { key: 'pickup', label: '포장' },
-  { key: 'reward', label: '적립' },
-  { key: 'own', label: '자사 행사' },
+  { key: 'self', label: '자체 할인' }, // 적립과 자사 행사를 하나로(2026-11-26 사용자). 포장은 칩에서 뺐다
 ]
 const SPECIAL_MATCH = {
   random: (o) => certaintyOf(o) === 'random',
   firstCome: (o) => o.firstCome === true,
   naverpay: (o) => o.via === 'naverpay',
-  pickup: (o) => o.channel === '포장' || (o.tiers ?? []).some((t) => t.channel === '포장'),
-  reward: (o) => kindOf(o) === 'cashback' || kindOf(o) === 'points',
-  own: (o) => o.platform === OWN,
+  self: (o) => o.platform === OWN || kindOf(o) === 'cashback' || kindOf(o) === 'points',
 }
 export const isSpecialCategory = (key) => Object.hasOwn(SPECIAL_MATCH, key)
 

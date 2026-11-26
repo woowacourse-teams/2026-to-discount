@@ -517,9 +517,7 @@ test('혜택 칩은 맞는 오퍼만 남긴다', () => {
   ]
   const pick = (key) => applyFilters(brands, { ...defaultFilters(), categories: new Set([key]) }).map((b) => b.name).sort()
   assert.deepEqual(pick('naverpay'), ['A'])
-  assert.deepEqual(pick('pickup'), ['B', 'E'])
-  assert.deepEqual(pick('reward'), ['A', 'C'])
-  assert.deepEqual(pick('own'), ['A', 'C'])
+  assert.deepEqual(pick('self'), ['A', 'C'])
   assert.deepEqual(visibleCategories(brands.slice(3, 4)).some((c) => c.key === 'naverpay'), false)
   assert.deepEqual(visibleCategories(brands).some((c) => c.key === 'naverpay'), true)
 })
@@ -532,7 +530,7 @@ test('혜택 칩 키는 분류 키와 겹치지 않는다', () => {
     assert.ok(!new RegExp(String.raw`category:\s*${c.key}\b`).test(yml), c.key)
   }
   assert.ok(new RegExp(String.raw`category:\s*chicken\b`).test(yml))   // 패턴이 실제 분류를 잡는지
-  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤', '네이버페이', '포장', '적립', '자사 행사'])
+  assert.deepEqual(SPECIAL_CATEGORIES.map((c) => c.label), ['한정', '랜덤', '네이버페이', '자체 할인'])
 })
 
 test('?c=는 아는 특수 칩만 받는다', () => {
@@ -543,7 +541,7 @@ test('?c=는 아는 특수 칩만 받는다', () => {
 })
 
 test('칩 주소는 다른 검색 값을 남긴다', () => {
-  assert.equal(searchWithCategory('?from=share', 'pickup'), '?from=share&c=pickup')
-  assert.equal(searchWithCategory('?from=share&c=pickup', null), '?from=share')
-  assert.equal(searchWithCategory('?c=own', null), '')
+  assert.equal(searchWithCategory('?from=share', 'self'), '?from=share&c=self')
+  assert.equal(searchWithCategory('?from=share&c=self', null), '?from=share')
+  assert.equal(searchWithCategory('?c=self', null), '')
 })
