@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { applyFilters, defaultFilters } from '../../filters.js'
 import {
-  amountLabel, buildCards, cardOf, minText, splitAmount, splitMin, detailOf, polyPaths,
+  amountLabel, buildCards, capText, cardOf, minText, splitAmount, splitMin, detailOf, polyPaths,
 } from './data.js'
 
 const offer = (o) => ({ platform: 'baemin', amount: 10000, minOrderAmount: 15000, ...o })
@@ -88,4 +88,9 @@ test('카드: 1+1 묶음 행사는 대표와 따로 bundles에 담기고, 묶음
   assert.equal(only.bundles.length, 0)
   assert.equal(only.amountLabel, '징거버거 1+1')
   assert.equal(only.hasBest, false)
+})
+
+test('배너 cap은 "최대 N원", 없으면 null', () => {
+  assert.equal(capText(offer({ tiers: [{ minOrder: null, amount: null, percent: 50, cap: 30000 }] })), '최대 30,000원')
+  assert.equal(capText(offer({})), null)
 })

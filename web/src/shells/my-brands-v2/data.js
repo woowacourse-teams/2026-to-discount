@@ -37,6 +37,12 @@ export function minText(minOrderAmount) {
   return minOrderAmount === 0 ? label : `${label}원 이상 주문시`
 }
 
+/** 1인 혜택 상한 "최대 N원". 배너 cap은 구간 하나의 cap으로 온다(api BannerOffers). 구간이 하나가 아니면 null. */
+export function capText(offer) {
+  const cap = offer.tiers?.length === 1 ? offer.tiers[0].cap : null
+  return cap == null ? null : `최대 ${minLabel(cap)}원`
+}
+
 export function appLabel(offer) {
   if (offer.platform === OWN) return OWN_LABEL
   return PLATFORM_BY_KEY[offer.platform]?.label ?? NONE
@@ -66,6 +72,7 @@ export function cardOf(brand, include) {
     // 신규 오퍼가 하나라도 있는 브랜드(운영 카드 왼쪽 위 NEW! 리본과 같은 조건: CouponCard.jsx brand.offers.some(isUpdated))
     isNew: brand.offers.some((o) => isUpdated(o)),
     minLabel: minText(offer.minOrderAmount),
+    capLabel: capText(offer),
     // 품절, 오픈 전은 카드 몸통에 내고 금액 채도를 뺀다(CouponCard.jsx stateLabel과 같은 말)
     state: offer.soldOut ? '품절' : beforeOpen(offer) ? '오픈 전' : null,
     // 랜덤도 금액 채도를 뺀다(2026-11-15 사용자). 라벨은 이미 칩이 있어 state에는 넣지 않는다.

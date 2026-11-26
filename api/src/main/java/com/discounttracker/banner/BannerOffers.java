@@ -1,6 +1,7 @@
 package com.discounttracker.banner;
 
 import com.discounttracker.offer.Certainty;
+import com.discounttracker.offer.DiscountTier;
 import com.discounttracker.offer.Offer;
 import com.discounttracker.offer.OfferRecord;
 
@@ -68,6 +69,9 @@ public final class BannerOffers {
                     .offerType(offerType(banner))
                     .rawText(banner.amount())
                     .minOrderAmount(banner.minOrder())
+                    // 상한은 새 칸 대신 구간 하나의 cap에 싣는다(원장 정률+상한과 같은 자리). 없으면 구간도 안 단다.
+                    .tiers(banner.cap() == null ? null : List.of(new DiscountTier(banner.minOrder(),
+                            amountSpec.headline(), amountSpec.percent(), banner.cap(), null, null, null, null, null)))
                     .conditions(BannerText.conditions(banner))
                     // 무엇을 주는가 - own 배너의 캐시백/적립까지 discount로 뭉개면 확정
                     // 할인처럼 최고 할인 후보에 낄 수 있다(2026-09-22 fix round).

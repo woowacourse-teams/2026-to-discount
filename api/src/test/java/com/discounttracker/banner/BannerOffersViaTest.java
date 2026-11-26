@@ -34,6 +34,19 @@ class BannerOffersViaTest {
     }
 
     @Test
+    void bannerCapRidesOnSingleTier() {
+        Banner b = Banner.of("cap", "https://example.test").brand("설빙").platform("own").cap(30000)
+                .amountSpec(new BannerAmount(null, null, 50, false, AmountKind.POINTS))
+                .startsAt(LocalDateTime.of(2026, 11, 25, 0, 0)).endsAt(LocalDateTime.of(2026, 11, 29, 23, 59))
+                .build();
+        Clock clock = Clock.fixed(LocalDateTime.of(2026, 11, 26, 12, 0).atZone(ZoneId.of("Asia/Seoul")).toInstant(),
+                ZoneId.of("Asia/Seoul"));
+        Offer o = Offer.from(BannerOffers.of(List.of(b), clock).get(0), LocalDate.of(2026, 11, 26));
+        assertEquals(1, o.tiers().size());
+        assertEquals(30000, o.tiers().get(0).cap());
+    }
+
+    @Test
     void ledgerOfferHasNoViaOrChannel() {
         Offer o = Offer.from(OfferRecord.builder("baemin", "BBQ").build(), LocalDate.of(2026, 11, 26));
         assertNull(o.via());
