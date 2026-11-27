@@ -26,6 +26,11 @@ test('하위는 최대(불확정)를 뒤로 민 뒤 금액 큰 순', () => {
   assert.deepEqual(r.rest.map((x) => x.platform), ['coupangeats', 'ddangyo', 'baemin'])
 })
 
+test('특정메뉴는 금액이 커도 맨 뒤', () => {
+  const r = splitOffers([o('baemin', 12000, { qualifier: '특정메뉴', certainty: 'menuOnly' }), o('yogiyo', 9000, { qualifier: '최대' }), o('coupangeats', 5000), o('ddangyo', 3000)], null)
+  assert.deepEqual(r.rest.map((x) => x.platform), ['coupangeats', 'ddangyo', 'baemin'])
+})
+
 test('견줄 수 없는 오퍼만 있으면 맨 앞 하나를 대표로, hasBest는 false', () => {
   const r = splitOffers([o('baemin', 5000, { soldOut: true }), o('yogiyo', 3000, { soldOut: true })], null)
   assert.equal(r.best.length, 1)
