@@ -106,7 +106,7 @@
 - `List<Entry> recent(int limit) throws IOException`: 전부에서 최신순 `limit`건.
 - `Optional<Entry> setStatus(String id, String status, String by) throws IOException`: 그 번호가 원장에 없으면 `Optional.empty()`(쓰지 않는다). 있으면 상태 행을 `InterProcessFileLock.withOperationsWrite` 안에서 `APPEND`로 덧붙이고 새 상태의 `Entry`를 돌려준다. `append`와 같은 모니터(`synchronized`)를 쓴다.
 - 읽기 세부
-  - 두 파일을 요청마다 처음부터 읽는다. 클래스 주석에 이유를 적는다: 제보는 한 사람 하루 20건 제한이라 작다. 커지면 ADR-011(증분 읽기)을 따른다.
+  - 두 파일은 마지막으로 읽은 바이트 위치를 기억해 그 뒤에 붙은 새 줄만 읽는다(`EventLog.readFrom` 공유, #479). 파일이 기억한 위치보다 짧아지면 처음부터 다시 읽는다.
   - 파일이 없으면 빈 목록, 빈 상태 지도. 있는데 `IOException`이면 그대로 던진다(빈 목록으로 바꾸지 않는다).
   - 줄 파싱의 `JacksonException`은 잡아 건너뛰고 `log.warn("report line {} unreadable in {}", 줄 번호, 파일 이름)`.
   - 빈 줄은 건너뛴다(경고 없이).
