@@ -33,25 +33,3 @@
 .hist__plat[aria-pressed="true"] { background: var(--sale); color: #fff; font-weight: 700; }
 .hist__empty { margin: 12px 6px 4px; font-size: 13px; color: var(--text-muted); }
 .v2-hist__plats { margin: 0 0 0.5rem; align-items: center; }
-
-/* 2026-11-28 사용자: /insight처럼 앱별 곡선 겹침, 여백 넉넉히, 앱·기간 선택은 큰 칩 캐러셀 */
-.hist { margin: 0 0 16px; padding: 0 18px 16px; border-radius: 16px; }
-.hist__head { margin: 0 -18px 12px; padding: 14px 18px 10px; }
-.hist__title { font-size: 18px; }
-.hist__bar { display: flex; flex-direction: column; gap: 10px; margin: 0 -18px 14px; }
-.hist__plats, .hist__bar .hist__tabs { display: flex; align-items: center; gap: 10px; margin: 0; padding: 2px 18px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 18px; scrollbar-width: none; background: none; border-radius: 0; }
-.hist__plats::-webkit-scrollbar, .hist__bar .hist__tabs::-webkit-scrollbar { display: none; }
-.hist__plats > *, .hist__bar .hist__tab { flex: none; scroll-snap-align: start; }
-.hist__plat, .hist__bar .hist__tab { min-width: 64px; height: 52px; padding: 0 18px; font-size: 15px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); }
-.hist__bar .hist__tab { height: 40px; min-width: 72px; font-size: 14.5px; }
-.hist__plat[aria-pressed="true"], .hist__bar .hist__tab[aria-pressed="true"] { background: var(--sale); border-color: var(--sale); color: #fff; font-weight: 700; box-shadow: none; }
-.hist__plats .platform-badge { width: 52px; height: 52px; border-radius: 14px; }
-.hist__plats .platform-badge .pi, .hist__plats .platform-badge img { inset: 4px; padding: 0; } /* 원본 90px 아이콘이 44px(2배)로 서도록 */
-.hist__wrap { margin: 8px 0 4px; }
-.hist__solid { stroke: inherit; stroke-width: 2.4; }
-.hist__carried { stroke-dasharray: 4 4; stroke-width: 1.8; opacity: .8; }
-.hist__ytick { font-size: 9px; }
-.hist__legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--text-muted); }
-.hist__legend li { display: inline-flex; align-items: center; gap: 6px; }
-.hist__legend li::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
-.hist__legend b { color: var(--text); font-weight: 700; }

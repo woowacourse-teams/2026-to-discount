@@ -96,8 +96,21 @@
 .v2-min__amt { color: #e8590c; font-weight: 700; }
 /* 시트 앱 줄: 직사각형 앱 로고 */
 .v2-sheet__logo { display: block; width: 8.25rem; height: 1.875rem; object-fit: contain; object-position: left center; }
-/* 가격 그래프: 뾰족한 꺾은선(모서리를 둥글리지 않는다). 색은 포인트 색(--sale, 파랑). */
-.v2-hist .hist__solid { stroke-linejoin: miter; stroke-miterlimit: 10; stroke-linecap: butt; }
+/* 가격 그래프(2026-11-28 사용자): 앱별 색 곡선 겹침, 못 본 날은 점선, 여백 넉넉히, 앱과 기간은 큰 칩 캐러셀 */
+.v2-panel--history { padding: 1.25rem 0 2rem; }
+.v2-hist .hist__wrap { flex: 0 1 15rem; margin: 1.25rem 0.25rem 0; }
+.v2-hist__line { fill: none; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
+.v2-hist__line--carried { stroke-dasharray: 4 4; stroke-width: 1.8; opacity: .85; }
+.v2-hist__plats { margin-top: 0; gap: 0.75rem; }
+.v2-hist__plats + .v2-hist__ranges { margin-top: 0.75rem; }
+.v2-hist__plats .v2-hist__range { height: 3.25rem; min-width: 4.25rem; padding: 0 1.25rem; font-size: 1rem; border-radius: 0.875rem; }
+.v2-hist__plats .platform-badge { flex: none; scroll-snap-align: start; width: 3.25rem; height: 3.25rem; border-radius: 0.875rem; }
+.v2-hist__plats .platform-badge .pi, .v2-hist__plats .platform-badge img { inset: 0.25rem; padding: 0; } /* 원본 90px 아이콘이 44px(2배 화면 원본)로 선다 */
+.v2-hist__plats + .v2-hist__ranges .v2-hist__range { height: 2.5rem; min-width: 4.5rem; font-size: 0.9375rem; border-radius: 0.75rem; }
+.v2-hist__legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 1rem 0 0; padding: 0; list-style: none; font-size: 0.8125rem; color: #6b7684; }
+.v2-hist__legend li { display: inline-flex; align-items: center; gap: 0.375rem; }
+.v2-hist__legend li::before { content: ''; width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--c); }
+.v2-hist__legend b { color: #191f28; font-weight: 700; }
 /* 터치 때 브라우저가 카드 전체에 깔던 눌림 색을 끈다(공유 버튼을 눌러도 카드 전체가 반짝이던 것). */
 .v2-card, .v2-card * { -webkit-tap-highlight-color: transparent; }
 /* 숨기는 중인 카드: 운영 카드와 같은 사라지는 효과(hide-ask.css의 brand-card-leave). */
