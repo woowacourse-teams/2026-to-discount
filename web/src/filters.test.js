@@ -545,3 +545,9 @@ test('칩 주소는 다른 검색 값을 남긴다', () => {
   assert.equal(searchWithCategory('?from=share&c=instore', null), '?from=share')
   assert.equal(searchWithCategory('?c=instore', null), '')
 })
+
+test('회색 브랜드(품절·특정메뉴뿐)는 금액이 커도 맨 아래', () => {
+  const b = (name, amount, extra = {}) => ({ name, offers: [{ platform: 'baemin', amount, certainty: 'exact', kind: 'discount', ...extra }] })
+  const brands = [b('품절', 9000, { soldOut: true }), b('메뉴', 12000, { qualifier: '특정메뉴', certainty: 'menuOnly' }), b('보통', 3000)]
+  assert.equal(sortBrands(brands, { sorts: [{ key: 'amount', dir: 'desc' }] })[0].name, '보통')
+})

@@ -86,7 +86,7 @@ export function cardOf(brand, include) {
     // 품절, 오픈 전은 카드 몸통에 내고 금액 채도를 뺀다(CouponCard.jsx stateLabel과 같은 말)
     state: offer.soldOut ? '품절' : beforeOpen(offer) ? '오픈 전' : null,
     // 랜덤도 금액 채도를 뺀다(2026-11-15 사용자). 라벨은 이미 칩이 있어 state에는 넣지 않는다.
-    dim: !!(offer.soldOut || beforeOpen(offer) || offer.qualifier === '랜덤'),
+    dim: !!(offer.soldOut || beforeOpen(offer) || offer.qualifier === '랜덤' || offer.qualifier === '특정메뉴'),
     appLabel: appLabel(offer),
     href: offerLink(offer, brand.links, brand.name) ?? null,
   }
@@ -107,7 +107,7 @@ export function detailOf(brand, include) {
       btnKey: btnKey(o),
       appLabel: appLabel(o),
       amountLabel: amountLabel(o),
-      dim: !!(o.soldOut || beforeOpen(o) || o.qualifier === '랜덤'), // 카드의 card.dim과 같은 조건
+      dim: !!(o.soldOut || beforeOpen(o) || o.qualifier === '랜덤' || o.qualifier === '특정메뉴'), // 카드의 card.dim과 같은 조건
       minLabel: minText(o.minOrderAmount),
       chips: [...viaChip(o), ...chipsOf(o, brand.name).filter((c) => c.scope === 'offer').map((c) => ({ kind: c.kind, text: c.text, platform: c.platform ?? o.platform }))],
       // 합산식(10,000+2,000)은 화면에 안 낸다. 결과 금액과 최소주문만 다른 쿠폰과 같게 보인다. 값과 속성(최적 등)은 그대로.

@@ -24,9 +24,11 @@ export function splitOffers(all, include) {
   if (offers.length === 0) return { best: bundles.slice(0, 1), rest: bundles.slice(1), hasBest: false, bundles: [] }
   const top = displayBestAmount(offers, include)
   const isBest = (x) => top != null && comparable(x, include) && !x.soldOut && x.amount === top
+  // 특정메뉴는 맨 뒤(2026-11-28 사용자), 그 앞이 최대(불확정)
+  const back = (x) => (x.qualifier === '특정메뉴' ? 2 : x.qualifier === '최대' ? 1 : 0)
   const sorted = [...offers].sort((a, b) => {
-    const am = a.qualifier === '최대' ? 1 : 0
-    const bm = b.qualifier === '최대' ? 1 : 0
+    const am = back(a)
+    const bm = back(b)
     return am - bm || compareOffers(a, b)
   })
   // 동점 최고 중 신규를 캐러셀 첫 장으로(2026-10-15 사용자). 신규끼리, 나머지끼리는 최소주문, 채널, 멤버십, 플랫폼 순(#351).
