@@ -1,18 +1,19 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { fetchHistory } from '../../api.js'
-import { callouts, chartModel, nearestIndex, placeCallout, summary, GUTTER, H, W, BOTTOM, PILL_H, TOP } from '../../historyChart.js'
+import { callouts, overlayModel, nearestIndex, placeCallout, summary, H, W, BOTTOM, PILL_H, TOP } from '../../historyChart.js'
 import { won } from '../../OfferChip.jsx'
 import HistoryPlatformChips from '../../HistoryPlatformChips.jsx'
+import { APP_COLOR, PLATFORMS, SHORT_LABEL } from '../../platforms.js'
 import { useChartScrub } from '../../useChartScrub.js'
 import { track } from '../../analytics.js'
-import { polyPaths } from './data.js'
 import '../../styles/hist.css'
 
-// 기간: 그래프 아래 버튼 줄(캐러셀)로 고른다. 2주는 API에 없어 1달을 받아 마지막 14일만 그린다(운영 BestHistoryChart와 같다).
+// 기간: 앱 칩 줄 바로 밑 버튼 줄(캐러셀). 2주는 API에 없어 1달을 받아 마지막 14일만 그린다(운영 BestHistoryChart와 같다).
 const RANGES = [['2w', '2주'], ['1m', '1달'], ['all', '전체']]
 const TWO_WEEKS_MS = 13 * 864e5
 const md = (iso) => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}`
 const num = (n) => n.toLocaleString('ko-KR')
+const colorOf = (k) => APP_COLOR[k] ?? 'var(--sale)'
 
 // 받은 이력은 이 브라우저 탭 안에서 브랜드별로 들고 있다. 카드를 누르는 순간(또는 팝업이 뜨는 순간) 미리 받아 두면 탭을 열 때 바로 그린다.
 // 실패(null)는 들고 있지 않아 다음에 다시 받는다.
@@ -27,13 +28,14 @@ export function prefetchHistory(brand, range = '1m') {
 }
 
 // 열릴 때만 받는다. 이력이 없거나 점이 둘 미만이면 아무것도 안 그린다(시트는 그대로).
-// 기간을 바꾸는 동안은 앞 그래프를 그대로 둔다(깜빡임 없음).
+// 전체는 앱마다 제 색 곡선과 옅은 그라데이션 면을 겹친다(2026-11-28 사용자: /insight 날짜별 지표처럼). 못 본 날은 점선.
 export default function PriceChart({ brand }) {
   const [range, setRange] = useState('1m')
   const [platform, setPlatform] = useState(null) // null = 전체
   const [data, setData] = useState(null)
   const svgRef = useRef(null)
   const wrapRef = useRef(null)
+  const gid = useId().replace(/:/g, '')
   // 칸(탭 안 남는 자리) 크기. 이 크기 그대로 그려 칸을 꽉 채운다(글자는 늘어나지 않는다). 재기 전에는 기본 크기.
   const [size, setSize] = useState({ w: W, h: H })
   const { sel, setSel, bind } = useChartScrub(svgRef, data, brand, range)
@@ -53,13 +55,20 @@ export default function PriceChart({ brand }) {
     ro.observe(el)
     return () => ro.disconnect()
   }, [hasChart])
-  // 앱별 곡선은 응답에 같이 온다. byPlatform 칸이 없으면 앱 구분을 모르는 옛 API라 칩을 숨기고 전체만 보인다.
   const byPlatform = data?.byPlatform
-  const all = (platform ? byPlatform?.[platform] : data?.best) ?? []
-  const pts = range === '2w' && all.length ? all.filter((p) => Date.parse(p.date) >= Date.parse(all[all.length - 1].date) - TWO_WEEKS_MS) : all
+  const best = data?.best ?? []
+  const lastT = best.length ? Date.parse(best[best.length - 1].date) : 0
+  const clip = (ps) => (range === '2w' ? ps.filter((p) => Date.parse(p.date) >= lastT - TWO_WEEKS_MS) : ps)
+  // 앱별 곡선이 없으면(옛 API) 전체 최고 한 줄
+  const series = platform
+    ? [{ key: platform, points: clip(byPlatform?.[platform] ?? []) }]
+    : byPlatform
+      ? PLATFORMS.map(({ key }) => ({ key, points: clip(byPlatform[key] ?? []) }))
+      : [{ key: 'best', points: clip(best) }]
+  // 값 표시와 누르기의 기준 줄: 고른 앱, 아니면 전체 최고
+  const pts = platform ? series[0].points : clip(best)
   const { w: cw, h: ch } = size
-  const chart = chartModel(pts, cw, ch)
-  // 기간 버튼 줄. 고른 기간에 점이 모자라 그래프가 비어도 버튼은 남겨 다른 기간으로 돌아갈 수 있다.
+  const m = overlayModel(series, cw, ch)
   const ranges = (
     <div className="v2-hist__ranges" role="group" aria-label="기간">
       {RANGES.map(([k, label]) => (
@@ -69,23 +78,21 @@ export default function PriceChart({ brand }) {
     </div>
   )
   const plats = !byPlatform ? null : <HistoryPlatformChips value={platform} onChange={(k) => { setSel(null); setPlatform(k) }} className="v2-hist__ranges v2-hist__plats" chipClassName="v2-hist__range" />
-  if (!chart) {
-    if (platform) return <figure className="hist v2-hist">{plats}{data && <p className="hist__empty">이 앱의 할인 기록이 아직 없어요</p>}{ranges}</figure>
+  if (!m || pts.filter((p) => p.amount != null).length < 2) {
+    if (platform) return <figure className="hist v2-hist">{plats}{ranges}{data && <p className="hist__empty">이 앱의 할인 기록이 아직 없어요</p>}</figure>
     return range === '1m' ? null : <figure className="hist v2-hist">{ranges}</figure>
   }
-  const m = { ...chart, ...polyPaths(chart.xy, ch - BOTTOM) } // 곡선 대신 직선으로 이은 뾰족한 꺾은선
   const sum = summary(pts)
-  const xs = m.xy.map((p) => p.x)
-  const pills = callouts(pts, m.xy, cw)
-  let cur = pts.length - 1
-  while (pts[cur].amount == null) cur--
+  const xy = pts.map((p) => ({ x: m.x(p.date), y: p.amount == null ? null : m.y(p.amount) }))
+  const xs = xy.map((p) => p.x)
+  const pills = callouts(pts, xy, cw)
   const midI = nearestIndex((xs[0] + xs[xs.length - 1]) / 2, xs)
   const xTicks = [[0, 'start'], [midI, 'middle'], [pts.length - 1, 'end']]
   const { svgProps, onKey } = bind(pts, xs, cw)
-
   const sp = sel != null ? pts[sel] : null
   // 말풍선 대신 판 없는 값 표시(2026-10-14 사용자). 최고, 현재, 누른 점 모두 같은 모양과 자리 규칙이다.
   const at = (c) => ({ left: `${(c.cx / cw) * 100}%`, top: `${(c.top / ch) * 100}%` })
+  const valueOn = (key, date) => (byPlatform?.[key] ?? []).find((p) => p.date === date)?.amount
 
   return (
     <figure className="hist v2-hist" tabIndex={0} onKeyDown={onKey} onBlur={() => setSel(null)}
@@ -94,46 +101,63 @@ export default function PriceChart({ brand }) {
         <figcaption className="hist__title">할인 기록</figcaption>
       </div>
       {plats}
+      {ranges}
       <div className="hist__wrap" ref={wrapRef}>
         <svg ref={svgRef} viewBox={`0 0 ${cw} ${ch}`} className="hist__svg" aria-hidden="true" {...svgProps}>
+          <defs>
+            {m.lines.map((l) => (
+              <linearGradient key={l.key} id={`${gid}-${l.key}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor={colorOf(l.key)} stopOpacity=".22" />
+                <stop offset="1" stopColor={colorOf(l.key)} stopOpacity="0" />
+              </linearGradient>
+            ))}
+          </defs>
           <line x1={0} y1={m.yHi} x2={cw} y2={m.yHi} className="hist__grid" />
           <line x1={0} y1={m.yLo} x2={cw} y2={m.yLo} className="hist__grid" />
-          <text x={8} y={m.yHi - 5} className="hist__ytick">{num(m.hi)}</text>
-          <text x={8} y={m.yLo - 5} className="hist__ytick">{num(m.lo)}</text>
-          {m.area.map((d, i) => <path key={`a${i}`} d={d} className="hist__area" />)}
-          {m.solid.map((d, i) => <path key={`s${i}`} d={d} className="hist__solid" />)}
+          <text x={0} y={m.yHi - 5} className="hist__ytick">{num(m.hi)}</text>
+          <text x={0} y={m.yLo - 5} className="hist__ytick">{num(m.lo)}</text>
+          {m.lines.map((l) => l.area.map((d, i) => <path key={`a${l.key}${i}`} d={d} fill={`url(#${gid}-${l.key})`} />))}
+          {m.lines.map((l) => (
+            <g key={l.key} style={{ stroke: colorOf(l.key) }}>
+              {l.solid.map((d, i) => <path key={`s${i}`} d={d} className="v2-hist__line" />)}
+              {l.carried.map((d, i) => <path key={`c${i}`} d={d} className="v2-hist__line v2-hist__line--carried" />)}
+            </g>
+          ))}
           {xTicks.map(([i, anchor]) => (
             <text key={anchor} x={xs[i]} y={ch - 4} textAnchor={anchor} className="hist__xtick">{md(pts[i].date)}</text>
           ))}
           {sel == null && pills.map((c) => (
-            <line key={`g${c.i}`} x1={xs[c.i]} y1={c.top + PILL_H} x2={xs[c.i]} y2={m.xy[c.i].y} className="hist__guide" />
+            <line key={`g${c.i}`} x1={xs[c.i]} y1={c.top + PILL_H} x2={xs[c.i]} y2={xy[c.i].y} className="hist__guide" />
           ))}
-          {(sel == null ? pills.map((c) => c.i) : m.xy[sel].y == null ? [] : [sel]).map((i) => (
-            <circle key={i} cx={xs[i]} cy={m.xy[i].y} r="3.5" className="hist__dot" />
+          {(sel == null ? pills.map((c) => c.i) : xy[sel].y == null ? [] : [sel]).map((i) => (
+            <circle key={i} cx={xs[i]} cy={xy[i].y} r="3.5" className="hist__dot" />
           ))}
-          {sel != null && <line x1={xs[sel]} y1={TOP - 6} x2={xs[sel]} y2={m.xy[sel].y ?? ch - BOTTOM} className="hist__guide" />}
+          {sel != null && <line x1={xs[sel]} y1={TOP - 6} x2={xs[sel]} y2={xy[sel].y ?? ch - BOTTOM} className="hist__guide" />}
         </svg>
         {sel == null && pills.map((c) => (
-          <div key={c.i}>
-            <div className="hist__tip" style={at(c)}>
-              <span className="hist__tip-d">{md(pts[c.i].date)}</span>
-              <b>{won(pts[c.i].amount)} 할인</b>
-            </div>
+          <div key={c.i} className="hist__tip" style={at(c)}>
+            <span className="hist__tip-d">{md(pts[c.i].date)}</span>
+            <b>{won(pts[c.i].amount)} 할인</b>
           </div>
         ))}
         {sp && (() => {
-                const c = placeCallout(m.xy.map((p) => ({ ...p, y: p.y ?? m.yLo })), sel, cw)
+          const c = placeCallout(xy.map((p) => ({ ...p, y: p.y ?? m.yLo })), sel, cw)
           return (
-            <>
-              <div className="hist__tip" role="status" style={at(c)}>
-                <span className="hist__tip-d">{md(sp.date)}{sp.line === 'carried' && ' 기록 없음'}</span>
-                <b>{sp.amount == null ? '할인 없음' : `${won(sp.amount)} 할인`}</b>
-              </div>
-            </>
+            <div className="hist__tip" role="status" style={at(c)}>
+              <span className="hist__tip-d">{md(sp.date)}{sp.line === 'carried' && ' 기록 없음'}</span>
+              <b>{sp.amount == null ? '할인 없음' : `${won(sp.amount)} 할인`}</b>
+            </div>
           )
         })()}
       </div>
-      {ranges}
+      {!platform && byPlatform && (
+        <ul className="v2-hist__legend">
+          {m.lines.map((l) => {
+            const v = sp ? valueOn(l.key, sp.date) : null
+            return <li key={l.key} style={{ '--c': colorOf(l.key) }}>{SHORT_LABEL[l.key]}{sp && <b>{v == null ? '없음' : won(v)}</b>}</li>
+          })}
+        </ul>
+      )}
     </figure>
   )
 }
