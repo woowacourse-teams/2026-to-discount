@@ -71,6 +71,26 @@ export function chartModel(points, w = W, h = H) {
   return { ...linePaths(xy, h - BOTTOM), xy, lo, hi, yLo: yOf(lo), yHi: yOf(hi) }
 }
 
+// 앱별 곡선을 한 판에 겹친다(2026-11-28 사용자: /insight 날짜별 지표처럼). series: [{key, points}].
+// 못 본 날(carried)은 점선으로 다시 그린다. x는 날짜, y는 모든 앱을 아우르는 한 축.
+export function overlayModel(series, w = W, h = H) {
+  const live = series.filter((s) => s.points.filter((p) => p.amount != null).length >= 2)
+  if (!live.length) return null
+  const amounts = live.flatMap((s) => s.points.filter((p) => p.amount != null).map((p) => p.amount))
+  const [lo, hi] = niceDomain(Math.min(...amounts), Math.max(...amounts))
+  const times = live.flatMap((s) => s.points.map((p) => Date.parse(p.date)))
+  const t0 = Math.min(...times)
+  const span = Math.max(1, Math.max(...times) - t0)
+  const r = (n) => Math.round(n * 10) / 10
+  const x = (date) => r(GUTTER + ((Date.parse(date) - t0) / span) * (w - GUTTER - RIGHT))
+  const y = (v) => r(TOP + ((hi - v) / (hi - lo)) * (h - BOTTOM - TOP))
+  const lines = live.map((s) => {
+    const xy = s.points.map((p) => ({ x: x(p.date), y: p.amount == null ? null : y(p.amount), line: p.line === 'carried' ? 'carried' : 'solid' }))
+    return { key: s.key, xy, ...linePaths(xy, h - BOTTOM) }
+  })
+  return { lines, x, y, lo, hi, yLo: y(lo), yHi: y(hi) }
+}
+
 export function nearestIndex(xPx, xs) {
   let best = 0
   xs.forEach((x, i) => { if (Math.abs(x - xPx) < Math.abs(xs[best] - xPx)) best = i })
