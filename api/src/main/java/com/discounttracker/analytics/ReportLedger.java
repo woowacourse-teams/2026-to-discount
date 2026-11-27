@@ -32,8 +32,8 @@ import java.util.Optional;
  * <p>이 두 파일은 추가 전용이다. 제보 번호는 저장된 줄의 SHA-256 앞 16자라서
  * {@code reports.jsonl}을 다시 포맷하면 번호가 바뀌고 상태가 {@code received}로 돌아간다.
  *
- * <p>요청마다 두 파일을 처음부터 읽는다. 제보는 한 사람 하루 20건 제한이라 작다.
- * 커지면 ADR-011(증분 읽기)을 따른다.
+ * <p>두 파일은 ADR-011처럼 마지막으로 읽은 바이트 위치부터 새로 붙은 줄만 읽어 메모리에 더한다.
+ * 파일이 기억한 위치보다 짧아지거나 사라지면 비우고 처음부터 읽는다.
  */
 @Component
 public class ReportLedger {
@@ -54,6 +54,14 @@ public class ReportLedger {
     private final ObjectMapper mapper;
     private final Path reportPath;
     private final Path statusPath;
+
+    // 읽은 자리와 쌓은 행. load()와 setStatus()가 this로 잠근다.
+    private final List<Entry> rows = new ArrayList<>(); // status는 비워 두고 load()에서 붙인다
+    private final Map<String, String> statuses = new HashMap<>();
+    private long reportOffset;
+    private long statusOffset;
+    private int reportLines;
+    private int statusLines;
 
     @org.springframework.beans.factory.annotation.Autowired
     public ReportLedger(ObjectMapper mapper,
@@ -118,21 +126,18 @@ public class ReportLedger {
         });
     }
 
-    private List<Entry> load(int limit, java.util.function.Predicate<Entry> keep) throws IOException {
+    private synchronized List<Entry> load(int limit, java.util.function.Predicate<Entry> keep) throws IOException {
         // 없음은 빈 목록, 있는데 못 읽음은 IOException 그대로(전부 received로 내지 않는다).
-        if (!Files.exists(reportPath)) return List.of();
-        Map<String, String> statuses = statuses();
-        List<String> lines = Files.readAllLines(reportPath, StandardCharsets.UTF_8);
+        if (!Files.exists(reportPath)) {
+            rows.clear();
+            reportOffset = 0;
+            reportLines = 0;
+            return List.of();
+        }
+        refresh();
         List<Entry> out = new ArrayList<>();
-        for (int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
-            if (line.isBlank()) continue;
-            JsonNode row = parse(line, i + 1, reportPath);
-            if (row == null) continue;
-            String id = idOf(line);
-            JsonNode at = row.get("at");
-            String rawAt = at != null && at.isString() ? at.asString() : null;
-            Entry e = new Entry(id, instant(rawAt), rawAt, row, statuses.getOrDefault(id, "received"));
+        for (Entry r : rows) {
+            Entry e = new Entry(r.id(), r.at(), r.rawAt(), r.row(), statuses.getOrDefault(r.id(), "received"));
             if (keep.test(e)) out.add(e);
         }
         // 추가 전용이라 뒤가 최신: 뒤집은 뒤 안정 정렬하면 같은 시각은 뒤쪽이 앞.
@@ -142,18 +147,62 @@ public class ReportLedger {
         return out.size() > limit ? List.copyOf(out.subList(0, limit)) : out;
     }
 
-    private Map<String, String> statuses() throws IOException {
-        Map<String, String> map = new HashMap<>();
-        if (!Files.exists(statusPath)) return map;
-        List<String> lines = Files.readAllLines(statusPath, StandardCharsets.UTF_8);
-        for (int i = 0; i < lines.size(); i++) {
-            if (lines.get(i).isBlank()) continue;
-            JsonNode row = parse(lines.get(i), i + 1, statusPath);
-            if (row == null || !row.path("id").isString() || !row.path("status").isString()) continue;
-            String s = row.get("status").asString();
-            if (STATUSES.contains(s)) map.put(row.get("id").asString(), s); // 마지막 행이 이긴다
+    /** 두 원장의 새 줄을 더한다. 읽다 실패하면 다 비워 다음 번에 처음부터 읽는다(반쯤 더한 채 남기지 않는다). */
+    private void refresh() throws IOException {
+        try {
+            if (!Files.exists(statusPath) && statusOffset > 0) clearStatuses();
+            long next = EventLog.readFrom(statusPath, statusOffset, this::addStatus);
+            if (next < 0) {
+                clearStatuses();
+                next = EventLog.readFrom(statusPath, 0, this::addStatus);
+            }
+            statusOffset = next;
+            next = EventLog.readFrom(reportPath, reportOffset, this::addReport);
+            if (next < 0) {
+                rows.clear();
+                reportLines = 0;
+                next = EventLog.readFrom(reportPath, 0, this::addReport);
+            }
+            reportOffset = next;
+        } catch (IOException | RuntimeException e) {
+            clearStatuses();
+            rows.clear();
+            reportOffset = 0;
+            reportLines = 0;
+            throw e;
         }
-        return map;
+    }
+
+    private void clearStatuses() {
+        statuses.clear();
+        statusOffset = 0;
+        statusLines = 0;
+    }
+
+    private void addReport(String line) {
+        reportLines++;
+        line = stripCr(line);
+        if (line.isBlank()) return;
+        JsonNode row = parse(line, reportLines, reportPath);
+        if (row == null) return;
+        JsonNode at = row.get("at");
+        String rawAt = at != null && at.isString() ? at.asString() : null;
+        rows.add(new Entry(idOf(line), instant(rawAt), rawAt, row, null));
+    }
+
+    private void addStatus(String line) {
+        statusLines++;
+        line = stripCr(line);
+        if (line.isBlank()) return;
+        JsonNode row = parse(line, statusLines, statusPath);
+        if (row == null || !row.path("id").isString() || !row.path("status").isString()) return;
+        String s = row.get("status").asString();
+        if (STATUSES.contains(s)) statuses.put(row.get("id").asString(), s); // 마지막 행이 이긴다
+    }
+
+    // 예전 readAllLines처럼 CRLF의 \r을 떼야 제보 번호(줄 해시)가 그대로다.
+    private static String stripCr(String line) {
+        return line.endsWith("\r") ? line.substring(0, line.length() - 1) : line;
     }
 
     private JsonNode parse(String line, int number, Path file) {
