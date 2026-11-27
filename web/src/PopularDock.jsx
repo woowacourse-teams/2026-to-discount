@@ -12,17 +12,31 @@ let impressed = false
 const ROLL_MS = 5500 // 2026-10-16 사용자: 넘어가는 시간을 늘려(3.5초 -> 5.5초)
 
 // 한 줄: 증감(작게), 로고, 이름(넘치면 ...), 최고 할인. 목록과 굴림 줄이 같은 칸을 쓴다(2026-10-15 사용자)
-function Cells({ row }) {
-  // 화면에 찍는 값이라 액면이다. 예전에는 정렬 천장(bestConfirmedAmount)을 써 특정메뉴 쿠폰에 끼운 4,999원이 찍혔다
-  // (2026-10-26 훌랄라: 액면 12,100원). 인기 목록은 특정메뉴 한정 쿠폰도 포함해 액면 최댓값을 낸다(사용자 2026-10-26).
-  const amount = displayBestAmount(row.brand.offers ?? [], { menu: true })
+// 화면에 찍는 값이라 액면이다. 예전에는 정렬 천장(bestConfirmedAmount)을 써 특정메뉴 쿠폰에 끼운 4,999원이 찍혔다
+// (2026-10-26 훌랄라: 액면 12,100원). 인기 목록은 특정메뉴 한정 쿠폰도 포함해 액면 최댓값을 낸다(사용자 2026-10-26).
+// 남은 오퍼가 없고 소진 오퍼만 있으면 그중 최댓값을 소진으로 보인다(#468, 사용자 2026-11-26 A안).
+export function hotAmount(offers) {
+  const all = offers ?? []
+  const live = displayBestAmount(all, { menu: true })
+  // 소진 아닌 오퍼가 하나라도 있으면(정률처럼 금액이 안 잡혀도) 소진으로 보이지 않는다
+  if (live != null || all.some((o) => !o.soldOut)) return { amount: live, soldOut: false }
+  const gone = displayBestAmount(all.filter((o) => o.soldOut).map((o) => ({ ...o, soldOut: false })), { menu: true })
+  return { amount: gone, soldOut: gone != null }
+}
+
+const won = (n) => `${n.toLocaleString('ko-KR')}원`
+
+export function Cells({ row }) {
+  const { amount, soldOut } = hotAmount(row.brand.offers)
   return (
     <>
       {/* 순위 옆에 등락, 그대로면 순위만(2026-10-16 사용자) */}
       <span className="pop-dock__change"><span className="pop-dock__rank" aria-label={`${row.rank}위`}>{row.rank}</span>{row.change !== 0 && <RankChange change={row.change} />}</span>
       <BrandLogo name={row.brand.name} size={26} />
       <span className="pop-dock__name">{row.brand.shortName ?? row.brand.name}</span>
-      <span className="pop-dock__amount">{amount == null ? '' : `${amount.toLocaleString('ko-KR')}원`}</span>
+      <span className="pop-dock__amount">{amount == null ? '' : soldOut
+        ? <><s className="offer__amount--soldout">{won(amount)}</s><span className="offer__soldout-label">소진</span></>
+        : won(amount)}</span>
     </>
   )
 }
@@ -90,7 +104,7 @@ export default function PopularDock({ brands, onPick }) {
             const on = open || n === cur
             return (
               <li key={row.brand.name} className={`pop-dock__item${on ? ' is-on' : ''}`} style={{ '--slot': open ? n + 1 : 0 }} aria-hidden={!on}>
-                <button type="button" className="pop-dock__row" tabIndex={on ? 0 : -1} aria-label={`${row.rank}위 ${row.brand.name} 카드로 가기`}
+                <button type="button" className="pop-dock__row" tabIndex={on ? 0 : -1} aria-label={`${row.rank}위 ${row.brand.name}${hotAmount(row.brand.offers).soldOut ? ' 소진' : ''} 카드로 가기`}
                   onClick={() => pick(row, open ? 'list' : 'rolling')}>
                   <Cells row={row} />
                 </button>
