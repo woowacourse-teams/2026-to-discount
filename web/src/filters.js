@@ -395,6 +395,11 @@ export function tieRepresentative(offers, include) {
   return cands.sort(compareOfferTie)[0] ?? null
 }
 
+/** 카드 금액이 회색으로 그려지는 오퍼(CouponCard stateLabel, v2 cardOf dim과 같은 조건). */
+export const grayOffer = (o) => !!(o.soldOut || beforeOpen(o) || o.qualifier === '랜덤' || o.qualifier === '특정메뉴')
+// ponytail: 오퍼가 전부 회색일 때만 회색 브랜드. 대표만 회색이고 다른 오퍼가 살아 있는 드문 경우는 안 내린다.
+export const grayBrand = (b) => b.offers.length > 0 && b.offers.every(grayOffer)
+
 export function sortBrands(brands, { sorts, includeRandom = false, include = null }) {
   const inc = include ?? includeRandom
   const reps = new Map(brands.map((b) => [b, tieRepresentative(b.offers, inc)]))
@@ -408,6 +413,10 @@ export function sortBrands(brands, { sorts, includeRandom = false, include = nul
     .map((s) => ({ key: s.key, dir: FIXED_DIR[s.key] ?? s.dir }))
 
   return [...brands].sort((a, b) => {
+    // 회색 브랜드(품절, 오픈 전, 랜덤, 특정메뉴뿐)는 어떤 기준으로도 맨 아래(2026-11-28 사용자).
+    const ag = grayBrand(a)
+    const bg = grayBrand(b)
+    if (ag !== bg) return ag ? 1 : -1
     // 확정이 없는 브랜드는 어떤 기준으로도 뒤에 둔다(API와 같은 규칙).
     const aConfirmed = bestConfirmedAmount(a.offers, inc) != null
     const bConfirmed = bestConfirmedAmount(b.offers, inc) != null
