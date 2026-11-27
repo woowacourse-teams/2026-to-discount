@@ -18,7 +18,8 @@ const ROLL_MS = 5500 // 2026-10-16 사용자: 넘어가는 시간을 늘려(3.5�
 export function hotAmount(offers) {
   const all = offers ?? []
   const live = displayBestAmount(all, { menu: true })
-  if (live != null) return { amount: live, soldOut: false }
+  // 소진 아닌 오퍼가 하나라도 있으면(정률처럼 금액이 안 잡혀도) 소진으로 보이지 않는다
+  if (live != null || all.some((o) => !o.soldOut)) return { amount: live, soldOut: false }
   const gone = displayBestAmount(all.filter((o) => o.soldOut).map((o) => ({ ...o, soldOut: false })), { menu: true })
   return { amount: gone, soldOut: gone != null }
 }

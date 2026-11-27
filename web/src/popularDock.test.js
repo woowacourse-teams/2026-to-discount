@@ -28,4 +28,6 @@ test('남은 오퍼가 있으면 그대로, 소진 표시 없음', () => {
   const h = html([{ ...o, amount: 9000, soldOut: true }, { ...o, amount: 6000 }])
   assert.match(h, /6,000원/)
   assert.doesNotMatch(h, /<s>|<s |소진/)
+  // 금액 없는 정률 오퍼가 남아 있어도 소진이 아니다
+  assert.doesNotMatch(html([{ ...o, soldOut: true }, { platform: 'baemin', amount: null, rate: 10, status: 'confirmed' }]), /소진/)
 })
