@@ -97,7 +97,7 @@
 /* 시트 앱 줄: 직사각형 앱 로고 */
 .v2-sheet__logo { display: block; width: 8.25rem; height: 1.875rem; object-fit: contain; object-position: left center; }
 /* 가격 그래프(2026-11-28 사용자): 앱별 색 곡선 겹침, 못 본 날은 점선, 여백 넉넉히, 앱과 기간은 큰 칩 캐러셀 */
-.v2-panel--history { padding: 1.25rem 0 2rem; }
+.v2-panel--history { padding: 1.25rem 1.25rem 2rem; }
 .v2-hist .hist__wrap { flex: 0 1 15rem; margin: 1.25rem 0.25rem 0; }
 .v2-hist__line { fill: none; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
 .v2-hist__line--carried { stroke-dasharray: 4 4; stroke-width: 1.8; opacity: .85; }
