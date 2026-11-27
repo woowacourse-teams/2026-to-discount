@@ -48,6 +48,27 @@ class ReportLedgerTest {
     }
 
     @Test
+    void readsOnlyNewLinesAndRestartsWhenShrunk() throws IOException {
+        ledger.append(row("2026-11-04T00:00:00Z", A));
+        assertEquals(1, ledger.recent(10).size());
+        // 서버 밖에서 덧붙인 줄과 아직 줄바꿈 없는 줄
+        Files.writeString(reports, row("2026-11-04T00:00:01Z", A) + "\n" + row("2026-11-04T00:00:02Z", A),
+                StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+        assertEquals(2, ledger.recent(10).size());
+        Files.writeString(reports, "\n", StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+        assertEquals(3, ledger.recent(10).size());
+        String id = ledger.recent(10).get(0).id();
+        ledger.setStatus(id, "applied", "ops");
+        assertEquals("applied", ledger.recent(10).get(0).status());
+        // 갈아끼우면 처음부터
+        Files.writeString(reports, row("2026-11-05T00:00:00Z", A) + "\n", StandardCharsets.UTF_8);
+        assertEquals(1, ledger.recent(10).size());
+        Files.delete(statusFile);
+        Files.delete(reports);
+        assertTrue(ledger.recent(10).isEmpty());
+    }
+
+    @Test
     void legacyRowsAreReceived() throws IOException {
         copyLegacy();
         var mine = ledger.mine(A, 50);

@@ -63,6 +63,11 @@ public class EventLog {
      *         (갈아끼웠다) {@code -1} - 읽는 쪽이 집계를 비우고 0부터 다시 읽는다
      */
     long readFrom(long offset, java.util.function.Consumer<String> sink) throws IOException {
+        return readFrom(path, offset, sink);
+    }
+
+    /** 같은 읽기를 다른 추가 전용 원장(제보 원장 등)에도 쓴다. */
+    static long readFrom(Path path, long offset, java.util.function.Consumer<String> sink) throws IOException {
         if (!Files.exists(path)) return offset;
         try (java.nio.channels.FileChannel ch = java.nio.channels.FileChannel.open(path, StandardOpenOption.READ)) {
             if (ch.size() < offset) return -1;
