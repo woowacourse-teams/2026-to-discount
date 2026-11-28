@@ -7,7 +7,9 @@ export default function HistoryPlatformChips({ value, onChange, className, chipC
     <div className={className} role="group" aria-label="앱">
       <button type="button" className={chipClassName} aria-pressed={value === null} onClick={() => onChange(null)}>전체</button>
       {PLATFORMS.map(({ key }) => (
-        <PlatformBadge key={key} platformKey={key} active={value === key} onClick={() => onChange(key)} />
+        <span key={key} data-k={key} style={{ display: 'contents' }}>
+          <PlatformBadge platformKey={key} active={value === key} onClick={() => onChange(key)} />
+        </span>
       ))}
     </div>
   )

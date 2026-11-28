@@ -14,6 +14,22 @@ const TWO_WEEKS_MS = 13 * 864e5
 const md = (iso) => `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}`
 const num = (n) => n.toLocaleString('ko-KR')
 const colorOf = (k) => APP_COLOR[k] ?? 'var(--sale)'
+const MUTE = '#d1d6db'
+
+// 묶인 버튼 줄에서 고른 칸 밑으로 판 하나가 미끄러져 간다(2026-11-28 사용자). 고른 칸 자리를 재어 --x, --w로 넘긴다.
+function useSlide(dep) {
+  const ref = useRef(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    const a = el?.querySelector('[aria-pressed="true"]')
+    if (!a) return
+    el.style.setProperty('--x', `${a.offsetLeft}px`)
+    el.style.setProperty('--w', `${a.offsetWidth}px`)
+    el.style.setProperty('--h', `${a.offsetHeight}px`)
+    el.style.setProperty('--y', `${a.offsetTop}px`)
+  })
+  return ref
+}
 
 // 받은 이력은 이 브라우저 탭 안에서 브랜드별로 들고 있다. 카드를 누르는 순간(또는 팝업이 뜨는 순간) 미리 받아 두면 탭을 열 때 바로 그린다.
 // 실패(null)는 들고 있지 않아 다음에 다시 받는다.
@@ -32,6 +48,11 @@ export function prefetchHistory(brand, range = '1m') {
 export default function PriceChart({ brand }) {
   const [range, setRange] = useState('1m')
   const [platform, setPlatform] = useState(null) // null = 전체
+  // 전체에서 색을 넣을 앱: 가리킨 앱 > 누른 앱 > 지금 할인이 가장 큰 앱. 나머지는 회색(2026-11-28 사용자).
+  const [hover, setHover] = useState(null)
+  const [pin, setPin] = useState(null)
+  const rangeRef = useSlide()
+  const platRef = useSlide()
   const [data, setData] = useState(null)
   const svgRef = useRef(null)
   const wrapRef = useRef(null)
@@ -69,15 +90,24 @@ export default function PriceChart({ brand }) {
   const pts = platform ? series[0].points : clip(best)
   const { w: cw, h: ch } = size
   const m = overlayModel(series, cw, ch)
+  const lastY = (l) => [...l.xy].reverse().find((p) => p.y != null)?.y ?? Infinity // y가 작을수록 큰 금액
+  const lead = m?.lines.reduce((a, l) => (a == null || lastY(l) < lastY(a) ? l : a), null)?.key
+  const hl = platform ?? hover ?? pin ?? lead
+  const order = m ? [...m.lines.filter((l) => l.key !== hl), ...m.lines.filter((l) => l.key === hl)] : []
   const ranges = (
-    <div className="v2-hist__ranges" role="group" aria-label="기간">
+    <div className="v2-hist__ranges v2-seg" role="group" aria-label="기간" ref={rangeRef}>
       {RANGES.map(([k, label]) => (
         <button key={k} type="button" className="v2-hist__range" aria-pressed={range === k}
           onClick={() => { if (k !== range) track('history_range_change', { brand, from: range, to: k }); setSel(null); setRange(k) }}>{label}</button>
       ))}
     </div>
   )
-  const plats = !byPlatform ? null : <HistoryPlatformChips value={platform} onChange={(k) => { setSel(null); setPlatform(k) }} className="v2-hist__ranges v2-hist__plats" chipClassName="v2-hist__range" />
+  const plats = !byPlatform ? null : (
+    <div ref={platRef} className="v2-seg v2-seg--plats"
+      onMouseOver={(e) => { const k = e.target.closest('[data-k]')?.dataset.k; if (k) setHover(k) }} onMouseLeave={() => setHover(null)}>
+      <HistoryPlatformChips value={platform} onChange={(k) => { setSel(null); setPlatform(k) }} className="v2-hist__ranges v2-hist__plats" chipClassName="v2-hist__range" />
+    </div>
+  )
   if (!m || pts.filter((p) => p.amount != null).length < 2) {
     if (platform) return <figure className="hist v2-hist">{plats}{ranges}{data && <p className="hist__empty">이 앱의 할인 기록이 아직 없어요</p>}</figure>
     return range === '1m' ? null : <figure className="hist v2-hist">{ranges}</figure>
@@ -116,9 +146,9 @@ export default function PriceChart({ brand }) {
           <line x1={0} y1={m.yLo} x2={cw} y2={m.yLo} className="hist__grid" />
           <text x={0} y={m.yHi - 5} className="hist__ytick">{num(m.hi)}</text>
           <text x={0} y={m.yLo - 5} className="hist__ytick">{num(m.lo)}</text>
-          {m.lines.map((l) => l.area.map((d, i) => <path key={`a${l.key}${i}`} d={d} fill={`url(#${gid}-${l.key})`} />))}
-          {m.lines.map((l) => (
-            <g key={l.key} style={{ stroke: colorOf(l.key) }}>
+          {order.filter((l) => l.key === hl).map((l) => l.area.map((d, i) => <path key={`a${l.key}${i}`} d={d} fill={`url(#${gid}-${l.key})`} />))}
+          {order.map((l) => (
+            <g key={l.key} style={{ stroke: l.key === hl ? colorOf(l.key) : MUTE, transition: 'stroke .2s' }}>
               {l.solid.map((d, i) => <path key={`s${i}`} d={d} className="v2-hist__line" />)}
               {l.carried.map((d, i) => <path key={`c${i}`} d={d} className="v2-hist__line v2-hist__line--carried" />)}
             </g>
@@ -154,7 +184,12 @@ export default function PriceChart({ brand }) {
         <ul className="v2-hist__legend">
           {m.lines.map((l) => {
             const v = sp ? valueOn(l.key, sp.date) : null
-            return <li key={l.key} style={{ '--c': colorOf(l.key) }}>{SHORT_LABEL[l.key]}{sp && <b>{v == null ? '없음' : won(v)}</b>}</li>
+            return (
+              <li key={l.key} style={{ '--c': l.key === hl ? colorOf(l.key) : MUTE }} aria-current={l.key === hl || undefined}>
+                <button type="button" onMouseEnter={() => setHover(l.key)} onMouseLeave={() => setHover(null)}
+                  onClick={() => setPin((o) => (o === l.key ? null : l.key))}>{SHORT_LABEL[l.key]}{sp && <b>{v == null ? '없음' : won(v)}</b>}</button>
+              </li>
+            )
           })}
         </ul>
       )}
