@@ -62,17 +62,37 @@
 .sheet .v2-panel--offers::-webkit-scrollbar { display: none; }
 /* 할인 기록 칸: 그래프는 칸 너비를 채우고 높이는 최대 14rem까지(PriceChart.jsx가 칸 크기대로 그린다). */
 .v2-panel--history { position: relative; min-height: 16rem; padding: 0.5rem 0 1.5rem; display: flex; flex-direction: column; }
-.v2-hist { margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.v2-hist .hist__head { display: none; }
-.v2-hist .hist__wrap { flex: 0 1 14rem; min-height: 0; } /* 칸을 다 채우지 않고 높이 최대 14rem(224px)까지 */
-.v2-hist .hist__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.v2-hist .hist__ytick { font-size: 0.6875rem; text-anchor: start; dominant-baseline: auto; } /* 금액 숫자는 눈금선 위 왼쪽 끝에 얹는다(칸이 꽉 차서 왼쪽 밖 자리가 없다) */
-.v2-hist .hist__xtick { font-size: 0.75rem; }
-/* 기간 버튼 줄: 그래프 아래 가로로 밀어 넘기는 줄(스크롤바 없음) */
-.v2-hist__ranges { display: flex; gap: 0.5rem; margin-top: 0.75rem; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; -ms-overflow-style: none; }
-.v2-hist__ranges::-webkit-scrollbar { display: none; }
-.v2-hist__range { flex: none; scroll-snap-align: start; font: inherit; font-size: 0.8125rem; font-weight: 600; line-height: 1.35; padding: 0.3125rem 0.9375rem; border: 0; border-radius: 999px; background: #f2f4f6; color: #4e5968; cursor: pointer; }
-.v2-hist__range[aria-pressed="true"] { background: var(--sale); color: #fff; }
+/* 할인 기록(Recharts). 판 없이 시트 안에 붙는다. 앱 줄, 기간 줄은 묶인 판 위에서 고른 칸 표시만 미끄러진다(2026-11-28 사용자). */
+.v2-hist { margin: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0.75rem; padding: 0.25rem 0 1rem; }
+.v2-seg { position: relative; display: flex; gap: 0.25rem; padding: 0.25rem; border-radius: 1rem; background: #f2f4f6; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; flex: none; }
+.v2-seg::-webkit-scrollbar { display: none; }
+.v2-seg::before { content: ''; position: absolute; left: var(--x, 0); top: var(--y, 0.25rem); width: var(--w, 0); height: var(--h, 0); border-radius: 0.75rem; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .1); transition: left .25s ease, width .25s ease; }
+.v2-seg button { position: relative; z-index: 1; }
+.v2-seg__row { display: flex; gap: 0.25rem; }
+.v2-seg__btn { flex: 1 0 auto; font: inherit; font-size: 0.9375rem; font-weight: 600; height: 2.5rem; min-width: 4rem; padding: 0 1rem; border: 0; border-radius: 0.75rem; background: transparent; color: #8b95a1; cursor: pointer; transition: color .2s; }
+.v2-seg__btn[aria-pressed="true"] { color: #191f28; }
+.v2-seg--plats::before { z-index: 2; background: transparent; box-shadow: 0 0 0 2px var(--sale); pointer-events: none; }
+.v2-seg--plats .v2-seg__btn { height: 3.25rem; }
+.v2-seg--plats .v2-seg__btn[aria-pressed="true"] { color: var(--sale); }
+.v2-seg--plats .platform-badge { flex: none; width: 3.25rem; height: 3.25rem; border-radius: 0.75rem; box-shadow: none; transition: filter .2s, opacity .2s; }
+.v2-seg--plats .platform-badge .pi, .v2-seg--plats .platform-badge img { inset: 0; padding: 0; border-radius: 0.75rem; }
+.v2-seg--plats .platform-badge[aria-pressed="false"] { filter: grayscale(1); opacity: .45; }
+.v2-seg--plats .platform-badge:hover, .v2-seg--plats .platform-badge:focus-visible { filter: none; opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .v2-seg::before { transition: none; } }
+.v2-hist__now { display: flex; align-items: baseline; gap: 0.5rem; margin: 0.5rem 0.25rem 0; font-size: 0.875rem; color: #6b7684; }
+.v2-hist__now b { font-size: 1.375rem; font-weight: 800; color: var(--c); transition: color .2s; }
+.v2-hist__chart { flex: 0 0 15rem; min-height: 0; margin: 0 -0.25rem; }
+.v2-hist__chart .recharts-surface { overflow: visible; }
+.v2-hist__tip { display: grid; gap: 0.25rem; padding: 0.5rem 0.75rem; border-radius: 0.75rem; background: rgba(25, 31, 40, .92); color: #fff; font-size: 0.8125rem; box-shadow: 0 4px 12px rgba(0, 0, 0, .18); }
+.v2-hist__tip span { color: #b0b8c1; }
+.v2-hist__tip b { display: flex; align-items: center; gap: 0.375rem; font-weight: 700; }
+.v2-hist__tip b::before { content: ''; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--c); }
+.v2-hist__tip em { font-style: normal; font-weight: 400; color: #b0b8c1; }
+.v2-hist__legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 0; padding: 0 0.25rem; list-style: none; font-size: 0.8125rem; color: #8b95a1; }
+.v2-hist__legend li { display: inline-flex; align-items: center; gap: 0.375rem; }
+.v2-hist__legend li::before { content: ''; width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--c); transition: background .2s; }
+.v2-hist__legend li[aria-current] { color: #191f28; font-weight: 700; }
+.v2-hist__legend button { all: unset; cursor: pointer; }
 .v2-sheet__head { display: flex; align-items: center; gap: 1rem; margin: 0.5rem 2.5rem 1.125rem 0; }
 .v2-sheet__head .brand-logo { width: 3.5rem; height: 3.5rem; border-radius: 0.875rem; }
 .v2-sheet__name { margin: 0; font-size: 1.5rem; font-weight: 700; line-height: 1.25; }
@@ -98,37 +118,6 @@
 .v2-sheet__logo { display: block; width: 8.25rem; height: 1.875rem; object-fit: contain; object-position: left center; }
 /* 가격 그래프(2026-11-28 사용자): 앱별 색 곡선 겹침, 못 본 날은 점선, 여백 넉넉히, 앱과 기간은 큰 칩 캐러셀 */
 .v2-panel--history { padding: 1.25rem 1.25rem 2rem; }
-.v2-hist .hist__wrap { flex: 0 1 15rem; margin: 1.25rem 0.25rem 0; }
-.v2-hist__line { fill: none; stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round; }
-.v2-hist__line--carried { stroke-dasharray: 4 4; stroke-width: 1.8; opacity: .85; }
-.v2-hist__plats { margin-top: 0; gap: 0.75rem; }
-.v2-hist__plats + .v2-hist__ranges { margin-top: 0.75rem; }
-.v2-hist__plats .v2-hist__range { height: 3.25rem; min-width: 4.25rem; padding: 0 1.25rem; font-size: 1rem; border-radius: 0.875rem; }
-.v2-hist__plats .platform-badge { flex: none; scroll-snap-align: start; width: 3.25rem; height: 3.25rem; border-radius: 0.875rem; }
-.v2-hist__plats .platform-badge .pi, .v2-hist__plats .platform-badge img { inset: 0.25rem; padding: 0; } /* 원본 90px 아이콘이 44px(2배 화면 원본)로 선다 */
-.v2-hist__plats + .v2-hist__ranges .v2-hist__range { height: 2.5rem; min-width: 4.5rem; font-size: 0.9375rem; border-radius: 0.75rem; }
-/* 묶인 줄 + 미끄러지는 표시(2026-11-28 사용자): 한 판 위에 칸들이 붙고, 고른 칸 표시만 옮겨 간다. 안 고른 앱 로고는 회색, 가리키면 색. */
-.v2-seg { position: relative; display: flex; gap: 0.25rem; padding: 0.25rem; border-radius: 1rem; background: #f2f4f6; overflow-x: auto; scrollbar-width: none; }
-.v2-seg::-webkit-scrollbar { display: none; }
-.v2-seg::before { content: ''; position: absolute; left: var(--x, 0); top: var(--y, 0.25rem); width: var(--w, 0); height: var(--h, 0); border-radius: 0.75rem; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .12); transition: left .25s ease, width .25s ease; }
-.v2-seg button { position: relative; z-index: 1; }
-.v2-seg--plats::before { z-index: 2; background: transparent; box-shadow: 0 0 0 2px var(--sale); pointer-events: none; }
-.v2-seg--plats .v2-hist__range[aria-pressed="true"] { color: var(--sale); }
-.v2-seg .v2-hist__range, .v2-seg .v2-hist__range[aria-pressed="true"] { background: transparent; color: #8b95a1; }
-.v2-seg .v2-hist__range[aria-pressed="true"] { color: #191f28; }
-.v2-seg--plats { margin-bottom: 0.75rem; }
-.v2-seg--plats .v2-hist__plats { overflow: visible; margin: 0; gap: 0.25rem; flex: none; }
-.v2-seg--plats .platform-badge { box-shadow: none; transition: filter .2s, opacity .2s; }
-.v2-seg--plats .platform-badge[aria-pressed="false"] { filter: grayscale(1); opacity: .45; }
-.v2-seg--plats .platform-badge:hover, .v2-seg--plats .platform-badge:focus-visible { filter: none; opacity: 1; }
-.v2-hist__plats + .v2-hist__ranges.v2-seg, .v2-seg--plats + .v2-seg { margin-top: 0; }
-@media (prefers-reduced-motion: reduce) { .v2-seg::before { transition: none; } }
-.v2-hist__legend button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; }
-.v2-hist__legend li[aria-current] { color: #191f28; font-weight: 700; }
-.v2-hist__legend {display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 1rem 0 0; padding: 0; list-style: none; font-size: 0.8125rem; color: #6b7684; }
-.v2-hist__legend li { display: inline-flex; align-items: center; gap: 0.375rem; }
-.v2-hist__legend li::before { content: ''; width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--c); }
-.v2-hist__legend b { color: #191f28; font-weight: 700; }
 /* 터치 때 브라우저가 카드 전체에 깔던 눌림 색을 끈다(공유 버튼을 눌러도 카드 전체가 반짝이던 것). */
 .v2-card, .v2-card * { -webkit-tap-highlight-color: transparent; }
 /* 숨기는 중인 카드: 운영 카드와 같은 사라지는 효과(hide-ask.css의 brand-card-leave). */

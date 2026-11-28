@@ -345,6 +345,7 @@
   align-items: center;
   gap: .25rem;
   overflow-x: auto;
+  overflow-y: hidden; /* x만 auto로 두면 y도 auto가 돼 오른쪽에 세로 스크롤이 떴다(2026-11-28 사용자) */
   scrollbar-width: none;
 }
 
